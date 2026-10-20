@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
-import WdioReporter, { type RunnerStats, type AfterCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
+import WdioReporter, { type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import { isSessionEndedError } from 'webdriver'
 import type { Options } from '@wdio/types'
@@ -83,6 +83,11 @@ export default class VideoReporter extends WdioReporter {
      * the screenshot of the last frame, for a frame whose session ended first
      */
     #lastScreenshot: Promise<string | undefined> = Promise.resolve(undefined)
+    /**
+     * the sessions that `deleteSession` ended (also in `reloadSession()`): a classic
+     * screenshot in flight then fails with a transport error (`UND_ERR_CLOSED`)
+     */
+    #endedSessions = new Set<string | undefined>()
     /**
      * the top-level browsing context (tab or window) of each context, for frames
      */
@@ -208,7 +213,10 @@ export default class VideoReporter extends WdioReporter {
         }
     }
 
-    onBeforeCommand () {
+    onBeforeCommand (commandArgs?: BeforeCommandArgs) {
+        if (commandArgs?.command === 'deleteSession' && browser) {
+            this.#endedSessions.add(getScreenshotBrowser(browser).sessionId)
+        }
         if (!this.#usingAllure || !this.testName || !this.#record) {
             return
         }
@@ -632,6 +640,7 @@ export default class VideoReporter extends WdioReporter {
          * has a time limit, so a lost screenshot cannot stop the video.
          */
         const instance = getScreenshotBrowser(browser)
+        const sessionId = instance.sessionId
         const previous = this.#lastScreenshot
         const capture: Promise<string> = (this.#mainContextReady
             ? this.#bidiScreenshot(instance, this.#frameContext, frame)
@@ -641,7 +650,7 @@ export default class VideoReporter extends WdioReporter {
              * the session ended first (end of the run, `reloadSession()`): show the page
              * of the last frame, not the "not available" image
              */
-            if (!isSessionEndedError(error)) {
+            if (!isSessionEndedError(error) && !this.#endedSessions.has(sessionId)) {
                 throw error
             }
             return previous.then((data) => {

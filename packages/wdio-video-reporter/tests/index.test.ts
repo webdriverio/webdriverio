@@ -709,6 +709,36 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('session end', () => {
+        it('repeats the last frame when a classic screenshot fails because deleteSession ended the session', async () => {
+            vi.mocked(fs.writeFileSync).mockClear()
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            vi.mocked(browser.takeScreenshot).mockResolvedValueOnce('bGFzdA==')
+            reporter.addFrame()
+            let fail!: (error: Error) => void
+            vi.mocked(browser.takeScreenshot).mockReturnValueOnce(new Promise((_, reject) => { fail = reject }) as any)
+            reporter.addFrame()
+            // geckodriver closes the connection of the screenshot in flight
+            reporter.onBeforeCommand({ command: 'deleteSession', method: 'DELETE', endpoint: '/session/:sessionId', sessionId: '1234', body: {} })
+            fail(new Error('WebDriverError: Request failed with error code UND_ERR_CLOSED when running "screenshot" with method "GET"'))
+            await Promise.all(reporter.screenshotPromises)
+            expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0001.png'), 'bGFzdA==', 'base64')
+        })
+
+        it('keeps the "not available" frame for a failed screenshot while the session runs', async () => {
+            vi.mocked(fs.writeFileSync).mockClear()
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            vi.mocked(browser.takeScreenshot).mockResolvedValueOnce('bGFzdA==')
+            reporter.addFrame()
+            vi.mocked(browser.takeScreenshot).mockRejectedValueOnce(new Error('UND_ERR_CLOSED'))
+            reporter.addFrame()
+            await Promise.all(reporter.screenshotPromises)
+            expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0001.png'), notAvailableImage, 'base64')
+        })
+    })
+
     describe('BiDi commands', () => {
         const listeners: Record<string, (payload: unknown) => void> = {}
         beforeEach(() => {
