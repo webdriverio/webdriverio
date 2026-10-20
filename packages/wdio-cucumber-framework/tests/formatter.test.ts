@@ -408,6 +408,8 @@ describe('CucumberFormatter', () => {
             { id: '99', pattern: { source: '^I do', type: 'REGULAR_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 7 } } }
         ] as StepDefinition[]
         const DEFINITIONS_TEXT = 'Multiple step definitions match:\n  I do something - features/steps.js:3\n  /^I do/ - features/steps.js:7'
+        // the text before the location lines of the feature file
+        const stackText = (stack: string) => stack.split('\n\tat ')[0]
 
         function reportAmbiguity (scenarioLevelReporter: boolean, message?: string, failAmbiguousDefinitions = true, stepDefinitions: StepDefinition[] = []) {
             const eventBroadcaster = new EventEmitter()
@@ -472,7 +474,7 @@ describe('CucumberFormatter', () => {
             const message = 'Multiple step definitions match:\n  first.js:2\n  second.js:3'
             const { payload } = reportAmbiguity(false, message)
             expect(payload.error.message).toBe(message.split('\n')[0])
-            expect(payload.error.stack).toBe(message)
+            expect(stackText(payload.error.stack)).toBe(message)
         })
 
         it('preserves the skipped-step policy when failAmbiguousDefinitions is false', () => {
@@ -484,7 +486,16 @@ describe('CucumberFormatter', () => {
 
         it('lists the matching definitions in the error (failAmbiguousDefinitions)', () => {
             const { payload } = reportAmbiguity(false, undefined, true, definitions)
-            expect(payload.error).toMatchObject({ message: 'Multiple step definitions match:', stack: DEFINITIONS_TEXT })
+            expect(payload.error.message).toBe('Multiple step definitions match:')
+            expect(stackText(payload.error.stack)).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('gives the location of the step in the feature file', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, definitions)
+            expect(payload.error.stack).toBe(`${DEFINITIONS_TEXT}\n` +
+                `\tat Feature(${path.resolve(gherkinDocument.uri!)}):1:1\n` +
+                '\tat Scenario(Get size of an element):12:3\n' +
+                '\tat Step(should the element \'.header-logged-out a\' be 32px wide and 35px high):14:5\n')
         })
 
         it('lists the matching definitions on a skipped ambiguous step', () => {
@@ -495,18 +506,45 @@ describe('CucumberFormatter', () => {
 
         it('keeps a message that Cucumber sends', () => {
             const { payload } = reportAmbiguity(false, 'from cucumber', true, definitions)
-            expect(payload.error).toMatchObject({ message: 'from cucumber', stack: 'from cucumber' })
+            expect(payload.error.message).toBe('from cucumber')
+            expect(stackText(payload.error.stack)).toBe('from cucumber')
         })
 
         it('skips a definition id without a stepDefinition message', () => {
             const { payload } = reportAmbiguity(false, undefined, true, [definitions[1]])
-            expect(payload.error.stack).toBe('Multiple step definitions match:\n  /^I do/ - features/steps.js:7')
+            expect(stackText(payload.error.stack)).toBe('Multiple step definitions match:\n  /^I do/ - features/steps.js:7')
+        })
+
+        it('gives the location of an undefined step in a rule', () => {
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: false,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                },
+            } as any)
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: { ...testStepFinished, testStepResult: { status: TestStepResultStatus.UNDEFINED, duration: { seconds: 0, nanos: 0 } } }
+            })
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')!
+            expect(payload.error.stack).toContain('\tat Scenario(Get size of an element):12:3\n')
         })
 
         it('lists the definitions for a scenario-level test', () => {
             const { payload } = reportAmbiguity(true, undefined, true, definitions)
             expect(payload.type).toBe('scenario')
-            expect(payload.error.stack).toBe(DEFINITIONS_TEXT)
+            expect(stackText(payload.error.stack)).toBe(DEFINITIONS_TEXT)
         })
     })
 

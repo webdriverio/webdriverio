@@ -232,17 +232,7 @@ export default class CucumberFormatter extends Formatter {
                     'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
                 )
 
-                err.stack = `${err.message}\n\tat Feature(${uri}):1:1\n`
-                const featChildren = feature.children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])
-                if (featChildren) {
-                    err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
-
-                    const featStep = featChildren.scenario?.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
-                    if (featStep) {
-                        err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
-                    }
-                }
-
+                err.stack = `${err.message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
                 error = err
             }
         } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
@@ -260,7 +250,7 @@ export default class CucumberFormatter extends Formatter {
                 'Make the step definitions unique by removing duplicate or overlapping expressions.'
             )
             error = new Error(message.split('\n')[0])
-            error.stack = message
+            error.stack = `${message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
         }
 
         const common = {
@@ -295,6 +285,24 @@ export default class CucumberFormatter extends Formatter {
             payload.title += titleSuffix
         }
         this.emit('test:' + state, payload)
+    }
+
+    /**
+     * stack lines with the location of the scenario and the step in the feature file
+     */
+    private getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep) {
+        let stack = `\tat Feature(${uri}):1:1\n`
+        const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child])
+        const featScenario = children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
+        if (featScenario) {
+            stack += `\tat Scenario(${featScenario.name}):${featScenario.location?.line}:${featScenario.location?.column}\n`
+
+            const featStep = featScenario.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
+            if (featStep) {
+                stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
+            }
+        }
+        return stack
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
