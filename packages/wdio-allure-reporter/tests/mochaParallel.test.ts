@@ -326,8 +326,8 @@ describe('Mocha parallel mode', () => {
             expect(stepNames(befores.find((f) => f.name.includes('before each'))!.steps)).toEqual(['a1-before each'])
             expect(stepNames(afters.find((f) => f.name.includes('after each'))!.steps)).toEqual(['a1-after each'])
             expect(stepNames(afters.find((f) => f.name.includes('after all'))!.steps)).toEqual(['a1-after all'])
-            const others = JSON.stringify(own)
-            expect(others).not.toContain('b1-')
+            // names only: the random uuids of the JSON can contain `b1-`
+            expect(stepNames([...befores, ...afters]).filter((name) => name.includes('b1-'))).toEqual([])
         })
 
         it('reports skipped tests, with and without hooks', () => {
