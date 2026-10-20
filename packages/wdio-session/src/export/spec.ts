@@ -71,7 +71,10 @@ export function getterName (selector: string) {
     if (!camel) {
         return 'element'
     }
-    return /^\d/.test(camel) ? `el${camel}` : camel
+    /**
+     * a class cannot have a getter named `constructor`
+     */
+    return /^\d/.test(camel) || camel === 'constructor' ? `el${camel[0].toUpperCase()}${camel.slice(1)}` : camel
 }
 
 export function relativizeUrl (code: string, baseUrl?: string) {

@@ -87,6 +87,16 @@ describe('generateSpec', () => {
         expect(page).toContain('get addToCart2 ()')
     })
 
+    it('never names a getter constructor, which a class cannot have', () => {
+        const files = generateSpec([
+            step({ code: "await $('android=new UiSelector().text(\"Constructor\")').click()\nawait $('aria/constructor').click()", path: '/cart.html' })
+        ], { title: 'cart', pageObjects: true })
+        const page = files[1].contents
+        expect(page).not.toContain('get constructor ')
+        expect(page).toContain('get elConstructor ()')
+        expect(page).toContain('get elConstructor2 ()')
+    })
+
     it('fails when a ref() call survived', () => {
         expect(() => generateSpec([step({ n: 4, kind: 'exec', code: "await ref('e5').click()" })], { title: 'x' }))
             .toThrow('Step 4 still contains ref().')
