@@ -309,4 +309,49 @@ describe('BrowserFramework browser errors', () => {
 
         expect(await result).toBe(0)
     })
+
+    it('ignores a state check that is still running when the session ends', async () => {
+        let rejectState!: (err: Error) => void
+        browser.execute.mockReturnValue(new Promise((_, reject) => {
+            rejectState = reject
+        }))
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            expect(browser.execute).toHaveBeenCalledTimes(1)
+            await finishSpec(0)
+            expect(await result).toBe(0)
+
+            rejectState(Object.assign(new Error('WebDriver Bidi command "script.callFunction" with id 15 got no result: the connection was closed'), { name: 'session ended' }))
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+
+            expect(unhandled).not.toHaveBeenCalled()
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('still surfaces a failed state check while the spec runs', async () => {
+        browser.execute.mockRejectedValueOnce(new Error('browser crashed')).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(expect.objectContaining({ message: 'browser crashed' }), expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
 })
