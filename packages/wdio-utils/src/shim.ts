@@ -812,12 +812,11 @@ export async function executeAsync(
          * `it(title, fn)` before the Jasmine global exists), so it must not
          * disable the timer either; the framework default stays as the fallback.
          */
-        const frameworkTimeout = (): number => (
-            // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? (timeout
-                ? timeout
-                : globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? 20000)
-        )
+        const frameworkTimeout = (): number => {
+            const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
+                .jasmine?.DEFAULT_TIMEOUT_INTERVAL
+            return runnable?._timeout ?? (timeout ? timeout : jasmineDefault ?? 20000)
+        }
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
          */
