@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { TEST_SCENARIO_STATS, TEST_SCENARIO_STATS_ERROR } from './__mocks__/mocks.js'
-import { getFailedMessage, containsSteps, getStepStatus, keywordStartsWith } from '../src/utils.js'
+import { getFailedMessage, containsSteps, getStepStatus, isKnownLanguage, keywordStartsWith } from '../src/utils.js'
 
 describe('utils', () => {
     describe('getFailedMessage', () => {
@@ -82,6 +82,16 @@ describe('utils', () => {
         it('knows the But keyword', () => {
             expect(keywordStartsWith('But I have no milk', 'en')).toEqual('But')
         })
+    })
+})
+
+describe('isKnownLanguage', () => {
+    it('knows the Gherkin languages only', () => {
+        expect(isKnownLanguage('fr')).toBe(true)
+        expect(isKnownLanguage('en')).toBe(true)
+        expect(isKnownLanguage('en-US')).toBe(false)
+        // not a property of the prototype
+        expect(isKnownLanguage('constructor')).toBe(false)
     })
 })
 

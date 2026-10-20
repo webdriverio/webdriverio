@@ -22,6 +22,13 @@ export function escapeRegExp(text: string): string {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/**
+ * `true` for a Gherkin language code, for example `fr` (not `en-US`)
+ */
+export function isKnownLanguage(language: string): boolean {
+    return Object.prototype.hasOwnProperty.call(dialects, language)
+}
+
 export function getStepKeywords(language: string): string[] {
     let keywords = stepKeywords.get(language)
     if (!keywords) {

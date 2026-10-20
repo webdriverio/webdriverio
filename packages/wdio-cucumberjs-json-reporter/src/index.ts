@@ -18,7 +18,7 @@ import {
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
-import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus } from './utils.js'
+import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, isKnownLanguage } from './utils.js'
 import { withFileLock, writeFileAtomic } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -65,6 +65,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (!this.options.language) {
             this.options.language = DEFAULT_LANGUAGE
             log.info(`The 'language' was not set, it has been set to the default '${DEFAULT_LANGUAGE}'`)
+        } else {
+            this.options.language = this.#knownLanguage(this.options.language, 'the "language" option')
         }
         if (this.options.reportFilePerRetry === undefined) {
             this.options.reportFilePerRetry = DEFAULT_REPORT_FILE_PER_RETRY
@@ -78,6 +80,21 @@ export class CucumberJsJsonReporter extends WDIOReporter {
 
         this.registerListeners()
         this.metadataClassObject = new Metadata()
+    }
+
+    /**
+     * The language, or the default language for an unknown one: the step keywords of an
+     * unknown language cannot be found
+     */
+    #knownLanguage (language: string, source: string) {
+        if (isKnownLanguage(language)) {
+            return language
+        }
+        const message = `Unknown language "${language}" in ${source}: the reporter uses "${DEFAULT_LANGUAGE}". ` +
+            'See https://cucumber.io/docs/gherkin/reference/#spoken-languages for the language codes.'
+        log.warn(message)
+        console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
+        return DEFAULT_LANGUAGE
     }
 
     /**
@@ -130,7 +147,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const cucumberOpts = (runnerData.config as { cucumberOpts?: { scenarioLevelReporter?: boolean, language?: string } } | undefined)?.cucumberOpts
         // the default language of the feature files without a `# language:` header
         if (!this.#languageOption && cucumberOpts?.language) {
-            this.options.language = cucumberOpts.language
+            this.options.language = this.#knownLanguage(cucumberOpts.language, '"cucumberOpts.language"')
         }
         if (cucumberOpts?.scenarioLevelReporter) {
             this.#noSteps = true

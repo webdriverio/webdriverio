@@ -33,6 +33,7 @@ const jsonFolder = path.join(logFolderPath, 'ut-folder')
 vi.mock('../src/utils', async (importOriginal) => ({
     escapeRegExp: (await importOriginal<typeof UtilsModule>()).escapeRegExp,
     getStepStatus: (await importOriginal<typeof UtilsModule>()).getStepStatus,
+    isKnownLanguage: (await importOriginal<typeof UtilsModule>()).isKnownLanguage,
     containsSteps: vi.fn(),
     getFailedMessage: vi.fn(),
     keywordStartsWith: vi.fn()
@@ -730,12 +731,34 @@ describe('reporter', () => {
         })
     })
 
+    describe('unknown language', () => {
+        it('uses "en" with a warning for an unknown language option', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'en-US', logFile })
+            expect(reporter.options.language).toBe('en')
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('"en-US"'))
+            warn.mockRestore()
+        })
+
+        it('uses "en" with a warning for an unknown cucumberOpts.language', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, logFile })
+            // no browser in a unit test: metadata is not part of this check
+            reporter.instanceMetadata = {}
+            reporter.onRunnerStart({ config: { cucumberOpts: { language: 'xx' } }, capabilities: {} } as unknown as RunnerStatsExtended)
+            expect(reporter.options.language).toBe('en')
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('"xx"'))
+            warn.mockRestore()
+        })
+    })
+
     describe('feature file that cannot be read', () => {
         it('logs a warning: else all lines are null with no reason', async () => {
             const logger = (await import('@wdio/logger')).default
-            const featureFile = path.join(logFolderPath, 'language.feature')
-            fs.writeFileSync(featureFile, 'Feature: F\n  Scenario: S\n    Given a step\n')
-            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'xx', logFile })
+            const featureFile = path.join(logFolderPath, 'not-gherkin.feature')
+            // not Gherkin: the parser fails
+            fs.writeFileSync(featureFile, 'This is not a feature file\n')
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'en', logFile })
             reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
             expect(vi.mocked(logger('@wdio/cucumberjs-json-reporter').warn)).toHaveBeenCalledWith(expect.stringContaining(featureFile))
         })
