@@ -3,6 +3,11 @@ import { describe, it, expect } from 'vitest'
 import { attachSelectors, nativeCandidates } from '../src/selectors.js'
 
 describe('native selectors', () => {
+    it('escapes only the quote in a package-less Android resource id', () => {
+        const [candidate] = nativeCandidates({ platform: 'android', tag: 'android.widget.Button', resourceId: 'say "hi" a\\b' })
+        expect(candidate.selector).toBe('android=new UiSelector().resourceId("say \\"hi\\" a\\b")')
+    })
+
     it('orders Android candidates with the accessibility id first', () => {
         const candidates = nativeCandidates({
             platform: 'android',

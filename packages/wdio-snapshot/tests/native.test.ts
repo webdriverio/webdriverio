@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest'
 
 import { parseNativeSource, scopeNativeTree } from '../src/native.js'
 import { formatSnapshot } from '../src/format.js'
-import { attachSelectors } from '../src/selectors.js'
+import { attachSelectors, uiSelectorLiteral } from '../src/selectors.js'
 
 const fixture = (name: string) => fs.readFileSync(path.join(__dirname, '__fixtures__', 'pagesource', name), 'utf-8')
 
@@ -173,6 +173,46 @@ describe('native snapshots', () => {
         const start = performance.now()
         expect(() => scope(adversarial, 'id=save')).toThrow()
         expect(performance.now() - start).toBeLessThan(50)
+    })
+
+    it('prefers an exact resource id over a suffix match for a legacy id= scope', () => {
+        const { tree, located } = parseNativeSource(`<hierarchy>
+  <android.widget.EditText resource-id="text_input" text="Bare" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.EditText resource-id="com.example:id/text_input" text="Packaged" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        const output = formatSnapshot(scopeNativeTree(tree, located, 'id=text_input'))
+        expect(output).toContain('Bare')
+        expect(output).not.toContain('Packaged')
+    })
+
+    it('decodes escaped characters in a UiSelector resource id', () => {
+        const scope = (id: string) => scopeNativeTree({ role: 'document' }, [{
+            node: { role: 'button', ref: 'e1' },
+            candidates: [`android=new UiSelector().resourceId(${uiSelectorLiteral(id)})`],
+            matches: [],
+            fallback: ''
+        }], `id=${id}`).children
+        expect(scope('say "hi" \\ there')).toHaveLength(1)
+        expect(scope('a\\"b')).toHaveLength(1)
+        const start = performance.now()
+        expect(() => scopeNativeTree({ role: 'document' }, [], 'android=new UiSelector().resourceId("' + '\\"'.repeat(25000))).toThrow()
+        expect(performance.now() - start).toBeLessThan(50)
+    })
+
+    it('resolves a hand-typed UiSelector scope with a literal backslash', () => {
+        const { tree, located } = parseNativeSource(`<hierarchy>
+  <android.widget.Button resource-id="a\\qb" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+</hierarchy>`, 'android')
+        const scoped = scopeNativeTree(tree, located, 'android=new UiSelector().resourceId("a\\qb")')
+        expect(scoped.children).toHaveLength(1)
+    })
+
+    it('keeps the unique resource-id candidate for an id containing a backslash', () => {
+        const { refs } = parseNativeSource(`<hierarchy>
+  <android.widget.Button resource-id="a\\b" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button resource-id="com.example:id/other" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        expect(refs[0].candidates[0].kind).toBe('resource-id')
     })
 
     it('scopes to the indexed selector printed for a ref', () => {

@@ -20,6 +20,11 @@ export function xpathLiteral (value: string) {
     return `concat("${value.replace(/"/g, '", \'"\', "')}")`
 }
 
+/** UiAutomator2's UiSelector parser unescapes only `\"`, so a backslash must stay literal. */
+export function uiSelectorLiteral (value: string) {
+    return `"${value.replace(/"/g, '\\"')}"`
+}
+
 /**
  * Native stable-selector candidates, best first (RFC §8.5).
  */
@@ -32,7 +37,7 @@ export function nativeCandidates (node: SelectorNode): SnapshotCandidate[] {
         // UiAutomator2 prefixes a bare `id=` with the app package, so a package-less id (React Native testID) must match the raw attribute
         const selector = node.resourceId.includes(':id/')
             ? `id=${node.resourceId}`
-            : `android=new UiSelector().resourceId(${JSON.stringify(node.resourceId)})`
+            : `android=new UiSelector().resourceId(${uiSelectorLiteral(node.resourceId)})`
         out.push({ kind: 'resource-id', selector })
     }
     if ((node.platform === 'ios' || node.platform === 'mac') && node.name) {
