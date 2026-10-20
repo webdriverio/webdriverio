@@ -588,7 +588,7 @@ Treat undefined definitions as warnings.
 
 <Option type="Boolean" default="false">
 
-Report an ambiguous step (a step that matches more than one step definition) as failed, with the list of the matching step definitions. With `false`, the step is reported as skipped. In both cases, the run fails.
+Report an ambiguous step (a step that matches more than one step definition) as failed, with the list of the matching step definitions. With `false`, the step is reported as skipped, with the list as its reason. In both cases, the run fails, except with `ignoreUndefinedDefinitions: true` and `failAmbiguousDefinitions: false`.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
