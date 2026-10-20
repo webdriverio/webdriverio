@@ -254,8 +254,9 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
        * Gets executed after all workers got shut down and the process is about to exit.
        */
       onComplete: () => {
-        // Generate the report when it all tests are done
-        generate({
+        // Generate the report when all tests are done. Return the promise:
+        // without it, WebdriverIO can exit before the report is written
+        return generate({
           // Required
           // This part needs to be the same path where you store the JSON files
           // default = '.tmp/json/'
