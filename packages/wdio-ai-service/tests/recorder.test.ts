@@ -201,6 +201,36 @@ describe('EffectRecorder on a BiDi session', () => {
         expect(effect.requests).toEqual(['POST /api/checkout → 2xx'])
     })
 
+    /**
+     * Chrome 152-155 with a data collector: responseStarted can come before
+     * beforeRequestSent, then net::ERR_ABORTED although the page got the response
+     */
+    it('keeps the status of a response that arrived before a fetch error', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        await recorder.start()
+        emit('network.beforeRequestSent', request('aborted', 'https://shop.example/api/cart'))
+        emit('network.responseStarted', { ...request('aborted', 'https://shop.example/api/cart'), response: { status: 201 } })
+        emit('network.fetchError', { ...request('aborted', 'https://shop.example/api/cart'), errorText: 'net::ERR_ABORTED' })
+        emit('network.responseStarted', { ...request('early', 'https://shop.example/api/checkout'), response: { status: 200 } })
+        emit('network.beforeRequestSent', request('early', 'https://shop.example/api/checkout'))
+        emit('network.fetchError', { ...request('early', 'https://shop.example/api/checkout'), errorText: 'net::ERR_ABORTED' })
+        emit('network.beforeRequestSent', request('offline', 'https://shop.example/api/wishlist'))
+        emit('network.fetchError', { ...request('offline', 'https://shop.example/api/wishlist'), errorText: 'net::ERR_CONNECTION_REFUSED' })
+        emit('network.beforeRequestSent', request('moved', 'https://shop.example/api/old'))
+        emit('network.responseStarted', { ...request('moved', 'https://shop.example/api/old'), response: { status: 307 } })
+        emit('network.beforeRequestSent', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1 })
+        emit('network.fetchError', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1, errorText: 'net::ERR_CONNECTION_REFUSED' })
+
+        expect((await recorder.settle({ quiet: 10 })).requests).toEqual([
+            'POST /api/cart → 2xx',
+            'POST /api/checkout → 2xx',
+            'POST /api/new → failed',
+            'POST /api/wishlist → failed'
+        ])
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({ events: expect.arrayContaining(['network.responseStarted']) })
+    })
+
     it('waits for a navigation to load and stops at the timeout', async () => {
         const { browser, emit } = bidiBrowser()
         const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
