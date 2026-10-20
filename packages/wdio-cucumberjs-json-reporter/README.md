@@ -6,6 +6,8 @@ WebdriverIO CucumberJS JSON Reporter
 ## What does it do
 This reporter will generate a **Cucumber JSON file** for each feature that is being tested. The JSON file can be used with whatever report you want to use like for example [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter).
 
+**Note:** Cucumber keeps its JSON format in maintenance mode since [cucumber-js 7.3.0](https://github.com/cucumber/cucumber-js/blob/v7.3.0/CHANGELOG.md#730-2021-06-17) (June 2021): the format gets no new features, but it is not removed. Cucumber recommends its [`message` formatter](https://github.com/cucumber/cucumber-js/blob/v13.3.0/docs/formatters.md#json) for new tools. Report tools such as [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter), which is actively maintained (4.5.0 in October 2026), read only the JSON format ([NDJSON support is an open request](https://github.com/WasiqB/multiple-cucumber-html-reporter/issues/193)), and this reporter writes it.
+
 It will also add metadata about the running instance to the feature file and last but not least, it will give you the opportunity to add attachments to the JSON output.
 
 The JSON follows the Cucumber JSON format: the reporter reads the line numbers of the scenarios and steps from the
