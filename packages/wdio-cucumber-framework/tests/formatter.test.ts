@@ -87,6 +87,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -241,6 +242,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -354,6 +356,7 @@ describe('CucumberFormatter', () => {
                 _tagsInTitle: false,
                 _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
                 _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
             },
         } as any)
 
@@ -427,6 +430,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: failAmbiguousDefinitions,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
             loadGherkin(eventBroadcaster)
@@ -540,6 +544,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
             loadGherkin(eventBroadcaster)
@@ -566,6 +571,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
             // the pickle step '12' comes from the background step '4'
@@ -612,6 +618,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: true,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: false,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -637,11 +644,17 @@ describe('CucumberFormatter', () => {
             vi.useRealTimers()
         })
 
+        const root = path.resolve('/project')
+
         /**
          * 2 feature files in one worker, and their scenarios in the order a1, b1, a2,
          * each scenario takes 10 ms
          */
-        function runGroupedFeatures (scenarioLevelReporter: boolean) {
+        function runGroupedFeatures (
+            scenarioLevelReporter: boolean,
+            files = { a: path.join('features', 'a.feature'), b: path.join('features', 'b.feature') },
+            order = ['a1', 'b1', 'a2']
+        ) {
             vi.useFakeTimers({ toFake: ['Date'] })
             vi.setSystemTime(0)
             wdioReporter.emit.mockClear()
@@ -657,19 +670,21 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: root,
                 },
             } as any)
-            const doc = (name: string) => ({ ...gherkinDocument, uri: `/features/${name}.feature`, feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
+            const uri = (name: 'a' | 'b') => path.join(root, files[name])
+            const doc = (name: 'a' | 'b') => ({ ...gherkinDocument, uri: uri(name), feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
             const scenario = (name: string, uri: string) => ({ ...pickle, id: `pickle-${name}`, name, uri })
             for (const gherkin of [doc('a'), doc('b')]) {
                 eventBroadcaster.emit('envelope', { gherkinDocument: gherkin })
             }
             eventBroadcaster.emit('envelope', { testRunStarted })
-            for (const [name, uri] of [['a1', '/features/a.feature'], ['b1', '/features/b.feature'], ['a2', '/features/a.feature']]) {
-                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri) })
+            for (const name of order) {
+                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri(name[0] as 'a' | 'b')) })
                 eventBroadcaster.emit('envelope', { testCase: { ...testCase, id: `case-${name}`, pickleId: `pickle-${name}` } })
             }
-            for (const name of ['a1', 'b1', 'a2']) {
+            for (const name of order) {
                 eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, testCaseId: `case-${name}` } })
                 vi.advanceTimersByTime(10)
                 if (scenarioLevelReporter) {
@@ -686,8 +701,8 @@ describe('CucumberFormatter', () => {
 
         it('starts a feature again when the run comes back to it, with its own uid, and the feature uid as the parent of its scenarios', () => {
             const events = runGroupedFeatures(false)
-            const a = 'a.feature:3:1'
-            const b = 'b.feature:3:1'
+            const a = 'features/a.feature:3:1'
+            const b = 'features/b.feature:3:1'
             expect(events.map(({ event, type, uid, parent, fullTitle }) => type === 'feature' ? [event, type, uid] : [event, type, parent, fullTitle])).toEqual([
                 ['suite:start', 'feature', a],
                 ['suite:start', 'scenario', a, `${a}: a1`],
@@ -716,12 +731,29 @@ describe('CucumberFormatter', () => {
         it('uses the feature uid, not the uid of the part, as the parent of the scenario tests (scenarioLevelReporter)', () => {
             const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
             expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
-                ['test:start', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
-                ['test:pass', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
-                ['test:start', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
-                ['test:pass', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
-                ['test:start', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
-                ['test:pass', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
+                ['test:start', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:pass', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:start', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:pass', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:start', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+                ['test:pass', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+            ])
+        })
+
+        it('grouped feature files with the same name keep their own suites', () => {
+            const files = { a: path.join('features', 'admin', 'login.feature'), b: path.join('features', 'user', 'login.feature') }
+            const events = runGroupedFeatures(false, files, ['a1', 'b1'])
+            const admin = 'features/admin/login.feature:3:1'
+            const user = 'features/user/login.feature:3:1'
+            expect(events.map(({ event, type, uid, parent }) => type === 'feature' ? [event, type, uid] : [event, type, parent])).toEqual([
+                ['suite:start', 'feature', admin],
+                ['suite:start', 'scenario', admin],
+                ['suite:end', 'scenario', admin],
+                ['suite:end', 'feature', admin],
+                ['suite:start', 'feature', user],
+                ['suite:start', 'scenario', user],
+                ['suite:end', 'scenario', user],
+                ['suite:end', 'feature', user],
             ])
         })
     })

@@ -58,6 +58,7 @@ export default class CucumberFormatter extends Formatter {
      */
     private _currentFeatureUid?: string
     private _featureStarts = new Map<string, number>()
+    private _featureIds = new Map<string, string>()
 
     private reporter: EventEmitter
     private cid: string
@@ -67,6 +68,7 @@ export default class CucumberFormatter extends Formatter {
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
+    private rootDir?: string
 
     private failedCount = 0
 
@@ -124,6 +126,7 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+        this.rootDir = options.parsedArgvOptions._rootDir
     }
 
     updateCurrentPickle(params: HookParams) {
@@ -157,7 +160,19 @@ export default class CucumberFormatter extends Formatter {
      * their `fullTitle` (Allure `historyId`) must not depend on the order.
      */
     featurePartUid(uri: string, feature: Feature) {
-        return this._currentFeatureUid ?? getFeatureId(uri, feature)
+        return this._currentFeatureUid ?? this.featureId(uri, feature)
+    }
+
+    /**
+     * the feature uid, once per file (`getFeatureId` reads the file system)
+     */
+    featureId(uri: string, feature: Feature) {
+        let id = this._featureIds.get(uri)
+        if (id === undefined) {
+            id = getFeatureId(uri, feature, this.rootDir)
+            this._featureIds.set(uri, id)
+        }
+        return id
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -275,7 +290,7 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: getFeatureId(uri, feature),
+                parent: this.featureId(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
@@ -332,7 +347,7 @@ export default class CucumberFormatter extends Formatter {
         this._featureStart = new Date()
 
         const payload = {
-            uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+            uid: this.featureId(doc.uri as string, doc.feature as Feature),
             title: this.getTitle(doc.feature as Feature),
             type: 'feature',
             file: doc.uri,
@@ -407,7 +422,7 @@ export default class CucumberFormatter extends Formatter {
         ) {
             const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
             this._featureStarts.set(doc.uri, starts)
-            const featureId = getFeatureId(doc.uri as string, doc.feature as Feature)
+            const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
             this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
             const payload = {
                 uid: this._currentFeatureUid,
@@ -450,7 +465,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
+            parent: this.featureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -616,7 +631,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
+            parent: this.featureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
@@ -664,7 +679,7 @@ export default class CucumberFormatter extends Formatter {
         }
 
         const payload = {
-            uid: getFeatureId(
+            uid: this.featureId(
                 gherkinDocEvent.uri as string,
                 gherkinDocEvent.feature as Feature
             ),

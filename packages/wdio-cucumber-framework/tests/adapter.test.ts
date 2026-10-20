@@ -154,6 +154,11 @@ describe('CucumberAdapter', () => {
         expect(adapter._cucumberOpts.formatOptions).toEqual(expect.objectContaining(formatOptions))
     })
 
+    it('gives the rootDir of the config to the formatter', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', { rootDir: '/my/project', cucumberOpts: { formatOptions: { _rootDir: '/other' } } }, [], {}, {}, {}, false)
+        expect(adapter._cucumberOpts.formatOptions._rootDir).toBe('/my/project')
+    })
+
     it('throws if parallel cucumber opts is set', async () => {
         await expect(
             CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, 'progress')

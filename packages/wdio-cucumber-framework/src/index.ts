@@ -125,7 +125,8 @@ export class CucumberAdapter {
             _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter,
             _tagsInTitle: this._cucumberOpts.tagsInTitle,
             _ignoreUndefinedDefinitions: this._cucumberOpts.ignoreUndefinedDefinitions,
-            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions
+            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions,
+            _rootDir: this._config.rootDir
         }
 
         const builder = new Gherkin.AstBuilder(uuidFn)
