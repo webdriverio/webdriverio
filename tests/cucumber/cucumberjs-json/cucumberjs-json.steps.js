@@ -1,4 +1,4 @@
-import { Given, Then } from '@wdio/cucumber-framework'
+import { Before, Given, Then } from '@wdio/cucumber-framework'
 import cucumberJson from '@wdio/cucumberjs-json-reporter'
 
 Given('I attach the text {string}', (text) => {
@@ -14,3 +14,10 @@ Then('the page title is {string}', async (title) => {
 })
 
 Given('je passe', () => {})
+
+// cucumberjs-json.hooks.feature: Cucumber skips the hooks after a failed hook
+Before({ tags: '@hookFails' }, () => {
+    throw new Error('the hook fails')
+})
+Before({ tags: '@hookFails' }, () => {})
+Before({ tags: '@hookSkips' }, () => 'skipped')

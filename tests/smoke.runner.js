@@ -828,6 +828,36 @@ const cucumberJsJsonReporterLanguageAndUndefined = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the status of a hook that Cucumber skips,
+ * as cucumber-js writes it (a hook after a failed hook, a hook that returns 'skipped')
+ */
+const cucumberJsJsonReporterHookStatus = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterHookStatus')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterHookStatus',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.hooks.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    ).catch((err) => err) // error expected: a hook fails
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.deepEqual(
+        feature.elements.map((scenario) => [scenario.name, scenario.steps.map((step) => `${step.keyword} ${step.result.status}`)]),
+        [
+            // the first Before and the After are the hooks of WebdriverIO
+            ['A Before hook returns skipped', ['Before passed', 'Before skipped', 'Given skipped', 'After passed']],
+            ['A Before hook fails', ['Before passed', 'Before failed', 'Before skipped', 'Given skipped', 'After passed']]
+        ]
+    )
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1673,6 +1703,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberJsJsonReporterMultiRemote,
         cucumberJsJsonReporterLanguageAndUndefined,
         cucumberJsJsonReporterGroupedSpecs,
+        cucumberJsJsonReporterHookStatus,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

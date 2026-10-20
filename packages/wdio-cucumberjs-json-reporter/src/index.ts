@@ -12,7 +12,9 @@ import {
     DEFAULT_REPORT_FILE_PER_RETRY,
     FEATURE,
     PASSED,
+    PENDING,
     SCENARIO,
+    SKIPPED,
     UNDEFINED_STEP_SUFFIX,
 } from './constants.js'
 import { attach, events } from './common/api.js'
@@ -67,6 +69,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #parallelWarned = false
     /** `true` when the user set the `language` option, else `cucumberOpts.language` is the default */
     #languageOption: boolean
+    /** the Cucumber status of the hook that ends (for example `SKIPPED`): the HookStats keep only failures */
+    #hookEndState?: string
 
     public constructor(public options: CucumberJsJsonReporterInterface) {
         super(options)
@@ -93,6 +97,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         this.instanceMetadata = null
         this.report = <Report>{}
 
+        // before the listener of the base class, which calls onHookEnd
+        this.prependListener('hook:end', (hook: { state?: string }) => {
+            this.#hookEndState = hook.state
+        })
         this.registerListeners()
         this.metadataClassObject = new Metadata()
     }
@@ -288,7 +296,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (this.options.disableHooks) {
             return
         }
-        payload.state = payload.error ? payload.state : PASSED
+        // Cucumber skips the hooks after a failed hook, and a hook can return 'skipped' or 'pending'
+        const state = this.#hookEndState?.toLowerCase()
+        if (!payload.error) {
+            payload.state = (state === SKIPPED || state === PENDING ? state : PASSED) as HookStats['state']
+        }
 
         return this.updateStepStatus(payload)
     }

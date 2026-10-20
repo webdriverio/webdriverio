@@ -882,6 +882,29 @@ describe('reporter', () => {
         })
     })
 
+    describe('hook status', () => {
+        // the events of the framework: the state of a hook with no error is not in the HookStats
+        const hookStatus = (state: string) => {
+            tmpReporter.emit('suite:start', { uid: 'feature', title: 'Feature', file: 'hook-status.feature' })
+            tmpReporter.emit('suite:start', { uid: 'scenario', title: 'Scenario', parent: 'Feature', file: 'hook-status.feature' })
+            tmpReporter.emit('hook:start', { uid: 'hook', title: 'Hook', parent: 'Scenario' })
+            tmpReporter.emit('hook:end', { uid: 'hook', title: 'Hook', parent: 'Scenario', state })
+            return tmpReporter.getCurrentStep()?.result?.status
+        }
+
+        it('writes "skipped" for a hook that Cucumber skips (after a failed hook, or it returns "skipped")', () => {
+            expect(hookStatus('SKIPPED')).toBe('skipped')
+        })
+
+        it('writes "pending" for a hook that returns "pending"', () => {
+            expect(hookStatus('PENDING')).toBe('pending')
+        })
+
+        it('writes "passed" for a hook that passed', () => {
+            expect(hookStatus('PASSED')).toBe('passed')
+        })
+    })
+
     describe('process listener', () => {
         it('removes its attachment listener when the runner ends', () => {
             const event = 'wdioCucumberJsReporter:attachment'
