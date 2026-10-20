@@ -248,8 +248,14 @@ export default class CucumberFormatter extends Formatter {
         } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
+            const message = result.message || (
+                (step
+                    ? `Step "${title}" matches multiple step definitions. `
+                    : `Scenario "${title}" contains a step matching multiple step definitions. `) +
+                'Make the step definitions unique by removing duplicate or overlapping expressions.'
+            )
+            error = new Error(message.split('\n')[0])
+            error.stack = message
         }
 
         const common = {
