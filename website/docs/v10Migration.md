@@ -76,9 +76,9 @@ Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAl
 
 ### Feature uid
 
-The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. A `:` in the path is encoded as `%3A`, so `uid.split(':')[1]` is still the line. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
+The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. `%`, `:` and `#` in the path are encoded as `%25`, `%3A` and `%23`, so `uid.split(':')[1]` is still the line and a `#` only starts a part number. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
 
-With `scenarioLevelReporter: true`, the Allure `historyId` comes from `fullTitle`, so the Allure history of each scenario starts again one time.
+With `scenarioLevelReporter: true`, the Allure `historyId` comes from `fullTitle`, so the Allure history of each scenario starts again with this change. It also starts again when `rootDir` or the path of the feature file changes. To keep one history for config files in different folders, set the same `rootDir` in each of them.
 
 ## Jasmine
 

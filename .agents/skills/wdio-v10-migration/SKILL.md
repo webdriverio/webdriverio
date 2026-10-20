@@ -46,7 +46,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineOpts.failFast` | `jasmineOpts.stopOnSpecFailure`. A leftover `failFast` is ignored. Cucumber's `failFast` stays. |
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
-| a custom reporter, or Allure history, that expects the Cucumber feature uid `<file name>:<line>:<column>` | the uid is `<path from rootDir>:<line>:<column>` (`:` in the path is `%3A`); a feature that starts again in a random grouped run has `<uid>#2`. With `scenarioLevelReporter`, Allure history starts again one time. |
+| a custom reporter, or Allure history, that expects the Cucumber feature uid `<file name>:<line>:<column>` | the uid is `<path from rootDir>:<line>:<column>` (`%`, `:` and `#` in the path are `%25`, `%3A` and `%23`); a feature that starts again in a random grouped run has `<uid>#2`. With `scenarioLevelReporter`, Allure history starts again, and again when `rootDir` or the feature path changes: give config files in other folders the same `rootDir`. |
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
 | `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 ignored `this.timeout()` inside a test), and `mochaOpts.timeout: 0` turns the timeout off. The `retry` argument does not run a test again after a timeout. For `mochaOpts.parallelMode`, see the guide. |
 | New in v10, no migration needed | [parallel tests in a spec file](https://webdriver.io/docs/parallel-tests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`. |
