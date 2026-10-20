@@ -165,6 +165,15 @@ describe('fileIdOf', () => {
         expect(fileIdOf('login:-admin/user')).toBe('login--admin-user')
     })
 
+    it('keeps a name that Windows keeps for a device away from it (also with an extension)', () => {
+        for (const id of ['con', 'PRN', 'aux', 'nul', 'com1', 'lpt9', 'nul.test']) {
+            expect(fileIdOf(id), id).toBe(`_${id}`)
+        }
+        for (const id of ['console', 'nul-feature', 'com10']) {
+            expect(fileIdOf(id), id).toBe(id)
+        }
+    })
+
     it('cuts a long id between 2 characters and adds a hash of the full id', () => {
         const id = '漢字のテスト機能名称'.repeat(9)
         const fileId = fileIdOf(id)

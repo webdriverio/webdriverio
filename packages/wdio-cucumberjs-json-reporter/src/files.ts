@@ -23,6 +23,9 @@ const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
  */
 const MAX_FILE_ID_BYTES = 200
 
+/** names that Windows keeps for devices, also with an extension (`con.json`) */
+const WINDOWS_DEVICE_NAME = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\.|$)/i
+
 /**
  * onRunnerEnd writes the files before it returns (the runner waits only `reporterSyncTimeout`
  * for an async reporter, 5 s by default): wait without the event loop
@@ -146,11 +149,12 @@ export function writeNewFile (folder: string, name: string, content: string) {
 
 /**
  * The feature part of the name of a JSON file: the feature id without the characters that a
- * file name cannot have. A long id (for example with many non-ASCII characters) is cut, with
+ * file name cannot have, and not a Windows device name. A long id (for example with many non-ASCII characters) is cut, with
  * a hash of the full id: 2 features keep 2 files, and the workers of a feature use one name
  */
 export function fileIdOf (id: string) {
-    const fileId = id.replace(/[\\/?%*:|"<> ]/g, '-')
+    const safeId = id.replace(/[\\/?%*:|"<> ]/g, '-')
+    const fileId = WINDOWS_DEVICE_NAME.test(safeId) ? `_${safeId}` : safeId
     if (Buffer.byteLength(fileId) <= MAX_FILE_ID_BYTES) {
         return fileId
     }
