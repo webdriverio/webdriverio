@@ -469,6 +469,14 @@ export default class VideoReporter extends WdioReporter {
         this.onTestEnd(payload)
     }
 
+    /**
+     * a Cucumber step or scenario that returns 'pending' (Mocha and Jasmine also send
+     * `test:end` for a test that becomes pending while it runs)
+     */
+    onTestPending(payload: TestStats) {
+        this.onTestSkip(payload)
+    }
+
     onTestPass(payload: TestStats): void {
         if (!this.#record || !this.isCucumberFramework) {
             return

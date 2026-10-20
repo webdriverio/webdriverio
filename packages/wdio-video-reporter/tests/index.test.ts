@@ -583,6 +583,20 @@ describe('Video Reporter', () => {
             expect(reporter.testNameStructure).toEqual([])
         })
 
+        it('ends the recording of a pending Cucumber scenario (scenarioLevelReporter)', () => {
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart({
+                ...allureRunner,
+                instanceOptions: { 1234: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } }
+            })
+            reporter.onTestStart({ title: 'pending scenario' } as any)
+            // a step returned 'pending': the base reporter calls onTestPending, not onTestSkip
+            reporter.onTestPending({ title: 'pending scenario', state: 'pending' } as any)
+            expect(reporter.testNameStructure).toEqual([])
+            reporter.onTestStart({ title: 'next scenario' } as any)
+            expect(reporter.testName).toMatch(/^next-scenario--CHROME--/)
+        })
+
         it('adds a frame on interval', () => {
             const reporter = new VideoReporter({ screenshotIntervalSecs: 1 })
             reporter.addFrame = vi.fn() as any
