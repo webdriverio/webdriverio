@@ -815,15 +815,23 @@ export async function executeAsync(
          * either.
          */
         const frameworkTimeout = (): number => {
-            const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
-                .jasmine?.DEFAULT_TIMEOUT_INTERVAL
             if (runnable?._timeout !== undefined) {
                 return runnable._timeout
             }
             if (timeout && timeout < 0) {
                 return timeout
             }
-            return Math.max(timeout ?? 0, jasmineDefault ?? 20000)
+            /**
+             * with Jasmine the framework fires its own timeout error, so WDIO only acts
+             * as a backstop: never shorten, only extend to the Jasmine default. Without
+             * Jasmine (e.g. Cucumber) the caller timeout is used as it is.
+             */
+            const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
+                .jasmine?.DEFAULT_TIMEOUT_INTERVAL
+            if (jasmineDefault === undefined) {
+                return timeout ?? 0
+            }
+            return Math.max(timeout ?? 0, jasmineDefault)
         }
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
