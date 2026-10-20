@@ -390,6 +390,25 @@ describe('reporter', () => {
         })
     })
 
+    describe('ids with characters that a file name cannot have', () => {
+        it('writes the ids as Cucumber does, and keeps the file name safe', async () => {
+            const name = 'Login: admin/user'
+            const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, title: name, file: undefined } as unknown as SuiteStatsExtended)
+            // cucumber-js: name.replace(/ /g, '-').toLowerCase()
+            expect(feature.id).toBe('login:-admin/user')
+            const scenario = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'Open: home' } as SuiteStatsExtended, feature.id!)
+            expect(scenario.id).toBe('login:-admin/user;open:-home')
+
+            const folder = path.join(logFolderPath, 'safe-file-name')
+            await fsp.rm(folder, { recursive: true, force: true })
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder: folder, language: 'en', logFile, reportFilePerRetry: false })
+            reporter.report.feature = feature
+            reporter.report.features = [feature]
+            reporter.onRunnerEnd()
+            expect(await fsp.readdir(folder)).toEqual(['login--admin-user.json'])
+        })
+    })
+
     describe('getFeatureDataObject', () => {
         it('should be able to to create a feature JSON data object', () => {
             expect(tmpReporter.getFeatureDataObject(SUITE_FEATURE_STATS)).toMatchSnapshot()

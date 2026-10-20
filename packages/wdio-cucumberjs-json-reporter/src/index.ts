@@ -339,9 +339,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         fs.mkdirSync(jsonFolder, { recursive: true })
         for (const feature of this.report.features ?? []) {
             const uniqueId = String(Date.now() + Math.random()).replace('.', '')
+            // without the characters that a file name cannot have
+            const fileId = feature.id!.replace(/[\\/?%*:|"<> ]/g, '-')
             const filename = this.options.reportFilePerRetry
-                ? `${feature.id}_${uniqueId}.json`
-                : `${feature.id}.json`
+                ? `${fileId}_${uniqueId}.json`
+                : `${fileId}.json`
             const jsonFile = path.resolve(jsonFolder, filename)
             const json = [feature]
             // Check if there is an existing file, if so concat the data, else add the new
@@ -377,7 +379,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             uri: featureData.file || 'Can not be determined',
             tags: featureData.tags || [],
             elements: [],
-            id: featureName.replace(/[\\/?%*:|"<> ]/g, '-').toLowerCase(),
+            // as in the Cucumber JSON format; the file name of `onRunnerEnd` is made safe
+            id: featureName.replace(/ /g, '-').toLowerCase(),
         }
     }
 
