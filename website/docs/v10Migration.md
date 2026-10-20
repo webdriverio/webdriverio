@@ -74,6 +74,12 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+### Feature uid
+
+The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. A `:` in the path is encoded as `%3A`, so `uid.split(':')[1]` is still the line. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
+
+With `scenarioLevelReporter: true`, the Allure `historyId` comes from `fullTitle`, so the Allure history of each scenario starts again one time.
+
 ## Jasmine
 
 `@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of 22.19.0 already covers that range.
