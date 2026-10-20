@@ -97,6 +97,7 @@ A unit test is not that proof.
 | `@wdio/session` / `e2e/session` | `pnpm run test:e2e:session` |
 | `@wdio/display-server` / `@wdio/local-runner` / `e2e/wdio/display-server` | `pnpm run test:e2e:display-server` (Linux with no display only; elsewhere rely on CI) |
 | Chromedriver setup in `@wdio/utils` / `e2e/wdio/chromedriver` | `pnpm run test:e2e:chromedriver` (with `CHROMIUM_130_BINARY` set; the Linux ARM64 routing needs a Linux ARM64 host, elsewhere rely on CI) |
+| `create-wdio` / `e2e/create-wdio` | `pnpm run test:e2e:create-wdio` (`npm init wdio` with the local build, then the generated test in one Chrome window) |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
 | Root CI / toolchain files | treat as `run-all`; run `pnpm run test:local` |
 

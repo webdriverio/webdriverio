@@ -81,6 +81,7 @@
     "test:e2e:session": "vitest --config ./e2e/vitest.config.ts --run e2e/session/",
     "test:e2e:display-server": "cd ./e2e && npx wdio run ./wdio/display-server/wdio.conf.ts && npx wdio run ./wdio/display-server/wdio.runner.conf.ts",
     "test:e2e:chromedriver": "cd ./e2e && npx wdio run ./wdio/chromedriver/wdio.conf.ts",
+    "test:e2e:create-wdio": "tsx ./e2e/create-wdio/run.ts",
     "test:e2e:cucumberjs-json-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/cucumberjs-json/wdio.conf.ts",
     "test:e2e:video-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.conf.ts",
     "test:e2e:video-reporter-parallel": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.parallel.conf.ts && npx wdio run ./wdio/reporters/video/wdio.parallel.cucumber.conf.ts",
