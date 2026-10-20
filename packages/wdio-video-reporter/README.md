@@ -13,6 +13,12 @@ As this reporter is using the WebDriver screenshot command ([`takeScreenshot`](h
 In a WebDriver BiDi session, the reporter uses the WebDriver BiDi screenshot command ([`browsingContextCaptureScreenshot`](https://webdriver.io/docs/api/webdriverBidi#browsingcontextcapturescreenshot)): in Chrome, a WebDriver screenshot at the start of a WebDriver BiDi navigation can make the test wait 10 seconds.
 
 In a WebDriver BiDi session, some commands use WebDriver BiDi instead of a WebDriver endpoint: `url` (with an `http` or `https` URL), `back`, `forward`, `refresh` and `actions`. The reporter also takes a frame for these commands. `execute` in a BiDi session gives no frame (WebdriverIO also uses the same BiDi command inside many other commands).
+`setViewport`, `emulate`, and the element commands that run a script (for example `clearValue` or `selectByIndex` on
+the browsing context that `newWindow()` returns) give no frame either. Use
+[`screenshotIntervalSecs`](#screenshotintervalsecs) to get frames between commands.
+
+In a WebDriver BiDi session, a frame can show the page a short time after its command: when a command starts a
+navigation (for example a click on a link), its frame can show the next page.
 
 In a multi-remote session, the reporter records the first browser instance.
 
