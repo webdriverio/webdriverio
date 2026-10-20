@@ -805,14 +805,16 @@ export async function executeAsync(
          * The framework adapter resolves its own deadline into `timeout`: for Jasmine
          * `wrapTestFunction` already defaults it to `jasmine.DEFAULT_TIMEOUT_INTERVAL`,
          * so the Jasmine default must not win over it here, or a per-spec
-         * `it(title, fn, 15000)` timeout is ignored (#16120). A non-positive
-         * `timeout` means the caller did not resolve one (e.g. `it(title, fn)`
-         * before the Jasmine global exists), so it must not disable the WDIO
-         * timer either; the framework default stays as the fallback.
+         * `it(title, fn, 15000)` timeout is ignored (#16120). A negative
+         * `timeout` is an explicit opt-out (e.g. Cucumber's
+         * `cucumberOpts.timeout: -1`) and keeps the WDIO timer off. A `timeout`
+         * of `0` or `undefined` means the caller did not resolve one (e.g.
+         * `it(title, fn)` before the Jasmine global exists), so it must not
+         * disable the timer either; the framework default stays as the fallback.
          */
         const frameworkTimeout = (): number => (
             // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? (timeout && timeout > 0
+            runnable?._timeout ?? (timeout
                 ? timeout
                 : globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? 20000)
         )

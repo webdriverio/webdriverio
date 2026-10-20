@@ -321,6 +321,19 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 97ms in "zeroTimeoutSpec" (WDIO attempt 1/1)'))
         })
 
+        it('should keep a negative timeout as an explicit opt-out', async () => {
+            // Cucumber users disable timeouts with `cucumberOpts.timeout: -1`;
+            // the value reaches executeAsync without a runnable or a Jasmine default.
+            let finish: (value: string) => void = () => {}
+            const result = executeAsync.call(
+                {}, () => new Promise((resolve) => (finish = resolve)), { attempts: 0, limit: 0 }, [], -1
+            )
+
+            await vi.advanceTimersByTimeAsync(60_000)
+            finish('done')
+            expect(await result).toBe('done')
+        })
+
         it('should name the spec given as title when there is no runnable (#16120)', async () => {
             const result = executeAsync.call(
                 {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'a spec with its own 15 s timeout'
