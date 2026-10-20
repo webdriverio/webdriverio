@@ -14,11 +14,26 @@ const LOCK_TIMEOUT = 10_000
 const LOCK_MAX_AGE = 60_000
 
 /**
- * milliseconds since the last change of the lock, undefined when it does not exist anymore
+ * the rename of a file that Windows still has open (antivirus, search indexer) fails for a short time
+ */
+const RENAME_RETRIES = 20
+const RENAME_RETRY_WAIT = 50
+const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
+
+/**
+ * onRunnerEnd is synchronous: wait without the event loop
+ */
+function sleep (ms: number) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+}
+
+/**
+ * milliseconds since the last change of the lock (of the link itself for a symbolic
+ * link), undefined when it does not exist anymore
  */
 function lockAge (lock: string) {
     try {
-        return Date.now() - fs.statSync(lock).mtimeMs
+        return Date.now() - fs.lstatSync(lock).mtimeMs
     } catch {
         return undefined
     }
@@ -71,14 +86,14 @@ export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_T
             const age = lockAge(lock)
             // the owner removed it in the meantime: try again
             if (age === undefined) {
+                sleep(1)
                 continue
             }
             if (left || (left === undefined && age > timeout) || age > maxAge) {
                 fs.rmSync(lock, { recursive: true, force: true })
                 continue
             }
-            // onRunnerEnd is synchronous: wait without the event loop
-            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10)
+            sleep(10)
         }
     }
     try {
@@ -89,10 +104,28 @@ export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_T
 }
 
 /**
- * Write the file in one step: a worker never reads a half-written file
+ * Write the file in one step: a worker never reads a half-written file. On Windows, the
+ * rename can fail while another process still has the file open: try again, then write
+ * the file directly (the caller holds the lock of the file, and each reader takes it too)
  */
 export function writeFileAtomic (file: string, content: string) {
     const temporary = `${file}.${process.pid}.tmp`
     fs.writeFileSync(temporary, content)
-    fs.renameSync(temporary, file)
+    for (let attempt = 1; ; attempt++) {
+        try {
+            fs.renameSync(temporary, file)
+            return
+        } catch (error: unknown) {
+            if (!BUSY_CODES.has((error as NodeJS.ErrnoException).code ?? '')) {
+                fs.rmSync(temporary, { force: true })
+                throw error
+            }
+            if (attempt >= RENAME_RETRIES) {
+                fs.writeFileSync(file, content)
+                fs.rmSync(temporary, { force: true })
+                return
+            }
+            sleep(RENAME_RETRY_WAIT)
+        }
+    }
 }

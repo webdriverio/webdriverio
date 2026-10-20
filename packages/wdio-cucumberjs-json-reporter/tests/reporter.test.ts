@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as fs from 'node:fs'
+// the default export, as in the source: the namespace cannot be spied on
+import fsDefault from 'node:fs'
 import * as os from 'node:os'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
@@ -406,6 +408,33 @@ describe('reporter', () => {
             reporter.report.features = [feature]
             reporter.onRunnerEnd()
             expect(await fsp.readdir(folder)).toEqual(['login--admin-user.json'])
+        })
+    })
+
+    describe('lock of the JSON file', () => {
+        const lockCalls = (reportFilePerRetry: boolean) => {
+            const folder = path.join(logFolderPath, `lock-${reportFilePerRetry}`)
+            fs.rmSync(folder, { recursive: true, force: true })
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder: folder, language: 'en', logFile, reportFilePerRetry })
+            reporter.report.feature = { id: 'this-feature' }
+            reporter.report.features = [reporter.report.feature]
+            const mkdir = vi.spyOn(fsDefault, 'mkdirSync')
+            reporter.onRunnerEnd()
+            const calls = mkdir.mock.calls.filter(([dir]) => String(dir).endsWith('.lock')).length
+            mkdir.mockRestore()
+            return { calls, files: fs.readdirSync(folder) }
+        }
+
+        it('takes no lock for a file name that only this worker writes (reportFilePerRetry)', () => {
+            const { calls, files } = lockCalls(true)
+            expect(calls).toBe(0)
+            expect(files).toEqual([expect.stringMatching(/^this-feature_\d+\.json$/)])
+        })
+
+        it('takes the lock for a file that other workers also write', () => {
+            const { calls, files } = lockCalls(false)
+            expect(calls).toBe(1)
+            expect(files).toEqual(['this-feature.json'])
         })
     })
 

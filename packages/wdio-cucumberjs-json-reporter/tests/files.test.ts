@@ -2,9 +2,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 
-import { isLeft, withFileLock } from '../src/files.js'
+import { isLeft, withFileLock, writeFileAtomic } from '../src/files.js'
 
 describe('withFileLock', () => {
     const dirs: string[] = []
@@ -94,6 +94,15 @@ describe('withFileLock', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
+    it.skipIf(process.platform === 'win32')('takes a lock path that is a broken symbolic link after the limit (no busy loop)', () => {
+        const file = tempFile()
+        const lock = `${file}.lock`
+        // mkdir fails with EEXIST, and stat of the link target fails
+        fs.symlinkSync(path.join(path.dirname(file), 'missing-target'), lock)
+        expect(withFileLock(file, () => 'done', 100)).toBe('done')
+        expect(fs.existsSync(lock)).toBe(false)
+    })
+
     it('does not know the owner of a lock with an empty or invalid process id (it can time out)', () => {
         const lock = `${tempFile()}.lock`
         fs.mkdirSync(lock)
@@ -102,5 +111,57 @@ describe('withFileLock', () => {
             // process.kill(0, 0) checks the process group of this process: it does not throw
             expect(isLeft(lock), `pid "${pid}"`).toBeUndefined()
         }
+    })
+})
+
+describe('writeFileAtomic', () => {
+    const dirs: string[] = []
+    afterEach(() => {
+        vi.restoreAllMocks()
+        for (const dir of dirs.splice(0)) {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
+    })
+    const tempFile = () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cjson-write-'))
+        dirs.push(dir)
+        return path.join(dir, 'feature.json')
+    }
+    const busy = (code: string) => Object.assign(new Error(`${code}: resource busy or locked`), { code })
+
+    it('tries the rename again when Windows still has the file open (EPERM, EBUSY)', () => {
+        const file = tempFile()
+        fs.writeFileSync(file, 'old')
+        const rename = fs.renameSync
+        let calls = 0
+        vi.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+            calls++
+            if (calls <= 2) {
+                throw busy(calls === 1 ? 'EPERM' : 'EBUSY')
+            }
+            rename(from, to)
+        })
+        writeFileAtomic(file, 'new')
+        expect(fs.readFileSync(file, 'utf-8')).toBe('new')
+        expect(fs.readdirSync(path.dirname(file))).toEqual(['feature.json'])
+    })
+
+    it('writes the file directly when the rename keeps failing, and removes the temporary file', () => {
+        const file = tempFile()
+        fs.writeFileSync(file, 'old')
+        vi.spyOn(fs, 'renameSync').mockImplementation(() => {
+            throw busy('EPERM')
+        })
+        writeFileAtomic(file, 'new')
+        expect(fs.readFileSync(file, 'utf-8')).toBe('new')
+        expect(fs.readdirSync(path.dirname(file))).toEqual(['feature.json'])
+    })
+
+    it('throws other errors of the rename', () => {
+        const file = tempFile()
+        vi.spyOn(fs, 'renameSync').mockImplementation(() => {
+            throw Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' })
+        })
+        expect(() => writeFileAtomic(file, 'new')).toThrow('ENOSPC')
     })
 })

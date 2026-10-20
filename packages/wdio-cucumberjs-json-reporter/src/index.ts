@@ -346,7 +346,12 @@ export class CucumberJsJsonReporter extends WDIOReporter {
                 : `${fileId}.json`
             const jsonFile = path.resolve(jsonFolder, filename)
             const json = [feature]
-            // Check if there is an existing file, if so concat the data, else add the new
+            // a unique file name: no other worker writes this file
+            if (this.options.reportFilePerRetry) {
+                fs.writeFileSync(jsonFile, JSON.stringify(json) + '\n')
+                continue
+            }
+            // workers that run the same feature write one file: add to the tries already in it
             withFileLock(jsonFile, () => {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
