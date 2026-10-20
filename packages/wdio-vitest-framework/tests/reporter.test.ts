@@ -201,6 +201,34 @@ describe('WdioBridgeReporter', () => {
         expect(events.at(-1)).toMatchObject({ passed: true })
     })
 
+    it('emits job:end passed false when the module never finished (cancelled run)', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const s = makeSuite(module, module, 'cancelled')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        const test = makeTest(module, s, 'interrupted', { state: 'pending' })
+        await reporter.onTestCaseReady(test)
+        await reporter.onTestModuleEnd(module)
+        expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('emits job:end passed false when a test result is still pending', async () => {
+        const module = makeModule({ state: () => 'skipped' })
+        const s = makeSuite(module, module, 's')
+        await runTests(module, makeTest(module, s, 'never ran', { state: 'pending' }))
+        await reporter.onTestModuleEnd(module)
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('keeps job:end passed for a module with only deliberately skipped tests', async () => {
+        const module = makeModule({ state: () => 'skipped' })
+        const s = makeSuite(module, module, 's')
+        await runTests(module, makeTest(module, s, 'skipped', { state: 'skipped' }))
+        await reporter.onTestModuleEnd(module)
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: true })
+    })
+
     it('nests describes through parentUid', async () => {
         const module = makeModule()
         const outer = makeSuite(module, module, 'outer')

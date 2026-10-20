@@ -63,7 +63,7 @@ describe('toVitestConfig', () => {
         ]
         const { projects } = build({ capabilities: caps as never }).test!
         expect(projects).toEqual([
-            { extends: true, test: expect.objectContaining({ name: 'chrome-0', maxWorkers: 2, provide: { wdioCapabilities: caps[0], wdioConfigFile: configFile } }) },
+            { extends: true, test: expect.objectContaining({ name: 'chrome-0', maxWorkers: 2, provide: { wdioCapabilities: caps[0], wdioConfigFile: configFile, wdioArgs: {}, wdioProjectIndex: 0 } }) },
             { extends: true, test: expect.objectContaining({ name: 'firefox-1' }) },
             { extends: true, test: expect.objectContaining({ name: 'browser-2' }) }
         ])
@@ -74,10 +74,27 @@ describe('toVitestConfig', () => {
         }
     })
 
-    it('unwraps alwaysMatch capabilities', () => {
-        const cap = { browserName: 'chrome' }
-        const { projects } = build({ capabilities: [{ alwaysMatch: cap }] as never }).test!
-        expect((projects![0] as { test: { provide: unknown } }).test.provide).toEqual({ wdioCapabilities: cap, wdioConfigFile: configFile })
+    it('provides the full W3C capabilities, keeping firstMatch, and names the project from alwaysMatch', () => {
+        const requested = { alwaysMatch: { browserName: 'chrome', 'wdio:maxInstances': 3 }, firstMatch: [{ platformName: 'linux' }] }
+        const { projects } = build({ capabilities: [requested] as never }).test!
+        const { test } = projects![0] as { test: { name: string, maxWorkers: number, provide: unknown } }
+        expect(test).toMatchObject({ name: 'chrome-0', maxWorkers: 3 })
+        expect(test.provide).toEqual({ wdioCapabilities: requested, wdioConfigFile: configFile, wdioArgs: {}, wdioProjectIndex: 0 })
+    })
+
+    it('provides the launcher CLI args for the workers', () => {
+        const args = { baseUrl: 'http://x', waitforTimeout: 5 }
+        const { projects } = toVitestConfig({ config: { capabilities: [{ browserName: 'chrome' }] } as WebdriverIO.Config, specs, configFile, args }).test!
+        expect((projects![0] as { test: { provide: { wdioArgs: unknown } } }).test.provide.wdioArgs).toEqual(args)
+    })
+
+    it('escapes glob characters in spec paths and normalizes backslashes', () => {
+        const { test } = toVitestConfig({
+            config: { capabilities: [{ browserName: 'chrome' }] } as WebdriverIO.Config,
+            specs: ['/repo/(group)/a.spec.ts', 'C:\\repo\\[id]\\b!.spec.ts', '/repo/{x}/c*?.ts'],
+            configFile
+        })
+        expect(test!.include).toEqual(['/repo/\\(group\\)/a.spec.ts', 'C:/repo/\\[id\\]/b\\!.spec.ts', '/repo/\\{x\\}/c\\*\\?.ts'])
     })
 
     it.each([

@@ -102,7 +102,12 @@ Each test opens its own window, and every command in the test targets it. The wi
 - `expect.poll` is not available, because the global `expect` is the one from `expect-webdriverio`.
 - Window and frame commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, because they change session-wide state.
 - Vitest runs projects with different `maxWorkers` one after another. A `wdio:maxInstances` on a capability therefore makes the capability projects run sequentially.
-- Worker service hooks (`before`, `beforeTest`, `afterTest`, `after` of services) are not run yet. Launcher service hooks (`onPrepare`, `onComplete`) do run.
+- Worker services are initialized like in the WDIO runner, so their `beforeSession`, `before`, `beforeTest`, `afterTest`, `beforeCommand`, `afterCommand`, `after` and `afterSession` hooks run, next to the launcher service hooks (`onPrepare`, `onComplete`).
+- The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run.
+- The `cid` passed to `beforeSession` is `<capability index>-<Vitest pool id>`; `WDIO_WORKER_ID` is not set, because the Vitest worker has an IPC channel to Vitest.
+- When `vitestOpts` sets no `reporters`, Vitest's `default` reporter is used instead of Vitest's environment-dependent default. Add others, such as `github-actions` annotations, explicitly.
+- Top-level config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again.
+- `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
 - Hook results (`hook:start`, `hook:end`) are not reported to WDIO reporters.
 - `browser.options.vitestOpts` is not set inside specs.

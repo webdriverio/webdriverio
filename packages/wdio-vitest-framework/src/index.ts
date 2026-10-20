@@ -1,7 +1,15 @@
 import { startVitest, type Vitest } from 'vitest/node'
+import logger from '@wdio/logger'
 import type { Frameworks } from '@wdio/types'
 
 import { toVitestConfig } from './config.js'
+
+const log = logger('@wdio/vitest-framework')
+const EXIT_SIGNALS = ['SIGINT', 'SIGTERM'] as const
+
+function snapshotSignalListeners() {
+    return EXIT_SIGNALS.map((signal) => [signal, process.listeners(signal)] as const)
+}
 
 /**
  * Failed tests, plus one per module that failed without a failed test (session
@@ -20,11 +28,35 @@ function countFailures(vitest: Vitest) {
 
 export async function launch(params: Frameworks.FrameworkLaunchParams): Promise<number> {
     let bridgeFailures = 0
-    const vitest = await startVitest([], { run: true, watch: false, config: false }, toVitestConfig(params, () => bridgeFailures++))
+    // startVitest resolves only after the run, so the instance to cancel is captured while the run starts
+    let running: Vitest | undefined
+    let cancelRequested = params.signal?.aborted ?? false
+    const cancel = () => {
+        cancelRequested = true
+        running?.cancelCurrentRun('keyboard-input').catch((err) => log.warn('Failed to cancel the Vitest run:', err))
+    }
+    params.signal?.addEventListener('abort', cancel, { once: true })
+    const viteConfig = toVitestConfig(params, () => bridgeFailures++)
+    const reporters = viteConfig.test!.reporters
+    viteConfig.test!.reporters = [...(reporters === undefined ? ['default'] : Array.isArray(reporters) ? reporters : [reporters]), {
+        onInit(instance: Vitest) {
+            running = instance
+            // Vitest's Logger exits the process 1ms after SIGINT/SIGTERM, before the launcher's exit handler finishes waiting on this launch
+            listenersBefore.forEach(([signal, before]) => process.listeners(signal).filter((listener) => !before.includes(listener)).forEach((listener) => process.off(signal, listener)))
+            if (cancelRequested) {
+                cancel()
+            }
+        }
+    }]
+    const listenersBefore = snapshotSignalListeners()
+    let vitest: Vitest | undefined
     try {
-        return countFailures(vitest) + bridgeFailures
+        vitest = await startVitest([], { run: true, watch: false, config: false }, viteConfig)
+        // a cancelled run leaves its tests skipped or pending, which would otherwise count as green
+        return countFailures(vitest) + bridgeFailures + (params.signal?.aborted ? 1 : 0)
     } finally {
-        await vitest.close()
+        params.signal?.removeEventListener('abort', cancel)
+        await vitest?.close()
     }
 }
 

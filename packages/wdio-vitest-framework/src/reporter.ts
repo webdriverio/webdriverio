@@ -24,6 +24,8 @@ type ModuleRun = {
     queue: Promise<void>
     started: boolean
     failed: boolean
+    // Tests that never finished, e.g. the run was cancelled: neither passed nor failed
+    incomplete: boolean
     failedTests: number
     suiteCount: number
     testCount: number
@@ -100,6 +102,8 @@ export class WdioBridgeReporter implements Reporter {
                 this.#emit(run, 'test:pass', { ...base, duration, passed: true })
                 this.#emit(run, 'test:end', { ...base, duration, passed: true })
             } else {
+                // TestResultPending: collected but never finished; 'skipped' is a deliberate skip
+                run.incomplete ||= result.state === 'pending'
                 this.#emit(run, 'test:pending', { ...base, duration, pending: true })
                 this.#emit(run, 'test:end', { ...base, duration, passed: false, pending: true })
             }
@@ -134,12 +138,13 @@ export class WdioBridgeReporter implements Reporter {
             return existing
         }
         const cid = `0-${this.#launched++}`
-        const caps = testModule.project.config.provide.wdioCapabilities!
+        const requested = testModule.project.config.provide.wdioCapabilities!
+        const caps = ('alwaysMatch' in requested ? requested.alwaysMatch : requested) as WebdriverIO.Capabilities
         const specs = [testModule.moduleId]
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, failedTests: 0, suiteCount: 0, testCount: 0, entities: new Map(),
+            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, testCount: 0, entities: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
@@ -282,11 +287,14 @@ export class WdioBridgeReporter implements Reporter {
         await this.#enqueue(run, async () => {
             try {
                 this.#ensureStarted(run, testModule)
-                const failed = testModule.state() === 'failed'
+                const state = testModule.state()
+                const failed = state === 'failed'
+                // TestModuleState 'pending': the module did not finish, which a cancelled run leaves behind
+                run.incomplete ||= state === 'pending'
                 this.#closeUnfinished(run, testModule, failed)
                 this.#closeWrapper(run)
                 // session or hook errors skip the tests, so the module fails without a failed test
-                if (failed && run.failedTests === 0) {
+                if ((failed || run.incomplete) && run.failedTests === 0) {
                     run.failedTests = 1
                 }
                 this.#emit(run, 'runner:end', { failures: run.failedTests, retries: 0 })
@@ -295,6 +303,6 @@ export class WdioBridgeReporter implements Reporter {
             }
         })
         this.#runs.delete(testModule.id)
-        this.#notify(run, { type: 'job:end', cid: run.cid, passed: run.failedTests === 0 && !run.failed })
+        this.#notify(run, { type: 'job:end', cid: run.cid, passed: run.failedTests === 0 && !run.failed && !run.incomplete })
     }
 }
