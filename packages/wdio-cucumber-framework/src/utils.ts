@@ -103,6 +103,7 @@ export function buildStepPayload(
         type: string
         state?: TestStepResultStatus | string | null
         error?: Error
+        pendingReason?: string
         duration?: number
         title?: string | null
         passed?: boolean

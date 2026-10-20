@@ -253,10 +253,13 @@ export default class CucumberFormatter extends Formatter {
             error.stack = `${message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
         }
 
+        // reporters show the reason of a skipped test from `pendingReason`, not from its error
+        const pendingReason = result.status === Status.AMBIGUOUS && state === 'skip' ? result.message : undefined
         const common = {
             title: title,
             state,
             error,
+            ...(pendingReason ? { pendingReason } : {}),
             duration: this._testStart
                 ? Date.now() - this._testStart.getTime()
                 : 0,

@@ -504,6 +504,17 @@ describe('CucumberFormatter', () => {
             expect(skipPayload.error.message).toBe(DEFINITIONS_TEXT)
         })
 
+        it('gives the definitions as the reason of a skipped ambiguous step', () => {
+            const { skipPayload } = reportAmbiguity(false, undefined, false, definitions)
+            expect(skipPayload.pendingReason).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('gives the definitions as the reason of a skipped scenario-level test', () => {
+            const { skipPayload } = reportAmbiguity(true, undefined, false, definitions)
+            expect(skipPayload.type).toBe('scenario')
+            expect(skipPayload.pendingReason).toBe(DEFINITIONS_TEXT)
+        })
+
         it('keeps a message that Cucumber sends', () => {
             const { payload } = reportAmbiguity(false, 'from cucumber', true, definitions)
             expect(payload.error.message).toBe('from cucumber')
