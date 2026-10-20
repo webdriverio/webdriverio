@@ -194,6 +194,20 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
+    it('gives the rootDir of the config to the parallel run', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { rootDir: '/my/project', cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, 'progress'
+        )
+        await adapter.run()
+        expect(vi.mocked(runParallelCucumber).mock.calls[0][0].rootDir).toBe('/my/project')
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
     it('falls back to sequential when parallel execution failed before starting', async () => {
         vi.mocked(parallelRunHasStarted).mockReturnValue(false)
         vi.mocked(runParallelCucumber).mockRejectedValue(new Error('parallel boom'))

@@ -336,6 +336,7 @@ export class CucumberAdapter {
                 specs: this._specs,
                 gherkinDocuments,
                 supportCodeLibrary,
+                rootDir: this._config.rootDir,
                 cucumberOpts: {
                     ...this._cucumberOpts,
                     tags: sources.tagExpression,

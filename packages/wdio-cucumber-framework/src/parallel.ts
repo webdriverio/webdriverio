@@ -299,25 +299,18 @@ interface FeatureGroup {
 }
 
 function collectFeatureGroups(
-    gherkinDocuments: (messages.GherkinDocument | messages.GherkinDocument[])[]
+    gherkinDocuments: (messages.GherkinDocument | messages.GherkinDocument[])[],
+    rootDir?: string
 ): FeatureGroup[] {
-    // getFeatureId is basename:line:column, so same-named files in different
-    // directories collide; reporters key suites by uid.
-    const seen = new Map<string, number>()
     return gherkinDocuments
         .flatMap((docOrDocs) => {
             const docs = [docOrDocs].flat(1) as messages.GherkinDocument[]
-            return docs.map((doc) => {
-                const baseUid = getFeatureId(doc.uri as string, doc.feature as messages.Feature)
-                const count = seen.get(baseUid) ?? 0
-                seen.set(baseUid, count + 1)
-                return {
-                    uid: count === 0 ? baseUid : `${baseUid}#${count}`,
-                    uri: doc.uri || '',
-                    gherkinDocument: doc,
-                    pickles: Gherkin.compile(doc, doc.uri || '', uuidFn) as messages.Pickle[],
-                }
-            })
+            return docs.map((doc) => ({
+                uid: getFeatureId(doc.uri as string, doc.feature as messages.Feature, rootDir),
+                uri: doc.uri || '',
+                gherkinDocument: doc,
+                pickles: Gherkin.compile(doc, doc.uri || '', uuidFn) as messages.Pickle[],
+            }))
         })
         .filter((g) => g.pickles.length > 0)
 }
@@ -887,6 +880,7 @@ export async function runParallelCucumber(params: {
     gherkinDocuments: (messages.GherkinDocument | messages.GherkinDocument[])[]
     supportCodeLibrary: SupportCodeLibrary
     cucumberOpts: Required<CucumberOptions>
+    rootDir?: string
 }): Promise<number> {
     if (!isParallelAvailable()) {
         throw new Error(
@@ -898,7 +892,7 @@ export async function runParallelCucumber(params: {
 
     const {
         browser, reporter, eventEmitter, cid, specs,
-        gherkinDocuments, supportCodeLibrary, cucumberOpts,
+        gherkinDocuments, supportCodeLibrary, cucumberOpts, rootDir,
     } = params
     const bidi = browser as ParallelBrowser
     const worldParams = (cucumberOpts.worldParameters || {}) as Record<string, unknown>
@@ -914,7 +908,7 @@ export async function runParallelCucumber(params: {
         names: cucumberOpts.name,
         tagExpression: cucumberOpts.tags,
     })
-    const featureGroups = collectFeatureGroups(gherkinDocuments)
+    const featureGroups = collectFeatureGroups(gherkinDocuments, rootDir)
         .map((group) => ({
             ...group,
             pickles: group.pickles.filter((pickle) =>
