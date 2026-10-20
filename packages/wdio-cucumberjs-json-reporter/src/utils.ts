@@ -2,7 +2,7 @@ import stripAnsi from 'strip-ansi'
 import { dialects } from '@cucumber/gherkin'
 import type { HookStats, TestStats } from '@wdio/reporter'
 
-import { AMBIGUOUS, AMBIGUOUS_STEP_ERROR, AMBIGUOUS_STEP_MESSAGE, FAILED, SKIPPED, UNDEFINED, UNDEFINED_STEP_ERROR, UNDEFINED_STEP_SUFFIX } from './constants.js'
+import { AMBIGUOUS, AMBIGUOUS_STEP_ERROR, AMBIGUOUS_STEP_MESSAGE, FAILED, PENDING, SKIPPED, UNDEFINED, UNDEFINED_STEP_ERROR, UNDEFINED_STEP_SUFFIX } from './constants.js'
 import type { ErrorMessage, Step } from './types.js'
 
 /**
@@ -73,6 +73,14 @@ function ambiguousReason(testObject: TestStats | HookStats): string | undefined 
 }
 
 /**
+ * `true` for the suffix that the framework adds to an undefined step with
+ * `ignoreUndefinedDefinitions`: only on a pending step, not on a step text that ends like it
+ */
+export function hasUndefinedStepSuffix(testObject: { title?: string, state?: string }): boolean {
+    return testObject.state === PENDING && (testObject.title ?? '').endsWith(UNDEFINED_STEP_SUFFIX)
+}
+
+/**
  * The status of a step as Cucumber writes it: the framework reports an undefined step
  * as failed, or as pending with `ignoreUndefinedDefinitions`, and an ambiguous step as
  * skipped, or as failed with `failAmbiguousDefinitions`
@@ -80,7 +88,7 @@ function ambiguousReason(testObject: TestStats | HookStats): string | undefined 
 export function getStepStatus(testObject: TestStats | HookStats): string {
     const message = testObject.error?.message ?? ''
     if (
-        (testObject.title ?? '').endsWith(UNDEFINED_STEP_SUFFIX) ||
+        hasUndefinedStepSuffix(testObject) ||
         (testObject.state === FAILED && message.startsWith('Step "') && message.endsWith(UNDEFINED_STEP_ERROR))
     ) {
         return UNDEFINED

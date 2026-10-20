@@ -121,6 +121,10 @@ describe('getStepStatus', () => {
         expect(getStepStatus({ ...step('skipped', 'When I am skipped'), pendingReason: 'tagged @skip' } as never)).toBe('skipped')
     })
 
+    it('keeps the status of a step whose own text ends like the suffix of an undefined step', () => {
+        expect(getStepStatus(step('passed', 'Given it ends with (undefined step)'))).toBe('passed')
+    })
+
     it('keeps "failed" for a step whose own error looks like these messages', () => {
         expect(getStepStatus(step('failed', 'Given a step', 'Step "a" is not defined in the page'))).toBe('failed')
     })

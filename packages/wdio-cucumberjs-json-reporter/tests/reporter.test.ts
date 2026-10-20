@@ -35,6 +35,7 @@ const jsonFolder = path.join(logFolderPath, 'ut-folder')
 vi.mock('../src/utils', async (importOriginal) => ({
     escapeRegExp: (await importOriginal<typeof UtilsModule>()).escapeRegExp,
     getStepStatus: (await importOriginal<typeof UtilsModule>()).getStepStatus,
+    hasUndefinedStepSuffix: (await importOriginal<typeof UtilsModule>()).hasUndefinedStepSuffix,
     isKnownLanguage: (await importOriginal<typeof UtilsModule>()).isKnownLanguage,
     containsSteps: vi.fn(),
     getFailedMessage: vi.fn(),
@@ -1138,6 +1139,12 @@ describe('reporter', () => {
             tmpReporter.emit('test:start', { uid: 'step', title: 'When I am ambiguous', parent: 'Scenario' })
             tmpReporter.emit('test:skip', { uid: 'step', title: 'When I am ambiguous', parent: 'Scenario', pendingReason: 'Multiple step definitions match:\n  I am ambiguous - steps.js:1\n  /^I am ambig/ - steps.js:2' })
             expect(tmpReporter.getCurrentStep()?.result?.status).toBe('ambiguous')
+        })
+
+        it('keeps the name and the status of a passed step whose text ends like the suffix of an undefined step', () => {
+            start(tmpReporter, 'Given it ends with (undefined step)')
+            tmpReporter.onTestPass({ ...STEP_TEST_ONSTART_STATS, title: 'Given it ends with (undefined step)', keyword: 'Given', state: PASSED } as TestStatsExtended)
+            expect(tmpReporter.getCurrentStep()).toMatchObject({ name: 'it ends with (undefined step)', result: { status: PASSED } })
         })
 
         it('writes the duration of a pending step', () => {

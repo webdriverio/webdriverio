@@ -20,7 +20,7 @@ import {
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, tagLinesOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
-import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, isKnownLanguage } from './utils.js'
+import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, hasUndefinedStepSuffix, isKnownLanguage } from './utils.js'
 import { fileIdOf, readEarlierFeatures, withFileLock, writeFileAtomic, writeNewFile } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, JsonTag, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -487,7 +487,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      */
     public getStepDataObject(stepData: TestStatsExtended | HookStatsExtended): Step {
         // the name without the suffix that the framework adds to an undefined step
-        const fullTitle = stepData.title.endsWith(UNDEFINED_STEP_SUFFIX)
+        const fullTitle = hasUndefinedStepSuffix(stepData)
             ? stepData.title.slice(0, -UNDEFINED_STEP_SUFFIX.length)
             : stepData.title
         const keyword =
