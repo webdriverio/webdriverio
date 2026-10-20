@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { convertStatus } from './utils.js'
+import { convertStatus, getAmbiguousStepMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -25,7 +25,8 @@ import type {
     TestStepFinished,
     TestStepResult,
     TestCaseFinished,
-    Hook
+    Hook,
+    StepDefinition
 } from '@cucumber/messages'
 
 import {
@@ -45,6 +46,7 @@ export default class CucumberFormatter extends Formatter {
     private _hookEvent: Hook[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
+    private _stepDefinitions = new Map<string, StepDefinition>()
     private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
@@ -90,8 +92,9 @@ export default class CucumberFormatter extends Formatter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
-                results.push(envelope.testStepFinished.testStepResult!)
-                this.onTestStepFinished(envelope.testStepFinished)
+                const testStepFinished = this.withAmbiguousMessage(envelope.testStepFinished)
+                results.push(testStepFinished.testStepResult!)
+                this.onTestStepFinished(testStepFinished)
             } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
@@ -106,6 +109,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.stepDefinition) {
+                this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
                 // do nothing for other envelopes
             }
@@ -499,6 +504,24 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit(`${type}:start`, payload)
         }
+    }
+
+    /**
+     * Cucumber 13 sends no message for an ambiguous step: list the matching step definitions
+     */
+    private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
+        const result = event.testStepResult
+        if (result?.status !== Status.AMBIGUOUS || result.message) {
+            return event
+        }
+        const testStep = this._testCases
+            .find((tc) => tc.id === this._currentTestCase?.testCaseId)
+            ?.testSteps.find((step) => step.id === event.testStepId)
+        const stepDefinitions = (testStep?.stepDefinitionIds ?? [])
+            .map((id) => this._stepDefinitions.get(id))
+            .filter((definition): definition is StepDefinition => Boolean(definition))
+        const message = getAmbiguousStepMessage(stepDefinitions)
+        return message ? { ...event, testStepResult: { ...result, message } } : event
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {

@@ -8,7 +8,7 @@ import {
     afterEach,
 } from 'vitest'
 import { EventEmitter } from 'node:events'
-import type { TestStepFinished, TestStepStarted } from '@cucumber/messages'
+import type { StepDefinition, TestStepFinished, TestStepStarted } from '@cucumber/messages'
 import { TestStepResultStatus } from '@cucumber/messages'
 import path from 'node:path'
 
@@ -403,7 +403,13 @@ describe('CucumberFormatter', () => {
     })
 
     describe('ambiguous steps', () => {
-        function reportAmbiguity (scenarioLevelReporter: boolean, message?: string, failAmbiguousDefinitions = true) {
+        const definitions = [
+            { id: '16', pattern: { source: 'I do something', type: 'CUCUMBER_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 3 } } },
+            { id: '99', pattern: { source: '^I do', type: 'REGULAR_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 7 } } }
+        ] as StepDefinition[]
+        const DEFINITIONS_TEXT = 'Multiple step definitions match:\n  I do something - features/steps.js:3\n  /^I do/ - features/steps.js:7'
+
+        function reportAmbiguity (scenarioLevelReporter: boolean, message?: string, failAmbiguousDefinitions = true, stepDefinitions: StepDefinition[] = []) {
             const eventBroadcaster = new EventEmitter()
             const events = new EventEmitter()
             const counts: number[] = []
@@ -423,7 +429,15 @@ describe('CucumberFormatter', () => {
             } as any)
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
+            for (const stepDefinition of stepDefinitions) {
+                eventBroadcaster.emit('envelope', { stepDefinition })
+            }
+            eventBroadcaster.emit('envelope', {
+                testCase: {
+                    ...testCase,
+                    testSteps: testCase.testSteps.map((step) => step.id === '26' ? { ...step, stepDefinitionIds: ['16', '99'] } : step)
+                }
+            })
             startSuite(eventBroadcaster)
             eventBroadcaster.emit('envelope', { testStepStarted })
             eventBroadcaster.emit('envelope', {
@@ -434,7 +448,11 @@ describe('CucumberFormatter', () => {
             })
             eventBroadcaster.emit('envelope', { testCaseFinished })
             eventBroadcaster.emit('envelope', { testRunFinished })
-            return { payload: wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')?.[1], counts }
+            return {
+                payload: wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')?.[1],
+                skipPayload: wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:skip')?.[1],
+                counts
+            }
         }
 
         it.each([false, true])('explains a missing Cucumber diagnostic (scenario level: %s)', (scenarioLevelReporter) => {
@@ -462,6 +480,33 @@ describe('CucumberFormatter', () => {
             expect(payload).toBeUndefined()
             expect(wdioReporter.emit).toHaveBeenCalledWith('test:skip', expect.objectContaining({ state: 'skip', error: undefined }))
             expect(counts).toEqual([0])
+        })
+
+        it('lists the matching definitions in the error (failAmbiguousDefinitions)', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, definitions)
+            expect(payload.error).toMatchObject({ message: 'Multiple step definitions match:', stack: DEFINITIONS_TEXT })
+        })
+
+        it('lists the matching definitions on a skipped ambiguous step', () => {
+            const { payload, skipPayload } = reportAmbiguity(false, undefined, false, definitions)
+            expect(payload).toBeUndefined()
+            expect(skipPayload.error.message).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('keeps a message that Cucumber sends', () => {
+            const { payload } = reportAmbiguity(false, 'from cucumber', true, definitions)
+            expect(payload.error).toMatchObject({ message: 'from cucumber', stack: 'from cucumber' })
+        })
+
+        it('skips a definition id without a stepDefinition message', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, [definitions[1]])
+            expect(payload.error.stack).toBe('Multiple step definitions match:\n  /^I do/ - features/steps.js:7')
+        })
+
+        it('lists the definitions for a scenario-level test', () => {
+            const { payload } = reportAmbiguity(true, undefined, true, definitions)
+            expect(payload.type).toBe('scenario')
+            expect(payload.error.stack).toBe(DEFINITIONS_TEXT)
         })
     })
 

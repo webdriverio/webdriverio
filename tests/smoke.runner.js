@@ -460,8 +460,9 @@ const cucumberFailAmbiguousDefinitions = async () => {
         )
         assert.equal(hasFailed, true)
         const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
-        assert.ok(logs.includes('Step "this is ambiguous" matches multiple step definitions.'))
-        assert.ok(logs.includes('overlapping expressions'))
+        assert.ok(logs.includes('Multiple step definitions match:'))
+        assert.match(logs, /this is ambiguous - \S*step-definitions\/given\.js:89/)
+        assert.match(logs, /this is ambiguous - \S*step-definitions\/then\.js:20/)
     } finally {
         await fs.rm(logFile, { force: true })
     }
