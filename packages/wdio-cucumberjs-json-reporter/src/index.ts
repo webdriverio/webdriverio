@@ -25,6 +25,21 @@ import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from '.
 
 const log = logger('@wdio/cucumberjs-json-reporter')
 
+/**
+ * `true` for a string that is valid JSON text, for example `'{"a":1}'`
+ */
+function isJsonText (data: unknown): data is string {
+    if (typeof data !== 'string') {
+        return false
+    }
+    try {
+        JSON.parse(data)
+        return true
+    } catch {
+        return false
+    }
+}
+
 export class CucumberJsJsonReporter extends WDIOReporter {
     public instanceMetadata: MetadataObject | null
     public report: Report
@@ -578,7 +593,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             data = Buffer.from(text).toString('base64')
         }
         if (attachment.type === 'application/json') {
-            data = Buffer.from(JSON.stringify(data)).toString('base64')
+            // a string that is already JSON stays as it is, as with `this.attach()` of Cucumber
+            data = Buffer.from(isJsonText(data) ? data : JSON.stringify(data)).toString('base64')
         }
 
         const embeddings = {

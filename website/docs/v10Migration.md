@@ -387,7 +387,7 @@ The options are the same. The JSON files follow the Cucumber JSON format more cl
 - When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
 - In a multi-remote session, the metadata comes from the first instance.
 
-These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, and an object attached as `text/plain` (it is JSON text, not `[object Object]`). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language`. With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
+These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, an object attached as `text/plain` (it is JSON text, not `[object Object]`), and a JSON string attached as `application/json` (it stays as it is, it is not encoded a second time). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language`. With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
 
 ## `$` is strict
 

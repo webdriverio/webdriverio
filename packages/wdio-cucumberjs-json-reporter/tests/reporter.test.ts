@@ -25,7 +25,7 @@ import {
 } from './__mocks__/mocks.js'
 import type { HookStatsExtended, RunnerStatsExtended, SuiteStatsExtended, TestStatsExtended } from '../src/types/wdio.js'
 import { Metadata } from '../src/metadata.js'
-import type { MetadataObject, Scenario, Step } from '../src/types.js'
+import type { CucumberJsAttachment, MetadataObject, Scenario, Step } from '../src/types.js'
 import WdioCucumberJsJsonReporter from '../src/index.js'
 
 const logFolderPath = path.join(os.tmpdir(), 'wdio-cucumberjs-json-reporter-tests')
@@ -389,6 +389,29 @@ describe('reporter', () => {
                 recursive: true,
                 force: true
             })
+        })
+    })
+
+    describe('application/json attachments', () => {
+        const attached = (data: unknown) => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
+            tmpReporter.addStepData(STEP_TEST_ONSTART_STATS)
+            tmpReporter.cucumberJsAttachment({ data, type: 'application/json' } as CucumberJsAttachment)
+            return Buffer.from(String(tmpReporter.getCurrentStep()!.embeddings![0].data), 'base64').toString()
+        }
+
+        it('keeps a string that is already JSON, as Cucumber does', () => {
+            expect(attached('{"a":1}')).toBe('{"a":1}')
+        })
+
+        it('writes an object as JSON', () => {
+            expect(attached({ a: 1 })).toBe('{"a":1}')
+        })
+
+        it('writes a string that is not JSON as a JSON string', () => {
+            expect(attached('hello')).toBe('"hello"')
         })
     })
 

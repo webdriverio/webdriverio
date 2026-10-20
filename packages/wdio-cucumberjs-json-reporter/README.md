@@ -199,8 +199,9 @@ import cucumberJson from '@wdio/cucumberjs-json-reporter';
 cucumberJson.attach('just a string');
 cucumberJson.attach('just a second string', 'text/plain');
 
-// Attach JSON
+// Attach JSON: an object, or a string that is already JSON (it stays as it is)
 cucumberJson.attach({"json-string": true}, 'application/json');
+cucumberJson.attach('{"json-string": true}', 'application/json');
 
 // Attach a screenshot in a before hook
 cucumberJson.attach(await browser.takeScreenshot(), 'image/png');
