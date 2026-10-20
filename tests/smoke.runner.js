@@ -638,6 +638,61 @@ const cucumberGroupedSpecsRandomOrderHistory = async () => {
 }
 
 /**
+ * Cucumber with 2 feature files with the same file name in other folders: each feature
+ * keeps its suite and its scenarios, and each scenario has its own Allure historyId,
+ * the same in grouped and not grouped specs
+ */
+const cucumberSameFeatureFileName = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'same-file-name')
+    const configFile = path.resolve(basePath, 'same-file-name.conf.js')
+    const files = [path.join(basePath, 'admin', 'login.feature'), path.join(basePath, 'user', 'login.feature')]
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-same-feature-file-name-'))
+    let passed = false
+    try {
+        const logFile = path.join(tmpDir, 'spec.log')
+        await launch('cucumberSameFeatureFileName', configFile, { reporters: [['spec', { stdout: false, logFile }]] })
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        const listed = []
+        let heading
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            if (['Admin login', 'User login'].includes(line)) {
+                heading = line
+            } else if (['logs in', 'logs out'].includes(line)) {
+                listed.push(`${heading}: ${line}`)
+            }
+        }
+        assert.deepStrictEqual(listed, ['Admin login: logs in', 'Admin login: logs out', 'User login: logs in'],
+            `each scenario must be under the heading of its feature:\n${logs}`)
+
+        const historyIds = {}
+        for (const [name, specs] of [['notGrouped', files], ['grouped', [files]]]) {
+            const outputDir = path.join(tmpDir, `allure-${name}`)
+            await launch('cucumberSameFeatureFileName', configFile, {
+                specs,
+                reporters: [['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }]],
+                cucumberOpts: { scenarioLevelReporter: true }
+            })
+            historyIds[name] = {}
+            for (const file of (await fs.readdir(outputDir)).filter((f) => f.endsWith('-result.json'))) {
+                const result = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+                const feature = result.labels.find((label) => label.name === 'feature')?.value
+                historyIds[name][`${feature}: ${result.name}`] = result.historyId
+            }
+        }
+        assert.equal(new Set(Object.values(historyIds.notGrouped)).size, 3, `each scenario must have its own historyId: ${JSON.stringify(historyIds)}`)
+        assert.deepStrictEqual(historyIds.grouped, historyIds.notGrouped, 'a scenario must keep its historyId when its spec is grouped')
+        passed = true
+    } finally {
+        // keep the output of a failed run to examine it
+        if (passed) {
+            await fs.rm(tmpDir, { recursive: true, force: true })
+        } else {
+            console.error(`cucumberSameFeatureFileName: output kept in ${tmpDir}`)
+        }
+    }
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1478,6 +1533,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
         cucumberGroupedSpecsRandomOrderHistory,
+        cucumberSameFeatureFileName,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
