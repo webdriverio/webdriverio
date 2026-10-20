@@ -475,7 +475,8 @@ const cucumberFailAmbiguousDefinitions = async () => {
 
     // default: the step is skipped, with the definitions as its reason
     const skipLogs = await run({ failAmbiguousDefinitions: false })
-    assert.match(skipLogs, /Pending Reasons[\s\S]*Multiple step definitions match:/)
+    // the reason is under the ambiguous step, not under a passed step before it
+    assert.match(skipLogs, /- Given this is ambiguous\n[^\n]*\n[^\n]*Pending Reasons[^\n]*\n[^\n]*Multiple step definitions match:/)
     assert.match(skipLogs, definitionLine('given.js', 89))
     assert.match(skipLogs, definitionLine('then.js', 20))
 }

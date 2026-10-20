@@ -135,6 +135,8 @@ export default class SpecReporter extends WDIOReporter {
     onTestPass (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
+        // one item for each printed test, as `_consoleLogs`
+        this._pendingReasons.push(testStat.pendingReason as string)
         this._stateCounts.passed++
         this._passedTests.add(testStat)
         if (!this._isSuiteRetry) {
@@ -145,6 +147,7 @@ export default class SpecReporter extends WDIOReporter {
     onTestFail (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
+        this._pendingReasons.push(testStat.pendingReason as string)
 
         if (this._passedTests.delete(testStat)) {
             this._stateCounts.passed--

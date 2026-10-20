@@ -707,6 +707,18 @@ describe('SpecReporter', () => {
             tmpReporter.onRunnerEnd(runnerEnd())
         })
 
+        it('should add the pending reason under the skipped test, not under a passed test before it', () => {
+            tmpReporter = new SpecReporter(options)
+            const passed = { type: 'test', title: 'passes', state: State.PASSED } as any
+            const skipped = { type: 'test', title: 'is skipped', state: State.SKIPPED, pendingReason: 'the reason' } as any
+            tmpReporter.onTestPass(passed)
+            tmpReporter.onTestSkip(skipped)
+            tmpReporter['_orderedSuites'] = [{ uid: 'suite', title: 'suite', tests: [passed, skipped], hooksAndTests: [passed, skipped], hooks: [], suites: [], retries: 0 }] as any
+            const lines = tmpReporter.getResultDisplay()
+            const reason = lines.findIndex((line) => line.includes('the reason'))
+            expect(reason).toBeGreaterThan(lines.findIndex((line) => line.includes('is skipped')))
+        })
+
         it('should add pending reason to report for skipped tests', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
