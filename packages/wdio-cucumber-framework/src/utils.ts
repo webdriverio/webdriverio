@@ -286,7 +286,10 @@ export function getAmbiguousStepMessage(stepDefinitions: readonly StepDefinition
         return undefined
     }
     const lines = stepDefinitions.map(({ pattern, sourceReference }) => {
-        const source = pattern.type === 'REGULAR_EXPRESSION' ? `/${pattern.source}/` : pattern.source
+        // Cucumber sends `pattern.toString()`, with the slashes, for a regular expression with flags
+        const source = pattern.type === 'REGULAR_EXPRESSION' && !pattern.source.startsWith('/')
+            ? `/${pattern.source}/`
+            : pattern.source
         if (!sourceReference.uri) {
             return `  ${source}`
         }

@@ -275,6 +275,12 @@ describe('utils', () => {
                 'Multiple step definitions match:\n  I do something - features/steps.js:3\n  /^I do/ - features/steps.js:7')
         })
 
+        it('does not add slashes to a regular expression with flags', () => {
+            // Cucumber sends `pattern.toString()` for a regular expression with flags
+            const withFlags = { ...definitions[1], pattern: { source: '/^I do/i', type: 'REGULAR_EXPRESSION' } } as StepDefinition
+            expect(getAmbiguousStepMessage([withFlags])).toBe('Multiple step definitions match:\n  /^I do/i - features/steps.js:7')
+        })
+
         it('writes the pattern alone without a uri', () => {
             expect(getAmbiguousStepMessage([{ ...definitions[0], sourceReference: {} }]))
                 .toBe('Multiple step definitions match:\n  I do something')

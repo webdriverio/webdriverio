@@ -295,12 +295,13 @@ export default class CucumberFormatter extends Formatter {
      */
     private getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep) {
         let stack = `\tat Feature(${uri}):1:1\n`
-        const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child])
-        const featScenario = children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
+        const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
+        const featScenario = children.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
         if (featScenario) {
             stack += `\tat Scenario(${featScenario.name}):${featScenario.location?.line}:${featScenario.location?.column}\n`
 
-            const featStep = featScenario.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
+            const steps = [...children.flatMap((c) => c.background?.steps ?? []), ...(featScenario.steps ?? [])]
+            const featStep = steps.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
             if (featStep) {
                 stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
             }

@@ -493,7 +493,8 @@ describe('CucumberFormatter', () => {
         it('gives the location of the step in the feature file', () => {
             const { payload } = reportAmbiguity(false, undefined, true, definitions)
             expect(payload.error.stack).toBe(`${DEFINITIONS_TEXT}\n` +
-                `\tat Feature(${path.resolve(gherkinDocument.uri!)}):1:1\n` +
+                // an absolute uri stays as it is, also on Windows
+                `\tat Feature(${gherkinDocument.uri}):1:1\n` +
                 '\tat Scenario(Get size of an element):12:3\n' +
                 '\tat Step(should the element \'.header-logged-out a\' be 32px wide and 35px high):14:5\n')
         })
@@ -550,6 +551,42 @@ describe('CucumberFormatter', () => {
             })
             const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')!
             expect(payload.error.stack).toContain('\tat Scenario(Get size of an element):12:3\n')
+        })
+
+        it('gives the location of a step from a background', () => {
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: false,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                },
+            } as any)
+            // the pickle step '12' comes from the background step '4'
+            const feature = {
+                ...gherkinDocument.feature!,
+                children: [
+                    { background: { id: '30', keyword: 'Background', name: '', description: '', location: { line: 3, column: 3 }, steps: [
+                        { id: '4', keyword: 'Given ', keywordType: 'Context', text: 'a background step', location: { line: 4, column: 5 } }
+                    ] } },
+                    { scenario: { id: '8', keyword: 'Scenario', name: 'Get size of an element', description: '', location: { line: 6, column: 3 }, tags: [], steps: [], examples: [] } }
+                ]
+            }
+            eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, feature } })
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: { ...testStepFinished, testStepResult: { status: TestStepResultStatus.AMBIGUOUS, duration: { seconds: 0, nanos: 0 } } }
+            })
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')!
+            expect(payload.error.stack).toContain('\tat Scenario(Get size of an element):6:3\n\tat Step(a background step):4:5\n')
         })
 
         it('lists the definitions for a scenario-level test', () => {

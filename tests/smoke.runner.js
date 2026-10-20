@@ -462,17 +462,22 @@ const cucumberFailAmbiguousDefinitions = async () => {
         }
     }
 
+    // Cucumber writes the step definition files with the path separator of the OS
+    const definitionLine = (file, line) => new RegExp(
+        `this is ambiguous - \\S*${path.join('step-definitions', file).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:${line}`
+    )
+
     const failLogs = await run({ ignoreUndefinedDefinitions: true, failAmbiguousDefinitions: true })
     assert.match(failLogs, /Multiple step definitions match:/)
-    assert.match(failLogs, /this is ambiguous - \S*step-definitions\/given\.js:89/)
-    assert.match(failLogs, /this is ambiguous - \S*step-definitions\/then\.js:20/)
+    assert.match(failLogs, definitionLine('given.js', 89))
+    assert.match(failLogs, definitionLine('then.js', 20))
     assert.match(failLogs, /at Step\(this is ambiguous\):50:9/)
 
     // default: the step is skipped, with the definitions as its reason
     const skipLogs = await run({ failAmbiguousDefinitions: false })
     assert.match(skipLogs, /Pending Reasons[\s\S]*Multiple step definitions match:/)
-    assert.match(skipLogs, /this is ambiguous - \S*step-definitions\/given\.js:89/)
-    assert.match(skipLogs, /this is ambiguous - \S*step-definitions\/then\.js:20/)
+    assert.match(skipLogs, definitionLine('given.js', 89))
+    assert.match(skipLogs, definitionLine('then.js', 20))
 }
 
 /**
