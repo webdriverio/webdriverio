@@ -15,10 +15,12 @@ const LOCK_TIMEOUT = 10_000
 const LOCK_MAX_AGE = 60_000
 
 /**
- * the rename of a file that Windows still has open (antivirus, search indexer) fails for a short time
+ * Windows: the rename of a file that another process still has open (antivirus, search
+ * indexer), and the creation of a lock that another worker removes ("delete pending"),
+ * fail for a short time
  */
-const RENAME_RETRIES = 20
-const RENAME_RETRY_WAIT = 50
+const BUSY_RETRIES = 20
+const BUSY_RETRY_WAIT = 50
 const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
 
 /**
@@ -80,15 +82,22 @@ export function isLeft (lock: string) {
  */
 export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_TIMEOUT, maxAge = LOCK_MAX_AGE): T {
     const lock = `${file}.lock`
-    for (;;) {
+    for (let busyTries = 0; ;) {
         try {
             fs.mkdirSync(lock)
             fs.writeFileSync(path.join(lock, 'pid'), String(process.pid))
             break
         } catch (error: unknown) {
-            if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-                throw error
+            const code = (error as NodeJS.ErrnoException).code ?? ''
+            if (code !== 'EEXIST') {
+                // a permission error that stays is thrown
+                if (!BUSY_CODES.has(code) || ++busyTries > BUSY_RETRIES) {
+                    throw error
+                }
+                sleep(BUSY_RETRY_WAIT)
+                continue
             }
+            busyTries = 0
             const left = isLeft(lock)
             const age = lockAge(lock)
             // the owner removed it in the meantime: try again
@@ -127,12 +136,12 @@ export function writeFileAtomic (file: string, content: string) {
                 fs.rmSync(temporary, { force: true })
                 throw error
             }
-            if (attempt >= RENAME_RETRIES) {
+            if (attempt >= BUSY_RETRIES) {
                 fs.writeFileSync(file, content)
                 fs.rmSync(temporary, { force: true })
                 return
             }
-            sleep(RENAME_RETRY_WAIT)
+            sleep(BUSY_RETRY_WAIT)
         }
     }
 }

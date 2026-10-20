@@ -6,6 +6,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import { fileIdOf, isLeft, withFileLock, writeFileAtomic } from '../src/files.js'
 
+const busy = (code: string) => Object.assign(new Error(`${code}: operation not permitted`), { code })
+
 describe('withFileLock', () => {
     const dirs: string[] = []
     afterEach(() => {
@@ -103,6 +105,37 @@ describe('withFileLock', () => {
         expect(fs.existsSync(lock)).toBe(false)
     })
 
+    it('tries again when Windows gives EPERM for the lock that another worker removes now', () => {
+        const file = tempFile()
+        const mkdir = fs.mkdirSync
+        let calls = 0
+        // the folder is "delete pending" for a short time
+        const spy = vi.spyOn(fs, 'mkdirSync').mockImplementation(((dir: fs.PathLike, options?: fs.MakeDirectoryOptions) => {
+            if (++calls <= 2) {
+                throw busy('EPERM')
+            }
+            return mkdir(dir, options)
+        }) as typeof fs.mkdirSync)
+        try {
+            expect(withFileLock(file, () => 'done')).toBe('done')
+        } finally {
+            spy.mockRestore()
+        }
+        expect(calls).toBe(3)
+    })
+
+    it('throws a permission error of the lock that stays', () => {
+        const file = tempFile()
+        const spy = vi.spyOn(fs, 'mkdirSync').mockImplementation(() => {
+            throw busy('EACCES')
+        })
+        try {
+            expect(() => withFileLock(file, () => 'done')).toThrow('EACCES')
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
     it('does not know the owner of a lock with an empty or invalid process id (it can time out)', () => {
         const lock = `${tempFile()}.lock`
         fs.mkdirSync(lock)
@@ -127,7 +160,6 @@ describe('writeFileAtomic', () => {
         dirs.push(dir)
         return path.join(dir, 'feature.json')
     }
-    const busy = (code: string) => Object.assign(new Error(`${code}: resource busy or locked`), { code })
 
     it('tries the rename again when Windows still has the file open (EPERM, EBUSY)', () => {
         const file = tempFile()
