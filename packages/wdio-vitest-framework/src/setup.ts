@@ -5,6 +5,8 @@ import { expect, setDefaultOptions } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 
+import { SESSION_META_KEY, type SessionMeta } from './types.js'
+
 const CONNECTION_KEYS = ['protocol', 'hostname', 'port', 'path', 'user', 'key'] as const
 
 type ParallelBrowser = WebdriverIO.Browser & ParallelContextBrowser & {
@@ -49,6 +51,7 @@ beforeAll(async ({}, suite) => {
         capabilities = inject('wdioCapabilities')
 
         browser = await remote(toRemoteOptions()) as ParallelBrowser
+        Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
         setGlobals(browser)
         setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
 

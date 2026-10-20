@@ -40,6 +40,7 @@
     "@types/node": "^22.20.4",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
+    "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "expect-webdriverio": "^8.0.0",

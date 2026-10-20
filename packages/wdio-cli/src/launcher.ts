@@ -135,7 +135,12 @@ class Launcher {
                     .reduce((a, b) => a + b, 0)
                 : 1
 
-            this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
+            const framework = await this.#loadFrameworkLauncher(config)
+            if (framework && config.specFileRetries > 0) {
+                log.warn('specFileRetries is not supported with this framework and is ignored')
+            }
+            // The framework schedules specs itself, so no spec file is ever retried
+            this.interface = new CLInterface(framework ? { ...config, specFileRetries: 0 } : config, totalWorkerCnt, this._isWatchMode)
             config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
 
             /**
@@ -146,13 +151,23 @@ class Launcher {
                 setupBrowser(config, caps)
             ])
 
-            const framework = await this.#loadFrameworkLauncher(config)
+            const cliInterface = this.interface
             exitCode = framework
                 ? Number(await framework.launch({
                     // ConfigParser keeps capabilities outside of getConfig()
                     config: { ...config, capabilities: caps } as WebdriverIO.Config,
                     specs: this.configParser.getSpecs().flat().map((spec) => spec.startsWith('file://') ? fileURLToPath(spec) : spec),
-                    configFile: this._configFilePath
+                    configFile: this._configFilePath,
+                    onEvent: (event) => {
+                        if (event.type === 'job:start') {
+                            const { cid, caps, specs } = event
+                            cliInterface.emit('job:start', { cid, caps, specs, hasTests: true })
+                        } else if (event.type === 'job:end') {
+                            cliInterface.emit('job:end', { cid: event.cid, passed: event.passed, retries: 0 })
+                        } else {
+                            cliInterface.onMessage(event.message as Parameters<CLInterface['onMessage']>[0])
+                        }
+                    }
                 }).catch((err) => {
                     // onComplete hooks must not see a green exit code for a crashed run
                     exitCode = 1

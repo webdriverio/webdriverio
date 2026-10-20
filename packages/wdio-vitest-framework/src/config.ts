@@ -6,6 +6,7 @@ import type { Capabilities, Frameworks } from '@wdio/types'
 import type { InlineConfig } from 'vitest/node'
 import type { ViteUserConfig } from 'vitest/config'
 
+import { WdioBridgeReporter } from './reporter.js'
 import type { VitestOpts } from './types.js'
 
 declare module 'vitest' {
@@ -37,12 +38,16 @@ function isMultiRemote(capabilities: unknown) {
  * Builds the in-memory Vitest config from the WebdriverIO config. Returned
  * as Vite overrides, so Vitest never reads a `vitest.config` file.
  */
-export function toVitestConfig({ config, specs, configFile }: Frameworks.FrameworkLaunchParams): ViteUserConfig {
+export function toVitestConfig({ config, specs, configFile, onEvent }: Frameworks.FrameworkLaunchParams, onBridgeError?: (error: unknown) => void): ViteUserConfig {
     if (isMultiRemote(config.capabilities)) {
         throw new Error('@wdio/vitest-framework does not support multi-remote capabilities yet')
     }
 
-    const { parallelMode, maxParallelContexts, setupFiles: userSetupFiles = [], ...passthrough } = (config.vitestOpts || {}) as VitestOpts
+    const { parallelMode, maxParallelContexts, setupFiles: userSetupFiles = [], reporters: userReporters, ...passthrough } = (config.vitestOpts || {}) as VitestOpts
+    // Vitest's own console reporter stays, next to the WDIO reporters fed by the bridge
+    const reporters = onEvent
+        ? [...(userReporters === undefined ? ['default'] : Array.isArray(userReporters) ? userReporters : [userReporters]), new WdioBridgeReporter(config, onEvent, onBridgeError)]
+        : userReporters
     const shared: InlineConfig = {
         isolate: true,
         globals: true,
@@ -74,6 +79,7 @@ export function toVitestConfig({ config, specs, configFile }: Frameworks.Framewo
             ...(isPositiveNumber(config.bail) ? { bail: config.bail } : {}),
             ...(parallelMode ? { maxConcurrency: resolveMaxContexts(maxParallelContexts, os.cpus().length) } : {}),
             ...passthrough,
+            ...(reporters ? { reporters } : {}),
             // the framework cannot work without these, so vitestOpts must not replace them
             include: specs,
             pool: 'forks',
