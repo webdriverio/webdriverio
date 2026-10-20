@@ -1,5 +1,7 @@
 import { aroundEach, beforeAll, afterAll, inject } from 'vitest'
+import { SUPPORTED_HOOKS } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
+import { _setGlobal } from '@wdio/globals'
 import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWorkerService, type ParallelContextBrowser } from '@wdio/utils'
 import { expect, setDefaultOptions } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
@@ -8,7 +10,9 @@ import type { Capabilities } from '@wdio/types'
 
 import { SESSION_META_KEY, type SessionMeta } from './types.js'
 
-const COMMAND_HOOK_KEYS = ['beforeCommand', 'afterCommand']
+// the browser runs these itself; every other WDIO hook is run by this module
+const BROWSER_HOOK_KEYS = ['beforeCommand', 'afterCommand', 'onReload']
+const RUNNER_HOOK_KEYS = SUPPORTED_HOOKS.filter((key) => !BROWSER_HOOK_KEYS.includes(key))
 const CONNECTION_KEYS = ['protocol', 'hostname', 'port', 'path', 'user', 'key'] as const
 const EXIT_SIGNALS = ['SIGINT', 'SIGTERM'] as const
 const SIGNAL_TEARDOWN_TIMEOUT_MS = 10_000
@@ -30,11 +34,8 @@ function stripConnectionKeys(caps: object) {
     return Object.fromEntries(Object.entries(caps).filter(([key]) => !(CONNECTION_KEYS as readonly string[]).includes(key)))
 }
 
-/** The WDIO hooks from the config are run by this module, so remote() only gets the plain options plus the command hooks, which the browser runs itself. */
 function toRemoteOptions(): WebdriverIO.RemoteConfig {
-    const options = Object.fromEntries(Object.entries(config).filter(([key, value]) => (
-        COMMAND_HOOK_KEYS.includes(key) || (typeof value !== 'function' && !(Array.isArray(value) && value.some((entry) => typeof entry === 'function')))
-    )))
+    const options = Object.fromEntries(Object.entries(config).filter(([key]) => !RUNNER_HOOK_KEYS.includes(key as typeof RUNNER_HOOK_KEYS[number])))
     const connection = Object.fromEntries(CONNECTION_KEYS.filter((key) => capabilities[key] !== undefined).map((key) => [key, capabilities[key]]))
     // firstMatch only exists on the W3C object, so it is rebuilt around the stripped entries
     const remoteCapabilities = 'alwaysMatch' in requestedCapabilities
@@ -76,14 +77,12 @@ function removeSignalHandlers() {
     signalHandlers.forEach(([signal, handler]) => process.off(signal, handler))
 }
 
-function setGlobals(instance: WebdriverIO.Browser) {
-    Object.assign(globalThis, {
-        browser: instance,
-        driver: instance,
-        $: (...args: Parameters<WebdriverIO.Browser['$']>) => instance.$(...args),
-        $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => instance.$$(...args),
-        expect
-    })
+function setGlobals(instance: WebdriverIO.Browser, injectGlobals: boolean | undefined) {
+    _setGlobal('browser', instance, injectGlobals)
+    _setGlobal('driver', instance, injectGlobals)
+    _setGlobal('$', (...args: Parameters<WebdriverIO.Browser['$']>) => instance.$(...args), injectGlobals)
+    _setGlobal('$$', (...args: Parameters<WebdriverIO.Browser['$$']>) => instance.$$(...args), injectGlobals)
+    _setGlobal('expect', expect, injectGlobals)
 }
 
 // Vitest rejects a non-destructured first argument, and only passes the suite second
@@ -113,7 +112,7 @@ beforeAll(async ({}, suite) => {
         browser = await remote(toRemoteOptions()) as ParallelBrowser
         signalHandlers.forEach(([signal, handler]) => process.on(signal, handler))
         Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
-        setGlobals(browser)
+        setGlobals(browser, config.injectGlobals)
         setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
 
         await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])

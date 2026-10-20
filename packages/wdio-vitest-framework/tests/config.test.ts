@@ -1,6 +1,8 @@
 import os from 'node:os'
 import { describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
+
 import { toVitestConfig } from '../src/config.js'
 import { WdioBridgeReporter } from '../src/reporter.js'
 
@@ -67,11 +69,21 @@ describe('toVitestConfig', () => {
             { extends: true, test: expect.objectContaining({ name: 'firefox-1' }) },
             { extends: true, test: expect.objectContaining({ name: 'browser-2' }) }
         ])
-        expect((projects![1] as { test: object }).test).not.toHaveProperty('maxWorkers')
+        expect((projects![1] as { test: { maxWorkers: number } }).test.maxWorkers).toBe(DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE)
         for (const project of projects!) {
             expect((project as { test: object }).test).not.toHaveProperty('include')
             expect((project as { test: object }).test).not.toHaveProperty('setupFiles')
         }
+    })
+
+    it('falls back to maxInstancesPerCapability for the project maxWorkers', () => {
+        const { projects } = build({ maxInstances: 10, maxInstancesPerCapability: 1, capabilities: [{ browserName: 'chrome' }] as never }).test!
+        expect((projects![0] as { test: { maxWorkers: number } }).test.maxWorkers).toBe(1)
+    })
+
+    it('caps the project maxWorkers at the global maxInstances', () => {
+        const { projects } = build({ maxInstances: 5, capabilities: [{ browserName: 'chrome', 'wdio:maxInstances': 20 }] as never }).test!
+        expect((projects![0] as { test: { maxWorkers: number } }).test.maxWorkers).toBe(5)
     })
 
     it('provides the full W3C capabilities, keeping firstMatch, and names the project from alwaysMatch', () => {

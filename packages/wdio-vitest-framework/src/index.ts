@@ -27,6 +27,10 @@ function countFailures(vitest: Vitest) {
 }
 
 export async function launch(params: Frameworks.FrameworkLaunchParams): Promise<number> {
+    if (params.specs.length === 0 && (params.config.shard?.total ?? 1) > 1) {
+        log.info(`No specs to execute in shard ${params.config.shard!.current}/${params.config.shard!.total}, exiting!`)
+        return 0
+    }
     let bridgeFailures = 0
     // startVitest resolves only after the run, so the instance to cancel is captured while the run starts
     let running: Vitest | undefined

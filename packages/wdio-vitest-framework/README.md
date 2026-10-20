@@ -110,4 +110,5 @@ Each test opens its own window, and every command in the test targets it. The wi
 - `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
 - Hook results (`hook:start`, `hook:end`) are not reported to WDIO reporters.
+- Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
 - `browser.options.vitestOpts` is not set inside specs.

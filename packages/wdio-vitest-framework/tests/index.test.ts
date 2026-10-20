@@ -29,6 +29,18 @@ describe('launch', () => {
         vitestNode.instance.state.getTestModules = () => []
     })
 
+    it('returns 0 without starting Vitest for an empty shard of a sharded run', async () => {
+        const result = await launch({ ...params(), config: { shard: { current: 2, total: 2 } } } as never)
+        expect(result).toBe(0)
+        expect(vitestNode.startVitest).not.toHaveBeenCalled()
+    })
+
+    it('still fails an empty run that is not sharded', async () => {
+        runningVitest(() => {})
+        expect(await launch({ ...params(), config: { shard: { current: 1, total: 1 } } } as never)).toBe(1)
+        expect(vitestNode.startVitest).toHaveBeenCalledTimes(1)
+    })
+
     it('cancels the current run when the signal aborts during the run', async () => {
         const controller = new AbortController()
         runningVitest(() => controller.abort())

@@ -39,6 +39,7 @@
   "dependencies": {
     "@types/node": "^22.20.4",
     "@wdio/config": "workspace:*",
+    "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",

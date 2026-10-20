@@ -1,6 +1,7 @@
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 
+import { DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
 import { resolveMaxContexts } from '@wdio/utils'
 import type { Capabilities, Frameworks } from '@wdio/types'
 import type { InlineConfig } from 'vitest/node'
@@ -22,7 +23,7 @@ const DEFAULT_TEST_TIMEOUT_MS = 60_000
 const DEFAULT_HOOK_TIMEOUT_MS = 120_000
 const SETUP_FILE = fileURLToPath(new URL('./setup.js', import.meta.url))
 
-const GLOB_SPECIALS = /[()[\]{}*?!]/g
+const GLOB_SPECIALS = /[\\()[\]{}*?!]/g
 
 /** Vitest matches `include` as globs, so a literal spec path with glob characters (e.g. a `(group)` folder) must be escaped */
 function toLiteralGlob(path: string) {
@@ -65,7 +66,7 @@ export function toVitestConfig({ config, specs, configFile, args, onEvent }: Fra
 
     const projects = (config.capabilities as Capabilities.RequestedStandaloneCapabilities[]).map((requested, index) => {
         const cap = ('alwaysMatch' in requested ? requested.alwaysMatch : requested) as WebdriverIO.Capabilities
-        const maxInstances = cap['wdio:maxInstances']
+        const perCapability = cap['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
         return {
             // extends: true inherits the root options. Array options such as include
             // and setupFiles are concatenated, so repeating them would register the setup file twice.
@@ -73,7 +74,7 @@ export function toVitestConfig({ config, specs, configFile, args, onEvent }: Fra
             test: {
                 name: `${cap.browserName ?? 'browser'}-${index}`,
                 provide: { wdioCapabilities: requested, wdioConfigFile: configFile, wdioArgs: args ?? {}, wdioProjectIndex: index },
-                ...(maxInstances ? { maxWorkers: maxInstances } : {})
+                maxWorkers: isPositiveNumber(config.maxInstances) ? Math.min(perCapability, config.maxInstances) : perCapability
             } satisfies InlineConfig
         }
     })
