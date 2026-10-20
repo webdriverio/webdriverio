@@ -432,6 +432,20 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('frames of a recording', () => {
+        it('keeps no frames of a test without a video when the next test starts', () => {
+            const reporter = new VideoReporter({})
+            reporter.onTestStart({ uid: 'a', title: 'passes' } as any)
+            reporter.addFrame()
+            reporter.addFrame()
+            expect(reporter.screenshotPromises).toHaveLength(2)
+            reporter.onTestEnd({ uid: 'a', state: 'passed' } as any)
+
+            reporter.onTestStart({ uid: 'b', title: 'fails' } as any)
+            expect(reporter.screenshotPromises).toHaveLength(0)
+        })
+    })
+
     describe('ffmpeg', () => {
         it('records with the ffmpeg of the user', () => {
             const reporter = new VideoReporter({ ffmpegPath: '/my/ffmpeg' })

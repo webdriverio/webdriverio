@@ -786,6 +786,8 @@ export default class VideoReporter extends WdioReporter {
 
         const testName = this.testName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
         this.frameNr = 0
+        // the frames of the last recording are not in this video (no video for a passed test without saveAllVideos)
+        this.screenshotPromises = []
         // a new recording starts with the main window, not with the tab of the last test
         this.#frameContext = undefined
         this.recordingPath = path.resolve(this.#outputDir, this.options.rawPath, testName)
