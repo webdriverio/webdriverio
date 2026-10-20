@@ -31,6 +31,11 @@ describe('names', () => {
         expect(getterName("role/link[name='Help']")).toBe('help')
         expect(getterName('role/button[name="Say \\"hi\\""]')).toBe('sayHi')
         expect(getterName('role/navigation')).toBe('navigation')
+        expect(getterName('android=new UiSelector().resourceId("login_button")')).toBe('loginButton')
+        expect(getterName('android=new UiSelector().text("Save").instance(1)')).toBe('save')
+        expect(getterName('android=new UiSelector().description("go back")')).toBe('goBack')
+        expect(getterName('id=login_button')).toBe('loginButton')
+        expect(getterName('~Login')).toBe('login')
     })
 })
 

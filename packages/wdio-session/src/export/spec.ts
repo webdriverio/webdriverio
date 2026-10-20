@@ -61,9 +61,10 @@ export function getterName (selector: string) {
     } else if (raw.startsWith('#') || raw.startsWith('.')) {
         raw = raw.slice(1)
     } else {
+        const uiSelector = raw.match(/^android=new UiSelector\(\)\.(?:resourceId|text|description)\("((?:\\.|[^"\\])*)"\)/)
         const testid = raw.match(/data-testid=(['"])(.*?)\1/)
         const text = raw.match(/^[a-z][a-z0-9]*=(.+)$/i)
-        raw = testid?.[2] || text?.[1] || raw
+        raw = uiSelector?.[1] || testid?.[2] || text?.[1] || raw
     }
     const words = raw.replace(/[^a-zA-Z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean)
     const camel = words.map((word, i) => i === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()).join('')
