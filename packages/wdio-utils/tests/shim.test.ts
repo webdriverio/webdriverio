@@ -310,6 +310,17 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "jasmineSpec" (WDIO attempt 1/1)'))
         })
 
+        it('should fall back to the Jasmine default when the caller passes a zero timeout', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            function zeroTimeoutSpec () { return new Promise(() => {}) }
+            const result = executeAsync.call(
+                {}, zeroTimeoutSpec, { attempts: 0, limit: 0 }, [], 0
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(97)
+            expect(await result).toEqual(new Error('Timeout after 97ms in "zeroTimeoutSpec" (WDIO attempt 1/1)'))
+        })
+
         it('should name the spec given as title when there is no runnable (#16120)', async () => {
             const result = executeAsync.call(
                 {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'a spec with its own 15 s timeout'
