@@ -95,6 +95,27 @@ describe('utils', () => {
                 expect(getFeatureId(path.join(link, 'f', 'x.feature'), feature, real)).toBe('f/x.feature:3:1')
             })
 
+            it('keeps a folder link under rootDir, e.g. a pnpm package', () => {
+                const store = path.join(tmp, 'node_modules', '.pnpm', 'pkg@1.2.3', 'features')
+                fs.mkdirSync(store, { recursive: true })
+                fs.writeFileSync(path.join(store, 'login.feature'), '')
+                fs.symlinkSync(store, path.join(tmp, 'node_modules', 'pkg'), 'junction')
+                fs.mkdirSync(path.join(tmp, 'features'))
+                fs.symlinkSync(store, path.join(tmp, 'features', 'admin'), 'junction')
+                fs.symlinkSync(store, path.join(tmp, 'features', 'user'), 'junction')
+                expect(getFeatureId(path.join(tmp, 'node_modules', 'pkg', 'login.feature'), feature, tmp)).toBe('node_modules/pkg/login.feature:3:1')
+                expect(getFeatureId(path.join(tmp, 'features', 'admin', 'login.feature'), feature, tmp)).toBe('features/admin/login.feature:3:1')
+                expect(getFeatureId(path.join(tmp, 'features', 'user', 'login.feature'), feature, tmp)).toBe('features/user/login.feature:3:1')
+                // rootDir through a link too
+                const rootLink = path.join(os.tmpdir(), `featid-root-${path.basename(tmp)}`)
+                fs.symlinkSync(tmp, rootLink, 'junction')
+                try {
+                    expect(getFeatureId(path.join(tmp, 'node_modules', 'pkg', 'login.feature'), feature, rootLink)).toBe('node_modules/pkg/login.feature:3:1')
+                } finally {
+                    fs.rmSync(rootLink, { force: true })
+                }
+            })
+
             it.skipIf(process.platform === 'win32')('keeps the file name of a feature file that is a symbolic link', () => {
                 fs.mkdirSync(path.join(tmp, 'shared'))
                 fs.mkdirSync(path.join(tmp, 'a'))
