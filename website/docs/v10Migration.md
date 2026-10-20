@@ -379,6 +379,7 @@ The options are the same. The JSON files follow the Cucumber JSON format more cl
 - The feature `id` keeps characters such as `:` and `/` (only spaces become `-`), as in the Cucumber JSON format. The names of the JSON files do not change, but a feature part of more than 200 bytes (for example many non-ASCII characters) is cut and ends with a hash (Linux allows 255 bytes in a file name), and a Windows device name such as `con` starts with `_`.
 - The feature and scenario `keyword` are the keywords of the file, for example `Scenario Outline` or `Fonctionnalité`, as in the Cucumber JSON format. Before, they were always `Feature` and `Scenario`.
 - Scenarios and steps have a `line`.
+- Tags are `{ name, line }`, as in the Cucumber JSON format; the tags of a scenario get the line of the feature file. Before, they were internal Cucumber objects with `location`, `id` or `astNodeId` (random at each run), and the tags of a scenario had no line.
 - Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
 - A doc string argument is `{ content, line }`. Before, it was the text of the doc string.
 - A hook that Cucumber skips (after a failed hook, or a hook that returns `'skipped'`) has the status `skipped`, and a hook that returns `'pending'` has `pending`, as in the Cucumber JSON format. Before, they were `passed`.

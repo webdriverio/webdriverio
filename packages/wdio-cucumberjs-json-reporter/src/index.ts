@@ -19,10 +19,10 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
-import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
+import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, tagLinesOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
 import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, isKnownLanguage } from './utils.js'
 import { fileIdOf, readEarlierFeatures, withFileLock, writeFileAtomic, writeNewFile } from './files.js'
-import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
+import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, JsonTag, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
 const log = logger('@wdio/cucumberjs-json-reporter')
@@ -40,6 +40,18 @@ function isJsonText (data: unknown): data is string {
     } catch {
         return false
     }
+}
+
+/**
+ * A tag of the framework (a Gherkin tag with its location, or a name) as in the Cucumber
+ * JSON format, without the ids of Cucumber (they change at each run)
+ */
+function toJsonTag (tag: string | { name: string, line?: number, location?: { line: number } }): JsonTag {
+    if (typeof tag === 'string') {
+        return { name: tag }
+    }
+    const line = tag.location?.line ?? tag.line
+    return line === undefined ? { name: tag.name } : { name: tag.name, line }
 }
 
 export class CucumberJsJsonReporter extends WDIOReporter {
@@ -430,7 +442,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             line: featureData.uid && featureData.uid.includes(':') ? parseInt(featureData.uid.split(':')[1], 10) : null,
             name: featureName,
             uri: featureData.file || 'Can not be determined',
-            tags: featureData.tags || [],
+            tags: Array.isArray(featureData.tags) ? featureData.tags.map(toJsonTag) : [],
             elements: [],
             // as in the Cucumber JSON format; the file name of `onRunnerEnd` is made safe
             id: featureName.replace(/ /g, '-').toLowerCase(),
@@ -458,7 +470,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             type: scenarioData.type,
             description: scenarioData.description || '',
             name: scenarioName,
-            tags: scenarioData.tags || [],
+            // the lines of the file: the framework sends no line for the tags of a scenario
+            tags: tagLinesOf(this.#featureLines, taken, tags),
             id: [id, ...(rule ? [toId(rule)] : []), toId(scenarioName)].join(';'),
             line: taken?.line ?? null,
             steps: [],
@@ -556,6 +569,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             if (retaken) {
                 scenarioLines.taken = retaken
                 scenario.line = retaken.line
+                scenario.tags = tagLinesOf(this.#featureLines, retaken, scenarioLines.tags)
                 scenario.keyword = retaken.scenario.keyword
                 // the steps before this one have the lines of the other scenario
                 scenarioLines.usedLines.clear()

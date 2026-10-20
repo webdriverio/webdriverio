@@ -811,6 +811,42 @@ describe('reporter', () => {
         })
     })
 
+    describe('tags as in the Cucumber JSON format', () => {
+        it('writes the tags of the feature as name and line, without the ids of Cucumber', () => {
+            const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, file: undefined, tags: [{ location: { line: 1, column: 1 }, name: '@feat', id: 'b79126e7' }] } as unknown as SuiteStatsExtended)
+            expect(feature.tags).toEqual([{ name: '@feat', line: 1 }])
+        })
+
+        it('writes the tags of a scenario with the lines of the file', () => {
+            const featureFile = path.join(logFolderPath, 'tag-lines.feature')
+            fs.writeFileSync(featureFile, [
+                '@feat',                          // 1
+                'Feature: Tags',                  // 2
+                '  @rule',                        // 3
+                '  Rule: R',                      // 4
+                '    @smoke @feat',               // 5
+                '    Scenario Outline: Buy <item>', // 6
+                '      Given I buy <item>',       // 7
+                '      @ex',                      // 8
+                '      Examples:',                // 9
+                '        | item |',               // 10
+                '        | milk |',               // 11
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Tags', file: featureFile, parent: undefined, tags: [{ location: { line: 1, column: 1 }, name: '@feat', id: 'f1' }] } as unknown as SuiteStatsExtended)
+            // the pickle tags of the framework: feature, Rule, scenario, Examples
+            const pickleTags = ['@feat', '@rule', '@smoke', '@feat', '@ex'].map((name, index) => ({ name, astNodeId: `id-${index}` }))
+            const scenario = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'Buy milk', rule: 'R', tags: pickleTags } as unknown as SuiteStatsExtended, 'tags')
+            expect(scenario.tags).toEqual([
+                { name: '@feat', line: 1 },
+                { name: '@rule', line: 3 },
+                { name: '@smoke', line: 5 },
+                { name: '@feat', line: 5 },
+                { name: '@ex', line: 8 }
+            ])
+        })
+    })
+
     describe('cucumberOpts.tagsInTitle', () => {
         it('writes the feature and scenario names and ids without the tags of the title', () => {
             const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, title: '@featuretag: Tagged feature', tags: ['@featuretag'] } as unknown as SuiteStatsExtended)

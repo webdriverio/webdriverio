@@ -881,6 +881,12 @@ const cucumberJsJsonReporterHookStatus = async () => {
             ['A Before hook fails', ['Before passed', 'Before failed', 'Before skipped', 'Given skipped', 'After passed']]
         ]
     )
+    // tags as in the Cucumber JSON format: name and line
+    assert.deepEqual(feature.tags, [{ name: '@hooks', line: 1 }])
+    assert.deepEqual(feature.elements.map((scenario) => scenario.tags), [
+        [{ name: '@hooks', line: 1 }, { name: '@hookSkips', line: 3 }],
+        [{ name: '@hooks', line: 1 }, { name: '@hookFails', line: 7 }]
+    ])
     await fs.rm(jsonFolder, { recursive: true, force: true })
 }
 

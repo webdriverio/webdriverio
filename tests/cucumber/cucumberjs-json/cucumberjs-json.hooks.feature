@@ -1,3 +1,4 @@
+@hooks
 Feature: Hook status
     @hookSkips
     Scenario: A Before hook returns skipped

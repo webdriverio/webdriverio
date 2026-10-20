@@ -13,6 +13,12 @@ export interface StepLine {
     docStringLine?: number
 }
 
+/** a tag as in the Cucumber JSON format */
+export interface TagLine {
+    name: string
+    line: number
+}
+
 export interface ScenarioLines {
     name: string
     /** the keyword in the file, for example `Scenario Outline` or `Scénario` */
@@ -20,6 +26,8 @@ export interface ScenarioLines {
     line: number
     /** the name of the Rule of the scenario */
     rule?: string
+    /** the tags of the Rule and of the scenario */
+    tags: TagLine[]
     /**
      * the background steps of the feature and of the rule of the scenario
      */
@@ -46,6 +54,7 @@ export interface ExampleRow {
     name: string
     /** the tags of the Examples table of this row */
     tags: string[]
+    tagLines: TagLine[]
     used: boolean
 }
 
@@ -55,16 +64,20 @@ export interface FeatureLines {
     language: string
     /** the feature keyword in the file, for example `Fonctionnalité` */
     keyword?: string
+    /** the tags of the feature */
+    tags: TagLine[]
 }
 
 interface GherkinStep { text: string, location: { line: number }, docString?: { location: { line: number } } }
+interface GherkinTag { name: string, location: { line: number } }
 interface GherkinScenario {
     name: string
     keyword: string
     location: { line: number }
+    tags?: readonly GherkinTag[]
     steps: readonly GherkinStep[]
     examples?: readonly {
-        tags: readonly { name: string }[]
+        tags: readonly GherkinTag[]
         tableHeader?: { cells: readonly { value: string }[] }
         tableBody: readonly { location: { line: number }, cells: readonly { value: string }[] }[]
     }[]
@@ -72,8 +85,10 @@ interface GherkinScenario {
 interface GherkinChild {
     background?: GherkinScenario
     scenario?: GherkinScenario
-    rule?: { name: string, children: readonly GherkinChild[] }
+    rule?: { name: string, tags?: readonly GherkinTag[], children: readonly GherkinChild[] }
 }
+
+const toTagLines = (tags: readonly GherkinTag[] = []) => tags.map((tag) => ({ name: tag.name, line: tag.location.line }))
 
 const toSteps = (steps: readonly GherkinStep[]) => steps.map((step) => ({
     text: step.text,
@@ -91,24 +106,30 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         let id = 0
         const parser = new Parser(new AstBuilder(() => String(id++)), new GherkinClassicTokenMatcher(language))
         const document = parser.parse(fs.readFileSync(file, 'utf-8'))
-        const lines: FeatureLines = { scenarios: [], language: document.feature?.language ?? language, keyword: document.feature?.keyword }
+        const lines: FeatureLines = {
+            scenarios: [],
+            language: document.feature?.language ?? language,
+            keyword: document.feature?.keyword,
+            tags: toTagLines(document.feature?.tags)
+        }
         /**
          * a background applies to the scenarios of its feature or of its rule
          */
-        const walk = (children: readonly GherkinChild[], inherited: StepLine[], rule?: string) => {
+        const walk = (children: readonly GherkinChild[], inherited: StepLine[], rule?: { name: string, tags: TagLine[] }) => {
             let background = inherited
             for (const child of children) {
                 if (child.background) {
                     background = [...inherited, ...toSteps(child.background.steps)]
                 } else if (child.rule) {
-                    walk(child.rule.children, background, child.rule.name)
+                    walk(child.rule.children, background, { name: child.rule.name, tags: toTagLines(child.rule.tags) })
                 } else if (child.scenario) {
-                    const { name, keyword, location, steps, examples = [] } = child.scenario
+                    const { name, keyword, location, tags, steps, examples = [] } = child.scenario
                     lines.scenarios.push({
                         name,
                         keyword,
                         line: location.line,
-                        rule,
+                        rule: rule?.name,
+                        tags: [...(rule?.tags ?? []), ...toTagLines(tags)],
                         background,
                         steps: toSteps(steps),
                         examples: examples.flatMap((table) => table.tableBody.map((row) => ({
@@ -118,6 +139,7 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
                                 name
                             ),
                             tags: table.tags.map((tag) => tag.name),
+                            tagLines: toTagLines(table.tags),
                             used: false
                         }))),
                         used: 0
@@ -262,6 +284,25 @@ export function retakeScenarioLines (
         taken.row.used = false
     }
     return retaken
+}
+
+/**
+ * The tags of a pickle with their lines, as in the Cucumber JSON format. The framework
+ * sends them in the order of the file (feature, Rule, scenario, Examples): each name
+ * takes the next tag with this name, also when a name is on 2 levels. A tag that is
+ * not found has no line.
+ */
+export function tagLinesOf (lines: FeatureLines | undefined, taken: TakenScenario | undefined, names: readonly string[]): { name: string, line?: number }[] {
+    const inOrder = lines && taken ? [...lines.tags, ...taken.scenario.tags, ...(taken.row?.tagLines ?? [])] : []
+    let next = 0
+    return names.map((name) => {
+        const index = inOrder.findIndex((tag, position) => position >= next && tag.name === name)
+        if (index === -1) {
+            return { name }
+        }
+        next = index + 1
+        return { name, line: inOrder[index].line }
+    })
 }
 
 /**

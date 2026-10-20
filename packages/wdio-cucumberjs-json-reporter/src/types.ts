@@ -1,5 +1,5 @@
 import type { Reporters } from '@wdio/types'
-import type { Argument, Tag } from '@wdio/reporter'
+import type { Argument } from '@wdio/reporter'
 
 export interface CucumberJsJsonReporterInterface extends Reporters.Options {
     jsonFolder?: string;
@@ -62,9 +62,18 @@ export interface Feature {
     line?: number | null;
     name?: string;
     uri?: string;
-    tags?: string[] | Tag[] | string;
+    tags?: JsonTag[];
     elements?: Scenario[];
     id?: string;
+}
+
+/**
+ * A tag as in the Cucumber JSON format: `line` is missing when the reporter does not
+ * find the tag in the feature file
+ */
+export interface JsonTag {
+    name: string;
+    line?: number;
 }
 
 export interface Scenario {
@@ -72,7 +81,7 @@ export interface Scenario {
     type?: string;
     description?: string;
     name?: string;
-    tags?: string[] | Tag[] | string;
+    tags?: JsonTag[];
     id?: string;
     line?: number | null;
     steps?: Step[];

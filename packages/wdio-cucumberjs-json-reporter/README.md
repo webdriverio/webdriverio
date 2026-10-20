@@ -10,8 +10,8 @@ This reporter will generate a **Cucumber JSON file** for each feature that is be
 
 It will also add metadata about the running instance to the feature file and last but not least, it will give you the opportunity to add attachments to the JSON output.
 
-The JSON follows the Cucumber JSON format: the reporter reads the line numbers of the scenarios and steps from the
-feature files, and hooks are steps with `hidden: true`. It also adds `metadata` to each feature and `embeddings`
+The JSON follows the Cucumber JSON format: the reporter reads the line numbers of the scenarios, steps and tags from
+the feature files, and hooks are steps with `hidden: true`. It also adds `metadata` to each feature and `embeddings`
 (attachments) to the steps, which [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter)
 uses. When a worker runs several feature files (grouped specs), the reporter writes one file for each feature.
 

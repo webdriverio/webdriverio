@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { readFeatureLines, takeScenarioLines, retakeScenarioLines, findStepLine, scenarioNameOf } from '../src/featureLines.js'
+import { readFeatureLines, takeScenarioLines, retakeScenarioLines, findStepLine, scenarioNameOf, tagLinesOf } from '../src/featureLines.js'
 
 const FEATURE = `Feature: F
   Background:
@@ -177,6 +177,37 @@ describe('featureLines', () => {
         const lines = readFeatureLines(tagged, 'en')!
         expect(takeScenarioLines(lines, 'Order a drink')?.line).toBe(6)
         expect(takeScenarioLines(lines, 'Order a drink', { tags: ['@selected'] })?.line).toBe(10)
+    })
+
+    it('gives each tag of a pickle its line, in the order of the file (also a name on 2 levels)', () => {
+        const tagged = path.join(path.dirname(file), 'tags.feature')
+        fs.writeFileSync(tagged, [
+            '@feat',                      // 1
+            'Feature: Tags',              // 2
+            '  @rule',                    // 3
+            '  Rule: R',                  // 4
+            '    @smoke @feat',               // 5
+            '    Scenario Outline: Buy <item>', // 6
+            '      Given I buy <item>',       // 7
+            '      @ex',                  // 8
+            '      Examples:',            // 9
+            '        | item |',               // 10
+            '        | milk |',               // 11
+            ''
+        ].join('\n'))
+        const lines = readFeatureLines(tagged, 'en')!
+        const taken = takeScenarioLines(lines, 'Buy milk', { rule: 'R', tags: ['@ex'] })
+        // the pickle tags: feature, Rule, scenario, Examples
+        expect(tagLinesOf(lines, taken, ['@feat', '@rule', '@smoke', '@feat', '@ex'])).toEqual([
+            { name: '@feat', line: 1 },
+            { name: '@rule', line: 3 },
+            { name: '@smoke', line: 5 },
+            { name: '@feat', line: 5 },
+            { name: '@ex', line: 8 }
+        ])
+        // no line for a tag that the file does not have, and without the lines of the file
+        expect(tagLinesOf(lines, taken, ['@other'])).toEqual([{ name: '@other' }])
+        expect(tagLinesOf(undefined, undefined, ['@feat'])).toEqual([{ name: '@feat' }])
     })
 
     it('returns undefined for a file it cannot read', () => {
