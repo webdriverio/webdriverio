@@ -928,6 +928,28 @@ describe('reporter', () => {
         })
     })
 
+    describe('file name of a long feature name', () => {
+        // 270 bytes in UTF-8: Linux file systems allow 255 bytes for a file name
+        const longId = '漢字のテスト機能名称'.repeat(9)
+
+        it('keeps the file name in the limit of 255 bytes', () => {
+            const folder = path.join(logFolderPath, 'long-name')
+            fs.rmSync(folder, { recursive: true, force: true })
+            for (const reportFilePerRetry of [true, false]) {
+                const reporter = new WdioCucumberJsJsonReporter({ jsonFolder: folder, language: 'en', logFile, reportFilePerRetry })
+                reporter.report.feature = { id: longId }
+                reporter.report.features = [reporter.report.feature]
+                reporter.onRunnerEnd()
+            }
+            const files = fs.readdirSync(folder)
+            expect(files).toHaveLength(2)
+            for (const file of files) {
+                expect(Buffer.byteLength(file), file).toBeLessThanOrEqual(255)
+                expect(file.startsWith('漢字のテスト機能名称')).toBe(true)
+            }
+        })
+    })
+
     describe('hook status', () => {
         // the events of the framework: the state of a hook with no error is not in the HookStats
         const hookStatus = (state: string) => {

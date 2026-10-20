@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
-import { isLeft, withFileLock, writeFileAtomic } from '../src/files.js'
+import { fileIdOf, isLeft, withFileLock, writeFileAtomic } from '../src/files.js'
 
 describe('withFileLock', () => {
     const dirs: string[] = []
@@ -163,5 +163,24 @@ describe('writeFileAtomic', () => {
             throw Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' })
         })
         expect(() => writeFileAtomic(file, 'new')).toThrow('ENOSPC')
+    })
+})
+
+describe('fileIdOf', () => {
+    it('keeps a short id, without the characters that a file name cannot have', () => {
+        expect(fileIdOf('login:-admin/user')).toBe('login--admin-user')
+    })
+
+    it('cuts a long id between 2 characters and adds a hash of the full id', () => {
+        const id = '漢字のテスト機能名称'.repeat(9)
+        const fileId = fileIdOf(id)
+        expect(Buffer.byteLength(fileId)).toBeLessThanOrEqual(200)
+        // no character cut in its UTF-8 bytes
+        expect(Buffer.from(fileId).toString()).toBe(fileId)
+        expect(fileId).toMatch(/^漢字のテスト機能名称.*-[0-9a-f]{8}$/)
+        // the workers of the same feature write the same file (reportFilePerRetry false)
+        expect(fileIdOf(id)).toBe(fileId)
+        // 2 features with the same start have 2 files
+        expect(fileIdOf(`${id}-2`)).not.toBe(fileId)
     })
 })

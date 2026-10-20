@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 
 /**
  * the age after which a lock with no owner process id is taken as left by a worker
@@ -19,6 +20,12 @@ const LOCK_MAX_AGE = 60_000
 const RENAME_RETRIES = 20
 const RENAME_RETRY_WAIT = 50
 const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
+
+/**
+ * the bytes of the feature part of a file name: Linux file systems allow 255 bytes, and the
+ * unique id, `.json` and the names of the lock and of the temporary file add about 30
+ */
+const MAX_FILE_ID_BYTES = 200
 
 /**
  * onRunnerEnd is synchronous: wait without the event loop
@@ -146,6 +153,30 @@ export function writeNewFile (folder: string, name: string, content: string) {
             }
         }
     }
+}
+
+/**
+ * The feature part of the name of a JSON file: the feature id without the characters that a
+ * file name cannot have. A long id (for example with many non-ASCII characters) is cut, with
+ * a hash of the full id: 2 features keep 2 files, and the workers of a feature use one name
+ */
+export function fileIdOf (id: string) {
+    const fileId = id.replace(/[\\/?%*:|"<> ]/g, '-')
+    if (Buffer.byteLength(fileId) <= MAX_FILE_ID_BYTES) {
+        return fileId
+    }
+    const hash = createHash('sha256').update(id).digest('hex').slice(0, 8)
+    let bytes = hash.length + 1
+    let end = 0
+    // cut between 2 characters, not in the bytes of a character
+    for (const char of fileId) {
+        bytes += Buffer.byteLength(char)
+        if (bytes > MAX_FILE_ID_BYTES) {
+            break
+        }
+        end += char.length
+    }
+    return `${fileId.slice(0, end)}-${hash}`
 }
 
 /**

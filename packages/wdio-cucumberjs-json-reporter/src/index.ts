@@ -21,7 +21,7 @@ import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
 import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, isKnownLanguage } from './utils.js'
-import { readEarlierFeatures, withFileLock, writeFileAtomic, writeNewFile } from './files.js'
+import { fileIdOf, readEarlierFeatures, withFileLock, writeFileAtomic, writeNewFile } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
@@ -381,8 +381,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     }
 
     #writeFeature (jsonFolder: string, feature: Feature) {
-        // without the characters that a file name cannot have
-        const fileId = feature.id!.replace(/[\\/?%*:|"<> ]/g, '-')
+        const fileId = fileIdOf(feature.id!)
         const json = [feature]
         // a file for each try: no lock, and a new name when another worker made the same id
         if (this.options.reportFilePerRetry) {
