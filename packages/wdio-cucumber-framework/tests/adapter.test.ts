@@ -154,6 +154,11 @@ describe('CucumberAdapter', () => {
         expect(adapter._cucumberOpts.formatOptions).toEqual(expect.objectContaining(formatOptions))
     })
 
+    it('gives the rootDir of the config to the formatter', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', { rootDir: '/my/project', cucumberOpts: { formatOptions: { _rootDir: '/other' } } }, [], {}, {}, {}, false)
+        expect(adapter._cucumberOpts.formatOptions._rootDir).toBe('/my/project')
+    })
+
     it('throws if parallel cucumber opts is set', async () => {
         await expect(
             CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, 'progress')
@@ -186,6 +191,20 @@ describe('CucumberAdapter', () => {
         expect(runParallelCucumber).toHaveBeenCalledTimes(1)
         // No sequential fallback — scenarios/hooks may already have run
         expect((adapter as any)._runSequential).not.toHaveBeenCalled()
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
+    it('gives the rootDir of the config to the parallel run', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { rootDir: '/my/project', cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, 'progress'
+        )
+        await adapter.run()
+        expect(vi.mocked(runParallelCucumber).mock.calls[0][0].rootDir).toBe('/my/project')
         delete (globalThis as Record<string, unknown>).browser
     })
 

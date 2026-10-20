@@ -40,7 +40,7 @@ Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberTestrunnerMultipleByLineNumber`, `cucumberFailAmbiguousDefinitions`,
 `cucumberPendingTest`, `cucumberReporter`, `cucumberFileOption`,
 `cucumberSkipTag`, `cucumberGroupedSpecsRandomOrder`,
-`cucumberGroupedSpecsRandomOrderHistory`
+`cucumberGroupedSpecsRandomOrderHistory`, `cucumberSameFeatureFileName`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineAfterAll`, `jasmineFailSpecWithNoExpectations`,

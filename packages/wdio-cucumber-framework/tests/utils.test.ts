@@ -1,5 +1,7 @@
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Status } from '@cucumber/cucumber'
 import {
     formatMessage,
@@ -52,13 +54,88 @@ describe('utils', () => {
         expect(getStepType({ hookId: '123' } as any)).toBe('hook')
     })
 
-    it('getFeatureId', () => {
-        expect(getFeatureId('/foo/bar.feature', {
-            location: {
-                line: 1,
-                column: 2
-            }
-        } as any)).toBe('bar.feature:1:2')
+    describe('getFeatureId', () => {
+        const feature = { location: { line: 3, column: 1 } } as any
+        const root = path.resolve('/project')
+
+        it('uses the path of the file from rootDir', () => {
+            expect(getFeatureId(path.join(root, 'features', 'admin', 'login.feature'), feature, root)).toBe('features/admin/login.feature:3:1')
+            expect(getFeatureId(path.join(root, 'features', 'user', 'login.feature'), feature, root)).toBe('features/user/login.feature:3:1')
+        })
+
+        it('feature outside rootDir', () => {
+            expect(getFeatureId(path.join(root, '..', 'shared', 'login.feature'), feature, root)).toBe('../shared/login.feature:3:1')
+        })
+
+        it('encodes `%`, `:` and `#`, so that only the line and the column follow a `:` and only a part number follows a `#`', () => {
+            expect(getFeatureId(path.join(root, 'a:b', 'x.feature'), feature, root)).toBe('a%3Ab/x.feature:3:1')
+            expect(getFeatureId(path.join(root, 'a%3Ab', 'x.feature'), feature, root)).toBe('a%253Ab/x.feature:3:1')
+            expect(getFeatureId(path.join(root, 'c#', 'x.feature'), feature, root)).toBe('c%23/x.feature:3:1')
+        })
+
+        it('uses the cwd without rootDir', () => {
+            expect(getFeatureId(path.join('features', 'x.feature'), feature)).toBe('features/x.feature:3:1')
+        })
+
+        describe('with real files', () => {
+            let tmp: string
+            beforeEach(() => {
+                tmp = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'featid-')))
+            })
+            afterEach(() => {
+                fs.rmSync(tmp, { recursive: true, force: true })
+            })
+
+            it('same uid when rootDir is a symbolic link', () => {
+                const real = path.join(tmp, 'real')
+                const link = path.join(tmp, 'link')
+                fs.mkdirSync(path.join(real, 'f'), { recursive: true })
+                fs.writeFileSync(path.join(real, 'f', 'x.feature'), '')
+                fs.symlinkSync(real, link, 'junction')
+                expect(getFeatureId(path.join(real, 'f', 'x.feature'), feature, link)).toBe('f/x.feature:3:1')
+                expect(getFeatureId(path.join(link, 'f', 'x.feature'), feature, real)).toBe('f/x.feature:3:1')
+            })
+
+            it('keeps a folder link under rootDir, e.g. a pnpm package', () => {
+                const store = path.join(tmp, 'node_modules', '.pnpm', 'pkg@1.2.3', 'features')
+                fs.mkdirSync(store, { recursive: true })
+                fs.writeFileSync(path.join(store, 'login.feature'), '')
+                fs.symlinkSync(store, path.join(tmp, 'node_modules', 'pkg'), 'junction')
+                fs.mkdirSync(path.join(tmp, 'features'))
+                fs.symlinkSync(store, path.join(tmp, 'features', 'admin'), 'junction')
+                fs.symlinkSync(store, path.join(tmp, 'features', 'user'), 'junction')
+                expect(getFeatureId(path.join(tmp, 'node_modules', 'pkg', 'login.feature'), feature, tmp)).toBe('node_modules/pkg/login.feature:3:1')
+                expect(getFeatureId(path.join(tmp, 'features', 'admin', 'login.feature'), feature, tmp)).toBe('features/admin/login.feature:3:1')
+                expect(getFeatureId(path.join(tmp, 'features', 'user', 'login.feature'), feature, tmp)).toBe('features/user/login.feature:3:1')
+                // rootDir through a link too
+                const rootLink = path.join(os.tmpdir(), `featid-root-${path.basename(tmp)}`)
+                fs.symlinkSync(tmp, rootLink, 'junction')
+                try {
+                    expect(getFeatureId(path.join(tmp, 'node_modules', 'pkg', 'login.feature'), feature, rootLink)).toBe('node_modules/pkg/login.feature:3:1')
+                } finally {
+                    fs.rmSync(rootLink, { force: true })
+                }
+            })
+
+            it('keeps a linked folder whose name starts with `..`', () => {
+                fs.mkdirSync(path.join(tmp, 'real'))
+                fs.writeFileSync(path.join(tmp, 'real', 'x.feature'), '')
+                fs.symlinkSync(path.join(tmp, 'real'), path.join(tmp, '..shared'), 'junction')
+                expect(getFeatureId(path.join(tmp, '..shared', 'x.feature'), feature, tmp)).toBe('..shared/x.feature:3:1')
+            })
+
+            it.skipIf(process.platform === 'win32')('keeps the file name of a feature file that is a symbolic link', () => {
+                fs.mkdirSync(path.join(tmp, 'shared'))
+                fs.mkdirSync(path.join(tmp, 'a'))
+                fs.writeFileSync(path.join(tmp, 'shared', 'login.feature'), '')
+                fs.symlinkSync(path.join(tmp, 'shared', 'login.feature'), path.join(tmp, 'a', 'login.feature'))
+                expect(getFeatureId(path.join(tmp, 'a', 'login.feature'), feature, tmp)).toBe('a/login.feature:3:1')
+            })
+        })
+
+        it.runIf(process.platform === 'win32')('feature on another Windows drive', () => {
+            expect(getFeatureId('D:\\x\\login.feature', feature, 'C:\\project')).toBe('D%3A/x/login.feature:3:1')
+        })
     })
 
     it('buildStepPayload', () => {

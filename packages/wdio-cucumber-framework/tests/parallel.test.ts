@@ -10,6 +10,7 @@ import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
 
 import { runParallelCucumber } from '../src/parallel.js'
+import { getFeatureId } from '../src/utils.js'
 import { DEFAULT_OPTS } from '../src/constants.js'
 import type { CucumberOptions } from '../src/types.js'
 
@@ -1448,7 +1449,7 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         stepDefinitions: [makeStepDefinition('something', async function () {})],
     })
 
-    function run(browser: ReturnType<typeof mockBrowser>, docs: messages.GherkinDocument[], cucumberOpts = defaultCucumberOpts(), supportCodeLibrary = library()) {
+    function run(browser: ReturnType<typeof mockBrowser>, docs: messages.GherkinDocument[], cucumberOpts = defaultCucumberOpts(), supportCodeLibrary = library(), rootDir?: string) {
         return runOrCatch({
             browser: browser as unknown as WebdriverIO.Browser,
             reporter,
@@ -1458,6 +1459,7 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             gherkinDocuments: docs,
             supportCodeLibrary,
             cucumberOpts,
+            rootDir,
         })
     }
 
@@ -1540,6 +1542,34 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(byTitle('a1').parentUid).toBe(suites.find((s) => s.title === 'Login A')!.uid)
         expect(byTitle('b1').parentUid).toBe(suites.find((s) => s.title === 'Login B')!.uid)
         expect(byTitle('a1').parent).toBe(byTitle('a1').parentUid)
+    })
+
+    test('parallel feature uid is getFeatureId with rootDir', async () => {
+        const root = path.resolve('/project')
+        const docs = [
+            makeFeatureDoc(path.join(root, 'a', 'login.feature'), 'Login A', ['a1']),
+            makeFeatureDoc(path.join(root, 'b', 'login.feature'), 'Login B', ['b1']),
+        ]
+        await run(mockBrowser(), docs, defaultCucumberOpts(), library(), root)
+
+        const suites = events.filter((e) => e.event === 'suite:start' && e.payload.type === 'feature').map((e) => e.payload)
+        expect(suites.map((s) => s.uid)).toEqual(['a/login.feature:1:1', 'b/login.feature:1:1'])
+        expect(suites.map((s) => s.uid)).toEqual(docs.map((d) => getFeatureId(d.uri!, d.feature!, root)))
+        const byTitle = (title: string) => events.find((e) => e.event === 'test:pass' && e.payload.title === title)!.payload
+        expect([byTitle('a1').parent, byTitle('a1').parentUid]).toEqual(['a/login.feature:1:1', 'a/login.feature:1:1'])
+        expect([byTitle('b1').parent, byTitle('b1').parentUid]).toEqual(['b/login.feature:1:1', 'b/login.feature:1:1'])
+    })
+
+    test('a tag filter that removes a same-name file does not change the other uid', async () => {
+        const root = path.resolve('/project')
+        const docs = [
+            makeFeatureDoc(path.join(root, 'a', 'login.feature'), 'Login A', ['a1']),
+            makeFeatureDoc(path.join(root, 'b', 'login.feature'), 'Login B', [{ name: 'b1', tags: ['@keep'] }]),
+        ]
+        await run(mockBrowser(), docs, defaultCucumberOpts({ tags: '@keep' }), library(), root)
+
+        const suites = events.filter((e) => e.event === 'suite:start' && e.payload.type === 'feature').map((e) => e.payload)
+        expect(suites.map((s) => s.uid)).toEqual(['b/login.feature:1:1'])
     })
 
     test('step-level test and hook payloads carry the parentUid of their scenario suite', async () => {

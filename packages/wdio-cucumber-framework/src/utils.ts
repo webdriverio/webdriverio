@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
@@ -76,8 +77,28 @@ export function getStepType (step: TestStep) {
     return step.hookId ? StepType.hook : StepType.test
 }
 
-export function getFeatureId (uri: string, feature: Feature) {
-    return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
+function realPath (p: string) {
+    try {
+        return fs.realpathSync.native(p)
+    } catch {
+        return p
+    }
+}
+
+/**
+ * `<path from rootDir>:<line>:<column>`, the same in every run. Links are resolved only when the
+ * path is not under rootDir, so linked folders (e.g. pnpm packages) keep their own uid.
+ */
+export function getFeatureId (uri: string, feature: Feature, rootDir = process.cwd()) {
+    const file = path.resolve(uri)
+    const isUnder = (relative: string) => relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)
+    const resolved = path.join(realPath(path.dirname(file)), path.basename(file))
+    const relative = [
+        path.relative(path.resolve(rootDir), file),
+        path.relative(realPath(rootDir), file)
+    ].find(isUnder) ?? path.relative(realPath(rootDir), resolved)
+    const id = relative.split(path.sep).join('/').replaceAll('%', '%25').replaceAll(':', '%3A').replaceAll('#', '%23')
+    return `${id}:${feature.location?.line}:${feature.location?.column}`
 }
 
 /**
