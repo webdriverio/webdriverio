@@ -1,10 +1,10 @@
 ---
 id: frameworks
 title: Frameworks
-description: "Configure Mocha, Jasmine or Cucumber.js as the test framework for the WDIO testrunner, or integrate third-party frameworks like Serenity/JS."
+description: "Configure Mocha, Jasmine, Cucumber.js or Vitest as the test framework for the WDIO testrunner, or integrate third-party frameworks like Serenity/JS."
 ---
 
-WebdriverIO Runner has built-in support for [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/), and [Cucumber.js](https://cucumber.io/). You can also integrate it with 3rd-party open-source frameworks, such as [Serenity/JS](#using-serenityjs).
+WebdriverIO Runner has built-in support for [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/), [Cucumber.js](https://cucumber.io/), and [Vitest](#using-vitest). You can also integrate it with 3rd-party open-source frameworks, such as [Serenity/JS](#using-serenityjs).
 
 :::tip Integrating WebdriverIO with test frameworks
 To integrate WebdriverIO with a test framework, you need an adapter package available on NPM.
@@ -720,6 +720,132 @@ export const config = {
 ```
 
 Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
+
+## Using Vitest
+
+`@wdio/vitest-framework` runs specs written in [Vitest](https://vitest.dev/) syntax (`describe`, `test`, `test.concurrent`, `test.extend`) through the WDIO testrunner. Vitest schedules the tests, so the testrunner starts no WDIO workers. `wdio.conf.ts` stays the source of truth for specs, capabilities, connection options and hooks. Use it when you want Vitest's API, especially [fixtures](pageobjects#page-objects-as-fixtures) and `test.concurrent`. Otherwise Mocha is the default choice.
+
+First, install the adapter package from NPM. It installs `vitest` and `expect-webdriverio` with it:
+
+```bash npm2yarn
+npm install @wdio/vitest-framework --save-dev
+```
+
+Then set `framework: 'vitest'` in your [config file](configurationfile):
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    framework: 'vitest',
+    specs: ['./test/specs/**/*.spec.ts'],
+    baseUrl: 'https://the-internet.herokuapp.com',
+    capabilities: [{ browserName: 'chrome', webSocketUrl: true }],
+    vitestOpts: {
+        parallelMode: 'userContexts'
+    }
+}
+```
+
+Run it like any other WDIO project:
+
+```sh
+npx wdio run wdio.conf.ts
+```
+
+Vitest globals are enabled, so specs need no imports at runtime. `browser`, `driver`, `$`, `$$` and `expect` are globals as well:
+
+```ts title="test/specs/login.spec.ts"
+describe('login page', () => {
+    test('shows the form', async () => {
+        await browser.url('/login')
+        await expect($('#login')).toBeDisplayed()
+    })
+})
+```
+
+The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults. Never `import { expect } from 'vitest'`. That `expect` has no WebdriverIO matchers such as `toBeDisplayed`. Importing `describe`, `test` and the hooks from `vitest` is fine.
+
+For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed, see [TypeScript Setup](/docs/typescript):
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": ["node", "@wdio/globals/types", "@wdio/vitest-framework"]
+    }
+}
+```
+
+### How Vitest runs your specs
+
+- Every capability becomes one Vitest project, named `<browserName>-<index>`, for example `chrome-0`.
+- Every spec file gets its own browser session. The session starts in `beforeAll` and is deleted in `afterAll`.
+- The WDIO hooks `beforeSession`, `before`, `after` and `afterSession` run once per spec file, and `beforeTest` and `afterTest` once per test. Worker services (for example Sauce Labs, BrowserStack or Appium) are initialized like in the WDIO runner, so their hooks run too.
+- The console output comes from Vitest. File reporters from `wdio.conf.ts`, such as `junit`, `allure` or `json`, receive the Vitest results. Every spec file and capability is reported as one job. Skipped and `todo` tests are reported as pending.
+- `maxInstances` (or `wdio:maxInstances` per capability) sets Vitest's `maxWorkers`, and `bail` sets Vitest's `bail`.
+
+### Concurrent tests
+
+`test.concurrent` runs the tests of one spec file at the same time, each in its own browser window (browsing context). Every command in the test, including the ones in your page objects and fixtures, targets that window. The window is closed when the test ends, also when it fails. This needs [`parallelMode`](#parallelmode-2) and a WebDriver BiDi session (`webSocketUrl: true`):
+
+```ts title="test/specs/checkout.spec.ts"
+describe('checkout', () => {
+    test.concurrent('guest', async () => {
+        await browser.url('/checkout')
+        await expect($('h1')).toHaveText('Checkout')
+    })
+
+    test.concurrent('member', async () => {
+        await browser.url('/checkout?member=1')
+        await expect($('h1')).toHaveText('Checkout')
+    })
+})
+```
+
+Without `parallelMode`, `test.concurrent` fails with:
+
+```
+test.concurrent needs vitestOpts.parallelMode ('contexts' | 'userContexts'): concurrent tests would share one window
+```
+
+### Vitest Options
+
+Set them in `vitestOpts` in your `wdio.conf.ts`.
+
+#### parallelMode
+
+Runs `test.concurrent` tests at the same time, each in its own browsing context. Requires a WebDriver BiDi session.
+
+- `'contexts'`: windows share the default user context, so cookies, `localStorage` and service workers are shared across concurrent tests.
+- `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies. `browser.mock()` remains session-wide in both modes.
+
+Type: `'contexts' | 'userContexts'`<br />
+Default: `undefined`
+
+#### maxParallelContexts
+
+Maximum number of `test.concurrent` tests that run at once. Maps to Vitest's `maxConcurrency` and only applies when `parallelMode` is set.
+
+Type: `number`<br />
+Default: `os.cpus().length`
+
+#### Other Vitest options
+
+All other keys are passed to Vitest's [`test` config](https://vitest.dev/config/) and override this framework's defaults, for example `testTimeout` (default `60000`), `hookTimeout` (default: `connectionRetryTimeout`, else `120000`, because `beforeAll` starts the session), `retry` or `reporters`.
+
+The framework controls some keys itself:
+
+- `include` is always the specs resolved from `wdio.conf.ts` (respecting `--spec` and `exclude`), so `vitestOpts.include` is ignored.
+- `pool` is always `'forks'`.
+- `setupFiles` from `vitestOpts` runs after the framework's own setup file instead of replacing it.
+- A `vitest.config.ts` file is not read. Put Vitest options in `vitestOpts`.
+
+### Limitations
+
+- Multi-remote capabilities are not supported yet.
+- `expect.poll` is not available, because the global `expect` comes from `expect-webdriverio`.
+- `switchWindow` and `switchFrame` throw in a WebDriver BiDi session, which `parallelMode` requires. Inside concurrent tests, `getWindowSize`, `setWindowSize`, `throttleCPU`, `throttleNetwork` and classic window and frame protocol commands such as `switchToWindow` also throw, because they change session-wide state.
+- The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run, in `wdio.conf.ts` or in services.
+- `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
+- Top-level config changes made in `onPrepare` do not reach the specs, because each Vitest worker parses the config file again. Changes to capabilities do reach them.
 
 ## Using Serenity/JS
 
