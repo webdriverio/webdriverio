@@ -100,6 +100,14 @@ export default class BaseReporter {
         })
     }
 
+    setContextIdResolver (resolver: () => string | undefined) {
+        this._reporters.forEach((reporter) => {
+            if (typeof reporter.setContextIdResolver === 'function') {
+                reporter.setContextIdResolver(resolver)
+            }
+        })
+    }
+
     onMessage (listener: (ev: unknown) => void) {
         this.listeners.push(listener)
     }

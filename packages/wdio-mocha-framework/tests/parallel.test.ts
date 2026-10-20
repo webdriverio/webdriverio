@@ -42,6 +42,11 @@ function mockSuite(title: string, opts?: {
     } as unknown as Suite
 }
 
+// Mocha Hook objects carry their declaring suite and original title; fns here stand in for them
+function mockHook(title: string, parent: { title: string, tests?: { title: string }[] }, fn: Function = () => {}): any {
+    return Object.assign((...args: unknown[]) => fn(...args), { title, parent: { tests: [], ...parent } })
+}
+
 // Helper to build a simplified ParallelBrowser for runParallelTests
 function mockBrowser(opts?: { contexts?: string[]; store?: AsyncLocalStorage<string> }) {
     const store = opts?.store || new AsyncLocalStorage<string>()
@@ -374,11 +379,8 @@ describe('runParallelTests — suite hooks', () => {
 
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
 
-        // Prefetched-but-unused allocations may add creates; each must be closed too
-        const created = browser.browsingContextCreate.mock.calls.length
-        expect(created).toBeGreaterThanOrEqual(6)
-        expect(created).toBeLessThanOrEqual(6 + 2)
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
         // All contexts registered at allocate time are unregistered after close
         expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
@@ -404,10 +406,9 @@ describe('runParallelTests — hook events and pending', () => {
     })
 
     test('emits paired hook:start/hook:end with shared uid and per-hook duration', async () => {
-        const beforeEachFn = vi.fn().mockResolvedValue(undefined)
         const suite = mockSuite('root', {
             tests: [mockTest('t1')],
-            _beforeEach: [beforeEachFn],
+            _beforeEach: [mockHook('"before each" hook', { title: 'root' })],
         })
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
@@ -419,9 +420,83 @@ describe('runParallelTests — hook events and pending', () => {
         // start/end share a uid, anchored to the test uid (no cross-test collision)
         expect(starts[0].payload.uid).toBe(ends[0].payload.uid)
         expect(starts[0].payload.uid).toContain('test-0-0-0')
-        expect(starts[0].payload.title).toBe('before each hook for "root"')
+        expect(starts[0].payload.title).toBe('"before each" hook for root')
         expect(ends[0].payload.duration).toBeGreaterThanOrEqual(0)
         expect(ends[0].payload.state).toBe('pass')
+    })
+
+    const hookTitles = async (suite: Suite) => {
+        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        return emittedEvents.filter((e) => e.event === 'hook:start').map((e) => e.payload.title)
+    }
+
+    test('titles describe-level hooks like sequential mode, dropping the function name', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook: setup', { title: 'A' })],
+            _beforeEach: [mockHook('"before each" hook: prep', { title: 'A' })],
+            _afterEach: [mockHook('"after each" hook', { title: 'A' })],
+            _afterAll: [mockHook('"after all" hook', { title: 'A' })],
+        })
+        expect(await hookTitles(suite)).toEqual([
+            '"before all" hook for A',
+            '"before each" hook for A',
+            '"after each" hook for A',
+            '"after all" hook for A',
+        ])
+    })
+
+    test('titles hooks of an outer describe with the outer suite for tests in a nested describe', async () => {
+        const outer = { title: 'A' }
+        const inner = mockSuite('A.inner', { tests: [mockTest('t1')] })
+        const suite = mockSuite('', {
+            suites: [mockSuite('A', {
+                suites: [inner],
+                _beforeEach: [mockHook('"before each" hook', outer)],
+            })]
+        })
+        expect(await hookTitles(suite)).toEqual(['"before each" hook for A'])
+    })
+
+    test('dot-joins the hook fullTitle from the native title and the declaring suite path', async () => {
+        const outer = { title: 'A', parent: { title: 'top' }, tests: [{ title: 'a1' }] }
+        const suite = mockSuite('', {
+            suites: [mockSuite('A', {
+                tests: [mockTest('t1')],
+                _beforeAll: [mockHook('"before all" hook: setup', outer)],
+                _beforeEach: [mockHook('"before each" hook', outer)],
+                _afterAll: [mockHook('"after all" hook', { title: 'A', tests: [] })],
+            })]
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(emittedEvents.filter((e) => e.event === 'hook:start').map((e) => e.payload.fullTitle)).toEqual([
+            'top.A."before all" hook: setup for "a1"',
+            'top.A."before each" hook for "t1"',
+            'A."after all" hook in "A"',
+        ])
+    })
+
+    test('keeps the native Mocha title, function name included, for root-level hooks', async () => {
+        const root = { title: '', tests: [{ title: 'first' }, { title: 'last' }] }
+        const suite = mockSuite('', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook: boot', root)],
+            _beforeEach: [mockHook('"before each" hook: prep', root)],
+            _afterAll: [mockHook('"after all" hook', root)],
+        })
+        expect(await hookTitles(suite)).toEqual([
+            '"before all" hook: boot for "first"',
+            '"before each" hook: prep for "t1"',
+            '"after all" hook for "last"',
+        ])
+    })
+
+    test('uses "in {root}" for root-level suite hooks when the root has no tests', async () => {
+        const suite = mockSuite('', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: '', root: true, tests: [] })],
+        })
+        expect(await hookTitles(suite)).toEqual(['"before all" hook in "{root}"'])
     })
 
     test('reported test duration excludes hook time', async () => {
@@ -832,18 +907,72 @@ describe('runParallelTests — hook failure counting', () => {
 })
 
 describe('runParallelTests — reporter contextId', () => {
-    test('test:start and test:pending carry the browsing context id', async () => {
-        const reporter = new EventEmitter()
+    const EVENTS = ['test:start', 'test:pass', 'test:fail', 'test:pending', 'test:end', 'hook:start', 'hook:end']
+    const collect = (reporter: EventEmitter) => {
         const events: any[] = []
-        for (const ev of ['test:start', 'test:pending']) {
+        for (const ev of EVENTS) {
             reporter.on(ev, (p) => events.push({ event: ev, payload: p }))
         }
+        return events
+    }
+
+    test('test:start and test:pending carry the browsing context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
         const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2', undefined, true)] })
         const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
 
         expect(events.find((e) => e.event === 'test:start').payload.contextId).toBe('ctx-a')
         expect(events.find((e) => e.event === 'test:pending').payload.contextId).toBe('ctx-b')
+    })
+
+    test('hooks, pass and the closing test:end carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeEach: [mockHook('"before each" hook', { title: 'root' })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['hook:start', 'hook:end', 'test:pass', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
+    })
+
+    test('test:fail and its test:end carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', { tests: [mockTest('t1', () => { throw new Error('boom') })] })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['test:fail', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
+    })
+
+    test('static pending test:end carries the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', { tests: [mockTest('t1', undefined, true)] })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        expect(events.find((e) => e.event === 'test:end').payload.contextId).toBe('ctx-a')
+    })
+
+    test('the synthetic test:start, test:fail and test:end of a failing before hook carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: 'root' }, () => { throw new Error('setup') })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['hook:end', 'test:start', 'test:fail', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
     })
 })
 
@@ -1057,14 +1186,33 @@ describe('runParallelTests — worker pool', () => {
         }
     })
 
-    test('cleans up a prefetched allocation that no test ends up using', async () => {
-        // 1 slot would prefetch only while tests remain; with 2 slots and 3 tests
-        // one slot's prefetch can lose the race for the last test.
+    test('creates exactly one context per test, with no spare left over', async () => {
         const browser = mockBrowser()
-        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
-        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        const suite = mockSuite('root', { tests: Array.from({ length: 8 }, (_, i) => mockTest(`t${i}`)) })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 4)
 
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(8)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(8)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('cleans up a spare that no test ends up using after an allocation failure', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        let failSecond!: (err: Error) => void
+        browser.browsingContextCreate.mockImplementation(async () => {
+            n++
+            if (n === 2) { return new Promise((_, reject) => { failSecond = reject }) }
+            if (n === 3) { failSecond(new Error('slot allocation failed')) }
+            return { context: `ctx-${n}` }
+        })
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        ).rejects.toThrow('slot allocation failed')
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(3)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
         expect(browser.__parallelContexts.size).toBe(0)
     })
 
@@ -1245,5 +1393,50 @@ describe('runParallelTests timeout warning', () => {
         await run(mockSuite('root', { tests: [{ ...mockTest('t'), _timeout: 5000 }] }))
 
         expect(timeoutWarnings()).toHaveLength(0)
+    })
+})
+
+// ===========================================================================
+// TESTS: runParallelTests — reported fullTitle matches sequential mode
+// ===========================================================================
+
+describe('runParallelTests — reported fullTitle', () => {
+    function nestedTree(fn: Function) {
+        const t = mockTest('t', fn)
+        const inner = mockSuite('inner', { tests: [t] }) as any
+        const outer = mockSuite('outer', { suites: [inner] }) as any
+        const root = mockSuite('', { suites: [outer] }) as any
+        outer.parent = root
+        inner.parent = outer
+        t.parent = inner
+        t.fullTitle = () => 'outer inner t'
+        return root as Suite
+    }
+
+    function run(grep?: RegExp) {
+        const reporter = new EventEmitter()
+        const emitted: any[] = []
+        for (const ev of ['test:start', 'test:pass', 'test:end', 'suite:start', 'suite:end']) {
+            reporter.on(ev, (p) => emitted.push({ event: ev, payload: p }))
+        }
+        const fn = vi.fn().mockResolvedValue(undefined)
+        const done = runParallelTests(nestedTree(fn), mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'], undefined, grep ? { grep } : undefined)
+        return { done, emitted, fn }
+    }
+
+    test('dot-joins test and suite fullTitle like sequential mode', async () => {
+        const { done, emitted } = run()
+        await done
+        for (const ev of ['test:start', 'test:pass', 'test:end']) {
+            expect(emitted.filter((e) => e.event === ev).map((e) => e.payload.fullTitle)).toEqual(['outer.inner.t'])
+        }
+        expect(emitted.filter((e) => e.event === 'suite:start').map((e) => e.payload.fullTitle)).toEqual(['outer', 'outer.inner'])
+        expect(emitted.filter((e) => e.event === 'suite:end').map((e) => e.payload.fullTitle)).toEqual(['outer.inner', 'outer'])
+    })
+
+    test('grep still matches the space-joined Mocha fullTitle', async () => {
+        const { done, fn } = run(/^outer inner t$/)
+        await done
+        expect(fn).toBeCalledTimes(1)
     })
 })

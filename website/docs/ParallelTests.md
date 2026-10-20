@@ -171,9 +171,15 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` and `@wdio/junit-reporter` don't support parallel mode yet. They track one current test per worker, so when tests overlap, Allure results, steps and attachments, and JUnit properties and worker logs, can land under the wrong test. Use them with sequential runs. With `addConsoleLogs`, `@wdio/spec-reporter` doesn't attribute the console output of overlapping tests reliably.
+`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
+
+## Cloud vendors
+
+Cloud vendors record one video, one set of logs and one test status per browser session. In parallel mode, many tests share that session, so the vendor dashboard can't split the video, logs or pass/fail status by test. `userContexts` also needs the vendor's grid to support `browser.createUserContext` (and `browser.removeUserContext` with Mocha). Parallel mode hasn't been tested on any cloud vendor yet.
+
+We recommend that you leave parallel mode off when you run on a cloud vendor and use [`maxInstances`](./OrganizingTestSuites.md) to run spec files in parallel. To turn it off, remove `parallelMode` from the framework options. If you remove only `'wdio:experimentalBiDiCommands'`, the tests run one after another and every run logs a warning.
 
 ## Troubleshooting
 

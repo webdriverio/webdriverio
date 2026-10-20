@@ -665,9 +665,9 @@ describe('SpecReporter', () => {
         it('should add console log to report for passing test', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue({ uid: 'foo1' } as any)
+            process.stdout.write('Printing to console spec')
             tmpReporter.onTestPass({
                 title:'test1',
                 state:State.PASSED
@@ -680,9 +680,9 @@ describe('SpecReporter', () => {
         it('should add console logs to report for failing test', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue({ uid: 'foo1' } as any)
+            process.stdout.write('Printing to console spec')
             tmpReporter.onTestFail({
                 title:'test1',
                 state:State.FAILED
@@ -695,9 +695,9 @@ describe('SpecReporter', () => {
         it('should add console logs to report for skipping test', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue({ uid: 'foo1' } as any)
+            process.stdout.write('Printing to console spec')
             tmpReporter.onTestSkip({
                 title:'test1',
                 state:State.SKIPPED
@@ -710,7 +710,6 @@ describe('SpecReporter', () => {
         it('should add pending reason to report for skipped tests', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
-            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter.onTestSkip({
                 title:'test1',
@@ -727,8 +726,8 @@ describe('SpecReporter', () => {
         it('omits webdriver logs and keeps other console output', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue({ uid: 'foo1' } as any)
             process.stdout.write('Printing to console spec\n')
             process.stdout.write('mwebdriver test log\n')
             tmpReporter.onTestPass({
@@ -738,6 +737,75 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getResultDisplay('').toString()
             expect(result).toContain('Printing to console spec')
             expect(result).not.toContain('mwebdriver test log')
+            tmpReporter.onSuiteEnd()
+        })
+
+        it('keeps console logs of overlapping tests apart', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            let contextUid: string | undefined
+            vi.spyOn(tmpReporter, 'getContextTest').mockImplementation(() => contextUid ? { uid: contextUid } as any : undefined)
+            const write = (uid: string | undefined, text: string) => {
+                contextUid = uid
+                process.stdout.write(text)
+            }
+            // foo1 = A, bar1 = B (order in the suite fixture)
+            write('foo1', 'A-one\n')
+            write('bar1', 'B-one\n')
+            write(undefined, 'orphan\n')
+            write('foo1', 'A-two\n')
+            write('bar1', 'B-two\n')
+            tmpReporter.onTestPass({ uid: 'bar1', title: 'bar', state: State.PASSED } as any)
+            tmpReporter.onTestPass({ uid: 'foo1', title: 'foo', state: State.PASSED } as any)
+
+            const text = tmpReporter.getResultDisplay('').join('\n')
+            const fooAt = text.search(/ foo$/m)
+            const barAt = text.search(/ bar$/m)
+            expect(fooAt).toBeGreaterThan(-1)
+            expect(barAt).toBeGreaterThan(fooAt)
+            const fooBlock = text.slice(fooAt, barAt)
+            const barBlock = text.slice(barAt)
+            expect(fooBlock).toContain('A-one')
+            expect(fooBlock).toContain('A-two')
+            expect(fooBlock).not.toContain('B-')
+            expect(barBlock).toContain('B-one')
+            expect(barBlock).toContain('B-two')
+            expect(barBlock).not.toContain('A-')
+            expect(text).not.toContain('orphan')
+            tmpReporter.onSuiteEnd()
+        })
+
+        it('drops console logs written after the test ended', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            const test = { uid: 'foo1' } as any
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue(test)
+            process.stdout.write('during\n')
+            test.end = new Date()
+            process.stdout.write('afterEach\n')
+            tmpReporter.onTestPass({ uid: 'foo1', title: 'foo', state: State.PASSED } as any)
+
+            const text = tmpReporter.getResultDisplay('').join('\n')
+            expect(text).toContain('during')
+            expect(text).not.toContain('afterEach')
+            tmpReporter.onSuiteEnd()
+        })
+
+        it('prints only the last attempt\'s console logs of a retried test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            vi.spyOn(tmpReporter, 'getContextTest').mockReturnValue({ uid: 'foo1' } as any)
+            process.stdout.write('attempt-1\n')
+            tmpReporter.onTestStart({ uid: 'foo1' } as any)
+            process.stdout.write('attempt-2\n')
+            tmpReporter.onTestPass({ uid: 'foo1', title: 'foo', state: State.PASSED } as any)
+
+            const text = tmpReporter.getResultDisplay('').join('\n')
+            expect(text).toContain('attempt-2')
+            expect(text).not.toContain('attempt-1')
             tmpReporter.onSuiteEnd()
         })
     })

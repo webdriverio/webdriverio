@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
-import { applyMochaDefaults, formatMessage, setupEnv } from '../src/common.js'
+import { applyMochaDefaults, dottedFullTitle, formatMessage, setupEnv } from '../src/common.js'
 
 vi.mock('@wdio/utils')
 
@@ -211,5 +211,20 @@ describe('applyMochaDefaults', () => {
     test('keeps an explicit opt-out', () => {
         const opts = applyMochaDefaults({ failHookAffectedTests: false })
         expect(opts.failHookAffectedTests).toBe(false)
+    })
+})
+
+describe('dottedFullTitle', () => {
+    test('joins ancestor titles with dots', () => {
+        expect(dottedFullTitle('t', { title: 'inner', parent: { title: 'outer', parent: { title: '' } } })).toBe('outer.inner.t')
+    })
+
+    test('returns the title without a parent', () => {
+        expect(dottedFullTitle('t')).toBe('t')
+        expect(dottedFullTitle('t', null)).toBe('t')
+    })
+
+    test('stops at the first ancestor with an empty title', () => {
+        expect(dottedFullTitle('t', { title: 'a', parent: { title: '', parent: { title: 'skipped' } } })).toBe('a.t')
     })
 })

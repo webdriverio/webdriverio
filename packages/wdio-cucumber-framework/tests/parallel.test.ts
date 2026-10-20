@@ -485,7 +485,7 @@ describe('runParallelCucumber', () => {
         })
 
         const calls = browser.browsingContextCreate.mock.calls
-        expect(calls.length).toBeGreaterThanOrEqual(4)
+        expect(calls.length).toBe(4)
         for (const [params] of calls) {
             expect(params).toEqual({ type: 'window' })
         }
@@ -508,11 +508,8 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
         })
 
-        // 4 scenarios, 2 slots; prefetched-but-unused tabs may add creates, each is closed
-        const created = browser.browsingContextCreate.mock.calls.length
-        expect(created).toBeGreaterThanOrEqual(4)
-        expect(created).toBeLessThanOrEqual(4 + 2)
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(4)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(4)
     })
 
     test('processes all scenarios when limited by slots', async () => {
@@ -532,8 +529,7 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
         })
 
-        // each scenario's tab is closed (plus any unused prefetched tab)
-        expect(browser.browsingContextClose.mock.calls.length).toBeGreaterThanOrEqual(4)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(4)
     })
 
     // ---- failFast ----
@@ -1387,11 +1383,43 @@ describe('runParallelCucumber worker pool', () => {
         }
     })
 
-    test('cleans up prefetched allocations that no scenario ends up using', async () => {
+    test('creates exactly one tab per scenario, with no spare left over', async () => {
         const browser = mockBrowser()
-        await run(browser, names(3), { step0: () => {}, step1: () => {}, step2: () => {} }, 2)
+        const { result } = await run(browser, names(8), Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`step${i}`, () => {}])), 4)
 
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(result).toBe(0)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(8)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(8)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('cleans up a spare that no scenario ends up using after an allocation failure', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        let failSecond!: (err: Error) => void
+        browser.browsingContextCreate.mockImplementation(async () => {
+            n++
+            if (n === 2) { return new Promise((_, reject) => { failSecond = reject }) }
+            if (n === 3) { failSecond(new Error('slot allocation failed')) }
+            return { context: `ctx-${n}` }
+        })
+        const { error } = await run(browser, names(3), { step0: () => {}, step1: () => {}, step2: () => {} }, 2)
+
+        expect(error?.message).toBe('slot allocation failed')
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(3)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('closes a leftover spare when failFast stops the run', async () => {
+        const browser = mockBrowser()
+        await run(browser, names(4), {
+            step0: () => { throw new Error('boom') },
+            step1: () => {}, step2: () => {}, step3: () => {},
+        }, 2, { failFast: true })
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(4)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(4)
         expect(browser.__parallelContexts.size).toBe(0)
     })
 

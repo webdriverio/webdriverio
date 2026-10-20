@@ -130,6 +130,8 @@ With [parallel tests in a spec file](./ParallelTests.md), the tests of one spec 
 
 The `suites`, `tests` and `hooks` trees of the reporter are therefore correct. If your reporter keeps its own state, key it by the `uid` of the test or suite instead of tracking a single current test.
 
+Output that comes without an event, such as console output or a custom `process.emit` event, has no `uid`. Call `this.getContextTest()` to get the test whose browsing context wrote it. In parallel mode it returns `undefined` when no running test owns that context; without parallel mode it returns the test that started last. `before()` hooks of a parallel test run before its `test:start`, so no test owns the context yet; `this.getContextId()` returns the raw context id, which stays the same for the whole test.
+
 ```js
 import WDIOReporter from '@wdio/reporter'
 

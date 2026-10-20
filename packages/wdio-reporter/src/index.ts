@@ -36,6 +36,8 @@ export default class WDIOReporter extends EventEmitter {
     isContentPresent = false
     specs: string[] = []
     currentSpec?: string
+    #contextIdResolver?: () => string | undefined
+    #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -72,12 +74,14 @@ export default class WDIOReporter extends EventEmitter {
                 contextByUid.set(testStat.uid, test.contextId)
             }
         }
-        const getCommandTarget = (payload: { contextId?: string }) => {
-            if (payload.contextId) {
-                return contextTests.get(payload.contextId)
+        const getTestByContext = (contextId: string | undefined) => {
+            if (contextId) {
+                return contextTests.get(contextId)
             }
             return contextTests.size === 0 ? currentTest : undefined
         }
+        this.#getTestByContext = getTestByContext
+        const getCommandTarget = (payload: { contextId?: string }) => getTestByContext(payload.contextId)
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -314,6 +318,27 @@ export default class WDIOReporter extends EventEmitter {
             }
             target.output.push(Object.assign(payload, { type: 'result' }))
         })
+    }
+
+    /**
+     * Sets how the runner identifies the parallel-mode context of the calling code.
+     * Set by the runner; reporters do not need to call it.
+     */
+    setContextIdResolver(resolver: () => string | undefined) {
+        this.#contextIdResolver = resolver
+    }
+
+    /**
+     * Returns the test running in the caller's parallel-mode context. Without a resolver,
+     * returns the current test unless parallel tests are tracked.
+     */
+    getContextTest(): TestStats | undefined {
+        return this.#getTestByContext(this.#contextIdResolver?.())
+    }
+
+    /** Context id of the caller's parallel test, also in hooks that run before `test:start`. Undefined without parallel mode. */
+    getContextId(): string | undefined {
+        return this.#contextIdResolver?.()
     }
 
     #owningSuite(parentUid?: string | null) {

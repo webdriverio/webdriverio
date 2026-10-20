@@ -27,6 +27,20 @@ interface Payload {
     ctx?: Mocha.Context
 }
 
+export interface TitledNode {
+    title?: string
+    parent?: TitledNode | null
+}
+
+export function dottedFullTitle(title: string, parent?: TitledNode | null) {
+    let fullTitle = title
+    while (parent && parent.title) {
+        fullTitle = parent.title + '.' + fullTitle
+        parent = parent.parent
+    }
+    return fullTitle
+}
+
 export function formatMessage (params: FrameworkMessage) {
     const message: FormattedMessage = {
         type: params.type
@@ -88,16 +102,7 @@ export function formatMessage (params: FrameworkMessage) {
         message.title = payload.title
         message.parent = payload.parent ? payload.parent.title : undefined
 
-        let fullTitle = message.title
-        if (payload.parent) {
-            let parent = payload.parent
-            while (parent && parent.title) {
-                fullTitle = parent.title + '.' + fullTitle
-                parent = parent.parent as Payload
-            }
-        }
-
-        message.fullTitle = fullTitle
+        message.fullTitle = dottedFullTitle(message.title, payload.parent)
         message.pending = payload.pending || false
         message.file = payload.file
         message.duration = payload.duration

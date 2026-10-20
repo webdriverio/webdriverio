@@ -18,6 +18,7 @@ import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
+import { dottedFullTitle, type TitledNode } from './common.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -99,7 +100,10 @@ export function resolveMaxContexts(value: number | undefined, fallback: number):
 
 interface CollectedTest {
     title: string
+    /** space-joined like Mocha's fullTitle(); used for grep and hook context parity */
     fullTitle: string
+    /** dot-joined like the sequential adapter reports it */
+    reportFullTitle: string
     fn: Function
     parentTitle: string
     _beforeEach: Function[]
@@ -184,6 +188,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
             const collected = {
                 title: test.title,
                 fullTitle: test.fullTitle(),
+                reportFullTitle: dottedFullTitle(test.title, test.parent),
                 fn: fn || (() => {}),
                 parentTitle: s.title,
                 _beforeEach: mergedBeforeEach,
@@ -208,7 +213,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         if (depth > 0) {
             suiteStubs.set(s, {
                 title: s.title,
-                fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
+                fullTitle: dottedFullTitle(s.title, s.parent),
                 file: (s as unknown as { file?: string }).file,
                 depth: suiteIndex!,
                 parentIndex,
@@ -269,7 +274,7 @@ function baseMessage(type: string, test: CollectedTest, cid: string, specs: stri
     return {
         type, cid, specs, uid,
         title: test.title,
-        fullTitle: test.fullTitle,
+        fullTitle: test.reportFullTitle,
         parent: test.parentTitle,
         file: test.file || specs[0],
         ...parentUidField(cid, test.suiteIndex),
@@ -281,9 +286,9 @@ function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string,
     reporter.emit('test:start', baseMessage('test:start', test, cid, specs, uid, contextId))
 }
 
-function emitTestPass(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number) {
-    reporter.emit('test:pass', { ...baseMessage('test:pass', test, cid, specs, uid), duration, passed: true })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: true })
+function emitTestPass(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
+    reporter.emit('test:pass', { ...baseMessage('test:pass', test, cid, specs, uid, contextId), duration, passed: true })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: true })
 }
 
 function emitTestFail(
@@ -293,47 +298,75 @@ function emitTestFail(
     specs: string[],
     uid: string,
     duration: number,
-    error: Error
+    error: Error,
+    contextId: string
 ) {
     const errorPayload = {
         name: error.name || 'Error',
         message: error.message,
         stack: error.stack
     }
-    reporter.emit('test:fail', { ...baseMessage('test:fail', test, cid, specs, uid), duration, error: errorPayload })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, error: errorPayload })
+    reporter.emit('test:fail', { ...baseMessage('test:fail', test, cid, specs, uid, contextId), duration, error: errorPayload })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, error: errorPayload })
 }
 
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
     reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, pending: true })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, pending: true })
 }
 
-function hookBaseMessage(type: string, kind: HookKind, test: CollectedTest, cid: string, specs: string[], uid: string) {
+interface MochaHookLike {
+    title?: string
+    originalTitle?: string
+    parent?: TitledNode & { root?: boolean, tests?: { title: string }[] }
+}
+
+/** Mocha's own hook title (runner.js setHookTitle). */
+function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
+    const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
+    const siblings = hook.parent?.tests
+    const currentTest = kind === 'before all' ? siblings?.[0]?.title
+        : kind === 'after all' ? siblings?.[siblings.length - 1]?.title
+            : test.title
+    return currentTest !== undefined
+        ? `${original} for "${currentTest}"`
+        : `${original} in "${hook.parent?.title || (hook.parent?.root ? '{root}' : '')}"`
+}
+
+/**
+ * Reproduces what reporters see in sequential mode: formatMessage (common.ts)
+ * rewrites the title to `"<hook>" hook for <declaring suite>` when the hook's
+ * suite has a title, but builds fullTitle from the native title.
+ */
+function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+    const native = nativeHookTitle(kind, hook, test)
+    const declaringSuite = hook.parent?.title
     return {
         type, cid, specs, uid,
-        // matches the sequential formatMessage hook-title rewrite (common.ts)
-        title: `${kind} hook for "${test.parentTitle}"`,
-        fullTitle: `${test.parentTitle}.${kind} hook`,
+        title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
+        fullTitle: dottedFullTitle(native, hook.parent),
         parent: test.parentTitle,
         file: test.file || specs[0],
-        ...parentUidField(cid, test.suiteIndex)
+        ...parentUidField(cid, test.suiteIndex),
+        contextId
     } satisfies TestMessage
 }
 
-function emitHookStart(reporter: EventEmitter, kind: HookKind, test: CollectedTest, cid: string, specs: string[], uid: string) {
-    reporter.emit('hook:start', hookBaseMessage('hook:start', kind, test, cid, specs, uid))
+function emitHookStart(reporter: EventEmitter, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+    reporter.emit('hook:start', hookBaseMessage('hook:start', kind, hook, test, cid, specs, uid, contextId))
 }
 
 function emitHookEnd(
     reporter: EventEmitter,
     kind: HookKind,
+    hook: MochaHookLike,
     test: CollectedTest,
     cid: string,
     specs: string[],
     uid: string,
+    contextId: string,
     duration: number,
     error?: Error
 ) {
@@ -343,7 +376,7 @@ function emitHookEnd(
         stack: error.stack
     } : undefined
     reporter.emit('hook:end', {
-        ...hookBaseMessage('hook:end', kind, test, cid, specs, uid),
+        ...hookBaseMessage('hook:end', kind, hook, test, cid, specs, uid, contextId),
         duration,
         state: error ? 'fail' : 'pass',
         ...(errorPayload ? { error: errorPayload } : {})
@@ -545,16 +578,17 @@ async function runOneTest(
          * and the failing hook is reported as its own failure.
          */
         const runHookChain = async (hooks: Function[], kind: HookKind, fatal: boolean) => {
-            for (const hook of hooks) {
+            for (const fn of hooks) {
+                const hook = fn as MochaHookLike
                 const hookUid = `hook-${uid}-${hookCnt++}`
-                emitHookStart(reporter, kind, test, cid, specs, hookUid)
+                emitHookStart(reporter, kind, hook, test, cid, specs, hookUid, contextId)
                 const hookStart = Date.now()
                 try {
-                    await callHook(hook, ctx, timeoutMs)
-                    emitHookEnd(reporter, kind, test, cid, specs, hookUid, Date.now() - hookStart)
+                    await callHook(fn, ctx, timeoutMs)
+                    emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
                     const hookError = err instanceof Error ? err : new Error(String(err))
-                    emitHookEnd(reporter, kind, test, cid, specs, hookUid, Date.now() - hookStart, hookError)
+                    emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart, hookError)
                     if (fatal) {
                         caughtError = hookError
                         break
@@ -597,8 +631,8 @@ async function runOneTest(
                 return { status: 'pending' as const, name: test.title, duration: 0, hookFailures }
             }
             // WDIOReporter's test:fail handler needs a prior test:start for this uid
-            emitTestStart(reporter, test, cid, specs, uid)
-            emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!)
+            emitTestStart(reporter, test, cid, specs, uid, contextId)
+            emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!, contextId)
             return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message, hookFailures }
         }
         if (isSkipError(caughtError)) {
@@ -606,10 +640,10 @@ async function runOneTest(
             return { status: 'pending' as const, name: test.title, duration: fnDuration, hookFailures }
         }
         if (passed) {
-            emitTestPass(reporter, test, cid, specs, uid, fnDuration)
+            emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
             return { status: 'passed' as const, name: test.title, duration: fnDuration, hookFailures }
         }
-        emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!)
+        emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!, contextId)
         return { status: 'failed' as const, name: test.title, duration: fnDuration, error: caughtError!.message, hookFailures }
     })
 }
@@ -697,6 +731,7 @@ export async function runParallelTests(
     const allResults: PromiseSettledResult<TestRunResult>[] = new Array(tests.length)
     const cleanups: Promise<void>[] = []
     let cursor = 0
+    const spares: Promise<ParallelContextAllocation>[] = []
     let allocationError: unknown
     let allocationFailed = false
 
@@ -705,53 +740,45 @@ export async function runParallelTests(
         `Slots: ${slotCount}, max contexts: ${maxContexts}`
     )
 
-    // Each slot owns one live allocation, at most one prefetched for its next
-    // test, and at most one closing, so creating/closing windows stays off the
-    // gap between tests without unbounded concurrent closes.
+    // Each slot owns one live allocation and at most one closing. The run keeps
+    // a shared pool of spares, never more than the tests not yet taken (so never
+    // more than the slot count), which keeps creating windows off the gap
+    // between tests without unbounded concurrent closes.
     const runSlot = async () => {
-        let prefetched: Promise<ParallelContextAllocation> | undefined
         let closing: Promise<void> | undefined
         const scheduleClose = async (alloc: ParallelContextAllocation) => {
             await closing?.catch(() => {})
             closing = cleanupAllocation(bidi, alloc)
             cleanups.push(closing)
         }
-        try {
-            while (!allocationFailed) {
-                const index = cursor++
-                if (index >= tests.length) { break }
-                let allocation: ParallelContextAllocation
-                try {
-                    allocation = await (prefetched ?? allocateContext(bidi, mode))
-                } catch (err) {
-                    prefetched = undefined
-                    if (!allocationFailed) { allocationFailed = true; allocationError = err }
-                    break
-                }
-                prefetched = undefined
-                if (cursor < tests.length) {
-                    prefetched = allocateContext(bidi, mode)
-                    prefetched.catch(() => {})
-                }
-                try {
-                    allResults[index] = {
-                        status: 'fulfilled',
-                        value: await runOneTest(
-                            tests[index], allocation, cid, specs,
-                            `test-${cid}-${index}`,
-                            reporter, parallelStore, timeoutMs
-                        )
-                    }
-                } catch (reason) {
-                    allResults[index] = { status: 'rejected', reason }
-                } finally {
-                    await scheduleClose(allocation)
-                }
+        while (!allocationFailed) {
+            const index = cursor++
+            if (index >= tests.length) { break }
+            let allocation: ParallelContextAllocation
+            try {
+                allocation = await (spares.shift() ?? allocateContext(bidi, mode))
+            } catch (err) {
+                if (!allocationFailed) { allocationFailed = true; allocationError = err }
+                break
             }
-        } finally {
-            if (prefetched) {
-                const unused = await prefetched.catch(() => undefined)
-                if (unused) { await scheduleClose(unused) }
+            if (!allocationFailed && tests.length - cursor > spares.length) {
+                const next = allocateContext(bidi, mode)
+                next.catch(() => {})
+                spares.push(next)
+            }
+            try {
+                allResults[index] = {
+                    status: 'fulfilled',
+                    value: await runOneTest(
+                        tests[index], allocation, cid, specs,
+                        `test-${cid}-${index}`,
+                        reporter, parallelStore, timeoutMs
+                    )
+                }
+            } catch (reason) {
+                allResults[index] = { status: 'rejected', reason }
+            } finally {
+                await scheduleClose(allocation)
             }
         }
     }
@@ -759,6 +786,10 @@ export async function runParallelTests(
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
+        for (const spare of spares.splice(0)) {
+            const unused = await spare.catch(() => undefined)
+            if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+        }
         const settled = await Promise.allSettled(cleanups)
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
