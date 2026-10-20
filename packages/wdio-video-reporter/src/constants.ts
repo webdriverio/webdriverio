@@ -4,6 +4,15 @@ export const SCREENSHOT_PADDING_WITH = 4
  * characters of the ffmpeg output kept for the log of a failed render
  */
 export const STDERR_TAIL_LENGTH = 2000
+
+/**
+ * WebDriver BiDi frames: the most captures sent for one frame, the time without an
+ * answer before the next capture (it doubles each time), and the time before the next
+ * capture after one failed during a navigation
+ */
+export const BIDI_CAPTURE_TRIES = 5
+export const BIDI_CAPTURE_RETRY_DELAY = 100
+export const BIDI_CAPTURE_FAILED_RETRY_DELAY = 50
 export const SUPPORTED_VIDEO_FORMATS = {
     mp4: {
         fileExtension: 'mp4',

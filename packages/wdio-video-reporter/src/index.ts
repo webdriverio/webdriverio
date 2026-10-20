@@ -6,6 +6,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import logger from '@wdio/logger'
 import WdioReporter, { type RunnerStats, type AfterCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
+import { isSessionEndedError } from 'webdriver'
 import type { Options } from '@wdio/types'
 
 import AllureReporterExtension from './allure.js'
@@ -15,7 +16,10 @@ import {
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter, findFfmpeg
 } from './helpers.js'
-import { DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS } from './constants.js'
+import {
+    DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS, BIDI_CAPTURE_TRIES, BIDI_CAPTURE_RETRY_DELAY,
+    BIDI_CAPTURE_FAILED_RETRY_DELAY
+} from './constants.js'
 import type { ReporterOptions } from './types.js'
 
 /**
@@ -66,10 +70,13 @@ export default class VideoReporter extends WdioReporter {
     #listensToBidiCommands = false
     /**
      * BiDi session: the window of the classic commands (it does not change, BiDi
-     * sessions have no `switchWindow`), and the browsing context of the last frame
-     * when it is another tab or window (for example one from `newWindow()`)
+     * sessions have no `switchWindow`; `reloadSession()` gives a new one), and the
+     * browsing context of the last frame when it is another tab or window (for
+     * example one from `newWindow()`)
      */
     #mainContext?: string
+    #mainContextReady?: Promise<string | undefined>
+    #mainContextSession?: string
     #frameContext?: string
     /**
      * the top-level browsing context (tab or window) of each context, for frames
@@ -242,10 +249,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         this.#listensToBidiCommands = true
-        instance.getWindowHandle().then(
-            (handle) => { this.#mainContext = handle },
-            () => { /* no window: the frames use the classic screenshot */ }
-        )
+        this.#readMainContext(instance)
         /**
          * a result has the id of its command, but not its method: keep the commands
          * that take a frame by id (results can come in another order)
@@ -291,7 +295,7 @@ export default class VideoReporter extends WdioReporter {
         }
 
         /**
-         * the classic commands and the main window use the classic screenshot
+         * the classic commands take the frame of the main window
          */
         this.#frameContext = context && context !== this.#mainContext ? context : undefined
         this.#log(`Add frame for command: ${label} => [${commandName}]${this.#frameContext ? ` (browsing context ${this.#frameContext})` : ''}`)
@@ -579,31 +583,15 @@ export default class VideoReporter extends WdioReporter {
         const filePath = path.resolve(this.recordingPath, `${pad(frame)}.png`)
 
         /**
-         * Use the classic WebDriver screenshot command (`takeScreenshot`), also in a
-         * WebDriver BiDi session, where `saveScreenshot` uses WebDriver BiDi: the
-         * testrunner ends the session before the reporters are done, and a BiDi
-         * command that is still pending then never ends. Each frame also has a time
-         * limit, so a lost screenshot cannot stop the video.
+         * Chrome: a classic screenshot that is in flight when a WebDriver BiDi navigation
+         * starts can wait 10 s, and the next classic command of the test waits with it.
+         * A WebDriver BiDi session takes its frames with WebDriver BiDi. Each frame also
+         * has a time limit, so a lost screenshot cannot stop the video.
          */
         const instance = getScreenshotBrowser(browser)
-        const context = this.#frameContext
-        /**
-         * a tab or window other than the main one (a BiDi browsing context): capture
-         * that one (for a frame, its tab: BiDi captures top-level contexts only); the
-         * main window, a closed tab or a failed capture use the classic screenshot
-         */
-        const capture: Promise<string> = !context
-            ? instance.takeScreenshot()
-            : this.#topLevelContext(instance, context).then((topLevel) => {
-                if (!topLevel || topLevel === this.#mainContext) {
-                    return instance.takeScreenshot()
-                }
-                return instance.browsingContextCaptureScreenshot({ context: topLevel, origin: 'viewport', format: { type: 'image/png' } })
-                    .then((result) => result.data, (error: Error) => {
-                        this.#log(`Screenshot of browsing context ${topLevel} failed (frame: ${frame}), using the main window: ${error.message}`)
-                        return instance.takeScreenshot()
-                    })
-            })
+        const capture: Promise<string> = this.#mainContextReady
+            ? this.#bidiScreenshot(instance, this.#frameContext, frame)
+            : instance.takeScreenshot()
         /**
          * after the timeout, the frame has the "not available" image and ffmpeg can read
          * it: a screenshot that ends later must not write the frame again
@@ -631,6 +619,89 @@ export default class VideoReporter extends WdioReporter {
                 }
             })
         )
+    }
+
+    #readMainContext (instance: WebdriverIO.Browser) {
+        this.#mainContextSession = instance.sessionId
+        this.#mainContextReady = instance.getWindowHandle().then(
+            (handle) => { this.#mainContext = handle; return handle },
+            () => undefined
+        )
+    }
+
+    /**
+     * Capture the tab or window of the frame (for a frame (iframe), its tab: BiDi
+     * captures top-level contexts only), else the main window. A closed tab or a
+     * failed capture of a tab gives the main window.
+     */
+    async #bidiScreenshot (instance: WebdriverIO.Browser, context: string | undefined, frame: number) {
+        if (instance.sessionId !== this.#mainContextSession) {
+            // `reloadSession()`: the main window of the new session
+            this.#topLevelContexts.clear()
+            this.#readMainContext(instance)
+        }
+        const main = await this.#mainContextReady
+        if (!main) {
+            // no window: only the classic screenshot can work
+            return instance.takeScreenshot()
+        }
+        const topLevel = (context && await this.#topLevelContext(instance, context)) || main
+        if (topLevel === main) {
+            return this.#captureContext(instance, main)
+        }
+        return this.#captureContext(instance, topLevel).catch((error: Error) => {
+            if (isSessionEndedError(error)) {
+                throw error
+            }
+            this.#log(`Screenshot of browsing context ${topLevel} failed (frame: ${frame}), using the main window: ${error.message}`)
+            return this.#captureContext(instance, main)
+        })
+    }
+
+    /**
+     * Chrome: a capture during a navigation can fail ("Cannot find context") or get no
+     * answer, and the next one works. Send a new capture then; the captures in flight
+     * still count, the first answer wins.
+     */
+    #captureContext (instance: WebdriverIO.Browser, context: string) {
+        return new Promise<string>((resolve, reject) => {
+            let sent = 0
+            let failed = 0
+            let settled = false
+            let timer: ReturnType<typeof setTimeout> | undefined
+            const settle = (fn: () => void) => {
+                settled = true
+                clearTimeout(timer)
+                fn()
+            }
+            const send = () => {
+                sent++
+                clearTimeout(timer)
+                if (sent < BIDI_CAPTURE_TRIES) {
+                    timer = setTimeout(send, BIDI_CAPTURE_RETRY_DELAY * 2 ** (sent - 1))
+                }
+                instance.browsingContextCaptureScreenshot({ context, origin: 'viewport', format: { type: 'image/png' } }).then(
+                    ({ data }) => {
+                        if (!settled) {
+                            settle(() => resolve(data))
+                        }
+                    },
+                    (error: Error) => {
+                        failed++
+                        if (settled) {
+                            return
+                        }
+                        if (sent < BIDI_CAPTURE_TRIES && /Cannot find context|Not attached to an active page/.test(error.message)) {
+                            clearTimeout(timer)
+                            timer = setTimeout(send, BIDI_CAPTURE_FAILED_RETRY_DELAY)
+                        } else if (failed === sent) {
+                            settle(() => reject(error))
+                        }
+                    }
+                )
+            }
+            send()
+        })
     }
 
     /**
