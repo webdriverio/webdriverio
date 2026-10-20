@@ -829,7 +829,7 @@ export async function executeAsync(
             const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
                 .jasmine?.DEFAULT_TIMEOUT_INTERVAL
             if (jasmineDefault === undefined) {
-                return timeout ?? 0
+                return timeout ?? 20000
             }
             return Math.max(timeout ?? 0, jasmineDefault)
         }

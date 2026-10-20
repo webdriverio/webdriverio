@@ -275,6 +275,16 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
+        it('should use the default deadline when no timeout or Jasmine default is given', async () => {
+            function unboundedSpec () { return new Promise(() => {}) }
+            const result = executeAsync.call(
+                {}, unboundedSpec, { attempts: 0, limit: 0 }
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(19997)
+            expect(await result).toEqual(new Error('Timeout after 19997ms in "unboundedSpec" (WDIO attempt 1/1)'))
+        })
+
         it('should use the Jasmine deadline when no timeout is given', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             function jasmineHook () { return new Promise(() => {}) }
