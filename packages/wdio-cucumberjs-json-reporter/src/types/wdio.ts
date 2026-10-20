@@ -1,6 +1,5 @@
 import type { Capabilities, Options } from '@wdio/types'
 import {
-    type default as WDIOReporterBaseOptions,
     type Argument,
     type HookStats,
     type RunnerStats,
@@ -37,11 +36,6 @@ export interface WebdriverIOExtended extends Options.WebdriverIO {
             alwaysMatch?: Record<string, unknown>
         }
     }
-}
-
-export interface WDIOReporterBaseOptionsExtended extends WDIOReporterBaseOptions {
-    jsonFolder: string
-    language: string
 }
 
 export interface HookStatsExtended extends HookStats {

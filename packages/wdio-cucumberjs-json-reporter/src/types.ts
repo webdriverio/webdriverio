@@ -51,11 +51,6 @@ export interface Report {
     features?: Feature[];
 }
 
-export interface FeatureMetadata {
-    keyword: string;
-    type: string;
-}
-
 export interface Feature {
     report?: {
         keyword: string;

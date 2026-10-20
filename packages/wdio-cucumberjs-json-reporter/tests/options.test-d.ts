@@ -1,5 +1,7 @@
 import { expectTypeOf, test } from 'vitest'
 import type { CucumberJsJsonReporterInterface, MetadataObject, Scenario, Step } from '../src/types.js'
+// @ts-expect-error not exported: the package does not use it
+import type { FeatureMetadata } from '../src/types.js'
 
 test('the options type has each documented option, with its type', () => {
     expectTypeOf<{ jsonFolder: string, language: string, disableHooks: boolean, reportFilePerRetry: boolean }>()
@@ -25,4 +27,8 @@ test('the public types have no fields that only the tests used', () => {
     expectTypeOf<Scenario>().not.toHaveProperty('foobar')
     expectTypeOf<Step>().not.toHaveProperty('foo')
     expectTypeOf<MetadataObject>().not.toHaveProperty('foo')
+})
+
+test('the public types have no type that the package does not use', () => {
+    expectTypeOf<FeatureMetadata>().toBeAny()
 })
