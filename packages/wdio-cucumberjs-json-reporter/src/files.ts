@@ -129,3 +129,21 @@ export function writeFileAtomic (file: string, content: string) {
         }
     }
 }
+
+/**
+ * Write a new file `<name>.json`, or `<name>-1.json`, `<name>-2.json`, ... when that name
+ * exists: 2 workers can make the same unique id, and one must not replace the file of the other
+ */
+export function writeNewFile (folder: string, name: string, content: string) {
+    for (let suffix = 0; ; suffix++) {
+        const file = path.join(folder, suffix ? `${name}-${suffix}.json` : `${name}.json`)
+        try {
+            fs.writeFileSync(file, content, { flag: 'wx' })
+            return file
+        } catch (error: unknown) {
+            if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+                throw error
+            }
+        }
+    }
+}

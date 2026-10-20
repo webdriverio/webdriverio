@@ -482,6 +482,25 @@ describe('reporter', () => {
             expect(files).toEqual([expect.stringMatching(/^this-feature_\d+\.json$/)])
         })
 
+        it('does not replace the file of another worker with the same unique id', () => {
+            const folder = path.join(logFolderPath, 'same-unique-id')
+            fs.rmSync(folder, { recursive: true, force: true })
+            // 2 workers end in the same millisecond with the same random fraction
+            vi.spyOn(Date, 'now').mockReturnValue(1792465045771)
+            vi.spyOn(Math, 'random').mockReturnValue(0.25)
+            for (const worker of ['A', 'B']) {
+                const reporter = new WdioCucumberJsJsonReporter({ jsonFolder: folder, language: 'en', logFile, reportFilePerRetry: true })
+                reporter.report.feature = { id: 'this-feature', name: worker }
+                reporter.report.features = [reporter.report.feature]
+                reporter.onRunnerEnd()
+            }
+            vi.mocked(Date.now).mockRestore()
+            vi.mocked(Math.random).mockRestore()
+            const files = fs.readdirSync(folder).sort()
+            expect(files).toEqual(['this-feature_179246504577125.json', 'this-feature_179246504577125-1.json'].sort())
+            expect(files.map((file) => JSON.parse(fs.readFileSync(path.join(folder, file), 'utf-8'))[0].name).sort()).toEqual(['A', 'B'])
+        })
+
         it('takes the lock for a file that other workers also write', () => {
             const { calls, files } = lockCalls(false)
             expect(calls).toBe(1)
