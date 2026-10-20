@@ -15,6 +15,10 @@ Then('the page title is {string}', async (title) => {
 
 Given('je passe', () => {})
 
+// cucumberjs-json.ambiguous.feature: 2 step definitions match
+Given('I am ambiguous', () => {})
+Given(/^I am ambig/, () => {})
+
 // cucumberjs-json.hooks.feature: Cucumber skips the hooks after a failed hook
 Before({ tags: '@hookFails' }, () => {
     throw new Error('the hook fails')

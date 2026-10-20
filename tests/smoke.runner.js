@@ -828,6 +828,33 @@ const cucumberJsJsonReporterLanguageAndUndefined = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the status of an ambiguous step, with its
+ * step definitions (the text of @wdio/cucumber-framework that the reporter reads)
+ */
+const cucumberJsJsonReporterAmbiguous = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterAmbiguous')
+    for (const configFile of ['cucumberjs-json.config.js', 'cucumberjs-json.ambiguous-fail.config.js']) {
+        await fs.rm(jsonFolder, { recursive: true, force: true })
+        await launch(
+            'cucumberJsJsonReporterAmbiguous',
+            path.resolve(basePath, configFile),
+            {
+                specs: [path.resolve(basePath, 'cucumberjs-json.ambiguous.feature')],
+                reporters: [['cucumberjs-json', { jsonFolder }]]
+            }
+        ).catch((err) => err) // error expected: Cucumber fails a run with an ambiguous step
+        const files = await fs.readdir(jsonFolder)
+        assert.equal(files.length, 1, configFile)
+        const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+        const step = feature.elements[0].steps.filter((s) => !s.hidden)[1]
+        assert.equal(step.result.status, 'ambiguous', configFile)
+        assert.match(step.result.error_message, /^Multiple step definitions match:\n  I am ambiguous - .*cucumberjs-json\.steps\.js:\d+\n  \/\^I am ambig\/ - .*cucumberjs-json\.steps\.js:\d+/, configFile)
+    }
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber with @wdio/cucumberjs-json-reporter: the status of a hook that Cucumber skips,
  * as cucumber-js writes it (a hook after a failed hook, a hook that returns 'skipped')
  */
@@ -1702,6 +1729,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberJsJsonReporter,
         cucumberJsJsonReporterMultiRemote,
         cucumberJsJsonReporterLanguageAndUndefined,
+        cucumberJsJsonReporterAmbiguous,
         cucumberJsJsonReporterGroupedSpecs,
         cucumberJsJsonReporterHookStatus,
         cucumberFileOption,

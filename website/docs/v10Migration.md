@@ -382,6 +382,7 @@ The options are the same. The JSON files follow the Cucumber JSON format more cl
 - Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
 - A doc string argument is `{ content, line }`. Before, it was the text of the doc string.
 - A hook that Cucumber skips (after a failed hook, or a hook that returns `'skipped'`) has the status `skipped`, and a hook that returns `'pending'` has `pending`, as in the Cucumber JSON format. Before, they were `passed`.
+- The status of an ambiguous step is `ambiguous`, as in the Cucumber JSON format, and its `error_message` lists the matching step definitions. Before, it was `skipped` with no reason, or `failed` with `cucumberOpts.failAmbiguousDefinitions`.
 - The status of an undefined step is `undefined`. Before, it was `failed`, or `pending` with `cucumberOpts.ignoreUndefinedDefinitions`.
 - A scenario that Cucumber runs again (`cucumberOpts.retry`) has only the steps of its last try. Before, it had the steps of all tries.
 - With `cucumberOpts.tagsInTitle`, the feature and scenario names, the ids and the file names have no tags.

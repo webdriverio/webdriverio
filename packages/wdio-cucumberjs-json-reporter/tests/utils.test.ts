@@ -112,8 +112,28 @@ describe('getStepStatus', () => {
         expect(getStepStatus(step('pending', 'Given a step (undefined step)'))).toBe('undefined')
     })
 
+    it('gives "ambiguous" for an ambiguous step: skipped with the step definitions as reason, or failed with failAmbiguousDefinitions', () => {
+        const definitions = 'Multiple step definitions match:\n  I am ambiguous - steps.js:1\n  /^I am ambig/ - steps.js:2'
+        expect(getStepStatus({ ...step('skipped', 'When I am ambiguous'), pendingReason: definitions } as never)).toBe('ambiguous')
+        expect(getStepStatus(step('failed', 'When I am ambiguous', 'Multiple step definitions match:'))).toBe('ambiguous')
+        // the text of the framework when it finds no step definition
+        expect(getStepStatus(step('failed', 'When I am ambiguous', 'Step "I am ambiguous" matches multiple step definitions. Make the step definitions unique by removing duplicate or overlapping expressions.'))).toBe('ambiguous')
+        expect(getStepStatus({ ...step('skipped', 'When I am skipped'), pendingReason: 'tagged @skip' } as never)).toBe('skipped')
+    })
+
     it('keeps "failed" for a step whose own error looks like these messages', () => {
         expect(getStepStatus(step('failed', 'Given a step', 'Step "a" is not defined in the page'))).toBe('failed')
+    })
+})
+
+describe('getFailedMessage of an ambiguous step', () => {
+    it('gives the step definitions of an ambiguous step that the framework skips', () => {
+        const definitions = 'Multiple step definitions match:\n  I am ambiguous - steps.js:1\n  /^I am ambig/ - steps.js:2'
+        expect(getFailedMessage({ state: 'skipped', pendingReason: definitions } as never)).toEqual({ error_message: definitions })
+    })
+
+    it('gives no message for a step that is skipped for another reason', () => {
+        expect(getFailedMessage({ state: 'skipped', pendingReason: 'tagged @skip' } as never)).toEqual({})
     })
 })
 

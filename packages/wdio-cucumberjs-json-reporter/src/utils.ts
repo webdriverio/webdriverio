@@ -2,7 +2,7 @@ import stripAnsi from 'strip-ansi'
 import { dialects } from '@cucumber/gherkin'
 import type { HookStats, TestStats } from '@wdio/reporter'
 
-import { FAILED, UNDEFINED, UNDEFINED_STEP_ERROR, UNDEFINED_STEP_SUFFIX } from './constants.js'
+import { AMBIGUOUS, AMBIGUOUS_STEP_ERROR, AMBIGUOUS_STEP_MESSAGE, FAILED, SKIPPED, UNDEFINED, UNDEFINED_STEP_ERROR, UNDEFINED_STEP_SUFFIX } from './constants.js'
 import type { ErrorMessage, Step } from './types.js'
 
 /**
@@ -54,13 +54,28 @@ export function getFailedMessage(testObject: TestStats | HookStats): ErrorMessag
             error_message: stripAnsi(testObject.error?.stack ?? testObject.error?.message ?? ''),
         }
     }
+    // the step definitions of an ambiguous step that the framework skips
+    const reason = ambiguousReason(testObject)
+    if (reason) {
+        return { error_message: stripAnsi(reason) }
+    }
 
     return {}
 }
 
 /**
+ * The reason of an ambiguous step that the framework skips (without
+ * `cucumberOpts.failAmbiguousDefinitions`): its step definitions
+ */
+function ambiguousReason(testObject: TestStats | HookStats): string | undefined {
+    const reason = (testObject as TestStats).pendingReason
+    return testObject.state === SKIPPED && reason?.startsWith(AMBIGUOUS_STEP_MESSAGE) ? reason : undefined
+}
+
+/**
  * The status of a step as Cucumber writes it: the framework reports an undefined step
- * as failed, or as pending with `ignoreUndefinedDefinitions`
+ * as failed, or as pending with `ignoreUndefinedDefinitions`, and an ambiguous step as
+ * skipped, or as failed with `failAmbiguousDefinitions`
  */
 export function getStepStatus(testObject: TestStats | HookStats): string {
     const message = testObject.error?.message ?? ''
@@ -69,6 +84,12 @@ export function getStepStatus(testObject: TestStats | HookStats): string {
         (testObject.state === FAILED && message.startsWith('Step "') && message.endsWith(UNDEFINED_STEP_ERROR))
     ) {
         return UNDEFINED
+    }
+    if (
+        ambiguousReason(testObject) ||
+        (testObject.state === FAILED && (message.startsWith(AMBIGUOUS_STEP_MESSAGE) || AMBIGUOUS_STEP_ERROR.test(message)))
+    ) {
+        return AMBIGUOUS
     }
     return testObject.state || ''
 }

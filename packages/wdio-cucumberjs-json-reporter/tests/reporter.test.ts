@@ -1096,6 +1096,14 @@ describe('reporter', () => {
             expect(tmpReporter.getCurrentStep()).toMatchObject({ name: 'an unknown step', result: { status: 'undefined', duration: 2000000 } })
         })
 
+        it('writes "ambiguous" for an ambiguous step that the framework skips (the reason has the step definitions)', () => {
+            tmpReporter.emit('suite:start', { uid: 'feature', title: 'Feature', file: 'ambiguous.feature' })
+            tmpReporter.emit('suite:start', { uid: 'scenario', title: 'Scenario', parent: 'Feature', file: 'ambiguous.feature' })
+            tmpReporter.emit('test:start', { uid: 'step', title: 'When I am ambiguous', parent: 'Scenario' })
+            tmpReporter.emit('test:skip', { uid: 'step', title: 'When I am ambiguous', parent: 'Scenario', pendingReason: 'Multiple step definitions match:\n  I am ambiguous - steps.js:1\n  /^I am ambig/ - steps.js:2' })
+            expect(tmpReporter.getCurrentStep()?.result?.status).toBe('ambiguous')
+        })
+
         it('writes the duration of a pending step', () => {
             start(tmpReporter, 'Given a pending step')
             tmpReporter.onTestPending({ ...STEP_TEST_ONSTART_STATS, title: 'Given a pending step', keyword: 'Given', state: PENDING, _duration: 3 } as TestStatsExtended)
