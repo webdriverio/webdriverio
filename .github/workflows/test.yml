@@ -42,6 +42,7 @@ jobs:
       display_server: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server == 'true' }}
       display_server_images: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server_images == 'true' }}
       chromedriver: ${{ github.event_name != 'pull_request' || steps.filter.outputs.chromedriver == 'true' }}
+      create_wdio: ${{ github.event_name != 'pull_request' || steps.filter.outputs.create_wdio == 'true' }}
     steps:
       - name: 🔎 Filter changed paths
         if: github.event_name == 'pull_request'
@@ -85,6 +86,9 @@ jobs:
               - 'packages/wdio-utils/src/node/manager.ts'
               - 'packages/wdio-utils/package.json'
               - 'e2e/wdio/chromedriver/**'
+            create_wdio:
+              - 'packages/create-wdio/**'
+              - 'e2e/create-wdio/**'
             # Core product / test code. Display-server, browser-runner, and session
             # trees are excluded so those dedicated suites can run on their own.
             code:
@@ -99,6 +103,7 @@ jobs:
               - '!e2e/browser-runner/**'
               - '!e2e/session/**'
               - '!e2e/wdio/chromedriver/**'
+              - '!e2e/create-wdio/**'
               - 'infra/**'
               # @wdio/docs unit tests run in the docs workflow. Leaving this
               # package out of the code lane keeps smoke and e2e off a docs-only PR.
@@ -109,7 +114,7 @@ jobs:
   build_core:
     name: Build
     needs: [changes]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true' || needs.changes.outputs.chromedriver == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true' || needs.changes.outputs.chromedriver == 'true' || needs.changes.outputs.create_wdio == 'true'
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
@@ -212,6 +217,12 @@ jobs:
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.chromedriver == 'true'
     uses: ./.github/workflows/test-chromedriver.yml
 
+  create_wdio_tests:
+    name: create-wdio E2E Tests
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.create_wdio == 'true'
+    uses: ./.github/workflows/test-create-wdio.yml
+
   # Stable required check. Individual matrix cells are skipped on most PRs;
   # this job succeeds when every job that *did* run succeeded (skipped is OK).
   ci:
@@ -235,6 +246,7 @@ jobs:
       - standalone_tests
       - display_server_tests
       - chromedriver_tests
+      - create_wdio_tests
     runs-on: ubuntu-latest
     permissions: {}
     steps:

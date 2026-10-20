@@ -23,7 +23,8 @@ const E2E_LANES: ReadonlyArray<{ lane: LaneName, name: string, script: string }>
     { lane: 'component', name: 'component', script: 'test:component' },
     { lane: 'session', name: 'session', script: 'test:e2e:session' },
     { lane: 'display_server', name: 'display-server', script: 'test:e2e:display-server' },
-    { lane: 'chromedriver', name: 'chromedriver', script: 'test:e2e:chromedriver' }
+    { lane: 'chromedriver', name: 'chromedriver', script: 'test:e2e:chromedriver' },
+    { lane: 'create_wdio', name: 'create-wdio', script: 'test:e2e:create-wdio' }
 ]
 
 function e2eSteps (report: Omit<ChangeReport, 'base'> | ChangeReport, e2e: boolean): CheckStep[] {
@@ -104,7 +105,7 @@ export function planChecks (
 
     steps.push(...e2eSteps(report, e2e))
 
-    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.session && !report.lanes.display_server && !report.lanes.chromedriver && !report.runAll) {
+    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.session && !report.lanes.display_server && !report.lanes.chromedriver && !report.lanes.create_wdio && !report.runAll) {
         steps.push({
             name: 'docs',
             reason: 'docs lane only; run pnpm run docs:list and regenerate if you changed JSDoc, protocols, or package READMEs'

@@ -13,7 +13,10 @@ pnpm run test:package create-wdio
 ## Tests
 
 Unit tests import `src/` directly. They do not prove a generated project runs;
-that is a smoke or example run.
+`pnpm run test:e2e:create-wdio` does. It packs the build, runs it with
+`npm exec` (as `npm init wdio` does) and `--yes`, then runs the generated test
+in one Chrome window. @wdio/cli and the other packages come from npm. CI runs
+it on Ubuntu, Windows and macOS (`.github/workflows/test-create-wdio.yml`).
 
 - `answers.generateTestFiles` is enforced in `createWDIOConfig` before it calls
   `generateTestFiles`. The generator itself always renders the selected
