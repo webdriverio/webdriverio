@@ -233,7 +233,7 @@ export default class VideoReporter extends WdioReporter {
 
     /**
      * In a WebDriver BiDi session, some commands (for example `url` with an http URL,
-     * `back`, `forward` and `execute`) use WebDriver BiDi and do not send
+     * `back`, `forward` and `refresh`) use WebDriver BiDi and do not send
      * `client:afterCommand`. Take their frame when their result comes back.
      */
     listenToBidiCommands () {
