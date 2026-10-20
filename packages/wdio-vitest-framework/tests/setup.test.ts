@@ -79,6 +79,23 @@ describe('setup', () => {
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('before', mockConfig.value.before, [{ browserName: 'chrome', hostname: 'grid' }, ['/repo/a.spec.ts'], browser])
     })
 
+    it('registers the globals for @wdio/globals', () => {
+        const registry = (globalThis as unknown as { _wdioGlobals: Map<string, unknown> })._wdioGlobals
+        expect(registry.get('browser')).toBe(browser)
+        expect(registry.get('driver')).toBe(browser)
+        expect(registry.get('expect')).toEqual({ name: 'wdio-expect' })
+    })
+
+    it('only registers the globals for @wdio/globals when injectGlobals is false', async () => {
+        const global = globalThis as unknown as Record<string, unknown> & { _wdioGlobals: Map<string, unknown> }
+        delete global.browser
+        global._wdioGlobals.clear()
+        mockConfig.value = { ...mockConfig.value, injectGlobals: false }
+        await callbacks.beforeAll({}, { file: fileTask })
+        expect(global.browser).toBeUndefined()
+        expect(global._wdioGlobals.get('browser')).toBe(browser)
+    })
+
     it('gives the worker config parser the launcher CLI args', () => {
         expect(parser.args.slice(0, 2)).toEqual([configFile, { baseUrl: 'http://x' }])
     })
@@ -189,6 +206,22 @@ describe('setup', () => {
             expect(options.afterCommand).toBe(afterCommand)
             expect(options).not.toHaveProperty('beforeTest')
             expect(options).not.toHaveProperty('before')
+        })
+
+        it('passes non-hook function options to remote()', async () => {
+            const transformRequest = vi.fn()
+            const transformResponse = vi.fn()
+            const onReload = [vi.fn()]
+            mockConfig.value = { ...mockConfig.value, transformRequest, transformResponse, onReload, beforeCommand: [vi.fn()], afterTest: [vi.fn()] }
+            await callbacks.beforeAll({}, { file: fileTask })
+            const { remote } = await import('webdriverio')
+            const options = vi.mocked(remote).mock.calls.at(-1)![0] as Record<string, unknown>
+            expect(options.transformRequest).toBe(transformRequest)
+            expect(options.transformResponse).toBe(transformResponse)
+            expect(options.onReload).toBe(onReload)
+            expect(options).toHaveProperty('beforeCommand')
+            expect(options).not.toHaveProperty('before')
+            expect(options).not.toHaveProperty('afterTest')
         })
     })
 

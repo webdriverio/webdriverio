@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
@@ -985,6 +986,7 @@ describe('launcher', () => {
         describe('framework with launch export', () => {
             const launch = vi.fn()
             const defaultPlugin = vi.mocked(initializePlugin).getMockImplementation()!
+            const [specA, specB, specC] = ['/repo/a.ts', '/repo/b.ts', '/repo/c.ts'].map((spec) => path.resolve(spec))
 
             const mockFramework = (framework: () => Promise<unknown>) => vi.mocked(initializePlugin).mockImplementation(
                 (name, type) => type === 'framework' ? framework() as never : defaultPlugin(name, type)
@@ -995,7 +997,7 @@ describe('launcher', () => {
                 launcher.interface!.logHookError = vi.fn()
                 config.framework = 'vitest'
                 launcher['_configFilePath'] = '/repo/wdio.conf.ts'
-                launcher.configParser.getSpecs = vi.fn().mockReturnValue(['file:///repo/a.ts', ['/repo/b.ts', 'file:///repo/c.ts']])
+                launcher.configParser.getSpecs = vi.fn().mockReturnValue([pathToFileURL(specA).href, [specB, pathToFileURL(specC).href]])
             })
 
             afterEach(() => {
@@ -1009,7 +1011,7 @@ describe('launcher', () => {
                 expect(await launcher.run()).toEqual(0)
                 expect(launch).toHaveBeenCalledWith({
                     config: { ...config, capabilities: {} },
-                    specs: ['/repo/a.ts', '/repo/b.ts', '/repo/c.ts'],
+                    specs: [specA, specB, specC],
                     configFile: '/repo/wdio.conf.ts',
                     args: launcher['_args'],
                     signal: expect.any(AbortSignal),

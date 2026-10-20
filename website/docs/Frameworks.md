@@ -846,6 +846,7 @@ The framework controls some keys itself:
 - The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run, in `wdio.conf.ts` or in services.
 - `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - Top-level config changes made in `onPrepare` do not reach the specs, because each Vitest worker parses the config file again. Changes to capabilities do reach them.
+- Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
 
 ## Using Serenity/JS
 
