@@ -68,6 +68,7 @@ export default class VideoReporter extends WdioReporter {
     #openTestTitle?: string
     #bidiCommandsById = new Map<number, BidiFrameCommand>()
     #listensToBidiCommands = false
+    #listensToInstanceCommands = false
     /**
      * BiDi session: the window of the classic commands (it does not change, BiDi
      * sessions have no `switchWindow`; `reloadSession()` gives a new one), and the
@@ -159,6 +160,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
+        this.listenToInstanceCommands()
         this.listenToBidiCommands()
 
         /**
@@ -219,6 +221,35 @@ export default class VideoReporter extends WdioReporter {
    * Save screenshot or add not available image movie stills
    */
     onAfterCommand (commandArgs: AfterCommandArgs) {
+        /**
+         * multi-remote: this event does not say which instance sent the command (its
+         * `sessionId` is `undefined`); the frames come from the results of the recorded
+         * instance (`listenToInstanceCommands`)
+         */
+        if (browser?.isMultiRemote) {
+            return false
+        }
+        return this.#frameForResult(commandArgs)
+    }
+
+    /**
+     * Multi-remote: the reporter records the first instance, so only the commands of
+     * that instance take a frame
+     */
+    listenToInstanceCommands () {
+        const global = browser as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | undefined
+        if (!global?.isMultiRemote || this.#listensToInstanceCommands) {
+            return
+        }
+        const instance = getScreenshotBrowser(global)
+        if (typeof instance?.on !== 'function') {
+            return
+        }
+        this.#listensToInstanceCommands = true
+        instance.on('result', (result) => this.#frameForResult(result))
+    }
+
+    #frameForResult (commandArgs: Pick<AfterCommandArgs, 'endpoint' | 'method'>) {
         if (!this.#record) {
             return
         }

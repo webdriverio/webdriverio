@@ -1001,6 +1001,39 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('multi-remote', () => {
+        afterEach(() => {
+            const mr = browser as any
+            delete mr.isMultiRemote
+            delete mr.instances
+            delete mr.getInstance
+        })
+
+        it('takes a frame for the commands of the recorded instance only', () => {
+            const listeners: Record<string, Record<string, (payload: unknown) => void>> = { one: {}, two: {} }
+            const instance = (name: string) => ({
+                on: (event: string, fn: (payload: unknown) => void) => { listeners[name][event] = fn },
+                takeScreenshot: vi.fn().mockResolvedValue('aW1hZ2U=')
+            })
+            const instances: Record<string, ReturnType<typeof instance>> = { one: instance('one'), two: instance('two') }
+            Object.assign(browser, { isMultiRemote: true, instances: ['one', 'two'], getInstance: (name: string) => instances[name] })
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            const addFrame = vi.spyOn(reporter, 'addFrame').mockImplementation(() => undefined as any)
+            reporter.listenToInstanceCommands()
+            const click = { command: 'elementClick', method: 'POST', endpoint: '/session/:sessionId/element/1/click' }
+
+            // the runner sends the commands of both instances, with no instance
+            reporter.onAfterCommand({ ...click, sessionId: undefined } as any)
+            reporter.onAfterCommand({ ...click, sessionId: undefined } as any)
+            expect(addFrame).toBeCalledTimes(0)
+
+            listeners.one.result({ ...click, result: {} })
+            expect(addFrame).toBeCalledTimes(1)
+            expect(listeners.two.result).toBeUndefined()
+        })
+    })
+
     describe('onTestPass', () => {
         it('should return if not recording', () => {
             const reporter = new VideoReporter({})

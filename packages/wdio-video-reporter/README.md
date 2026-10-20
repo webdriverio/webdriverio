@@ -20,7 +20,7 @@ the browsing context that `newWindow()` returns) give no frame either. Use
 In a WebDriver BiDi session, a frame can show the page a short time after its command: when a command starts a
 navigation (for example a click on a link), its frame can show the next page.
 
-In a multi-remote session, the reporter records the first browser instance.
+In a multi-remote session, the reporter records the first browser instance, and only the commands of that instance take a frame.
 
 In a WebDriver BiDi session, when a test works in another tab or window (for example the browsing context that
 `newWindow()` returns), the reporter takes the frames of that tab or window. If that screenshot fails, for
