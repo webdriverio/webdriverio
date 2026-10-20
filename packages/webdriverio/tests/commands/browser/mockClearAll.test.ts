@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
+import { setWdioKind } from '@wdio/utils'
 import { remote } from '../../../src/index.js'
+import { mockClearAll } from '../../../src/commands/browser/mockClearAll.js'
 // @ts-expect-error mock feature
 import { getMockCalls, SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
@@ -48,6 +50,31 @@ describe('mockClearAll', () => {
         SESSION_MOCKS.contextB = new Set([mockB])
 
         await browserA.mockClearAll()
+        expect(mockA.clear).toHaveBeenCalledTimes(1)
+        expect(mockB.clear).not.toHaveBeenCalled()
+
+        delete SESSION_MOCKS.contextA
+        delete SESSION_MOCKS.contextB
+    })
+
+    it('should only clear mocks of the browser a browsing context belongs to', async () => {
+        const [browserA, browserB] = await Promise.all([1, 2].map(() => remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'devtools'
+            }
+        })))
+        const getMock = (owner: WebdriverIO.Browser) => ({
+            clear: vi.fn(),
+            isOwnedBy: (browser: WebdriverIO.Browser) => browser === owner
+        })
+        const mockA = getMock(browserA)
+        const mockB = getMock(browserB)
+        SESSION_MOCKS.contextA = new Set([mockA])
+        SESSION_MOCKS.contextB = new Set([mockB])
+        const page = setWdioKind({ contextId: 'page-a', browser: browserA, parent: browserA }, 'browsing-context') as unknown as WebdriverIO.BrowsingContext
+
+        await mockClearAll.call(page)
         expect(mockA.clear).toHaveBeenCalledTimes(1)
         expect(mockB.clear).not.toHaveBeenCalled()
 

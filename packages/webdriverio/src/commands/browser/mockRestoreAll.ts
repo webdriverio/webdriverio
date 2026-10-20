@@ -29,7 +29,7 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * @alias browser.mockRestoreAll
  */
-export async function mockRestoreAll (this: WebdriverIO.Browser): Promise<void> {
+export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
     /**
      * only touch mocks of this browser, on a multiremote browser this command
      * runs once per instance and `SESSION_MOCKS` holds the mocks of all of them
