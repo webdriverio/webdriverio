@@ -802,20 +802,28 @@ export async function executeAsync(
          * The current framework timeout. A Mocha test or hook can change it with
          * `this.timeout()` while it runs, and `0` turns it off.
          *
-         * The framework adapter resolves its own deadline into `timeout`: for Jasmine
-         * `wrapTestFunction` already defaults it to `jasmine.DEFAULT_TIMEOUT_INTERVAL`,
-         * so the Jasmine default must not win over it here, or a per-spec
-         * `it(title, fn, 15000)` timeout is ignored (#16120). A negative
-         * `timeout` is an explicit opt-out (e.g. Cucumber's
-         * `cucumberOpts.timeout: -1`) and keeps the WDIO timer off. A `timeout`
-         * of `0` or `undefined` means the caller did not resolve one (e.g.
-         * `it(title, fn)` before the Jasmine global exists), so it must not
-         * disable the timer either; the framework default stays as the fallback.
+         * The framework adapter resolves its own deadline into `timeout`: a
+         * per-spec `it(title, fn, 15000)` timeout must extend the WDIO backstop
+         * beyond the Jasmine default, or the spec is cut off early (#16120).
+         * The backstop must not fire before the framework's own timer either,
+         * or a shorter per-spec timeout would have its Jasmine error replaced
+         * by the WDIO one, so `timeout` only ever extends the default.
+         * A negative `timeout` is an explicit opt-out (e.g. Cucumber's
+         * `cucumberOpts.timeout: -1`) and keeps the WDIO timer off; `0` or
+         * `undefined` means the caller did not resolve one (e.g. `it(title, fn)`
+         * before the Jasmine global exists), so it must not disable the timer
+         * either.
          */
         const frameworkTimeout = (): number => {
             const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
                 .jasmine?.DEFAULT_TIMEOUT_INTERVAL
-            return runnable?._timeout ?? (timeout ? timeout : jasmineDefault ?? 20000)
+            if (runnable?._timeout !== undefined) {
+                return runnable._timeout
+            }
+            if (timeout && timeout < 0) {
+                return timeout
+            }
+            return Math.max(timeout ?? 0, jasmineDefault ?? 20000)
         }
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
