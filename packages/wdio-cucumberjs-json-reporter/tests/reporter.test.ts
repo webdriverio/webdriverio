@@ -392,6 +392,34 @@ describe('reporter', () => {
         })
     })
 
+    describe('keywords of the feature and the scenarios', () => {
+        const keywords = (file: string, content: string, title: string) => {
+            const featureFile = path.join(logFolderPath, file)
+            fs.writeFileSync(featureFile, content)
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, logFile })
+            reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
+            reporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title, file: featureFile } as SuiteStatsExtended)
+            return [reporter.report.feature.keyword, reporter.getCurrentScenario().keyword]
+        }
+
+        it('writes the keywords of the file, as Cucumber does', () => {
+            expect(keywords('outline.keywords.feature', [
+                'Feature: F',
+                '  Scenario Outline: Buy <item>',
+                '    Given I buy <item>',
+                '    Examples:',
+                '      | item |',
+                '      | milk |',
+                ''
+            ].join('\n'), 'Buy milk')).toEqual(['Feature', 'Scenario Outline'])
+        })
+
+        it('writes the keywords of another language', () => {
+            expect(keywords('fr.keywords.feature', '# language: fr\nFonctionnalité: F\n  Scénario: Premier\n    Soit je passe\n', 'Premier'))
+                .toEqual(['Fonctionnalité', 'Scénario'])
+        })
+    })
+
     describe('ids with characters that a file name cannot have', () => {
         it('writes the ids as Cucumber does, and keeps the file name safe', async () => {
             const name = 'Login: admin/user'

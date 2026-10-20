@@ -15,6 +15,8 @@ export interface StepLine {
 
 export interface ScenarioLines {
     name: string
+    /** the keyword in the file, for example `Scenario Outline` or `Scénario` */
+    keyword: string
     line: number
     /** the name of the Rule of the scenario */
     rule?: string
@@ -51,11 +53,14 @@ export interface FeatureLines {
     scenarios: ScenarioLines[]
     /** the language of the file: its `# language:` header, else the default language */
     language: string
+    /** the feature keyword in the file, for example `Fonctionnalité` */
+    keyword?: string
 }
 
 interface GherkinStep { text: string, location: { line: number }, docString?: { location: { line: number } } }
 interface GherkinScenario {
     name: string
+    keyword: string
     location: { line: number }
     steps: readonly GherkinStep[]
     examples?: readonly {
@@ -86,7 +91,7 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         let id = 0
         const parser = new Parser(new AstBuilder(() => String(id++)), new GherkinClassicTokenMatcher(language))
         const document = parser.parse(fs.readFileSync(file, 'utf-8'))
-        const lines: FeatureLines = { scenarios: [], language: document.feature?.language ?? language }
+        const lines: FeatureLines = { scenarios: [], language: document.feature?.language ?? language, keyword: document.feature?.keyword }
         /**
          * a background applies to the scenarios of its feature or of its rule
          */
@@ -98,9 +103,10 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
                 } else if (child.rule) {
                     walk(child.rule.children, background, child.rule.name)
                 } else if (child.scenario) {
-                    const { name, location, steps, examples = [] } = child.scenario
+                    const { name, keyword, location, steps, examples = [] } = child.scenario
                     lines.scenarios.push({
                         name,
+                        keyword,
                         line: location.line,
                         rule,
                         background,

@@ -377,6 +377,7 @@ The options are the same. The JSON files follow the Cucumber JSON format more cl
 
 - The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
 - The feature `id` keeps characters such as `:` and `/` (only spaces become `-`), as in the Cucumber JSON format. The names of the JSON files do not change.
+- The feature and scenario `keyword` are the keywords of the file, for example `Scenario Outline` or `Fonctionnalité`, as in the Cucumber JSON format. Before, they were always `Feature` and `Scenario`.
 - Scenarios and steps have a `line`.
 - Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
 - A doc string argument is `{ content, line }`. Before, it was the text of the doc string.

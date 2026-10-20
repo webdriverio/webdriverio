@@ -187,6 +187,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             this.report.feature = this.getFeatureDataObject(payload)
             this.report.features = [...(this.report.features ?? []), this.report.feature]
             this.#featureLines = payload.file ? readFeatureLines(payload.file, this.options.language!) : undefined
+            // the keyword of the file, as in the Cucumber JSON format
+            if (this.#featureLines?.keyword) {
+                this.report.feature.keyword = this.#featureLines.keyword
+            }
             if (payload.file) {
                 this.#featuresByFile.set(payload.file, { feature: this.report.feature, lines: this.#featureLines })
             }
@@ -405,7 +409,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const toId = (name: string) => name.replace(/ /g, '-').toLowerCase()
 
         const scenario: Scenario = {
-            keyword: SCENARIO,
+            // the keyword of the file (`Scenario Outline`, another language), as Cucumber writes it
+            keyword: taken?.scenario.keyword ?? SCENARIO,
             type: scenarioData.type,
             description: scenarioData.description || '',
             name: scenarioName,
@@ -507,6 +512,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             if (retaken) {
                 scenarioLines.taken = retaken
                 scenario.line = retaken.line
+                scenario.keyword = retaken.scenario.keyword
                 // the steps before this one have the lines of the other scenario
                 scenarioLines.usedLines.clear()
                 for (const previous of scenario.steps ?? []) {
