@@ -221,11 +221,17 @@ describe('EffectRecorder on a BiDi session', () => {
         emit('network.responseStarted', { ...request('moved', 'https://shop.example/api/old'), response: { status: 307 } })
         emit('network.beforeRequestSent', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1 })
         emit('network.fetchError', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1, errorText: 'net::ERR_CONNECTION_REFUSED' })
+        emit('network.beforeRequestSent', request('forwarded', 'https://shop.example/api/promo'))
+        emit('network.responseStarted', { ...request('forwarded', 'https://shop.example/api/promo'), response: { status: 307 } })
+        emit('network.responseStarted', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1, response: { status: 201 } })
+        emit('network.beforeRequestSent', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1 })
+        emit('network.fetchError', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1, errorText: 'net::ERR_ABORTED' })
 
         expect((await recorder.settle({ quiet: 10 })).requests).toEqual([
             'POST /api/cart → 2xx',
             'POST /api/checkout → 2xx',
             'POST /api/new → failed',
+            'POST /api/promo-new → 2xx',
             'POST /api/wishlist → failed'
         ])
         expect(browser.sessionSubscribe).toHaveBeenCalledWith({ events: expect.arrayContaining(['network.responseStarted']) })
