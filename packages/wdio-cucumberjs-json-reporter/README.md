@@ -87,6 +87,8 @@ Hook details will not be part of generation if this property sets to `true`.
 
 When a spec is retried the report will be appended to the existing report file from the previous tries if this property is set to `false`.
 
+With `false`, the reporter also adds to the file of an earlier run: remove the `jsonFolder` before a run (see `onPrepare` in [Use it with multiple-cucumber-html-reporter](#use-it-with-multiple-cucumber-html-reporter)). An earlier file that is not valid JSON is kept as `<name>.json.invalid-<time>`, and the reporter writes a new file.
+
 **Example**:
 `['cucumberjs-json', { jsonFolder: '.tmp/new/', language: 'en', disableHooks:true}]`
 

@@ -21,7 +21,7 @@ import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
 import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus, isKnownLanguage } from './utils.js'
-import { withFileLock, writeFileAtomic, writeNewFile } from './files.js'
+import { readEarlierFeatures, withFileLock, writeFileAtomic, writeNewFile } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
@@ -369,23 +369,38 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const jsonFolder = path.resolve(process.cwd(), this.options.jsonFolder!)
         fs.mkdirSync(jsonFolder, { recursive: true })
         for (const feature of this.report.features ?? []) {
-            const uniqueId = String(Date.now() + Math.random()).replace('.', '')
-            // without the characters that a file name cannot have
-            const fileId = feature.id!.replace(/[\\/?%*:|"<> ]/g, '-')
-            const json = [feature]
-            // a file for each try: no lock, and a new name when another worker made the same id
-            if (this.options.reportFilePerRetry) {
-                writeNewFile(jsonFolder, `${fileId}_${uniqueId}`, JSON.stringify(json) + '\n')
-                continue
+            try {
+                this.#writeFeature(jsonFolder, feature)
+            } catch (error: unknown) {
+                // the other features of the worker still get their file
+                const message = `The CucumberJS JSON file of the feature "${feature.name ?? feature.id}" is not written: ${(error as Error).message}`
+                log.error(message)
+                console.error(`[@wdio/cucumberjs-json-reporter] ${message}`)
             }
-            const jsonFile = path.resolve(jsonFolder, `${fileId}.json`)
-            // workers that run the same feature write one file: add to the tries already in it
-            withFileLock(jsonFile, () => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
-                writeFileAtomic(jsonFile, JSON.stringify(output) + '\n')
-            })
         }
+    }
+
+    #writeFeature (jsonFolder: string, feature: Feature) {
+        // without the characters that a file name cannot have
+        const fileId = feature.id!.replace(/[\\/?%*:|"<> ]/g, '-')
+        const json = [feature]
+        // a file for each try: no lock, and a new name when another worker made the same id
+        if (this.options.reportFilePerRetry) {
+            const uniqueId = String(Date.now() + Math.random()).replace('.', '')
+            writeNewFile(jsonFolder, `${fileId}_${uniqueId}`, JSON.stringify(json) + '\n')
+            return
+        }
+        const jsonFile = path.resolve(jsonFolder, `${fileId}.json`)
+        // workers that run the same feature write one file: add to the tries already in it
+        withFileLock(jsonFile, () => {
+            const { features, invalidKeptAs } = readEarlierFeatures(jsonFile)
+            if (invalidKeptAs) {
+                const message = `The earlier file ${jsonFile} is not valid JSON: it is kept as ${path.basename(invalidKeptAs)}, and a new file is written`
+                log.warn(message)
+                console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
+            }
+            writeFileAtomic(jsonFile, JSON.stringify(json.concat(features as Feature[])) + '\n')
+        })
     }
 
     /**

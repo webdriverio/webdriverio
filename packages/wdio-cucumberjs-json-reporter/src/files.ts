@@ -147,3 +147,32 @@ export function writeNewFile (folder: string, name: string, content: string) {
         }
     }
 }
+
+/**
+ * The features of an earlier JSON file, none when there is no file. A file that is not a
+ * list of features (for example cut by a worker of an older version that ended while it
+ * wrote) is renamed to `<name>.json.invalid-<time>`: the new file must be valid JSON, and
+ * multiple-cucumber-html-reporter reads all the `.json` files of the folder
+ */
+export function readEarlierFeatures (file: string): { features: unknown[], invalidKeptAs?: string } {
+    let text: string
+    try {
+        text = fs.readFileSync(file, 'utf-8')
+    } catch (error: unknown) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return { features: [] }
+        }
+        throw error
+    }
+    try {
+        const features: unknown = JSON.parse(text)
+        if (Array.isArray(features)) {
+            return { features }
+        }
+    } catch {
+        // not JSON
+    }
+    const invalidKeptAs = `${file}.invalid-${Date.now()}`
+    fs.renameSync(file, invalidKeptAs)
+    return { features: [], invalidKeptAs }
+}

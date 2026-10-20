@@ -44,7 +44,8 @@ vi.mock('../src/utils', async (importOriginal) => ({
 vi.mock('@wdio/logger', () => ({
     default: vi.fn().mockReturnValue({
         info: vi.fn(),
-        warn: vi.fn()
+        warn: vi.fn(),
+        error: vi.fn()
     })
 }))
 
@@ -879,6 +880,51 @@ describe('reporter', () => {
             const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'en', logFile })
             reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
             expect(vi.mocked(logger('@wdio/cucumberjs-json-reporter').warn)).toHaveBeenCalledWith(expect.stringContaining(featureFile))
+        })
+    })
+
+    describe('a file that cannot be written', () => {
+        const folder = path.join(logFolderPath, 'not-written')
+        beforeEach(() => fs.rmSync(folder, { recursive: true, force: true }))
+        afterEach(() => vi.restoreAllMocks())
+        const reporterOf = (...ids: string[]) => {
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder: folder, language: 'en', logFile, reportFilePerRetry: false })
+            reporter.report.features = ids.map((id) => ({ id, name: id }))
+            reporter.report.feature = reporter.report.features.at(-1)!
+            return reporter
+        }
+        const read = (file: string) => JSON.parse(fs.readFileSync(path.join(folder, file), 'utf-8'))
+
+        it('writes the files of the other features of the worker, and logs the error', () => {
+            // a folder with the name of the file of the first feature: it cannot be read
+            fs.mkdirSync(path.join(folder, 'first.json'), { recursive: true })
+            const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+            reporterOf('first', 'second').onRunnerEnd()
+            expect(read('second.json')).toEqual([{ id: 'second', name: 'second' }])
+            expect(error).toHaveBeenCalledWith(expect.stringContaining('The CucumberJS JSON file of the feature "first" is not written'))
+        })
+
+        it('keeps an earlier file that is not valid JSON aside, and writes a new file', () => {
+            fs.mkdirSync(folder, { recursive: true })
+            // for example cut by a worker of an older version that ended while it wrote
+            fs.writeFileSync(path.join(folder, 'first.json'), '[{"keyword":"Feat')
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            reporterOf('first').onRunnerEnd()
+            const files = fs.readdirSync(folder).sort()
+            // not a `.json` file: multiple-cucumber-html-reporter reads all `.json` files of the folder
+            expect(files).toEqual(['first.json', expect.stringMatching(/^first\.json\.invalid-\d+$/)])
+            expect(read('first.json')).toEqual([{ id: 'first', name: 'first' }])
+            expect(fs.readFileSync(path.join(folder, files[1]), 'utf-8')).toBe('[{"keyword":"Feat')
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining(`is not valid JSON: it is kept as ${files[1]}`))
+        })
+
+        it('keeps an earlier file aside that is JSON but not a list of features', () => {
+            fs.mkdirSync(folder, { recursive: true })
+            fs.writeFileSync(path.join(folder, 'first.json'), '{}')
+            vi.spyOn(console, 'warn').mockImplementation(() => {})
+            reporterOf('first').onRunnerEnd()
+            expect(read('first.json')).toEqual([{ id: 'first', name: 'first' }])
+            expect(fs.readdirSync(folder)).toHaveLength(2)
         })
     })
 
