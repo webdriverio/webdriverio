@@ -19,9 +19,10 @@ function countFailures(vitest: Vitest) {
 }
 
 export async function launch(params: Frameworks.FrameworkLaunchParams): Promise<number> {
-    const vitest = await startVitest([], { run: true, watch: false, config: false }, toVitestConfig(params))
+    let bridgeFailures = 0
+    const vitest = await startVitest([], { run: true, watch: false, config: false }, toVitestConfig(params, () => bridgeFailures++))
     try {
-        return countFailures(vitest)
+        return countFailures(vitest) + bridgeFailures
     } finally {
         await vitest.close()
     }

@@ -158,7 +158,14 @@ export interface FrameworkLaunchParams {
     /** Resolved absolute spec file paths, after `--spec` and `exclude` filtering. */
     specs: string[]
     configFile: string
+    /** Receives the job and reporter events the CLI needs to render the run. */
+    onEvent?: (event: FrameworkLaunchEvent) => void
 }
+
+export type FrameworkLaunchEvent =
+    | { type: 'job:start', cid: string, caps: WebdriverIO.Capabilities, specs: string[] }
+    | { type: 'job:end', cid: string, passed: boolean }
+    | { type: 'message', message: unknown }
 
 /**
  * Frameworks that schedule specs themselves export `launch`. The CLI then

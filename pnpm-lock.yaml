@@ -1828,6 +1828,9 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
+      '@wdio/runner':
+        specifier: workspace:*
+        version: link:../wdio-runner
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types

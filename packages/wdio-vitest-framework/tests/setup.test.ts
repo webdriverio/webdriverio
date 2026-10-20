@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const hooks = vi.hoisted(() => ({ aroundEach: undefined as unknown as (runTest: () => Promise<void>, context: unknown) => Promise<void> }))
 const store = vi.hoisted(() => ({ run: vi.fn(async (_id: string, fn: () => Promise<void>) => fn()) }))
-const browser = vi.hoisted(() => ({ isBidi: true, __parallelContextStore: undefined as unknown, deleteSession: vi.fn() }))
+const browser = vi.hoisted(() => ({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' }, isBidi: true, __parallelContextStore: undefined as unknown, deleteSession: vi.fn() }))
 const utils = vi.hoisted(() => ({
     allocateContext: vi.fn(async () => ({ context: 'ctx-1' })),
     cleanupAllocation: vi.fn(async () => {}),
@@ -35,6 +35,8 @@ const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', ful
 const afterTestResult = () => utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterTest')![2][2]
 
 describe('setup', () => {
+    let fileTask: { filepath: string, meta: Record<string, unknown> }
+
     beforeEach(async () => {
         vi.clearAllMocks()
         mockConfig.value = { waitforTimeout: 1000, waitforInterval: 100, vitestOpts: { parallelMode: 'contexts' }, before: [vi.fn()], capabilities: [] }
@@ -42,7 +44,8 @@ describe('setup', () => {
         browser.__parallelContextStore = store
         vi.resetModules()
         await import('../src/setup.js')
-        await callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts' } })
+        fileTask = { filepath: '/repo/a.spec.ts', meta: {} }
+        await callbacks.beforeAll({}, { file: fileTask })
     })
 
     it('creates the session, sets globals, and runs the before hook', async () => {
@@ -56,6 +59,10 @@ describe('setup', () => {
         expect((globalThis as Record<string, unknown>).browser).toBe(browser)
         expect((globalThis as Record<string, unknown>).expect).toEqual({ name: 'wdio-expect' })
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('before', mockConfig.value.before, [{ browserName: 'chrome', hostname: 'grid' }, ['/repo/a.spec.ts'], browser])
+    })
+
+    it('stores the session id and capabilities on the file meta for the reporter', () => {
+        expect(fileTask.meta.wdio).toEqual({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' } })
     })
 
     it('runs non-concurrent tests directly', async () => {
@@ -91,7 +98,7 @@ describe('setup', () => {
 
     it('throws for test.concurrent without parallelMode', async () => {
         mockConfig.value.vitestOpts = {}
-        await callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts' } })
+        await callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts', meta: {} } })
         await expect(hooks.aroundEach(vi.fn(), task(true))).rejects.toThrow('test.concurrent needs vitestOpts.parallelMode')
     })
 
@@ -121,7 +128,7 @@ describe('setup', () => {
 
     it('counts a failing before hook as a failure', async () => {
         utils.executeHooksWithArgs.mockImplementationOnce(async () => { throw new Error('before failed') })
-        await expect(callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts' } })).rejects.toThrow('before failed')
+        await expect(callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts', meta: {} } })).rejects.toThrow('before failed')
         await callbacks.afterAll()
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [1, expect.anything(), ['/repo/a.spec.ts']])
     })

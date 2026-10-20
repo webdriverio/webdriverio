@@ -72,6 +72,12 @@ All other keys are passed to Vitest's `test` config and override the defaults of
 
 Specs and `exclude` come from `wdio.conf` (respecting `--spec`). The framework always sets `include` to the resolved specs, so `vitestOpts.include` is ignored, and `pool: 'forks'`. A `vitestOpts.setupFiles` is added after the framework's own setup file instead of replacing it. The framework also sets `isolate`, `globals`, `environment: 'node'`, `maxWorkers` (from `maxInstances`, or `wdio:maxInstances` per capability) and `bail`.
 
+## Reporters
+
+The console output comes from Vitest. Set `vitestOpts.reporters` to change it, for example `['dot']`; the WDIO reporters are added to your list. The `spec`, `dot` and `concise` reporters (also as `@wdio/*-reporter` or with options) are ignored with a warning, because they would print next to Vitest's output. Reporter classes are always used.
+
+File reporters from `wdio.conf` such as `junit`, `allure` or `json` receive the Vitest results. Every spec file and capability is reported as one job, and the CLI summary counts these jobs. Describe blocks become suites, and tests outside a describe are grouped in a suite titled with the spec path. Skipped and `todo` tests are reported as pending.
+
 ## Concurrent tests
 
 ```ts
@@ -94,9 +100,9 @@ Each test opens its own window, and every command in the test targets it. The wi
 
 - Multi-remote capabilities are not supported yet.
 - `expect.poll` is not available, because the global `expect` is the one from `expect-webdriverio`.
-- WDIO reporters are not used. Use Vitest reporters through `vitestOpts.reporters`.
 - Window and frame commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, because they change session-wide state.
 - Vitest runs projects with different `maxWorkers` one after another. A `wdio:maxInstances` on a capability therefore makes the capability projects run sequentially.
 - Worker service hooks (`before`, `beforeTest`, `afterTest`, `after` of services) are not run yet. Launcher service hooks (`onPrepare`, `onComplete`) do run.
-- The WDIO CLI banner ("Execution of N workers", "Spec Files: 0 passed") is wrong for Vitest runs. Use the Vitest reporter output and the exit code.
+- The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
+- Hook results (`hook:start`, `hook:end`) are not reported to WDIO reporters.
 - `browser.options.vitestOpts` is not set inside specs.

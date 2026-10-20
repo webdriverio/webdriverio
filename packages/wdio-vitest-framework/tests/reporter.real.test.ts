@@ -1,0 +1,107 @@
+import { describe, expect, it, vi } from 'vitest'
+import { BaseReporter } from '@wdio/runner'
+
+import { WdioBridgeReporter } from '../src/reporter.js'
+
+const recorded: [string, Record<string, any>][] = []
+
+class ThrowingReporter {
+    isSynchronised = true
+    constructor(public options: Record<string, unknown>) {}
+    emit(event: string) {
+        if (event === 'test:pass') {
+            throw new Error('reporter exploded')
+        }
+    }
+}
+
+class RecorderReporter {
+    isSynchronised = true
+    constructor(public options: Record<string, unknown>) {}
+    emit(event: string, payload: Record<string, any>) {
+        recorded.push([event, { ...payload }])
+    }
+}
+
+describe('WdioBridgeReporter with the real BaseReporter', () => {
+    it('delivers ordered events to a configured reporter without mutating the config', async () => {
+        recorded.length = 0
+        const reporters = [[RecorderReporter, {}]]
+        const config = { reporters } as unknown as WebdriverIO.Config
+        const events: any[] = []
+        const bridge = new WdioBridgeReporter(config, (event) => events.push(event))
+        const module: any = {
+            type: 'module',
+            id: 'chrome-0:/repo/a.spec.ts',
+            moduleId: '/repo/a.spec.ts',
+            relativeModuleId: 'a.spec.ts',
+            project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
+            meta: () => ({ wdio: { sessionId: 'sess-1', capabilities: { browserVersion: '130' } } }),
+            state: () => 'passed'
+        }
+        const suite: any = { type: 'suite', id: 's1', name: 'login', module, parent: module }
+        const test: any = {
+            type: 'test', id: 't1', name: 'shows form', module, parent: suite,
+            result: () => ({ state: 'passed' }), diagnostic: () => ({ duration: 7 })
+        }
+
+        bridge.onTestModuleStart(module)
+        await bridge.onTestSuiteReady(suite)
+        await bridge.onTestCaseReady(test)
+        await bridge.onTestCaseResult(test)
+        await bridge.onTestSuiteResult(suite)
+        await bridge.onTestModuleEnd(module)
+
+        expect(recorded.map(([name]) => name)).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end', 'suite:end', 'runner:end'])
+        expect(recorded[0][1]).toMatchObject({ cid: '0-0', sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130', sessionId: 'sess-1' } })
+        expect(recorded[3][1]).toMatchObject({ cid: '0-0', duration: 7, passed: true })
+        expect(events.map(({ type }) => type)).toEqual(['job:start', 'job:end'])
+        expect(events.at(-1)).toMatchObject({ passed: true })
+        expect(config.reporters).toBe(reporters)
+        expect(reporters).toHaveLength(1)
+    })
+
+    it('does not create the default dot reporter when only console reporters are configured', async () => {
+        const config = { reporters: ['spec'] as unknown[] } as unknown as WebdriverIO.Config
+        const events: any[] = []
+        const bridge = new WdioBridgeReporter(config, (event) => events.push(event))
+        const module: any = {
+            id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
+            project: { config: { provide: { wdioCapabilities: {} } } },
+            state: () => 'passed', errors: () => [], meta: () => ({}), children: { allTests: () => [] }
+        }
+        const init = vi.spyOn(BaseReporter.prototype, 'initReporters')
+        bridge.onTestModuleStart(module)
+        await bridge.onTestModuleEnd(module)
+
+        expect(config.reporters).toEqual(['spec'])
+        expect(events.map(({ type }) => type)).toEqual(['job:start', 'job:end'])
+        expect(init).not.toHaveBeenCalled()
+        init.mockRestore()
+    })
+
+    // BaseReporter.emit isolates each reporter, so a throwing reporter is logged, not propagated
+    it('does not fail the job nor count a bridge failure when a reporter throws on an event', async () => {
+        const config = { reporters: [[ThrowingReporter, {}]] } as unknown as WebdriverIO.Config
+        const events: any[] = []
+        const errors: unknown[] = []
+        const bridge = new WdioBridgeReporter(config, (event) => events.push(event), (err) => errors.push(err))
+        const module: any = {
+            type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
+            project: { config: { provide: { wdioCapabilities: {} } } },
+            meta: () => ({}), state: () => 'passed'
+        }
+        const test: any = {
+            type: 'test', id: 't1', name: 'good', module, parent: module,
+            result: () => ({ state: 'passed' }), diagnostic: () => undefined
+        }
+
+        bridge.onTestModuleStart(module)
+        await bridge.onTestCaseReady(test)
+        await bridge.onTestCaseResult(test)
+        await bridge.onTestModuleEnd(module)
+
+        expect(errors).toEqual([])
+        expect(events.at(-1)).toMatchObject({ type: 'job:end', passed: true })
+    })
+})

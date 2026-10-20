@@ -1,6 +1,14 @@
 import type { InlineConfig } from 'vitest/node'
 import type { ParallelMode } from '@wdio/utils'
 
+/** Key on the Vitest file task meta, which carries the session from the worker to the reporter in the launcher process. */
+export const SESSION_META_KEY = 'wdio'
+
+export type SessionMeta = {
+    sessionId: string
+    capabilities: WebdriverIO.Capabilities
+}
+
 export type VitestOpts = {
     /**
      * Run `test.concurrent` tests simultaneously, each in its own browsing

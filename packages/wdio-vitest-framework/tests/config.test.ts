@@ -2,10 +2,13 @@ import os from 'node:os'
 import { describe, expect, it, vi } from 'vitest'
 
 import { toVitestConfig } from '../src/config.js'
+import { WdioBridgeReporter } from '../src/reporter.js'
 
 vi.mock('@wdio/utils', () => ({
     resolveMaxContexts: vi.fn((value: unknown, fallback: number) => typeof value === 'number' ? value : fallback)
 }))
+
+vi.mock('@wdio/runner', () => ({ BaseReporter: class {} }))
 
 const specs = ['/repo/a.spec.ts', '/repo/b.spec.ts']
 const configFile = '/repo/wdio.conf.ts'
@@ -94,5 +97,30 @@ describe('toVitestConfig', () => {
     it('falls back to the CPU count for maxConcurrency and omits it without parallelMode', () => {
         expect(build({ vitestOpts: { parallelMode: 'userContexts' } }).test!.maxConcurrency).toBe(os.cpus().length)
         expect(build({ vitestOpts: { maxParallelContexts: 3 } }).test).not.toHaveProperty('maxConcurrency')
+    })
+
+    describe('reporters', () => {
+        const buildWithEvents = (config: Partial<WebdriverIO.Config>) => toVitestConfig({
+            config: { capabilities: [{ browserName: 'chrome' }], ...config } as WebdriverIO.Config,
+            specs,
+            configFile,
+            onEvent: vi.fn()
+        }).test!.reporters as unknown[]
+
+        it('leaves reporters alone without an event sink', () => {
+            expect(build({}).test).not.toHaveProperty('reporters')
+            expect(build({ vitestOpts: { reporters: ['json'] } }).test!.reporters).toEqual(['json'])
+        })
+
+        it('keeps the default Vitest reporter next to the bridge', () => {
+            const reporters = buildWithEvents({})
+            expect(reporters).toEqual(['default', expect.any(WdioBridgeReporter)])
+        })
+
+        it('appends the bridge to the user reporters', () => {
+            expect(buildWithEvents({ vitestOpts: { reporters: ['json'] } })).toEqual(['json', expect.any(WdioBridgeReporter)])
+            expect(buildWithEvents({ vitestOpts: { reporters: [['json', { outputFile: 'a.json' }]] } })).toEqual([['json', { outputFile: 'a.json' }], expect.any(WdioBridgeReporter)])
+            expect(buildWithEvents({ vitestOpts: { reporters: 'verbose' } })).toEqual(['verbose', expect.any(WdioBridgeReporter)])
+        })
     })
 })

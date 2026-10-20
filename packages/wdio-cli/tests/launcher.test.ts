@@ -2,6 +2,7 @@ import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
+import type { Frameworks } from '@wdio/types'
 import Launcher from '../src/launcher.js'
 
 const caps: WebdriverIO.Capabilities = {
@@ -34,7 +35,7 @@ vi.mock('../src/interface', () => ({
         logHookError = vi.fn()
         finalise = vi.fn()
 
-        constructor (_config: WebdriverIO.Config, totalWorkerCnt: number) {
+        constructor (public _config: WebdriverIO.Config, totalWorkerCnt: number) {
             this.totalWorkerCnt = totalWorkerCnt
         }
     }
@@ -1008,10 +1009,50 @@ describe('launcher', () => {
                 expect(launch).toHaveBeenCalledWith({
                     config: { ...config, capabilities: {} },
                     specs: ['/repo/a.ts', '/repo/b.ts', '/repo/c.ts'],
-                    configFile: '/repo/wdio.conf.ts'
+                    configFile: '/repo/wdio.conf.ts',
+                    onEvent: expect.any(Function)
                 })
                 expect(launcher['_runMode']).not.toBeCalled()
                 expect(config.onComplete![0]).toBeCalledTimes(1)
+            })
+
+            it('maps framework events onto the CLI interface', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockImplementation(async ({ onEvent }: Frameworks.FrameworkLaunchParams) => {
+                    onEvent!({ type: 'job:start', cid: '0-0', caps: { browserName: 'chrome' }, specs: ['/repo/a.ts'] })
+                    onEvent!({ type: 'message', message: { origin: 'reporter', name: 'x', cid: '0-0' } })
+                    onEvent!({ type: 'job:end', cid: '0-0', passed: false })
+                    return 1
+                })
+
+                await launcher.run()
+
+                expect(launcher.interface!.emit).toHaveBeenCalledWith('job:start', { cid: '0-0', caps: { browserName: 'chrome' }, specs: ['/repo/a.ts'], hasTests: true })
+                expect(launcher.interface!.onMessage).toHaveBeenCalledWith({ origin: 'reporter', name: 'x', cid: '0-0' })
+                expect(launcher.interface!.emit).toHaveBeenCalledWith('job:end', { cid: '0-0', passed: false, retries: 0 })
+            })
+
+            it('creates the CLI interface without spec file retries and warns once', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+                config.specFileRetries = 2
+                const warn = vi.mocked(logger('@wdio/cli:launcher').warn)
+                warn.mockClear()
+
+                await launcher.run()
+
+                expect((launcher.interface as any)._config.specFileRetries).toBe(0)
+                expect(config.specFileRetries).toBe(2)
+                expect(warn.mock.calls.filter(([message]) => String(message).includes('specFileRetries'))).toHaveLength(1)
+            })
+
+            it('keeps spec file retries for frameworks without launch', async () => {
+                mockFramework(async () => ({}))
+                config.specFileRetries = 2
+
+                await launcher.run()
+
+                expect((launcher.interface as any)._config.specFileRetries).toBe(2)
             })
 
             it('turns a failure count into exit code 1', async () => {
