@@ -20,6 +20,14 @@ describe('native selectors', () => {
         ])
     })
 
+    it('uses a UiSelector for a resource id without a package, since UiAutomator2 prefixes a bare id=', () => {
+        expect(nativeCandidates({
+            platform: 'android',
+            tag: 'android.widget.EditText',
+            resourceId: 'text_input'
+        })[0]).toEqual({ kind: 'resource-id', selector: 'android=new UiSelector().resourceId("text_input")' })
+    })
+
     it('builds an iOS predicate and class chain', () => {
         expect(nativeCandidates({
             platform: 'ios',

@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest'
 
 import { parseNativeSource, scopeNativeTree } from '../src/native.js'
 import { formatSnapshot } from '../src/format.js'
+import { attachSelectors } from '../src/selectors.js'
 
 const fixture = (name: string) => fs.readFileSync(path.join(__dirname, '__fixtures__', 'pagesource', name), 'utf-8')
 
@@ -70,6 +71,14 @@ describe('native snapshots', () => {
             'android=new UiSelector().description("go").instance(2)'
         ])
         expect(refs.every((ref) => !ref.candidates.some((candidate) => candidate.selector === '~go'))).toBe(true)
+    })
+
+    it('matches a package-less Android resource id by its raw attribute', () => {
+        const parsed = parseNativeSource(`<hierarchy>
+  <android.widget.EditText text="Select an item..." focusable="true" displayed="true" bounds="[0,0][10,10]" resource-id="text_input" />
+</hierarchy>`, 'android')
+        attachSelectors(parsed.tree, parsed.refs)
+        expect(parsed.tree.children?.[0].selector).toBe('android=new UiSelector().resourceId("text_input")')
     })
 
     it('gives two controls that share an accessibility id distinct indexed selectors', () => {
