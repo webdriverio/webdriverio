@@ -67,9 +67,10 @@ describe('utils', () => {
             expect(getFeatureId(path.join(root, '..', 'shared', 'login.feature'), feature, root)).toBe('../shared/login.feature:3:1')
         })
 
-        it('encodes `:` and `%` so that only the line and the column follow a `:`', () => {
+        it('encodes `%`, `:` and `#`, so that only the line and the column follow a `:` and only a part number follows a `#`', () => {
             expect(getFeatureId(path.join(root, 'a:b', 'x.feature'), feature, root)).toBe('a%3Ab/x.feature:3:1')
             expect(getFeatureId(path.join(root, 'a%3Ab', 'x.feature'), feature, root)).toBe('a%253Ab/x.feature:3:1')
+            expect(getFeatureId(path.join(root, 'c#', 'x.feature'), feature, root)).toBe('c%23/x.feature:3:1')
         })
 
         it('uses the cwd without rootDir', () => {
@@ -114,6 +115,13 @@ describe('utils', () => {
                 } finally {
                     fs.rmSync(rootLink, { force: true })
                 }
+            })
+
+            it('keeps a linked folder whose name starts with `..`', () => {
+                fs.mkdirSync(path.join(tmp, 'real'))
+                fs.writeFileSync(path.join(tmp, 'real', 'x.feature'), '')
+                fs.symlinkSync(path.join(tmp, 'real'), path.join(tmp, '..shared'), 'junction')
+                expect(getFeatureId(path.join(tmp, '..shared', 'x.feature'), feature, tmp)).toBe('..shared/x.feature:3:1')
             })
 
             it.skipIf(process.platform === 'win32')('keeps the file name of a feature file that is a symbolic link', () => {

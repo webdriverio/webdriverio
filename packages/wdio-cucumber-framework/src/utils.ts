@@ -91,13 +91,13 @@ function realPath (p: string) {
  */
 export function getFeatureId (uri: string, feature: Feature, rootDir = process.cwd()) {
     const file = path.resolve(uri)
-    const isUnder = (relative: string) => !relative.startsWith('..') && !path.isAbsolute(relative)
+    const isUnder = (relative: string) => relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)
     const resolved = path.join(realPath(path.dirname(file)), path.basename(file))
     const relative = [
         path.relative(path.resolve(rootDir), file),
         path.relative(realPath(rootDir), file)
     ].find(isUnder) ?? path.relative(realPath(rootDir), resolved)
-    const id = relative.split(path.sep).join('/').replaceAll('%', '%25').replaceAll(':', '%3A')
+    const id = relative.split(path.sep).join('/').replaceAll('%', '%25').replaceAll(':', '%3A').replaceAll('#', '%23')
     return `${id}:${feature.location?.line}:${feature.location?.column}`
 }
 
