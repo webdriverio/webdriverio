@@ -67,7 +67,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     /** scenarios that started and did not end: more than one only in `cucumberOpts.parallelMode` */
     #runningScenarios = 0
     #parallelWarned = false
-    /** `true` when the user set the `language` option, else `cucumberOpts.language` is the default */
+    /** `true` when the user set the `language` option: `cucumberOpts.language` replaces it */
     #languageOption: boolean
     /** the Cucumber status of the hook that ends (for example `SKIPPED`): the HookStats keep only failures */
     #hookEndState?: string
@@ -168,8 +168,14 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      */
     public onRunnerStart(runnerData: RunnerStats): void {
         const cucumberOpts = (runnerData.config as { cucumberOpts?: { scenarioLevelReporter?: boolean, language?: string } } | undefined)?.cucumberOpts
-        // the default language of the feature files without a `# language:` header
-        if (!this.#languageOption && cucumberOpts?.language) {
+        // Cucumber reads the feature files without a `# language:` header in this language
+        if (cucumberOpts?.language) {
+            if (this.#languageOption && this.options.language !== cucumberOpts.language) {
+                const message = `The "language" option "${this.options.language}" is not the same as "cucumberOpts.language" ` +
+                    `"${cucumberOpts.language}": the reporter uses "cucumberOpts.language", as Cucumber does.`
+                log.warn(message)
+                console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
+            }
             this.options.language = this.#knownLanguage(cucumberOpts.language, '"cucumberOpts.language"')
         }
         if (cucumberOpts?.scenarioLevelReporter) {

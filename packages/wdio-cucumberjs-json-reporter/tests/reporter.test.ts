@@ -1142,6 +1142,15 @@ describe('reporter', () => {
             expect(await run(reporter, 'no-header.fr.feature', 'Fonctionnalité: F\n  Scénario: Premier\n    Soit je passe\n', { cucumberOpts: { language: 'fr' } }))
                 .toEqual({ keyword: 'Soit', name: 'je passe', line: 3, hook: AFTER })
         })
+
+        it('uses cucumberOpts.language, as Cucumber does, with a warning for another language option', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, logFile, language: 'en' })
+            expect(await run(reporter, 'option.fr.feature', 'Fonctionnalité: F\n  Scénario: Premier\n    Soit je passe\n', { cucumberOpts: { language: 'fr' } }))
+                .toEqual({ keyword: 'Soit', name: 'je passe', line: 3, hook: AFTER })
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('The "language" option "en" is not the same as "cucumberOpts.language" "fr"'))
+            warn.mockRestore()
+        })
     })
 
     describe('updateStepStatus', () => {

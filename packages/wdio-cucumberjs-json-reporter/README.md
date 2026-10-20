@@ -31,7 +31,7 @@ npm install @wdio/cucumberjs-json-reporter --save-dev
 Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
-Configure the output directory and the language in your wdio.conf.js file:
+Configure the output directory in your wdio.conf.js file:
 
 ```js
 export const config = {
@@ -40,10 +40,9 @@ export const config = {
         // Like this with the default options, see the options below
         'cucumberjs-json',
 
-        // OR like this if you want to set the folder and the language
+        // OR like this if you want to set the folder
         [ 'cucumberjs-json', {
                 jsonFolder: '.tmp/new/',
-                language: 'en',
             },
         ],
     ],
@@ -71,7 +70,7 @@ where the script is executed. Executing it from the root of your project will al
 
 The language in which the Gherkin scenarios are written (defaults to English). The list of language codes and its keywords can be found [here](https://cucumber.io/docs/gherkin/reference/#overview).
 
-A `# language:` header in a feature file is used for that file. Without this option, the reporter uses `cucumberOpts.language`. With an unknown language code, the reporter logs a warning and uses `en`.
+A `# language:` header in a feature file is used for that file. For the other files, the reporter uses `cucumberOpts.language`, as Cucumber does: this option is used only when `cucumberOpts.language` is not set, and a different value gives a warning. With an unknown language code, the reporter logs a warning and uses `en`.
 
 ### `disableHooks`
 - **Type:** `boolean`
@@ -90,7 +89,7 @@ When a spec is retried the report will be appended to the existing report file f
 With `false`, the reporter also adds to the file of an earlier run: remove the `jsonFolder` before a run (see `onPrepare` in [Use it with multiple-cucumber-html-reporter](#use-it-with-multiple-cucumber-html-reporter)). An earlier file that is not valid JSON is kept as `<name>.json.invalid-<time>`, and the reporter writes a new file.
 
 **Example**:
-`['cucumberjs-json', { jsonFolder: '.tmp/new/', language: 'en', disableHooks:true}]`
+`['cucumberjs-json', { jsonFolder: '.tmp/new/', disableHooks: true }]`
 
 ## Metadata
 
