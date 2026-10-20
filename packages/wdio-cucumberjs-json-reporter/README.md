@@ -4,7 +4,7 @@ WebdriverIO CucumberJS JSON Reporter
 > A WebdriverIO reporter that creates CucumberJS JSON files
 
 ## What does it do
-This reporter will generate a **Cucumber JSON file** for each feature that is being tested. The JSON file can be used with whatever report you want to use like for example [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter).
+This reporter will generate a **Cucumber JSON file** for each feature that is being tested. The JSON file can be used with whatever report you want to use like for example [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter).
 
 **Note:** Cucumber keeps its JSON format in maintenance mode since [cucumber-js 7.3.0](https://github.com/cucumber/cucumber-js/blob/v7.3.0/CHANGELOG.md#730-2021-06-17) (June 2021): the format gets no new features, but it is not removed. Cucumber recommends its [`message` formatter](https://github.com/cucumber/cucumber-js/blob/v13.3.0/docs/formatters.md#json) for new tools. Report tools such as [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter), which is actively maintained (4.5.0 in October 2026), read only the JSON format ([NDJSON support is an open request](https://github.com/WasiqB/multiple-cucumber-html-reporter/issues/193)), and this reporter writes it.
 
@@ -12,7 +12,7 @@ It will also add metadata about the running instance to the feature file and las
 
 The JSON follows the Cucumber JSON format: the reporter reads the line numbers of the scenarios and steps from the
 feature files, and hooks are steps with `hidden: true`. It also adds `metadata` to each feature and `embeddings`
-(attachments) to the steps, which [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter)
+(attachments) to the steps, which [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter)
 uses. When a worker runs several feature files (grouped specs), the reporter writes one file for each feature.
 
 With `cucumberOpts.order: 'random'`, the examples of a Scenario Outline whose name has no `<placeholder>` can get the
@@ -69,9 +69,9 @@ where the script is executed. Executing it from the root of your project will al
 ### `language`
 - **Type:** `String`
 - **Mandatory:** No
-- **Default:** `en`
+- **Default:** `cucumberOpts.language`, else `en`
 
-The language in which the Gherkin scenarios are written (defaults to English). The list of language codes and its keywords can be found [here](https://cucumber.io/docs/gherkin/reference/#overview).
+The language in which the Gherkin scenarios are written (defaults to English). The list of language codes and its keywords can be found [here](https://cucumber.io/docs/gherkin/languages/).
 
 A `# language:` header in a feature file is used for that file. For the other files, the reporter uses `cucumberOpts.language`, as Cucumber does: this option is used only when `cucumberOpts.language` is not set, and a different value gives a warning. With an unknown language code, the reporter logs a warning and uses `en`.
 
@@ -89,7 +89,7 @@ Hook details will not be part of generation if this property sets to `true`.
 
 When a spec is retried the report will be appended to the existing report file from the previous tries if this property is set to `false`.
 
-With `false`, the reporter also adds to the file of an earlier run: remove the `jsonFolder` before a run (see `onPrepare` in [Use it with multiple-cucumber-html-reporter](#use-it-with-multiple-cucumber-html-reporter)). An earlier file that is not valid JSON is kept as `<name>.json.invalid-<time>`, and the reporter writes a new file.
+With `false`, all the workers of a feature (for example with other capabilities) write one file, `<feature id>.json`. The reporter also adds to the file of an earlier run: remove the `jsonFolder` before a run (see `onPrepare` in [Use it with multiple-cucumber-html-reporter](#use-it-with-multiple-cucumber-html-reporter)). An earlier file that is not valid JSON is kept as `<name>.json.invalid-<time>`, and the reporter writes a new file.
 
 **Example**:
 `['cucumberjs-json', { jsonFolder: '.tmp/new/', disableHooks: true }]`
@@ -177,11 +177,11 @@ or the name of the mobile, like for example `iPhone 7 Plus`.
 
 **e.g.:** The version of the platform
 
-> If you don't provide the `browser`-object in the metadata, this module will automatically determine it for you. **It will always override it with the most recent value it can determine.**
+> The browser name and version come from the capabilities of the session. They replace `browser` of the metadata, which is used only when the session does not give them (else `No metadata.browser.name available`).
 
-> If you don't provide the `device` and or the `platform`-object it will be defaulted for you to `not known`
+> Without `device`, the device is `Device name not known`. Without `platform.name`, the reporter uses the `platformName` of the capabilities (`mac…` gives `osx`, `windows…` gives `windows`), else `Platform name not known`. Without `platform.version`, it uses `appium:platformVersion`, else `Version not known`.
 
-> If you don't provide a `browser.name` or a `browser.version` the module will try to determine this automatically.
+> With an `app` in the capabilities (`appium:app`) or in the metadata, the reporter writes `app` (the file name of the app and `metadata.app.version`) instead of `browser`.
 
 ## Attachment
 You have the option to attach data to the JSON file in all these hooks / steps:
@@ -192,6 +192,9 @@ You have the option to attach data to the JSON file in all these hooks / steps:
 - When
 - Then
 - And
+
+An attachment from a `BeforeAll` hook goes to the first step of the first scenario of the worker, and an attachment from an
+`AfterAll` hook to the last step of the last scenario: the Cucumber JSON format has attachments only on steps.
 
 The only thing you need to provide is the following code in your step files.
 
@@ -228,7 +231,7 @@ attach(await browser.takeScreenshot(), 'image/png');
 ## Use it with multiple-cucumber-html-reporter
 This reporter only creates the JSON files. A reporter runs in each worker, so it cannot create one report for all workers.
 
-To create an HTML report with the [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter) module, add the following to your config file.
+To create an HTML report with the [multiple-cucumber-html-reporter](https://github.com/WasiqB/multiple-cucumber-html-reporter) module, add the following to your config file.
 
 - Install the module with
 
@@ -269,7 +272,7 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
           // default = '.tmp/json/'
           jsonDir: '.tmp/json/',
           reportPath: '.tmp/report/',
-          // for more options see https://github.com/wswebcreation/multiple-cucumber-html-reporter#options
+          // for more options see https://multiple-cucumber-html-reporter.com/docs/options
         });
       }
     }
