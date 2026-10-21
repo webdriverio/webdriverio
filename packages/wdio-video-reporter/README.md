@@ -30,6 +30,9 @@ frame before it.
 
 That said, taking a screenshot after almost every command can slow down your tests. In a WebDriver BiDi session, the next command waits for the screenshot of the last frame (about 50 to 70 ms in Chrome), so that each frame shows the page of its command. Also, note that the videos don't include alert-boxes and popups.
 
+In Safari, the frame of a click can show the page from before the click
+([WebKit bug 328312](https://bugs.webkit.org/show_bug.cgi?id=328312)).
+
 ### Alerts
 
 In a WebDriver classic session, a screenshot while an alert (`alert()`, `confirm()`, `prompt()`) is open makes the
@@ -45,8 +48,9 @@ capabilities: [{
 }]
 ```
 
-In Safari, a screenshot while an alert is open gets no answer, and the session stops. Add the command that opens the
-alert to [`excludedActions`](#excludedactions), for example `click`.
+In Safari, a screenshot while an alert is open gets no answer, and the session stops
+([WebKit bug 328310](https://bugs.webkit.org/show_bug.cgi?id=328310)). Add the command that opens the alert to
+[`excludedActions`](#excludedactions), for example `click`.
 
 In a WebDriver BiDi session, use [`dialog` events](https://webdriver.io/docs/api/dialog) to handle alerts: the
 reporter takes its screenshots without closing them.
