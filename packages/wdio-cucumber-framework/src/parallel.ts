@@ -1123,7 +1123,8 @@ export async function runParallelCucumber(params: {
         try {
             for (let i = firstUnrun; i < allPickles.length; i++) {
                 const pickle = allPickles[i]
-                await runScenario({ pickle, group: pickleToGroup.get(pickle)!, index: i }, runParams)
+                // counted as Cucumber counts them: an undefined or ambiguous step still fails the run
+                allResults.push({ status: 'fulfilled', value: await runScenario({ pickle, group: pickleToGroup.get(pickle)!, index: i }, runParams) })
             }
         } catch (error) {
             runFailure = { error }

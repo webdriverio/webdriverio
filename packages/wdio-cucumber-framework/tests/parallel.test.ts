@@ -1755,6 +1755,24 @@ describe('runParallelCucumber reporter contract and teardown', () => {
                 expect(s2.every((e) => e.payload.contextId === undefined)).toBe(true)
             })
 
+            test('counts an undefined step after the stop as a failure of the run', async () => {
+                const info = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'info')
+                const { result } = await failFastRun('missing')
+
+                expect(result).toBe(2)
+                expect(info).toHaveBeenCalledWith(expect.stringContaining('2 scenarios: 0 passed, 2 failed, 0 skipped'))
+                info.mockRestore()
+            })
+
+            test('counts a skipped scenario after the stop as skipped', async () => {
+                const info = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'info')
+                const { result } = await failFastRun('something', [makeStepDefinition('something', async function () {})])
+
+                expect(result).toBe(1)
+                expect(info).toHaveBeenCalledWith(expect.stringContaining('2 scenarios: 0 passed, 1 failed, 1 skipped'))
+                info.mockRestore()
+            })
+
             test('keeps an undefined step failed, as Cucumber does', async () => {
                 const { s2 } = await failFastRun('missing')
 
