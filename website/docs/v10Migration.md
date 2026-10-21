@@ -417,6 +417,7 @@ winget install --id Gyan.FFmpeg -e                          # Windows
 - In a multi-remote session, only the commands of the first instance take a frame. Before, the commands of each instance took a frame of the first instance.
 - A `GET` command only reads the page, so it gives no frame, except with `recordAllActions`. Before, `getUrl`, `getSize` or `getValue` gave a frame, because the last part of their endpoint (`url`, `rect`, `value`) is in `snapshotCommands`.
 - The date in the video file names is `YYYY-MM-DD--HH-MM-SS-mmm` on every machine. Before, it used the locale of the machine.
+- `videoFormat` accepts `webm` (the default) and `mp4`. Before, `videoFormat: 'default'` made mp4 videos; now it logs a warning and makes webm videos. Use `videoFormat: 'mp4'`.
 - With the Allure reporter, a test without a video no longer gets an empty video attachment.
 
 ## `$` is strict
