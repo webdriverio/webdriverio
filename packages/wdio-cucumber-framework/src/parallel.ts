@@ -398,60 +398,6 @@ function buildScenarioPayload(params: {
     }
 }
 
-/**
- * Report a scenario that never executed (failFast stopped the run).
- * Mirrors what a TestCaseRunner invoked with `skip: true` would emit:
- * scenario-level mode pairs test:start with test:skip; step-level mode
- * opens the scenario suite, reports every step skipped, and closes it.
- */
-function emitSkippedScenario(
-    reporter: EventEmitter,
-    cid: string,
-    specs: string[],
-    cucumberOpts: Required<CucumberOptions>,
-    group: FeatureGroup,
-    pickle: messages.Pickle,
-    scenarioIndex: number
-): void {
-    const uri = group.gherkinDocument.uri || ''
-    const feature = group.gherkinDocument.feature as messages.Feature
-    const payload = buildScenarioPayload({
-        cid,
-        specs,
-        cucumberOpts,
-        uri,
-        feature,
-        pickle,
-        scenarioUID: `scenario-${cid}-${scenarioIndex}`,
-        featureUID: group.uid,
-    })
-
-    if (cucumberOpts.scenarioLevelReporter !== false) {
-        const skipped = { ...payload, parentUid: group.uid, state: 'skip', duration: 0, passed: true }
-        reporter.emit('test:start', formatMessage({ payload: { ...payload, parentUid: group.uid } }))
-        reporter.emit('test:skip', formatMessage({ payload: skipped }))
-        reporter.emit('test:end', formatMessage({ payload: skipped }))
-        return
-    }
-
-    reporter.emit('suite:start', formatMessage({ payload: { ...payload, parentUid: group.uid } }))
-    pickle.steps = addKeywordToStep(pickle.steps as ReporterStep[], feature)
-    for (const step of pickle.steps || []) {
-        const stepPayload = buildStepPayload(uri, feature, pickle, step, {
-            type: 'step',
-            state: 'skip',
-            passed: true,
-            duration: 0,
-        })
-        const skippedStep = { ...stepPayload, parentUid: payload.uid }
-        reporter.emit('test:start', formatMessage({ payload: skippedStep }))
-        reporter.emit('test:skip', formatMessage({ payload: skippedStep }))
-        reporter.emit('test:end', formatMessage({ payload: skippedStep }))
-    }
-    const closed = { ...payload, parentUid: group.uid, duration: 0 }
-    reporter.emit('suite:end', formatMessage({ payload: closed }))
-}
-
 // ============================================================
 // Feature-level helpers
 // ============================================================
@@ -527,7 +473,8 @@ interface ScenarioTranslatorParams {
     testCase: messages.TestCase
     cucumberOpts: Required<CucumberOptions>
     scenarioIndex: number
-    contextId: string
+    /** `undefined` for a scenario that runs in skip mode after a failFast stop, with no window */
+    contextId: string | undefined
     supportCode: SupportCodeMessages
 }
 
@@ -856,8 +803,12 @@ function isFailedResult(
         (status === 'PENDING' && cucumberOpts.strict)
 }
 
+/**
+ * @param allocation  the window of the scenario; without it, the scenario runs in skip mode, as
+ *                    Cucumber runs the scenarios after a failFast stop: nothing is executed
+ */
 async function runScenario(
-    { pickle, group, index, allocation }: { pickle: messages.Pickle; group: FeatureGroup; index: number; allocation: ParallelContextAllocation },
+    { pickle, group, index, allocation }: { pickle: messages.Pickle; group: FeatureGroup; index: number; allocation?: ParallelContextAllocation },
     params: {
         reporter: EventEmitter
         eventEmitter: EventEmitter
@@ -876,7 +827,7 @@ async function runScenario(
         reporter, eventEmitter, cid, specs, cucumberOpts,
         supportCodeLibrary, runtimeOptions, assembledTestCases, parallelStore, snippetBuilder, supportCode,
     } = params
-    const contextId = allocation.context
+    const contextId = allocation?.context
     const testCase = assembledTestCases[pickle.id]
 
     if (!testCase) {
@@ -884,7 +835,7 @@ async function runScenario(
         return { status: 'SKIPPED' as const, name: pickle.name, duration: 0 }
     }
 
-    return parallelStore.run(contextId, async () => {
+    const execute = async () => {
         const scenarioBroadcaster = new EventEmitter()
 
         const abortScenario = wireScenarioTranslator({
@@ -911,7 +862,7 @@ async function runScenario(
             pickle,
             testCase,
             retries: retriesForPickle(pickle, runtimeOptions),
-            skip: runtimeOptions.dryRun,
+            skip: runtimeOptions.dryRun || !allocation,
             filterStackTraces: true,
             supportCodeLibrary,
             worldParameters: runtimeOptions.worldParameters,
@@ -929,7 +880,8 @@ async function runScenario(
         const duration = Date.now() - testStart
 
         return { status, name: pickle.name, duration }
-    })
+    }
+    return contextId ? parallelStore.run(contextId, execute) : execute()
 }
 
 // ============================================================
@@ -1165,16 +1117,16 @@ export async function runParallelCucumber(params: {
     if (allocationFailed) { runFailure = { error: allocationError } }
 
     if (!runFailure && failFast && stopped) {
-        // Mirror Cucumber's failFast: remaining pickles report as skipped
-        // (the runtime runs them with the runner's skip flag) instead of
-        // vanishing — the summary math reconciles passed + failed + skipped.
+        // Mirror Cucumber's failFast: the runner reports the remaining pickles in skip
+        // mode (skipped hooks and steps, undefined and ambiguous steps as such), with no window
         const firstUnrun = Math.min(cursor, allPickles.length)
-        for (let i = firstUnrun; i < allPickles.length; i++) {
-            const pickle = allPickles[i]
-            emitSkippedScenario(
-                reporter, cid, specs, cucumberOpts,
-                pickleToGroup.get(pickle)!, pickle, i
-            )
+        try {
+            for (let i = firstUnrun; i < allPickles.length; i++) {
+                const pickle = allPickles[i]
+                await runScenario({ pickle, group: pickleToGroup.get(pickle)!, index: i }, runParams)
+            }
+        } catch (error) {
+            runFailure = { error }
         }
         log.info(
             '[Parallel] failFast enabled — stopping after first failure. ' +

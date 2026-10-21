@@ -951,6 +951,11 @@ describe('runParallelCucumber', () => {
 
     // ---- failFast summary ----
 
+    // a defined step: in skip mode, Cucumber keeps an undefined step failed
+    const failingLibrary = () => mockSupportCodeLibrary({
+        stepDefinitions: [makeStepDefinition('something', async function () { throw new Error('fails on purpose') })],
+    })
+
     test('failFast in step-level mode reports skipped steps as start, skip, end with one uid', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3'])
@@ -962,7 +967,7 @@ describe('runParallelCucumber', () => {
             cid: '0-0',
             specs: ['/test/foo.feature'],
             gherkinDocuments: [doc],
-            supportCodeLibrary: mockSupportCodeLibrary(),
+            supportCodeLibrary: failingLibrary(),
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true, scenarioLevelReporter: false }),
         })
 
@@ -983,11 +988,11 @@ describe('runParallelCucumber', () => {
             cid: '0-0',
             specs: ['/test/foo.feature'],
             gherkinDocuments: [doc],
-            supportCodeLibrary: mockSupportCodeLibrary(),
+            supportCodeLibrary: failingLibrary(),
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true }),
         })
 
-        // 2 scenarios fail (no step defs); scenario 3 is skipped
+        // 2 scenarios fail; scenario 3 is skipped
         const starts = reporterEvents.filter((e) => e.event === 'test:start')
         const fails = reporterEvents.filter((e) => e.event === 'test:fail')
         const skips = reporterEvents.filter((e) => e.event === 'test:skip')
@@ -1725,6 +1730,49 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             expect(event).toBe('test:fail')
             expect(payload.error.message).toBe('Multiple step definitions match:')
             expect(payload.pendingReason).toBeUndefined()
+        })
+
+        describe('scenarios after a failFast stop', () => {
+            const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+            const failFastRun = async (secondStep: string, stepDefinitions: unknown[] = [], hook = vi.fn()) => {
+                const supportCodeLibrary = {
+                    ...mockSupportCodeLibrary({
+                        stepDefinitions: [makeStepDefinition('fails', async function () { throw new Error('fails on purpose') }), ...stepDefinitions],
+                    }),
+                    beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: hook, id: 'hook-1', line: 3, uri: '/test/hooks.ts', order: 0, options: { tags: '@a' } })],
+                }
+                const docs = [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', tags: ['@a'], steps: ['fails'] }, { name: 's2', tags: ['@a'], steps: [secondStep] }])]
+                const outcome = await run(mockBrowser(), docs, stepOpts({ failFast: true, maxParallelContexts: 1 }), supportCodeLibrary as never)
+                return { ...outcome, s2: events.filter((e) => e.payload.scenarioName === 's2' && e.event !== 'test:start' && e.event !== 'hook:start' && e.event !== 'test:end') }
+            }
+
+            test('reports their hooks as skipped and does not run them', async () => {
+                const hook = vi.fn()
+                const { s2 } = await failFastRun('something', [makeStepDefinition('something', async function () {})], hook)
+
+                expect(hook).toHaveBeenCalledTimes(1)
+                expect(s2.map((e) => `${e.event}=${e.payload.title}=${e.payload.state}`)).toEqual(['hook:end=@a=SKIPPED', 'test:skip=Given something=skip'])
+                expect(s2.every((e) => e.payload.contextId === undefined)).toBe(true)
+            })
+
+            test('keeps an undefined step failed, as Cucumber does', async () => {
+                const { s2 } = await failFastRun('missing')
+
+                const step = s2.find((e) => e.event.startsWith('test:'))!
+                expect(step.event).toBe('test:fail')
+                expect(step.payload.error.message).toBe('Step "missing" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            })
+
+            test('keeps the reason of an ambiguous step', async () => {
+                const { s2 } = await failFastRun('a step', [
+                    makeStepDefinition('a step', async function () {}),
+                    { ...makeStepDefinition('a step', async function () {}), id: 'sd-regexp', pattern: /^a st/, line: 7 },
+                ])
+
+                const step = s2.find((e) => e.event.startsWith('test:'))!
+                expect(step.event).toBe('test:skip')
+                expect(step.payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+            })
         })
 
         describe('scenario-level reporter', () => {
