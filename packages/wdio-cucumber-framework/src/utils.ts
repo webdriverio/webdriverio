@@ -355,11 +355,11 @@ export interface StepResult {
  * @param result - the Cucumber result
  * @param params.title - the step text, or the scenario title
  * @param params.isStep - `false` for a scenario that is reported as a test (`scenarioLevelReporter`)
- * @param params.featureStack - the location of the step in the feature file (see `getFeatureStack`)
+ * @param params.featureStack - gives the location of the step in the feature file (see `getFeatureStack`), only for the errors that show it
  */
 export function getStepResult(
     result: TestStepResult & { willBeRetried?: boolean },
-    params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, featureStack: string }
+    params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, featureStack: () => string }
 ): StepResult {
     const { title, isStep, featureStack } = params
     let state = convertStatus(result.status)
@@ -378,7 +378,7 @@ export function getStepResult(
                 (isStep ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
                 'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
             )
-            error.stack = `${error.message}\n${featureStack}`
+            error.stack = `${error.message}\n${featureStack()}`
         }
     } else if (result.status === 'FAILED' && !result.willBeRetried) {
         state = 'fail'
@@ -395,7 +395,7 @@ export function getStepResult(
             'Make the step definitions unique by removing duplicate or overlapping expressions.'
         )
         error = new Error(message.split('\n')[0])
-        error.stack = `${message}\n${featureStack}`
+        error.stack = `${message}\n${featureStack()}`
     }
 
     // reporters show the reason of a skipped test from `pendingReason`, not from its error

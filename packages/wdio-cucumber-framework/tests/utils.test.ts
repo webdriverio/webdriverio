@@ -396,11 +396,24 @@ describe('utils', () => {
 
     describe('getStepResult', () => {
         const featureStack = '\tat Feature(/a.feature):1:1\n'
-        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, featureStack }
+        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, featureStack: () => featureStack }
         const result = (status: string, message?: string) => ({ status, message, duration: { seconds: 0, nanos: 0 } }) as unknown as TestStepResult
 
         it('passes a passed step', () => {
             expect(getStepResult(result(Status.PASSED), params)).toEqual({ state: 'pass', error: undefined, titleSuffix: '', failed: false })
+        })
+
+        it('builds the feature stack only for an error that shows it', () => {
+            const stack = vi.fn(() => featureStack)
+            for (const status of [Status.PASSED, Status.SKIPPED, Status.PENDING, Status.FAILED, Status.AMBIGUOUS]) {
+                getStepResult(result(status, 'Error: x'), { ...params, featureStack: stack })
+            }
+            getStepResult(result(Status.UNDEFINED), { ...params, ignoreUndefinedDefinitions: true, featureStack: stack })
+            expect(stack).not.toHaveBeenCalled()
+
+            getStepResult(result(Status.UNDEFINED), { ...params, featureStack: stack })
+            getStepResult(result(Status.AMBIGUOUS), { ...params, failAmbiguousDefinitions: true, featureStack: stack })
+            expect(stack).toHaveBeenCalledTimes(2)
         })
 
         it('fails an undefined step with the sequential message', () => {

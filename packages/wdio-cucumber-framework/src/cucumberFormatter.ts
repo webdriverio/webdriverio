@@ -230,7 +230,7 @@ export default class CucumberFormatter extends Formatter {
                 isStep: Boolean(step),
                 ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
                 failAmbiguousDefinitions: this.failAmbiguousDefinitions,
-                featureStack: getFeatureStack(uri, feature, scenario, step),
+                featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
         )
         if (failed) {

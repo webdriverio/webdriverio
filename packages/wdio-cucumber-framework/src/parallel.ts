@@ -718,7 +718,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
                 isStep: true,
                 ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
                 failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
-                featureStack: getFeatureStack(uri, feature, pickle, step),
+                featureStack: () => getFeatureStack(uri, feature, pickle, step),
             }
         )
         const passed = ['pass', 'skip', 'pending'].includes(state)
@@ -777,7 +777,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             isStep: false,
             ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
             failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
-            featureStack: getFeatureStack(uri, feature, pickle),
+            featureStack: () => getFeatureStack(uri, feature, pickle),
         })
         const passed = ['pass', 'skip'].includes(state)
         const payload = {
