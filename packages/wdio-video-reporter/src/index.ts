@@ -12,7 +12,7 @@ import type { Options } from '@wdio/types'
 import AllureReporterExtension from './allure.js'
 import { removeAllureAttachments } from './allureResults.js'
 import {
-    waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
+    waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getDeviceName, getVideoFormatSettings,
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter, findFfmpeg
 } from './helpers.js'
@@ -956,7 +956,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         const capabilities = getCurrentCapabilities(browser)
-        const deviceName = capabilities['appium:deviceName']
+        const deviceName = getDeviceName(capabilities)
         if (deviceName) {
             this.#allureReporter.addArgument('deviceName', deviceName)
         }
@@ -972,7 +972,7 @@ export default class VideoReporter extends WdioReporter {
         let browserName = 'browser'
         const capabilities = getCurrentCapabilities(browser)
 
-        const deviceName = capabilities['appium:deviceName']
+        const deviceName = getDeviceName(capabilities)
         if (capabilities.browserName) {
             browserName = capabilities.browserName.toUpperCase()
         } else if (deviceName && capabilities.platformName) {

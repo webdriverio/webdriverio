@@ -307,6 +307,37 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('Appium device name', () => {
+        const chrome = browser.capabilities
+        afterEach(() => {
+            browser.capabilities = chrome
+        })
+        // an Appium session returns its capabilities without the `appium:` prefix
+        const appium = { platformName: 'iOS', browserName: '', deviceName: 'iPhone 17' }
+
+        it.each([
+            ['an Appium session (no prefix)', appium, '--IPHONE17-IOS--'],
+            ['the prefix', { platformName: 'Android', 'appium:deviceName': 'Pixel 7' }, '--PIXEL7-ANDROID--']
+        ])('names the video with the device name of %s', (_, capabilities, name) => {
+            browser.capabilities = capabilities as WebdriverIO.Capabilities
+            const reporter = new VideoReporter({})
+            reporter.onTestStart({ title: 'my test' } as any)
+            expect(reporter.recordingPath).toEqual(expect.stringContaining(name))
+        })
+
+        it('adds the device name of an Appium session to Allure', async () => {
+            browser.capabilities = appium as WebdriverIO.Capabilities
+            const addArgument = vi.spyOn(AllureReporterExtension.prototype, 'addArgument').mockClear()
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart(allureRunner)
+            reporter.testName = 'foo bar'
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onSuiteEnd({ type: 'suite', tests: [{ state: 'passed' }] } as any)
+            await sleep()
+            expect(addArgument).toBeCalledWith('deviceName', 'iPhone 17')
+        })
+    })
+
     describe('Greptile review points', () => {
         it('sets a recording path for each Mocha test with filenamePrefixSource: suite', () => {
             const reporter = new VideoReporter({ filenamePrefixSource: 'suite' })

@@ -128,6 +128,15 @@ export function getCurrentCapabilities (browser: WebdriverIO.Browser | Webdriver
     return currentCapabilities
 }
 
+/**
+ * The device name: an Appium session returns its capabilities without the `appium:` prefix
+ */
+export function getDeviceName (capabilities: WebdriverIO.Capabilities) {
+    const caps = capabilities as Record<string, unknown>
+    const name = caps['appium:deviceName'] || caps.deviceName
+    return typeof name === 'string' && name ? name : undefined
+}
+
 export function pad (frameNumber: number) {
     return frameNumber.toString().padStart(SCREENSHOT_PADDING_WITH, '0')
 }
