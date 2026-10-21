@@ -1700,6 +1700,44 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             expect(payload.pendingReason).toBeUndefined()
         })
 
+        describe('scenario-level reporter', () => {
+            const scenarioOpts = (overrides: Partial<CucumberOptions> = {}) => defaultCucumberOpts({ scenarioLevelReporter: true, ...overrides })
+
+            test('fails a scenario with an undefined step with the sequential message', async () => {
+                await run(mockBrowser(), doc('missing'), scenarioOpts())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:fail')
+                expect(payload.error.message).toBe('Scenario s1 has undefined steps. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+                expect(payload.error.stack).toContain('\tat Feature(/test/foo.feature):1:1\n\tat Scenario(s1):3:3\n')
+            })
+
+            test('reports a scenario with an undefined step as pending with the suffix when ignoreUndefinedDefinitions', async () => {
+                await run(mockBrowser(), doc('missing'), scenarioOpts({ ignoreUndefinedDefinitions: true }))
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:pending')
+                expect(payload.title).toBe('s1 (undefined step)')
+                expect(payload.error).toBeUndefined()
+            })
+
+            test('skips a scenario with an ambiguous step with the step definitions as reason', async () => {
+                await run(mockBrowser(), doc('a step'), scenarioOpts(), ambiguousLibrary())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:skip')
+                expect(payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+            })
+
+            test('fails a scenario with an ambiguous step with failAmbiguousDefinitions', async () => {
+                await run(mockBrowser(), doc('a step'), scenarioOpts({ failAmbiguousDefinitions: true }), ambiguousLibrary())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:fail')
+                expect(payload.error.message).toBe('Multiple step definitions match:')
+            })
+        })
+
         describe('hook titles', () => {
             const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
             const hookLibrary = (options: { name?: string, tags?: string }) => ({

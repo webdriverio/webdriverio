@@ -43,7 +43,6 @@ import type * as messages from '@cucumber/messages'
 import type { CucumberOptions, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
 import {
     addKeywordToStep,
-    convertStatus,
     getAmbiguousStepMessage,
     getFeatureId,
     getFeatureStack,
@@ -675,12 +674,21 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         reporter.emit(`${type}:start`, formatMessage({ payload }))
     }
 
+    // Cucumber 13 sends no message for an ambiguous step, as in cucumberFormatter.ts withAmbiguousMessage
+    const withAmbiguousMessage = (result: messages.TestStepResult, stepDefinitionIds: readonly string[] = []) => {
+        if (result.status !== 'AMBIGUOUS' || result.message) { return result }
+        const message = getAmbiguousStepMessage(stepDefinitionIds
+            .map((id) => supportCode.stepDefinitions.get(id))
+            .filter((definition): definition is messages.StepDefinition => Boolean(definition)))
+        return message ? { ...result, message } : result
+    }
+
     const onTestStepFinished = (finished: messages.TestStepFinished) => {
-        const result = finished.testStepResult
+        const info = stepLookup.get(finished.testStepId)
+        const result = withAmbiguousMessage(finished.testStepResult, info?.stepDefinitionIds)
         stepResults.push(result)
 
         if (scenarioLevel) { return }
-        const info = stepLookup.get(finished.testStepId)
         if (!info) { return }
 
         const step = info.pickleStep || { id: finished.testStepId, text: info.hookTitle } as messages.PickleStep
@@ -703,14 +711,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             return
         }
 
-        // Cucumber 13 sends no message for an ambiguous step, as in cucumberFormatter.ts withAmbiguousMessage
-        const ambiguousMessage = result.status === 'AMBIGUOUS' && !result.message
-            ? getAmbiguousStepMessage(info.stepDefinitionIds
-                .map((id) => supportCode.stepDefinitions.get(id))
-                .filter((definition): definition is messages.StepDefinition => Boolean(definition)))
-            : undefined
         const { state, error, pendingReason, titleSuffix } = getStepResult(
-            ambiguousMessage ? { ...result, message: ambiguousMessage } : result,
+            result,
             {
                 title: step.text,
                 isStep: true,
@@ -770,33 +772,24 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             return
         }
 
-        let state = convertStatus(finalResult.status)
-        let error: Error | undefined
-        if (finalResult.message) {
-            error = new Error(finalResult.message.split('\n')[0])
-            error.stack = finalResult.message
-        }
-
-        if (finalResult.status === 'UNDEFINED') {
-            if (cucumberOpts.ignoreUndefinedDefinitions) {
-                state = 'pending'
-                error = undefined
-            } else {
-                state = 'fail'
-                error = new Error(
-                    `Scenario "${getTitle(pickle, cucumberOpts.tagsInTitle)}" has undefined steps. ` +
-                    'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
-                )
-                error.stack = `${error.message}\n\tat Feature(${uri}):1:1\n`
-            }
-        } else if (finalResult.status === 'FAILED') {
-            state = 'fail'
-        } else if (finalResult.status === 'AMBIGUOUS' && cucumberOpts.failAmbiguousDefinitions) {
-            state = 'fail'
-        }
-
+        const { state, error, pendingReason, titleSuffix } = getStepResult(finalResult, {
+            title: getTitle(pickle, cucumberOpts.tagsInTitle),
+            isStep: false,
+            ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
+            failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+            featureStack: getFeatureStack(uri, feature, pickle),
+        })
         const passed = ['pass', 'skip'].includes(state)
-        const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state, error, duration, passed }
+        const payload = {
+            ...buildScenarioPayload(scenarioPayloadParams),
+            parentUid: featureUID,
+            state,
+            error,
+            ...(pendingReason ? { pendingReason } : {}),
+            duration,
+            passed,
+        }
+        payload.title += titleSuffix
         reporter.emit(`test:${state}`, formatMessage({ payload }))
         reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
     }
