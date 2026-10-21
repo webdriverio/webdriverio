@@ -142,7 +142,7 @@ Default language for your feature files
 
 <Option type="String" default="defined">
 
-Run the scenarios in the order of the feature files (`'defined'`) or in a random order (`'random'`). With `'random:<seed>'`, for example `'random:42'`, a random order is the same in each run.
+Run the scenarios in the order of the feature files (`'defined'`) or in a random order (`'random'`). With `'random:<seed>'`, for example `'random:42'`, a random order is the same in each run. With `'random'`, the log shows the seed of the run (`Random order using seed: 42`).
 
 </Option>
 

@@ -3,6 +3,7 @@ import type { EventEmitter } from 'node:events'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
+import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
@@ -143,6 +144,33 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false, 'progress')
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
+    })
+
+    it('picks the random order seed once and logs it', async () => {
+        const cucumberWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { order: 'random' } }, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false)
+            const [, seed] = (adapter._cucumberOpts.order as string).split(':')
+            expect(seed).toMatch(/^\d+$/)
+            expect(warn).toHaveBeenCalledWith(`Random order using seed: ${seed}`)
+            // loadSources got the seed, so Cucumber did not pick and log its own
+            expect(cucumberWarn).not.toHaveBeenCalledWith(expect.stringContaining('Random order using seed'))
+        } finally {
+            cucumberWarn.mockRestore()
+            warn.mockRestore()
+        }
+    })
+
+    it.each(['defined', 'random:7'])('keeps the order %s', async (order) => {
+        const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { order } }, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false)
+            expect(adapter._cucumberOpts.order).toBe(order)
+            expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Random order using seed'))
+        } finally {
+            warn.mockRestore()
+        }
     })
 
     it('respects user-defined formatOptions', async () => {
