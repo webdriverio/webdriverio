@@ -1700,6 +1700,30 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             expect(payload.pendingReason).toBeUndefined()
         })
 
+        describe('hook titles', () => {
+            const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+            const hookLibrary = (options: { name?: string, tags?: string }) => ({
+                ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+                beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: function () {}, id: 'hook-1', line: 3, uri: '/test/hooks.ts', order: 0, options })],
+            })
+            const hookTitles = async (options: { name?: string, tags?: string }) => {
+                await run(mockBrowser(), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', tags: ['@a'] }])], stepOpts(), hookLibrary(options) as never)
+                return events.filter((e) => e.event === 'hook:start' || e.event === 'hook:end').map((e) => `${e.event}=${e.payload.title}`)
+            }
+
+            test('titles a hook with its tag expression', async () => {
+                expect(await hookTitles({ tags: '@a' })).toEqual(['hook:start=@a', 'hook:end=@a'])
+            })
+
+            test('titles a hook with its name and tag expression', async () => {
+                expect(await hookTitles({ name: 'setup', tags: '@a' })).toEqual(['hook:start=setup @a', 'hook:end=setup @a'])
+            })
+
+            test('keeps an untitled hook untitled', async () => {
+                expect(await hookTitles({})).toEqual(['hook:start=', 'hook:end='])
+            })
+        })
+
         test('keeps the first line of a failed step as message', async () => {
             const library = mockSupportCodeLibrary({
                 stepDefinitions: [makeStepDefinition('something', async function () { throw new Error('fails on purpose') })],

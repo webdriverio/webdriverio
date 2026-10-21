@@ -525,29 +525,40 @@ interface ScenarioTranslatorParams {
     cucumberOpts: Required<CucumberOptions>
     scenarioIndex: number
     contextId: string
+    supportCode: SupportCodeMessages
+}
+
+interface SupportCodeMessages {
     stepDefinitions: Map<string, messages.StepDefinition>
+    /** hook id → the hook title of the sequential formatter */
+    hookTitles: Map<string, string>
 }
 
 /**
- * the step definition messages of the support code, which the sequential formatter gets from Cucumber
+ * the step definition and hook messages of the support code, which the sequential formatter gets from Cucumber
  */
-function collectStepDefinitions(supportCodeLibrary: SupportCodeLibrary): Map<string, messages.StepDefinition> {
+function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): SupportCodeMessages {
     const stepDefinitions = new Map<string, messages.StepDefinition>()
+    const hookTitles = new Map<string, string>()
     const eventBroadcaster = new EventEmitter()
     eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
         if (envelope.stepDefinition) {
             stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
         }
+        if (envelope.hook) {
+            const { id, name, tagExpression } = envelope.hook
+            hookTitles.set(id, `${name || ''} ${tagExpression || ''}`.trim())
+        }
     })
     emitSupportCodeMessages({ eventBroadcaster, supportCodeLibrary, newId: uuidFn })
-    return stepDefinitions
+    return { stepDefinitions, hookTitles }
 }
 
 function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error) => void {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
         gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
-        scenarioIndex, contextId, stepDefinitions,
+        scenarioIndex, contextId, supportCode,
     } = params
 
     const uri = gherkinDocument.uri || ''
@@ -606,12 +617,14 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
     const stepLookup = new Map<string, {
         pickleStep?: messages.PickleStep
         isHook: boolean
+        hookTitle: string
         stepDefinitionIds: readonly string[]
     }>()
     for (const ts of testCase.testSteps) {
         stepLookup.set(ts.id, {
             pickleStep: ts.pickleStepId ? pickleStepById.get(ts.pickleStepId) : undefined,
             isHook: !!ts.hookId,
+            hookTitle: (ts.hookId && supportCode.hookTitles.get(ts.hookId)) || '',
             stepDefinitionIds: ts.stepDefinitionIds ?? [],
         })
     }
@@ -644,7 +657,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         const info = stepLookup.get(started.testStepId)
         if (!info) { return }
 
-        const step = info.pickleStep || { id: started.testStepId, text: '' } as messages.PickleStep
+        const step = info.pickleStep || { id: started.testStepId, text: info.hookTitle } as messages.PickleStep
         const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
 
         // Mirror cucumberFormatter.ts updateCurrentPickle so config
@@ -670,7 +683,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         const info = stepLookup.get(finished.testStepId)
         if (!info) { return }
 
-        const step = info.pickleStep || { id: finished.testStepId, text: '' } as messages.PickleStep
+        const step = info.pickleStep || { id: finished.testStepId, text: info.hookTitle } as messages.PickleStep
         const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
         const duration = stepStart ? Date.now() - stepStart.getTime() : 0
 
@@ -693,7 +706,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         // Cucumber 13 sends no message for an ambiguous step, as in cucumberFormatter.ts withAmbiguousMessage
         const ambiguousMessage = result.status === 'AMBIGUOUS' && !result.message
             ? getAmbiguousStepMessage(info.stepDefinitionIds
-                .map((id) => stepDefinitions.get(id))
+                .map((id) => supportCode.stepDefinitions.get(id))
                 .filter((definition): definition is messages.StepDefinition => Boolean(definition)))
             : undefined
         const { state, error, pendingReason, titleSuffix } = getStepResult(
@@ -859,12 +872,12 @@ async function runScenario(
         assembledTestCases: IAssembledTestCases
         parallelStore: AsyncLocalStorage<string>
         snippetBuilder: ISnippetBuilder
-        stepDefinitions: Map<string, messages.StepDefinition>
+        supportCode: SupportCodeMessages
     }
 ): Promise<ScenarioResult> {
     const {
         reporter, eventEmitter, cid, specs, cucumberOpts,
-        supportCodeLibrary, runtimeOptions, assembledTestCases, parallelStore, snippetBuilder, stepDefinitions,
+        supportCodeLibrary, runtimeOptions, assembledTestCases, parallelStore, snippetBuilder, supportCode,
     } = params
     const contextId = allocation.context
     const testCase = assembledTestCases[pickle.id]
@@ -890,7 +903,7 @@ async function runScenario(
             cucumberOpts,
             scenarioIndex: index,
             contextId,
-            stepDefinitions,
+            supportCode,
         })
 
         // skip: dryRun mirrors Cucumber's Runtime (runtime/index.js)
@@ -1089,7 +1102,7 @@ export async function runParallelCucumber(params: {
     const runParams = {
         reporter, eventEmitter, cid, specs, cucumberOpts, supportCodeLibrary,
         runtimeOptions, assembledTestCases, parallelStore, snippetBuilder,
-        stepDefinitions: collectStepDefinitions(supportCodeLibrary),
+        supportCode: collectSupportCodeMessages(supportCodeLibrary),
     }
     let cursor = beforeAllOk && !runFailure ? 0 : allPickles.length
     const spares: Promise<ParallelContextAllocation>[] = []
