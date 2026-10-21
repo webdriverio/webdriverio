@@ -653,6 +653,20 @@ class Launcher {
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
 
+        /**
+         * `globalTimeout` elapsed while this start waited for the retry delay or the
+         * `onWorkerStart` hooks; the worker is not running yet, so give its slot back
+         */
+        if (this.#hasExceededGlobalTimeout) {
+            log.info(`Not starting worker ${runnerId}, the test run exceeded its globalTimeout`)
+            this._schedule[cid].availableInstances++
+            this._schedule[cid].runningInstances--
+            if (this._getNumberOfRunningInstances() === 0) {
+                this.#resolveWorkersEnded?.()
+            }
+            return
+        }
+
         // prefer launcher settings in capabilities over general launcher
         const worker = await this.runner.run({
             cid: runnerId,

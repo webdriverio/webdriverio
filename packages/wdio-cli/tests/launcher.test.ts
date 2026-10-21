@@ -347,6 +347,29 @@ describe('launcher', () => {
             expect(await run).toBe(1)
         })
 
+        it('should not start a worker whose onWorkerStart hook ends after the timeout', async () => {
+            let releaseHook = () => {}
+            const hook = vi.fn(() => new Promise<void>((resolve) => { releaseHook = resolve }))
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({
+                maxInstances: 1,
+                onWorkerStart: [hook],
+                onWorkerEnd: vi.fn()
+            })
+            const run = vi.fn()
+            launcher.runner = { run, shutdown: vi.fn().mockResolvedValue(true), workerPool: {} } as any
+            const result = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            await vi.advanceTimersByTimeAsync(0)
+            expect(hook).toBeCalledTimes(1)
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(1)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            releaseHook()
+
+            expect(await result).toBe(1)
+            expect(run).not.toBeCalled()
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
+        })
+
         it('should not stop the run if no globalTimeout is set', async () => {
             launcher.runner = { shutdown: vi.fn() } as any
             launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
