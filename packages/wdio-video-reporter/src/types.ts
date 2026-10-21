@@ -4,41 +4,46 @@ import type { SUPPORTED_VIDEO_FORMATS } from './constants.js'
 export type VideoFileExtension = keyof typeof SUPPORTED_VIDEO_FORMATS
 export interface ReporterOptions extends Reporters.Options {
     /**
-   * Path to store the videos (defaults to the WebdriverIO `outputDir` option)
+   * Folder for the videos (defaults to the WebdriverIO `outputDir` option, then `_results_`)
    */
     outputDir?: string
 
     /**
-   * Path of the ffmpeg executable. Defaults to the `FFMPEG_PATH` environment variable,
-   * then to `ffmpeg` on the `PATH`. WebdriverIO does not install ffmpeg.
+   * Path of the ffmpeg executable, or a command name on the `PATH`. Defaults to the
+   * `FFMPEG_PATH` environment variable, then to `ffmpeg` on the `PATH`. WebdriverIO does
+   * not install ffmpeg.
    */
     ffmpegPath?: string
 
     /**
-   * Maximum time to wait for a video to finish rendering (in ms).
+   * Maximum time to wait for a video to finish rendering, and for one screenshot (in ms).
+   * Set `reporterSyncTimeout` to a larger value when you increase it.
    * @default 5000
    */
     videoRenderTimeout?: number
 
     /**
-   * Where to save screenshots
+   * Folder for the screenshots of the videos, in `outputDir` (or an absolute path).
+   * The reporter does not remove them.
    * @default '.video-reporter-screenshots'
    */
     rawPath?: string
 
     /**
-   * Prefix for video filenames by either suite or test name
+   * Start of the video file names: the title of the test (Cucumber: the scenario), or
+   * the titles of the suites without the test
    * @default 'test'
    */
     filenamePrefixSource?: 'test' | 'suite'
 
     /**
-   * Should all videos be saved, or only from failed tests
+   * Also save the videos of the tests that pass (else only of the tests that fail)
    * @default false
    */
     saveAllVideos?: boolean
 
     /**
+   * How much slower the video plays (from 1 to 100, also with decimals)
    * @default 3
    */
     videoSlowdownMultiplier?: number
@@ -50,19 +55,21 @@ export interface ReporterOptions extends Reporters.Options {
     videoScale?: string
 
     /**
-   * Max chars for test names, adjust according to current system
+   * Longest file name of a video, without the extension (a longer name keeps its start
+   * and its end)
    * @default 250
    */
     maxTestNameCharacters?: number
 
     /**
-   * videoFormat to be used for generated videos. One of 'mp4', 'webm'
+   * Format of the videos: `webm` or `mp4`.
    * @default 'webm'
    */
     videoFormat?: keyof typeof SUPPORTED_VIDEO_FORMATS
 
     /**
-   * Which commands should be excluded from screenshots
+   * Commands that give no screenshot, with the names of `snapshotCommands`
+   * (`recordAllActions` ignores it)
    * @default []
    */
     excludedActions?: string[],
@@ -75,7 +82,7 @@ export interface ReporterOptions extends Reporters.Options {
     snapshotCommands?: string[]
 
     /**
-   * If test speed is not an issue, this option can be enabled to do a screenshot on every json wire message
+   * Take a screenshot after every command, also `GET` commands (slower tests)
    * @default false
    */
     recordAllActions?: boolean
@@ -87,7 +94,8 @@ export interface ReporterOptions extends Reporters.Options {
     onlyRecordLastFailure?: boolean
 
     /**
-   * Add a screenshot at a regular interval (in seconds)
+   * Also take a screenshot at this interval while a test runs (in seconds, minimum 0.5)
+   * @default 0
    */
     screenshotIntervalSecs?: number
 }

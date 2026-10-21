@@ -413,6 +413,8 @@ winget install --id Gyan.FFmpeg -e                          # Windows
 
 - `snapshotCommands` uses the last part of the W3C WebDriver endpoints. The old default also listed JSON Wire Protocol names such as `buttonup`, `moveto`, `keys` or `accept_alert`. These names never match a v10 command. Use the names of the [default list](/docs/video-reporter#snapshotcommands), for example `actions`, `value` or `accept`.
 - In a WebDriver BiDi session, the reporter also takes a frame after `url`, `back`, `forward`, `refresh` and `actions`.
+- In a WebDriver BiDi session, the reporter takes the frames with WebDriver BiDi, and the next command waits for the frame of the command before it (about 50 to 70 ms in Chrome), so that each frame shows the page of its command. Before, in Chrome, a screenshot at the start of a WebDriver BiDi navigation could make the test wait 10 seconds.
+- In a multi-remote session, only the commands of the first instance take a frame. Before, the commands of each instance took a frame of the first instance.
 - A `GET` command only reads the page, so it gives no frame, except with `recordAllActions`. Before, `getUrl`, `getSize` or `getValue` gave a frame, because the last part of their endpoint (`url`, `rect`, `value`) is in `snapshotCommands`.
 - The date in the video file names is `YYYY-MM-DD--HH-MM-SS-mmm` on every machine. Before, it used the locale of the machine.
 - With the Allure reporter, a test without a video no longer gets an empty video attachment.
