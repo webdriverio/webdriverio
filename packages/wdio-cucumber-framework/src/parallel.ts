@@ -354,15 +354,18 @@ function emitSuiteEvent(
     cid: string,
     specs: string[],
     group: FeatureGroup,
-    event: 'suite:start' | 'suite:end'
+    event: 'suite:start' | 'suite:end',
+    tagsInTitle?: boolean
 ) {
     const doc = group.gherkinDocument
     const payload = {
         uid: group.uid,
-        title: getTitle(doc.feature as messages.Feature),
+        title: getTitle(doc.feature as messages.Feature, tagsInTitle),
         type: 'feature' as const,
         file: doc.uri,
         tags: doc.feature?.tags,
+        // as cucumberFormatter.ts, only the start of a feature has them
+        ...(event === 'suite:start' ? { description: doc.feature?.description, keyword: doc.feature?.keyword } : {}),
         cid,
         specs,
         parentUid: null,
@@ -500,10 +503,11 @@ function emitFeatureSuiteEvents(
     cid: string,
     specs: string[],
     groups: FeatureGroup[],
-    event: 'suite:start' | 'suite:end'
+    event: 'suite:start' | 'suite:end',
+    tagsInTitle?: boolean
 ): void {
     for (const group of groups) {
-        emitSuiteEvent(reporter, cid, specs, group, event)
+        emitSuiteEvent(reporter, cid, specs, group, event, tagsInTitle)
     }
 }
 
@@ -1058,7 +1062,7 @@ export async function runParallelCucumber(params: {
     executionStarted = true
     const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
 
-    emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start')
+    emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start', cucumberOpts.tagsInTitle)
 
     // Once BeforeAll ran, AfterAll and suite:end must run even if assembly or
     // context allocation throws; the error is rethrown afterwards.
@@ -1180,7 +1184,7 @@ export async function runParallelCucumber(params: {
 
     const totalDuration = Date.now() - runStart
 
-    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end')
+    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
 
     const afterAllOk = await runTestRunHooks(eventEmitter, () => executor.runAfterAllHooks(), featureGroups, 'an AfterAll')
     if (runFailure) { throw runFailure.error }

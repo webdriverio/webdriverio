@@ -1654,6 +1654,33 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(maxInFlight).toBe(1)
     })
 
+    describe('feature suites as in sequential mode', () => {
+        const taggedDoc = () => {
+            const parser = new Gherkin.Parser(new Gherkin.AstBuilder(uuidFn), new Gherkin.GherkinClassicTokenMatcher())
+            const text = '@feat\nFeature: Test\n  About the feature\n\n  Scenario: s1\n    Given something\n'
+            return [{ ...parser.parse(text), uri: '/test/foo.feature' } as messages.GherkinDocument]
+        }
+        const featureEvents = () => events.filter((e) => e.payload.type === 'feature')
+
+        test('titles a feature with its tags when tagsInTitle', async () => {
+            await run(mockBrowser(), taggedDoc(), defaultCucumberOpts({ tagsInTitle: true }))
+
+            const [start, end] = featureEvents()
+            expect(start.event).toBe('suite:start')
+            expect(start.payload.title).toBe('@feat: Test')
+            expect(start.payload.keyword).toBe('Feature')
+            expect(start.payload.description).toBe('  About the feature')
+            expect(end.event).toBe('suite:end')
+            expect(end.payload.title).toBe('@feat: Test')
+        })
+
+        test('keeps the feature title without tags by default', async () => {
+            await run(mockBrowser(), taggedDoc())
+
+            expect(featureEvents().map((e) => e.payload.title)).toEqual(['Test', 'Test'])
+        })
+    })
+
     describe('step results as in sequential mode', () => {
         const stepOpts = (overrides: Partial<CucumberOptions> = {}) => defaultCucumberOpts({ scenarioLevelReporter: false, ...overrides })
         const doc = (step: string) => [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [step] }])]
