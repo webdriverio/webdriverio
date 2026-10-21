@@ -171,6 +171,9 @@ export default class VideoReporter extends WdioReporter {
         const isLastAttempt = specFileRetries === 0 || runner.retry === specFileRetries
         if (this.options.onlyRecordLastFailure && !isLastAttempt) {
             this.#record = false
+        }
+        // also without ffmpeg: no command, no hook
+        if (!this.#record) {
             return
         }
 

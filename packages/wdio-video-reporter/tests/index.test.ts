@@ -448,6 +448,21 @@ describe('Video Reporter', () => {
     })
 
     describe('ffmpeg', () => {
+        it('sends no command and adds no hook when ffmpeg is not found', () => {
+            vi.mocked(findFfmpeg).mockReturnValueOnce(undefined)
+            browser.isBidi = true
+            ;(browser as any).options = {}
+            vi.mocked(browser.on).mockClear()
+            vi.mocked(browser.getWindowHandle).mockClear()
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart(allureRunner)
+            expect(browser.on).not.toBeCalled()
+            expect(browser.getWindowHandle).not.toBeCalled()
+            expect((browser as any).options.beforeCommand).toBeUndefined()
+            browser.isBidi = false
+            delete (browser as any).options
+        })
+
         it('records with the ffmpeg of the user', () => {
             const reporter = new VideoReporter({ ffmpegPath: '/my/ffmpeg' })
             expect(findFfmpeg).toHaveBeenLastCalledWith('/my/ffmpeg')
