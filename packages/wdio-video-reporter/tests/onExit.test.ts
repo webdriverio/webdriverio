@@ -5,12 +5,18 @@ import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
 import VideoReporter from '../src/index.js'
+import { waitForVideosToExist, waitForVideosToBeWritten } from '../src/helpers.js'
 
-vi.mock('../src/helpers.js', async (importOriginal) => ({
-    ...await importOriginal<typeof HelpersModule>(),
-    findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg'),
-    sleep: vi.fn()
-}))
+vi.mock('../src/helpers.js', async (importOriginal) => {
+    const helpers = await importOriginal<typeof HelpersModule>()
+    return {
+        ...helpers,
+        findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg'),
+        sleep: vi.fn(),
+        waitForVideosToExist: vi.fn(helpers.waitForVideosToExist),
+        waitForVideosToBeWritten: vi.fn(helpers.waitForVideosToBeWritten)
+    }
+})
 
 vi.mock('@wdio/reporter', () => ({
     default: class {
@@ -32,6 +38,36 @@ describe('onExit', () => {
         for (const dir of dirs.splice(0)) {
             fs.rmSync(dir, { recursive: true, force: true })
         }
+    })
+
+    it('waits for the videos at most videoRenderTimeout in all', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'video-reporter-exit-'))
+        dirs.push(dir)
+        const allureDir = path.join(dir, 'allure')
+        fs.mkdirSync(allureDir)
+        const video = path.join(dir, 'my-video.webm')
+        fs.writeFileSync(video, Buffer.alloc(2048, 1))
+        const reporter = new VideoReporter({ videoRenderTimeout: 1000 })
+        reporter.onRunnerStart({
+            isMultiRemote: false,
+            sessionId: '1',
+            config: { outputDir: dir },
+            instanceOptions: { 1: { reporters: [['allure', { outputDir: allureDir }]] } }
+        } as never)
+        reporter.videos.push(video)
+        vi.useFakeTimers({ toFake: ['Date'] })
+        try {
+            // the wait for the files takes 800 ms of the 1000 ms
+            vi.mocked(waitForVideosToExist).mockImplementationOnce(() => {
+                vi.setSystemTime(Date.now() + 800)
+                return true
+            })
+            vi.mocked(waitForVideosToBeWritten).mockImplementationOnce(() => true)
+            reporter.onExit()
+        } finally {
+            vi.useRealTimers()
+        }
+        expect(vi.mocked(waitForVideosToBeWritten).mock.calls.at(-1)?.[1]).toBeLessThanOrEqual(200)
     })
 
     it('does not throw when a video of this worker is missing (ffmpeg failed)', () => {

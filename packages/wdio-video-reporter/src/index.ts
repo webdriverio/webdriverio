@@ -606,7 +606,8 @@ export default class VideoReporter extends WdioReporter {
          * a render that failed or was stopped by `videoRenderTimeout` has no file
          */
         const videos = this.videos.filter((video) => fs.existsSync(video))
-        waitForVideosToBeWritten(videos, abortTime)
+        // one time limit for both waits
+        waitForVideosToBeWritten(videos, Math.max(0, abortTime - (new Date().getTime() - startTime)))
 
         if (new Date().getTime() - startTime > abortTime) {
             console.log('videoRenderTimeout triggered, not all videos finished writing to disk before patching Allure')
