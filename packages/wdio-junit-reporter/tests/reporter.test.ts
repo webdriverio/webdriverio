@@ -617,6 +617,17 @@ describe('wdio-junit-reporter', () => {
         }
     })
 
+    it('attributes properties emitted on the reporter instance to the current test', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const [testA] = (Object.values(suitesLog)[0] as SuiteStats).tests
+        reporter.onTestStart(testA)
+        vi.spyOn(reporter, 'getContextTest').mockReturnValue(testA)
+
+        reporter.emit('junit:addProperty', { name: 'a-prop', value: 'a-value' })
+
+        expect(reporter['_testToAdditionalInformation'][testA.uid].properties).toEqual({ 'a-prop': 'a-value' })
+    })
+
     it('skips attribution for a context test that never started, e.g. a skipped test', () => {
         const originalWrite = process.stdout.write
         try {

@@ -4,6 +4,18 @@ import type { ParallelMode } from '@wdio/utils'
 /** Key on the Vitest file task meta, which carries the session from the worker to the reporter in the launcher process. */
 export const SESSION_META_KEY = 'wdio'
 
+/** Key on the Vitest test task meta, which carries reporter runtime API calls from the worker to the reporter in the launcher process. */
+export const RUNTIME_META_KEY = 'wdio:runtime'
+
+export const RELAYED_REPORTER_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty'] as const
+
+export type RelayedEntry = {
+    event: typeof RELAYED_REPORTER_EVENTS[number]
+    payload: unknown
+    /** Retry attempt that made the call, so only the last attempt is replayed */
+    retry: number
+}
+
 export type SessionMeta = {
     sessionId: string
     capabilities: WebdriverIO.Capabilities

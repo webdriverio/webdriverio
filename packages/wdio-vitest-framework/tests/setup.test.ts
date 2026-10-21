@@ -56,9 +56,10 @@ vi.mock('webdriverio', () => ({
     remote: vi.fn(async () => browser)
 }))
 
-const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result } })
+const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result, meta: {} as Record<string, unknown> } })
 const testTask = (state: string) => ({ type: 'test', result: { state } })
 const file = (tasks: object[] = [], errors?: Error[]) => ({ tasks, result: { state: errors ? 'fail' : 'pass', errors } })
+const RELAYED_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty']
 const afterTestResult = () => utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterTest')![2][2]
 
 describe('setup', () => {
@@ -67,6 +68,7 @@ describe('setup', () => {
 
     // every beforeAll in this file registers handlers that only afterAll removes
     afterEach(() => {
+        RELAYED_EVENTS.forEach((event) => process.removeAllListeners(event))
         signalListenersBefore.forEach(([signal, before]) => process.listeners(signal).filter((listener) => !before.includes(listener)).forEach((listener) => process.off(signal, listener)))
     })
 
@@ -143,6 +145,94 @@ describe('setup', () => {
         const { remote } = await import('webdriverio')
         expect(vi.mocked(remote).mock.calls[0][0]).toMatchObject({
             capabilities: { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ platformName: 'linux' }, {}] }
+        })
+    })
+
+    describe('reporter runtime relay', () => {
+        const runInTest = async (body: () => void, overrides: { concurrent?: boolean, result?: object } = {}) => {
+            const context = task(overrides.concurrent ?? false, overrides.result)
+            await hooks.aroundEach(vi.fn(async () => { body() }), context)
+            return context.task.meta['wdio:runtime']
+        }
+
+        it('adds no listeners when the module is evaluated again in the same process', async () => {
+            const counts = () => RELAYED_EVENTS.map((event) => process.listenerCount(event))
+            const before = counts()
+            vi.resetModules()
+            await import('../src/setup.js')
+            await callbacks.beforeAll({}, { file: fileTask })
+
+            expect(before).toEqual([1, 1, 1, 1])
+            expect(counts()).toEqual(before)
+            const meta = await runInTest(() => { process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never) })
+            expect(meta).toHaveLength(1)
+        })
+
+        it('stores junit properties and allure runtime messages in the task meta', async () => {
+            const message = { type: 'metadata', data: { labels: [] } }
+            const meta = await runInTest(() => {
+                process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+                process.emit('allure:runtimeMessage' as never, message as never)
+            })
+            expect(meta).toEqual([
+                { event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 },
+                { event: 'allure:runtimeMessage', payload: message, retry: 0 }
+            ])
+        })
+
+        it('converts allure:startStep and a status string allure:endStep into timestamped runtime messages', async () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                const meta = await runInTest(() => {
+                    process.emit('allure:startStep' as never, 'step' as never)
+                    vi.setSystemTime(2000)
+                    process.emit('allure:endStep' as never, 'passed' as never)
+                })
+                expect(meta).toEqual([
+                    { event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: 'step', start: 1000 } }, retry: 0 },
+                    { event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { status: 'passed', stop: 2000 } }, retry: 0 }
+                ])
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('keeps status details of an object allure:endStep', async () => {
+            const meta = await runInTest(() => {
+                process.emit('allure:endStep' as never, { status: 'failed', statusDetails: { message: 'boom' } } as never)
+            }) as { payload: { data: object } }[]
+            expect(meta[0].payload.data).toMatchObject({ status: 'failed', statusDetails: { message: 'boom' }, stop: expect.any(Number) })
+        })
+
+        it('tags entries with the current retry attempt', async () => {
+            const meta = await runInTest(() => {
+                process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            }, { result: { retryCount: 2 } }) as { retry: number }[]
+            expect(meta[0].retry).toBe(2)
+        })
+
+        it('isolates concurrent tests', async () => {
+            const first = task(true)
+            const second = task(true)
+            const run = (context: ReturnType<typeof task>, name: string) => hooks.aroundEach(vi.fn(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 5))
+                process.emit('junit:addProperty' as never, { name, value: name } as never)
+            }), context)
+            await Promise.all([run(first, 'a'), run(second, 'b')])
+            expect(first.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
+            expect(second.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
+        })
+
+        it('drops calls made outside a test', () => {
+            expect(() => process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)).not.toThrow()
+        })
+
+        it('does not leak a finished test into later calls', async () => {
+            const context = task(false)
+            await hooks.aroundEach(vi.fn(async () => {}), context)
+            process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            expect(context.task.meta).toEqual({})
         })
     })
 

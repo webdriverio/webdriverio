@@ -229,6 +229,7 @@ export type WDIOTestEndMessage = {
     data: {
         status: AllureStatus
         statusDetails?: StatusDetails
+        start?: number
         stop?: number
         duration?: number
         stage?: Stage
