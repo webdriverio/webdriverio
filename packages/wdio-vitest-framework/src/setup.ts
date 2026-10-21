@@ -1,14 +1,17 @@
-import { aroundEach, beforeAll, afterAll, inject, type RunnerTestSuite } from 'vitest'
+import { aroundEach, beforeAll, afterAll, inject, type RunnerTestCase, type RunnerTestSuite } from 'vitest'
 import { SUPPORTED_HOOKS } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWorkerService, type ParallelContextBrowser } from '@wdio/utils'
 import { expect, setDefaultOptions, SoftAssertionService, SoftAssertService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
-import type { AsyncLocalStorage } from 'node:async_hooks'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
-import { SESSION_META_KEY, type SessionMeta } from './types.js'
+import { RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
+
+const log = logger('@wdio/vitest-framework')
 
 // the browser runs these itself; every other WDIO hook is run by this module
 const BROWSER_HOOK_KEYS = ['beforeCommand', 'afterCommand', 'onReload']
@@ -32,6 +35,44 @@ let softAssertions: SoftAssertionService | undefined
 let specFile = ''
 let sessionHookArgs: [WebdriverIO.Config, WebdriverIO.Capabilities, string[]] | undefined
 let sessionClosing: Promise<void> | undefined
+
+type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
+
+type RelayState = { activeTask: AsyncLocalStorage<TestTask>, handlers: Map<string, (payload: unknown) => void> }
+
+// isolate: false evaluates this module once per spec file in one process, so the listeners and the
+// storage they read live on the global to stay a single set
+const RELAY_STATE_KEY = Symbol.for('@wdio/vitest-framework:relay')
+const globalWithRelay = globalThis as typeof globalThis & { [RELAY_STATE_KEY]?: RelayState }
+const relayState = (globalWithRelay[RELAY_STATE_KEY] ??= { activeTask: new AsyncLocalStorage<TestTask>(), handlers: new Map() })
+const activeTask = relayState.activeTask
+
+function relay([event, payload]: [RelayedEntry['event'], unknown]) {
+    const task = activeTask.getStore()
+    if (!task) {
+        log.debug(`Dropped ${event}: reporter runtime APIs only work in tests and beforeEach/afterEach hooks`)
+        return
+    }
+    const meta = task.meta as Record<string, unknown>
+    const entries = (meta[RUNTIME_META_KEY] ??= []) as RelayedEntry[]
+    entries.push({ event, payload, retry: task.result?.retryCount ?? 0 })
+}
+
+const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => [RelayedEntry['event'], unknown]> = {
+    'allure:startStep': (name) => ['allure:runtimeMessage', { type: 'step_start', data: { name: name as string, start: Date.now() } }],
+    'allure:endStep': (arg) => ['allure:runtimeMessage', { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } }],
+    'allure:runtimeMessage': (payload: unknown) => ['allure:runtimeMessage', payload],
+    'junit:addProperty': (payload: unknown) => ['junit:addProperty', payload]
+}
+
+// converted at call time so step timestamps are the worker's, not the replay's
+RELAYED_REPORTER_EVENTS.forEach((event) => {
+    const handler = relayState.handlers.get(event) ?? ((payload: unknown) => relay(toRuntimeMessage[event](payload)))
+    relayState.handlers.set(event, handler)
+    if (!process.listeners(event as never).includes(handler)) {
+        process.on(event, handler)
+    }
+})
 
 function stripConnectionKeys(caps: object) {
     return Object.fromEntries(Object.entries(caps).filter(([key]) => !(CONNECTION_KEYS as readonly string[]).includes(key)))
@@ -201,13 +242,14 @@ aroundEach(async (...args) => {
         }
     }
 
+    const runInTask = () => activeTask.run(task, runWithHooks)
     if (!task.concurrent) {
-        return runWithHooks()
+        return runInTask()
     }
     assertCanRunConcurrently(browser)
     const allocation = await allocateContext(browser, config.vitestOpts!.parallelMode!)
     try {
-        await browser[PARALLEL_CONTEXT_STORE_KEY]!.run(allocation.context, runWithHooks)
+        await browser[PARALLEL_CONTEXT_STORE_KEY]!.run(allocation.context, runInTask)
     } finally {
         await cleanupAllocation(browser, allocation)
     }
