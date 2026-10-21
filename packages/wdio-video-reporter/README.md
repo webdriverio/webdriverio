@@ -32,7 +32,8 @@ frame before it.
 That said, taking a screenshot after almost every command can slow down your tests. In a WebDriver BiDi session, the next command waits for the screenshot of the last frame (about 50 to 70 ms in Chrome), so that each frame shows the page of its command. Also, note that the videos don't include alert-boxes and popups.
 
 In Safari, the frame of a click can show the page from before the click
-([WebKit bug 328312](https://bugs.webkit.org/show_bug.cgi?id=328312)).
+([WebKit bug 328312](https://bugs.webkit.org/show_bug.cgi?id=328312)). In Safari on iOS, the frame of a navigation
+(`url`) can also show the page before it.
 
 ### Alerts
 
