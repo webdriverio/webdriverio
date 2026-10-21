@@ -109,6 +109,7 @@ This repository contains some of the core packages of the WebdriverIO project. T
 - [@wdio/junit-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-junit-reporter) - A WebdriverIO reporter that creates test results in XML format
 - [@wdio/spec-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter) - A WebdriverIO plugin to report in spec style
 - [@wdio/sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter) - A WebdriverIO reporter that sends test results to Sumologic for data analyses
+- [@wdio/video-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-video-reporter) - A WebdriverIO reporter that makes videos of failed tests and has optional Allure integration
 
 ### Services
 

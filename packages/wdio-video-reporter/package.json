@@ -1,0 +1,50 @@
+{
+  "name": "@wdio/video-reporter",
+  "version": "10.1.0",
+  "description": "A WebdriverIO reporter that makes videos of failed tests and has optional Allure integration",
+  "author": "Johan Hernefeldt",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-video-reporter",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-video-reporter"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter",
+    "video",
+    "allure",
+    "reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
+  },
+  "typeScriptVersion": "6.0.3",
+  "dependencies": {
+    "@wdio/allure-reporter": "workspace:*",
+    "@wdio/globals": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "webdriver": "workspace:*"
+  },
+  "devDependencies": {
+    "webdriverio": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
