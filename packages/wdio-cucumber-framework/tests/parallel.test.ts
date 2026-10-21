@@ -1611,4 +1611,64 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
         expect(maxInFlight).toBe(1)
     })
+
+    describe('step results as in sequential mode', () => {
+        const stepOpts = (overrides: Partial<CucumberOptions> = {}) => defaultCucumberOpts({ scenarioLevelReporter: false, ...overrides })
+        const doc = (step: string) => [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [step] }])]
+        const stepEvent = (text: string) => events.find((e) => e.event.startsWith('test:') && e.event !== 'test:start' && e.event !== 'test:end' && e.payload.title?.includes(text))!
+        const ambiguousLibrary = () => mockSupportCodeLibrary({
+            stepDefinitions: [
+                makeStepDefinition('a step', async function () {}),
+                { ...makeStepDefinition('a step', async function () {}), id: 'sd-regexp', pattern: /^a st/, line: 7 },
+            ],
+        })
+
+        test('reports an undefined step as failed with the sequential message', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts())
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Step "missing" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            expect(payload.error.stack).toContain('\tat Feature(/test/foo.feature):1:1\n\tat Scenario(s1):3:3\n\tat Step(missing):4:5\n')
+        })
+
+        test('reports an undefined step as pending with the suffix when ignoreUndefinedDefinitions', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts({ ignoreUndefinedDefinitions: true }))
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:pending')
+            expect(payload.title).toBe('Given missing (undefined step)')
+            expect(payload.error).toBeUndefined()
+        })
+
+        test('reports an ambiguous step as skipped with the step definitions as reason', async () => {
+            await run(mockBrowser(), doc('a step'), stepOpts(), ambiguousLibrary())
+
+            const { event, payload } = stepEvent('a step')
+            expect(event).toBe('test:skip')
+            expect(payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+        })
+
+        test('fails an ambiguous step with failAmbiguousDefinitions', async () => {
+            await run(mockBrowser(), doc('a step'), stepOpts({ failAmbiguousDefinitions: true }), ambiguousLibrary())
+
+            const { event, payload } = stepEvent('a step')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Multiple step definitions match:')
+            expect(payload.pendingReason).toBeUndefined()
+        })
+
+        test('keeps the first line of a failed step as message', async () => {
+            const library = mockSupportCodeLibrary({
+                stepDefinitions: [makeStepDefinition('something', async function () { throw new Error('fails on purpose') })],
+            })
+            await run(mockBrowser(), doc('something'), stepOpts(), library)
+
+            const { event, payload } = stepEvent('something')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Error: fails on purpose')
+            expect(payload.error.stack).toMatch(/^Error: fails on purpose\n/)
+            expect(payload.error.stack).not.toContain('onTestStepFinished')
+        })
+    })
 })
