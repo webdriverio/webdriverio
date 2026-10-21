@@ -1,6 +1,6 @@
 {
   "name": "@wdio/video-reporter",
-  "version": "10.0.2",
+  "version": "10.1.0",
   "description": "A WebdriverIO reporter that makes videos of failed tests and has optional Allure integration",
   "author": "Johan Hernefeldt",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-video-reporter",
