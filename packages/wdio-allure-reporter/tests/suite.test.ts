@@ -735,6 +735,74 @@ describe('Hook reporting', () => {
         expect(results[0].stage).toEqual(Stage.FINISHED)
     })
 
+    it('should keep the hook error and a historyId on a failed all hook', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].historyId).toBeTruthy()
+    })
+
+    it('should keep the hook error and a historyId on a failed all hook with disableMochaHooks', async () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        // disableMochaHooks means the hook never reaches onHookStart
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].historyId).toBeTruthy()
+    })
+
+    it('should report a distinct historyId for each failed all hook', async () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+
+        for (const title of ['Suite A', 'Suite B']) {
+            reporter.onSuiteStart({ ...suiteStart(), title, fullTitle: title, uid: title })
+            reporter.onHookEnd(hookFailed())
+            reporter.onSuiteEnd({ ...suiteEnd(), title, fullTitle: title, uid: title })
+        }
+
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(2)
+        expect(results.map((result: any) => result.statusDetails.message))
+            .toEqual(['element ("body") still existing after 100ms', 'element ("body") still existing after 100ms'])
+        results.forEach((result: any) => expect(result.historyId).toBeTruthy())
+        expect(new Set(results.map((result: any) => result.historyId)).size).toEqual(2)
+    })
+
     it('should keep before all hook steps on hook failure', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
