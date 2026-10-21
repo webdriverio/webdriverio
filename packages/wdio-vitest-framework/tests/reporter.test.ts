@@ -822,6 +822,20 @@ describe('WdioBridgeReporter', () => {
             expect(byTitle('c')).toEqual([concurrent.id, concurrent.id, concurrent.id])
         })
 
+        it('resolves the contextId while closing an unfinished concurrent test', async () => {
+            const module = makeModule({ state: () => 'failed', errors: () => [] })
+            const test = makeTest(module, module, 'stuck', passed, 1, { options: { concurrent: true } })
+            reporter.onTestModuleStart(module)
+            await reporter.onTestCaseReady(test)
+            const instance = instances[0] as any
+            const resolver = instance.resolver as () => string | undefined
+            const seen: [string, string | undefined][] = []
+            instance.emit = (event: string) => { seen.push([event, resolver()]); instance.emitted.push([event, {}]) }
+            await reporter.onTestModuleEnd(module)
+
+            expect(seen.filter(([event]) => event.startsWith('test:'))).toEqual([['test:fail', test.id], ['test:end', test.id]])
+        })
+
         it('leaves a purely sequential module untagged', async () => {
             const module = makeModule()
             await runTests(module, makeTest(module, module, 's', passed, 1))
