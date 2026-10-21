@@ -1732,6 +1732,14 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             expect(payload.error).toBeUndefined()
         })
 
+        test('marks a pending step as not passed, as the sequential formatter does', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts({ ignoreUndefinedDefinitions: true }))
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:pending')
+            expect(payload.passed).toBe(false)
+        })
+
         test('reports an ambiguous step as skipped with the step definitions as reason', async () => {
             await run(mockBrowser(), doc('a step'), stepOpts(), ambiguousLibrary())
 

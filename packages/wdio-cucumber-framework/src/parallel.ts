@@ -673,7 +673,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
                 featureStack: () => getFeatureStack(uri, feature, pickle, step),
             }
         )
-        const passed = ['pass', 'skip', 'pending'].includes(state)
+        const passed = ['pass', 'skip'].includes(state)
 
         const payload = {
             ...buildStepPayload(uri, feature, pickle, step as ReporterStep, {
