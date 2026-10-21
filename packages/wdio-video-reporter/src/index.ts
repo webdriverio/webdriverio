@@ -84,9 +84,9 @@ export default class VideoReporter extends WdioReporter {
     #mainContextReady?: Promise<string | undefined>
     #mainContextSession?: string
     /**
-     * the BiDi session has no `browsingContext.captureScreenshot` (Appium): classic frames
+     * the BiDi sessions that have no `browsingContext.captureScreenshot` (Appium): classic frames
      */
-    #noBidiCapture = false
+    #noBidiCaptureSessions = new Set<string | undefined>()
     #frameContext?: string
     /**
      * the screenshot of the last frame, for a frame whose session ended first
@@ -667,12 +667,12 @@ export default class VideoReporter extends WdioReporter {
         const instance = getScreenshotBrowser(browser)
         const sessionId = instance.sessionId
         const previous = this.#lastScreenshot
-        const capture: Promise<string> = (this.#mainContextReady && !this.#noBidiCapture
+        const capture: Promise<string> = (this.#mainContextReady && !this.#noBidiCaptureSessions.has(sessionId)
             ? this.#bidiScreenshot(instance, this.#frameContext, frame).catch((error: unknown) => {
                 if (!isUnknownBidiCommand(error)) {
                     throw error
                 }
-                this.#noBidiCapture = true
+                this.#noBidiCaptureSessions.add(sessionId)
                 this.#log(`The WebDriver BiDi session has no browsingContext.captureScreenshot, using classic screenshots (frame: ${frame})`)
                 return instance.takeScreenshot()
             })

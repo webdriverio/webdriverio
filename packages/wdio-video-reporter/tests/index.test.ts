@@ -1101,6 +1101,28 @@ describe('Video Reporter', () => {
                 vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
             })
 
+            it('uses the BiDi capture again in a new session (reloadSession)', async () => {
+                vi.mocked(browser.browsingContextCaptureScreenshot).mockRejectedValueOnce(new Error(
+                    'WebDriver Bidi command "browsingContext.captureScreenshot" failed with error: unknown command - x'
+                ))
+                const reporter = await bidiReporter()
+                reporter.addFrame()
+                await Promise.all(reporter.screenshotPromises)
+                expect(browser.takeScreenshot).toBeCalledTimes(1)
+                const sessionId = browser.sessionId
+                browser.sessionId = 'new-session'
+                try {
+                    vi.mocked(browser.browsingContextCaptureScreenshot).mockResolvedValueOnce({ data: 'bmV3' } as any)
+                    reporter.addFrame()
+                    await Promise.all(reporter.screenshotPromises)
+                    expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(2)
+                    expect(browser.takeScreenshot).toBeCalledTimes(1)
+                    expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0001.png'), 'bmV3', 'base64')
+                } finally {
+                    browser.sessionId = sessionId
+                }
+            })
+
             it('sends a new capture when one gets no answer in time, and the first answer wins', async () => {
                 vi.mocked(browser.browsingContextCaptureScreenshot)
                     .mockReturnValueOnce(new Promise(() => {}) as any)
