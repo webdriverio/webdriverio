@@ -62,10 +62,10 @@ export interface ReporterOptions extends Reporters.Options {
     maxTestNameCharacters?: number
 
     /**
-   * Format of the videos: `webm` or `mp4`.
+   * Format of the videos. Another value gives a warning and `webm`.
    * @default 'webm'
    */
-    videoFormat?: keyof typeof SUPPORTED_VIDEO_FORMATS
+    videoFormat?: 'webm' | 'mp4'
 
     /**
    * Commands that give no screenshot, with the names of `snapshotCommands`

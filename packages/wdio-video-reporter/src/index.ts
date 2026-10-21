@@ -17,7 +17,7 @@ import {
     findAllureReporter, findFfmpeg
 } from './helpers.js'
 import {
-    DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS, BIDI_CAPTURE_TRIES, BIDI_CAPTURE_RETRY_DELAY,
+    DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, BIDI_CAPTURE_TRIES, BIDI_CAPTURE_RETRY_DELAY,
     BIDI_CAPTURE_FAILED_RETRY_DELAY, FRAME_WAIT_TIMEOUT
 } from './constants.js'
 import type { ReporterOptions } from './types.js'
@@ -118,7 +118,8 @@ export default class VideoReporter extends WdioReporter {
             this.options.screenshotIntervalSecs = Math.max(this.options.screenshotIntervalSecs, 0.5)
         }
 
-        if (!Object.hasOwn(SUPPORTED_VIDEO_FORMATS, this.options.videoFormat)) {
+        // `default` is the fallback of the format settings, not a format that users choose
+        if (!['webm', 'mp4'].includes(this.options.videoFormat)) {
             log.warn(`videoFormat "${this.options.videoFormat}" is not supported, using "${DEFAULT_OPTIONS.videoFormat}". Use "mp4" or "webm".`)
             this.options.videoFormat = DEFAULT_OPTIONS.videoFormat
         }
