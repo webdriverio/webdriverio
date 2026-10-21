@@ -12,9 +12,11 @@ import {
     getRule,
     generateSkipTagsFromCapabilities,
     convertStatus,
-    getAmbiguousStepMessage
+    getAmbiguousStepMessage,
+    getFeatureStack,
+    getStepResult
 } from '../src/utils.js'
-import type { StepDefinition } from '@cucumber/messages'
+import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -365,6 +367,97 @@ describe('utils', () => {
 
         it('gives undefined for no definition', () => {
             expect(getAmbiguousStepMessage([])).toBeUndefined()
+        })
+    })
+
+    describe('getFeatureStack', () => {
+        const feature = {
+            children: [
+                { background: { steps: [{ id: 'bg-1', text: 'a background step', location: { line: 4, column: 5 } }] } },
+                { scenario: { id: 'sc-1', name: 'Get size', location: { line: 6, column: 3 }, steps: [{ id: 'st-1', text: 'a step', location: { line: 7, column: 5 } }] } }
+            ]
+        } as unknown as Feature
+        const scenario = { astNodeIds: ['sc-1'] } as unknown as Pickle
+
+        it('gives the location of the feature, the scenario and the step', () => {
+            expect(getFeatureStack('/a.feature', feature, scenario, { astNodeIds: ['st-1'] } as unknown as PickleStep)).toBe(
+                '\tat Feature(/a.feature):1:1\n\tat Scenario(Get size):6:3\n\tat Step(a step):7:5\n')
+        })
+
+        it('finds a background step', () => {
+            expect(getFeatureStack('/a.feature', feature, scenario, { astNodeIds: ['bg-1'] } as unknown as PickleStep)).toBe(
+                '\tat Feature(/a.feature):1:1\n\tat Scenario(Get size):6:3\n\tat Step(a background step):4:5\n')
+        })
+
+        it('gives only the feature for an unknown scenario', () => {
+            expect(getFeatureStack('/a.feature', feature, { astNodeIds: ['x'] } as unknown as Pickle)).toBe('\tat Feature(/a.feature):1:1\n')
+        })
+    })
+
+    describe('getStepResult', () => {
+        const featureStack = '\tat Feature(/a.feature):1:1\n'
+        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, featureStack }
+        const result = (status: string, message?: string) => ({ status, message, duration: { seconds: 0, nanos: 0 } }) as unknown as TestStepResult
+
+        it('passes a passed step', () => {
+            expect(getStepResult(result(Status.PASSED), params)).toEqual({ state: 'pass', error: undefined, titleSuffix: '', failed: false })
+        })
+
+        it('fails an undefined step with the sequential message', () => {
+            const { state, error, failed, titleSuffix } = getStepResult(result(Status.UNDEFINED), params)
+            expect(state).toBe('fail')
+            expect(failed).toBe(true)
+            expect(titleSuffix).toBe('')
+            expect(error?.message).toBe('Step "a step" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            expect(error?.stack).toBe(`${error?.message}\n${featureStack}`)
+        })
+
+        it('fails a scenario with an undefined step with the scenario message', () => {
+            const { error } = getStepResult(result(Status.UNDEFINED), { ...params, title: 'S', isStep: false })
+            expect(error?.message).toBe('Scenario S has undefined steps. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+        })
+
+        it('reports an undefined step as pending with the suffix', () => {
+            expect(getStepResult(result(Status.UNDEFINED), { ...params, ignoreUndefinedDefinitions: true }))
+                .toEqual({ state: 'pending', error: undefined, titleSuffix: ' (undefined step)', failed: false })
+        })
+
+        it('keeps the first line of a failed step as message and the Cucumber message as stack', () => {
+            const message = 'Error: fails on purpose\n    at World.<anonymous> (steps.ts:1:1)'
+            const { state, error, failed } = getStepResult(result(Status.FAILED, message), params)
+            expect(state).toBe('fail')
+            expect(failed).toBe(true)
+            expect(error?.message).toBe('Error: fails on purpose')
+            expect(error?.stack).toBe(message)
+        })
+
+        it('does not fail a step result that will be retried', () => {
+            const { state, failed } = getStepResult({ ...result(Status.FAILED, 'Error: x'), willBeRetried: true }, params)
+            expect(state).toBe('fail')
+            expect(failed).toBe(false)
+        })
+
+        it('skips an ambiguous step with the definitions as pendingReason', () => {
+            const message = 'Multiple step definitions match:\n  a step - steps.ts:1'
+            const { state, failed, pendingReason } = getStepResult(result(Status.AMBIGUOUS, message), params)
+            expect(state).toBe('skip')
+            expect(failed).toBe(false)
+            expect(pendingReason).toBe(message)
+        })
+
+        it('fails an ambiguous step with failAmbiguousDefinitions', () => {
+            const message = 'Multiple step definitions match:\n  a step - steps.ts:1'
+            const { state, failed, error, pendingReason } = getStepResult(result(Status.AMBIGUOUS, message), { ...params, failAmbiguousDefinitions: true })
+            expect(state).toBe('fail')
+            expect(failed).toBe(true)
+            expect(pendingReason).toBeUndefined()
+            expect(error?.message).toBe('Multiple step definitions match:')
+            expect(error?.stack).toBe(`${message}\n${featureStack}`)
+        })
+
+        it('uses the fallback text for an ambiguous step with no definitions', () => {
+            const { error } = getStepResult(result(Status.AMBIGUOUS), { ...params, failAmbiguousDefinitions: true })
+            expect(error?.message).toBe('Step "a step" matches multiple step definitions. Make the step definitions unique by removing duplicate or overlapping expressions.')
         })
     })
 })
