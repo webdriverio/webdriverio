@@ -329,16 +329,17 @@ export default class AllureReporter extends WDIOReporter {
         if (lane) { lane.inTail = false }
     }
 
-    private _suitePathOf(test: TestStats | HookStats): string[] | undefined {
+    private _suitePathOf(exec: TestStats | HookStats): string[] | undefined {
         const find = (suite: SuiteStats, titles: string[]): string[] | undefined => {
-            if (suite.tests.includes(test as TestStats)) { return titles }
+            if (suite.tests.includes(exec as TestStats) || suite.hooks.includes(exec as HookStats)) { return titles }
             for (const child of suite.suites) {
                 const found = find(child, [...titles, child.title])
                 if (found) { return found }
             }
             return undefined
         }
-        return find(this.currentSuites[0], [])
+        const root = this.currentSuites[0]
+        return root ? find(root, []) : undefined
     }
 
     /** the feature of a parallel Cucumber unit: parallel mode starts every feature first */
@@ -1304,7 +1305,7 @@ export default class AllureReporter extends WDIOReporter {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
-            this._emitHistoryIdsFrom(this._mochaFullTitle(cid, hook.title))
+            this._emitHistoryIdsFrom(this._hookFullTitle(cid, hook))
             // the hook of its own result is a fixture of that result only
             this._startHook({ name: hook.title || 'Hook', type: hookType, start, scope: scope === 'root' ? 'all' : scope })
             this._endHook({
@@ -1354,7 +1355,7 @@ export default class AllureReporter extends WDIOReporter {
              * the hook fixture has just been closed above, so the metadata lands on the
              * synthetic hook-failure test instead of on the still-open fixture
              */
-            this._emitHistoryIdsFrom(this._mochaFullTitle(cid, hook.title))
+            this._emitHistoryIdsFrom(this._hookFullTitle(cid, hook))
             this._endTest({
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
@@ -1476,6 +1477,19 @@ export default class AllureReporter extends WDIOReporter {
     private _mochaFullTitle(cid: string, leaf: string): string {
         const parts = [...this._activeSuitePath(cid)]
         if (leaf) { parts.push(leaf) }
+        return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
+    }
+
+    /**
+     * Full title for a synthetic hook-failure result. A hook can fire before any
+     * test sets the lane's suite path (parallel mode), so `_activeSuitePath`
+     * contributes nothing there and hooks with the same title in different
+     * suites would share one history id. The owning suite is recovered from the
+     * base reporter's suite tree, which links every hook to its declaring suite.
+     */
+    private _hookFullTitle(cid: string, hook: HookStats): string {
+        const parts = [...(this._suitePathOf(hook) ?? this._activeSuitePath(cid))]
+        if (hook.title) { parts.push(hook.title) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
 
