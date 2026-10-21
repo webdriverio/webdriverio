@@ -321,9 +321,9 @@ With `cucumberOpts.scenarioLevelReporter: true`, the reporter also makes one vid
 
 ## Appium Support
 
-When the capabilities have no `browserName`, the reporter uses `appium:deviceName` and `platformName` in the video
-file names, for example `PIXEL7-ANDROID`. With Allure, it also adds `deviceName` and `browserVersion` as arguments
-of the test.
+When the capabilities have no `browserName`, the reporter uses the device name that the Appium session returns and
+`platformName` in the video file names, for example `IPHONE17-IOS`. UiAutomator2 returns the device id, for example
+`EMULATOR-5554-ANDROID`. With Allure, it also adds `deviceName` and `browserVersion` as arguments of the test.
 
 ```js
   capabilities: [{
