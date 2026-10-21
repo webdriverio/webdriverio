@@ -31,6 +31,7 @@
  * @module parallel
  */
 
+import path from 'node:path'
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import type { AsyncLocalStorage } from 'node:async_hooks'
@@ -928,8 +929,9 @@ export async function runParallelCucumber(params: {
     const featureGroups = collectFeatureGroups(gherkinDocuments, rootDir)
         .map((group) => ({
             ...group,
+            // Cucumber's line filter compares the uri relative to the cwd, as its own pickles have it
             pickles: group.pickles.filter((pickle) =>
-                pickleFilter.matches({ gherkinDocument: group.gherkinDocument, pickle })
+                pickleFilter.matches({ gherkinDocument: group.gherkinDocument, pickle: { ...pickle, uri: path.relative(process.cwd(), pickle.uri) } })
             ),
         }))
         .filter((g) => g.pickles.length > 0)

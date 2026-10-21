@@ -1659,6 +1659,23 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(maxInFlight).toBe(1)
     })
 
+    test('runs only the scenarios at the line numbers of a spec, as Cucumber does', async () => {
+        const doc = makeFeatureDoc(path.resolve('/test/foo.feature'), 'Test', ['s1', 's2', 's3'])
+        const { result } = await runOrCatch({
+            browser: mockBrowser() as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: [`${doc.uri}:6:9`],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: library(),
+            cucumberOpts: defaultCucumberOpts(),
+        })
+
+        expect(result).toBe(0)
+        expect(events.filter((e) => e.event === 'test:start').map((e) => e.payload.title)).toEqual(['s2', 's3'])
+    })
+
     describe('feature suites as in sequential mode', () => {
         const taggedDoc = () => {
             const parser = new Gherkin.Parser(new Gherkin.AstBuilder(uuidFn), new Gherkin.GherkinClassicTokenMatcher())

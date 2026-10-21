@@ -245,6 +245,25 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
+    it('reads the feature file of a spec with line numbers in parallel mode', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        const feature = path.join(__dirname, 'fixtures', 'test_no_tags.feature')
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' }, cucumberFeaturesWithLineNumbers: [`${feature}:7`] },
+            [feature], {}, {}, {}, false, 'progress'
+        )
+        await adapter.run()
+
+        const [{ specs, gherkinDocuments }] = vi.mocked(runParallelCucumber).mock.calls[0]
+        // the line numbers stay for Cucumber's line filter, the document has the file
+        expect(specs).toEqual([`${feature}:7`])
+        expect(gherkinDocuments.flat().map((doc) => doc.uri)).toEqual([feature])
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
     it('uses the browser from setBrowser without globalThis.browser', async () => {
         vi.mocked(runParallelCucumber).mockResolvedValue(0)
         delete (globalThis as Record<string, unknown>).browser
