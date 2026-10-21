@@ -13,7 +13,8 @@ import type {
     Pickle,
     TestStepResultStatus,
     FeatureChild,
-    StepDefinition
+    StepDefinition,
+    TestStepResult
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
@@ -318,4 +319,105 @@ export function getAmbiguousStepMessage(stepDefinitions: readonly StepDefinition
         return `  ${source} - ${sourceReference.uri}${line}`
     })
     return [AMBIGUOUS_STEP_MESSAGE, ...lines].join('\n')
+}
+
+/**
+ * Cucumber 13 sends no message for an ambiguous step: give the result the matching step definitions as message.
+ * @param stepDefinitionIds - gives the step definition ids of the step, only for an ambiguous result with no message
+ * @returns the same result when it is not ambiguous, has a message, or no definition is found
+ */
+export function withAmbiguousMessage(
+    result: TestStepResult,
+    stepDefinitionIds: () => readonly string[],
+    stepDefinitions: ReadonlyMap<string, StepDefinition>
+): TestStepResult {
+    if (result.status !== 'AMBIGUOUS' || result.message) {
+        return result
+    }
+    const message = getAmbiguousStepMessage(stepDefinitionIds()
+        .map((id) => stepDefinitions.get(id))
+        .filter((definition): definition is StepDefinition => Boolean(definition)))
+    return message ? { ...result, message } : result
+}
+
+/**
+ * stack lines with the location of the scenario and the step in the feature file
+ */
+export function getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep): string {
+    let stack = `\tat Feature(${uri}):1:1\n`
+    const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
+    const featScenario = children.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
+    if (featScenario) {
+        stack += `\tat Scenario(${featScenario.name}):${featScenario.location?.line}:${featScenario.location?.column}\n`
+
+        const steps = [...children.flatMap((c) => c.background?.steps ?? []), ...(featScenario.steps ?? [])]
+        const featStep = steps.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
+        if (featStep) {
+            stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
+        }
+    }
+    return stack
+}
+
+export interface StepResult {
+    state: 'pass' | 'fail' | 'skip' | 'pending'
+    error?: Error
+    pendingReason?: string
+    /** reporters tell an undefined step from a pending one by this suffix */
+    titleSuffix: string
+    /** the result counts as a failure of the run */
+    failed: boolean
+}
+
+/**
+ * The reported state of a step or scenario result, the same in sequential and parallel runs.
+ * @param result - the Cucumber result
+ * @param params.title - the step text, or the scenario title
+ * @param params.isStep - `false` for a scenario that is reported as a test (`scenarioLevelReporter`)
+ * @param params.featureStack - gives the location of the step in the feature file (see `getFeatureStack`), only for the errors that show it
+ */
+export function getStepResult(
+    result: TestStepResult,
+    params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, featureStack: () => string }
+): StepResult {
+    const { title, isStep, featureStack } = params
+    let state = convertStatus(result.status)
+    let error = result.message ? new Error(result.message) : undefined
+    let titleSuffix = ''
+    let failed = false
+
+    if (result.status === 'UNDEFINED') {
+        if (params.ignoreUndefinedDefinitions) {
+            state = 'pending'
+            titleSuffix = ' (undefined step)'
+        } else {
+            state = 'fail'
+            failed = true
+            error = new Error(
+                (isStep ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
+                'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
+            )
+            error.stack = `${error.message}\n${featureStack()}`
+        }
+    } else if (result.status === 'FAILED') {
+        state = 'fail'
+        failed = true
+        error = new Error(result.message?.split('\n')[0])
+        error.stack = result.message as string
+    } else if (result.status === 'AMBIGUOUS' && params.failAmbiguousDefinitions) {
+        state = 'fail'
+        failed = true
+        const message = result.message || (
+            (isStep
+                ? `Step "${title}" matches multiple step definitions. `
+                : `Scenario "${title}" contains a step matching multiple step definitions. `) +
+            'Make the step definitions unique by removing duplicate or overlapping expressions.'
+        )
+        error = new Error(message.split('\n')[0])
+        error.stack = `${message}\n${featureStack()}`
+    }
+
+    // reporters show the reason of a skipped test from `pendingReason`, not from its error
+    const pendingReason = result.status === 'AMBIGUOUS' && state === 'skip' ? result.message : undefined
+    return { state, error, ...(pendingReason ? { pendingReason } : {}), titleSuffix, failed }
 }

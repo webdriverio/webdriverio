@@ -192,6 +192,13 @@ export class CucumberAdapter {
             this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
         }
 
+        // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
+        if (this._cucumberOpts.order === 'random') {
+            const seed = Math.floor(Math.random() * 1000 * 1000)
+            this._cucumberOpts.order = `random:${seed}`
+            log.warn(`Random order using seed: ${seed}`)
+        }
+
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
@@ -323,8 +330,10 @@ export class CucumberAdapter {
             return this._runSequential(supportCodeLibrary)
         }
 
-        // Parse Gherkin documents from filtered specs
-        const gherkinDocuments = this.getGherkinDocuments([this._specs])
+        // Parse Gherkin documents from filtered specs; a spec `file.feature:12` keeps
+        // its line numbers in `specs` for Cucumber's line filter
+        const featurePaths = [...new Set(this._specs.map((spec) => spec.replace(/(:\d+)+$/, '')))]
+        const gherkinDocuments = this.getGherkinDocuments([featurePaths])
         const { sources, runtime } = await this._loadRunConfiguration({ cwd: this._cwd })
 
         try {

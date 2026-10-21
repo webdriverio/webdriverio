@@ -82,7 +82,7 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`) and the `tags`, `name`, `strict`, `dryRun`, `failFast`, `retry` and `retryTagFilter` options work like in a sequential run.
+Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`), specs with line numbers (`--spec ./features/login.feature:5`) and the `tags`, `name`, `order`, `strict`, `dryRun`, `failFast`, `retry` and `retryTagFilter` options work like in a sequential run. Features, scenarios, steps and hooks are reported like in a sequential run, also with `ignoreUndefinedDefinitions`, `failAmbiguousDefinitions`, `tagsInTitle` and `scenarioLevelReporter`.
 
 ## Options
 
@@ -152,6 +152,9 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 - `BeforeAll` / `AfterAll` and the `beforeFeature` / `afterFeature` hooks in `wdio.conf.ts` run once per worker, not once per feature. `beforeFeature` / `afterFeature` receive the uri and feature of the first feature file only, which matters when one worker runs several feature files, for example grouped specs. They run outside any scenario's window, so they must not use commands that need one.
 - `Before` / `After`, `BeforeStep` / `AfterStep` and the scenario and step hooks in `wdio.conf.ts` run for every scenario, in that scenario's window.
 - `cucumberOpts.strict` defaults to `false` in WebdriverIO. A pending step fails the scenario only with `strict: true`.
+- With `failFast`, the scenarios that already run in other windows finish after the first failure. The scenarios that did not start are reported as skipped, as in a sequential run.
+- With `ignoreUndefinedDefinitions: true`, an ambiguous step (with `failAmbiguousDefinitions: false`), or a pending step with `strict: true`, fails the run. A sequential run then passes.
+- Cucumber formatters (`format`, `formatOptions`, `publish`) don't run, so they write no file.
 
 ### Both frameworks
 
@@ -172,6 +175,8 @@ Run your suite once with the capability and without `parallelMode` to find tests
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
 `@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
+
+`@wdio/spec-reporter` doesn't support parallel mode yet: a Mocha `describe` block that comes after another one, or a Cucumber scenario that starts while another one runs, is shown nested under it, and with Cucumber `retry` the passing count can be wrong. The results of the tests and the exit code are correct.
 
 `@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
 

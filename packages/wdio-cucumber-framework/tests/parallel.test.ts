@@ -951,6 +951,11 @@ describe('runParallelCucumber', () => {
 
     // ---- failFast summary ----
 
+    // a defined step: in skip mode, Cucumber keeps an undefined step failed
+    const failingLibrary = () => mockSupportCodeLibrary({
+        stepDefinitions: [makeStepDefinition('something', async function () { throw new Error('fails on purpose') })],
+    })
+
     test('failFast in step-level mode reports skipped steps as start, skip, end with one uid', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3'])
@@ -962,7 +967,7 @@ describe('runParallelCucumber', () => {
             cid: '0-0',
             specs: ['/test/foo.feature'],
             gherkinDocuments: [doc],
-            supportCodeLibrary: mockSupportCodeLibrary(),
+            supportCodeLibrary: failingLibrary(),
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true, scenarioLevelReporter: false }),
         })
 
@@ -983,11 +988,11 @@ describe('runParallelCucumber', () => {
             cid: '0-0',
             specs: ['/test/foo.feature'],
             gherkinDocuments: [doc],
-            supportCodeLibrary: mockSupportCodeLibrary(),
+            supportCodeLibrary: failingLibrary(),
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true }),
         })
 
-        // 2 scenarios fail (no step defs); scenario 3 is skipped
+        // 2 scenarios fail; scenario 3 is skipped
         const starts = reporterEvents.filter((e) => e.event === 'test:start')
         const fails = reporterEvents.filter((e) => e.event === 'test:fail')
         const skips = reporterEvents.filter((e) => e.event === 'test:skip')
@@ -1297,6 +1302,48 @@ describe('runParallelCucumber worker pool', () => {
         vi.clearAllMocks()
         reporter = new EventEmitter()
         eventEmitter = new EventEmitter()
+    })
+
+    describe('cucumberOpts.order', () => {
+        const { orderPickles } = createRequire(import.meta.url)('@cucumber/cucumber/lib/filter/order_pickles') as {
+            orderPickles: (items: string[], order: string, logger: { warn(message: string): void }) => void
+        }
+        const bodies = Object.fromEntries(Array.from({ length: 5 }, (_, i) => [`step${i}`, () => {}]))
+        const startOrder = async (order: string, browser = mockBrowser()) => {
+            const titles: string[] = []
+            reporter.on('test:start', (payload: { title: string }) => titles.push(payload.title))
+            const outcome = await run(browser, names(5), bodies, 1, { order })
+            return { titles, ...outcome }
+        }
+
+        test('orders the pickles with a seed', async () => {
+            const expected = ['s0', 's1', 's2', 's3', 's4']
+            orderPickles(expected, 'random:7', { warn: () => {} })
+
+            const { titles } = await startOrder('random:7')
+            expect(titles).toEqual(expected)
+            expect(titles).not.toEqual(['s0', 's1', 's2', 's3', 's4'])
+        })
+
+        test('runs the pickles in reverse order', async () => {
+            const { titles } = await startOrder('reverse')
+            expect(titles).toEqual(['s4', 's3', 's2', 's1', 's0'])
+        })
+
+        test('throws for an unknown order before the run', async () => {
+            const browser = mockBrowser()
+            const { error, titles } = await startOrder('foo', browser)
+            expect(error?.message).toContain('Unrecognized order type')
+            expect(browser.browsingContextCreate).not.toHaveBeenCalled()
+            expect(titles).toEqual([])
+        })
+
+        test('logs the seed of a random order with no seed', async () => {
+            const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn')
+            await startOrder('random')
+            expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^Random order using seed: \d+$/))
+            warn.mockRestore()
+        })
     })
 
     test('never runs more scenarios than maxParallelContexts and keeps live tabs bounded', async () => {
@@ -1610,5 +1657,240 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(result).toBe(0)
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
         expect(maxInFlight).toBe(1)
+    })
+
+    test('runs only the scenarios at the line numbers of a spec, as Cucumber does', async () => {
+        const doc = makeFeatureDoc(path.resolve('/test/foo.feature'), 'Test', ['s1', 's2', 's3'])
+        const { result } = await runOrCatch({
+            browser: mockBrowser() as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: [`${doc.uri}:6:9`],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: library(),
+            cucumberOpts: defaultCucumberOpts(),
+        })
+
+        expect(result).toBe(0)
+        expect(events.filter((e) => e.event === 'test:start').map((e) => e.payload.title)).toEqual(['s2', 's3'])
+    })
+
+    describe('feature suites as in sequential mode', () => {
+        const taggedDoc = () => {
+            const parser = new Gherkin.Parser(new Gherkin.AstBuilder(uuidFn), new Gherkin.GherkinClassicTokenMatcher())
+            const text = '@feat\nFeature: Test\n  About the feature\n\n  Scenario: s1\n    Given something\n'
+            return [{ ...parser.parse(text), uri: '/test/foo.feature' } as messages.GherkinDocument]
+        }
+        const featureEvents = () => events.filter((e) => e.payload.type === 'feature')
+
+        test('titles a feature with its tags when tagsInTitle', async () => {
+            await run(mockBrowser(), taggedDoc(), defaultCucumberOpts({ tagsInTitle: true }))
+
+            const [start, end] = featureEvents()
+            expect(start.event).toBe('suite:start')
+            expect(start.payload.title).toBe('@feat: Test')
+            expect(start.payload.keyword).toBe('Feature')
+            expect(start.payload.description).toBe('  About the feature')
+            expect(end.event).toBe('suite:end')
+            expect(end.payload.title).toBe('@feat: Test')
+        })
+
+        test('keeps the feature title without tags by default', async () => {
+            await run(mockBrowser(), taggedDoc())
+
+            expect(featureEvents().map((e) => e.payload.title)).toEqual(['Test', 'Test'])
+        })
+    })
+
+    describe('step results as in sequential mode', () => {
+        const stepOpts = (overrides: Partial<CucumberOptions> = {}) => defaultCucumberOpts({ scenarioLevelReporter: false, ...overrides })
+        const doc = (step: string) => [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [step] }])]
+        const stepEvent = (text: string) => events.find((e) => e.event.startsWith('test:') && e.event !== 'test:start' && e.event !== 'test:end' && e.payload.title?.includes(text))!
+        const ambiguousLibrary = () => mockSupportCodeLibrary({
+            stepDefinitions: [
+                makeStepDefinition('a step', async function () {}),
+                { ...makeStepDefinition('a step', async function () {}), id: 'sd-regexp', pattern: /^a st/, line: 7 },
+            ],
+        })
+
+        test('reports an undefined step as failed with the sequential message', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts())
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Step "missing" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            expect(payload.error.stack).toContain('\tat Feature(/test/foo.feature):1:1\n\tat Scenario(s1):3:3\n\tat Step(missing):4:5\n')
+        })
+
+        test('reports an undefined step as pending with the suffix when ignoreUndefinedDefinitions', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts({ ignoreUndefinedDefinitions: true }))
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:pending')
+            expect(payload.title).toBe('Given missing (undefined step)')
+            expect(payload.error).toBeUndefined()
+        })
+
+        test('marks a pending step as not passed, as the sequential formatter does', async () => {
+            await run(mockBrowser(), doc('missing'), stepOpts({ ignoreUndefinedDefinitions: true }))
+
+            const { event, payload } = stepEvent('missing')
+            expect(event).toBe('test:pending')
+            expect(payload.passed).toBe(false)
+        })
+
+        test('reports an ambiguous step as skipped with the step definitions as reason', async () => {
+            await run(mockBrowser(), doc('a step'), stepOpts(), ambiguousLibrary())
+
+            const { event, payload } = stepEvent('a step')
+            expect(event).toBe('test:skip')
+            expect(payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+        })
+
+        test('fails an ambiguous step with failAmbiguousDefinitions', async () => {
+            await run(mockBrowser(), doc('a step'), stepOpts({ failAmbiguousDefinitions: true }), ambiguousLibrary())
+
+            const { event, payload } = stepEvent('a step')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Multiple step definitions match:')
+            expect(payload.pendingReason).toBeUndefined()
+        })
+
+        describe('scenarios after a failFast stop', () => {
+            const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+            const failFastRun = async (secondStep: string, stepDefinitions: unknown[] = [], hook = vi.fn()) => {
+                const supportCodeLibrary = {
+                    ...mockSupportCodeLibrary({
+                        stepDefinitions: [makeStepDefinition('fails', async function () { throw new Error('fails on purpose') }), ...stepDefinitions],
+                    }),
+                    beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: hook, id: 'hook-1', line: 3, uri: '/test/hooks.ts', order: 0, options: { tags: '@a' } })],
+                }
+                const docs = [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', tags: ['@a'], steps: ['fails'] }, { name: 's2', tags: ['@a'], steps: [secondStep] }])]
+                const outcome = await run(mockBrowser(), docs, stepOpts({ failFast: true, maxParallelContexts: 1 }), supportCodeLibrary as never)
+                return { ...outcome, s2: events.filter((e) => e.payload.scenarioName === 's2' && e.event !== 'test:start' && e.event !== 'hook:start' && e.event !== 'test:end') }
+            }
+
+            test('reports their hooks as skipped and does not run them', async () => {
+                const hook = vi.fn()
+                const { s2 } = await failFastRun('something', [makeStepDefinition('something', async function () {})], hook)
+
+                expect(hook).toHaveBeenCalledTimes(1)
+                expect(s2.map((e) => `${e.event}=${e.payload.title}=${e.payload.state}`)).toEqual(['hook:end=@a=SKIPPED', 'test:skip=Given something=skip'])
+                expect(s2.every((e) => e.payload.contextId === undefined)).toBe(true)
+            })
+
+            test('counts an undefined step after the stop as a failure of the run', async () => {
+                const info = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'info')
+                const { result } = await failFastRun('missing')
+
+                expect(result).toBe(2)
+                expect(info).toHaveBeenCalledWith(expect.stringContaining('2 scenarios: 0 passed, 2 failed, 0 skipped'))
+                info.mockRestore()
+            })
+
+            test('counts a skipped scenario after the stop as skipped', async () => {
+                const info = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'info')
+                const { result } = await failFastRun('something', [makeStepDefinition('something', async function () {})])
+
+                expect(result).toBe(1)
+                expect(info).toHaveBeenCalledWith(expect.stringContaining('2 scenarios: 0 passed, 1 failed, 1 skipped'))
+                info.mockRestore()
+            })
+
+            test('keeps an undefined step failed, as Cucumber does', async () => {
+                const { s2 } = await failFastRun('missing')
+
+                const step = s2.find((e) => e.event.startsWith('test:'))!
+                expect(step.event).toBe('test:fail')
+                expect(step.payload.error.message).toBe('Step "missing" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            })
+
+            test('keeps the reason of an ambiguous step', async () => {
+                const { s2 } = await failFastRun('a step', [
+                    makeStepDefinition('a step', async function () {}),
+                    { ...makeStepDefinition('a step', async function () {}), id: 'sd-regexp', pattern: /^a st/, line: 7 },
+                ])
+
+                const step = s2.find((e) => e.event.startsWith('test:'))!
+                expect(step.event).toBe('test:skip')
+                expect(step.payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+            })
+        })
+
+        describe('scenario-level reporter', () => {
+            const scenarioOpts = (overrides: Partial<CucumberOptions> = {}) => defaultCucumberOpts({ scenarioLevelReporter: true, ...overrides })
+
+            test('fails a scenario with an undefined step with the sequential message', async () => {
+                await run(mockBrowser(), doc('missing'), scenarioOpts())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:fail')
+                expect(payload.error.message).toBe('Scenario s1 has undefined steps. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+                expect(payload.error.stack).toContain('\tat Feature(/test/foo.feature):1:1\n\tat Scenario(s1):3:3\n')
+            })
+
+            test('reports a scenario with an undefined step as pending with the suffix when ignoreUndefinedDefinitions', async () => {
+                await run(mockBrowser(), doc('missing'), scenarioOpts({ ignoreUndefinedDefinitions: true }))
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:pending')
+                expect(payload.title).toBe('s1 (undefined step)')
+                expect(payload.error).toBeUndefined()
+            })
+
+            test('skips a scenario with an ambiguous step with the step definitions as reason', async () => {
+                await run(mockBrowser(), doc('a step'), scenarioOpts(), ambiguousLibrary())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:skip')
+                expect(payload.pendingReason).toBe('Multiple step definitions match:\n  a step - /test/features:1\n  /^a st/ - /test/features:7')
+            })
+
+            test('fails a scenario with an ambiguous step with failAmbiguousDefinitions', async () => {
+                await run(mockBrowser(), doc('a step'), scenarioOpts({ failAmbiguousDefinitions: true }), ambiguousLibrary())
+
+                const { event, payload } = stepEvent('s1')
+                expect(event).toBe('test:fail')
+                expect(payload.error.message).toBe('Multiple step definitions match:')
+            })
+        })
+
+        describe('hook titles', () => {
+            const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+            const hookLibrary = (options: { name?: string, tags?: string }) => ({
+                ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+                beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: function () {}, id: 'hook-1', line: 3, uri: '/test/hooks.ts', order: 0, options })],
+            })
+            const hookTitles = async (options: { name?: string, tags?: string }) => {
+                await run(mockBrowser(), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', tags: ['@a'] }])], stepOpts(), hookLibrary(options) as never)
+                return events.filter((e) => e.event === 'hook:start' || e.event === 'hook:end').map((e) => `${e.event}=${e.payload.title}`)
+            }
+
+            test('titles a hook with its tag expression', async () => {
+                expect(await hookTitles({ tags: '@a' })).toEqual(['hook:start=@a', 'hook:end=@a'])
+            })
+
+            test('titles a hook with its name and tag expression', async () => {
+                expect(await hookTitles({ name: 'setup', tags: '@a' })).toEqual(['hook:start=setup @a', 'hook:end=setup @a'])
+            })
+
+            test('keeps an untitled hook untitled', async () => {
+                expect(await hookTitles({})).toEqual(['hook:start=', 'hook:end='])
+            })
+        })
+
+        test('keeps the first line of a failed step as message', async () => {
+            const library = mockSupportCodeLibrary({
+                stepDefinitions: [makeStepDefinition('something', async function () { throw new Error('fails on purpose') })],
+            })
+            await run(mockBrowser(), doc('something'), stepOpts(), library)
+
+            const { event, payload } = stepEvent('something')
+            expect(event).toBe('test:fail')
+            expect(payload.error.message).toBe('Error: fails on purpose')
+            expect(payload.error.stack).toMatch(/^Error: fails on purpose\n/)
+            expect(payload.error.stack).not.toContain('onTestStepFinished')
+        })
     })
 })
