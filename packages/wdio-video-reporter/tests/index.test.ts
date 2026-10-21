@@ -940,6 +940,74 @@ describe('Video Reporter', () => {
             browser.isBidi = false
         })
 
+        describe('wait for the last frame', () => {
+            afterEach(() => {
+                browser.isBidi = false
+                delete (browser as any).options
+            })
+            const beforeCommandHooks = async (userHook?: Function) => {
+                browser.isBidi = true
+                ;(browser as any).options = userHook ? { beforeCommand: userHook } : {}
+                vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
+                const reporter = new VideoReporter({})
+                reporter.recordingPath = '/foo/bar'
+                reporter.listenToBidiCommands()
+                await sleep(0)
+                return { reporter, hooks: (browser as any).options.beforeCommand as Function[] }
+            }
+
+            it('makes the next command wait for the screenshot of the last frame', async () => {
+                const userHook = vi.fn()
+                const { reporter, hooks } = await beforeCommandHooks(userHook)
+                expect(hooks).toHaveLength(2)
+                expect(hooks[0]).toBe(userHook)
+                let answer!: (value: unknown) => void
+                vi.mocked(browser.browsingContextCaptureScreenshot).mockReturnValueOnce(new Promise((resolve) => { answer = resolve }) as any)
+                reporter.addFrame()
+                let started = false
+                const next = Promise.resolve(hooks[1]('navigateTo')).then(() => { started = true })
+                await sleep(20)
+                expect(started).toBe(false)
+                answer({ data: 'ZnJhbWU=' })
+                await next
+                expect(started).toBe(true)
+                // the frame is done: the command after it does not wait
+                expect(hooks[1]('elementClick')).toBeUndefined()
+            })
+
+            it('does not make its own screenshot commands wait for the frame', async () => {
+                const { reporter, hooks } = await beforeCommandHooks()
+                let answer!: (value: unknown) => void
+                vi.mocked(browser.browsingContextCaptureScreenshot).mockReturnValueOnce(new Promise((resolve) => { answer = resolve }) as any)
+                reporter.addFrame()
+                for (const command of ['browsingContextCaptureScreenshot', 'takeScreenshot', 'browsingContextGetTree', 'getWindowHandle']) {
+                    expect(hooks[0](command)).toBeUndefined()
+                }
+                // no new capture after this test
+                answer({ data: 'ZnJhbWU=' })
+                await Promise.all(reporter.screenshotPromises)
+            })
+
+            it('lets the next command go on when the screenshot gets no answer', async () => {
+                const { reporter, hooks } = await beforeCommandHooks()
+                vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+                try {
+                    vi.mocked(browser.browsingContextCaptureScreenshot).mockReturnValue(new Promise(() => {}) as any)
+                    reporter.addFrame()
+                    let started = false
+                    const next = Promise.resolve(hooks[0]('navigateTo')).then(() => { started = true })
+                    await vi.advanceTimersByTimeAsync(1999)
+                    expect(started).toBe(false)
+                    await vi.advanceTimersByTimeAsync(1)
+                    await next
+                    expect(started).toBe(true)
+                } finally {
+                    vi.useRealTimers()
+                    vi.mocked(browser.browsingContextCaptureScreenshot).mockResolvedValue({} as any)
+                }
+            })
+        })
+
         describe('screenshots', () => {
             const sessionEnded = () => Object.assign(new Error('the connection was closed'), { name: 'session ended' })
             const bidiReporter = async (options = {}) => {

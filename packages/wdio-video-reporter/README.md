@@ -28,7 +28,7 @@ example right after the tab opens, the frame shows the main window. A frame that
 session ends (after the last step of the last test of a spec file, or at `reloadSession()`) shows the page of the
 frame before it.
 
-That said, taking a screenshot after almost every command can slow down your tests. Also, note that the videos don't include alert-boxes and popups.
+That said, taking a screenshot after almost every command can slow down your tests. In a WebDriver BiDi session, the next command waits for the screenshot of the last frame (about 50 ms in Chrome), so that each frame shows the page of its command. Also, note that the videos don't include alert-boxes and popups.
 
 # Installation
 

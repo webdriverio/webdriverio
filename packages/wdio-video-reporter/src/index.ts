@@ -18,7 +18,7 @@ import {
 } from './helpers.js'
 import {
     DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS, BIDI_CAPTURE_TRIES, BIDI_CAPTURE_RETRY_DELAY,
-    BIDI_CAPTURE_FAILED_RETRY_DELAY
+    BIDI_CAPTURE_FAILED_RETRY_DELAY, FRAME_WAIT_TIMEOUT
 } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
@@ -33,6 +33,11 @@ interface BidiFrameCommand {
 import notAvailableImage from './assets/notAvailableImage.js'
 
 const log = logger('@wdio/video-reporter')
+
+/**
+ * the commands that the reporter sends to take a frame
+ */
+const REPORTER_COMMANDS = new Set(['takeScreenshot', 'browsingContextCaptureScreenshot', 'browsingContextGetTree', 'getWindowHandle'])
 
 export default class VideoReporter extends WdioReporter {
     options: Required<ReporterOptions>
@@ -88,6 +93,10 @@ export default class VideoReporter extends WdioReporter {
      * screenshot in flight then fails with a transport error (`UND_ERR_CLOSED`)
      */
     #endedSessions = new Set<string | undefined>()
+    /**
+     * the screenshot of the last frame, until the next command starts
+     */
+    #pendingFrame?: Promise<unknown>
     /**
      * the top-level browsing context (tab or window) of each context, for frames
      */
@@ -293,6 +302,7 @@ export default class VideoReporter extends WdioReporter {
         }
         this.#listensToBidiCommands = true
         this.#readMainContext(instance)
+        this.#waitForFrameBeforeCommands(instance)
         /**
          * a result has the id of its command, but not its method: keep the commands
          * that take a frame by id (results can come in another order)
@@ -680,6 +690,7 @@ export default class VideoReporter extends WdioReporter {
                     this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
                 }
             })
+        this.#pendingFrame = screenshot
         this.screenshotPromises.push(
             endsInTime(screenshot, this.options.videoRenderTimeout).then((inTime) => {
                 if (!inTime) {
@@ -689,6 +700,33 @@ export default class VideoReporter extends WdioReporter {
                 }
             })
         )
+    }
+
+    /**
+     * A WebDriver BiDi capture runs beside the test. Chrome answers it when it draws the
+     * next picture: when the next command started a navigation, the frame shows the next
+     * page (also the first page of the next test). WebdriverIO waits for the
+     * `beforeCommand` hooks, so a hook that waits for the last frame makes the next
+     * command start after its screenshot.
+     */
+    #waitForFrameBeforeCommands (instance: WebdriverIO.Browser) {
+        const options = instance.options as { beforeCommand?: Function | Function[] } | undefined
+        if (!options) {
+            return
+        }
+        const hooks = options.beforeCommand
+        options.beforeCommand = [
+            ...(Array.isArray(hooks) ? hooks : hooks ? [hooks] : []),
+            (commandName: string) => {
+                // the commands of the screenshot itself must not wait for it
+                if (REPORTER_COMMANDS.has(commandName)) {
+                    return
+                }
+                const frame = this.#pendingFrame
+                this.#pendingFrame = undefined
+                return frame && endsInTime(frame, FRAME_WAIT_TIMEOUT)
+            }
+        ]
     }
 
     #readMainContext (instance: WebdriverIO.Browser) {

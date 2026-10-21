@@ -13,6 +13,11 @@ export const STDERR_TAIL_LENGTH = 2000
 export const BIDI_CAPTURE_TRIES = 5
 export const BIDI_CAPTURE_RETRY_DELAY = 100
 export const BIDI_CAPTURE_FAILED_RETRY_DELAY = 50
+
+/**
+ * the longest time that a command waits for its frame before the test goes on
+ */
+export const FRAME_WAIT_TIMEOUT = 2000
 export const SUPPORTED_VIDEO_FORMATS = {
     mp4: {
         fileExtension: 'mp4',
