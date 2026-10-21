@@ -30,6 +30,27 @@ frame before it.
 
 That said, taking a screenshot after almost every command can slow down your tests. In a WebDriver BiDi session, the next command waits for the screenshot of the last frame (about 50 ms in Chrome), so that each frame shows the page of its command. Also, note that the videos don't include alert-boxes and popups.
 
+### Alerts
+
+In a WebDriver classic session, a screenshot while an alert (`alert()`, `confirm()`, `prompt()`) is open makes the
+driver handle the alert as [`unhandledPromptBehavior`](https://w3c.github.io/webdriver/#dfn-unhandled-prompt-behavior)
+says. With the default, Chrome and Firefox close the alert, and the next `getAlertText()` or `acceptAlert()` of the test
+fails with `no such alert`. Set `unhandledPromptBehavior: 'ignore'` in the capabilities of the tests that use alerts:
+
+```js
+capabilities: [{
+    browserName: 'chrome',
+    'wdio:enforceWebDriverClassic': true,
+    unhandledPromptBehavior: 'ignore'
+}]
+```
+
+In Safari, a screenshot while an alert is open gets no answer, and the session stops. Add the command that opens the
+alert to [`excludedActions`](#excludedactions), for example `click`.
+
+In a WebDriver BiDi session, use [`dialog` events](https://webdriver.io/docs/api/dialog) to handle alerts: the
+reporter takes its screenshots without closing them.
+
 # Installation
 
 ## Install ffmpeg
