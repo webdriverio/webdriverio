@@ -45,6 +45,7 @@ class Launcher {
     #globalTimeoutTimer?: ReturnType<typeof setTimeout>
     #hasExceededGlobalTimeout = false
     #resolveWorkersEnded?: () => void
+    #pendingWorkerEnds = 0
 
     public configParser: ConfigParser
     public isMultiRemote = false
@@ -419,6 +420,16 @@ class Launcher {
     }
 
     /**
+     * after `globalTimeout` elapsed: let the run end once no worker runs anymore and
+     * every `_endHandler` finished its `onWorkerEnd` hooks
+     */
+    #resolveWorkersEndedIfIdle() {
+        if (this._getNumberOfRunningInstances() === 0 && this.#pendingWorkerEnds === 0) {
+            this.#resolveWorkersEnded?.()
+        }
+    }
+
+    /**
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.RequestedMultiRemoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
@@ -661,9 +672,7 @@ class Launcher {
             log.info(`Not starting worker ${runnerId}, the test run exceeded its globalTimeout`)
             this._schedule[cid].availableInstances++
             this._schedule[cid].runningInstances--
-            if (this._getNumberOfRunningInstances() === 0) {
-                this.#resolveWorkersEnded?.()
-            }
+            this.#resolveWorkersEndedIfIdle()
             return
         }
 
@@ -765,10 +774,19 @@ class Launcher {
 
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
-        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
-            .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
-            .catch((error) => this._workerHookError(error))
+        /**
+         * the instance no longer counts as running, but a run stopped by `globalTimeout`
+         * must still wait for its `onWorkerEnd` hooks before `onComplete`
+         */
+        this.#pendingWorkerEnds++
+        try {
+            await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
+                .catch((error) => this._workerHookError(error))
+            await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
+                .catch((error) => this._workerHookError(error))
+        } finally {
+            this.#pendingWorkerEnds--
+        }
 
         /**
          * do nothing if
@@ -792,9 +810,7 @@ class Launcher {
          * a run stopped by `globalTimeout` resolves once all workers have ended
          */
         if (this.#hasExceededGlobalTimeout) {
-            if (this._getNumberOfRunningInstances() === 0) {
-                this.#resolveWorkersEnded?.()
-            }
+            this.#resolveWorkersEndedIfIdle()
             return
         }
 

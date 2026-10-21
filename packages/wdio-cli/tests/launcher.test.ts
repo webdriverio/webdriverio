@@ -370,6 +370,41 @@ describe('launcher', () => {
             expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
         })
 
+        it('should wait for the onWorkerEnd hooks of an ended worker before ending the run', async () => {
+            let releaseWorkerEnd = () => {}
+            const onWorkerEnd = vi.fn(() => new Promise<void>((resolve) => { releaseWorkerEnd = resolve }))
+            let releaseWorkerStart = () => {}
+            const onWorkerStart = vi.fn(() => new Promise<void>((resolve) => { releaseWorkerStart = resolve }))
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({ maxInstances: 2, onWorkerStart: [onWorkerStart], onWorkerEnd: [onWorkerEnd] })
+            const run = vi.fn()
+            launcher.runner = { run, shutdown: vi.fn().mockResolvedValue(true), workerPool: {} } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            const result = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            // one worker is running, a second one is still starting
+            launcher['_schedule'][0].runningInstances = 2
+            const starting = launcher['_startInstance'](['/b.js'], caps as any, 0, '0-1', 0)
+            const onSettled = vi.fn()
+            result.then(onSettled)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(true)
+            // the running worker ends and its onWorkerEnd hook is still busy ...
+            const ending = launcher['_endHandler']({ cid: '0-0', exitCode: 130, specs: ['/a.js'], retries: 0 })
+            await vi.advanceTimersByTimeAsync(0)
+            expect(onWorkerEnd).toBeCalledTimes(1)
+            // ... while the start that was still pending is cancelled
+            releaseWorkerStart()
+            await starting
+            await vi.advanceTimersByTimeAsync(0)
+            expect(run).not.toBeCalled()
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
+            expect(onSettled).not.toBeCalled()
+
+            releaseWorkerEnd()
+            await ending
+            expect(await result).toBe(1)
+        })
+
         it('should not stop the run if no globalTimeout is set', async () => {
             launcher.runner = { shutdown: vi.fn() } as any
             launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
