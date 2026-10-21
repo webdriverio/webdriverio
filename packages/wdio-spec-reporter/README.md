@@ -191,7 +191,7 @@ Set to `true` to display colored output in terminal
 
 ## Parallel mode
 
-The reporter doesn't support [`cucumberOpts.parallelMode`](https://webdriver.io/docs/parallel-tests) yet. A scenario that starts while another one runs is shown nested under it, and with `retry` the passing count can be wrong. The results of the scenarios and the exit code are correct.
+The reporter doesn't support [parallel mode](https://webdriver.io/docs/parallel-tests) (`mochaOpts.parallelMode`, `cucumberOpts.parallelMode`) yet. A Mocha `describe` block that comes after another one, or a Cucumber scenario that starts while another one runs, is shown nested under it, and with Cucumber `retry` the passing count can be wrong. The results of the tests and the exit code are correct.
 
 ## Environment Options
 
