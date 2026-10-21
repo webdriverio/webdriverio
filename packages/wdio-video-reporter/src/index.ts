@@ -94,6 +94,11 @@ export default class VideoReporter extends WdioReporter {
      */
     #endedSessions = new Set<string | undefined>()
     /**
+     * `videoRenderTimeout` ended the report: a render that still waits for its
+     * frames must not start ffmpeg after the worker went on
+     */
+    #renderAborted = false
+    /**
      * the screenshot of the last frame, until the next command starts
      */
     #pendingFrame?: Promise<unknown>
@@ -555,6 +560,7 @@ export default class VideoReporter extends WdioReporter {
 
         const abortTimer = setTimeout(() => {
             this.#log('videoRenderTimeout triggered before ffmpeg had a chance to wrap up')
+            this.#renderAborted = true
             /**
              * a killed render leaves a partial file, and the worker can exit before
              * the close event of ffmpeg: drop these videos now
@@ -900,6 +906,11 @@ export default class VideoReporter extends WdioReporter {
         const promise: Promise<void> = Promise
             .all(screenshots)
             .then(() => new Promise((resolve) => {
+                if (this.#renderAborted) {
+                    this.#log(`No video "${videoPath}": videoRenderTimeout ended before its frames`)
+                    dropVideo()
+                    return resolve()
+                }
                 const cp = spawn(command, args, {
                     stdio: ['ignore', 'ignore', 'pipe'],
                     windowsHide: true,

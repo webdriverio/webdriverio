@@ -61,6 +61,24 @@ const render = async (recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test', 
 }
 
 describe('generateVideo', () => {
+    it('starts no ffmpeg after videoRenderTimeout ended the report (the frames came too late)', async () => {
+        vi.mocked(spawn).mockClear()
+        const reporter = new VideoReporter({ videoRenderTimeout: 20 })
+        reporter.testName = 'my-test'
+        reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+        let lastFrame!: () => void
+        reporter.screenshotPromises.push(new Promise<void>((resolve) => { lastFrame = resolve }))
+        const rendered = reporter.generateVideo()
+        reporter.onRunnerEnd()
+        await new Promise((resolve) => setTimeout(resolve, 40))
+        // the runner goes on: the worker can end
+        expect(reporter.isSynchronised).toBe(true)
+        lastFrame()
+        await rendered
+        expect(spawn).not.toBeCalled()
+        expect(reporter.videos).toEqual([])
+    })
+
     it('logs the generated video when ffmpeg ends without an error', async () => {
         ffmpeg.exitCode = 0
         ffmpeg.stderr = ''
