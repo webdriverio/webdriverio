@@ -72,6 +72,15 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capa
         default: 0
     },
     /**
+     * Maximum time in milliseconds the test run may take, counted from the moment the first
+     * spec file starts (default is 0 - no limit). When it elapses, the remaining spec files
+     * are not started, running ones are ended and the `onComplete` hooks still run.
+     */
+    globalTimeout: {
+        type: 'number',
+        default: 0
+    },
+    /**
      * supported test framework by wdio testrunner
      */
     framework: {

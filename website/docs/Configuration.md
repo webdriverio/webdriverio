@@ -452,6 +452,26 @@ If you want your test run to stop after a specific number of test failures, use 
 
 </Option>
 
+### globalTimeout
+
+<Option type="Number" default="0 (no limit)">
+
+Maximum time in milliseconds the test run may take. The time is counted from the moment the first spec file starts, so `onPrepare` and driver setup do not count against it.
+
+When the time is up, WebdriverIO starts no further spec files, ends the WebDriver sessions of the running ones gracefully, runs the `onComplete` hooks, and exits with code `1`. Set it a few minutes below the timeout of your CI job, so that reporters that generate their report in `onComplete`, e.g. the Allure reporter, still get to write it before the CI job is killed. It is ignored in watch mode.
+
+```ts
+export const config: WebdriverIO.Config = {
+    // ...
+    // the CI job is killed after 60 minutes, leave 5 minutes for reporting
+    globalTimeout: 55 * 60 * 1000,
+}
+```
+
+You can also pass it on the command line: `npx wdio run wdio.conf.ts --globalTimeout 3300000`.
+
+</Option>
+
 ### specFileRetries
 
 <Option type="Number" default="0">
