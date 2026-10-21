@@ -346,14 +346,21 @@ export class WdioBridgeReporter implements Reporter {
             if (kind !== 'test') {
                 continue
             }
-            if (failed) {
-                run.failedTests++
-                const error = toErrorPayload(testModule.errors()[0] ?? { message: 'test did not finish' })
-                this.#emit(run, 'test:fail', { ...payload, duration: 0, error })
-                this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, error })
+            const close = () => {
+                if (failed) {
+                    run.failedTests++
+                    const error = toErrorPayload(testModule.errors()[0] ?? { message: 'test did not finish' })
+                    this.#emit(run, 'test:fail', { ...payload, duration: 0, error })
+                    this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, error })
+                } else {
+                    this.#emit(run, 'test:pending', { ...payload, duration: 0, pending: true })
+                    this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, pending: true })
+                }
+            }
+            if (typeof payload.contextId === 'string') {
+                this.#replayedContext.run(payload.contextId, close)
             } else {
-                this.#emit(run, 'test:pending', { ...payload, duration: 0, pending: true })
-                this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, pending: true })
+                close()
             }
         }
         for (const { kind, payload } of open.reverse()) {
