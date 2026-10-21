@@ -137,6 +137,13 @@ export function getDeviceName (capabilities: WebdriverIO.Capabilities) {
     return typeof name === 'string' && name ? name : undefined
 }
 
+/**
+ * A WebDriver BiDi command that the remote end does not have (for example Appium)
+ */
+export function isUnknownBidiCommand (error: unknown) {
+    return /with error: unknown (command|method)\b/.test((error as Error)?.message ?? '')
+}
+
 export function pad (frameNumber: number) {
     return frameNumber.toString().padStart(SCREENSHOT_PADDING_WITH, '0')
 }

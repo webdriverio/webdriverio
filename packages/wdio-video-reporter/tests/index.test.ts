@@ -1082,6 +1082,25 @@ describe('Video Reporter', () => {
                 expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0000.png'), 'bWFpbg==', 'base64')
             })
 
+            it('takes classic screenshots when the BiDi session has no capture command (Appium)', async () => {
+                vi.mocked(browser.browsingContextCaptureScreenshot).mockRejectedValueOnce(new Error(
+                    'WebDriver Bidi command "browsingContext.captureScreenshot" failed with error: unknown command - ' +
+                    'The requested command is not supported'
+                ))
+                vi.mocked(browser.takeScreenshot).mockResolvedValue('Y2xhc3NpYw==')
+                const reporter = await bidiReporter()
+                reporter.addFrame()
+                await Promise.all(reporter.screenshotPromises)
+                expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0000.png'), 'Y2xhc3NpYw==', 'base64')
+                // the next frames do not try the BiDi capture again
+                reporter.addFrame()
+                await Promise.all(reporter.screenshotPromises)
+                expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(1)
+                expect(browser.takeScreenshot).toBeCalledTimes(2)
+                expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0001.png'), 'Y2xhc3NpYw==', 'base64')
+                vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
+            })
+
             it('sends a new capture when one gets no answer in time, and the first answer wins', async () => {
                 vi.mocked(browser.browsingContextCaptureScreenshot)
                     .mockReturnValueOnce(new Promise(() => {}) as any)

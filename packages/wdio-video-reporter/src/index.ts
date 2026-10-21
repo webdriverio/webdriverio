@@ -12,7 +12,7 @@ import type { Options } from '@wdio/types'
 import AllureReporterExtension from './allure.js'
 import { removeAllureAttachments } from './allureResults.js'
 import {
-    waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getDeviceName, getVideoFormatSettings,
+    waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getDeviceName, isUnknownBidiCommand, getVideoFormatSettings,
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter, findFfmpeg
 } from './helpers.js'
@@ -83,6 +83,10 @@ export default class VideoReporter extends WdioReporter {
     #mainContext?: string
     #mainContextReady?: Promise<string | undefined>
     #mainContextSession?: string
+    /**
+     * the BiDi session has no `browsingContext.captureScreenshot` (Appium): classic frames
+     */
+    #noBidiCapture = false
     #frameContext?: string
     /**
      * the screenshot of the last frame, for a frame whose session ended first
@@ -663,8 +667,15 @@ export default class VideoReporter extends WdioReporter {
         const instance = getScreenshotBrowser(browser)
         const sessionId = instance.sessionId
         const previous = this.#lastScreenshot
-        const capture: Promise<string> = (this.#mainContextReady
-            ? this.#bidiScreenshot(instance, this.#frameContext, frame)
+        const capture: Promise<string> = (this.#mainContextReady && !this.#noBidiCapture
+            ? this.#bidiScreenshot(instance, this.#frameContext, frame).catch((error: unknown) => {
+                if (!isUnknownBidiCommand(error)) {
+                    throw error
+                }
+                this.#noBidiCapture = true
+                this.#log(`The WebDriver BiDi session has no browsingContext.captureScreenshot, using classic screenshots (frame: ${frame})`)
+                return instance.takeScreenshot()
+            })
             : instance.takeScreenshot()
         ).catch((error: unknown) => {
             /**
