@@ -322,6 +322,25 @@ export function getAmbiguousStepMessage(stepDefinitions: readonly StepDefinition
 }
 
 /**
+ * Cucumber 13 sends no message for an ambiguous step: give the result the matching step definitions as message.
+ * @param stepDefinitionIds - gives the step definition ids of the step, only for an ambiguous result with no message
+ * @returns the same result when it is not ambiguous, has a message, or no definition is found
+ */
+export function withAmbiguousMessage(
+    result: TestStepResult,
+    stepDefinitionIds: () => readonly string[],
+    stepDefinitions: ReadonlyMap<string, StepDefinition>
+): TestStepResult {
+    if (result.status !== 'AMBIGUOUS' || result.message) {
+        return result
+    }
+    const message = getAmbiguousStepMessage(stepDefinitionIds()
+        .map((id) => stepDefinitions.get(id))
+        .filter((definition): definition is StepDefinition => Boolean(definition)))
+    return message ? { ...result, message } : result
+}
+
+/**
  * stack lines with the location of the scenario and the step in the feature file
  */
 export function getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep): string {

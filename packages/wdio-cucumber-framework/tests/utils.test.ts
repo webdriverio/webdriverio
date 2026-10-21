@@ -14,7 +14,8 @@ import {
     convertStatus,
     getAmbiguousStepMessage,
     getFeatureStack,
-    getStepResult
+    getStepResult,
+    withAmbiguousMessage
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
@@ -367,6 +368,33 @@ describe('utils', () => {
 
         it('gives undefined for no definition', () => {
             expect(getAmbiguousStepMessage([])).toBeUndefined()
+        })
+    })
+
+    describe('withAmbiguousMessage', () => {
+        const stepDefinitions = new Map([
+            ['16', { id: '16', pattern: { source: 'a step', type: 'CUCUMBER_EXPRESSION' }, sourceReference: { uri: 'steps.js', location: { line: 3 } } }],
+            ['99', { id: '99', pattern: { source: '^a st', type: 'REGULAR_EXPRESSION' }, sourceReference: { uri: 'steps.js', location: { line: 7 } } }]
+        ] as [string, StepDefinition][])
+        const result = (status: string, message?: string) => ({ status, message, duration: { seconds: 0, nanos: 0 } }) as unknown as TestStepResult
+
+        it('adds the matching step definitions as message of an ambiguous result', () => {
+            expect(withAmbiguousMessage(result(Status.AMBIGUOUS), () => ['16', '99'], stepDefinitions).message)
+                .toBe('Multiple step definitions match:\n  a step - steps.js:3\n  /^a st/ - steps.js:7')
+        })
+
+        it('keeps a result that is not ambiguous or has a message, and does not look up its step', () => {
+            const ids = vi.fn(() => ['16'])
+            const passed = result(Status.PASSED)
+            const withMessage = result(Status.AMBIGUOUS, 'from Cucumber')
+            expect(withAmbiguousMessage(passed, ids, stepDefinitions)).toBe(passed)
+            expect(withAmbiguousMessage(withMessage, ids, stepDefinitions)).toBe(withMessage)
+            expect(ids).not.toHaveBeenCalled()
+        })
+
+        it('keeps an ambiguous result when no step definition is found', () => {
+            const ambiguous = result(Status.AMBIGUOUS)
+            expect(withAmbiguousMessage(ambiguous, () => ['unknown'], stepDefinitions)).toBe(ambiguous)
         })
     })
 

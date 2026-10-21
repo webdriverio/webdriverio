@@ -44,7 +44,6 @@ import type * as messages from '@cucumber/messages'
 import type { CucumberOptions, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
 import {
     addKeywordToStep,
-    getAmbiguousStepMessage,
     getFeatureId,
     getFeatureStack,
     getRule,
@@ -53,6 +52,7 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    withAmbiguousMessage,
 } from './utils.js'
 
 const log = logger('@wdio-cucumber-framework:parallel')
@@ -626,18 +626,10 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         reporter.emit(`${type}:start`, formatMessage({ payload }))
     }
 
-    // Cucumber 13 sends no message for an ambiguous step, as in cucumberFormatter.ts withAmbiguousMessage
-    const withAmbiguousMessage = (result: messages.TestStepResult, stepDefinitionIds: readonly string[] = []) => {
-        if (result.status !== 'AMBIGUOUS' || result.message) { return result }
-        const message = getAmbiguousStepMessage(stepDefinitionIds
-            .map((id) => supportCode.stepDefinitions.get(id))
-            .filter((definition): definition is messages.StepDefinition => Boolean(definition)))
-        return message ? { ...result, message } : result
-    }
-
     const onTestStepFinished = (finished: messages.TestStepFinished) => {
         const info = stepLookup.get(finished.testStepId)
-        const result = withAmbiguousMessage(finished.testStepResult, info?.stepDefinitionIds)
+        // Cucumber 13 sends no message for an ambiguous step
+        const result = withAmbiguousMessage(finished.testStepResult, () => info?.stepDefinitionIds ?? [], supportCode.stepDefinitions)
         stepResults.push(result)
 
         if (scenarioLevel) { return }

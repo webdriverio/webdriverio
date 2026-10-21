@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { getAmbiguousStepMessage, getFeatureStack, getStepResult } from './utils.js'
+import { getFeatureStack, getStepResult, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -486,17 +486,12 @@ export default class CucumberFormatter extends Formatter {
      */
     private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
         const result = event.testStepResult
-        if (result?.status !== Status.AMBIGUOUS || result.message) {
-            return event
-        }
-        const testStep = this._testCases
+        const stepDefinitionIds = () => this._testCases
             .find((tc) => tc.id === this._currentTestCase?.testCaseId)
             ?.testSteps.find((step) => step.id === event.testStepId)
-        const stepDefinitions = (testStep?.stepDefinitionIds ?? [])
-            .map((id) => this._stepDefinitions.get(id))
-            .filter((definition): definition is StepDefinition => Boolean(definition))
-        const message = getAmbiguousStepMessage(stepDefinitions)
-        return message ? { ...event, testStepResult: { ...result, message } } : event
+            ?.stepDefinitionIds ?? []
+        const withMessage = result && withAmbiguousMessage(result, stepDefinitionIds, this._stepDefinitions)
+        return withMessage === result ? event : { ...event, testStepResult: withMessage }
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
