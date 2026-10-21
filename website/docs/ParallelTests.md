@@ -82,7 +82,7 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`) and the `tags`, `name`, `strict`, `dryRun`, `failFast`, `retry` and `retryTagFilter` options work like in a sequential run.
+Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`) and the `tags`, `name`, `order`, `strict`, `dryRun`, `failFast`, `retry`, `retryTagFilter`, `ignoreUndefinedDefinitions` and `failAmbiguousDefinitions` options work like in a sequential run.
 
 ## Options
 

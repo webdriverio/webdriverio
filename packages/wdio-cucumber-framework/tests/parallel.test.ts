@@ -1299,6 +1299,48 @@ describe('runParallelCucumber worker pool', () => {
         eventEmitter = new EventEmitter()
     })
 
+    describe('cucumberOpts.order', () => {
+        const { orderPickles } = createRequire(import.meta.url)('@cucumber/cucumber/lib/filter/order_pickles') as {
+            orderPickles: (items: string[], order: string, logger: { warn(message: string): void }) => void
+        }
+        const bodies = Object.fromEntries(Array.from({ length: 5 }, (_, i) => [`step${i}`, () => {}]))
+        const startOrder = async (order: string, browser = mockBrowser()) => {
+            const titles: string[] = []
+            reporter.on('test:start', (payload: { title: string }) => titles.push(payload.title))
+            const outcome = await run(browser, names(5), bodies, 1, { order })
+            return { titles, ...outcome }
+        }
+
+        test('orders the pickles with a seed', async () => {
+            const expected = ['s0', 's1', 's2', 's3', 's4']
+            orderPickles(expected, 'random:7', { warn: () => {} })
+
+            const { titles } = await startOrder('random:7')
+            expect(titles).toEqual(expected)
+            expect(titles).not.toEqual(['s0', 's1', 's2', 's3', 's4'])
+        })
+
+        test('runs the pickles in reverse order', async () => {
+            const { titles } = await startOrder('reverse')
+            expect(titles).toEqual(['s4', 's3', 's2', 's1', 's0'])
+        })
+
+        test('throws for an unknown order before the run', async () => {
+            const browser = mockBrowser()
+            const { error, titles } = await startOrder('foo', browser)
+            expect(error?.message).toContain('Unrecognized order type')
+            expect(browser.browsingContextCreate).not.toHaveBeenCalled()
+            expect(titles).toEqual([])
+        })
+
+        test('logs the seed of a random order with no seed', async () => {
+            const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn')
+            await startOrder('random')
+            expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^Random order using seed: \d+$/))
+            warn.mockRestore()
+        })
+    })
+
     test('never runs more scenarios than maxParallelContexts and keeps live tabs bounded', async () => {
         let inFlight = 0
         let maxInFlight = 0

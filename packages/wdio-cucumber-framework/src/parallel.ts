@@ -198,6 +198,7 @@ let Executor: IExecutorConstructor
 let TestCaseRunner: { new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance }
 let PickleFilter: new (options: IPickleFilterOptions) => IPickleFilter
 let emitSupportCodeMessages: EmitSupportCodeMessages
+let orderPickles: <T>(items: T[], order: string, logger: { warn(message: string): void }) => void
 
 try {
     ;({ default: PickleFilter } = require_('@cucumber/cucumber/lib/pickle_filter') as {
@@ -220,6 +221,10 @@ try {
 
     ;({ emitSupportCodeMessages } = require_('@cucumber/cucumber/lib/api/emit_support_code_messages') as {
         emitSupportCodeMessages: EmitSupportCodeMessages
+    })
+
+    ;({ orderPickles } = require_('@cucumber/cucumber/lib/filter/order_pickles') as {
+        orderPickles: typeof orderPickles
     })
 
     TestCaseRunner = require_('@cucumber/cucumber/lib/runtime/test_case_runner').default as {
@@ -967,6 +972,8 @@ export async function runParallelCucumber(params: {
         }))
         .filter((g) => g.pickles.length > 0)
     const allPickles = featureGroups.flatMap((g) => g.pickles)
+    // as Cucumber's filter plugin does in sequential mode
+    orderPickles(allPickles, cucumberOpts.order, log)
 
     if (allPickles.length === 0) {
         log.info('No scenarios found for parallel execution.')
