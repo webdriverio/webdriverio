@@ -224,7 +224,7 @@ export default class CucumberFormatter extends Formatter {
     ) {
         const title = step ? step?.text : this.getTitle(scenario)
         const { state, error, pendingReason, titleSuffix, failed } = getStepResult(
-            result as TestStepResult & { willBeRetried?: boolean },
+            result,
             {
                 title,
                 isStep: Boolean(step),

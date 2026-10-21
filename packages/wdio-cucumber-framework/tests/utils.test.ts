@@ -472,12 +472,6 @@ describe('utils', () => {
             expect(error?.stack).toBe(message)
         })
 
-        it('does not fail a step result that will be retried', () => {
-            const { state, failed } = getStepResult({ ...result(Status.FAILED, 'Error: x'), willBeRetried: true }, params)
-            expect(state).toBe('fail')
-            expect(failed).toBe(false)
-        })
-
         it('skips an ambiguous step with the definitions as pendingReason', () => {
             const message = 'Multiple step definitions match:\n  a step - steps.ts:1'
             const { state, failed, pendingReason } = getStepResult(result(Status.AMBIGUOUS, message), params)

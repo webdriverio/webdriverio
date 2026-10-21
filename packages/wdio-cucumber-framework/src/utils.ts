@@ -377,7 +377,7 @@ export interface StepResult {
  * @param params.featureStack - gives the location of the step in the feature file (see `getFeatureStack`), only for the errors that show it
  */
 export function getStepResult(
-    result: TestStepResult & { willBeRetried?: boolean },
+    result: TestStepResult,
     params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, featureStack: () => string }
 ): StepResult {
     const { title, isStep, featureStack } = params
@@ -399,7 +399,7 @@ export function getStepResult(
             )
             error.stack = `${error.message}\n${featureStack()}`
         }
-    } else if (result.status === 'FAILED' && !result.willBeRetried) {
+    } else if (result.status === 'FAILED') {
         state = 'fail'
         failed = true
         error = new Error(result.message?.split('\n')[0])

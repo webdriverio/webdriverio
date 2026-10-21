@@ -153,7 +153,7 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 - `Before` / `After`, `BeforeStep` / `AfterStep` and the scenario and step hooks in `wdio.conf.ts` run for every scenario, in that scenario's window.
 - `cucumberOpts.strict` defaults to `false` in WebdriverIO. A pending step fails the scenario only with `strict: true`.
 - With `failFast`, the scenarios that already run in other windows finish after the first failure. The scenarios that did not start are reported as skipped, as in a sequential run.
-- With `ignoreUndefinedDefinitions: true`, an ambiguous step, or a pending step with `strict: true`, fails the run. A sequential run then passes.
+- With `ignoreUndefinedDefinitions: true`, an ambiguous step (with `failAmbiguousDefinitions: false`), or a pending step with `strict: true`, fails the run. A sequential run then passes.
 - Cucumber formatters (`format`, `formatOptions`, `publish`) don't run, so they write no file.
 
 ### Both frameworks
