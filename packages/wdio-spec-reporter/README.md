@@ -189,6 +189,10 @@ Set to `true` to display colored output in terminal
 ]
 ```
 
+## Parallel mode
+
+The reporter doesn't support [`cucumberOpts.parallelMode`](https://webdriver.io/docs/parallel-tests) yet. A scenario that starts while another one runs is shown nested under it, and with `retry` the passing count can be wrong. The results of the scenarios and the exit code are correct.
+
 ## Environment Options
 
 There are certain options you can set through environment variables:
