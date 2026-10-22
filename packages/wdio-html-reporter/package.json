@@ -1,6 +1,6 @@
 {
   "name": "@wdio/html-reporter",
-  "version": "10.0.2",
+  "version": "10.1.0",
   "description": "A WebdriverIO reporter that creates an HTML report",
   "author": "rich peters",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-html-reporter",
