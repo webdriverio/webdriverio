@@ -281,8 +281,9 @@ export default class AllureReporter extends WDIOReporter {
         }
         const lane = this._openLane(key)
         if (!lane) { return }
-        // after test:end, only the after hooks of the test (and the result of a failed one) still belong to it
-        if (lane.endedTitle !== undefined && message.type !== 'allure:hook:start'
+        // after test:end, only the after hooks of the test (and the result of a failed one, which
+        // starts before its hook with disableMochaHooks) still belong to it
+        if (lane.endedTitle !== undefined && message.type !== 'allure:hook:start' && message.type !== 'allure:test:start'
             && !isOpen(lane.main, 'allure:hook:start', 'allure:hook:end')
             && !isOpen(lane.main, 'allure:test:start', 'allure:test:end')) {
             return

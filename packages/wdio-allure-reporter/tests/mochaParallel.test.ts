@@ -29,6 +29,7 @@ type PlannedTest = {
     unfinished?: boolean
     /** a framework that sends the after hooks of a parallel test before its test:end, and no context:end */
     afterHooksBeforeEnd?: boolean
+    afterEachFails?: boolean
     afterAllFails?: boolean
 }
 
@@ -55,7 +56,7 @@ const suiteUids = (tests: PlannedTest[]) => {
 
 type Harness = ReturnType<typeof createHarness>
 
-function createHarness(mode: Mode, tests: PlannedTest[]) {
+function createHarness(mode: Mode, tests: PlannedTest[], options: Record<string, unknown> = {}) {
     const outputDir = temporaryDirectory()
     const { uids, parents } = suiteUids(tests)
     let currentContext: string | undefined
@@ -63,6 +64,7 @@ function createHarness(mode: Mode, tests: PlannedTest[]) {
         outputDir,
         addConsoleLogs: true,
         writeStream: { write: () => true },
+        ...options,
     } as any)
     if (mode === 'parallel') {
         reporter.setContextIdResolver(() => currentContext)
@@ -179,7 +181,7 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
     }
 
     const afterHooks = () => {
-        hook('after each', hookBody('after each'))
+        hook('after each', hookBody('after each'), test.afterEachFails ? new Error('after each exploded') : undefined)
         hook('after all', hookBody('after all'), test.afterAllFails ? new Error('after all exploded') : undefined)
     }
     hook('before all', hookBody('before all', true))
@@ -205,8 +207,8 @@ function interleave(scripts: Array<Array<() => void>>) {
     }
 }
 
-async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void | Promise<void>, parallelConfigured = mode === 'parallel') {
-    const h = createHarness(mode, tests)
+async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void | Promise<void>, parallelConfigured = mode === 'parallel', options?: Record<string, unknown>) {
+    const h = createHarness(mode, tests, options)
     const config = { framework: 'mocha', mochaOpts: parallelConfigured ? { parallelMode: true } : {} }
     h.emit('runner:start', {
         cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config,
@@ -349,6 +351,22 @@ describe('Mocha parallel mode', () => {
             expect(played.results.map((r) => `${r.status} ${r.name}`).sort()).toEqual([
                 'broken "after all" hook for H', 'broken "after all" hook for H', 'passed first', 'passed second',
             ])
+        })
+
+        it.each([
+            ['after each', {}], ['after all', {}],
+            ['after each', { disableMochaHooks: true }], ['after all', { disableMochaHooks: true }],
+        ] as const)('reports a failing %s hook after test:end as a sequential run does (%j)', async (kind, options) => {
+            const fails = kind === 'after each' ? { afterEachFails: true } : { afterAllFails: true }
+            const tests: PlannedTest[] = [
+                { id: 'h1', title: 'first', suites: ['H'], outcome: 'pass', ...fails },
+                { id: 'i1', title: 'second', suites: ['I'], outcome: 'pass', ...fails },
+            ]
+            const summary = (played: { results: Result[] }) => played.results.map((r) => `${r.status} ${r.name}`).sort()
+            const sequential = summary(await play('sequential', tests, undefined, false, options))
+
+            expect(sequential.filter((r) => r.includes(`"${kind}" hook`))).toHaveLength(2)
+            expect(summary(await play('parallel', tests, undefined, true, options))).toEqual(sequential)
         })
 
         it('keeps the after hooks that an older framework sends before test:end', async () => {
