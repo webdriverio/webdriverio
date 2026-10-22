@@ -88,33 +88,6 @@ describe('ReportAggregator', () => {
         expect(await runCli(['master-report.html', dir, 'Title'], { CI: 'true' })).toBe(1)
     })
 
-    it('makeReport accepts a new report whose file time is rounded down (FAT keeps 2 s steps)', async () => {
-        const { HtmlReporter } = await import('../src/index.js')
-        const { runCli } = await import('../src/makeReportCli.js')
-        const { RUNNER, SUITES } = await import('./testdata.js')
-        const dir = tempDir()
-        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'FAT' } as never)
-        reporter.onRunnerStart(RUNNER)
-        reporter.onSuiteStart(SUITES[0])
-        reporter.onSuiteEnd(SUITES[0])
-        await reporter.onRunnerEnd(RUNNER)
-        process.removeAllListeners('test:log')
-        process.removeAllListeners('test:screenshot')
-        process.removeAllListeners('test:video-capture')
-        const createReport = ReportAggregator.prototype.createReport
-        const rounded = vi.spyOn(ReportAggregator.prototype, 'createReport').mockImplementation(async function (this: ReportAggregator) {
-            await createReport.call(this)
-            // the time on FAT can be up to 2 s before the write
-            const time = new Date(Date.now() - 1900)
-            fs.utimesSync(this.reportFile, time, time)
-        })
-        try {
-            expect(await runCli(['master-report.html', dir, 'Title'], { CI: 'true' })).toBe(0)
-        } finally {
-            rounded.mockRestore()
-        }
-    })
-
     it('makeReport gives exit code 1 when only an old report is there', async () => {
         const { runCli } = await import('../src/makeReportCli.js')
         const dir = tempDir()

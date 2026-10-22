@@ -654,18 +654,6 @@ describe('second code review points', () => {
         }
     })
 
-    it('links the screenshots and the style from a report in a folder of the file name', async () => {
-        const dir = tempDir('subfolder')
-        const file = await runWorker(dir)
-        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: path.join('html', 'master.html'), reportTitle: 'Sub', linkScreenshots: true })
-        await reportAggregator.createReport()
-        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
-        const reportUrl = url.pathToFileURL(reportAggregator.reportFile)
-        const src = html.match(/<img[^>]*src="([^"]+)"/)?.[1]
-        expect(new URL(src!, reportUrl).href).toBe(url.pathToFileURL(file).href)
-        expect(fs.existsSync(url.fileURLToPath(new URL('report-styles.css', reportUrl)))).toBe(true)
-    })
-
     it('writes valid script options when collapseTests and collapseSuites are undefined', async () => {
         const dir = tempDir('collapse')
         await runWorker(dir)
@@ -674,16 +662,6 @@ describe('second code review points', () => {
         const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
         expect(html).not.toMatch(/if \(\s*\)/)
         expect(html.match(/if \((true|false)\) \{/g)).toHaveLength(2)
-    })
-
-    it('makes the report when the folder has a broken symbolic link', async () => {
-        const dir = tempDir('symlink')
-        await runWorker(dir)
-        fs.symlinkSync(path.join(dir, 'deleted.webm'), path.join(dir, 'latest.webm'))
-        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master.html', reportTitle: 'Symlink' })
-        await expect(reportAggregator.createReport()).resolves.toBeUndefined()
-        expect(reportAggregator.failed).toBe(false)
-        expect(reportAggregator.reports).toHaveLength(1)
     })
 })
 

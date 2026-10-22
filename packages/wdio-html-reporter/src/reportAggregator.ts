@@ -16,14 +16,21 @@ import { withExtension } from './fileNames.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
-/**
- * the files with one of the extensions in the folder and its subfolders (a symbolic
- * link is not a file, also when it is broken)
- */
-function walk(dir: string, extensions: string[]) {
-    return fs.readdirSync(dir, { recursive: true, withFileTypes: true })
-        .filter((entry) => entry.isFile() && extensions.some((extension) => entry.name.endsWith(extension)))
-        .map((entry) => path.join(entry.parentPath, entry.name))
+function  walk(dir:string, extensions: string[], filelist: string[] = []) {
+    const files = fs.readdirSync(dir)
+
+    files.forEach(function (file : string) {
+        const filepath = path.join(dir, file)
+        const stat = fs.statSync(filepath)
+
+        if (stat.isDirectory()) {
+            filelist = walk(filepath, extensions, filelist)
+        } else if (extensions.some((extension) => file.endsWith(extension))) {
+            filelist.push(filepath)
+        }
+    })
+
+    return filelist
 }
 
 type ReportSuite = { tests?: { events?: { type?: string, value?: unknown }[] }[], suites?: ReportSuite[] }

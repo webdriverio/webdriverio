@@ -28,7 +28,7 @@ export async function makeReport (args: string[], env: Record<string, string | u
     if (reportAggregator.failed) {
         throw new Error(`The report at ${reportFile} is not complete: see the errors above`)
     }
-    if (!fs.existsSync(reportFile) || fs.statSync(reportFile).mtimeMs < started - 2000) {
+    if (!fs.existsSync(reportFile) || fs.statSync(reportFile).mtimeMs < started - 1000) {
         throw new Error(`No report was made at ${reportAggregator.reportFile}`)
     }
     return reportAggregator.reportFile

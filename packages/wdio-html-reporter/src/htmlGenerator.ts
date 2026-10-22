@@ -61,8 +61,6 @@ class HtmlGenerator {
         let failed = false
 
         const specFileReferences: string[] = []
-        // the links and the style are relative to the report, which `filename` can put in a folder
-        const reportDir = path.dirname(path.resolve(reportData.reportFile))
         try {
             const rootdirname = path.dirname(url.fileURLToPath(new URL('.', import.meta.url)))
             HtmlGenerator.LOG.info('Html Generation started in ' + rootdirname)
@@ -80,7 +78,7 @@ class HtmlGenerator {
                         HtmlGenerator.LOG.error('renderImage: file does not exist: ' + screenshotFile)
                     }
 
-                    relPath = linkTo(reportDir, screenshotFile)
+                    relPath = linkTo(reportOptions.outputDir, screenshotFile)
                     if (reportOptions.linkScreenshots) {
                         HtmlGenerator.LOG.info('renderImage: Screenshot Relative Path: ' + relPath)
                         return relPath
@@ -93,7 +91,7 @@ class HtmlGenerator {
                 }
             })
             environment.addGlobal('renderVideo', function (videoCaptureFile: string) {
-                const relPath = linkTo(reportDir, videoCaptureFile)
+                const relPath = linkTo(reportOptions.outputDir, videoCaptureFile)
                 HtmlGenerator.LOG.debug('Video Relative Path: ' + relPath)
                 return relPath
             })
@@ -276,11 +274,11 @@ class HtmlGenerator {
                     if (fs.existsSync(reportOptions.outputDir)) {
 
                         const reportCss = rootdirname + '/css/report-styles.css'
-                        const destCss = path.join(reportDir, 'report-styles.css')
+                        const destCss = reportOptions.outputDir + '/report-styles.css'
                         await fsp.copyFile(reportCss, destCss)
 
                         const cssFont = rootdirname + '/css/glyphicons-halflings-regular.woff'
-                        const fontDest = path.join(reportDir, 'glyphicons-halflings-regular.woff')
+                        const fontDest = reportOptions.outputDir + '/glyphicons-halflings-regular.woff'
                         await fsp.copyFile(cssFont, fontDest)
                     }
                 } catch (error) {
