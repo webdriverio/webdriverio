@@ -175,8 +175,25 @@ export default class JasmineReporter {
             })
         }
 
+        /**
+         * a failing `afterAll` of a suite with specs is reported on the suite only
+         * (the reporters get it as a hook), count it so the run fails
+         */
+        if (parentSuite.tests > 0 && suite.failedExpectations && suite.failedExpectations.length) {
+            this._failedCount++
+        }
+
         this._parent.pop()
         this.emit('suite:end', newSuite)
+    }
+
+    jasmineDone (result: jasmine.JasmineDoneInfo) {
+        /**
+         * failures outside of any suite, e.g. a top level `afterAll`
+         */
+        if (result.failedExpectations && result.failedExpectations.length) {
+            this._failedCount++
+        }
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {
