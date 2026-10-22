@@ -569,7 +569,7 @@ async function runOneTest(
     failHookAffectedTests: boolean
 ): Promise<TestRunResult> {
     const contextId = allocation.context
-    return parallelStore.run(contextId, async () => {
+    const runInContext = async (): Promise<TestRunResult> => {
         // Static pending tests (it.skip / it without fn): no hooks, no
         // test:start — matches the Mocha runner.
         if (test.pending) {
@@ -681,7 +681,11 @@ async function runOneTest(
         }
         await runHookChain(test._afterAll, 'after all', false)
         return { ...result, hookFailures }
-    })
+    }
+    return parallelStore.run(contextId, () => runInContext().finally(() => {
+        // the context sends no more events: reporters can close what they keep for it
+        reporter.emit('context:end', { type: 'context:end', cid, specs, uid, contextId })
+    }))
 }
 
 // ============================================================

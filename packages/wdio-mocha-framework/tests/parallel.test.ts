@@ -613,6 +613,30 @@ describe('runParallelTests — sequential event parity', () => {
         'hook:start "after all" hook for root', 'hook:end "after all" hook for root',
     ]
 
+    test('sends context:end after the after hooks of a test, with its uid and context', async () => {
+        reporter.on('context:end', (p) => emittedEvents.push({ event: 'context:end', payload: p }))
+        await runParallelTests(withHooks() as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(order()).toEqual([...hooksAfterResult('test:pass'), 'context:end'])
+        const start = emittedEvents.find((e) => e.event === 'test:start').payload
+        expect(emittedEvents.at(-1).payload).toEqual({
+            type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: start.uid, contextId: start.contextId,
+        })
+    })
+
+    test.each([
+        ['a static pending test', mockSuite('root', { tests: [{ ...mockTest('t1'), pending: true }] })],
+        ['a test whose before hook fails', mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: 'root' }, () => { throw new Error('boom') })],
+        })],
+    ])('sends context:end for %s', async (_name, suite) => {
+        const ended: string[] = []
+        reporter.on('context:end', (p) => ended.push(p.uid))
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(ended).toEqual(['test-0-0-0'])
+    })
+
     test('sends the result of a passing test before its afterEach and after hooks', async () => {
         await runParallelTests(withHooks() as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
         expect(order()).toEqual(hooksAfterResult('test:pass'))

@@ -27,7 +27,7 @@ type PlannedTest = {
     noAfterAll?: boolean
     /** leave the lane open: no pass/fail/end */
     unfinished?: boolean
-    /** older `@wdio/mocha-framework` (10.1) sends the after hooks of a parallel test before its test:end */
+    /** older `@wdio/mocha-framework` (10.1): after hooks of a parallel test before its test:end, and no context:end */
     afterHooksBeforeEnd?: boolean
     afterAllFails?: boolean
 }
@@ -149,6 +149,11 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
         run(() => emit('test:end', message('test:end', test, test.id, { duration: 1, ...extra })))
     }
     const start = () => run(() => emit('test:start', message('test:start', test, test.id)))
+    const contextEnd = () => {
+        if (h.mode === 'parallel' && !test.afterHooksBeforeEnd) {
+            run(() => emit('context:end', { type: 'context:end', cid: CID, specs: [SPEC], uid: test.id, contextId: `ctx-${test.id}` }))
+        }
+    }
     const body = () => {
         run(() => process.emit(events.startStep as any, `${test.id}-step` as any))
         run(() => h.reporter.addAttachment({ name: `${test.id}-attachment`, content: `content of ${test.id}`, type: 'text/plain' }))
@@ -161,6 +166,7 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
 
     if (test.outcome === 'skip-static') {
         finish('test:pending')
+        contextEnd()
         return steps
     }
     if (test.outcome === 'hook-fail') {
@@ -168,6 +174,7 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
         hook('after all', hookBody('after all'))
         start()
         finish('test:fail')
+        contextEnd()
         return steps
     }
 
@@ -187,6 +194,7 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
         finish(finishKind)
         afterHooks()
     }
+    contextEnd()
     return steps
 }
 
@@ -457,22 +465,32 @@ describe('Mocha parallel mode', () => {
     describe('result timing and console logs', () => {
         const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
 
-        it('writes an ended test at the first suite:end, while another lane is open', async () => {
-            // its after hooks come after its test:end, so it cannot be written at test:end
-            const h = createHarness('parallel', [A1, B1])
+        it('writes a test when its context ends, while another lane is open', async () => {
+            const done: PlannedTest = { ...A1, noAfterAll: true }
+            const unfinished: PlannedTest = { id: 'x1', title: 'never ends', suites: ['X'], outcome: 'pass', unfinished: true }
+            let writtenEarly: string[] = []
+            await play('parallel', [done, unfinished], async (h) => {
+                await vi.waitFor(() => expect(writtenNames(h)).toContain(done.title))
+                writtenEarly = writtenNames(h)
+            })
+            expect(writtenEarly).toEqual([done.title])
+        })
+
+        it('writes an ended test at the first suite:end when an older framework sends no context:end', async () => {
+            const legacy: PlannedTest = { ...A1, afterHooksBeforeEnd: true }
+            const h = createHarness('parallel', [legacy, B1])
             h.emit('runner:start', {
                 cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } },
                 isMultiRemote: false, sessionId: 'session', instanceOptions: {},
             })
             const keys = [...h.uids.keys()]
             keys.forEach((key) => h.emit('suite:start', h.suiteMessage('suite:start', key)))
-            scriptOf(h, A1).forEach((step) => step())
-            const unfinished = scriptOf(h, { ...B1, unfinished: true })
-            unfinished.forEach((step) => step())
+            scriptOf(h, legacy).forEach((step) => step())
+            scriptOf(h, { ...B1, unfinished: true }).forEach((step) => step())
             expect(writtenNames(h)).toEqual([])
 
             h.emit('suite:end', h.suiteMessage('suite:end', keys[0]))
-            await vi.waitFor(() => expect(writtenNames(h)).toEqual([A1.title]))
+            await vi.waitFor(() => expect(writtenNames(h)).toEqual([legacy.title]))
             h.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
             await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
         })

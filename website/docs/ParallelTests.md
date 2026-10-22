@@ -175,7 +175,7 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` supports parallel mode with Mocha. It writes the results of a spec file when its suites end, because the `afterEach()` and `after()` hooks of a test run after the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
+`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test and its `afterEach()` and `after()` hooks end. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
 
 `@wdio/spec-reporter` doesn't support parallel mode yet: a Mocha `describe` block that comes after another one, or a Cucumber scenario that starts while another one runs, is shown nested under it, and with Cucumber `retry` the passing count can be wrong. The results of the tests and the exit code are correct.
 

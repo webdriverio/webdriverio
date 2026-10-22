@@ -7,6 +7,7 @@ import type {
     AfterCommandArgs,
     Argument,
     BeforeCommandArgs,
+    ContextEnd,
     HookStats,
     RunnerStats,
     SuiteStats,
@@ -288,8 +289,8 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * In parallel mode every suite:end comes after the last test and its hooks,
-     * so a test's lane closes there, with the after hooks that came after its test:end
+     * In parallel mode every suite:end comes after the last test and its hooks, so a lane
+     * that no context:end closed (older framework) closes there, with its after hooks
      */
     private _closeEndedLanes(): void {
         let closed = false
@@ -1182,6 +1183,14 @@ export default class AllureReporter extends WDIOReporter {
         if (!key) { return }
         const lane = this._openLane(key)
         if (lane) { lane.endedTitle = test.title }
+    }
+
+    // the context runs no more hooks: write its test now, while other tests still run
+    onContextEnd(payload: ContextEnd): void {
+        const lane = this._lanes.get(payload.contextId)
+        if (!lane) { return }
+        this._closeLane(payload.contextId, lane.endedTitle ?? payload.contextId)
+        this._flushIncrementally()
     }
 
     onHookStart(hook: HookStats): void {

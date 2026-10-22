@@ -905,6 +905,18 @@ describe('WDIOReporter Listeners', () => {
                 expect(reporter.getContextTest()).toBe(reporter.tests.A)
             })
 
+            it('returns undefined for a context after its context:end', () => {
+                const onContextEnd = vi.spyOn(reporter, 'onContextEnd')
+                start('A', 'ctx-a')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                const payload = { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' }
+                reporter.emit('context:end', payload)
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(onContextEnd).toHaveBeenCalledWith(payload)
+            })
+
             it('returns the current test without a resolver for a sequential test', () => {
                 start('A')
                 expect(reporter.getContextTest()).toBe(reporter.tests.A)

@@ -11,7 +11,7 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument } from './types.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
@@ -57,7 +57,7 @@ export default class WDIOReporter extends EventEmitter {
 
         let currentTest: TestStats
         const contextTests = new Map<string, TestStats>()
-        // the last test of a context after its test:end: Mocha runs afterEach / after hooks then
+        // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
         const endedContextTests = new Map<string, TestStats>()
         const contextByUid = new Map<string, string>()
         const retriesByContext = new Map<string, number>()
@@ -278,6 +278,11 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestEnd(testStat)
         })
 
+        this.on('context:end', (payload: ContextEnd) => {
+            endedContextTests.delete(payload.contextId)
+            this.onContextEnd(payload)
+        })
+
         this.on('suite:end', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
@@ -394,6 +399,12 @@ export default class WDIOReporter extends EventEmitter {
     onTestSkip(_testStats: TestStats) { }
     onTestPending(_testStats: TestStats) { }
     onTestEnd(_testStats: TestStats) { }
+    /**
+     * Called when the browsing context of a parallel test sends no more events, after the
+     * `afterEach` and `after` hooks of its test
+     * @experimental sent only in Mocha `parallelMode` for now; the name and the payload may change
+     */
+    onContextEnd(_payload: ContextEnd) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
     onRunnerEnd(_runnerStats: RunnerStats) { }
@@ -419,5 +430,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName
 }
