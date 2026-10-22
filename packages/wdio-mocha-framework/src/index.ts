@@ -328,7 +328,8 @@ class MochaAdapter {
         /**
          * Mocha 11.8+ sends a second 'test' event for the open test when a `beforeEach`
          * hook fails with `failHookAffectedTests` (mochajs/mocha#6442), so ignore it.
-         * TODO: remove when the `mocha` version range of this package includes the fix.
+         * TODO: remove when the `mocha` version range of this package includes the fix of
+         * https://github.com/mochajs/mocha/issues/6442
          */
         if (event === 'test:start') {
             if (payload === this._openTest) {
