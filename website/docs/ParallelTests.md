@@ -147,6 +147,7 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 - Only `mochaOpts.timeout` applies. `this.timeout()` in a test or hook throws, and `it(...).timeout()` or a `describe` timeout is ignored with a warning. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
 - `mochaOpts.bail` and Mocha retries are not supported and fail the run: `mochaOpts.retries`, `this.retries(n)` in a `describe` and `it(...).retries(n)`. `this.retries()` in a test or hook throws. The [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`) work in parallel mode.
 - `.only()`, `this.skip()`, `grep`, `fgrep` and `invert` work like in a sequential run.
+- `mochaOpts.dryRun`, `forbidPending` and `checkLeaks` do not apply in parallel mode yet: the tests run, a pending test does not fail, and a global leak is not reported.
 
 ### Cucumber
 
