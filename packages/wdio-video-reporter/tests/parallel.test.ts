@@ -505,3 +505,35 @@ describe('review fixes', () => {
         }
     })
 })
+
+describe('frames after the end of a parallel test', () => {
+    type Hook = (commandName: string, args?: unknown[]) => Promise<unknown> | undefined
+    const lastHook = () => {
+        const hooks = (browser.options as { beforeCommand: Hook[] }).beforeCommand
+        return hooks[hooks.length - 1]
+    }
+
+    afterEach(() => {
+        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(async ({ context }: any) => ({ data: Buffer.from(context).toString('base64') }) as any)
+    })
+
+    it('makes a command after the end of a parallel test wait for its last frame (afterEach after test:end)', async () => {
+        const reporter = await startReporter()
+        let release!: () => void
+        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(({ context }: any) => new Promise((resolve) => {
+            release = () => resolve({ data: Buffer.from(context).toString('base64') } as any)
+        }))
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a'))
+        reporter.onTestEnd(test('a', 'ctx-a', { state: 'passed' }))
+
+        // the first command of the afterEach hook, in the window of the test
+        let done = false
+        void Promise.resolve(lastHook()('url')).then(() => { done = true })
+        await sleep()
+        expect(done).toBe(false)
+        release()
+        await sleep()
+        expect(done).toBe(true)
+    })
+})

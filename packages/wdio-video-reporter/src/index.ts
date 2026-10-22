@@ -856,11 +856,15 @@ export default class VideoReporter extends WdioReporter {
                     }
                 }
                 // in parallel mode only the commands of the same test wait
-                const recording = this.#recordingOf()
-                const frame = recording?.pendingFrame
-                if (recording) {
-                    recording.pendingFrame = undefined
+                const key = this.#keyOf()
+                const recording = this.#recordings.get(key)
+                if (!recording) {
+                    // a hook after the end of a parallel test (Mocha afterEach): its last frame
+                    const lastFrame = this.#lastFramesOfWindow.get(key)
+                    return lastFrame && endsInTime(lastFrame, FRAME_WAIT_TIMEOUT)
                 }
+                const frame = recording.pendingFrame
+                recording.pendingFrame = undefined
                 return frame && endsInTime(frame, FRAME_WAIT_TIMEOUT)
             }
         ]
