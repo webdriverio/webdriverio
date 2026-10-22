@@ -692,6 +692,20 @@ describe('runParallelTests — sequential event parity', () => {
         expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
     })
 
+    test('fails this.skip() in an after all hook with Mocha\'s "`this.skip` forbidden", as a sequential run does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _afterAll: [mockHook('"after all" hook', { title: 'root' }, function (this: any) { this.skip() })],
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(1)
+        const hookEnd = emittedEvents.filter((e) => e.event === 'hook:end').at(-1)
+        expect(hookEnd.payload.error.message).toBe('`this.skip` forbidden')
+        expect(hookEnd.payload.pending).not.toBe(true)
+        expect(emittedEvents.filter((e) => e.event === 'test:pass')).toHaveLength(1)
+    })
+
     test('sends the type, expected and actual values of an assertion error, as a sequential run does', async () => {
         const assertion = Object.assign(new Error('expected 2 to equal 1'), { name: 'AssertionError', expected: 1, actual: 2 })
         const suite = mockSuite('root', {

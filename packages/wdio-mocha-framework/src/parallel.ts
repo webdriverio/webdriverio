@@ -608,7 +608,11 @@ async function runOneTest(
                     await callHook(fn, ctx, timeoutMs)
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
-                    const hookError = err instanceof Error ? err : new Error(String(err))
+                    let hookError = err instanceof Error ? err : new Error(String(err))
+                    if (isSkipError(hookError) && kind === 'after all') {
+                        // Mocha fails this.skip() in an after all hook (runner.js `this.skip` forbidden)
+                        hookError = Object.assign(new Error('`this.skip` forbidden'), { code: 'ERR_MOCHA_UNSUPPORTED' })
+                    }
                     if (isSkipError(hookError)) {
                         emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart, undefined, true)
                         if (fatal) {
