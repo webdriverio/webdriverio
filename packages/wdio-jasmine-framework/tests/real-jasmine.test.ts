@@ -39,6 +39,7 @@ test('oneFailurePerSpec stops the spec after a failed sync expect', async () => 
 test.each([
     ['failingAfterAll.js', 1],
     ['failingTopLevelAfterAll.js', 1],
+    ['failingOuterAfterAll.js', 1],
     ['passingAfterAll.js', 0]
 ])('a failing afterAll fails the run (%s)', async (fixture, failures) => {
     vi.mocked(executeHooksWithArgs).mockResolvedValue([])

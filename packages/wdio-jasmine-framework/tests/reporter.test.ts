@@ -197,6 +197,17 @@ test('getFailedCount counts a failing afterAll of a suite with specs', () => {
     ])
 })
 
+test('getFailedCount counts a failure of a suite without specs once', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.suiteDone({
+        id: '23',
+        description: 'some test suite',
+        failedExpectations: [new Error('afterAll failed') as any],
+        fullName: 'foobar'
+    } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+})
+
 test('getFailedCount counts failures outside of a suite', () => {
     jasmineReporter.jasmineDone({ failedExpectations: [new Error('top level afterAll failed')] } as any)
     expect(jasmineReporter.getFailedCount()).toBe(1)
