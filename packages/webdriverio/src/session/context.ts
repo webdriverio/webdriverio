@@ -401,7 +401,8 @@ export class ContextManager extends SessionManager {
     }
 
     #onCommand(event: { command: string, body: unknown, endpoint?: string }) {
-        // wrapper events also fire for BiDi overrides; only the HTTP request (with `endpoint`) reaches the focused window
+        // wrapper events also fire for BiDi overrides; only the HTTP request (with `endpoint`) reaches the focused window,
+        // except the reporter events of a BiDi capture, which copy the Classic `endpoint`
         if (
             typeof event.endpoint === 'string' &&
             parallelContextStore.getStore() &&
