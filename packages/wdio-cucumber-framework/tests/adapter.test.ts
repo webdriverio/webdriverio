@@ -629,6 +629,21 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
+    it('should wrap user tag expressions so `or` can not bypass generated skip tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true, tags: '@a or @b' } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).toMatch(/^\(not @skip.*\) and \(@a or @b\)$/)
+    })
+
     it('wrapSteps should not call wrapStep if step doesn\'t has wrapperOptions', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
         adapter.wrapStep  = vi.fn()
