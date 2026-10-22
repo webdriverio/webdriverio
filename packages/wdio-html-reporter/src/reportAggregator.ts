@@ -114,16 +114,14 @@ class ReportAggregator {
          */
         fs.mkdirSync(this.options.outputDir, { recursive: true })
         const files = this.readJsonFiles()
-        /**
-         * no worker file (for example `produceJson: false`, or a CI step that did not
-         * download them), or a file that cannot be read or parsed (a worker that stopped
-         * while it wrote it), makes the report incomplete; a valid JSON file of another
-         * tool is only skipped
-         */
-        let inputFailed = files.length === 0
-        if (inputFailed) {
+        if (files.length === 0) {
             this.LOG.error(`No Json files found in: ${this.options.outputDir}. Make sure options.produceJson is not false`)
         }
+        /**
+         * a file that cannot be read or parsed (a worker that stopped while it wrote it)
+         * makes the report incomplete; a valid JSON file of another tool is only skipped
+         */
+        let inputFailed = false
         /** the workers that stopped before they wrote their results, or could not write them */
         const incomplete: string[] = []
         for (let i = 0; i < files.length; i++) {
@@ -195,6 +193,10 @@ class ReportAggregator {
         }
         metrics.duration = dayjs.duration(dayjs(metrics.end).utc().diff(dayjs(metrics.start).utc())).as('milliseconds')
 
+        /**
+         * no worker results (for example `produceJson: false`, or a CI step that did not
+         * download them) also makes the report fail
+         */
         const noWorkerReport = !this.reports || !this.reports.length
         if (noWorkerReport) {
             // the test failed hard at the beginning.  Create a dummy structure to get through html generation
@@ -239,7 +241,7 @@ class ReportAggregator {
         this.failed = false
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed || incomplete.length > 0
+            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed || noWorkerReport || incomplete.length > 0
             await this.finalize()
             this.LOG.info('Report Aggregation completed')
 

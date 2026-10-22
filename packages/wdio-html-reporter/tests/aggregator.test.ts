@@ -81,6 +81,11 @@ describe('ReportAggregator', () => {
         // the report still says why it is empty
         expect(fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8'))
             .toContain('The execution of the test suite has failed before report generation was started')
+        // only files that are not worker results: another tool, a master report of another name
+        fs.mkdirSync(path.join(dir, 'allure-results'))
+        fs.writeFileSync(path.join(dir, 'allure-results', 'abc-result.json'), '{"name":"a test"}')
+        fs.writeFileSync(path.join(dir, 'other-master.json'), '{"master":true}')
+        expect(await runCli(['master-report.html', dir, 'Title'], { CI: 'true' })).toBe(1)
     })
 
     it('makeReport gives exit code 1 when only an old report is there', async () => {
