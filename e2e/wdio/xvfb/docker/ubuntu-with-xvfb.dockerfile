@@ -1,4 +1,5 @@
-FROM ubuntu:24.04
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION}
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
