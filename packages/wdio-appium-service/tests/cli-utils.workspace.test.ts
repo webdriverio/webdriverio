@@ -41,6 +41,7 @@ describe('ensureInspectorPluginInstalled in a workspace package', () => {
         fs.writeFileSync(path.join(pkg, 'package.json'), '{}')
         fs.writeFileSync(path.join(root, 'plugin.js'), '')
         vi.spyOn(process, 'cwd').mockReturnValue(pkg)
+        vi.spyOn(os, 'platform').mockReturnValue('darwin')
 
         vi.mocked(spawn).mockImplementationOnce((() => {
             const installProcess: any = { once: vi.fn((event: string, cb: (arg: any) => void) => {
