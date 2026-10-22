@@ -17,6 +17,17 @@ test('should get initialized', () => {
     expect(start instanceof Date).toBe(true)
 })
 
+test('keeps the parent and the context of a parallel suite', () => {
+    const topLevel = new SuiteStats({ title: 'feature', fullTitle: 'feature', file: 'a.feature', parentUid: null })
+    const scenario = new SuiteStats({
+        type: 'scenario', title: 'scenario', fullTitle: 'scenario', file: 'a.feature', parentUid: 'feature-1', contextId: 'ctx-1'
+    })
+
+    expect(topLevel.parentUid).toBeNull()
+    expect(scenario.parentUid).toBe('feature-1')
+    expect(scenario.contextId).toBe('ctx-1')
+})
+
 test('should allow to retry suite', () => {
     const suite = new SuiteStats({
         cid: '0-0',
