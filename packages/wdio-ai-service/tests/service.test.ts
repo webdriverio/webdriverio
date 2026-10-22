@@ -49,8 +49,8 @@ describe('AiService test tracking', () => {
         await service.before({}, [url.pathToFileURL(spec).href], { addCommand: vi.fn() } as unknown as WebdriverIO.Browser)
         service.beforeTest({ file: spec, fullTitle: 'cart adds a shirt' })
         expect(startTest).toHaveBeenLastCalledWith(spec, 'cart adds a shirt')
-        await service.afterTest({}, {}, { passed: false })
-        expect(endTest).toHaveBeenCalledWith(false)
+        await service.afterTest({ file: spec, fullTitle: 'cart adds a shirt' }, {}, { passed: false })
+        expect(endTest).toHaveBeenCalledWith(false, spec, 'cart adds a shirt')
 
         service.beforeTest({ fullName: 'jasmine spec name' })
         expect(startTest).toHaveBeenLastCalledWith(spec, 'jasmine spec name')
@@ -58,8 +58,8 @@ describe('AiService test tracking', () => {
         const feature = path.resolve('/project/features/cart.feature')
         service.beforeScenario({ pickle: { uri: url.pathToFileURL(feature).href, name: 'Add a shirt' } })
         expect(startTest).toHaveBeenLastCalledWith(feature, 'Add a shirt')
-        await service.afterScenario({}, { passed: true })
-        expect(endTest).toHaveBeenLastCalledWith(true)
+        await service.afterScenario({ pickle: { uri: url.pathToFileURL(feature).href, name: 'Add a shirt' } }, { passed: true })
+        expect(endTest).toHaveBeenLastCalledWith(true, feature, 'Add a shirt')
 
         await service.after()
         expect(flush).toHaveBeenCalled()

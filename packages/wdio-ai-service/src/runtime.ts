@@ -153,6 +153,10 @@ export class AiRuntime {
     #caches = new Map<string, ActCache>()
     #instructions?: Promise<string | undefined>
     #test?: TestContext
+    /**
+     * tests that started and did not end, more than one in parallel mode
+     */
+    #openTests: TestContext[] = []
     modelCalls = 0
     /**
      * one record per `act` call, written for the end-of-run summary
@@ -169,18 +173,26 @@ export class AiRuntime {
      */
     startTest (spec: string, title: string) {
         this.#test = { spec, title, calls: 0, startedAt: Date.now(), controller: new AbortController() }
+        this.#openTests.push(this.#test)
     }
 
     /**
      * The test ended, its workspace is kept on failure or heal (by default).
      * A call of the test that still runs, e.g. after the timeout of the test
-     * framework, stops before its next step.
+     * framework, stops before its next step. `spec` and `title` name the test:
+     * in parallel mode, the current test can be another one.
      */
-    async endTest (passed = true) {
-        const test = this.#test
-        this.#test = undefined
+    async endTest (passed = true, spec?: string, title?: string) {
+        const test = title === undefined
+            ? this.#test
+            : this.#openTests.findLast((open) => open.spec === spec && open.title === title)
+                ?? (this.#openTests.length === 1 ? this.#openTests[0] : undefined)
         if (!test) {
             return
+        }
+        this.#openTests = this.#openTests.filter((open) => open !== test)
+        if (this.#test === test) {
+            this.#test = undefined
         }
         test.passed = passed
         test.controller.abort(new TestEndedError(test.title))

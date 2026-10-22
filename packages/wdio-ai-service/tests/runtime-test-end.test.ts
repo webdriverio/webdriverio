@@ -427,6 +427,41 @@ describe('AiRuntime when a test ends during act()', () => {
         expect(actions()).not.toContain('frame top')
     })
 
+    /**
+     * parallel mode (`parallelMode`) runs the tests of a spec file at the same time
+     */
+    it('does not stop the call of another test when a test ends in parallel mode', async () => {
+        const { runtime: ai } = runtime({ cache: 'off' })
+        ai.startTest(spec, 'pays')
+        ai.startTest(spec, 'confirms')
+        hold((action) => action === 'click')
+        const call = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+
+        await ai.endTest(true, spec, 'pays')
+        release()
+
+        await expect(call).resolves.toMatchObject({ source: 'model' })
+        expect(ai.records.at(-1)).toMatchObject({ test: 'confirms' })
+    })
+
+    it('stops the call of the test that ended after another test started in parallel mode', async () => {
+        const { runtime: ai } = runtime({ cache: 'off' }, [...script, ...script])
+        ai.startTest(spec, 'pays')
+        hold((action) => action === 'click')
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+        ai.startTest(spec, 'confirms')
+        const next = ai.act(browser, 'Pay again')
+
+        await ai.endTest(false, spec, 'pays')
+        release()
+
+        await expect(stale).rejects.toThrow('the test "pays" ended before the call finished')
+        await expect(next).resolves.toMatchObject({ source: 'model' })
+        expect(ai.records.map(({ test, error }) => [test, Boolean(error)])).toEqual([['pays', true], ['confirms', false]])
+    })
+
     it('does not leave a deleted workspace behind', async () => {
         const { runtime: ai } = runtime({ cache: 'off', workspace: { dir: path.join(dir, 'workspaces'), keep: 'never' } })
         ai.startTest(spec, 'pays')

@@ -73,23 +73,30 @@ export default class AiService implements Services.ServiceInstance {
      * Mocha and Jasmine
      */
     beforeTest (test: TestLike) {
-        const title = test.fullTitle || test.fullName || test.title || test.description || 'test'
-        this.runtime.startTest(specPath(test.file || this.#specs[0]), title)
+        this.runtime.startTest(...this.#testOf(test))
     }
 
-    async afterTest (_test: TestLike, _context: unknown, result?: { passed?: boolean }) {
-        await this.runtime.endTest(result?.passed ?? true)
+    async afterTest (test: TestLike, _context: unknown, result?: { passed?: boolean }) {
+        await this.runtime.endTest(result?.passed ?? true, ...this.#testOf(test))
+    }
+
+    #testOf (test: TestLike): [spec: string, title: string] {
+        return [specPath(test.file || this.#specs[0]), test.fullTitle || test.fullName || test.title || test.description || 'test']
     }
 
     /**
      * Cucumber
      */
     beforeScenario (world: CucumberWorld) {
-        this.runtime.startTest(specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario')
+        this.runtime.startTest(...this.#scenarioOf(world))
     }
 
-    async afterScenario (_world: CucumberWorld, result?: { passed?: boolean }) {
-        await this.runtime.endTest(result?.passed ?? true)
+    async afterScenario (world: CucumberWorld, result?: { passed?: boolean }) {
+        await this.runtime.endTest(result?.passed ?? true, ...this.#scenarioOf(world))
+    }
+
+    #scenarioOf (world: CucumberWorld): [spec: string, title: string] {
+        return [specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario']
     }
 
     async after () {
