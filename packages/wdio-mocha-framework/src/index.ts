@@ -50,10 +50,8 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
-    /** uid of the test between its test:start and its test:end */
-    private _openTestUid?: string
-    /** Mocha test between its test:start and its test:end */
-    private _openTest?: Record<string, unknown>
+    /** Mocha test and its uid between its test:start and its test:end */
+    private _openTest?: { payload: Record<string, unknown>, uid: string }
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -331,20 +329,22 @@ class MochaAdapter {
          * TODO: remove when the `mocha` version range of this package includes the fix of
          * https://github.com/mochajs/mocha/issues/6442
          */
-        if (event === 'test:start') {
-            if (payload === this._openTest) {
-                return
-            }
-            this._openTest = payload
-        } else if (event === 'test:end') {
-            this._openTest = undefined
+        const isOpenTest = payload === this._openTest?.payload
+        if (event === 'test:start' && isOpenTest) {
+            return
         }
 
         const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
-        message.uid = this.getUID(message)
+        // this.skip() at runtime ends the test that started; it.skip has no test:start
+        message.uid = event === 'test:pending' && isOpenTest ? this._openTest!.uid : this.getUID(message)
+        if (event === 'test:start') {
+            this._openTest = { payload, uid: message.uid }
+        } else if (event === 'test:end') {
+            this._openTest = undefined
+        }
 
         this._reporter.emit(message.type, message)
     }
@@ -397,18 +397,10 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (message.type === 'test:start') {
-            this._openTestUid = this.getSyncEventIdStart('test')
-            return this._openTestUid
-        }
-        if (message.type === 'test:pending') {
-            // this.skip() at runtime ends the test that started; it.skip has no test:start
-            return this._openTestUid ?? this.getSyncEventIdStart('test')
+        if (message.type === 'test:start' || message.type === 'test:pending') {
+            return this.getSyncEventIdStart('test')
         }
         if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {
-            if (message.type === 'test:end') {
-                this._openTestUid = undefined
-            }
             return this.getSyncEventIdEnd('test')
         }
 
