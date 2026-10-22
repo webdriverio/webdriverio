@@ -149,9 +149,9 @@ screenshot, and without this option Allure attaches each frame to the test as a 
   ],
 ```
 
-## With [`wdio-html-nice-reporter`](https://github.com/rpii/wdio-html-reporter)
+## With [`@wdio/html-reporter`](https://webdriver.io/docs/html-reporter)
 
-The HTML nice reporter adds the videos to its report without more configuration. Use the same `outputDir` for both
+The HTML reporter adds the videos to its report without more configuration. Use the same `outputDir` for both
 reporters:
 
 ```js
@@ -161,7 +161,7 @@ reporters:
       videoSlowdownMultiplier: 3, // Higher to get slower videos, lower for faster videos [Value 1-100]
       outputDir: './reports/html-reports/',
     }],
-    ['html-nice', {
+    ['html', {
       outputDir: './reports/html-reports/',
       filename: 'report.html',
       reportTitle: 'Test Report Title',
