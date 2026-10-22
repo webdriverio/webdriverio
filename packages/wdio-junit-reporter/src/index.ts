@@ -3,7 +3,7 @@ import path from 'node:path'
 import url from 'node:url'
 import os from 'node:os'
 
-import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
+import type { HookStats, RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
@@ -120,6 +120,31 @@ class JunitReporter extends WDIOReporter {
     }
 
     /**
+     * Add the failed hooks of a Cucumber scenario to its steps. Cucumber hooks have no
+     * Mocha style title (an unnamed `Before` has none at all), so take every failed hook.
+     * Hooks that ran before the first step go in front of the steps, so the scenario is
+     * reported as failed and not as skipped.
+     */
+    private _addFailedCucumberHooks(scenario: SuiteStats) {
+        const firstStepStart = scenario.tests.length > 0
+            ? new Date(scenario.tests[0].start).getTime()
+            : Infinity
+        const toStep = (hook: HookStats, isBefore: boolean) => ({
+            _duration: hook._duration,
+            title: hook.title || (isBefore ? 'Before hook' : 'After hook'),
+            error: hook.error,
+            state: 'failed',
+            output: []
+        }) as unknown as TestStats
+
+        const failedHooks = scenario.hooks.filter((hook) => hook.error)
+        const isBefore = (hook: HookStats) => new Date(hook.start).getTime() <= firstStepStart
+        scenario.tests.unshift(...failedHooks.filter(isBefore).map((hook) => toStep(hook, true)))
+        scenario.tests.push(...failedHooks.filter((hook) => !isBefore(hook)).map((hook) => toStep(hook, false)))
+        return scenario
+    }
+
+    /**
      * Build a single <testcase> element from a TestStats entry. Shared between plain
      * Mocha/Jasmine suites (`_addSuiteToBuilder`) and Cucumber feature suites whose
      * scenarios are reported directly as tests (`cucumberOpts.scenarioLevelReporter`).
@@ -219,7 +244,7 @@ class JunitReporter extends WDIOReporter {
                 testCase.file(filePath)
             }
 
-            scenario = this._addFailedHooks(scenario)
+            scenario = this._addFailedCucumberHooks(scenario)
 
             let stepsOutput = ''
             let isFailing = false
