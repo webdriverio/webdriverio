@@ -61,6 +61,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `onAfterCommand` argument `name` | `command` |
 | a `beforeCommand` / `afterCommand` hook that expects an element command 2 or 3 times, `[]` as `args`, or an `emit` command | the hooks run once for each element command, with its arguments, and not for `emit`. `beforeCommand` runs before the wait for the element: read the found element in `afterCommand`. |
 | `wdio-video-reporter` | `@wdio/video-reporter`. Uninstall the old package. `reporters: ['video']` stays. Install ffmpeg on every machine that runs the tests (also CI and Docker), or set `ffmpegPath`: v10 does not install it. Rename JSON Wire Protocol names in `snapshotCommands` (see the guide). `GET` commands (for example `getUrl`) give no frame. |
+| `wdio-html-nice-reporter`, reporter name `html-nice` | `@wdio/html-reporter`, reporter name `html`. Uninstall the old package. `@rpii/wdio-report-events` can become `ReportEvents` from `@wdio/html-reporter`. `lib/makeReport.js` is `build/makeReport.js`. |
 | `addEnvironment(` | `reportedEnvironmentVars` in the Allure reporter options |
 | `addCommand(name, fn, true)` | `addCommand(name, fn, { attachToElement: true })`. A boolean third argument throws. Same for `overwriteCommand`. |
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |

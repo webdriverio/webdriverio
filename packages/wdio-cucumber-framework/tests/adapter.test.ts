@@ -841,6 +841,52 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
+    it('should wrap user tag expressions so `or` can not bypass generated skip tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true, tags: '@a or @b' } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).toMatch(/^\(not @skip.*\) and \(@a or @b\)$/)
+    })
+
+    it('should not add parentheses when there are no user tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).not.toContain('(@')
+        expect(adapter['_cucumberOpts'].tags).toMatch(/^\(not @skip.*\)$/)
+    })
+
+    it('should keep only the wrapped user tags when no skip tags are generated', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true, tags: '@a or @b' } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'foobar' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).toMatch(/\(@a or @b\)$/)
+    })
+
     it('wrapSteps should not call wrapStep if step doesn\'t has wrapperOptions', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.wrapStep  = vi.fn()

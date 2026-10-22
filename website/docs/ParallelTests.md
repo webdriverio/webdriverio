@@ -180,6 +180,8 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
 
+`@wdio/html-reporter` doesn't support parallel mode yet: the logs, screenshots and videos that a test sends after another test started can land under the wrong test. Use it with sequential runs.
+
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
 ## Cloud vendors

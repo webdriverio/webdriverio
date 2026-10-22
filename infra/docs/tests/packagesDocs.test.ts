@@ -13,4 +13,8 @@ describe('pluginTitle', () => {
         expect(pluginTitle(['cucumberjs', 'json'])).toBe('CucumberJS JSON')
         expect(pluginTitle(['json'])).toBe('JSON')
     })
+
+    it('keeps the name of a moved community plugin', () => {
+        expect(pluginTitle(['html'])).toBe('HTML')
+    })
 })
