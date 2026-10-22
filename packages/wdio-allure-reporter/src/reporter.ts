@@ -517,14 +517,14 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Emits historyId (and testCaseId) from full title and capability key (browser/device from test run).
+     * Emits legacy historyId from full title and capability key (browser/device from test run).
      * Must NOT include cid or file path: cid varies between runs; user asked for no filesystem.
      */
     private _emitHistoryIdsFrom(fullTitleForHash: string): void {
         const capKey = this._getCapabilityKey()
         const input = capKey ? `${fullTitleForHash}#${capKey}` : fullTitleForHash
         const legacy = this._md5(input)
-        this._pushRuntimeMessage({ type: 'metadata', data: { historyId: legacy, testCaseId: legacy } })
+        this._pushRuntimeMessage({ type: 'metadata', data: { historyId: legacy } })
     }
 
     private _setTestParameters(): void {
