@@ -134,11 +134,11 @@ export const SUPPORTED_PACKAGES = {
         { name: 'json', value: '@wdio/json-reporter$--$json' },
         { name: 'cucumber-json', value: '@wdio/cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'video', value: '@wdio/video-reporter$--$video' },
+        { name: 'html', value: '@wdio/html-reporter$--$html' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },

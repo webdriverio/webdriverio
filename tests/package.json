@@ -19,6 +19,7 @@
     "@wdio/concise-reporter": "workspace:*",
     "@wdio/cucumberjs-json-reporter": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
+    "@wdio/html-reporter": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",
