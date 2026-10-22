@@ -9,6 +9,8 @@ import type {
 import WDIOReporter, { knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
+
+type ReportEvent = InternalReportEvent | { type: string, value: unknown }
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
@@ -83,12 +85,19 @@ export default class HtmlReporter extends WDIOReporter {
     #countScenarios = false
     /**
      * failed hooks that no failed test shows yet: Mocha (`failHookAffectedTests`,
-     * the v10 default) and Jasmine fail the tests that a failed before hook affects
+     * the v10 default) and Jasmine fail the tests that a failed before hook affects.
+     * One count per parallel-mode context: a test fails only the hooks of its context
      */
-    #openHookFailures = 0
-    /** the parallel-mode contexts of the tests that started and did not end */
-    #runningContexts = new Set<string>()
-    #parallelWarned = false
+    #openHookFailures = new Map<string, number>()
+    /**
+     * parallel mode: the test of each context. It stays after the test ends: a video,
+     * an afterEach log or a timer of the test can come later
+     */
+    #contextTests = new Map<string, string>()
+    /** parallel mode: the events of a context before its test starts (a before hook) */
+    #earlyEvents = new Map<string, ReportEvent[]>()
+    /** the screenshot files of `useOnAfterCommandForScreenshot` */
+    #screenshotFiles = new Set<string>()
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
     #onMessage = this.saveMessage.bind(this)
@@ -115,8 +124,24 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.connectVideoCaptureEvent(this.#onVideo)
         this.reportGenerator = new ReportGenerator(this.options)
         // the stats of a test do not keep its parallel-mode context: the events have it
-        this.on('test:start', ({ contextId }: { contextId?: string }) => this.#warnParallelTests(contextId))
-        this.on('test:end', ({ contextId }: { contextId?: string }) => contextId && this.#runningContexts.delete(contextId))
+        // the hook and test events have the context of a parallel-mode test (Mocha), else the calling code has it
+        const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
+        // after the base reporter: its hook stats have the error
+        this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
+            if (this.hooks[hook.uid]?.error && !this.#countScenarios) {
+                const key = contextOf(hook.contextId)
+                this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
+            }
+        })
+        this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
+        this.on('test:start', ({ contextId, uid }: { contextId?: string, uid: string }) => {
+            if (contextId) {
+                this.#contextTests.set(contextId, uid)
+                //@ts-ignore
+                this.getTest(uid)?.events.push(...this.#earlyEvents.get(contextId) ?? [])
+                this.#earlyEvents.delete(contextId)
+            }
+        })
     }
 
     get isSynchronised() : boolean {
@@ -211,7 +236,6 @@ export default class HtmlReporter extends WDIOReporter {
         }
         if (!this.#countScenarios) {
             this.metrics.failed++
-            this.#openHookFailures = 0
         }
     }
 
@@ -224,21 +248,23 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     /**
-     * The events of `ReportEvents` go to the last started test: with tests that run at
-     * the same time (`parallelMode`), they can go into the wrong test
+     * Adds an event to its test: in parallel mode, the test of its context (from the event,
+     * else from the calling code), else the last started test. A context with no test yet
+     * keeps the event for its first test.
      */
-    #warnParallelTests(contextId?: string) {
-        if (!contextId) {
-            return
+    #addEvent(event: ReportEvent, { contextId, moveErrors = true }: { contextId?: string, moveErrors?: boolean } = {}) {
+        const id = contextId ?? this.getContextId()
+        const uid = id ? this.#contextTests.get(id) : this._currentTestUid
+        const test = uid ? this.getTest(uid) : undefined
+        if (test) {
+            if (moveErrors) {
+                this.moveErrorsToEvents(test)
+            }
+            //@ts-ignore
+            test.events.push(event)
+        } else if (id) {
+            this.#earlyEvents.set(id, [...this.#earlyEvents.get(id) ?? [], event])
         }
-        if (!this.#parallelWarned && [...this.#runningContexts].some((running) => running !== contextId)) {
-            this.#parallelWarned = true
-            const message = 'Tests run at the same time (parallel mode), which the HTML report does not support ' +
-                'yet: logs, screenshots and videos can be in the wrong test.'
-            this.LOG.warn(message)
-            console.warn(`[@wdio/html-reporter] ${message}`)
-        }
-        this.#runningContexts.add(contextId)
     }
 
     onHookStart(hook: HookStats) {
@@ -247,17 +273,14 @@ export default class HtmlReporter extends WDIOReporter {
 
     onHookEnd(hook: HookStats) {
         this.LOG.info(`onHookEnd: ${hook.cid}:${hook.uid}`)
-        if (hook.error && !this.#countScenarios) {
-            this.#openHookFailures++
-        }
     }
 
     /**
      * a failed hook that failed no test (for example an after hook) counts as a failure
      */
     #countOpenHookFailures() {
-        this.metrics.failed += this.#openHookFailures
-        this.#openHookFailures = 0
+        this.metrics.failed += [...this.#openHookFailures.values()].reduce((sum, count) => sum + count, 0)
+        this.#openHookFailures.clear()
     }
 
     onSuiteEnd(suite: SuiteStats) {
@@ -293,15 +316,17 @@ export default class HtmlReporter extends WDIOReporter {
             const result = command.result as { value?: string } | undefined
             if (this.isScreenshotCommand(command) && result?.value) {
                 const timestamp = dayjs().format('YYYYMMDD-HHmmss.SSS')
-                const filepath = path.join(this.options.outputDir, '/screenshots/', encodeURIComponent(this._currentCid), timestamp, this.options.filename + '.png')
+                const folder = path.join(this.options.outputDir, '/screenshots/', encodeURIComponent(this._currentCid))
+                let filepath = path.join(folder, timestamp, this.options.filename + '.png')
+                // screenshots of the same millisecond (parallel tests, Promise.all) get their own folder
+                for (let i = 2; this.#screenshotFiles.has(filepath); i++) {
+                    filepath = path.join(folder, `${timestamp}-${i}`, this.options.filename + '.png')
+                }
+                this.#screenshotFiles.add(filepath)
                 this.LOG.info(`onAfterCommand: ${this._currentCid}:${this._currentTestUid} taking screenshot ${filepath}`)
                 writeFile(filepath, Buffer.from(result.value, 'base64'))
 
-                const test = this.getTest(this._currentTestUid)
-                if (test) {
-                    //@ts-ignore
-                    test.events.push({ type: 'screenshot', value: filepath })
-                }
+                this.#addEvent({ type: 'screenshot', value: filepath }, { contextId: command.contextId, moveErrors: false })
             }
         }
     }
@@ -388,22 +413,12 @@ export default class HtmlReporter extends WDIOReporter {
 
     saveScreenshot(filepath: string) {
         this.LOG.info(`saveScreenshot: ${filepath}`)
-        const test = this.getTest(this._currentTestUid)
-        if (test) {
-            this.moveErrorsToEvents(test)
-            //@ts-ignore
-            test.events.push(new InternalReportEvent('screenshot', filepath))
-        }
+        this.#addEvent(new InternalReportEvent('screenshot', filepath))
     }
 
     saveVideo(filepath: string) {
         this.LOG.info(`saveVideo: ${filepath}`)
-        const test = this.getTest(this._currentTestUid)
-        if (test) {
-            this.moveErrorsToEvents(test)
-            //@ts-ignore
-            test.events.push(new InternalReportEvent('video-capture', filepath))
-        }
+        this.#addEvent(new InternalReportEvent('video-capture', filepath))
     }
     saveMessage(message: unknown) {
         /**
@@ -412,12 +427,7 @@ export default class HtmlReporter extends WDIOReporter {
          */
         const text = typeof message === 'string' ? message : util.inspect(message, { depth: null })
         this.LOG.info(`saveMessage: ${text}`)
-        const test = this.getTest(this._currentTestUid)
-        if (test) {
-            this.moveErrorsToEvents(test)
-            //@ts-ignore
-            test.events.push({ type: 'log', value: text })
-        }
+        this.#addEvent({ type: 'log', value: text })
     }
 
     filterChildSuites() : SuiteStats[] {
