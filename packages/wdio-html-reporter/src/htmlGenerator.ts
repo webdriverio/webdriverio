@@ -14,7 +14,15 @@ import url from 'node:url'
 dayjs.extend(duration)
 
 /**
- * the same escaping as the nunjucks autoescape
+ * The path of a file relative to the report, as a link: the browser reads `#`, `?`
+ * and `%` in a file name as URL characters
+ */
+const linkTo = (outputDir: string, file: string) =>
+    path.relative(outputDir, file).split(path.sep).map(encodeURIComponent).join('/')
+
+/**
+ * the escaping of the nunjucks autoescape, except `\` to `&#92;`
+ * (`nunjucks.lib.escape` has no types)
  */
 const escapeHtml = (value: string) => value
     .replace(/&/g, '&amp;')
@@ -70,7 +78,7 @@ class HtmlGenerator {
                         HtmlGenerator.LOG.error('renderImage: file does not exist: ' + screenshotFile)
                     }
 
-                    relPath =  path.relative(reportOptions.outputDir, screenshotFile)
+                    relPath = linkTo(reportOptions.outputDir, screenshotFile)
                     if (reportOptions.linkScreenshots) {
                         HtmlGenerator.LOG.info('renderImage: Screenshot Relative Path: ' + relPath)
                         return relPath
@@ -83,15 +91,9 @@ class HtmlGenerator {
                 }
             })
             environment.addGlobal('renderVideo', function (videoCaptureFile: string) {
-
-                const relPath =  path.relative(reportOptions.outputDir, videoCaptureFile).split(path.sep).join(path.posix.sep)
-                try {
-                    HtmlGenerator.LOG.debug('Video Relative Path: ' + relPath)
-                    return relPath
-                } catch(err) {
-                    HtmlGenerator.LOG.error('renderVideo: Error processing file: ' + relPath + ' ' + err)
-                    return relPath
-                }
+                const relPath = linkTo(reportOptions.outputDir, videoCaptureFile)
+                HtmlGenerator.LOG.debug('Video Relative Path: ' + relPath)
+                return relPath
             })
             // @wdio/video-reporter makes webm videos by default
             environment.addGlobal('videoType', (videoCaptureFile: string) => {
@@ -113,7 +115,7 @@ class HtmlGenerator {
                 return specFile
             })
 
-            environment.addGlobal('testStateColour', (testInfo:TestStats) => {
+            environment.addGlobal('testStateColor', (testInfo:TestStats) => {
                 if (testInfo.state === 'passed') {
                     return 'test-pass'
                 } else if (testInfo.state === 'failed') {
@@ -147,7 +149,7 @@ class HtmlGenerator {
                     return '&#10034;'
                 }
             })
-            environment.addGlobal('suiteStateColour', (suiteInfo:SuiteStats) => {
+            environment.addGlobal('suiteStateColor', (suiteInfo:SuiteStats) => {
                 if (suiteInfo.type.includes('feature')) {
                     return 'suite-feature'
                 }

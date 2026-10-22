@@ -114,14 +114,16 @@ class ReportAggregator {
          */
         fs.mkdirSync(this.options.outputDir, { recursive: true })
         const files = this.readJsonFiles()
-        if (files.length === 0) {
+        /**
+         * no worker file (for example `produceJson: false`, or a CI step that did not
+         * download them), or a file that cannot be read or parsed (a worker that stopped
+         * while it wrote it), makes the report incomplete; a valid JSON file of another
+         * tool is only skipped
+         */
+        let inputFailed = files.length === 0
+        if (inputFailed) {
             this.LOG.error(`No Json files found in: ${this.options.outputDir}. Make sure options.produceJson is not false`)
         }
-        /**
-         * a file that cannot be read or parsed (a worker that stopped while it wrote it)
-         * makes the report incomplete; a valid JSON file of another tool is only skipped
-         */
-        let inputFailed = false
         /** the workers that stopped before they wrote their results, or could not write them */
         const incomplete: string[] = []
         for (let i = 0; i < files.length; i++) {

@@ -9,7 +9,7 @@ import { withExtension } from './fileNames.js'
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
 
-    static writeJson(jsonFile:string, stringified:string, _reportOptions:HtmlReporterOptions, _reportData: ReportData) {
+    static writeJson(jsonFile:string, stringified:string) {
         writeFile(jsonFile, stringified)
         JsonGenerator.LOG.info('Json write completed: ' + jsonFile )
     }
@@ -44,7 +44,7 @@ class JsonGenerator {
                          * suite, which the report does not use
                          */
                         const stringified = JSON.stringify(reportData, (key, value) => key === 'hooksAndTests' ? undefined : value)
-                        JsonGenerator.writeJson(jsonFile, stringified, reportOptions, reportData)
+                        JsonGenerator.writeJson(jsonFile, stringified)
                     } catch (error) {
                         JsonGenerator.LOG.error('Json write failed: ' + error)
                     }

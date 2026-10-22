@@ -63,7 +63,7 @@ export const config: WebdriverIO.Config = {
 
 In a CommonJS configuration (`wdio.conf.cjs`), load the package with `const { ReportAggregator } = require('@wdio/html-reporter')`.
 
-When a worker stops before it writes its results (for example it is killed), or cannot write them, the master report says so and `reportAggregator.failed` is `true`.
+When a worker stops before it writes its results (for example it is killed), or cannot write them, the master report says so and `reportAggregator.failed` is `true`. It is also `true` when no worker wrote a JSON file.
 
 The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
 
@@ -116,8 +116,8 @@ node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html rep
 
 The arguments are the file name of the report, the folder of the JSON files (default `reports/html-reports/`) and
 the title (default `Master Report`). The script opens the report in a browser, except when the `CI` environment
-variable is set. It ends with exit code 1 when the folder does not exist or when it cannot make the report, so a CI
-step fails.
+variable is set. It ends with exit code 1 when the folder does not exist, has no JSON file of a worker, or when it
+cannot make the report, so a CI step fails.
 
 ## PDF report
 

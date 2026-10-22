@@ -74,6 +74,15 @@ describe('ReportAggregator', () => {
         expect(fs.existsSync(typo)).toBe(false)
     })
 
+    it('makeReport gives exit code 1 for a folder with no worker results (artifacts not downloaded)', async () => {
+        const { runCli } = await import('../src/makeReportCli.js')
+        const dir = tempDir()
+        expect(await runCli(['master-report.html', dir, 'Title'], { CI: 'true' })).toBe(1)
+        // the report still says why it is empty
+        expect(fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8'))
+            .toContain('The execution of the test suite has failed before report generation was started')
+    })
+
     it('makeReport gives exit code 1 when only an old report is there', async () => {
         const { runCli } = await import('../src/makeReportCli.js')
         const dir = tempDir()

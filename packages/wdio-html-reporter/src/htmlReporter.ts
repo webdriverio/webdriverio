@@ -20,6 +20,7 @@ import util from 'node:util'
 import logger from '@wdio/logger'
 
 const reportProxy = new ReportEvents()
+const TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
 /**
  * the capabilities that the report files keep: they name the browser or the
@@ -83,6 +84,9 @@ export default class HtmlReporter extends WDIOReporter {
      * the v10 default) and Jasmine fail the tests that a failed before hook affects
      */
     #openHookFailures = 0
+    /** the parallel-mode contexts of the tests that started and did not end */
+    #runningContexts = new Set<string>()
+    #parallelWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
     #onMessage = this.saveMessage.bind(this)
@@ -110,7 +114,9 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.connectScreenshotEvent(this.#onScreenshot)
         reportProxy.connectVideoCaptureEvent(this.#onVideo)
         this.reportGenerator = new ReportGenerator(this.options)
-
+        // the stats of a test do not keep its parallel-mode context: the events have it
+        this.on('test:start', ({ contextId }: { contextId?: string }) => this.#warnParallelTests(contextId))
+        this.on('test:end', ({ contextId }: { contextId?: string }) => contextId && this.#runningContexts.delete(contextId))
     }
 
     get isSynchronised() : boolean {
@@ -127,7 +133,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.passed = 0
         this.metrics.skipped = 0
         this.metrics.failed = 0
-        this.metrics.start = dayjs().utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+        this.metrics.start = dayjs().utc().format(TIME_FORMAT)
         const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
         this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
         void this.reportGenerator?.startReport(this.#reportData(runner, []))
@@ -217,6 +223,24 @@ export default class HtmlReporter extends WDIOReporter {
         }
     }
 
+    /**
+     * The events of `ReportEvents` go to the last started test: with tests that run at
+     * the same time (`parallelMode`), they can go into the wrong test
+     */
+    #warnParallelTests(contextId?: string) {
+        if (!contextId) {
+            return
+        }
+        if (!this.#parallelWarned && [...this.#runningContexts].some((running) => running !== contextId)) {
+            this.#parallelWarned = true
+            const message = 'Tests run at the same time (parallel mode), which the HTML report does not support ' +
+                'yet: logs, screenshots and videos can be in the wrong test.'
+            this.LOG.warn(message)
+            console.warn(`[@wdio/html-reporter] ${message}`)
+        }
+        this.#runningContexts.add(contextId)
+    }
+
     onHookStart(hook: HookStats) {
         this.LOG.info(`onHookStart: ${hook.cid}:${hook.uid}`)
     }
@@ -284,7 +308,7 @@ export default class HtmlReporter extends WDIOReporter {
     async onRunnerEnd(runner: RunnerStats) {
         this.LOG.info(`onRunnerEnd: ${runner.cid}`)
         this.#countOpenHookFailures()
-        this.metrics.end = dayjs().utc().format()
+        this.metrics.end = dayjs().utc().format(TIME_FORMAT)
         this.metrics.duration = runner._duration
         const suites = [...this.rootSuiteWithTests(runner), ...this.filterChildSuites()]
         await this.reportGenerator?.createReport(this.#reportData(runner, suites))

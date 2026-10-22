@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import url from 'node:url'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { TestStats } from '@wdio/reporter'
 
 import { HtmlReporter, ReportAggregator, ReportEvents } from '../src/index.js'
@@ -527,5 +528,98 @@ describe('suite state', () => {
         expect(classOf('child suite')).toBe('suite-fail')
         expect(classOf('parent suite')).toBe('suite-fail')
         expect(classOf('suite with a failed after hook')).toBe('suite-fail')
+    })
+})
+
+describe('code review points', () => {
+    const dirs: string[] = []
+    const tempDir = (name: string) => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), `html-reporter-${name}-`)) + path.sep
+        dirs.push(dir)
+        return dir
+    }
+    const common = { cid: '0-0', specs: [], file: 'spec.js' }
+    const suite = (uid: string) => ({ ...common, type: 'suite:start', uid, title: uid, fullTitle: uid, parent: '' })
+    const test = (uid: string, contextId?: string) => ({ ...common, type: 'test:start', uid, title: uid, fullTitle: uid, parent: 'suite', ...(contextId ? { contextId } : {}) })
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        vi.restoreAllMocks()
+        for (const dir of dirs) {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('links a screenshot whose file name has # or % in it', async () => {
+        const dir = tempDir('link-names')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Names' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        const file = path.join(dir, 'screenshots', 'issue #12 at 50%.png')
+        fs.writeFileSync(file, 'png')
+        new ReportEvents().logScreenshot(file)
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'Names', browserName: 'chrome', linkScreenshots: true })
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        const src = html.match(/<img[^>]*src="([^"]+)"/)?.[1]
+        // the browser resolves the link next to the report: it must give the file
+        expect(new URL(src!, url.pathToFileURL(reportAggregator.reportFile)).href).toBe(url.pathToFileURL(file).href)
+    })
+
+    it('writes the end of the run in the same format as its start', async () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('dates'), filename: 'report.html', reportTitle: 'Dates' } as never)
+        reporter.onRunnerStart(RUNNER)
+        await reporter.onRunnerEnd(RUNNER)
+        const format = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+        expect(reporter.metrics.start).toMatch(format)
+        expect(reporter.metrics.end).toMatch(format)
+    })
+
+    it('warns one time when tests run at the same time (parallel mode)', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('parallel'), filename: 'report.html', reportTitle: 'Parallel' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.emit('suite:start', suite('suite'))
+        for (const [uid, contextId] of [['p1', 'ctx-1'], ['p2', 'ctx-2'], ['p3', 'ctx-3']]) {
+            reporter.emit('test:start', test(uid, contextId))
+        }
+        for (const [uid, contextId] of [['p1', 'ctx-1'], ['p2', 'ctx-2'], ['p3', 'ctx-3']]) {
+            reporter.emit('test:pass', test(uid, contextId))
+            reporter.emit('test:end', test(uid, contextId))
+        }
+        reporter.emit('suite:end', suite('suite'))
+        await reporter.onRunnerEnd(RUNNER)
+        expect(warn.mock.calls.filter(([message]) => String(message).includes('parallel mode'))).toHaveLength(1)
+        warn.mockRestore()
+    })
+
+    it('does not warn for tests that run one after the other, also with a retry', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('sequential'), filename: 'report.html', reportTitle: 'Sequential' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.emit('suite:start', suite('suite'))
+        reporter.emit('test:start', test('s1'))
+        reporter.emit('test:retry', { ...test('s1'), error: { message: 'first try' } })
+        reporter.emit('test:end', test('s1'))
+        reporter.emit('test:start', test('s1'))
+        reporter.emit('test:pass', test('s1'))
+        reporter.emit('test:end', test('s1'))
+        // a test in its own context (parallel mode with one context at a time)
+        reporter.emit('test:start', test('s2', 'ctx-1'))
+        reporter.emit('test:pass', test('s2', 'ctx-1'))
+        reporter.emit('test:end', test('s2', 'ctx-1'))
+        reporter.emit('test:start', test('s3', 'ctx-1'))
+        reporter.emit('test:pass', test('s3', 'ctx-1'))
+        reporter.emit('test:end', test('s3', 'ctx-1'))
+        reporter.emit('suite:end', suite('suite'))
+        await reporter.onRunnerEnd(RUNNER)
+        expect(warn.mock.calls.filter(([message]) => String(message).includes('parallel mode'))).toHaveLength(0)
+        warn.mockRestore()
     })
 })

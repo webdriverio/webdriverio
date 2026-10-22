@@ -21,7 +21,7 @@ export async function makeReport (args: string[], env: Record<string, string | u
         browserName: env.TEST_BROWSER ?? 'unspecified',
         // no browser to open in CI
         showInBrowser: !env.CI
-    } as ConstructorParameters<typeof ReportAggregator>[0])
+    })
     await reportAggregator.createReport()
     // the aggregator logs its errors and does not throw them: a report of an earlier run is not this report
     const reportFile = reportAggregator.reportFile
