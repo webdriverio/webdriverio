@@ -25,6 +25,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _testCnt = 0
     private _maxErrorStackLength = 5
     private _failures = 0 // counts failures between reloads
+    private _failedScenarios = new Set<string>() // Cucumber scenarios counted in `_failures`
     private _isServiceEnabled = true
     private _isJobNameSet = false
     private _testStartTime: Date
@@ -249,9 +250,21 @@ export default class SauceService implements Services.ServiceInstance {
      * @param result.duration duration of scenario in milliseconds
      */
     afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
+        /**
+         * a retried scenario runs this hook for every attempt, with the same pickle:
+         * only the result of its last attempt counts
+         */
+        const scenarioId = world.pickle?.id
+        if (scenarioId && this._failedScenarios.delete(scenarioId)) {
+            --this._failures
+        }
+
         // check if scenario has failed
         if (!result.passed) {
             ++this._failures
+            if (scenarioId) {
+                this._failedScenarios.add(scenarioId)
+            }
         }
     }
 
@@ -352,6 +365,7 @@ export default class SauceService implements Services.ServiceInstance {
         const body = this.getBody(failures, calledOnReload, browserName)
         await this._api.updateJob(this._config.user as string, sessionId, body as Job)
         this._failures = 0
+        this._failedScenarios.clear()
     }
 
     /**

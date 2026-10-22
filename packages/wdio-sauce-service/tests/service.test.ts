@@ -424,6 +424,29 @@ test('afterScenario', () => {
     expect(service['_failures']).toBe(2)
 })
 
+test('afterScenario only counts the last attempt of a retried scenario', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    // @ts-expect-error
+    service.beforeSession({})
+    const world = (id: string) => ({ pickle: { id, name: id } }) as any
+
+    // fails, then passes on retry
+    service.afterScenario(world('a'), { passed: false })
+    expect(service['_failures']).toBe(1)
+    service.afterScenario(world('a'), { passed: true })
+    expect(service['_failures']).toBe(0)
+
+    // fails on every attempt
+    service.afterScenario(world('b'), { passed: false })
+    service.afterScenario(world('b'), { passed: false })
+    expect(service['_failures']).toBe(1)
+
+    // another scenario that fails is still counted
+    service.afterScenario(world('c'), { passed: false })
+    expect(service['_failures']).toBe(2)
+})
+
 test('beforeScenario should set context', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
