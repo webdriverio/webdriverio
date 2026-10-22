@@ -189,7 +189,9 @@ export class CucumberAdapter {
 
     async init() {
         if (this._generateSkipTags) {
-            this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
+            // wrap the user expression so an `or` in it can't escape the generated `and` conditions
+            const userTags = this._cucumberOpts.tags ? [`(${this._cucumberOpts.tags})`] : []
+            this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(userTags).join(' and ')
         }
 
         // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
