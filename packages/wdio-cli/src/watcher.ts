@@ -161,7 +161,7 @@ export default class Watcher {
                 if (file === root) {
                     return true
                 }
-                if (!file.startsWith(root + path.sep)) {
+                if (!file.startsWith(root.endsWith(path.sep) ? root : root + path.sep)) {
                     return false
                 }
                 const relativePath = path.relative(root, file).split(path.sep).join('/')
@@ -170,7 +170,7 @@ export default class Watcher {
                  * doesn't know yet) is kept if it can still lead to a match, so only
                  * directories that can't contain a match are skipped.
                  */
-                return minimatch(relativePath, pattern, { dot: true, partial: !stats?.isFile() })
+                return minimatch(relativePath, pattern, { dot: true, nonegate: true, partial: !stats?.isFile() })
             })
         )
         return {

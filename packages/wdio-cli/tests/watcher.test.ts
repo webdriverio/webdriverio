@@ -324,6 +324,24 @@ describe('watcher', () => {
             expect(ignored!(path.join(rootDir, 'src', 'nested', 'ab.js'), file)).toBe(false)
         })
 
+        it('should not treat a leading extglob negation as a negated pattern', () => {
+            const rootDir = makeRoot()
+            const { ignored } = resolve(['./src/!(foo).js'], rootDir)
+
+            expect(ignored!(path.join(rootDir, 'src', 'bar.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'foo.js'), file)).toBe(true)
+            expect(ignored!(path.join(rootDir, 'src', 'notes.txt'), file)).toBe(true)
+        })
+
+        it('should match globs in the root of the file system', () => {
+            const fsRoot = path.parse(process.cwd()).root
+            const { paths, ignored } = resolve([path.join(fsRoot, '*.nomatch-wdio')], fsRoot)
+
+            expect(paths).toEqual([fsRoot])
+            expect(ignored!(path.join(fsRoot, 'example.nomatch-wdio'), file)).toBe(false)
+            expect(ignored!(path.join(fsRoot, 'example.js'), file)).toBe(true)
+        })
+
         it('should pass literal paths on without an ignore callback', () => {
             const rootDir = makeRoot()
             const { paths, ignored } = resolve(['./src', './does/not/exist.js'], rootDir)
