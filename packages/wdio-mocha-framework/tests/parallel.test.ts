@@ -613,6 +613,13 @@ describe('runParallelTests — sequential event parity', () => {
         'hook:start "after all" hook for root', 'hook:end "after all" hook for root',
     ]
 
+    test('fails at start when a test has Mocha retries from its describe or from it().retries()', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1'), { ...mockTest('t2'), _retries: 1 }] })
+        await expect(runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js']))
+            .rejects.toThrow('retries is not supported in parallel mode (parallelMode: "contexts"): "t2" has 1 retry')
+        expect(emittedEvents).toEqual([])
+    })
+
     test('sends context:end after the after hooks of a test, with its uid and context', async () => {
         reporter.on('context:end', (p) => emittedEvents.push({ event: 'context:end', payload: p }))
         await runParallelTests(withHooks() as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])

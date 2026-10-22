@@ -121,6 +121,8 @@ interface CollectedTest {
     suiteIndex?: number
     /** Mocha's resolved timeout for this test (`_timeout`) */
     timeout?: number
+    /** Mocha's resolved retries for this test (`_retries`): `mochaOpts.retries`, `this.retries(n)` in a describe, `it().retries(n)` */
+    retries?: number
 }
 
 interface CollectedSuite {
@@ -200,7 +202,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 pending: !!test.pending || !fn,
                 file: test.file || undefined,
                 suiteIndex,
-                timeout: (test as unknown as { _timeout?: number })._timeout
+                timeout: (test as unknown as { _timeout?: number })._timeout,
+                retries: (test as unknown as { _retries?: number })._retries
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -747,6 +750,16 @@ export async function runParallelTests(
         log.warn(
             'Per-test and per-suite timeouts (it(...).timeout(n), this.timeout(n)) are not supported ' +
             `in parallel mode (parallelMode: "${mode}"); mochaOpts.timeout (${timeoutMs}ms) applies.`
+        )
+    }
+
+    // the parallel runner has no retry loop yet: fail like mochaOpts.retries instead of ignoring the retries
+    const retried = tests.find((t) => !t.pending && (t.retries ?? 0) > 0)
+    if (retried) {
+        const count = retried.retries!
+        throw new Error(
+            `retries is not supported in parallel mode (parallelMode: "${mode}"): ` +
+            `"${retried.fullTitle}" has ${count} ${count === 1 ? 'retry' : 'retries'}`
         )
     }
 
