@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -5,6 +6,7 @@ import chokidar from 'chokidar'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
+import { minimatch } from 'minimatch'
 
 import logger from '@wdio/logger'
 import type { Capabilities, Workers } from '@wdio/types'
@@ -13,6 +15,8 @@ import Launcher from './launcher.js'
 import type { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
+
+const GLOB_CHARACTERS = /[*?{}[\]]/
 
 type Spec = string | string[]
 export default class Watcher {
@@ -30,12 +34,20 @@ export default class Watcher {
     async watch() {
         await this._launcher.initialize()
         const specs = this._launcher.configParser.getSpecs()
+        /**
+         * specs from the `wdio:specs` capability need to be resolved like the launcher does,
+         * so we get file URLs for them rather than the plain paths or globs from the config
+         */
         const capSpecs = this._launcher.isMultiRemote
             ? []
             : union(flattenDeep(
-                (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map(cap => (
-                    'alwaysMatch' in cap ? cap.alwaysMatch['wdio:specs'] : cap['wdio:specs'] || []
-                ) as string[])
+                (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map((cap) => {
+                    const caps = 'alwaysMatch' in cap ? cap.alwaysMatch : cap
+                    const capSpecs = caps['wdio:specs']
+                    return Array.isArray(capSpecs)
+                        ? this._launcher.configParser.getSpecs(capSpecs, caps['wdio:exclude'])
+                        : []
+                }) as Spec[]
             ))
         this._specs = [...specs, ...capSpecs]
 
@@ -53,13 +65,8 @@ export default class Watcher {
         const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
             const rootDir = path.dirname(path.resolve(process.cwd(), this._configFile))
-            const globbedFilesToWatch = filesToWatch.map((file) => {
-                const absolutePath = path.isAbsolute(file)
-                    ? path.normalize(file)
-                    : path.resolve(rootDir, file)
-                return absolutePath
-            })
-            chokidar.watch(globbedFilesToWatch, { ignoreInitial: true })
+            const { paths, ignored } = this.resolveFilesToWatch(filesToWatch, rootDir)
+            chokidar.watch(paths, { ignoreInitial: true, ...(ignored ? { ignored } : {}) })
                 .on('add', this.getFileListener(false))
                 .on('change', this.getFileListener(false))
         }
@@ -83,6 +90,56 @@ export default class Watcher {
 
             this._launcher.interface?.finalise()
         }))
+    }
+
+    /**
+     * chokidar 5 doesn't support glob patterns. Watch the directory a pattern starts in
+     * instead and ignore every file that isn't matched by one of the patterns, so
+     * files created after watch mode started are picked up too.
+     * @param  {string[]} filesToWatch  `filesToWatch` config option
+     * @param  {string}   rootDir       directory of the wdio config file
+     * @return {object}                 paths to watch and chokidar `ignored` callback
+     */
+    private resolveFilesToWatch(filesToWatch: string[], rootDir: string) {
+        const paths = new Set<string>()
+        const literals: string[] = []
+        const patterns: string[] = []
+        for (const file of filesToWatch) {
+            const absolutePath = path.isAbsolute(file)
+                ? path.normalize(file)
+                : path.resolve(rootDir, file)
+            if (!GLOB_CHARACTERS.test(absolutePath)) {
+                paths.add(absolutePath)
+                literals.push(absolutePath)
+                continue
+            }
+
+            // watch the deepest directory without glob characters that exists
+            const staticSegments: string[] = []
+            for (const segment of absolutePath.split(path.sep)) {
+                if (GLOB_CHARACTERS.test(segment)) {
+                    break
+                }
+                staticSegments.push(segment)
+            }
+            let baseDir = staticSegments.join(path.sep) || path.sep
+            while (!fs.existsSync(baseDir) && path.dirname(baseDir) !== baseDir) {
+                baseDir = path.dirname(baseDir)
+            }
+            paths.add(baseDir)
+            patterns.push(absolutePath.replace(/\\/g, '/'))
+        }
+
+        const isWatched = (file: string) => (
+            literals.some((literal) => file === literal || file.startsWith(literal + path.sep)) ||
+            patterns.some((pattern) => minimatch(file.replace(/\\/g, '/'), pattern, { dot: true }))
+        )
+        return {
+            paths: [...paths],
+            ignored: patterns.length === 0
+                ? undefined
+                : (file: string, stats?: fs.Stats) => Boolean(stats?.isFile()) && !isWatched(file)
+        }
     }
 
     /**

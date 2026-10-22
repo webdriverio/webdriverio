@@ -1,10 +1,11 @@
+import fs from 'node:fs'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
 
-import { vi, describe, it, expect, afterEach } from 'vitest'
+import { vi, describe, it, expect, afterEach, onTestFinished } from 'vitest'
 import type { Options, Workers } from '@wdio/types'
 
 import type { RunCommandArguments } from '../src/types.js'
@@ -251,6 +252,75 @@ describe('watcher', () => {
         watchedPaths.forEach(p => {
             expect(path.isAbsolute(p)).toBe(true)
         })
+    })
+
+    it('should watch the base directory of glob patterns in filesToWatch and ignore non-matching files', async () => {
+        const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-watcher-'))
+        onTestFinished(() => fs.rmSync(rootDir, { recursive: true, force: true }))
+        fs.mkdirSync(path.join(rootDir, 'src', 'nested'), { recursive: true })
+
+        const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
+        watcher['_configFile'] = path.join(rootDir, 'wdio.conf.js')
+        watcher['_launcher'] = {
+            run: vi.fn(),
+            initialize: vi.fn(),
+            interface: { finalise: vi.fn() },
+            configParser: {
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['./src/**/*.js', './missing/**/*.ts', './static/file.json'] }),
+                getSpecs: vi.fn().mockReturnValue([]),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
+            },
+            runner: { workerPool: {} }
+        } as any
+        vi.mocked(chokidar.watch).mockClear()
+        await watcher.watch()
+
+        const call = vi.mocked(chokidar.watch).mock.calls.find((c) => (c[0] as string[]).includes(path.join(rootDir, 'src')))
+        // a pattern without an existing directory falls back to the closest existing parent
+        expect(call![0]).toEqual([path.join(rootDir, 'src'), rootDir, path.join(rootDir, 'static', 'file.json')])
+
+        const ignored = (call![1] as any).ignored as (file: string, stats?: { isFile: () => boolean }) => boolean
+        const file = { isFile: () => true }
+        // files that match the pattern, including new ones, are watched
+        expect(ignored(path.join(rootDir, 'src', 'a.js'), file)).toBe(false)
+        expect(ignored(path.join(rootDir, 'src', 'nested', 'new.js'), file)).toBe(false)
+        expect(ignored(path.join(rootDir, 'missing', 'deep', 'x.ts'), file)).toBe(false)
+        expect(ignored(path.join(rootDir, 'static', 'file.json'), file)).toBe(false)
+        // others are ignored, directories are never ignored so chokidar can descend
+        expect(ignored(path.join(rootDir, 'src', 'c.txt'), file)).toBe(true)
+        expect(ignored(path.join(rootDir, 'other.js'), file)).toBe(true)
+        expect(ignored(path.join(rootDir, 'src', 'nested'), { isFile: () => false })).toBe(false)
+    })
+
+    it('should resolve `wdio:specs` capabilities to file URLs instead of crashing', async () => {
+        const fooPath = testPath('foo')
+        const capSpecPath = testPath('cap', 'spec.js')
+        const getSpecs = vi.fn().mockImplementation((capSpecs?: string[]) => (
+            capSpecs ? [toFileUrl(capSpecPath)] : [toFileUrl(fooPath)]
+        ))
+        const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
+        watcher['_launcher'] = {
+            run: vi.fn(),
+            initialize: vi.fn(),
+            interface: { finalise: vi.fn() },
+            configParser: {
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: [] }),
+                getSpecs,
+                getCapabilities: vi.fn().mockReturnValue([
+                    { browserName: 'chrome', 'wdio:specs': ['./test/specs/**/*.js'], 'wdio:exclude': ['./test/skip.js'] },
+                    { alwaysMatch: { browserName: 'firefox', 'wdio:specs': ['./test/specs/**/*.js'] } },
+                    { alwaysMatch: { browserName: 'safari' } }
+                ])
+            },
+            runner: { workerPool: {} }
+        } as any
+        vi.mocked(chokidar.watch).mockClear()
+
+        await expect(watcher.watch()).resolves.toBeUndefined()
+
+        expect(getSpecs).toBeCalledWith(['./test/specs/**/*.js'], ['./test/skip.js'])
+        expect(getSpecs).toBeCalledWith(['./test/specs/**/*.js'], undefined)
+        expect(chokidar.watch).toBeCalledWith([fooPath, capSpecPath], expect.any(Object))
     })
 
     it('should run initial suite when starting watching with grouped specs', async () => {
