@@ -30,6 +30,8 @@ type PlannedTest = {
     /** a framework that sends the after hooks of a parallel test before its test:end, and no context:end */
     afterHooksBeforeEnd?: boolean
     afterEachFails?: boolean
+    /** an afterEach that calls the Allure runtime API */
+    afterEachApi?: boolean
     afterAllFails?: boolean
 }
 
@@ -181,7 +183,14 @@ function scriptOf(h: Harness, test: PlannedTest): Array<() => void> {
     }
 
     const afterHooks = () => {
-        hook('after each', hookBody('after each'), test.afterEachFails ? new Error('after each exploded') : undefined)
+        hook('after each', () => {
+            hookBody('after each')()
+            if (test.afterEachApi) {
+                run(() => h.reporter.addAttachment({ name: `${test.id}-ae-attachment`, content: 'from afterEach', type: 'text/plain' }))
+                run(() => process.emit(events.startStep as any, `${test.id}-ae-api-step` as any))
+                run(() => process.emit(events.endStep as any, 'passed' as any))
+            }
+        }, test.afterEachFails ? new Error('after each exploded') : undefined)
         hook('after all', hookBody('after all'), test.afterAllFails ? new Error('after all exploded') : undefined)
     }
     hook('before all', hookBody('before all', true))
@@ -379,6 +388,21 @@ describe('Mocha parallel mode', () => {
 
             const sequential = steps(await play('sequential', tests, undefined, false, options))
             expect(steps(await play('parallel', tests, undefined, true, options))).toEqual(sequential)
+        })
+
+        it('keeps the Allure API calls of an afterEach on its test as a sequential run does, with disableMochaHooks', async () => {
+            const tests: PlannedTest[] = [
+                { id: 'h1', title: 'first', suites: ['H'], outcome: 'pass', afterEachApi: true },
+                { id: 'i1', title: 'second', suites: ['I'], outcome: 'fail', afterEachApi: true },
+            ]
+            const content = (played: { results: Result[] }) => Object.fromEntries(played.results.map((r) => [
+                r.name, { steps: stepNames(r.steps), attachments: (r.attachments as Result[]).map((a) => a.name) },
+            ]))
+            const options = { disableMochaHooks: true }
+            const sequential = content(await play('sequential', tests, undefined, false, options))
+
+            expect(JSON.stringify(sequential)).toContain('h1-ae-api-step')
+            expect(content(await play('parallel', tests, undefined, true, options))).toEqual(sequential)
         })
 
         it('keeps the after hooks that an older framework sends before test:end', async () => {
