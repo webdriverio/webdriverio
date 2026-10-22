@@ -863,6 +863,16 @@ describe('webdriver request', () => {
             const req = new FetchRequest('GET', '/test', {})
             await req.createOptions({ ...defaultOptions, strictSSL: true })
             expect(vi.mocked(Agent).mock.calls[0][0]).not.toHaveProperty('connect')
+
+            // the option is not set at all
+            expect(defaultOptions).not.toHaveProperty('strictSSL')
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(Agent).mock.calls[1][0]).not.toHaveProperty('connect')
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('requestTls')
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('proxyTls')
         })
 
         it('should handle getGlobalDispatcher errors gracefully', async () => {
