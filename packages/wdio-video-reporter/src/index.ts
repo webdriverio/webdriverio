@@ -21,6 +21,7 @@ import {
     BIDI_CAPTURE_FAILED_RETRY_DELAY, FRAME_WAIT_TIMEOUT
 } from './constants.js'
 import type { ReporterOptions } from './types.js'
+import { Recording } from './recording.js'
 
 /**
  * a BiDi command that can take a frame, and its browsing context
@@ -39,6 +40,11 @@ const log = logger('@wdio/video-reporter')
  */
 const REPORTER_COMMANDS = new Set(['takeScreenshot', 'browsingContextCaptureScreenshot', 'browsingContextGetTree', 'getWindowHandle'])
 
+/**
+ * the key of the recording outside parallel mode
+ */
+const MAIN = 'main'
+
 export default class VideoReporter extends WdioReporter {
     options: Required<ReporterOptions>
     #outputDir: string = os.tmpdir()
@@ -49,28 +55,24 @@ export default class VideoReporter extends WdioReporter {
     #record = true
     #ffmpegPath?: string
 
-    screenshotPromises: Promise<void>[] = []
     videos: string[] = []
     videoPromises: Promise<unknown>[] = []
     processList: Set<ChildProcess> = new Set()
     /** how to drop the video of each running render */
     #dropVideoOf = new Map<ChildProcess, () => void>()
-    frameNr = 0
-    intervalScreenshot?: NodeJS.Timeout
     allureVideos: string[] = []
-    recordingPath?: string
     testNameStructure: string[] = []
-    testName?: string
     isCucumberFramework = false
+    /**
+     * the recording of each test window in parallel mode, and of the current test
+     * (key `MAIN`) outside parallel mode
+     */
+    #recordings = new Map<string, Recording>()
     /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
      */
     #isScenarioLevelReporter = false
-    /**
-     * the title of the test that started and did not end yet
-     */
-    #openTestTitle?: string
     #bidiCommandsById = new Map<number, BidiFrameCommand>()
     #listensToBidiCommands = false
     #listensToInstanceCommands = false
@@ -87,11 +89,6 @@ export default class VideoReporter extends WdioReporter {
      * the BiDi sessions that have no `browsingContext.captureScreenshot` (Appium): classic frames
      */
     #noBidiCaptureSessions = new Set<string | undefined>()
-    #frameContext?: string
-    /**
-     * the screenshot of the last frame, for a frame whose session ended first
-     */
-    #lastScreenshot: Promise<string | undefined> = Promise.resolve(undefined)
     /**
      * the sessions that `deleteSession` ended (also in `reloadSession()`): a classic
      * screenshot in flight then fails with a transport error (`UND_ERR_CLOSED`)
@@ -102,10 +99,6 @@ export default class VideoReporter extends WdioReporter {
      * frames must not start ffmpeg after the worker went on
      */
     #renderAborted = false
-    /**
-     * the screenshot of the last frame, until the next command starts
-     */
-    #pendingFrame?: Promise<unknown>
     /**
      * the top-level browsing context (tab or window) of each context, for frames
      */
@@ -167,6 +160,38 @@ export default class VideoReporter extends WdioReporter {
    * set setter to verify values for testing purposes
    */
     set record (value) { this.#record = value }
+
+    /**
+     * the fields of the recording of the calling code
+     */
+    get recordingPath () { return this.#recordingOf()?.path }
+    set recordingPath (value) { this.#ownRecording().path = value }
+    get testName () { return this.#recordingOf()?.testName }
+    set testName (value) { this.#ownRecording().testName = value }
+    get frameNr () { return this.#recordingOf()?.frameNr ?? 0 }
+    set frameNr (value) { this.#ownRecording().frameNr = value }
+    get screenshotPromises () { return this.#recordingOf()?.screenshots ?? [] }
+    set screenshotPromises (value) { this.#ownRecording().screenshots = value }
+    get intervalScreenshot () { return this.#recordingOf()?.interval }
+    set intervalScreenshot (value) { this.#ownRecording().interval = value }
+
+    #keyOf (_contextId?: string) {
+        return MAIN
+    }
+
+    #recordingOf (contextId?: string) {
+        return this.#recordings.get(this.#keyOf(contextId))
+    }
+
+    #ownRecording (contextId?: string) {
+        const key = this.#keyOf(contextId)
+        let recording = this.#recordings.get(key)
+        if (!recording) {
+            recording = new Recording(key === MAIN ? undefined : key)
+            this.#recordings.set(key, recording)
+        }
+        return recording
+    }
 
     /**
    * Set wdio config options
@@ -344,6 +369,7 @@ export default class VideoReporter extends WdioReporter {
      * @param context  browsing context of a BiDi command, `undefined` for a classic command
      */
     #addFrameForCommand (commandName: string, label?: string, context?: string) {
+        const recording = this.#recordingOf()
         /**
      * Filter out non-action commands and keep only last action command
      */
@@ -355,7 +381,7 @@ export default class VideoReporter extends WdioReporter {
           !this.options.snapshotCommands.includes(commandName)
         )
             ) ||
-      !this.recordingPath
+      !recording?.path
         ) {
             return false
         }
@@ -363,9 +389,9 @@ export default class VideoReporter extends WdioReporter {
         /**
          * the classic commands take the frame of the main window
          */
-        this.#frameContext = context && context !== this.#mainContext ? context : undefined
-        this.#log(`Add frame for command: ${label} => [${commandName}]${this.#frameContext ? ` (browsing context ${this.#frameContext})` : ''}`)
-        return this.addFrame()
+        recording.frameContext = context && context !== this.#mainContext ? context : undefined
+        this.#log(`Add frame for command: ${label} => [${commandName}]${recording.frameContext ? ` (browsing context ${recording.frameContext})` : ''}`)
+        return this.addFrame(recording)
     }
 
     /**
@@ -423,7 +449,8 @@ export default class VideoReporter extends WdioReporter {
         if (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite') {
             this.testNameStructure.pop()
         }
-        if (!this.testName) {
+        const recording = this.#recordingOf()
+        if (!recording?.testName) {
             return
         }
         /**
@@ -442,9 +469,9 @@ export default class VideoReporter extends WdioReporter {
         const allTestsPassed = !hasFailedTests
 
         if (hasFailedTests || (allTestsPassed && this.options.saveAllVideos)) {
-            this.addFrame()
+            this.addFrame(recording)
             // Cucumber reports each step as a test: make one video when the scenario ends
-            this.generateVideo()
+            this.generateVideo(recording)
         }
     }
 
@@ -464,8 +491,9 @@ export default class VideoReporter extends WdioReporter {
          * Mocha reports a test as started again (with a new uid) when its beforeEach
          * hook failed: keep the recording of the first start, with the frames of the hook
          */
-        const startedAgain = this.#openTestTitle === suite.title
-        this.#openTestTitle = suite.title
+        const recording = this.#ownRecording()
+        const startedAgain = recording.openTestTitle === suite.title
+        recording.openTestTitle = suite.title
         if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
             if (this.options.filenamePrefixSource === 'test') {
                 this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
@@ -477,9 +505,9 @@ export default class VideoReporter extends WdioReporter {
         // Ensure video attachment happens for Allure, even when disableWebdriverStepsReporting is false
         this.#attachVideoToAllure(startedAgain)
 
-        if (this.options.screenshotIntervalSecs && !this.intervalScreenshot) {
-            this.intervalScreenshot = setInterval(
-                () => this.addFrame(),
+        if (this.options.screenshotIntervalSecs && !recording.interval) {
+            recording.interval = setInterval(
+                () => this.addFrame(recording),
                 this.options.screenshotIntervalSecs * 1000
             )
         }
@@ -534,8 +562,11 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        this.clearScreenshotInterval()
-        this.#openTestTitle = undefined
+        const recording = this.#recordingOf()
+        this.#clearInterval(recording)
+        if (recording) {
+            recording.openTestTitle = undefined
+        }
         if (this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
             this.testNameStructure.pop()
         }
@@ -547,9 +578,9 @@ export default class VideoReporter extends WdioReporter {
         }
 
         if (test.state === 'failed' || (test.state === 'passed' && this.options.saveAllVideos)) {
-            this.addFrame()
+            this.addFrame(recording)
             if (!this.#isCucumberStepReporter) {
-                this.generateVideo()
+                this.generateVideo(recording)
             }
         }
     }
@@ -650,13 +681,13 @@ export default class VideoReporter extends WdioReporter {
             .map(({ allureFile }) => allureFile))
     }
 
-    addFrame() {
-        if (!this.recordingPath) {
+    addFrame (recording: Recording | undefined = this.#recordingOf()) {
+        if (!recording?.path) {
             return false
         }
 
-        const frame = this.frameNr++
-        const filePath = path.resolve(this.recordingPath, `${pad(frame)}.png`)
+        const frame = recording.frameNr++
+        const filePath = path.resolve(recording.path, `${pad(frame)}.png`)
 
         /**
          * Chrome: a classic screenshot that is in flight when a WebDriver BiDi navigation
@@ -666,9 +697,9 @@ export default class VideoReporter extends WdioReporter {
          */
         const instance = getScreenshotBrowser(browser)
         const sessionId = instance.sessionId
-        const previous = this.#lastScreenshot
+        const previous = recording.lastScreenshot
         const capture: Promise<string> = (this.#mainContextReady && !this.#noBidiCaptureSessions.has(sessionId)
-            ? this.#bidiScreenshot(instance, this.#frameContext, frame).catch((error: unknown) => {
+            ? this.#bidiScreenshot(instance, recording.frameContext, frame).catch((error: unknown) => {
                 if (!isUnknownBidiCommand(error)) {
                     throw error
                 }
@@ -693,7 +724,7 @@ export default class VideoReporter extends WdioReporter {
                 return data
             })
         })
-        this.#lastScreenshot = capture.catch(() => undefined)
+        recording.lastScreenshot = capture.catch(() => undefined)
         /**
          * after the timeout, the frame has the "not available" image and ffmpeg can read
          * it: a screenshot that ends later must not write the frame again
@@ -712,8 +743,8 @@ export default class VideoReporter extends WdioReporter {
                     this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
                 }
             })
-        this.#pendingFrame = screenshot
-        this.screenshotPromises.push(
+        recording.pendingFrame = screenshot
+        recording.screenshots.push(
             endsInTime(screenshot, this.options.videoRenderTimeout).then((inTime) => {
                 if (!inTime) {
                     timedOut = true
@@ -744,8 +775,11 @@ export default class VideoReporter extends WdioReporter {
                 if (REPORTER_COMMANDS.has(commandName)) {
                     return
                 }
-                const frame = this.#pendingFrame
-                this.#pendingFrame = undefined
+                const recording = this.#recordingOf()
+                const frame = recording?.pendingFrame
+                if (recording) {
+                    recording.pendingFrame = undefined
+                }
                 return frame && endsInTime(frame, FRAME_WAIT_TIMEOUT)
             }
         ]
@@ -853,19 +887,23 @@ export default class VideoReporter extends WdioReporter {
     }
 
     clearScreenshotInterval () {
-        if (this.intervalScreenshot) {
-            clearInterval(this.intervalScreenshot)
-            this.intervalScreenshot = undefined
+        this.#clearInterval(this.#recordingOf())
+    }
+
+    #clearInterval (recording?: Recording) {
+        if (recording?.interval) {
+            clearInterval(recording.interval)
+            recording.interval = undefined
         }
     }
 
-    generateVideo () {
-        if (!this.testName) {
+    generateVideo (recording: Recording | undefined = this.#recordingOf()) {
+        if (!recording?.testName) {
             return
         }
 
         const formatSettings = getVideoFormatSettings(this.options.videoFormat)
-        const videoPath = getVideoPath(this.#outputDir, this.testName, formatSettings.fileExtension)
+        const videoPath = getVideoPath(this.#outputDir, recording.testName, formatSettings.fileExtension)
         this.videos.push(videoPath)
 
         // send event to nice-html-reporter
@@ -879,7 +917,7 @@ export default class VideoReporter extends WdioReporter {
         const args = [
             '-y',
             '-r', '10',
-            '-i', `${this.recordingPath}/%04d.png`,
+            '-i', `${recording.path}/%04d.png`,
             '-vcodec', formatSettings.vcodec,
             '-crf', '32',
             '-pix_fmt', 'yuv420p',
@@ -893,7 +931,7 @@ export default class VideoReporter extends WdioReporter {
          * `afterEach` hook) would add frames while ffmpeg reads them. The next test
          * starts a new recording.
          */
-        this.recordingPath = undefined
+        recording.path = undefined
 
         /**
          * a failed render can leave an empty or broken file: it is not a video
@@ -914,8 +952,8 @@ export default class VideoReporter extends WdioReporter {
          * image), so ffmpeg starts when all frames of the recording exist
          */
         // the frames of this recording; the next recording has its own
-        const screenshots = this.screenshotPromises
-        this.screenshotPromises = []
+        const screenshots = recording.screenshots
+        recording.screenshots = []
         const promise: Promise<void> = Promise
             .all(screenshots)
             .then(() => new Promise((resolve) => {
@@ -990,15 +1028,17 @@ export default class VideoReporter extends WdioReporter {
             browserName = `${deviceName.toUpperCase()}-${capabilities.platformName.toUpperCase()}`
         }
 
-        const testName = this.testName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
-        this.frameNr = 0
+        const testName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
+        const recording = this.#ownRecording()
+        recording.testName = testName
+        recording.frameNr = 0
         // the frames of the last recording are not in this video (no video for a passed test without saveAllVideos)
-        this.screenshotPromises = []
+        recording.screenshots = []
         // a new recording starts with the main window, not with the tab of the last test
-        this.#frameContext = undefined
-        this.recordingPath = path.resolve(this.#outputDir, this.options.rawPath, testName)
+        recording.frameContext = undefined
+        recording.path = path.resolve(this.#outputDir, this.options.rawPath, testName)
 
-        fs.mkdirSync(this.recordingPath, { recursive: true })
+        fs.mkdirSync(recording.path, { recursive: true })
     }
 
     /**
