@@ -5,6 +5,7 @@ import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
 import { environment } from '../environment.js'
 import { logBackgroundError } from '../utils/sessionEnded.js'
+import { isBidiCaptureEvent } from '../utils/screenshotEvents.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
@@ -404,7 +405,8 @@ export class ContextManager extends SessionManager {
         if (
             typeof event.endpoint === 'string' &&
             parallelContextStore.getStore() &&
-            !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command)
+            !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command) &&
+            !isBidiCaptureEvent(event)
         ) {
             throw new Error(parallelModeError(event.command))
         }
