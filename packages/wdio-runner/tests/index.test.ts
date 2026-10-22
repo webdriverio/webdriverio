@@ -7,7 +7,7 @@ import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
+import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 import type { CustomStubCommand } from '../src/types.js'
@@ -273,6 +273,29 @@ describe('wdio-runner', () => {
             endSession.mockClear()
             expect(await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
             expect(endSession).toBeCalledTimes(1)
+        })
+
+        it.each([
+            [undefined, true],
+            [true, true],
+            [false, false]
+        ])('should pass autoAssertOnTestEnd=%s to the soft assertion service as %s', async (value, expected) => {
+            vi.mocked(SoftAssertionService).mockClear()
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                autoAssertOnTestEnd: value
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
+            runner['_startSession'] = vi.fn().mockReturnValue({ })
+            runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
+            await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
+
+            expect(SoftAssertionService).toBeCalledWith({ autoAssertOnTestEnd: expected })
         })
 
         it('should attach snapshot service to service list', async () => {
