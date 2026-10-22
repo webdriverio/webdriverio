@@ -22,6 +22,7 @@ export class StepGate {
     constructor (signal?: AbortSignal) {
         this.signal = signal
         signal?.addEventListener('abort', () => this.#stopWhenIdle(), { once: true })
+        this.#stopWhenIdle()
     }
 
     /**

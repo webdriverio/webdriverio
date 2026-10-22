@@ -29,7 +29,10 @@ export interface LoopOptions {
 }
 
 export interface LoopResult {
-    status: 'done' | 'fail'
+    /**
+     * `stopped` when `signal` aborted, its reason is the summary
+     */
+    status: 'done' | 'fail' | 'stopped'
     summary: string
     usage: TokenUsage
     /**
@@ -95,7 +98,7 @@ export async function runLoop (options: LoopOptions): Promise<LoopResult> {
     } catch (err) {
         const error = err as Error
         if (options.signal?.aborted) {
-            throw options.signal.reason
+            return { status: 'stopped', summary: (options.signal.reason as Error).message, usage, modelCalls }
         }
         if (error instanceof GraphRecursionError || error.name === 'GraphRecursionError') {
             return { status: 'fail', summary: `stopped after ${options.maxSteps} steps without completing the instruction`, usage, modelCalls }

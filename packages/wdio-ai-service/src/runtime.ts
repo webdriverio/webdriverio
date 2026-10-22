@@ -64,6 +64,10 @@ interface TestContext {
      * aborts when the test ends: a call still running then stops
      */
     controller: AbortController
+    /**
+     * set when the test ended, a call that stops later finishes the workspace again
+     */
+    passed?: boolean
 }
 
 export type ActScope = WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext
@@ -175,8 +179,12 @@ export class AiRuntime {
     async endTest (passed = true) {
         const test = this.#test
         this.#test = undefined
-        test?.controller.abort(new TestEndedError(test.title))
-        await test?.workspace?.finish(this.#keepPolicy, passed)
+        if (!test) {
+            return
+        }
+        test.passed = passed
+        test.controller.abort(new TestEndedError(test.title))
+        await test.workspace?.finish(this.#keepPolicy, passed)
     }
 
     /**
@@ -185,7 +193,7 @@ export class AiRuntime {
      */
     #oneAtATime<T> (browser: WebdriverIO.Browser, call: () => Promise<T>): Promise<T> {
         const result = (this.#calls.get(browser) ?? Promise.resolve()).then(call)
-        this.#calls.set(browser, result.catch(() => {}))
+        this.#calls.set(browser, result.then(() => {}, () => {}))
         return result
     }
 
@@ -200,6 +208,18 @@ export class AiRuntime {
         }
     }
 
+    /**
+     * A standalone call finishes its workspace itself. So does a call that
+     * stopped after its test ended, as it wrote to the workspace after that.
+     */
+    async #finishCall (workspace: Workspace, test?: TestContext) {
+        if (!test) {
+            await workspace.finish(this.#keepPolicy, !workspace.keep)
+        } else if (test.passed !== undefined) {
+            await workspace.finish(this.#keepPolicy, test.passed)
+        }
+    }
+
     get #keepPolicy (): KeepPolicy {
         return this.options.workspace?.keep ?? 'on-failure'
     }
@@ -211,10 +231,9 @@ export class AiRuntime {
     }
 
     /**
-     * the workspace of the current test, or one for a standalone call
+     * the workspace of the test of a call, or one for a standalone call
      */
-    #workspaceFor (instruction: string) {
-        const test = this.#test
+    #workspaceFor (instruction: string, test?: TestContext) {
         if (!test) {
             return new Workspace(this.#workspaceRoot, 'standalone', instruction)
         }
@@ -312,7 +331,7 @@ export class AiRuntime {
     /**
      * Let the model perform an instruction and record the steps it took.
      */
-    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder, signal?: AbortSignal): Promise<PlanResult> {
+    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder, test?: TestContext): Promise<PlanResult> {
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
@@ -324,11 +343,11 @@ export class AiRuntime {
 
         const values = options.values || {}
         const steps: ActStep[] = []
-        const workspace = this.#workspaceFor(instruction)
+        const workspace = this.#workspaceFor(instruction, test)
         workspace.values = values
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
-        const gate = new StepGate(signal)
+        const gate = new StepGate(test?.controller.signal)
         const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
@@ -344,7 +363,7 @@ export class AiRuntime {
                 middleware: [await workspace.middleware()]
             })
             this.modelCalls += result.modelCalls
-            if (result.status === 'fail') {
+            if (result.status !== 'done') {
                 workspace.keep = true
                 throw new ActError({ instruction, reason: result.summary, steps, usage: result.usage, workspace: workspace.dir })
             }
@@ -352,9 +371,7 @@ export class AiRuntime {
         } finally {
             await workspace.writeEvents(agent.logs, agent.network)
             await workspace.writeSteps(steps)
-            if (!this.#test) {
-                await workspace.finish(this.#keepPolicy, !workspace.keep)
-            }
+            await this.#finishCall(workspace, test)
         }
     }
 
@@ -369,7 +386,7 @@ export class AiRuntime {
             return files.length ? { artifacts: files } : {}
         }
         try {
-            const { result, usage, healedSteps } = await this.#oneAtATime(browserOf(scope), () => this.#act(scope, instruction, options, evidence, signal))
+            const { result, usage, healedSteps } = await this.#oneAtATime(browserOf(scope), () => this.#act(scope, instruction, options, evidence, test))
             this.#record({
                 ...base,
                 ...await artifacts(),
@@ -449,7 +466,11 @@ export class AiRuntime {
         }
     }
 
-    async #act (scope: ActScope, instruction: string, options: ActOptions, evidence?: HealEvidence, signal?: AbortSignal): Promise<ActOutcome> {
+    /**
+     * The call belongs to `test`, the test that started it, even when the
+     * next test started while it ran.
+     */
+    async #act (scope: ActScope, instruction: string, options: ActOptions, evidence?: HealEvidence, test?: TestContext): Promise<ActOutcome> {
         if (typeof instruction !== 'string' || !instruction.trim()) {
             throw new Error('[@wdio/ai-service] act() needs an instruction')
         }
@@ -458,12 +479,19 @@ export class AiRuntime {
         if ((browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
             throw new Error('[@wdio/ai-service] act() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').act(...)')
         }
+        const signal = test?.controller.signal
         signal?.throwIfAborted()
         const agent = await this.agentFor(browser)
         const recorder = await this.#recorders.get(browser)
         const scoped = await scopeOf(agent, scope)
         try {
-            return await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder, evidence, signal)
+            signal?.throwIfAborted()
+            const outcome = await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder, evidence, test)
+            /**
+             * the last step ended after the test, the call is stopped like any other
+             */
+            signal?.throwIfAborted()
+            return outcome
         } catch (err) {
             if (signal?.aborted) {
                 await this.#stopped(agent, `act("${instruction}")`, signal)
@@ -474,10 +502,10 @@ export class AiRuntime {
         }
     }
 
-    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder, evidence?: HealEvidence, signal?: AbortSignal): Promise<ActOutcome> {
+    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder, evidence?: HealEvidence, test?: TestContext): Promise<ActOutcome> {
         const effects: EffectCheck | undefined = recorder ? { recorder, mode: this.effects.mode } : undefined
         const mode = this.mode(options.cache)
-        const test = this.#test
+        const signal = test?.controller.signal
         if (test) {
             test.calls++
         }
@@ -534,7 +562,7 @@ export class AiRuntime {
                 })
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
-            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder, signal)
+            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder, test)
             await evidence?.after()
             /**
              * the model's steps have to do what the failed step did
@@ -561,7 +589,7 @@ export class AiRuntime {
         if (mode === 'locked') {
             throw new ActError({ instruction, reason: `no cached steps for "${key}" and the cache is locked` })
         }
-        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef, recorder, signal)
+        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef, recorder, test)
         if (cache && key) {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }
@@ -586,7 +614,7 @@ export class AiRuntime {
         const base = { kind: 'extract' as const, ...(test ? { spec: test.spec, test: test.title } : {}), instruction, source: 'model' as const }
         const usage = { input: 0, output: 0 }
         try {
-            const { value, evidence } = await this.#oneAtATime(browserOf(scope), () => this.#extract(scope, instruction, schema, options, usage, signal))
+            const { value, evidence } = await this.#oneAtATime(browserOf(scope), () => this.#extract(scope, instruction, schema, options, usage, test))
             this.#record({ ...base, ...(evidence?.length ? { evidence } : {}), usage, durationMs: Date.now() - started })
             return value
         } catch (err) {
@@ -596,7 +624,7 @@ export class AiRuntime {
         }
     }
 
-    async #extract<T> (scope: ActScope, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, signal?: AbortSignal) {
+    async #extract<T> (scope: ActScope, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, test?: TestContext) {
         const browser = browserOf(scope)
         if ((browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
             throw new Error('[@wdio/ai-service] extract() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').extract(...)')
@@ -605,11 +633,15 @@ export class AiRuntime {
         if (!modelOption) {
             throw new ActError({ instruction, reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.' })
         }
+        const signal = test?.controller.signal
         signal?.throwIfAborted()
         const agent = await this.agentFor(browser)
         const scoped = await scopeOf(agent, scope)
         try {
-            return await this.#extractIn(agent, instruction, schema, options, usage, scoped.ref, signal)
+            signal?.throwIfAborted()
+            const read = await this.#extractIn(agent, instruction, schema, options, usage, scoped.ref, test)
+            signal?.throwIfAborted()
+            return read
         } catch (err) {
             if (signal?.aborted) {
                 await this.#stopped(agent, `extract("${instruction}")`, signal)
@@ -620,20 +652,20 @@ export class AiRuntime {
         }
     }
 
-    async #extractIn<T> (agent: AgentSession, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, scopeRef?: string, signal?: AbortSignal) {
+    async #extractIn<T> (agent: AgentSession, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, scopeRef?: string, test?: TestContext) {
         const modelOption = selectModel(options.model, this.options.model)!
         const values = options.values || {}
-        const workspace = this.#workspaceFor(instruction)
+        const workspace = this.#workspaceFor(instruction, test)
         workspace.values = values
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
         const responses = await this.#responses.get(agent.browser)?.catch(() => undefined)
         const withResponses = responses ? await workspace.writeResponses(responses, responses.select({
             contexts: await contextTree(agent.browser, await agent.browser.getWindowHandle().catch(() => undefined)),
-            since: this.#test?.startedAt
+            since: test?.startedAt
         })) > 0 : false
         const jsonSchema = jsonSchemaOf(schema)
-        const gate = new StepGate(signal)
+        const gate = new StepGate(test?.controller.signal)
         const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef, gate })
         let feedback = ''
         try {
@@ -662,7 +694,7 @@ export class AiRuntime {
                 this.modelCalls += result.modelCalls
                 usage.input += result.usage.input
                 usage.output += result.usage.output
-                if (result.status === 'fail' || outcome.status !== 'done') {
+                if (result.status !== 'done' || outcome.status !== 'done') {
                     workspace.keep = true
                     throw new ActError({ instruction, reason: result.summary, usage, workspace: workspace.dir })
                 }
@@ -675,9 +707,7 @@ export class AiRuntime {
             workspace.keep = true
             throw new ActError({ instruction, reason: `the answer did not match the schema. ${feedback}`, usage, workspace: workspace.dir })
         } finally {
-            if (!this.#test) {
-                await workspace.finish(this.#keepPolicy, !workspace.keep)
-            }
+            await this.#finishCall(workspace, test)
         }
     }
 
