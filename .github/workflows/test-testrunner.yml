@@ -57,11 +57,11 @@ jobs:
         run: |
           pnpm run test:e2e:testrunner
           pnpm run test:e2e:classic
-          pnpm run test:e2e:parallel
           pnpm run test:e2e:jasmine
           pnpm run test:e2e:lighthouse
           pnpm run test:e2e:ai
           pnpm run test:e2e:video-reporter
+          pnpm run test:e2e:parallel
         shell: bash
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
