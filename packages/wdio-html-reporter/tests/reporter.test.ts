@@ -686,3 +686,76 @@ describe('second code review points', () => {
         expect(reportAggregator.reports).toHaveLength(1)
     })
 })
+
+describe('third code review points', () => {
+    const dirs: string[] = []
+    const tempDir = (name: string) => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), `html-reporter-${name}-`))
+        dirs.push(dir)
+        return dir
+    }
+    const failedTest = (error: unknown) => ({ ...SUITES[0].tests[1], uid: 'error-test', title: 'error test', state: 'failed', errors: [error], error, events: undefined }) as unknown as TestStats
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        vi.restoreAllMocks()
+        for (const dir of dirs) {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
+    })
+
+    const masterOf = async (dir: string, error: unknown) => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Errors' } as never)
+        const suite = { ...SUITES[0], uid: 'errors', title: 'Errors', tests: [] as TestStats[] }
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(suite as never)
+        const test = failedTest(error)
+        suite.tests.push(test)
+        reporter.onTestStart(test)
+        reporter.onTestFail(test)
+        reporter.onTestEnd(test)
+        reporter.onSuiteEnd(suite as never)
+        await reporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master.html', reportTitle: 'Errors' })
+        await reportAggregator.createReport()
+        return fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+    }
+
+    it('keeps the message and the stack of an Error instance in the master report', async () => {
+        // a framework can give an Error object: its message and stack are not own enumerable fields
+        const html = await masterOf(tempDir('error-instance'), new Error('Spec has no expectations'))
+        expect(html).toContain('Assertion: Spec has no expectations')
+        expect(html).toContain('<pre class=\'pre stack panel\'>Error: Spec has no expectations')
+    })
+
+    it('can expand an error row that has no stack', async () => {
+        const html = await masterOf(tempDir('no-stack'), { message: 'no stack', stack: '' })
+        expect(html).not.toContain('<pre class=\'pre stack panel\'>')
+        // the click handler of the row looks for the stack row after it (the browser check is in the PR)
+        expect(html).toMatch(/let panel = event\.currentTarget\.nextElementSibling\?\.querySelector\('\.pre\.stack\.panel'\);\s*if \(panel\) \{/)
+    })
+
+    it('closes the row of each test', async () => {
+        const html = await masterOf(tempDir('rows'), { message: 'a failure', stack: 'Error: a failure' })
+        expect(html).toContain('<table class="table table-test">')
+        // a new <tr> in place of </tr> gives an empty row after each test
+        expect(html).not.toMatch(/<\/td>\s*<tr>\s*<\/table>/)
+    })
+
+    it('tells on the console when the HTML report of a worker is not complete', async () => {
+        const { default: HtmlGenerator } = await import('../src/htmlGenerator.js')
+        const htmlOutput = vi.spyOn(HtmlGenerator, 'htmlOutput').mockResolvedValue(false)
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('worker-html'), filename: 'report.html', reportTitle: 'Worker', produceHtml: true } as never)
+            reporter.onRunnerStart(RUNNER)
+            await reporter.onRunnerEnd(RUNNER)
+            expect(error.mock.calls.some(([message]) => String(message).includes('report-0-0.html is not complete'))).toBe(true)
+        } finally {
+            htmlOutput.mockRestore()
+            error.mockRestore()
+        }
+    })
+})

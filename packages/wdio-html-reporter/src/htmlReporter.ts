@@ -364,13 +364,17 @@ export default class HtmlReporter extends WDIOReporter {
         if (test.errors) {
             //@ts-ignore
             for (let i = test.errorIndex; i < test.errors.length; i++) {
-                let errorObj = test.errors[i]
-                const stack = test.errors[i].stack
-                if (stack && stack.includes('AssertionError')) {
+                const error = test.errors[i]
+                /**
+                 * an Error object (for example Jasmine `failSpecWithNoExpectations`) has no own
+                 * enumerable message and stack: the JSON file of the worker would lose them
+                 */
+                let errorObj = { ...error, message: error.message, stack: error.stack }
+                if (error.stack && error.stack.includes('AssertionError')) {
                     errorObj = {
                         //@ts-ignore
-                        message: test.errors[i].message.split('      \n').shift(),
-                        stack: test.errors[i].stack,
+                        message: error.message.split('      \n').shift(),
+                        stack: error.stack,
                     }
                 }
                 //@ts-ignore

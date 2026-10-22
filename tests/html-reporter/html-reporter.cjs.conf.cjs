@@ -13,7 +13,8 @@ exports.config = {
     capabilities: [{ browserName: 'chrome' }],
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: path.join(__dirname, 'out-cjs'),
+    // the launcher writes its log before onPrepare removes the report folder
+    outputDir: path.join(__dirname, '..', 'helpers'),
     services: ['webdriver-mock'],
     specs: [path.join(__dirname, 'html-reporter.cjs.spec.cjs')],
     reporters: [['html', { outputDir, filename: 'report.html', reportTitle: 'Smoke CJS Report' }]],

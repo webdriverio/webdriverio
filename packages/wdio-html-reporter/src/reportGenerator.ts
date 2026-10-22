@@ -52,8 +52,9 @@ class ReportGenerator {
 
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            if (this.options.produceHtml) {
-                await HtmlGenerator.htmlOutput(this.options, reportData)
+            // the HTML report of a worker is often the only report: its errors are in the reporter log
+            if (this.options.produceHtml && !await HtmlGenerator.htmlOutput(this.options, reportData)) {
+                console.error(`[@wdio/html-reporter] The report ${this.reportFile} is not complete: see the errors in the reporter log`)
             }
             this.LOG.info('Report Generation completed')
             this.synchronised = true

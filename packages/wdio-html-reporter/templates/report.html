@@ -347,8 +347,11 @@
             item.addEventListener('click', event => {
                 event.currentTarget.querySelector('span').classList.toggle('glyphicon-chevron-down');
                 event.currentTarget.querySelector('span').classList.toggle('glyphicon-chevron-up');
-                let panel = event.currentTarget.nextElementSibling.querySelector('.pre.stack.panel');
-                slideToggle(panel, 100);
+                // an error with no stack has no stack row
+                let panel = event.currentTarget.nextElementSibling?.querySelector('.pre.stack.panel');
+                if (panel) {
+                    slideToggle(panel, 100);
+                }
             });
         });
 
