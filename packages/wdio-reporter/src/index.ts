@@ -203,7 +203,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test: Test) => {
-            test.retries = getRetries(test.contextId)
+            test.retries = getRetries(getContextId(test))
             const currentSuite = this.#owningSuite(test.parentUid)
             /**
              * a test that started and did not end, and now ends as pending or skipped
