@@ -19,7 +19,8 @@ export const config: WebdriverIO.MultiRemoteConfig = {
 
     specs: [
         path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts'),
-        path.resolve(__dirname, 'headless', 'multiRemoteExpect.e2e.ts')
+        path.resolve(__dirname, 'headless', 'multiRemoteExpect.e2e.ts'),
+        path.resolve(__dirname, 'headless', 'multiRemoteMissingListItem.e2e.ts')
     ],
     exclude: [],
     capabilities: [

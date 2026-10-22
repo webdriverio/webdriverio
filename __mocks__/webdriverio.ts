@@ -30,4 +30,5 @@ export const remote = vi.fn().mockImplementation(() => {
 })
 export const multiRemote = vi.fn().mockImplementation(() => (getWdioMock()))
 
+export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
 export const SevereServiceError = SevereServiceErrorImport.default

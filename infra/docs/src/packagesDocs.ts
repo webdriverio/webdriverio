@@ -5,12 +5,16 @@ import { IGNORED_SUBPACKAGES_FOR_DOCS } from '@wdio/repo-utils/protocols'
 import { getSubPackages, buildPreface, getRootDir } from '@wdio/repo-utils'
 
 /**
- * name parts written in capitals in page titles, e.g. "AI Service"
+ * name parts with their own spelling in page titles, e.g. "AI Service", "CucumberJS JSON Reporter"
  */
-const ACRONYMS = new Set(['ai'])
+const WORDS: Record<string, string> = {
+    ai: 'AI',
+    cucumberjs: 'CucumberJS',
+    json: 'JSON'
+}
 
 export function pluginTitle (nameParts: string[]) {
-    return nameParts.map((n) => ACRONYMS.has(n) ? n.toUpperCase() : n[0].toUpperCase() + n.slice(1)).join(' ')
+    return nameParts.map((n) => WORDS[n] ?? n[0].toUpperCase() + n.slice(1)).join(' ')
 }
 
 const plugins = {

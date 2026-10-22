@@ -32,8 +32,11 @@ import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
-    StepDefinitionOptions
+    StepDefinitionOptions,
+    ParallelBrowser,
+    ParallelMode,
 } from './types.js'
+import { runParallelCucumber, parallelRunHasStarted } from './parallel.js'
 
 export const FILE_PROTOCOL = 'file://'
 
@@ -60,6 +63,7 @@ export class CucumberAdapter {
     private _cucumberOpts: Required<CucumberOptions>
 
     private _hasTests = true
+    private _browser?: WebdriverIO.Browser
 
     private gherkinParser: InstanceType<typeof Gherkin.Parser>
 
@@ -121,7 +125,8 @@ export class CucumberAdapter {
             _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter,
             _tagsInTitle: this._cucumberOpts.tagsInTitle,
             _ignoreUndefinedDefinitions: this._cucumberOpts.ignoreUndefinedDefinitions,
-            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions
+            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions,
+            _rootDir: this._config.rootDir
         }
 
         const builder = new Gherkin.AstBuilder(uuidFn)
@@ -187,6 +192,13 @@ export class CucumberAdapter {
             this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
         }
 
+        // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
+        if (this._cucumberOpts.order === 'random') {
+            const seed = Math.floor(Math.random() * 1000 * 1000)
+            this._cucumberOpts.order = `random:${seed}`
+            log.warn(`Random order using seed: ${seed}`)
+        }
+
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
@@ -219,10 +231,8 @@ export class CucumberAdapter {
     }
 
     async run() {
-        let runtimeError
-        let result
-        let failedCount
-        let outStream
+        let runtimeError: unknown
+        let result: number
 
         try {
             await this.registerRequiredModules()
@@ -241,6 +251,160 @@ export class CucumberAdapter {
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
+            const { parallelMode } = this._cucumberOpts
+            result = parallelMode === 'contexts' || parallelMode === 'userContexts'
+                ? await this._runParallelMode(supportCodeLibrary, parallelMode)
+                : await this._runSequential(supportCodeLibrary)
+        } catch (err) {
+            runtimeError = err
+            result = 1
+        }
+
+        /**
+         * Run after hooks regardless of which path executed or whether
+         * it threw — pass the runtime error so hooks can inspect it.
+         */
+        await executeHooksWithArgs('after', this._config.after, [
+            runtimeError || result,
+            this._capabilities,
+            this._specs,
+        ])
+
+        /**
+         * In case the spec has a runtime error throw after the wdio hook
+         * so the runner can mark the worker as failed.
+         */
+        if (runtimeError) {
+            throw runtimeError
+        }
+
+        return result
+    }
+
+    /**
+     * Called by the runner once the session browser exists, before `run()`.
+     */
+    setBrowser(browser: WebdriverIO.Browser) {
+        this._browser = browser
+    }
+
+    /**
+     * Run scenarios in parallel within separate BiDi browsing contexts.
+     * Falls back to sequential mode if BiDi is not available.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runParallelMode(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>,
+        mode: ParallelMode
+    ): Promise<number> {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser
+
+        if (!browser) {
+            throw new Error(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                'a browser instance (set via setBrowser or on globalThis).'
+            )
+        }
+
+        const hasBidiCommands = !!(
+            browser.__bidiCommandsEnabled ||
+            (browser.requestedCapabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands'] ||
+            (browser.capabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands']
+        )
+
+        if (!browser.isBidi) {
+            log.warn(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                'a WebDriver Bidi session. Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        if (!hasBidiCommands) {
+            log.warn(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                '"wdio:experimentalBiDiCommands" to be set in capabilities. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        // Parse Gherkin documents from filtered specs; a spec `file.feature:12` keeps
+        // its line numbers in `specs` for Cucumber's line filter
+        const featurePaths = [...new Set(this._specs.map((spec) => spec.replace(/(:\d+)+$/, '')))]
+        const gherkinDocuments = this.getGherkinDocuments([featurePaths])
+        const { sources, runtime } = await this._loadRunConfiguration({ cwd: this._cwd })
+
+        try {
+            return await runParallelCucumber({
+                browser,
+                reporter: this._reporter,
+                eventEmitter: this._eventEmitter,
+                cid: this._cid,
+                specs: this._specs,
+                gherkinDocuments,
+                supportCodeLibrary,
+                rootDir: this._config.rootDir,
+                cucumberOpts: {
+                    ...this._cucumberOpts,
+                    tags: sources.tagExpression,
+                    name: sources.names,
+                    dryRun: runtime.dryRun,
+                    failFast: runtime.failFast,
+                    retry: runtime.retry,
+                    retryTagFilter: runtime.retryTagFilter,
+                    strict: runtime.strict,
+                    worldParameters: runtime.worldParameters,
+                },
+            })
+        } catch (err) {
+            if (parallelRunHasStarted()) {
+                // BeforeAll may already have run and scenarios may have
+                // executed — re-running them sequentially would double-execute
+                // side effects and duplicate reports.
+                log.error(
+                    `Parallel Cucumber execution failed after execution began: ${(err as Error).message}. ` +
+                    'Not falling back to sequential execution to avoid re-running side effects.'
+                )
+                throw err
+            }
+            if (mode === 'userContexts') {
+                // A sequential fallback would share storage between scenarios
+                // while the config asked for isolation.
+                throw err
+            }
+            log.warn(
+                `Parallel Cucumber execution failed: ${(err as Error).message}. ` +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+    }
+
+    /**
+     * Resolve `cucumberOpts` merged with `profiles` / `file` the way Cucumber does.
+     */
+    private async _loadRunConfiguration(environment: IRunEnvironment) {
+        const { runConfiguration } = await loadConfiguration(
+            { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
+            environment
+        )
+        return runConfiguration
+    }
+
+    /**
+     * Run Cucumber in sequential mode.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runSequential(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
+    ): Promise<number> {
+        let failedCount: number | undefined
+        let outStream: Writable | undefined
+
+        try {
             outStream = new Writable({
                 write(chunk, encoding, callback) {
                     callback()
@@ -257,10 +421,7 @@ export class CucumberAdapter {
                 stdout: outStream,
             }
 
-            const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
-                environment
-            )
+            const runConfiguration = await this._loadRunConfiguration(environment)
 
             const { success } = await runCucumber(
                 {
@@ -270,36 +431,16 @@ export class CucumberAdapter {
                 environment
             )
 
-            result = success ? 0 : 1
+            let result = success ? 0 : 1
 
-            /**
-             * if we ignore undefined definitions we trust the reporter
-             * with the fail count
-             */
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
-                result = failedCount
+                result = failedCount as number
             }
-        } catch (err) {
-            runtimeError = err
-            result = 1
+
+            return result
         } finally {
             outStream?.end()
         }
-
-        await executeHooksWithArgs('after', this._config.after, [
-            runtimeError || result,
-            this._capabilities,
-            this._specs,
-        ])
-
-        /**
-         * in case the spec has a runtime error throw after the wdio hook
-         */
-        if (runtimeError) {
-            throw runtimeError
-        }
-
-        return result
     }
 
     /**
@@ -438,6 +579,11 @@ export class CucumberAdapter {
         })
     }
 
+    private _getParallelContextId(): string | undefined {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser | undefined
+        return browser?.__parallelContextStore?.getStore()
+    }
+
     /**
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
@@ -447,11 +593,20 @@ export class CucumberAdapter {
         const cid = this._cid
 
         let params: unknown
+        const paramsByContext = new Map<string, unknown>()
         this._eventEmitter.on('getHookParams', (payload) => {
-            params = payload
+            const contextId = payload?.contextId ?? this._getParallelContextId()
+            if (contextId) {
+                paramsByContext.set(contextId, payload)
+            } else {
+                params = payload
+            }
         })
 
-        const getHookParams = () => params
+        const getHookParams = () => {
+            const contextId = this._getParallelContextId()
+            return contextId && paramsByContext.has(contextId) ? paramsByContext.get(contextId) : params
+        }
 
         setDefinitionFunctionWrapper(
             (fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {

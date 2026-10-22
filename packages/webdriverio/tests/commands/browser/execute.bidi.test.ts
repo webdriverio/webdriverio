@@ -1,7 +1,8 @@
 import path from 'node:path'
 
 import { expect, describe, it, vi } from 'vitest'
-import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, ELEMENT_KEY, type remote } from 'webdriver'
+import { setWdioKind } from '@wdio/utils'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/session/context.js', () => ({
@@ -130,5 +131,30 @@ describe('execute BiDi script timeout', () => {
         const browser = scriptTimeoutBrowser({ timeouts: { script: Number.MAX_SAFE_INTEGER } })
         await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
         expect(sentScriptTimeout(browser)).toBe(Number.MAX_SAFE_INTEGER)
+    })
+})
+
+describe('execute BiDi element arguments', () => {
+    /**
+     * an element has commands, so it is not a plain object for the serializer
+     */
+    const element = (props: Record<string, unknown>) => setWdioKind({ ...props, addCommand () {} }, 'element')
+
+    it('passes an element as its reference', async () => {
+        const browser = bidiBrowser()
+        await execute.call(browser as unknown as WebdriverIO.Browser, (el: HTMLElement) => el, element({ selector: '.found', elementId: 'el-1', [ELEMENT_KEY]: 'el-1' }) as never)
+
+        expect(browser.scriptCallFunction.mock.calls[0][0].arguments).toEqual([
+            LocalValue.getArgument({ [ELEMENT_KEY]: 'el-1' }).asMap()
+        ])
+    })
+
+    it('throws that an element that was not found can not be passed, as in Classic', async () => {
+        const browser = bidiBrowser()
+        const missing = element({ selector: '.missing', error: new Error('no such element') })
+
+        await expect(execute.call(browser as unknown as WebdriverIO.Browser, (el: HTMLElement) => el, missing as never))
+            .rejects.toThrow('The element with selector ".missing" you are trying to pass into the execute method wasn\'t found')
+        expect(browser.scriptCallFunction).not.toHaveBeenCalled()
     })
 })

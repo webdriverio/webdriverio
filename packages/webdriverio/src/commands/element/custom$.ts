@@ -3,6 +3,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@wdio/utils'
 import type { CustomStrategyFunction } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -49,7 +50,7 @@ export async function custom$ (
      * $('.notExisting').$('.someElem')
      */
     if (!this.elementId) {
-        throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
+        throw Error(`Can't call custom$ on element with selector "${describeSelector(this)}" because element wasn't found`)
     }
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }

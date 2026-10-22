@@ -121,6 +121,30 @@ const launcher = new Launcher('/path/to/config.file.js', {
 })
 ```
 
+## Reporters and parallel tests
+
+With [parallel tests in a spec file](./ParallelTests.md), the tests of one spec file overlap: `onTestStart` of one test can come before `onTestEnd` of another, and commands of different tests interleave. `WDIOReporter` handles this for you. In parallel mode the framework events carry two extra fields:
+
+- `parentUid` on `suite:start`, `hook:start` and `test:start`: the uid of the owning suite (`null` for a top-level suite). The reporter adds the suite, hook or test to that suite, not to the suite that started last.
+- `contextId` on test and command events: the browsing context of the test. The reporter adds command output to the test that ran in that context.
+
+The `suites`, `tests` and `hooks` trees of the reporter are therefore correct. If your reporter keeps its own state, key it by the `uid` of the test or suite instead of tracking a single current test.
+
+Output that comes without an event, such as console output or a custom `process.emit` event, has no `uid`. Call `this.getContextTest()` to get the test whose browsing context wrote it. In parallel mode it returns `undefined` when no running test owns that context; without parallel mode it returns the test that started last. `before()` hooks of a parallel test run before its `test:start`, so no test owns the context yet; `this.getContextId()` returns the raw context id, which stays the same for the whole test.
+
+```js
+import WDIOReporter from '@wdio/reporter'
+
+export default class CustomReporter extends WDIOReporter {
+    onTestStart(test) {
+        this.write(`start ${test.uid} ${test.title}\n`)
+    }
+    onTestEnd(test) {
+        this.write(`end   ${test.uid} ${test.state}\n`)
+    }
+}
+```
+
 ## Wait Until `isSynchronised`
 
 If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts):

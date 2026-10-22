@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { hasElementId } from '../../utils/index.js'
+import checkVisibilityScript from '../../scripts/checkVisibility.js'
 import isElementDisplayedLegacyScript from '../../scripts/isElementDisplayed.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
@@ -128,13 +129,7 @@ export async function isDisplayed (
 
     let hadToFallback = false
     const [isDisplayed, displayProperty] = await Promise.all([
-        browser.execute(function checkVisibility (elem, params) {
-            if (typeof elem.checkVisibility === 'function') {
-                return elem.checkVisibility(params)
-            }
-            // Fallback to legacy script if checkVisibility is not available
-            return null
-        }, this as unknown as HTMLElement, {
+        browser.execute(checkVisibilityScript, this as unknown as HTMLElement, {
             ...DEFAULT_PARAMS,
             ...commandParams
         }).then((result) => {

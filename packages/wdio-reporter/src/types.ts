@@ -14,6 +14,7 @@ export interface CommandArgs {
     retries?: number
     command?: string
     params?: unknown
+    contextId?: string
 }
 
 export interface BeforeCommandArgs extends CommandArgs {

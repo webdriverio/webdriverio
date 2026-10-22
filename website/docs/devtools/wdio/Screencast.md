@@ -14,16 +14,15 @@ Available across all three adapters - **WebdriverIO**, **[Selenium WebDriver](/d
 
 ## Setup
 
-Screencast encoding requires **ffmpeg** on `PATH` and the `fluent-ffmpeg` package:
+Screencast encoding requires the **ffmpeg** binary on `PATH`. The `fluent-ffmpeg` wrapper installs with the adapter, so there is nothing else to add:
 
 ```sh
 # Install ffmpeg - https://ffmpeg.org/download.html
 brew install ffmpeg        # macOS
 sudo apt install ffmpeg    # Ubuntu/Debian
-
-# Install fluent-ffmpeg
-npm install fluent-ffmpeg
 ```
+
+Without ffmpeg the recorder still runs, but the encode step logs a warning and writes no file.
 
 ## Configuration
 
@@ -54,6 +53,7 @@ services: [
 | `maxWidth` | `number` | `1280` | Maximum frame width in pixels. **Chrome/Chromium only** - Chrome scales frames before sending over CDP. Ignored in polling mode |
 | `maxHeight` | `number` | `720` | Maximum frame height in pixels. **Chrome/Chromium only** - same as above |
 | `pollIntervalMs` | `number` | `200` | Screenshot interval in milliseconds for non-Chrome browsers (polling mode). Lower = smoother video but more WebDriver round-trips during test execution |
+| `maxBufferFrames` | `number` | `2000` | Cap on frames held in memory. Past it the buffer is thinned in place, keeping the first and last frames |
 
 ## Browser Support
 
@@ -75,15 +75,15 @@ No configuration change is needed to switch modes - the service detects browser 
 
 ### Where output files land
 
-The directory each adapter picks is slightly different - they all share the same resolver in `@wdio/devtools-core` but feed it different inputs:
+Every adapter writes into a `test-results/` folder; the base directory it sits in differs, because the adapters share one resolver but feed it different inputs:
 
 | Adapter | Output location |
 |---|---|
-| **WebdriverIO** | `outputDir` if explicitly set in `wdio.conf.ts`, otherwise `rootDir` (the dir containing the config). Avoid setting `outputDir` just to control video paths - WDIO redirects worker logs there too. |
-| **Selenium** | Directory of the test file that just ran, falling back to `process.cwd()`. |
-| **Nightwatch** | Directory of the test file, falling back to the directory containing `nightwatch.conf.*`, then `process.cwd()`. |
+| **WebdriverIO** | `<outputDir>/test-results/` if `outputDir` is explicitly set in `wdio.conf.ts`, otherwise `<rootDir>/test-results/` (`rootDir` is the dir containing the config). Avoid setting `outputDir` just to control video paths - WDIO redirects worker logs there too. |
+| **Selenium** | `test-results/` in the directory of the test file that just ran, falling back to `process.cwd()`. |
+| **Nightwatch** | `test-results/` in the directory of the test file, falling back to the directory containing `nightwatch.conf.*`, then `process.cwd()`. |
 
-Directories under `node_modules/` are skipped on the Selenium/Nightwatch path so symlinked workspaces don't dump videos into a dependency folder.
+Directories under `node_modules/` are skipped on the Selenium/Nightwatch path so symlinked workspaces don't dump videos into a dependency folder, and a directory that isn't writable falls through to the next candidate.
 
 ## Output Files
 

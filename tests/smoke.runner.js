@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
+import os from 'node:os'
 import assert from 'node:assert'
 import { expect } from 'expect-webdriverio'
 
@@ -252,6 +253,39 @@ const jasmineTimeout = async () => {
 }
 
 /**
+ * Mocha timeout error names the WebdriverIO attempt of a retried test
+ * https://github.com/webdriverio/webdriverio/issues/16121
+ */
+const mochaTimeout = async () => {
+    const logFile = path.resolve(__dirname, 'mochaTimeout.spec.log')
+    await launch('mochaTimeout', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'timeout.js')],
+        mochaOpts: { ui: 'bdd', timeout: 1000 },
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ]
+    }).catch((err) => err) // error expected
+
+    const errors = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+        .split('\n')
+        .filter((line) => line.includes('Error: Timeout of 1000ms exceeded.'))
+    await fs.unlink(logFile)
+    assert.strictEqual(errors.length, 2, `expected 2 timeout errors, got:\n${errors.join('\n')}`)
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out without retries"') && !line.includes('WDIO attempt')),
+        'a timeout without retries should keep the Mocha error'
+    )
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out in the 2nd attempt"') && line.endsWith(' (WDIO attempt 2/2)')),
+        'a timeout of a retried test should name the WDIO attempt'
+    )
+}
+
+/**
  * Jasmine afterAll is wrongly reported as a failing test - issue #8979
  * https://github.com/webdriverio/webdriverio/issues/8979
  */
@@ -405,22 +439,45 @@ const cucumberTestrunnerMultipleByLineNumber = async () => {
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const hasFailed = await launch(
-        'cucumberFailAmbiguousDefinitions',
-        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
-        {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            cucumberOpts: {
-                ignoreUndefinedDefinitions: true,
-                failAmbiguousDefinitions: true,
-                name: ['failAmbiguousDefinitions']
-            }
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberAmbiguousDefinitions.log')
+    const run = async (cucumberOpts) => {
+        await fs.rm(logFile, { force: true })
+        try {
+            const hasFailed = await launch(
+                'cucumberFailAmbiguousDefinitions',
+                path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+                {
+                    specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+                    reporters: [['spec', { stdout: false, logFile }]],
+                    cucumberOpts: { ...cucumberOpts, name: ['failAmbiguousDefinitions'] }
+                }
+            ).then(
+                () => false,
+                () => true
+            )
+            assert.equal(hasFailed, true)
+            return (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        } finally {
+            await fs.rm(logFile, { force: true })
         }
-    ).then(
-        () => false,
-        () => true
+    }
+
+    // Cucumber writes the step definition files with the path separator of the OS
+    const definitionLine = (file, line) => new RegExp(
+        `this is ambiguous - \\S*${path.join('step-definitions', file).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:${line}`
     )
-    assert.equal(hasFailed, true)
+
+    const failLogs = await run({ ignoreUndefinedDefinitions: true, failAmbiguousDefinitions: true })
+    assert.match(failLogs, /Multiple step definitions match:/)
+    assert.match(failLogs, definitionLine('given.js', 89))
+    assert.match(failLogs, definitionLine('then.js', 20))
+    assert.match(failLogs, /at Step\(this is ambiguous\):50:9/)
+
+    // default: the step is skipped, with the definitions as its reason
+    const skipLogs = await run({ failAmbiguousDefinitions: false })
+    assert.match(skipLogs, /Pending Reasons[\s\S]*Multiple step definitions match:/)
+    assert.match(skipLogs, definitionLine('given.js', 89))
+    assert.match(skipLogs, definitionLine('then.js', 20))
 }
 
 /**
@@ -477,6 +534,360 @@ const cucumberReporter = async () => {
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), CUCUMBER_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
+}
+
+/**
+ * Cucumber with grouped specs in a random order: the scenarios of 2 features mix,
+ * and the reporters must still get each scenario
+ */
+const cucumberGroupedSpecsRandomOrder = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const scenarios = ['a one', 'a two', 'a three', 'b one', 'b two', 'b three']
+    // the scenarios are suites (step level) or tests (scenarioLevelReporter)
+    for (const scenarioLevelReporter of [false, true]) {
+        const logFile = path.resolve(basePath, `spec-reporter-${scenarioLevelReporter}.log`)
+        await fs.rm(logFile, { force: true })
+        await launch(
+            'cucumberGroupedSpecsRandomOrder',
+            path.resolve(basePath, 'random-order.conf.js'),
+            {
+                reporters: [['spec', { stdout: false, logFile }]],
+                cucumberOpts: { scenarioLevelReporter }
+            }
+        )
+        // the spec reporter colors its output when the terminal supports colors
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
+        /**
+         * each scenario under the heading of its feature: a scenario is a suite title
+         * (step level) or a passed test (`✓ a one`, scenario level)
+         */
+        const headings = []
+        const listed = []
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            const feature = line.match(/^Feature ([ab])$/)
+            const scenario = line.replace(/^✓ /, '')
+            if (feature) {
+                headings.push(feature[1])
+            } else if (scenarios.includes(scenario)) {
+                listed.push(`${headings.at(-1)}: ${scenario}`)
+            }
+        }
+        assert.deepStrictEqual(
+            [...listed].sort(),
+            scenarios.map((scenario) => `${scenario[0]}: ${scenario}`).sort(),
+            `scenarioLevelReporter: ${scenarioLevelReporter}, each scenario must be under its feature:\n${logs}`
+        )
+        // the test needs the features to alternate (a, b, a, ...), as the random order gives them
+        assert.ok(headings.length > 2, `the scenarios of the features did not mix, the test checks nothing: ${headings}`)
+        await fs.rm(logFile, { force: true })
+    }
+}
+
+/**
+ * Cucumber with grouped specs in a random order and scenario-level tests: a scenario
+ * keeps its Allure `historyId` when the random order splits its feature into parts
+ */
+const cucumberGroupedSpecsRandomOrderHistory = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-random-order-history-'))
+    const historyIds = {}
+    let passed = false
+    try {
+        for (const order of ['random:42', 'defined']) {
+            const name = order.replace(':', '-')
+            const outputDir = path.join(tmpDir, `allure-${name}`)
+            const logFile = path.join(tmpDir, `spec-${name}.log`)
+            await launch(
+                'cucumberGroupedSpecsRandomOrderHistory',
+                path.resolve(basePath, 'random-order.conf.js'),
+                {
+                    reporters: [
+                        ['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }],
+                        ['spec', { stdout: false, logFile }]
+                    ],
+                    cucumberOpts: { scenarioLevelReporter: true, order }
+                }
+            )
+            const results = (await fs.readdir(outputDir)).filter((file) => file.endsWith('-result.json'))
+            historyIds[order] = {}
+            for (const file of results) {
+                const { name: scenario, historyId } = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+                assert.ok(typeof historyId === 'string' && historyId.length > 0, `Missing Allure historyId for ${scenario} in ${order}`)
+                historyIds[order][scenario] = historyId
+            }
+            if (order !== 'defined') {
+                // the test needs the features to alternate (a, b, a, ...), so that a feature has a second part
+                const headings = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '').split('\n')
+                    .filter((line) => /^Feature [ab]$/.test(line.replace(/^\[[^\]]*\]\s*/, '').trim()))
+                assert.ok(headings.length > 2, `the scenarios of the features did not mix in order ${order}, the test checks nothing`)
+            }
+        }
+        assert.equal(Object.keys(historyIds.defined).length, 6, `Allure did not get the 6 scenarios: ${JSON.stringify(historyIds)}`)
+        assert.equal(new Set(Object.values(historyIds.defined)).size, 6, `each scenario must have its own historyId: ${JSON.stringify(historyIds)}`)
+        assert.deepStrictEqual(historyIds['random:42'], historyIds.defined, 'a scenario must keep its historyId in a random order')
+        passed = true
+    } finally {
+        // keep the Allure results of a failed run to examine them
+        if (passed) {
+            await fs.rm(tmpDir, { recursive: true, force: true })
+        } else {
+            console.error(`cucumberGroupedSpecsRandomOrderHistory: Allure and spec output kept in ${tmpDir}`)
+        }
+    }
+}
+
+/**
+ * Cucumber with 2 feature files with the same file name in other folders: each feature
+ * keeps its suite and its scenarios, and each scenario has its own Allure historyId,
+ * the same in grouped and not grouped specs
+ */
+const cucumberSameFeatureFileName = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'same-file-name')
+    const configFile = path.resolve(basePath, 'same-file-name.conf.js')
+    const files = [path.join(basePath, 'admin', 'login.feature'), path.join(basePath, 'user', 'login.feature')]
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-same-feature-file-name-'))
+    let passed = false
+    try {
+        const logFile = path.join(tmpDir, 'spec.log')
+        await launch('cucumberSameFeatureFileName', configFile, { reporters: [['spec', { stdout: false, logFile }]] })
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        const listed = []
+        let heading
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            if (['Admin login', 'User login'].includes(line)) {
+                heading = line
+            } else if (['logs in', 'logs out'].includes(line)) {
+                listed.push(`${heading}: ${line}`)
+            }
+        }
+        assert.deepStrictEqual(listed, ['Admin login: logs in', 'Admin login: logs out', 'User login: logs in'],
+            `each scenario must be under the heading of its feature:\n${logs}`)
+
+        const historyIds = {}
+        for (const [name, specs] of [['notGrouped', files], ['grouped', [files]]]) {
+            const outputDir = path.join(tmpDir, `allure-${name}`)
+            await launch('cucumberSameFeatureFileName', configFile, {
+                specs,
+                reporters: [['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }]],
+                cucumberOpts: { scenarioLevelReporter: true }
+            })
+            historyIds[name] = {}
+            for (const file of (await fs.readdir(outputDir)).filter((f) => f.endsWith('-result.json'))) {
+                const result = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+                const feature = result.labels.find((label) => label.name === 'feature')?.value
+                historyIds[name][`${feature}: ${result.name}`] = result.historyId
+            }
+        }
+        assert.equal(new Set(Object.values(historyIds.notGrouped)).size, 3, `each scenario must have its own historyId: ${JSON.stringify(historyIds)}`)
+        assert.deepStrictEqual(historyIds.grouped, historyIds.notGrouped, 'a scenario must keep its historyId when its spec is grouped')
+        passed = true
+    } finally {
+        // keep the output of a failed run to examine it
+        if (passed) {
+            await fs.rm(tmpDir, { recursive: true, force: true })
+        } else {
+            console.error(`cucumberSameFeatureFileName: output kept in ${tmpDir}`)
+        }
+    }
+}
+
+/**
+ * The JSON folder of a Cucumber JSON suite: each suite has its own, because an
+ * unfiltered local run starts the suites at the same time
+ */
+const cucumberJsJsonFolder = (suite) => path.resolve(__dirname, 'cucumber', 'cucumberjs-json', 'json', suite)
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter: writes one JSON file per feature,
+ * with the attachments that the steps send with `attach()`
+ */
+const cucumberJsJsonReporter = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporter')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporter',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.name, 'CucumberJS JSON report')
+    assert.equal(feature.elements.length, 1)
+    const steps = feature.elements[0].steps.filter((step) => !['Before', 'After'].includes(step.keyword))
+    assert.deepEqual(
+        steps.map((step) => [step.keyword, step.name, step.result.status]),
+        [
+            ['Given', 'I attach the text "hello"', 'passed'],
+            ['And', 'I attach the JSON value "world"', 'passed'],
+            ['Then', 'the page title is "Mock Page Title"', 'passed']
+        ]
+    )
+    assert.deepEqual(steps[0].embeddings, [{ data: Buffer.from('hello').toString('base64'), mime_type: 'text/plain' }])
+    // line numbers and ids as the Cucumber JSON format has them
+    assert.equal(feature.elements[0].id, 'cucumberjs-json-report;attach-data-to-the-steps')
+    assert.equal(feature.elements[0].line, 2)
+    assert.deepEqual(steps.map((step) => step.line), [3, 4, 5])
+    assert.ok(feature.elements[0].steps.filter((step) => ['Before', 'After'].includes(step.keyword)).every((hook) => hook.hidden === true))
+    assert.deepEqual(steps[1].embeddings, [{ data: Buffer.from('{"value":"world"}').toString('base64'), mime_type: 'application/json' }])
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter and 2 features in one worker: one
+ * JSON file for each feature
+ */
+const cucumberJsJsonReporterGroupedSpecs = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterGroupedSpecs')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterGroupedSpecs',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [[
+                path.resolve(basePath, 'cucumberjs-json.feature'),
+                path.resolve(basePath, 'cucumberjs-json-second.feature')
+            ]],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const features = []
+    for (const file of await fs.readdir(jsonFolder)) {
+        features.push(...JSON.parse(await fs.readFile(path.join(jsonFolder, file), 'utf-8')))
+    }
+    assert.deepEqual(
+        features.map((feature) => [feature.name, feature.elements.map((scenario) => scenario.name)]).sort(),
+        [
+            ['CucumberJS JSON report', ['Attach data to the steps']],
+            ['Second feature', ['Check the title']]
+        ]
+    )
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter in a multi-remote session: the
+ * metadata comes from the first instance
+ */
+const cucumberJsJsonReporterMultiRemote = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterMultiRemote')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterMultiRemote',
+        path.resolve(basePath, 'cucumberjs-json.multiremote.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.metadata.device, 'Device A')
+    assert.notEqual(feature.metadata.browser.name, 'No metadata.browser.name available')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the keywords of a feature file with a
+ * `# language:` header, and the `undefined` status of a step with no definition
+ */
+const cucumberJsJsonReporterLanguageAndUndefined = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterLanguageAndUndefined')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterLanguageAndUndefined',
+        path.resolve(basePath, 'cucumberjs-json.undefined.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.fr.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    const steps = feature.elements[0].steps.filter((step) => !step.hidden)
+    assert.deepEqual(
+        steps.map((step) => [step.keyword, step.name, step.line, step.result.status]),
+        [
+            ['Soit', 'je passe', 4, 'passed'],
+            ['Alors', 'une étape sans définition', 5, 'undefined']
+        ]
+    )
+    // the last hook comes after the steps
+    assert.equal(feature.elements[0].steps.at(-1).keyword, 'After')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the status of an ambiguous step, with its
+ * step definitions (the text of @wdio/cucumber-framework that the reporter reads)
+ */
+const cucumberJsJsonReporterAmbiguous = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterAmbiguous')
+    for (const configFile of ['cucumberjs-json.config.js', 'cucumberjs-json.ambiguous-fail.config.js']) {
+        await fs.rm(jsonFolder, { recursive: true, force: true })
+        await launch(
+            'cucumberJsJsonReporterAmbiguous',
+            path.resolve(basePath, configFile),
+            {
+                specs: [path.resolve(basePath, 'cucumberjs-json.ambiguous.feature')],
+                reporters: [['cucumberjs-json', { jsonFolder }]]
+            }
+        ).catch((err) => err) // error expected: Cucumber fails a run with an ambiguous step
+        const files = await fs.readdir(jsonFolder)
+        assert.equal(files.length, 1, configFile)
+        const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+        const step = feature.elements[0].steps.filter((s) => !s.hidden)[1]
+        assert.equal(step.result.status, 'ambiguous', configFile)
+        assert.match(step.result.error_message, /^Multiple step definitions match:\n  I am ambiguous - .*cucumberjs-json\.steps\.js:\d+\n  \/\^I am ambig\/ - .*cucumberjs-json\.steps\.js:\d+/, configFile)
+    }
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the status of a hook that Cucumber skips,
+ * as cucumber-js writes it (a hook after a failed hook, a hook that returns 'skipped')
+ */
+const cucumberJsJsonReporterHookStatus = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterHookStatus')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterHookStatus',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.hooks.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    ).catch((err) => err) // error expected: a hook fails
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.deepEqual(
+        feature.elements.map((scenario) => [scenario.name, scenario.steps.map((step) => `${step.keyword} ${step.result.status}`)]),
+        [
+            // the first Before and the After are the hooks of WebdriverIO
+            ['A Before hook returns skipped', ['Before passed', 'Before skipped', 'Given skipped', 'After passed']],
+            ['A Before hook fails', ['Before passed', 'Before failed', 'Before skipped', 'Given skipped', 'After passed']]
+        ]
+    )
+    // tags as in the Cucumber JSON format: name and line
+    assert.deepEqual(feature.tags, [{ name: '@hooks', line: 1 }])
+    assert.deepEqual(feature.elements.map((scenario) => scenario.tags), [
+        [{ name: '@hooks', line: 1 }, { name: '@hookSkips', line: 3 }],
+        [{ name: '@hooks', line: 1 }, { name: '@hookFails', line: 7 }]
+    ])
+    await fs.rm(jsonFolder, { recursive: true, force: true })
 }
 
 /**
@@ -624,6 +1035,20 @@ const sessionGoneReport = async () => {
     const reporterLogs = (await fs.readFile(path.join(outputDir, 'wdio-0-0-smoke-test-reporter.log'))).toString()
     await fs.rm(outputDir, { recursive: true, force: true })
     assert.ok(reporterLogs.trim().endsWith('onRunnerEnd'), `expected the report to end with onRunnerEnd, got:\n${reporterLogs}`)
+}
+
+/**
+ * The command hooks run once for each command of an element, not two or three times
+ * (#16086 item 36)
+ */
+const commandHookCounts = async () => {
+    const { passed, failed } = await launch(
+        'commandHookCounts',
+        path.resolve(__dirname, 'helpers', 'command-hook-counts.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'command_hook_counts.js')] }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
 }
 
 /**
@@ -1304,6 +1729,15 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberFailAmbiguousDefinitions,
         cucumberPendingTest,
         cucumberReporter,
+        cucumberGroupedSpecsRandomOrder,
+        cucumberGroupedSpecsRandomOrderHistory,
+        cucumberSameFeatureFileName,
+        cucumberJsJsonReporter,
+        cucumberJsJsonReporterMultiRemote,
+        cucumberJsJsonReporterLanguageAndUndefined,
+        cucumberJsJsonReporterAmbiguous,
+        cucumberJsJsonReporterGroupedSpecs,
+        cucumberJsJsonReporterHookStatus,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
@@ -1316,6 +1750,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineCustomMatcher,
         jasmineMultiRemote,
         jasmineTimeout,
+        mochaTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,
         retryFail,
@@ -1323,6 +1758,7 @@ const jasmineAfterHookArgsValidation = async () => {
         customReporterString,
         customReporterObject,
         sessionGoneReport,
+        commandHookCounts,
         reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,

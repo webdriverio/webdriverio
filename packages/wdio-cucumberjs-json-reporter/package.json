@@ -1,0 +1,50 @@
+{
+  "name": "@wdio/cucumberjs-json-reporter",
+  "version": "10.1.0",
+  "description": "A WebdriverIO reporter that creates CucumberJS JSON files",
+  "author": "Wim Selles <wim@wswebcreation.nl>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumberjs-json-reporter",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-cucumberjs-json-reporter"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter",
+    "cucumber",
+    "cucumberjs",
+    "json",
+    "reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "requireSource": "./src/common/api.ts",
+      "require": "./build/index.cjs"
+    }
+  },
+  "typeScriptVersion": "6.0.3",
+  "dependencies": {
+    "@cucumber/gherkin": "42.0.1",
+    "@wdio/globals": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "strip-ansi": "^7.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

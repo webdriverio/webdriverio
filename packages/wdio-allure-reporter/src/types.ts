@@ -202,7 +202,7 @@ export type WDIOSuiteStartMessage = {
 
 export type WDIOSuiteEndMessage = {
     type: 'allure:suite:end'
-    data: {}
+    data: { writeTest?: boolean }
 }
 
 export type WDIOTestStartMessage = {

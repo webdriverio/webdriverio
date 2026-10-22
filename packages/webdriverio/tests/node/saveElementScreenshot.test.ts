@@ -8,10 +8,16 @@ import '../../src/node.js'
 import { remote } from '../../src/index.js'
 import { getBrowsingContext } from '../../src/browsingContext.js'
 import { getElement } from '../../src/utils/getElementObject.js'
+import { isBidiCommandsEnabled } from '../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
 vi.mock('fs/promises')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('../../src/utils/bidi/elementCommands.js', async (importOriginal) => ({
+    ...await importOriginal<object>(),
+    isBidiCommandsEnabled: vi.fn().mockReturnValue(false)
+}))
 
 vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn().mockImplementation(() => ({
@@ -20,7 +26,8 @@ vi.mock('../../src/session/context.js', () => ({
         setCurrentContext: vi.fn(),
         findParentContext: vi.fn().mockReturnValue(undefined),
         findContext: vi.fn()
-    }))
+    })),
+    setParallelContextStore: vi.fn()
 }))
 
 describe('saveElementScreenshot', () => {
@@ -67,5 +74,17 @@ describe('saveElementScreenshot', () => {
         await elem.saveScreenshot('./box.png')
         expect(classic).toHaveBeenCalledWith('elem-1')
         expect(capture).not.toHaveBeenCalled()
+    })
+
+    it('uses the browser-level command, which carries the BiDi override, when BiDi commands are enabled', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValueOnce(true)
+        const elem = getElement.call(browser, '#box', { [ELEMENT_KEY]: 'elem-1' })
+        const classic = vi.spyOn(elem, 'takeElementScreenshot')
+        const viaBrowser = vi.spyOn(browser, 'takeElementScreenshot').mockResolvedValue(Buffer.from('png').toString('base64'))
+
+        const screenshot = await elem.saveScreenshot('./box.png')
+        expect(screenshot.toString()).toBe('png')
+        expect(viaBrowser).toHaveBeenCalledWith('elem-1')
+        expect(classic).not.toHaveBeenCalled()
     })
 })

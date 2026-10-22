@@ -11,9 +11,12 @@ const FIXTURE_ROOT = path.join(__dirname, '.tmp')
  * for Cucumber step definition imports.
  *
  * Each test hits `browser.getTitle()` via expect-webdriverio (Infinity-mocked)
- * so the command/reporter hot path stays on the critical path.
+ * so the command/reporter hot path stays on the critical path. With `listSize`,
+ * each Mocha test instead finds a list of `listSize` elements with `$$()` and
+ * checks that its last item exists, which finds the list again: the cost of
+ * building element objects.
  */
-export async function generateFixtures ({ testCount = 20, includeSkips = 0 } = {}) {
+export async function generateFixtures ({ testCount = 20, includeSkips = 0, listSize = 0 } = {}) {
     await fs.mkdir(FIXTURE_ROOT, { recursive: true })
     const root = await fs.mkdtemp(path.join(FIXTURE_ROOT, 'run-'))
     const mochaDir = path.join(root, 'mocha')
@@ -27,13 +30,27 @@ export async function generateFixtures ({ testCount = 20, includeSkips = 0 } = {
         fs.mkdir(stepsDir, { recursive: true })
     ])
 
-    const mochaBody = [
-        "describe('bench mocha', () => {",
-        ...Array.from({ length: testCount }, (_, i) => [
+    const mochaTest = (i) => listSize > 0
+        ? [
+            `    it('list ${i}', async () => {`,
+            "        const items = await browser.$$('li')",
+            `        if (items.length !== ${listSize}) {`,
+            `            throw new Error(\`expected ${listSize} items, got \${items.length}\`)`,
+            '        }',
+            '        if (!await items[items.length - 1].isExisting()) {',
+            "            throw new Error('expected the last item to exist')",
+            '        }',
+            '    })'
+        ].join('\n')
+        : [
             `    it('test ${i}', async () => {`,
             "        await expect(browser).toHaveTitle('Mock Page Title')",
             '    })'
-        ].join('\n')),
+        ].join('\n')
+    const mochaBody = [
+        "describe('bench mocha', () => {",
+        ...(listSize > 0 ? [`    before(() => browser.elementListScenario(${listSize}))`] : []),
+        ...Array.from({ length: testCount }, (_, i) => mochaTest(i)),
         ...Array.from({ length: includeSkips }, (_, i) => [
             `    it('skip ${i}', function () {`,
             '        this.skip()',

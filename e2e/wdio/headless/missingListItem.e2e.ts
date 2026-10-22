@@ -221,32 +221,41 @@ describe('an index that the list of $$ never reaches', () => {
             isExisting: (elem: WebdriverIO.Element) => elem.isExisting(),
             'waitForExist reverse': (elem: WebdriverIO.Element) => elem.waitForExist({ reverse: true, timeout: 500 }),
             isDisplayed: (elem: WebdriverIO.Element) => elem.isDisplayed(),
+            'waitForDisplayed reverse': (elem: WebdriverIO.Element) => elem.waitForDisplayed({ reverse: true, timeout: 500 }),
             getText: (elem: WebdriverIO.Element) => elem.getText()
         }
         /**
-         * the value of a check, `stale` for a stale element error, or `error: <message>`
+         * the value of a check, `not found again` for the error of a stale element that was
+         * not found again, `stale` for a stale element error, or `error: <message>`. In BiDi a
+         * check script throws the stale element error itself: it has the message of that error,
+         * not its name
          */
         const outcomeOf = (promise: Promise<unknown>) => promise.then(
             (value) => value,
-            (error: Error) => error.name === 'stale element reference' ? 'stale' : `error: ${error.message}`
+            (error: Error & { code?: string }) => error.code === 'ELEMENT_NOT_FOUND_AGAIN'
+                ? 'not found again'
+                : error.name === 'stale element reference' || error.message.includes('stale element reference')
+                    ? 'stale'
+                    : `error: ${error.message}`
         )
         const STILL_EXISTING = expect.stringMatching(/^error: element .* still existing after 500ms/)
+        const STILL_DISPLAYED = expect.stringMatching(/^error: element .* still displayed after 500ms/)
         const OUT_OF_BOUNDS = expect.stringMatching(/^error: Index out of bounds!/)
         const expected = (kind: Kind, state: State) => {
             switch (state) {
             case 'in range':
-                return { isExisting: true, 'waitForExist reverse': STILL_EXISTING, isDisplayed: true, getText: 'b' }
+                return { isExisting: true, 'waitForExist reverse': STILL_EXISTING, isDisplayed: true, 'waitForDisplayed reverse': STILL_DISPLAYED, getText: 'b' }
             case 'never reached':
-                return { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, getText: OUT_OF_BOUNDS }
+                return { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, 'waitForDisplayed reverse': true, getText: OUT_OF_BOUNDS }
             case 'stale with the same length':
                 return {
                     isExisting: true,
                     'waitForExist reverse': STILL_EXISTING,
                     /**
-                     * BiDi gives `false` for a stale element without looking for it again,
-                     * as on `main`: not part of this matrix
+                     * the stale element is found again, also in BiDi
                      */
-                    isDisplayed: browser.isBidi ? expect.anything() : true,
+                    isDisplayed: true,
+                    'waitForDisplayed reverse': STILL_DISPLAYED,
                     getText: 'y'
                 }
             case 'stale in a shorter list':
@@ -254,11 +263,14 @@ describe('an index that the list of $$ never reaches', () => {
                     isExisting: false,
                     'waitForExist reverse': true,
                     /**
-                     * Classic looks for the stale element again and throws its stale element
-                     * error, BiDi gives `false`, both as on `main`
+                     * the stale element is looked for again, once, and is not found: a check
+                     * gives its answer, like for `$()` (#12576). A command that needs the
+                     * element waits for it once and throws that it was not found again, in
+                     * Classic and BiDi (#16077)
                      */
-                    isDisplayed: browser.isBidi ? false : 'stale',
-                    getText: 'stale'
+                    isDisplayed: false,
+                    'waitForDisplayed reverse': true,
+                    getText: 'not found again'
                 }
             }
         }

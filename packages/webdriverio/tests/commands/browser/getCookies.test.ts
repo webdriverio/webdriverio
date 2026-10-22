@@ -1,6 +1,10 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, it, vi, afterEach, beforeEach, beforeAll, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore } from '../../../src/session/context.js'
+
+const parallelStore = new AsyncLocalStorage<string>()
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -132,11 +136,82 @@ describe('getCookies', () => {
                 }]
             }) as any))
             vi.spyOn(browser, 'getUrl').mockResolvedValue('https://webdriver.io')
+            setParallelContextStore(parallelStore)
         })
 
         beforeEach(() => {
             vi.mocked(fetch).mockClear()
             storageGetCookies.mockClear()
+        })
+
+        it('should read the context partition on about:blank without classic fallback', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
+            const getUrl = vi.spyOn(browser, 'getUrl')
+            getUrl.mockClear()
+            getUrl.mockResolvedValue('about:blank')
+            const getAllCookies = vi.spyOn(browser, 'getAllCookies')
+            getAllCookies.mockClear()
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'context', context: 'ctx-1' }
+            })
+            expect(getAllCookies).not.toBeCalled()
+            getUrl.mockResolvedValue('https://webdriver.io')
+            expect(cookies).toEqual([{ name: 'cookie', value: 'hello world' }])
+        })
+
+        it('should scope to the context origin and user context inside a parallel scope', async () => {
+            const getTree = vi.spyOn(browser, 'browsingContextGetTree')
+            getTree.mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', sourceOrigin: 'https://app.example.com', userContext: 'uc-1' }
+            })
+        })
+
+        it('should honor an explicit sourceOrigin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, 'https://other.example'))
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', sourceOrigin: 'https://other.example', userContext: 'uc-1' }
+            })
+        })
+
+        it('should drop the origin but keep the user context for a null sourceOrigin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, null))
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', userContext: 'uc-1' }
+            })
+        })
+
+        it('should use an unscoped storageKey for a null sourceOrigin without user context', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, null))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey' } })
+        })
+
+        it('should not fall back to classic on an empty origin partition inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', children: [] }]
+            } as any)
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
+            const getAllCookies = vi.spyOn(browser, 'getAllCookies')
+            getAllCookies.mockClear()
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(getAllCookies).not.toBeCalled()
+            expect(cookies).toEqual([])
         })
 
         it('should return all cookies', async () => {

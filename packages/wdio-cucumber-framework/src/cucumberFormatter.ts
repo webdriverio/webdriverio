@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { convertStatus } from './utils.js'
+import { getFeatureStack, getStepResult, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -24,8 +24,8 @@ import type {
     TestStepStarted,
     TestStepFinished,
     TestStepResult,
-    TestCaseFinished,
-    Hook
+    Hook,
+    StepDefinition
 } from '@cucumber/messages'
 
 import {
@@ -45,12 +45,19 @@ export default class CucumberFormatter extends Formatter {
     private _hookEvent: Hook[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
+    private _stepDefinitions = new Map<string, StepDefinition>()
     private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
     private _pickleMap: Map<string, string> = new Map()
     private _currentDoc: GherkinDocument = { comments: [] }
-    private _startedFeatures: string[] = []
+    /**
+     * grouped specs: the uid of the current part of the feature, and how many times
+     * each feature started
+     */
+    private _currentFeatureUid?: string
+    private _featureStarts = new Map<string, number>()
+    private _featureIds = new Map<string, string>()
 
     private reporter: EventEmitter
     private cid: string
@@ -60,6 +67,7 @@ export default class CucumberFormatter extends Formatter {
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
+    private rootDir?: string
 
     private failedCount = 0
 
@@ -85,8 +93,9 @@ export default class CucumberFormatter extends Formatter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
-                results.push(envelope.testStepFinished.testStepResult!)
-                this.onTestStepFinished(envelope.testStepFinished)
+                const testStepFinished = this.withAmbiguousMessage(envelope.testStepFinished)
+                results.push(testStepFinished.testStepResult!)
+                this.onTestStepFinished(testStepFinished)
             } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
@@ -101,6 +110,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.stepDefinition) {
+                this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
                 // do nothing for other envelopes
             }
@@ -114,6 +125,7 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+        this.rootDir = options.parsedArgvOptions._rootDir
     }
 
     updateCurrentPickle(params: HookParams) {
@@ -139,8 +151,27 @@ export default class CucumberFormatter extends Formatter {
         return this._gherkinDocEvents.length > 1
     }
 
-    featureIsStarted(feature: string) {
-        return this._startedFeatures.includes(feature)
+    /**
+     * The suite uid of the current part of a feature (grouped specs). In a random order,
+     * a feature starts again when the run comes back to it: each part has its own uid
+     * (`<feature id>#2`, ...), so a reporter does not replace the suite (and the tests)
+     * of the earlier part. Scenarios use the feature id as their parent, not this uid:
+     * their `fullTitle` (Allure `historyId`) must not depend on the order.
+     */
+    featurePartUid(uri: string, feature: Feature) {
+        return this._currentFeatureUid ?? this.featureId(uri, feature)
+    }
+
+    /**
+     * the feature uid, once per file (`getFeatureId` reads the file system)
+     */
+    featureId(uri: string, feature: Feature) {
+        let id = this._featureIds.get(uri)
+        if (id === undefined) {
+            id = getFeatureId(uri, feature, this.rootDir)
+            this._featureIds.set(uri, id)
+        }
+        return id
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -181,65 +212,36 @@ export default class CucumberFormatter extends Formatter {
         this.emit('hook:end', payload)
     }
 
+    /**
+     * @param step  the step, or `undefined` for a scenario that is reported as a test (`scenarioLevelReporter`)
+     */
     afterTest(
         uri: string,
         feature: Feature,
         scenario: Pickle,
-        step: PickleStep,
+        step: PickleStep | undefined,
         result: TestStepResult
     ) {
-        let state = convertStatus(result.status)
-        let error = result.message ? new Error(result.message) : undefined
-        let title = step ? step?.text : this.getTitle(scenario)
-
-        if (result.status === Status.UNDEFINED) {
-            if (this.ignoreUndefinedDefinitions) {
-                /**
-                 * mark test as pending
-                 */
-                state = 'pending'
-                title += ' (undefined step)'
-            } else {
-                /**
-                 * mark test as failed
-                 */
-                state = 'fail'
-                this.failedCount++
-
-                const err = new Error(
-                    (step ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
-                    'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
-                )
-
-                err.stack = `${err.message}\n\tat Feature(${uri}):1:1\n`
-                const featChildren = feature.children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])
-                if (featChildren) {
-                    err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
-
-                    const featStep = featChildren.scenario?.steps?.find(s => step.astNodeIds && s.id === step.astNodeIds[0])
-                    if (featStep) {
-                        err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
-                    }
-                }
-
-                error = err
+        const title = step ? step?.text : this.getTitle(scenario)
+        const { state, error, pendingReason, titleSuffix, failed } = getStepResult(
+            result,
+            {
+                title,
+                isStep: Boolean(step),
+                ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+                failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+                featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
-        } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
-            state = 'fail'
+        )
+        if (failed) {
             this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
-        } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
-            state = 'fail'
-            this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
         }
 
         const common = {
             title: title,
             state,
             error,
+            ...(pendingReason ? { pendingReason } : {}),
             duration: this._testStart
                 ? Date.now() - this._testStart.getTime()
                 : 0,
@@ -255,11 +257,18 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: getFeatureId(uri, feature),
+                parent: this.featureId(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
 
+        /**
+         * after `buildStepPayload`, which builds the title of a step from its keyword
+         * and text: reporters tell an undefined step from a pending one by this suffix
+         */
+        if (titleSuffix) {
+            payload.title += titleSuffix
+        }
         this.emit('test:' + state, payload)
     }
 
@@ -286,7 +295,7 @@ export default class CucumberFormatter extends Formatter {
         this._featureStart = new Date()
 
         const payload = {
-            uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+            uid: this.featureId(doc.uri as string, doc.feature as Feature),
             title: this.getTitle(doc.feature as Feature),
             type: 'feature',
             file: doc.uri,
@@ -332,14 +341,10 @@ export default class CucumberFormatter extends Formatter {
             this._currentDoc.uri &&
             this._currentDoc.feature &&
             this.usesSpecGrouping() &&
-            doc !== this._currentDoc &&
-            this.featureIsStarted(this._currentDoc.uri)
+            doc !== this._currentDoc
         ) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featurePartUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
@@ -351,14 +356,24 @@ export default class CucumberFormatter extends Formatter {
             this.emit('suite:end', payload)
         }
 
+        /**
+         * start the feature of the scenario when it is not the current one. In a
+         * random order the scenarios of the features mix: the feature that ended
+         * above starts again later, so each `suite:end` of a feature has its
+         * `suite:start`, and the reporters keep each scenario
+         */
         if (
             this.usesSpecGrouping() &&
             doc &&
             doc.uri &&
-            !this.featureIsStarted(doc.uri)
+            doc !== this._currentDoc
         ) {
+            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
+            this._featureStarts.set(doc.uri, starts)
+            const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
+            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
             const payload = {
-                uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+                uid: this._currentFeatureUid,
                 title: this.getTitle(doc.feature as Feature),
                 type: 'feature',
                 file: doc.uri,
@@ -369,7 +384,8 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit('suite:start', payload)
             this._currentDoc = doc
-            this._startedFeatures.push(doc.uri)
+            // the duration of this part of the feature
+            this._featureStart = new Date()
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
@@ -397,7 +413,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
+            parent: this.featureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -463,6 +479,19 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit(`${type}:start`, payload)
         }
+    }
+
+    /**
+     * Cucumber 13 sends no message for an ambiguous step: list the matching step definitions
+     */
+    private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
+        const result = event.testStepResult
+        const stepDefinitionIds = () => this._testCases
+            .find((tc) => tc.id === this._currentTestCase?.testCaseId)
+            ?.testSteps.find((step) => step.id === event.testStepId)
+            ?.stepDefinitionIds ?? []
+        const withMessage = result && withAmbiguousMessage(result, stepDefinitionIds, this._stepDefinitions)
+        return withMessage === result ? event : { ...event, testStepResult: withMessage }
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
@@ -545,7 +574,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
+            parent: this.featureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
@@ -555,7 +584,11 @@ export default class CucumberFormatter extends Formatter {
         }
 
         if (this.scenarioLevelReporter) {
-            return this.afterTest(uri as string, feature as Feature, scenario, { id: scenario.id } as PickleStep, finalResult as TestStepResult)
+            /**
+             * no step: the end event has the title, type and parent of the scenario,
+             * as its `test:start` event
+             */
+            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult)
         }
         this.emit('suite:end', payload)
     }
@@ -567,10 +600,7 @@ export default class CucumberFormatter extends Formatter {
 
         if (this.usesSpecGrouping()) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featurePartUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature as Feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
@@ -592,7 +622,7 @@ export default class CucumberFormatter extends Formatter {
         }
 
         const payload = {
-            uid: getFeatureId(
+            uid: this.featureId(
                 gherkinDocEvent.uri as string,
                 gherkinDocEvent.feature as Feature
             ),

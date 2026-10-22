@@ -802,7 +802,7 @@ Parameters:
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+Runs before a WebdriverIO command gets executed. For an element command, it runs before WebdriverIO waits for the element (see [Auto-waiting](./AutoWait.md)).
 
 Parameters:
 
@@ -811,7 +811,7 @@ Parameters:
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+Runs after a WebdriverIO command gets executed. For an element command, it runs after the wait for the element. When WebdriverIO retries an element command (for example after a stale element), the hook gets the result or the error of the last try.
 
 Parameters:
 

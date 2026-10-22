@@ -1,5 +1,37 @@
 import implicitWait from './implicitWait.js'
-import { findElementAgain } from './findElementAgain.js'
+import { notFoundElement, recordNotFound, waitedFor } from './elementNotFound.js'
+import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
+import type { ReactSelectorOptions } from '../types.js'
+
+type Scope = WebdriverIO.Browser | WebdriverIO.Element
+
+/**
+ * The item of a list, found again in `parent` at its index without a wait, or a
+ * "not found" item when the list is now shorter. Like `$()` finds a gone element
+ * again as a "not found" element: check commands (`isDisplayed`,
+ * `waitForDisplayed({ reverse: true })`) give their answer at once, and a command
+ * that needs the element, or a parent of its element, waits for it in `implicitWait`
+ * (#12576), which flags its error when the item does not come back.
+ */
+async function findItemAgain (item: WebdriverIO.Element, parent: Scope): Promise<WebdriverIO.Element> {
+    const found = await findElementAgain(item, { parent })
+    if (found) {
+        return found
+    }
+    /**
+     * imported here: `getElementObject` imports the utils barrel, see `implicitWait.ts`
+     */
+    const { getElements } = await import('./getElementObject.js')
+    const error = new Error(`element with selector "${describeSelector(item)}" has no match at index ${item.index}`)
+    const [notFound] = getElements.call(parent, item.selector, [error], {
+        isReactElement: item.isReactElement,
+        isShadowElement: item.isShadowElement,
+        reactOptions: (item as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS]
+    })
+    notFound.index = item.index
+    return notFound
+}
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -30,15 +62,41 @@ export default async function refetchElement (
      */
     return chain.reduce(async (elementPromise, element, currentIndex) => {
         const parent = await elementPromise
-        const nextElement = await findElementAgain(element, { parent, wait: true })
-
-        if (!nextElement) {
-            throw new Error(`element with selector "${element.selector}" has no match at index ${element.index}`)
+        /**
+         * every item of the chain, also a parent of the element (a row of a table): the wait
+         * for its index would not flag its error, see `implicitWait`. An element without an
+         * index is always found again, as a "not found" element when it is gone, like `$()`
+         * (`findElementAgain` gives `undefined`, and uses its `wait` option, only for an index)
+         */
+        let nextElement: WebdriverIO.Element
+        try {
+            nextElement = element.index !== undefined
+                ? await findItemAgain(element, parent)
+                : await findElementAgain(element, { parent }) as WebdriverIO.Element
+        } catch (err) {
+            /**
+             * the lookup in a parent without an element id waited for that parent and did not
+             * find it (for example after `isDisplayed()` of a removed parent)
+             */
+            if (waitedFor(err) && notFoundElement(err) === undefined) {
+                recordNotFound(err, parent)
+            }
+            throw err
         }
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        try {
+            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        } catch (err) {
+            /**
+             * the element of the chain that was not found, see `nameNotFoundAgain`
+             */
+            if (waitedFor(err)) {
+                recordNotFound(err, element)
+            }
+            throw err
+        }
     }, Promise.resolve(currentElement))
 }

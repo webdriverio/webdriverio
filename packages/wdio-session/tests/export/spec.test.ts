@@ -31,6 +31,11 @@ describe('names', () => {
         expect(getterName("role/link[name='Help']")).toBe('help')
         expect(getterName('role/button[name="Say \\"hi\\""]')).toBe('sayHi')
         expect(getterName('role/navigation')).toBe('navigation')
+        expect(getterName('android=new UiSelector().resourceId("login_button")')).toBe('loginButton')
+        expect(getterName('android=new UiSelector().text("Save").instance(1)')).toBe('save')
+        expect(getterName('android=new UiSelector().description("go back")')).toBe('goBack')
+        expect(getterName('id=login_button')).toBe('loginButton')
+        expect(getterName('~Login')).toBe('login')
     })
 })
 
@@ -80,6 +85,16 @@ describe('generateSpec', () => {
         const page = files[1].contents
         expect(page).toContain('get addToCart ()')
         expect(page).toContain('get addToCart2 ()')
+    })
+
+    it('never names a getter constructor, which a class cannot have', () => {
+        const files = generateSpec([
+            step({ code: "await $('android=new UiSelector().text(\"Constructor\")').click()\nawait $('aria/constructor').click()", path: '/cart.html' })
+        ], { title: 'cart', pageObjects: true })
+        const page = files[1].contents
+        expect(page).not.toContain('get constructor ')
+        expect(page).toContain('get elConstructor ()')
+        expect(page).toContain('get elConstructor2 ()')
     })
 
     it('fails when a ref() call survived', () => {

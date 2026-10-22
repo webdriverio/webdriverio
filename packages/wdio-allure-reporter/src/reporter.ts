@@ -31,7 +31,7 @@ import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { WdioTestRuntime } from './WdioTestRuntime.js'
-import { AllureReportState } from './state.js'
+import { AllureReportState, isOpen } from './state.js'
 import {
     absPosix,
     convertSuiteTagsToLabels,
@@ -64,6 +64,18 @@ type LinkTemplates = { issue?: { urlTemplate: string }; tms?: { urlTemplate: str
 type StepAttachment = { content: string | Buffer; name?: string; type?: string }
 type StepPayload = { title?: string; attachment?: StepAttachment; status?: AllureStatus }
 type StepWrapper = { step: StepPayload }
+
+type ReportLane = {
+    main: WDIORuntimeMessage[]
+    // after-each/after-all hooks run before test:pass in parallel mode but after test:end in
+    // sequential mode, so they are held back here and replayed after the test's own messages
+    tail: WDIORuntimeMessage[]
+    inTail: boolean
+    console: string
+    suitePath?: string[]
+}
+
+const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -145,6 +157,12 @@ export default class AllureReporter extends WDIOReporter {
 
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
+    private _laneMode = false
+    // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
+    private _lanesSeen = false
+    private _lanes = new Map<string, ReportLane>()
+    private _closedLaneKeys = new Set<string>()
+
     allureStatesByCid: Map<string, AllureReportState> = new Map()
 
     private static getTimeOrNow(d: unknown): number {
@@ -207,7 +225,12 @@ export default class AllureReporter extends WDIOReporter {
             ): boolean {
                 const str = typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')
                 if (!str.includes('mwebdriver')) {
-                    self._consoleOutput += str
+                    const lane = self._openLane()
+                    if (!lane) {
+                        if (!self._lanesSeen) { self._consoleOutput += str }
+                    } else if (!lane.inTail) {
+                        lane.console += str
+                    }
                 }
                 if (typeof encoding === 'function') {
                     return self._originalStdoutWrite(chunk, undefined as unknown as BufferEncoding, encoding)
@@ -224,10 +247,78 @@ export default class AllureReporter extends WDIOReporter {
         return this.allureStatesByCid.get(cid)!
     }
 
-    private _pushRuntimeMessage(message: WDIORuntimeMessage): void {
-        const cid = this._currentCid()
-        const state = this._ensureState(cid)
-        state.pushRuntimeMessage(message)
+    private _laneKey(): string | undefined {
+        const key = this._laneMode ? this.getContextId?.() : undefined
+        if (key && !this._lanesSeen) {
+            this._lanesSeen = true
+            this._consoleOutput = ''
+        }
+        return key
+    }
+
+    private _lane(): ReportLane | undefined {
+        const key = this._laneKey()
+        return key ? this._lanes.get(key) : undefined
+    }
+
+    private _openLane(key = this._laneKey()): ReportLane | undefined {
+        if (!key || this._closedLaneKeys.has(key)) { return undefined }
+        let lane = this._lanes.get(key)
+        if (!lane) {
+            lane = { main: [], tail: [], inTail: false, console: '' }
+            this._lanes.set(key, lane)
+        }
+        return lane
+    }
+
+    private _pushRuntimeMessage(message: WDIORuntimeMessage, key = this._laneKey()): void {
+        if (!key) {
+            this._ensureState(this._currentCid()).pushRuntimeMessage(message)
+            return
+        }
+        const lane = this._openLane(key)
+        if (lane) { (lane.inTail ? lane.tail : lane.main).push(message) }
+    }
+
+    /**
+     * A parallel test's messages are replayed into the shared state in one piece, wrapped in a
+     * suite of their own, so the sequential state never sees two tests interleaved.
+     */
+    private _closeLane(key: string, name: string): void {
+        const lane = this._lanes.get(key)
+        this._lanes.delete(key)
+        this._closedLaneKeys.add(key)
+        if (!lane || (lane.main.length === 0 && lane.tail.length === 0)) { return }
+        const state = this._ensureState(this._currentCid())
+        const messages: WDIORuntimeMessage[] = [
+            { type: 'allure:suite:start', data: { name } },
+            ...lane.main,
+            ...lane.tail,
+            { type: 'allure:suite:end', data: { writeTest: true } },
+        ]
+        messages.forEach((m) => state.pushRuntimeMessage(m))
+    }
+
+    private _leaveTail(): void {
+        const lane = this._lane()
+        if (lane) { lane.inTail = false }
+    }
+
+    private _suitePathOf(test: TestStats | HookStats): string[] | undefined {
+        const find = (suite: SuiteStats, titles: string[]): string[] | undefined => {
+            if (suite.tests.includes(test as TestStats)) { return titles }
+            for (const child of suite.suites) {
+                const found = find(child, [...titles, child.title])
+                if (found) { return found }
+            }
+            return undefined
+        }
+        return find(this.currentSuites[0], [])
+    }
+
+    private _activeSuitePath(cid: string): string[] {
+        const lane = this._lane()
+        return lane ? lane.suitePath ?? [] : this._suiteStack(cid)
     }
 
     private _attachFile(payload: { name: string; content: Buffer; contentType: ContentType }): void {
@@ -248,13 +339,19 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _attachLogs(): void {
-        if (!this._consoleOutput) { return }
+        const lane = this._lane()
+        const output = lane ? lane.console : this._consoleOutput
+        if (!output) { return }
         this._attachFile({
             name: 'Console Logs',
-            content: Buffer.from(`.........Console Logs.........\n\n${this._consoleOutput}`, 'utf8'),
+            content: Buffer.from(`.........Console Logs.........\n\n${output}`, 'utf8'),
             contentType: AllureContentType.TEXT,
         })
-        this._consoleOutput = ''
+        if (lane) {
+            lane.console = ''
+        } else {
+            this._consoleOutput = ''
+        }
     }
 
     private _attachJSON(payload: { name: string; json: unknown }): void {
@@ -345,7 +442,7 @@ export default class AllureReporter extends WDIOReporter {
          * following test starts, because its own scope has to stay open past its test:end
          * for "after each" hooks to attach to
          */
-        this._flushIncrementally()
+        if (!this._lanesSeen) { this._flushIncrementally() }
     }
 
     private _endTest(payload: {
@@ -561,6 +658,9 @@ export default class AllureReporter extends WDIOReporter {
         this._config = runner.config
         this._capabilities = runner.capabilities
         this._isMultiRemote = runner.isMultiRemote || false
+        const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
+        this._laneMode = runner.config?.framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
+        this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
         if (specs.length) {
@@ -570,6 +670,9 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     async onRunnerEnd(_runner: RunnerStats): Promise<void> {
+        for (const key of [...this._lanes.keys()]) {
+            this._closeLane(key, key)
+        }
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
          * cannot report the reporter as synchronised while this pass is still writing
@@ -843,7 +946,13 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test: TestStats | HookStats): void {
-        this._consoleOutput = ''
+        const lane = this._openLane()
+        if (lane) {
+            lane.console = ''
+            lane.suitePath = this._suitePathOf(test)
+        } else {
+            this._consoleOutput = ''
+        }
 
         const fullTitle = (test as TestStats).fullTitle
         const file = (test as MaybeFile).file
@@ -875,7 +984,8 @@ export default class AllureReporter extends WDIOReporter {
             })
         }
 
-        this._ensureSuitesStarted(cid)
+        this._laneKey()
+        if (!this._lanesSeen) { this._ensureSuitesStarted(cid) }
         const start = AllureReporter.getTimeOrNow((test as TestStats).start)
         const uuid = (test as MaybeUid).uid
         const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title)
@@ -889,7 +999,7 @@ export default class AllureReporter extends WDIOReporter {
             data: { fullName: fullName, titlePath: this._titlePath(cid) }
         })
 
-        const suitePath = [...this._suiteStack(cid)]
+        const suitePath = [...this._activeSuitePath(cid)]
         const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
         const labels = [
             ...getSuiteLabels(suitePath),
@@ -903,6 +1013,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestPass(test: TestStats | HookStats): void {
+        this._leaveTail()
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepEnd(test, AllureStatusEnum.PASSED)
             return
@@ -918,6 +1029,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestRetry(test: TestStats): void {
+        this._leaveTail()
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepEnd(test, getTestStatus(test, this._config), getStatusDetailsFromFailedTest(test))
             return
@@ -933,6 +1045,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestFail(test: TestStats | HookStats): void {
+        this._leaveTail()
         if (this._inCucumberStepMode(test)) {
             const st = getTestStatus(test as TestStats, this._config)
             this._handleCucumberStepEnd(test, st, getStatusDetailsFromFailedTest(test as TestStats))
@@ -962,6 +1075,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats): void {
+        this._leaveTail()
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepEnd(test, AllureStatusEnum.SKIPPED)
             return
@@ -976,6 +1090,8 @@ export default class AllureReporter extends WDIOReporter {
         this._startTest({ name: test.title, start })
         if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
         const cid = this._currentCid()
+        const lane = this._lane()
+        if (lane) { lane.suitePath = this._suitePathOf(test) }
         const fullName = toFullName(this._pkgByCid.get(cid)!, test.fullTitle || test.title)
         this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, titlePath: this._titlePath(cid) } })
         this._attachLogs()
@@ -1039,8 +1155,19 @@ export default class AllureReporter extends WDIOReporter {
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
     }
 
+    onTestEnd(test: TestStats): void {
+        const key = this._laneKey()
+        if (!key) { return }
+        this._closeLane(key, test.title)
+        this._flushIncrementally()
+    }
+
     onHookStart(hook: HookStats): void {
         const cid = this._currentCid()
+        const lane = this._lane()
+        if (lane && !lane.inTail && AFTER_HOOK_PATTERN.test(hook.title ?? '') && isOpen(lane.main, 'allure:test:start', 'allure:test:end')) {
+            lane.inTail = true
+        }
         if (this._tpSkipActive(cid)) { return }
         const { disableMochaHooks } = this._options
         if (disableMochaHooks) { return }
@@ -1132,13 +1259,20 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private get _hasPendingTest(): boolean {
+        if (this._laneKey()) { return this._isOpenInLane('allure:test:start', 'allure:test:end') }
         const current = this.allureStatesByCid.get(this._currentCid())
         return Boolean(current?.hasPendingTest)
     }
 
     private get _hasPendingHook(): boolean {
+        if (this._laneKey()) { return this._isOpenInLane('allure:hook:start', 'allure:hook:end') }
         const current = this.allureStatesByCid.get(this._currentCid())
         return Boolean(current?.hasPendingHook)
+    }
+
+    private _isOpenInLane(startType: WDIORuntimeMessage['type'], endType: WDIORuntimeMessage['type']): boolean {
+        const lane = this._lane()
+        return Boolean(lane) && isOpen(lane!.inTail ? lane!.tail : lane!.main, startType, endType)
     }
 
     private _tpActive(): boolean {
@@ -1221,7 +1355,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _mochaFullTitle(cid: string, leaf: string): string {
-        const parts = [...this._suiteStack(cid)]
+        const parts = [...this._activeSuitePath(cid)]
         if (leaf) { parts.push(leaf) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
@@ -1230,7 +1364,7 @@ export default class AllureReporter extends WDIOReporter {
         const file = this._titlePathFileByCid.get(cid) ?? this._pkgByCid.get(cid)
         const relativeFilePath = relNoSlash(file)
         const fileParts = splitTitlePathPart(relativeFilePath)
-        const suitePath = this._suiteStack(cid).map(String).map((s) => s.trim()).filter(Boolean)
+        const suitePath = this._activeSuitePath(cid).map(String).map((s) => s.trim()).filter(Boolean)
         const normalizedCucumberPath = cucumberPath?.map(String).map((s) => s.trim()).filter(Boolean)
 
         if (isFeatureFilePath(file)) {

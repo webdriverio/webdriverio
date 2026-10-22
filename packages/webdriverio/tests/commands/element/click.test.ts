@@ -1,10 +1,21 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
+import { getBrowserObject } from '@wdio/utils'
+
 import { remote } from '../../../src/index.js'
 import { click } from '../../../src/commands/element/click.js'
+import { bidiAssertClickable, bidiGetRect, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('@wdio/utils', async (importOriginal) => {
+    const actual = await importOriginal<{ getBrowserObject: (element: WebdriverIO.Element) => WebdriverIO.Browser }>()
+    return { ...actual, getBrowserObject: vi.fn(actual.getBrowserObject) }
+})
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiAssertClickable: vi.fn(async () => undefined), bidiGetRect: vi.fn(async () => ({ x: 0, y: 0, width: 100, height: 100 })) }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('click test', () => {
@@ -229,17 +240,126 @@ describe('click test', () => {
         expect(vi.mocked(fetch).mock.calls.length).toBe(1) // only action call
     })
 
+    it('resolves the browser once on the BiDi path', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        const elem = await browser.$('#foo')
+
+        const chain = { move: vi.fn(), down: vi.fn(), pause: vi.fn(), up: vi.fn(), perform: vi.fn().mockResolvedValue(undefined) }
+        chain.move.mockReturnValue(chain)
+        chain.down.mockReturnValue(chain)
+        chain.pause.mockReturnValue(chain)
+        chain.up.mockReturnValue(chain)
+        vi.mocked(getBrowserObject).mockImplementation(() => (
+            { isMobile: false, action: vi.fn().mockReturnValue(chain) } as any
+        ))
+
+        vi.mocked(isBidiCommandsEnabled).mockClear()
+        await elem.click()
+        const checkedBrowser = vi.mocked(isBidiCommandsEnabled).mock.calls[0][0] as any
+        expect(checkedBrowser.action).toHaveBeenCalledOnce()
+        expect(chain.perform).toHaveBeenCalledOnce()
+    })
+
+    describe('bidi commands enabled', () => {
+        async function setup() {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            const elem = await browser.$('#foo')
+            const chain = { move: vi.fn(), down: vi.fn(), pause: vi.fn(), up: vi.fn(), perform: vi.fn().mockResolvedValue(undefined) }
+            for (const k of ['move', 'down', 'pause', 'up'] as const) { chain[k].mockReturnValue(chain) }
+            const getElementRect = vi.fn().mockResolvedValue({ width: 100, height: 100 })
+            const execute = vi.fn().mockResolvedValue(undefined)
+            vi.mocked(getBrowserObject).mockImplementation(() => (
+                { isMobile: false, action: vi.fn().mockReturnValue(chain), getElementRect, execute } as any
+            ))
+            return { elem, chain, getElementRect, execute }
+        }
+
+        it('scrolls the element into view once, before the intercept check', async () => {
+            const { elem, chain, execute } = await setup()
+            const order: string[] = []
+            execute.mockImplementation(async () => { order.push('scroll') })
+            vi.mocked(bidiAssertClickable).mockImplementationOnce(async () => { order.push('check') })
+            chain.perform.mockImplementation(async () => { order.push('perform') })
+            await elem.click()
+            expect(order).toEqual(['scroll', 'check', 'perform'])
+        })
+
+        it('moves with duration 0 on the default click', async () => {
+            const { elem, chain } = await setup()
+            await elem.click()
+            expect(chain.move).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 0, duration: 0 }))
+        })
+
+        it('reads the rect for offsets through BiDi, not the classic endpoint', async () => {
+            const { elem, getElementRect } = await setup()
+            vi.mocked(bidiGetRect).mockClear()
+            await elem.click({ x: 5 })
+            expect(bidiGetRect).toHaveBeenCalledWith(elem)
+            expect(getElementRect).not.toHaveBeenCalled()
+        })
+
+        it('keeps the default move duration for click({ x })', async () => {
+            const { elem, chain } = await setup()
+            await elem.click({ x: 5 })
+            expect(chain.move.mock.calls[0][0]).not.toHaveProperty('duration')
+        })
+
+        it('keeps the default move duration for click({ button })', async () => {
+            const { elem, chain } = await setup()
+            await elem.click({ button: 'right' })
+            expect(chain.move.mock.calls[0][0]).not.toHaveProperty('duration')
+        })
+
+        it('runs the intercept check once, before the actions, only on the default click', async () => {
+            const { elem, chain } = await setup()
+            const order: string[] = []
+            vi.mocked(bidiAssertClickable).mockImplementationOnce(async () => { order.push('check') })
+            chain.perform.mockImplementation(async () => { order.push('perform') })
+            await elem.click()
+            expect(bidiAssertClickable).toHaveBeenCalledOnce()
+            expect(order).toEqual(['check', 'perform'])
+            vi.mocked(bidiAssertClickable).mockClear()
+            await elem.click({ x: 5 })
+            expect(bidiAssertClickable).not.toHaveBeenCalled()
+        })
+
+        it('throws element click intercepted without performing actions or retrying', async () => {
+            const { elem, chain } = await setup()
+            const error = Object.assign(new Error('element click intercepted: Element <a> is not clickable at point (1, 2). Other element would receive the click: <div>'), { name: 'element click intercepted' })
+            vi.mocked(bidiAssertClickable).mockRejectedValueOnce(error)
+            await expect(elem.click()).rejects.toThrow('element click intercepted')
+            expect(bidiAssertClickable).toHaveBeenCalledOnce()
+            expect(chain.perform).not.toHaveBeenCalled()
+        })
+
+        it('does not perform actions when the target is not interactable', async () => {
+            const { elem, chain } = await setup()
+            const error = Object.assign(new Error('element not interactable: element has zero size'), { name: 'element not interactable' })
+            vi.mocked(bidiAssertClickable).mockRejectedValueOnce(error)
+            await expect(elem.click()).rejects.toThrow()
+            expect(chain.perform).not.toHaveBeenCalled()
+        })
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
+        vi.mocked(isBidiCommandsEnabled).mockReset().mockReturnValue(false)
+        vi.mocked(getBrowserObject).mockReset()
+        vi.mocked(bidiAssertClickable).mockClear()
     })
 
     describe('bring the element under the pointer before a click with options', () => {
-        const setup = async () => {
+        const setup = async (capabilities: WebdriverIO.Capabilities = { browserName: 'foobar' }) => {
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'foobar'
-                }
+                capabilities
             })
             const elem = await browser.$('#foo')
             const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
@@ -285,7 +405,29 @@ describe('click test', () => {
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
-        it('should not check or scroll for a click without options', async () => {
+        it.each([
+            ['waits 100 ms in Safari on iOS', { platformName: 'iOS', browserName: 'Safari' }, 100],
+            ['does not wait in other browsers', { browserName: 'foobar' }, 0]
+        ])('%s when the driver gives {} for the promise of the script', async (_, capabilities, wait) => {
+            const { elem, execute } = await setup(capabilities)
+            expect(getBrowserObject(elem).isIOS).toBe(wait > 0)
+            execute.mockResolvedValueOnce({})
+            vi.useFakeTimers()
+            try {
+                const done = elem.click({ button: 'left' })
+                if (wait) {
+                    await vi.advanceTimersByTimeAsync(wait - 1)
+                    expect(actionCalls()).toHaveLength(0)
+                }
+                await vi.advanceTimersByTimeAsync(1)
+                expect(actionCalls()).toHaveLength(2)
+                await done
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('should not check or scroll for a click without options outside Firefox and iOS', async () => {
             const { elem, scrollIntoView, execute } = await setup()
 
             await elem.click()
@@ -295,8 +437,9 @@ describe('click test', () => {
 
         describe('the script in the page', () => {
             type Rect = { x: number, y: number, width: number, height: number }
-            const NEAREST = { block: 'nearest', inline: 'nearest', behavior: 'instant' }
             const CENTER = { block: 'center', inline: 'center', behavior: 'instant' }
+            const END = { block: 'end', inline: 'nearest', behavior: 'instant' }
+            const START = { block: 'start', inline: 'nearest', behavior: 'instant' }
 
             /**
              * runs the script that click gives to execute, on a fake page: the element
@@ -307,10 +450,11 @@ describe('click test', () => {
                 rects: (Rect | undefined)[]
                 hitAt: (elem: object, x: number, y: number, scrolls: number) => unknown
                 offset?: { x: number, y: number }
+                visibilityState?: string
             }) => {
                 const { elem: element, execute } = await setup()
                 await element.click(options.offset ?? {})
-                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }) => void
+                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }, maxFrameWait: number) => Promise<void> | undefined
 
                 const scrolls: unknown[] = []
                 const elem = {
@@ -321,45 +465,105 @@ describe('click test', () => {
                     }
                 }
                 const points: number[][] = []
-                const page = globalThis as unknown as { window?: unknown, document?: unknown }
+                const frames: (() => void)[] = []
+                const page = globalThis as unknown as { window?: unknown, document?: unknown, requestAnimationFrame?: unknown }
                 const saved = { window: page.window, document: page.document }
                 page.window = { innerWidth: 1000, innerHeight: 800 }
-                page.document = { elementFromPoint: (x: number, y: number) => {
-                    points.push([x, y])
-                    return options.hitAt(elem, x, y, scrolls.length)
-                } }
+                page.document = {
+                    visibilityState: options.visibilityState ?? 'visible',
+                    elementFromPoint: (x: number, y: number) => {
+                        points.push([x, y])
+                        return options.hitAt(elem, x, y, scrolls.length)
+                    }
+                }
+                // stays until afterEach: the first frame callback asks for the second frame
+                page.requestAnimationFrame = (callback: () => void) => frames.push(callback)
+                let result: Promise<void> | undefined
                 try {
-                    script(elem, options.offset ?? { x: 0, y: 0 })
+                    const [, , offset, maxFrameWait] = execute.mock.calls[0] as unknown as [unknown, unknown, { x: number, y: number }, number]
+                    result = script(elem, offset, maxFrameWait)
                 } finally {
                     page.window = saved.window
                     page.document = saved.document
                 }
-                return { scrolls, points }
+                return { scrolls, points, result, frames }
             }
+            afterEach(() => {
+                delete (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame
+            })
+
             const inView = { x: 100, y: 100, width: 100, height: 40 }
             const other = { parentNode: null }
 
-            it('does not scroll when the element is hit', async () => {
-                const { scrolls, points } = await runInPage({ rects: [inView], hitAt: (elem) => elem })
+            it('does not scroll or wait when the element is hit', async () => {
+                const { scrolls, points, result, frames } = await runInPage({ rects: [inView], hitAt: (elem) => elem })
                 expect(scrolls).toEqual([])
                 expect(points).toEqual([[150, 120]])
+                expect(result).toBeUndefined()
+                expect(frames).toHaveLength(0)
             })
 
-            it('scrolls just into view, then to the center while the element is not hit', async () => {
-                const afterNearest = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 1 ? elem : other })
-                expect(afterNearest.scrolls).toEqual([NEAREST])
+            it('scrolls to the center, then to the bottom and the top while the element is not hit', async () => {
+                const afterCenter = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 1 ? elem : other })
+                expect(afterCenter.scrolls).toEqual([CENTER])
+                expect(afterCenter.points).toEqual([[150, 120], [150, 120]])
 
-                const afterCenter = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 2 ? elem : other })
-                expect(afterCenter.scrolls).toEqual([NEAREST, CENTER])
+                // a sticky header covers the center of a small scroll container
+                const afterEnd = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 2 ? elem : other })
+                expect(afterEnd.scrolls).toEqual([CENTER, END])
+
+                // a sticky footer covers the center and the bottom
+                const afterStart = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 3 ? elem : other })
+                expect(afterStart.scrolls).toEqual([CENTER, END, START])
 
                 const never = await runInPage({ rects: [inView], hitAt: () => other })
-                expect(never.scrolls).toEqual([NEAREST, CENTER])
+                expect(never.scrolls).toEqual([CENTER, END, START])
+            })
+
+            it('waits for two animation frames after a scroll, so the scroll events fire before the click', async () => {
+                const { result, frames } = await runInPage({ rects: [inView], hitAt: () => other })
+                let resolved = false
+                result!.then(() => { resolved = true })
+                await Promise.resolve()
+                expect(resolved).toBe(false)
+
+                expect(frames).toHaveLength(1)
+                frames[0]()
+                await Promise.resolve()
+                expect(resolved).toBe(false)
+
+                expect(frames).toHaveLength(2)
+                frames[1]()
+                await result
+                expect(resolved).toBe(true)
+            })
+
+            it('does not wait longer than 100 ms when no animation frame comes', async () => {
+                vi.useFakeTimers()
+                try {
+                    const { result } = await runInPage({ rects: [inView], hitAt: () => other })
+                    let resolved = false
+                    result!.then(() => { resolved = true })
+                    await vi.advanceTimersByTimeAsync(99)
+                    expect(resolved).toBe(false)
+                    await vi.advanceTimersByTimeAsync(1)
+                    expect(resolved).toBe(true)
+                } finally {
+                    vi.useRealTimers()
+                }
+            })
+
+            it('does not wait on a hidden page, which gets no animation frame', async () => {
+                const { scrolls, result, frames } = await runInPage({ rects: [inView], hitAt: () => other, visibilityState: 'hidden' })
+                expect(scrolls).toEqual([CENTER, END, START])
+                expect(result).toBeUndefined()
+                expect(frames).toHaveLength(0)
             })
 
             it('does not hit-test a point outside the window', async () => {
                 const below = { x: 100, y: 3000, width: 100, height: 40 }
                 const { scrolls, points } = await runInPage({ rects: [below, inView], hitAt: (elem) => elem })
-                expect(scrolls).toEqual([NEAREST])
+                expect(scrolls).toEqual([CENTER])
                 expect(points).toEqual([[150, 120]])
             })
 
@@ -384,8 +588,12 @@ describe('click test', () => {
                 const clipped = { x: 100, y: -40, width: 100, height: 100 }
                 const whole = { x: 100, y: 100, width: 100, height: 100 }
                 const { scrolls, points } = await runInPage({ rects: [clipped, whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
-                expect(scrolls).toEqual([NEAREST])
+                expect(scrolls).toEqual([CENTER])
                 expect(points).toEqual([[150, 190]])
+
+                const onElement = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
+                expect(onElement.scrolls).toEqual([])
+                expect(onElement.points).toEqual([[150, 190]])
 
                 const outside = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 80 } })
                 expect(outside.points).toEqual([[150, 150]])
@@ -431,6 +639,126 @@ describe('click test', () => {
         await click.call(scope as never, { button: 'left' })
         expect(scope.execute).toHaveBeenCalledTimes(1)
         expect(scope.perform).toHaveBeenCalled()
+    })
+
+    describe('click without options in Firefox and in Safari on iOS', () => {
+        const scope = (context: Record<string, unknown>) => ({
+            elementId: 'some-elem',
+            isFirefox: false,
+            ...context,
+            execute: vi.fn(),
+            elementClick: vi.fn()
+        })
+
+        it.each([
+            ['Firefox', { isFirefox: true }],
+            ['Safari on iOS', { isMobile: true, isIOS: true, isNativeContext: false }]
+        ])('should bring the element into view before the WebDriver click in %s', async (_, context) => {
+            const elem = scope(context)
+
+            await click.call(elem as never)
+            expect(elem.execute).toHaveBeenCalledTimes(1)
+            expect(elem.execute.mock.calls[0][2]).toEqual({ x: 0, y: 0 })
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeLessThan(elem.elementClick.mock.invocationCallOrder[0])
+            expect(elem.elementClick).toHaveBeenCalledWith('some-elem')
+        })
+
+        it('should wait 100 ms before the click when the driver gives {} for the promise of the script', async () => {
+            const elem = scope({ isMobile: true, isIOS: true, isNativeContext: false })
+            elem.execute.mockResolvedValueOnce({})
+            vi.useFakeTimers()
+            try {
+                const done = click.call(elem as never)
+                await vi.advanceTimersByTimeAsync(99)
+                expect(elem.elementClick).not.toHaveBeenCalled()
+                await vi.advanceTimersByTimeAsync(1)
+                await done
+                expect(elem.elementClick).toHaveBeenCalledTimes(1)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it.each([null, undefined])('should not wait before the click when the driver gives %s', async (value) => {
+            const elem = scope({ isMobile: true, isIOS: true, isNativeContext: false })
+            elem.execute.mockResolvedValueOnce(value)
+            vi.useFakeTimers()
+            try {
+                const done = click.call(elem as never)
+                await vi.advanceTimersByTimeAsync(0)
+                expect(elem.elementClick).toHaveBeenCalledTimes(1)
+                await vi.advanceTimersByTimeAsync(100)
+                await done
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('should still click when the element could not be checked', async () => {
+            const elem = scope({ isFirefox: true })
+            elem.execute.mockRejectedValueOnce(new Error('stale element reference'))
+
+            await click.call(elem as never)
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
+
+        it.each([
+            ['other desktop browsers', {}],
+            ['a native iOS context', { isMobile: true, isIOS: true, isNativeContext: true }],
+            ['the Appium Safari driver (safaridriver) on iOS', { isMobile: false, isIOS: true, isNativeContext: false }],
+            ['Chrome on Android', { isMobile: true, isAndroid: true, isNativeContext: false }]
+        ])('should send only the WebDriver click in %s', async (_, context) => {
+            const elem = scope(context)
+
+            await click.call(elem as never)
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
+    })
+
+    describe('click without options that something intercepts', () => {
+        const intercepted = (name: string, message: string) => Object.assign(new Error(message), { name })
+        const scope = (error: Error, context: Record<string, unknown> = {}) => ({
+            elementId: 'some-elem',
+            isFirefox: false,
+            ...context,
+            execute: vi.fn(),
+            scrollIntoView: vi.fn(),
+            elementClick: vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined)
+        })
+
+        it.each([
+            ['ChromeDriver', intercepted('element click intercepted', 'element click intercepted: Element <button> is not clickable at point (50, 20)')],
+            ['geckodriver', intercepted('element click intercepted', 'Element <button> is not clickable at point (50,20) because another element <div> obscures it')],
+            ['safaridriver', intercepted('click intercepted', 'click intercepted')]
+        ])('should bring the element under the pointer and click again (%s)', async (_, error) => {
+            const elem = scope(error)
+
+            await click.call(elem as never)
+            expect(elem.execute).toHaveBeenCalledTimes(1)
+            expect(elem.execute.mock.calls[0][2]).toEqual({ x: 0, y: 0 })
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeGreaterThan(elem.elementClick.mock.invocationCallOrder[0])
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeLessThan(elem.elementClick.mock.invocationCallOrder[1])
+            expect(elem.elementClick).toHaveBeenCalledTimes(2)
+            expect(elem.scrollIntoView).not.toHaveBeenCalled()
+        })
+
+        it('should throw other errors without a second click', async () => {
+            const elem = scope(intercepted('element not interactable', 'element not interactable'))
+
+            await expect(click.call(elem as never)).rejects.toThrow('element not interactable')
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
+
+        it('should scroll with the scrollIntoView command in a native app', async () => {
+            const elem = scope(intercepted('element click intercepted', 'element click intercepted'), { isMobile: true, isNativeContext: true })
+
+            await click.call(elem as never)
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.scrollIntoView).toHaveBeenCalledWith({ block: 'center', inline: 'center' })
+            expect(elem.elementClick).toHaveBeenCalledTimes(2)
+        })
     })
 
     it('should scroll to the center and click again when the pointer action fails', async () => {

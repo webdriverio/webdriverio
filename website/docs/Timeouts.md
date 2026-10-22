@@ -74,6 +74,30 @@ await myElem.waitForDisplayed()
 await myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
+### An element that the page removed
+
+When the page removes or renders again an element, WebdriverIO finds it again with its selector and waits up to `waitforTimeout`. If it is there, the command runs on it. If not, the command fails with:
+
+- `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found` (a `$$()` item: `… "<selector>" at index <n> …`; a removed parent: the message is about the parent)
+- `cause`: the stale element reference error of the driver
+
+`waitUntil` and `waitForEnabled` fail with their own error, which has this error as `cause`. `isDisplayed` and `isExisting` of the removed element do not wait: they give `false`. For a child of a removed parent, they wait and fail with this error.
+
+```ts title="test/specs/removed.e2e.ts"
+import { $, browser, expect } from '@wdio/globals'
+
+describe('a removed element', () => {
+    it('gives the error of an element that was not found again', async () => {
+        await browser.url('https://webdriver.io')
+        const title = await $('h1')
+        await browser.execute(() => document.querySelectorAll('h1').forEach((h1) => h1.remove()))
+
+        const error = await title.getText().then(() => null, (err: Error) => err)
+        expect(error?.message).toContain('because element wasn\'t found')
+    })
+})
+```
+
 ## Framework related timeouts
 
 The testing framework you’re using with WebdriverIO has to deal with timeouts, especially since everything is asynchronous. It ensures that the test process doesn't get stuck if something goes wrong.
@@ -157,7 +181,7 @@ export const config = {
 
 ### Mocha timeouts and the WebdriverIO hooks
 
-A Mocha test or hook can change its own timeout with `this.timeout(ms)`. Use a `function`, not an arrow function, to get `this`. WebdriverIO follows the change, also `this.timeout(0)`, which turns the timeout off.
+A Mocha test or hook can change its own timeout with `this.timeout(ms)`. Use a `function`, not an arrow function, to get `this`. WebdriverIO follows the change, also `this.timeout(0)`, which turns the timeout off. With `mochaOpts.parallelMode`, only `mochaOpts.timeout` applies: `this.timeout()` in a test or hook throws, and a timeout of a suite or of `it(...).timeout()` is ignored, with a warning. See [Parallel Tests in a Spec File](./ParallelTests.md#hooks-and-timeouts).
 
 The timeout of a test includes the time of its `beforeTest` hook, as Mocha starts the timer before the hook. With the [retry option](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) of WebdriverIO, all attempts of a test share one timeout.
 

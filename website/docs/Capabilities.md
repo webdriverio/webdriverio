@@ -60,7 +60,7 @@ Specific options passed into Safari when starting it.
 
 <Option type="number">
 
-Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
+Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](configuration/#maxinstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
 
 </Option>
 
@@ -85,6 +85,21 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 <Option type="boolean">
 
 By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
+
+</Option>
+
+#### `wdio:experimentalBiDiCommands`
+
+<Option type="boolean" default="false">
+
+In a WebDriver BiDi session, runs element commands and browser commands like `getTitle`, `getUrl`, `refresh` and `takeScreenshot` over WebDriver BiDi instead of WebDriver Classic. Required for [parallel tests in a spec file](./ParallelTests.md). Experimental: it changes some command behavior in every test, e.g. `addValue` and `clearValue` dispatch synthetic DOM events and `click` is sent through the Actions API. See [Behavior changes of the BiDi element commands](./ParallelTests.md#behavior-changes-of-the-bidi-element-commands).
+
+```ts
+{
+    browserName: 'chrome',
+    'wdio:experimentalBiDiCommands': true
+}
+```
 
 </Option>
 

@@ -2,6 +2,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { bidiDisabledSelectError, bidiSelectByAttribute, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  *
@@ -49,6 +51,22 @@ export async function selectByAttribute (
     value = typeof value === 'number'
         ? value.toString()
         : value
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        let disabled: BidiDisabledSource | undefined
+        await this.waitUntil(async () => {
+            const result = await bidiSelectByAttribute(this, attribute, value as string)
+            disabled = result.disabled
+            return result.selected || !!disabled
+        }, {
+            timeoutMsg: `Option with attribute "${attribute}=${value}" not found.`
+        })
+        if (disabled) {
+            throw bidiDisabledSelectError('selectByAttribute', `option with attribute "${attribute}=${value}"`, disabled)
+        }
+        return
+    }
 
     /**
     * find option elememnt using xpath

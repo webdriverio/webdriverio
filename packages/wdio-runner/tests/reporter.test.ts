@@ -37,6 +37,17 @@ describe('BaseReporter', () => {
         expect(reporter['_reporters']).toHaveLength(2)
     })
 
+    it('should forward the context id resolver to reporters that support it', () => {
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', capability)
+        const withMethod = { setContextIdResolver: vi.fn() }
+        const withoutMethod = {}
+        reporter['_reporters'] = [withMethod, withoutMethod] as any
+        const resolver = () => 'ctx-a'
+
+        expect(() => reporter.setContextIdResolver(resolver)).not.toThrow()
+        expect(withMethod.setContextIdResolver).toHaveBeenCalledWith(resolver)
+    })
+
     it('should make "dot" reporter default', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',

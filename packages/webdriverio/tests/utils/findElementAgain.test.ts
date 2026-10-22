@@ -6,10 +6,31 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
+import refetchElement from '../../src/utils/refetchElement.js'
+import implicitWait from '../../src/utils/implicitWait.js'
+import { isStaleElementError } from '../../src/utils/index.js'
+import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/errorCodes.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+/**
+ * runs the real refetch: each layer of the element middleware calls it once for a stale element
+ */
+vi.mock('../../src/utils/refetchElement.js', async (importOriginal) => {
+    const actual = await importOriginal<{ default: typeof refetchElement }>()
+    return { __esModule: true, default: vi.fn(actual.default) }
+})
 
+/**
+ * the real implicit wait: each call that rejects with "wasn't found" is one wait for an element
+ * that ended without it
+ */
+vi.mock('../../src/utils/implicitWait.js', async (importOriginal) => {
+    const actual = await importOriginal<{ default: typeof implicitWait }>()
+    return { ...actual, __esModule: true, default: vi.fn(actual.default) }
+})
+
+const CHROME_STALE_MESSAGE = 'stale element reference: element is not attached to the page document'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
 type Fallback = (uri: URL | string, params?: RequestInit) => Promise<Response>
@@ -41,9 +62,14 @@ function fakeDriver (fallback: Fallback) {
 
     const reply = (value: unknown, status = 200) => Response.json({ value }, { status })
     const refs = (ids: string[]) => ids.map((id) => ({ [ELEMENT_KEY]: id }))
+    /**
+     * the message of a stale element error. By default only its name says that it is one, as
+     * from Appium and other drivers; Chrome also puts it in the message
+     */
+    const options = { staleMessage: 'element is not attached to the page document' }
     const staleError = () => reply({
         error: 'stale element reference',
-        message: 'element is not attached to the page document'
+        message: options.staleMessage
     }, 404)
 
     const handler = async (uri: URL | string, params?: RequestInit) => {
@@ -119,10 +145,18 @@ function fakeDriver (fallback: Fallback) {
             return reply(name === 'name' ? 'li' : `text of ${id}`)
         }
 
+        /**
+         * any other command on an element that the page replaced fails as in a driver
+         */
+        const elementCommand = pathname.match(/\/element\/([^/]+)\//)
+        if (elementCommand && stale.has(elementCommand[1])) {
+            return staleError()
+        }
+
         return fallback(uri, params)
     }
 
-    return { light, shadow, react, scripts, stale, finds, findsIn, handler }
+    return { light, shadow, react, scripts, stale, finds, findsIn, handler, options }
 }
 
 let driver: ReturnType<typeof fakeDriver>
@@ -511,14 +545,14 @@ describe('finding an element again', () => {
             expect(await elem.waitForExist({ reverse: true })).toBe(true)
         })
 
-        it('getText on a stale element throws the stale element error', async () => {
+        it('getText on a stale element throws that it was not found again', async () => {
             driver.light.set('.item', ['elem-x', 'elem-a'])
             const elem = (await (await session()).$$('.item'))[1]
             driver.stale.add('elem-a')
             driver.light.set('.item', ['elem-b'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
     })
 
@@ -595,7 +629,7 @@ describe('finding an element again', () => {
             expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
         })
 
-        it('the implicit wait of an item without element id gives the same error as before', async () => {
+        it('the implicit wait of an item without element id gives the not found error with the index of the item', async () => {
             const browser = await session()
             driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
             const elem = await browser.$$('.item')[3]
@@ -604,10 +638,10 @@ describe('finding an element again', () => {
             vi.spyOn(elem, 'waitForExist').mockResolvedValueOnce(true)
 
             const { error } = await settle(elem.getText())
-            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" because element wasn\'t found')
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" at index 3 because element wasn\'t found')
         })
 
-        it('a stale item of a list that is shorter now throws the stale element error', async () => {
+        it('a stale item of a list that is shorter now throws that it was not found again', async () => {
             const browser = await session()
             driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
             const elem = await browser.$$('.item')[3]
@@ -615,10 +649,10 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-a'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
 
-        it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
+        it('a command throws "Index out of bounds" after one lookup, without a second wait', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
             const waitForExist = vi.spyOn(elem, 'waitForExist')
@@ -627,7 +661,924 @@ describe('finding an element again', () => {
             const { error } = await settle(elem.click())
             expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
             expect(waitForExist).not.toHaveBeenCalled()
-            expect(driver.findsIn.length).toBe(finds)
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        /**
+         * the item is the same object after the list reaches its index: a command finds it
+         * once more, as `isExisting()` does, and keeps its element id
+         */
+        it('a command uses the item once the list reaches its index, without a second wait', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            const waitForExist = vi.spyOn(elem, 'waitForExist')
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const finds = driver.findsIn.length
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(waitForExist).not.toHaveBeenCalled()
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+            expect(elem.elementId).toBe('elem-d')
+            expect(elem.error).toBeUndefined()
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        it('a command uses the item after isExisting() saw it', async () => {
+            const browser = await session()
+            const elem = browser.$$('.item')[3]
+            expect(await elem.isExisting()).toBe(false)
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+
+            expect(await elem.isExisting()).toBe(true)
+            expect(await elem.getText()).toBe('text of elem-d')
+        })
+
+        /**
+         * an `async` overwrite of `$$` gives a promise, not the element list: its index
+         * gives the same not found item as a plain `$$`
+         */
+        it('gives the same not found item for the list of an async overwrite of $$', async () => {
+            const browser = await session()
+            browser.overwriteCommand('$$', async (original$$, selector) => original$$(selector))
+
+            expect(await browser.$$('.item')[0].getText()).toBe('text of elem-a')
+            const elem = await browser.$$('.item')[3]
+            expect(elem.elementId).toBeUndefined()
+            expect(elem.index).toBe(3)
+            expect(await browser.$$('.item')[3].isExisting()).toBe(false)
+            expect(await browser.$$('.item')[3].isDisplayed()).toBe(false)
+            const { error } = await settle(browser.$$('.item')[3].click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            expect(await elem.getText()).toBe('text of elem-d')
+        })
+
+        it('gives the same not found item for a custom command whose name ends with $$', async () => {
+            const browser = await session()
+            browser.addCommand('items$$', function (this: WebdriverIO.Browser, selector: string) {
+                return this.$$(selector)
+            })
+            const items$$ = (selector: string) => (browser as unknown as { items$$ (selector: string): WebdriverIO.ElementArray }).items$$(selector)
+
+            expect(await items$$('.item')[0].getText()).toBe('text of elem-a')
+            expect(await items$$('.item')[3].isExisting()).toBe(false)
+            const { error } = await settle(items$$('.item')[3].click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
+        it('a command uses the item of a custom$$ list once the strategy reaches its index', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.scripts.set('customList', ['elem-a'])
+            const elem = await browser.$('#host').custom$$('customList')[3]
+            driver.scripts.set('customList', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(driver.findsIn.at(-1)).toBe('script customList with host-a')
+        })
+    })
+
+    /**
+     * The page replaced the item of a list: a command gets a stale element error, and the
+     * item is found again at its index without the wait of `$$(selector)[index]`. When the
+     * list is shorter now, the item is "not found", like `$(selector)` when the page removed
+     * its element: a check gives its answer at once, a command that needs the element waits
+     * for it and then throws that it was not found again (#12576, #16072)
+     */
+    describe('a stale item of a list that no longer reaches its index', () => {
+        const goneItem = async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+            const elem = (await browser.$$('.item'))[2]
+            driver.stale.add('elem-c')
+            driver.light.set('.item', ['elem-x'])
+            return elem
+        }
+
+        it('isDisplayed is false, without a wait for the index', async () => {
+            const elem = await goneItem()
+            const finds = driver.findsIn.length
+            expect(await elem.isDisplayed()).toBe(false)
+            /**
+             * one lookup finds the item again, one more is the lookup of `isDisplayed` for a
+             * not found element. The wait for the index would look every `waitforInterval`
+             */
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document', 'elements .item in document'])
+        })
+
+        it('waitForDisplayed with reverse is true', async () => {
+            const elem = await goneItem()
+            expect(await elem.waitForDisplayed({ reverse: true, timeout: 50 })).toBe(true)
+        })
+
+        it('is found again once at its index, as a not found item', async () => {
+            const elem = await goneItem()
+            const finds = driver.findsIn.length
+
+            const item = await refetchElement(elem, 'isDisplayed')
+            expect(item.elementId).toBeUndefined()
+            expect(item.index).toBe(2)
+            expect(item.selector).toBe('.item')
+            expect(item.error?.message).toBe('element with selector ".item" has no match at index 2')
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        it('getText waits for the item and throws that it was not found again', async () => {
+            const elem = await goneItem()
+            const { error } = await settle(elem.getText())
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        })
+
+        it('getText uses the item when the list reaches its index again while it waits', async () => {
+            const elem = await goneItem()
+            setTimeout(() => driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z']), 30)
+            expect(await elem.getText()).toBe('text of elem-z')
+        })
+
+        /**
+         * Each layer of the element middleware finds a stale element again once. An item
+         * has as many layers as `$()`, whatever its index: with one more layer for each
+         * item, a command on a gone item `[n]` threw after `(n + 1) * 2 * waitforTimeout`
+         */
+        it('is found again as often as $() when it is stale, whatever its index', async () => {
+            const refetches = async (find: (browser: WebdriverIO.Browser) => Promise<WebdriverIO.Element>, id: string) => {
+                const browser = await session()
+                driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await find(browser)
+                driver.stale.add(id)
+                driver.light.set('.item', [])
+                driver.light.set('#ref', [])
+                vi.mocked(refetchElement).mockClear()
+
+                const { error } = await settle(elem.getText())
+                expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+                return vi.mocked(refetchElement).mock.calls.length
+            }
+
+            const reference = await refetches((browser) => browser.$('#ref').getElement(), 'elem-r')
+            expect(reference).toBeGreaterThan(0)
+            expect([
+                await refetches(async (browser) => (await browser.$$('.item'))[0], 'elem-a'),
+                await refetches(async (browser) => (await browser.$$('.item'))[2], 'elem-c')
+            ]).toEqual([reference, reference])
+        })
+
+        it('a stale item whose index the list still reaches is found again', async () => {
+            const elem = await goneItem()
+            driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(await elem.getText()).toBe('text of elem-z')
+        })
+    })
+
+    /**
+     * A command on an element that the page removed waits `waitforTimeout` once for it, also
+     * when the command runs other commands on it, or on its children (#16072). The tests count
+     * the implicit waits that ended without the element, not the time.
+     */
+    describe('one wait for an element that the page removed', () => {
+        const waits = async (command: Promise<unknown>) => {
+            vi.mocked(implicitWait).mockClear()
+            const outcome = await settle(command)
+            const ended = vi.mocked(implicitWait).mock.settledResults.filter((result) =>
+                result.type === 'rejected' && /wasn't found/.test(String((result.value as Error | undefined)?.message)))
+            return { ...outcome, waits: ended.length }
+        }
+        /**
+         * the error of a command on an element that the page removed
+         */
+        const expectGone = (error?: Error) => {
+            /**
+             * the error of 9.31.9, with a code (#16077)
+             */
+            expect(error?.name).toBe('Error')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+            expect(error?.message).toMatch(/wasn't found/)
+        }
+        const removedHost = async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const host = await browser.$('#host')
+            const child = await host.$('.child')
+            return { browser, host, child }
+        }
+        const removedRef = async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+            return elem
+        }
+
+        it.each(['isDisplayed', 'isExisting'] as const)('%s of a removed element is false without a wait', async (command) => {
+            const elem = await removedRef()
+            const { value, error, waits: count } = await waits(elem[command]())
+            expect(error).toBeUndefined()
+            expect(value).toBe(false)
+            expect(count).toBe(0)
+        })
+
+        it('waits once for a removed list item', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+            const elem = (await browser.$$('.item'))[2]
+            driver.stale.add('elem-c')
+            driver.light.set('.item', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            /**
+             * the index tells which item of the list was not found (#16077 review)
+             */
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" at index 2 because element wasn\'t found')
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a page object pattern: a child of a row of a table. The lookup of the row does not wait
+         * for its index: the implicit wait of the row waits once (#16072 review)
+         */
+        it('waits once for a child of a list item whose list was removed', async () => {
+            const browser = await session()
+            driver.light.set('.row', ['row-a', 'row-b'])
+            driver.light.set('.input', ['input-b'])
+            const input = await (await browser.$$('.row'))[1].$('.input')
+            driver.stale.add('row-b')
+            driver.stale.add('input-b')
+            driver.light.set('.row', [])
+            vi.mocked(refetchElement).mockClear()
+
+            const { error, waits: count } = await waits(input.getText())
+            expectGone(error)
+            expect(error?.message).toBe('Can\'t call $ on element with selector ".row" at index 1 because element wasn\'t found')
+            expect(count).toBe(1)
+            /**
+             * the inner layer looks once: the outer layer does not look again
+             */
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('waits once with a waitforTimeout that is not a whole number', async () => {
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                waitforTimeout: 100.5,
+                waitforInterval: 10,
+                capabilities: { browserName: 'foobar' }
+            })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * an overwrite of waitForExist with its own timeout message: the wait still knows its
+         * timeout (#16077 review)
+         */
+        it('waits once when waitForExist is overwritten with another timeout message', async () => {
+            const browser = await session()
+            browser.overwriteCommand('waitForExist', function (this: WebdriverIO.Element, waitForExist: (options?: object) => Promise<boolean>, options?: object) {
+                return waitForExist({ ...options, timeoutMsg: 'my page is broken' })
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a removed child', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('child-a')
+            driver.light.set('.child', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a child whose parent was removed', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a check (`isDisplayed`) of a gone parent leaves it without an element id
+         */
+        it('waits once for a child after isDisplayed of its removed parent', async () => {
+            const { host, child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+            host.elementId = undefined as unknown as string
+
+            const { error, waits: count } = await waits(child.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * A command of a list (or of a container of the list) finds its item, and the page renders
+         * the list again without it at its index before the click: the command fails after one
+         * wait, and does not run again, as in 9.31.9. Running it again would repeat its steps
+         * and wait again for an item that it kept, or took by its index (#16077 review)
+         */
+        describe('a command that uses an item of a list that the page rendered again without it', () => {
+            const listCommand = async (findList: (el: WebdriverIO.Element) => WebdriverIO.ElementArray) => {
+                const browser = await session()
+                driver.light.set('#box', ['box-a'])
+                driver.light.set('#list', ['list-a'])
+                driver.light.set('.item', ['elem-a', 'target-1'])
+                let runs = 0
+                browser.addCommand('clickTarget', async function (this: WebdriverIO.Element) {
+                    runs++
+                    const items = await findList(this)
+                    const texts = await items.map((item) => item.getText())
+                    const target = items[texts.findIndex((text) => text.includes('target'))]
+                    driver.stale.add('target-1')
+                    driver.light.set('.item', ['target-2'])
+                    return target.click()
+                }, { attachToElement: true })
+                return { browser, runs: () => runs }
+            }
+
+            it('fails after one wait in a command of the list, and does not run it again', async () => {
+                const { browser, runs } = await listCommand((el) => el.$$('.item'))
+                const list = await browser.$('#list')
+                vi.mocked(refetchElement).mockClear()
+
+                // @ts-expect-error undefined custom command
+                const { error, waits: count } = await waits(list.clickTarget())
+                expectGone(error)
+                expect(count).toBe(1)
+                expect(runs()).toBe(1)
+                expect(vi.mocked(refetchElement).mock.calls.map(([el]) => el.selector)).not.toContain('#list')
+            })
+
+            it('fails after one wait in a command of a container of the list, and does not run it again', async () => {
+                const { browser, runs } = await listCommand((el) => el.$('#list').$$('.item'))
+                const box = await browser.$('#box')
+
+                // @ts-expect-error undefined custom command
+                const { error, waits: count } = await waits(box.clickTarget())
+                expectGone(error)
+                expect(count).toBe(1)
+                expect(runs()).toBe(1)
+            })
+        })
+
+        /**
+         * the text "stale element reference" in a selector is in the message of the error: the
+         * error is still not a stale element error (#16077 review)
+         */
+        it('waits once in a command of a container for a child that was never found and whose selector has the text of a stale element error', async () => {
+            const browser = await session()
+            browser.addCommand('clickNeverThere', function (this: WebdriverIO.Element) {
+                return this.$('[data-error="stale element reference"]').click()
+            }, { attachToElement: true })
+            driver.light.set('#host', ['host-a'])
+            const host = await browser.$('#host')
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.clickNeverThere())
+            expect(error?.message).toMatch(/wasn't found/)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for an element whose selector has the text of a stale element error', async () => {
+            const browser = await session()
+            const selector = '[data-error="stale element reference"]'
+            driver.light.set(selector, ['elem-s'])
+            const elem = await browser.$(selector)
+            driver.stale.add('elem-s')
+            driver.light.set(selector, [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * the lookup of the item fails on the removed list: the error is about the list, with the
+         * stale element error as its cause (the case of a list item that was not found again first
+         * is in tests/middleware.test.ts)
+         */
+        it('gives the stale element error as the cause when the page removed the list during a list command', async () => {
+            const browser = await session()
+            driver.light.set('#list', ['list-a'])
+            driver.light.set('.item', ['elem-a', 'target-1'])
+            browser.addCommand('clickTargetGone', async function (this: WebdriverIO.Element) {
+                const items = await this.$$('.item')
+                const texts = await items.map((item) => item.getText())
+                const target = items[texts.findIndex((text) => text.includes('target'))]
+                driver.stale.add('list-a')
+                driver.stale.add('target-1')
+                driver.light.set('#list', [])
+                driver.light.set('.item', [])
+                return target.click()
+            }, { attachToElement: true })
+            const list = await browser.$('#list')
+
+            // @ts-expect-error undefined custom command
+            const { error } = await waits(list.clickTargetGone())
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+            expect((error as Error & { cause?: Error }).cause?.name).toBe('stale element reference')
+        })
+
+        it('waits once for a command of the host that clicks a stale child', async () => {
+            const { browser, child } = await removedHost()
+            browser.addCommand('clickKept', function () {
+                return child.click()
+            }, { attachToElement: true })
+            /**
+             * an element gets the commands that were added before it
+             */
+            const host = await browser.$('#host')
+            driver.stale.add('child-a')
+            driver.light.set('.child', [])
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.clickKept())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for setValue of a removed element', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for setValue when clearing the input removes it', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            /**
+             * the page removes the input when its value is cleared
+             */
+            const handler = vi.mocked(fetch).getMockImplementation()!
+            vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                if (String(uri).endsWith('/element/elem-r/clear')) {
+                    driver.stale.add('elem-r')
+                    driver.light.set('#ref', [])
+                    return Response.json({ value: null })
+                }
+                return handler(uri, params)
+            }) as typeof fetch)
+
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('types into the input that the page renders again when clearing it', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            const handler = vi.mocked(fetch).getMockImplementation()!
+            const typedInto: string[] = []
+            vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                const url = String(uri)
+                if (url.endsWith('/element/elem-r/clear')) {
+                    driver.stale.add('elem-r')
+                    driver.light.set('#ref', ['elem-r2'])
+                    return Response.json({ value: null })
+                }
+                const typed = url.match(/\/element\/([^/]+)\/value$/)
+                if (typed && !driver.stale.has(typed[1])) {
+                    typedInto.push(typed[1])
+                    return Response.json({ value: null })
+                }
+                return handler(uri, params)
+            }) as typeof fetch)
+
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expect(error).toBeUndefined()
+            expect(typedInto).toEqual(['elem-r2'])
+            expect(count).toBe(0)
+        })
+
+        /**
+         * with Chrome's message, the error of `waitUntil` that wraps the stale error is a stale
+         * error too, and its layers would look again
+         */
+        it('waits once for waitForEnabled of a removed element', async () => {
+            driver.options.staleMessage = CHROME_STALE_MESSAGE
+            const elem = await removedRef()
+            vi.mocked(refetchElement).mockClear()
+            /**
+             * a timeout shorter than the wait for the element (waitforTimeout): that wait can end
+             * up to one waitforInterval early, and with the same timeout `waitUntil` would then
+             * still have time to check again (flaky on CI)
+             */
+            const { error, waits: count } = await waits(elem.waitForEnabled({ timeout: 50 }))
+            expect(error).toBeInstanceOf(Error)
+            /**
+             * the error of the wait has the error of the removed element as cause (#16077 review)
+             */
+            expectGone(error?.cause as Error | undefined)
+            expect(count).toBe(1)
+            /**
+             * the layers of the wait do not look again (and run the wait again)
+             */
+            expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isElementEnabled'])
+        })
+
+        it('waits once when the page removes the element between two inner commands', async () => {
+            const browser = await session()
+            browser.addCommand('textThenClick', async function (this: WebdriverIO.Element) {
+                await this.getText()
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+                return this.click()
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(elem.textThenClick())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a child of a removed shadow host', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.shadow.set('.x', ['shadow-x'])
+            const child = await browser.$('#host').shadow$('.x').getElement()
+            driver.stale.add('host-a')
+            driver.stale.add('shadow-x')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for shadow$ of a removed host', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.shadow.set('.x', ['shadow-x'])
+            const host = await browser.$('#host').getElement()
+            driver.stale.add('host-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(host.shadow$('.x').getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a stale element error that only its name identifies', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(isStaleElementError(error)).toBe(false)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * the lookup of `isDisplayed` inside `isClickable` waits for the removed parent: the
+         * check does not wait for it again (#16072 review)
+         */
+        it.each(['isClickable', 'isDisplayed', 'isExisting'] as const)('waits once for %s of a child whose parent was removed', async (command) => {
+            const { child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child[command]())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a page object command of a container: the lookup of its child waits for the removed
+         * container, and the container command does not wait for it again (#16072 review)
+         */
+        it('waits once for a command of a container that the page removed', async () => {
+            const browser = await session()
+            browser.addCommand('childText', function (this: WebdriverIO.Element) {
+                return this.$('.child').getText()
+            }, { attachToElement: true })
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const host = await browser.$('#host')
+            // @ts-expect-error undefined custom command
+            expect(await host.childText()).toBe('text of child-a')
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.childText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        describe('the message of the error', () => {
+            it('names the command that the user called', async () => {
+                const elem = await removedRef()
+                const { error } = await waits(elem.getText())
+                expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
+                expect(error?.stack?.split('\n')[0]).toBe(`Error: ${error?.message}`)
+            })
+
+            it('names a custom command of the element', async () => {
+                const browser = await session()
+                browser.addCommand('readTitle', function (this: WebdriverIO.Element) {
+                    return this.getText()
+                }, { attachToElement: true })
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+
+                // @ts-expect-error undefined custom command
+                const { error } = await waits(elem.readTitle())
+                expect(error?.message).toBe('Can\'t call readTitle on element with selector "#ref" because element wasn\'t found')
+            })
+
+            it('names a list query of the element', async () => {
+                const { host } = await removedHost()
+                driver.stale.add('host-a')
+                driver.light.set('#host', [])
+
+                const { error } = await waits(settle(host.$$('.child')).then(({ error }) => { if (error) { throw error } }))
+                expect(error?.message).toBe('Can\'t call $$ on element with selector "#host" because element wasn\'t found')
+            })
+
+            it('names the command that the user called when the page removes the element during the retry', async () => {
+                const browser = await session()
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                /**
+                 * the page renders the element again, and removes it when the command reads it
+                 */
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', ['elem-r2'])
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (String(uri).endsWith('/element/elem-r2/text')) {
+                        driver.stale.add('elem-r2')
+                        driver.light.set('#ref', [])
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+
+                const { error } = await waits(elem.getText())
+                expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+                expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
+            })
+
+            it('names the lookup of the parent that was not found', async () => {
+                const { child } = await removedHost()
+                driver.stale.add('host-a')
+                driver.stale.add('child-a')
+                driver.light.set('#host', [])
+
+                const { error } = await waits(child.getText())
+                expect(error?.message).toBe('Can\'t call $ on element with selector "#host" because element wasn\'t found')
+            })
+        })
+
+        it('fails both commands that run at the same time on a removed element', async () => {
+            const elem = await removedRef()
+            const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])
+            expect(results.map((result) => result.status)).toEqual(['rejected', 'rejected'])
+            for (const result of results) {
+                expectGone((result as PromiseRejectedResult).reason)
+            }
+        })
+
+        /**
+         * Each poll of a wait on the element looks for it again: the element can come back
+         * before the timeout of the wait (#16072). The page changes at a given step of the
+         * command (the first wait that ends without the element, a request of the driver), not
+         * after a time, so the result does not depend on the speed of the machine.
+         */
+        describe('a wait that polls the element', () => {
+            const realImplicitWait = vi.mocked(implicitWait).getMockImplementation()!
+            afterEach(() => {
+                vi.mocked(implicitWait).mockImplementation(realImplicitWait)
+            })
+            /**
+             * the page changes once, when the first wait for an element ends without it
+             */
+            const afterFirstFailedWait = (change: () => void) => {
+                let changed = false
+                vi.mocked(implicitWait).mockImplementation(async (...args) => {
+                    try {
+                        return await realImplicitWait(...args)
+                    } catch (err) {
+                        if (!changed && /wasn't found/.test(String((err as Error | undefined)?.message))) {
+                            changed = true
+                            change()
+                        }
+                        throw err
+                    }
+                })
+            }
+            /**
+             * runs `change` before the first request of the driver whose path ends with `path`
+             */
+            const beforeRequest = (path: string, change: () => void) => {
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                let changed = false
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (!changed && String(uri).endsWith(path)) {
+                        changed = true
+                        change()
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+            }
+
+            it('waitForEnabled with a long timeout finds the element that comes back', async () => {
+                const elem = await removedRef()
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitForEnabled({ timeout: 3000 })).toBe(true)
+            })
+
+            it('waitUntil of the element finds the element that comes back', async () => {
+                const elem = await removedRef()
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'text of elem-r2'
+                }, { timeout: 3000 })).toBe(true)
+            })
+
+            it('waitUntil of the element finds an element that is late and then replaced', async () => {
+                const browser = await session()
+                const elem = await browser.$('#late')
+                afterFirstFailedWait(() => driver.light.set('#late', ['late-1']))
+                beforeRequest('/element/late-1/text', () => {
+                    driver.stale.add('late-1')
+                    driver.light.set('#late', ['late-2'])
+                })
+                expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'text of late-2'
+                }, { timeout: 3000 })).toBe(true)
+            })
+
+            it('waitForStable with reverse finds the element that comes back and is not stable', async () => {
+                const elem = await removedRef()
+                /**
+                 * the stability script of the element that came back says "not stable"
+                 */
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (/\/execute\/(sync|async)$/.test(String(uri))) {
+                        const body = JSON.parse(String(params?.body))
+                        const ids = (body.args ?? []).map((arg: Record<string, string> | null) => arg?.[ELEMENT_KEY]).filter(Boolean)
+                        if (ids.includes('elem-r2') && String(body.script).includes('requestAnimationFrame')) {
+                            return Response.json({ value: false })
+                        }
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitForStable({ reverse: true, timeout: 3000 })).toBeUndefined()
+            })
+
+            it('a command that runs while a wait of the element polls it finds the element that came back', async () => {
+                const elem = await removedRef()
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
+                /**
+                 * the other command starts when the wait has read the element that came back
+                 */
+                let polled!: () => void
+                const waitPolled = new Promise<void>((resolve) => { polled = resolve })
+                beforeRequest('/element/elem-r2/text', () => polled())
+                /**
+                 * a wait that reads the element at each poll and never ends before its timeout
+                 */
+                const wait = settle(elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'never'
+                }, { timeout: 1500 }))
+                await waitPolled
+                expect(await elem.getText()).toBe('text of elem-r2')
+                expect((await wait).error?.message).toMatch(/waitUntil condition timed out/)
+            })
+
+            it('waits once for a list item that the page shows during the wait and removes again', async () => {
+                const browser = await session()
+                driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+                const elem = (await browser.$$('.item'))[2]
+                driver.stale.add('elem-c')
+                driver.light.set('.item', [])
+                /**
+                 * the page shows the item when the wait of the refetch starts, and removes it when
+                 * `waitForExist` has found it (its two lookups): the lookup of the item after it
+                 * waits for its index (#16077 review)
+                 */
+                let shown = false
+                let seen = 0
+                vi.mocked(implicitWait).mockImplementation(async (...args) => {
+                    if (!shown && !args[0].elementId) {
+                        shown = true
+                        driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c2'])
+                    }
+                    return realImplicitWait(...args)
+                })
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    const response = await handler(uri, params)
+                    if (String(uri).endsWith('/elements') && driver.light.get('.item')?.length === 3 && ++seen === 2) {
+                        driver.light.set('.item', [])
+                    }
+                    return response
+                }) as typeof fetch)
+
+                const { error, waits: count } = await waits(elem.getText())
+                expectGone(error)
+                expect(count).toBe(1)
+            })
+        })
+
+        /**
+         * a command of the element catches its failure, the page has the element again, and the
+         * command uses the element without a new lookup: its own layer finds it again, as on
+         * `main` and in 9.31.9 (#16072)
+         */
+        describe('a command of the element that uses it again after a caught failure', () => {
+            const commandOfGoneElement = async (secondUse: (elem: WebdriverIO.Element, browser: WebdriverIO.Browser) => Promise<unknown>) => {
+                const browser = await session()
+                browser.addCommand('useAgain', async function (this: WebdriverIO.Element) {
+                    await this.getText().catch(() => 'caught')
+                    driver.light.set('#ref', ['elem-r2'])
+                    return secondUse(this, browser)
+                }, { attachToElement: true })
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+                // @ts-expect-error undefined custom command
+                return elem.useAgain()
+            }
+
+            it('recovers when it runs a script with the element', async () => {
+                const scriptGot: string[] = []
+                await commandOfGoneElement(async (elem, browser) => {
+                    await browser.execute((el) => el, elem as unknown as HTMLElement)
+                    scriptGot.push(elem.elementId)
+                })
+                expect(scriptGot).toEqual(['elem-r2'])
+            })
+
+            it('recovers when it runs a protocol command with the element id', async () => {
+                expect(await commandOfGoneElement((elem) => elem.getElementText(elem.elementId))).toBe('text of elem-r2')
+            })
+        })
+
+        it('a command of the element answers a check at once after it caught a failure of the element', async () => {
+            const browser = await session()
+            browser.addCommand('textOrGone', async function (this: WebdriverIO.Element) {
+                const text = await this.getText().catch(() => 'no text')
+                const displayed = await this.isDisplayed()
+                const gone = await this.waitForDisplayed({ reverse: true, timeout: 300 })
+                return { text, displayed, gone }
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.textOrGone()).toEqual({ text: 'no text', displayed: false, gone: true })
+        })
+
+        it('waits once for waitForStable of a removed element', async () => {
+            driver.options.staleMessage = CHROME_STALE_MESSAGE
+            const elem = await removedRef()
+            vi.mocked(refetchElement).mockClear()
+            const { error, waits: count } = await waits(elem.waitForStable())
+            /**
+             * the error of its check, with its name and cause (#16077 review)
+             */
+            expectGone(error)
+            expect((error as Error & { cause?: Error }).cause?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+            expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isStable'])
         })
     })
 
@@ -819,10 +1770,10 @@ describe('finding an element again in strict mode', () => {
             return elem
         }
 
-        it('throws the stale element error when nothing matches', async () => {
+        it('throws that it was not found again when nothing matches', async () => {
             const elem = await staleElement([])
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('resolves the only match', async () => {
@@ -854,6 +1805,41 @@ describe('finding an element again in strict mode', () => {
         expect(await elem.isExisting()).toBe(true)
         expect(elem.elementId).toBeUndefined()
         await expect(elem.getText()).rejects.toThrow(StrictSelectorError)
+    })
+})
+
+/**
+ * the selector of a `custom$` / `custom$$` element is the strategy reference, an object:
+ * the messages show the strategy name, not `[object Object]`
+ */
+describe('the selector of a custom strategy element in messages', () => {
+    it('names the strategy in the timeout message of a wait command', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.custom$('customItem').waitForExist({ timeout: 50 }))
+        expect(error?.message).toBe('element ("custom$(customItem)") still not existing after 50ms')
+
+        driver.scripts.set('customList', ['elem-a'])
+        const { error: reverse } = await settle(browser.custom$$('customList')[0].waitForDisplayed({ reverse: true, timeout: 50 }))
+        expect(reverse?.message).toBe('element ("custom$$(customList)") still displayed after 50ms')
+    })
+
+    it('names the strategy when a command is called on an element that was not found', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.custom$('customItem').click())
+        expect(error?.message).toBe('Can\'t call click on element with selector "custom$(customItem)" because element wasn\'t found')
+    })
+
+    it('names the strategy when a missing element is passed to execute', async () => {
+        const browser = await session()
+        const elem = await browser.custom$('customItem')
+        const { error } = await settle(browser.execute((el) => el, elem as unknown as HTMLElement))
+        expect(error?.message).toBe('The element with selector "custom$(customItem)" you are trying to pass into the execute method wasn\'t found')
+    })
+
+    it('keeps a string selector as it is', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.$('.missing').waitForExist({ timeout: 50 }))
+        expect(error?.message).toBe('element (".missing") still not existing after 50ms')
     })
 })
 

@@ -1,4 +1,7 @@
+import { getBrowserObject } from '@wdio/utils'
+
 import { findAllAgain } from '../../utils/findElementAgain.js'
+import { bidiGetTagName, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -57,7 +60,9 @@ export async function isExisting (this: WebdriverIO.Element) {
      * stale element exeception if element is not existing.
      */
     if (!this.selector) {
-        return this.getElementTagName(this.elementId).then(
+        const browser = getBrowserObject(this) as WebdriverIO.Browser
+        const probe = isBidiCommandsEnabled(browser) ? bidiGetTagName(this) : this.getElementTagName(this.elementId)
+        return probe.then(
             () => true,
             () => false
         )

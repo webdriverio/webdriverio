@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import { registerSessionManager } from '../../session/index.js'
+import { applyBidiBrowserOverwrites } from '../../utils/bidi/browserOverwrites.js'
 
 const log = logger('webdriverio')
 
@@ -85,6 +86,7 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
     const ProtocolDriver = (await import(/* @vite-ignore */this.options.automationProtocol!)).default
     await ProtocolDriver.reloadSession(this, newCapabilities)
     await registerSessionManager(this)
+    applyBidiBrowserOverwrites(this)
 
     const options = this.options as Options.Testrunner
     if (Array.isArray(options.onReload) && options.onReload.length) {

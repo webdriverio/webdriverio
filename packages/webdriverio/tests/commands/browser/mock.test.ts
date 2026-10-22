@@ -1,7 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore, getParallelContextStore } from '../../../src/session/context.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 
@@ -64,5 +66,28 @@ describe('mock', () => {
         expect(totalMocks).toBe(1)
         expect(allContexts.some((mocks) => mocks.has(createdSecondMock as any))).toBe(true)
         initiateSpy.mockRestore()
+    })
+
+    it('scopes the intercept to the store context in a parallel test', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'bidi'
+            }
+        })
+        const noopStore = getParallelContextStore()
+        const store = new AsyncLocalStorage<string>()
+        setParallelContextStore(store)
+        const initiateSpy = vi.spyOn(WebDriverInterception, 'initiate').mockResolvedValue({ restore: vi.fn(), isSameDefinition: vi.fn().mockReturnValue(false) } as any)
+        try {
+            await store.run('ctx-1', () => browser.mock('**/scoped'))
+            expect(initiateSpy).toHaveBeenLastCalledWith('**/scoped', {}, browser, { contexts: ['ctx-1'], sessionKey: 'ctx-1' })
+
+            await browser.mock('**/global')
+            expect(initiateSpy).toHaveBeenLastCalledWith('**/global', {}, browser, expect.objectContaining({ contexts: undefined }))
+        } finally {
+            setParallelContextStore(noopStore)
+            initiateSpy.mockRestore()
+        }
     })
 })
