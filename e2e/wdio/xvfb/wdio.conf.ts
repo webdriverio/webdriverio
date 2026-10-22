@@ -10,6 +10,9 @@ export const config: WebdriverIO.Config = {
     specs: [
         path.join(__dirname, '*.e2e.ts')
     ],
+    exclude: [
+        path.join(__dirname, 'runner.e2e.ts')
+    ],
 
     /**
      * capabilities - run headless since we're testing xvfb functionality

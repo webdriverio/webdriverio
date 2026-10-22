@@ -36,6 +36,7 @@
     "test:xvfb": "wdio ./wdio/xvfb/wdio.conf.ts",
     "test:xvfb:base": "wdio ./wdio/xvfb/wdio.conf.ts --spec base-install.e2e.ts",
     "test:xvfb:existing": "wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts",
+    "test:xvfb:runner": "wdio ./wdio/xvfb/wdio.runner.conf.ts",
     "verifyCoverage": "test -d ./browser-runner/coverage"
   },
   "devDependencies": {
