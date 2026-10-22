@@ -71,6 +71,11 @@ export default class VideoReporter extends WdioReporter {
      */
     #recordings = new Map<string, Recording>()
     /**
+     * parallel mode: the title and the parent of each suite, for the file names
+     */
+    #suites = new Map<string, { title: string, parentUid?: string | null }>()
+    #takenNames = new Set<string>()
+    /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
      */
@@ -416,13 +421,17 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        if ((this.isCucumberFramework && suite.type === 'scenario') || this.options.filenamePrefixSource === 'suite') {
+        if (suite.uid) {
+            this.#suites.set(suite.uid, { title: suite.title, parentUid: suite.parentUid })
+        }
+        const key = this.#keyOf(suite.contextId)
+        // parallel mode names its videos from the suite chain (`#nameParts`)
+        if (key === MAIN && ((this.isCucumberFramework && suite.type === 'scenario') || this.options.filenamePrefixSource === 'suite')) {
             this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
         }
 
         if (suite.type === 'scenario') {
-            const key = this.#keyOf(suite.contextId)
-            this.#setRecordingPath(key)
+            this.#setRecordingPath(key, suite)
             // Ensure video attachment happens for Allure in Cucumber scenarios too
             this.#attachVideoToAllure(false, key)
         }
@@ -454,11 +463,11 @@ export default class VideoReporter extends WdioReporter {
             this.#extendAllureReport()
         }
 
+        const key = this.#keyOf(suite.contextId)
         // also for a suite with no started test (for example only skipped Mocha tests)
-        if (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite') {
+        if (key === MAIN && (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite')) {
             this.testNameStructure.pop()
         }
-        const key = this.#keyOf(suite.contextId)
         const recording = this.#recordings.get(key)
         if (!recording?.testName) {
             return
@@ -507,11 +516,11 @@ export default class VideoReporter extends WdioReporter {
         const startedAgain = recording.openTestTitle === suite.title
         recording.openTestTitle = suite.title
         if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
-            if (this.options.filenamePrefixSource === 'test') {
+            if (key === MAIN && this.options.filenamePrefixSource === 'test') {
                 this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
             }
             // one recording for each test, also when the suite title gives the file name
-            this.#setRecordingPath(key)
+            this.#setRecordingPath(key, suite)
         }
 
         // Ensure video attachment happens for Allure, even when disableWebdriverStepsReporting is false
@@ -580,7 +589,7 @@ export default class VideoReporter extends WdioReporter {
         if (recording) {
             recording.openTestTitle = undefined
         }
-        if (this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
+        if (key === MAIN && this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
             this.testNameStructure.pop()
         }
         /**
@@ -1045,9 +1054,14 @@ export default class VideoReporter extends WdioReporter {
         }
     }
 
-    #setRecordingPath (key: string) {
-        const fullName = this.testNameStructure.slice(1)
-            .reduce((cur, acc) => cur + '--' + acc, this.testNameStructure[0] || 'unknown')
+    /**
+     * @param owner  the test (with Cucumber step reporting: the scenario) of the recording
+     */
+    #setRecordingPath (key: string, owner: { title: string, parentUid?: string | null, type?: string }) {
+        // parallel mode: tests overlap, so the name comes from the suites of the test, not from the open suites
+        const nameParts = key === MAIN ? this.testNameStructure : this.#nameParts(owner)
+        const fullName = nameParts.slice(1)
+            .reduce((cur, acc) => cur + '--' + acc, nameParts[0] || 'unknown')
 
         let browserName = 'browser'
         const capabilities = getCurrentCapabilities(browser)
@@ -1059,7 +1073,13 @@ export default class VideoReporter extends WdioReporter {
             browserName = `${deviceName.toUpperCase()}-${capabilities.platformName.toUpperCase()}`
         }
 
-        const testName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
+        const baseName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
+        let testName = baseName
+        // parallel tests with the same title can start in the same millisecond
+        for (let n = 2; this.#takenNames.has(testName); n++) {
+            testName = `${baseName}-${n}`
+        }
+        this.#takenNames.add(testName)
         const recording = this.#ownRecording(key)
         recording.testName = testName
         recording.frameNr = 0
@@ -1070,6 +1090,23 @@ export default class VideoReporter extends WdioReporter {
         recording.path = path.resolve(this.#outputDir, this.options.rawPath, testName)
 
         fs.mkdirSync(recording.path, { recursive: true })
+    }
+
+    /**
+     * the same parts as `testNameStructure` in sequential mode, from the suite chain of the owner
+     */
+    #nameParts (owner: { title: string, parentUid?: string | null, type?: string }) {
+        const clean = (title: string) => title.replace(/ /g, '-').replace(/-{2,}/g, '-')
+        const parts: string[] = []
+        if (this.options.filenamePrefixSource === 'suite') {
+            for (let suite = owner.parentUid ? this.#suites.get(owner.parentUid) : undefined; suite; suite = suite.parentUid ? this.#suites.get(suite.parentUid) : undefined) {
+                parts.unshift(clean(suite.title))
+            }
+        }
+        if (this.options.filenamePrefixSource === 'test' || owner.type === 'scenario') {
+            parts.push(clean(owner.title))
+        }
+        return parts
     }
 
     /**

@@ -222,3 +222,75 @@ describe('parallel mode', () => {
         expect(reporter.frameNr).toBe(0)
     })
 })
+
+describe('parallel video names', () => {
+    const cucumberRunner = (scenarioLevelReporter = false): any => ({
+        ...runner,
+        instanceOptions: { 'session-1': { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter }, reporters: [] } }
+    })
+    const nameOf = (reporter: VideoReporter, contextId: string) => {
+        inContext(contextId)
+        return path.basename(reporter.recordingPath!)
+    }
+
+    beforeEach(() => {
+        inContext(undefined)
+    })
+
+    it.each([
+        ['test', 'P8-same-title--CHROME--', 'P1--CHROME--'],
+        ['suite', 'par--one--CHROME--', 'par--CHROME--']
+    ])('names a parallel Mocha test like sequential mode (filenamePrefixSource: %s)', async (filenamePrefixSource, nameA, nameB) => {
+        const reporter = await startReporter({ filenamePrefixSource })
+        // Mocha parallel mode starts all suites before the first test
+        reporter.onSuiteStart({ uid: 'suite-1', title: 'par', type: 'suite', parentUid: null } as any)
+        reporter.onSuiteStart({ uid: 'suite-2', title: 'one', type: 'suite', parentUid: 'suite-1' } as any)
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a', { title: 'P8 same title', parentUid: 'suite-2' }))
+        inContext('ctx-b')
+        reporter.onTestStart(test('b', 'ctx-b', { title: 'P1', parentUid: 'suite-1' }))
+
+        expect(nameOf(reporter, 'ctx-a').startsWith(nameA)).toBe(true)
+        expect(nameOf(reporter, 'ctx-b').startsWith(nameB)).toBe(true)
+    })
+
+    it.each([
+        [false, 'test', 'scenario-two--CHROME--'],
+        [false, 'suite', 'feature--scenario-two--CHROME--'],
+        [true, 'test', 'scenario-two--CHROME--'],
+        [true, 'suite', 'feature--CHROME--']
+    ])('names a parallel Cucumber scenario like sequential mode (scenarioLevelReporter: %s, filenamePrefixSource: %s)', async (scenarioLevel, filenamePrefixSource, name) => {
+        const reporter = new VideoReporter({ saveAllVideos: true, filenamePrefixSource } as any)
+        ;(reporter as unknown as { getContextId: () => string | undefined }).getContextId = () => current
+        reporter.onRunnerStart(cucumberRunner(scenarioLevel))
+        await sleep(0)
+        reporter.onSuiteStart({ uid: 'feature-1', title: 'feature', type: 'feature' } as any)
+        for (const [uid, contextId, title] of [['s1', 'ctx-a', 'scenario one'], ['s2', 'ctx-b', 'scenario two']]) {
+            inContext(contextId)
+            if (scenarioLevel) {
+                reporter.onTestStart(test(uid, contextId, { title, parentUid: 'feature-1' }))
+            } else {
+                reporter.onSuiteStart({ uid, title, type: 'scenario', parentUid: 'feature-1', contextId } as any)
+            }
+        }
+
+        // the second scenario starts while the first one runs
+        expect(nameOf(reporter, 'ctx-b').startsWith(name)).toBe(true)
+    })
+
+    it('gives 2 recordings with the same name and time their own folders', async () => {
+        const reporter = await startReporter()
+        vi.useFakeTimers({ toFake: ['Date'] })
+        try {
+            vi.setSystemTime(new Date(2026, 9, 21, 12, 0, 0, 0))
+            inContext('ctx-a')
+            reporter.onTestStart(test('a', 'ctx-a', { title: 'outline' }))
+            inContext('ctx-b')
+            reporter.onTestStart(test('b', 'ctx-b', { title: 'outline' }))
+        } finally {
+            vi.useRealTimers()
+        }
+
+        expect(nameOf(reporter, 'ctx-b')).toBe(`${nameOf(reporter, 'ctx-a')}-2`)
+    })
+})
