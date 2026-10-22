@@ -88,13 +88,7 @@ export default class TestStats extends RunnableStats {
         this.parent = test.parent
         // Mocha only
         this.body = test.body
-        // only set when the payload has them (parallel mode)
-        if (test.contextId !== undefined) {
-            this.contextId = test.contextId
-        }
-        if (test.parentUid !== undefined) {
-            this.parentUid = test.parentUid
-        }
+        this.keepParallelFields(test)
 
         /**
          * initial test state is pending

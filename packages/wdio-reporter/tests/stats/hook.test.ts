@@ -51,3 +51,26 @@ test('Should not mark hook as failed if onComplete has no errors', () => {
     expect(hook.error).toBeUndefined()
     expect(hook.state).not.toBe('failed')
 })
+
+test('keeps the context and the parent of a parallel hook', () => {
+    const hook = new HookStats({
+        cid: '0-0',
+        title: '"before each" hook for suite',
+        parent: 'suite',
+        uid: 'hook-0-0-1',
+        contextId: 'ctx-1',
+        parentUid: 'suite-0-0-0'
+    })
+    expect(hook.contextId).toBe('ctx-1')
+    expect(hook.parentUid).toBe('suite-0-0-0')
+})
+
+test('adds no context or parent property when the payload has none', () => {
+    const hook = new HookStats({
+        cid: '0-0',
+        title: 'foobar',
+        parent: 'barfoo'
+    })
+    expect(Object.keys(hook)).not.toContain('contextId')
+    expect(Object.keys(hook)).not.toContain('parentUid')
+})
