@@ -47,6 +47,8 @@ WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
+A hook title has the name of the hook function, as in Mocha: `"before each" hook: login for "my test"`, or no name for an anonymous hook: `"before each" hook for "my test"`. In v9 it had `wrappedHook`, the name of the WebdriverIO wrapper. You see this title in the error of a test that a failed hook skipped, and in the names of root-level hooks, for example in Allure.
+
 Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
 
 Mocha 12 changes that can leak through `mochaOpts`:

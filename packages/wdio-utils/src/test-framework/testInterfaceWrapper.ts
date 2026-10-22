@@ -82,6 +82,11 @@ export const runHook = function (
      * make sure Mocha grabs the correct hook function body
      */
     wrappedHook.toString = () => hookFn.toString()
+    /**
+     * Mocha titles a hook after its function name (`"before each" hook: login`),
+     * so keep the name of the user hook instead of `wrappedHook`
+     */
+    Object.defineProperty(wrappedHook, 'name', { value: hookFn.name })
     return origFn(wrappedHook, timeout)
 }
 

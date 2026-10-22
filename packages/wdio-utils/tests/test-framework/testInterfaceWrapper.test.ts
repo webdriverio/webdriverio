@@ -34,6 +34,15 @@ describe('runHook', () => {
         )
         expect(hookFunction.mock.calls[0][0].toString()).toBe('hookFn')
     })
+
+    it.each([
+        ['the name of a named hook', async function login () {}, 'login'],
+        ['no name for an anonymous hook', [async () => {}][0], ''],
+    ])('should give the wrapped hook %s, as Mocha titles a hook after its function', (_, hookFn, name) => {
+        const origFn = vi.fn()
+        runHook(hookFn, origFn, [], () => [], [], () => [], 'cid', 0, 0)
+        expect(origFn.mock.calls[0][0].name).toBe(name)
+    })
 })
 
 describe('runSpec', () => {
