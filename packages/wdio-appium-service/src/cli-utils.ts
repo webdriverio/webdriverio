@@ -1,10 +1,20 @@
-import { resolveOptionalDependency } from '@wdio/utils/node'
-import { execSync, spawn, exec, type ChildProcessByStdio } from 'node:child_process'
+import { resolveOptionalDependency, installCommand } from '@wdio/utils/node'
+import { execSync, spawn, execFile, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
+import fs from 'node:fs'
 import os from 'node:os'
+import path from 'node:path'
+import readline from 'node:readline/promises'
 import { promisify } from 'node:util'
 
 const APPIUM_START_TIMEOUT = 30 * 1000
+const INSPECTOR_PLUGIN_PACKAGE = 'appium-inspector-plugin'
+
+const INSPECTOR_PLUGIN_NOT_INSTALLED = 'ERR_INSPECTOR_PLUGIN_NOT_INSTALLED'
+
+function inspectorPluginNotInstalledError(message: string) {
+    return Object.assign(new Error(message), { code: INSPECTOR_PLUGIN_NOT_INSTALLED })
+}
 
 function extractPortFromArgs(args: string[]): number | null {
     const portArgIndex = args.findIndex((arg) => arg.startsWith('--port'))
@@ -79,24 +89,24 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
     const helpMessage = `Please check this link for more information: ${INSPECTOR_PLUGIN_DOCS_URL}`
 
     try {
-        // Using --installed flag returns only installed plugins
-        const { stdout, stderr } = await promisify(exec)(`${appiumCommandPath} plugin list --installed`, {
+        const { stdout, stderr } = await promisify(execFile)('node', [appiumCommandPath, 'plugin', 'list', '--installed', '--json'], {
             encoding: 'utf-8'
         })
 
-        // Appium outputs plugin list to stderr, not stdout
-        const output = stderr || stdout
-        if (!output || output.trim().length === 0) {
-            throw new Error(
-                `Appium Inspector plugin is not installed. ${helpMessage}`
-            )
-        }
+        const output = `${stdout}${stderr}`
+        const json = output.slice(output.indexOf('{'), output.lastIndexOf('}') + 1)
+        const plugins = JSON.parse(json) as Record<string, { pkgName?: string, installPath?: string }>
 
-        const lines = output.split('\n')
-        const inspectorLine = lines.find(line => /^-.*inspector/i.test(line.trim()))
+        /**
+         * Appium keeps listing a plugin as installed from its cached manifest after the
+         * package was removed from node_modules, so also check that it is on disk.
+         */
+        const isInstalled = Object.entries(plugins).some(([name, plugin]) =>
+            /inspector/i.test(`${name} ${plugin.pkgName}`) && (!plugin.installPath || fs.existsSync(plugin.installPath))
+        )
 
-        if (!inspectorLine) {
-            throw new Error(
+        if (!isInstalled) {
+            throw inspectorPluginNotInstalledError(
                 `Appium Inspector plugin is not installed. ${helpMessage}`
             )
         }
@@ -110,20 +120,65 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
     }
 }
 
+async function askToInstallInspectorPlugin(): Promise<boolean> {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+    try {
+        const answer = await rl.question(
+            '❓ The Appium Inspector plugin is not installed. Add it to this project as a dev dependency? (Y/n) '
+        )
+        return !/^n/i.test(answer.trim())
+    } finally {
+        rl.close()
+    }
+}
+
+function installInspectorPlugin(): Promise<void> {
+    const [command, ...installArgs] = installCommand(INSPECTOR_PLUGIN_PACKAGE).split(' ')
+
+    return new Promise((resolve, reject) => {
+        const installProcess = os.platform() === 'win32'
+            ? spawn([command, ...installArgs].join(' '), { stdio: 'inherit', shell: true })
+            : spawn(command, installArgs, { stdio: 'inherit' })
+        installProcess.once('error', reject)
+        installProcess.once('exit', (exitCode) => {
+            if (exitCode === 0) {
+                return resolve()
+            }
+            reject(new Error(`Installing the Appium Inspector plugin failed (exit code: ${exitCode})`))
+        })
+    })
+}
+
+/**
+ * Checks for the Inspector plugin and, in an interactive terminal inside a project,
+ * offers to add it as a dev dependency when it is missing. Otherwise the original error is thrown.
+ */
+export async function ensureInspectorPluginInstalled(appiumCommandPath: string): Promise<void> {
+    try {
+        return await checkInspectorPluginInstalled(appiumCommandPath)
+    } catch (err) {
+        if (
+            (err as { code?: string }).code !== INSPECTOR_PLUGIN_NOT_INSTALLED ||
+            !process.stdin.isTTY ||
+            !fs.existsSync(path.join(process.cwd(), 'package.json')) ||
+            !await askToInstallInspectorPlugin()
+        ) {
+            throw err
+        }
+    }
+
+    console.log('📦 Installing the Appium Inspector plugin...')
+    await installInspectorPlugin()
+    await checkInspectorPluginInstalled(appiumCommandPath)
+    console.log('✅ Appium Inspector plugin installed.')
+}
+
 export async function startAppiumForCli(
     appiumCommandPath: string,
     args: string[],
     timeout = APPIUM_START_TIMEOUT
 ): Promise<ChildProcessByStdio<null, Readable, Readable>> {
-    let command = 'node'
-    const appiumArgs = [appiumCommandPath, ...args]
-
-    if (os.platform() === 'win32') {
-        appiumArgs.unshift('/c', command)
-        command = 'cmd'
-    }
-
-    const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, appiumArgs, {
+    const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn('node', [appiumCommandPath, ...args], {
         stdio: ['ignore', 'pipe', 'pipe']
     })
     // just to validate the first error
