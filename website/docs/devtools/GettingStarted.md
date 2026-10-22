@@ -131,7 +131,7 @@ See the [Nightwatch page](/docs/devtools/nightwatch) for the Cucumber/BDD setup.
 </TabItem>
 <TabItem value="python">
 
-Needs Python 3.10+, `selenium>=4.44`, and Node.js 18+ on `PATH` (the dashboard backend is a Node application). Install the adapter, then the backend once:
+Needs Python 3.10+, `selenium>=4.44`, and Node.js 22.19+ on `PATH` (the dashboard backend is a Node application). Install the adapter, then the backend once:
 
 ```bash
 pip install selenium-devtools-py
