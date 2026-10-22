@@ -282,6 +282,13 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('context:end', (payload: ContextEnd) => {
             endedContextTests.delete(payload.contextId)
+            // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
+            const open = contextTests.get(payload.contextId)
+            if (open) {
+                contextByUid.delete(open.uid)
+                contextTests.delete(payload.contextId)
+            }
+            retriesByContext.delete(payload.contextId)
             this.onContextEnd(payload)
         })
 

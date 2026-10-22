@@ -917,6 +917,16 @@ describe('WDIOReporter Listeners', () => {
                 expect(onContextEnd).toHaveBeenCalledWith(payload)
             })
 
+            it('returns undefined after context:end for a test that never ended', () => {
+                // failHookAffectedTests: false: a failed beforeEach sends no result and no test:end
+                start('A', 'ctx-a')
+                reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(reporter.tests.A.state).toBe('pending')
+            })
+
             it('returns the pending test after its test:end when the pending payload has no contextId', () => {
                 // Cucumber scenario level: only test:start and test:end have the contextId
                 start('A', 'ctx-a')
