@@ -81,7 +81,8 @@ describe('BrowserRunner', () => {
     })
 
     it('initialize', async () => {
-        const runner = new BrowserRunner({}, {
+        vi.mocked(fs.access).mockResolvedValueOnce(undefined)
+        const runner = new BrowserRunner({ coverage: { enabled: true } }, {
             rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
@@ -90,6 +91,18 @@ describe('BrowserRunner', () => {
             path.join('/foo/bar', 'coverage'),
             { recursive: true }
         )
+    })
+
+    it('initialize does not delete the reports directory if coverage is disabled', async () => {
+        vi.mocked(fs.rm).mockClear()
+        vi.mocked(fs.access).mockResolvedValue(undefined)
+        const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any)
+        await runner.initialize()
+        expect(fs.rm).not.toBeCalled()
+        vi.mocked(fs.access).mockResolvedValue(false as never)
     })
 
     it('initialize rejects when Vite optimization fails', async () => {
