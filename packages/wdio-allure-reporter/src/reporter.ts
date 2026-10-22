@@ -68,9 +68,8 @@ type StepWrapper = { step: StepPayload }
 
 type ReportLane = {
     main: WDIORuntimeMessage[]
-    // @wdio/mocha-framework v10.1.x (the WebdriverIO package, not Mocha) sends the after hooks
-    // of a parallel test before its test:pass, so they are held back here and replayed after
-    // the test's own messages
+    // added for the Mocha framework: a framework that sends the after hooks of a parallel test
+    // before its test:pass gets them held back here and replayed after the test's own messages
     tail: WDIORuntimeMessage[]
     inTail: boolean
     console: string
