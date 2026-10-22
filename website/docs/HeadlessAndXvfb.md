@@ -178,7 +178,7 @@ Notes:
   - If you have a custom `DISPLAY` / WM setup, set `autoXvfb: false` or ensure `DISPLAY` is exported before the runner starts.
 
 - Every worker exits with `Error: write EINVAL` on Ubuntu 26.04
-  - Ubuntu 26.04's `xvfb-run`, which GitHub's `ubuntu-latest` runners use, closes the file descriptor the runner uses to talk to each worker it wraps, so no spec starts ([#15685](https://github.com/webdriverio/webdriverio/issues/15685)). Any of these avoids it:
+  - Ubuntu 26.04's `xvfb-run`, which GitHub's `ubuntu-latest` runners use, closes the file descriptor the runner uses to talk to each worker it wraps, so no spec starts ([#15685](https://github.com/webdriverio/webdriverio/issues/15685)). It's fixed in v9 releases after 9.32.0, so update your WebdriverIO packages. If you can't update yet, any of these avoids it:
     - Headless suites: set `autoXvfb: false`.
     - Suites that need a display: export `DISPLAY` before the runner starts, for example by starting `Xvfb :99 &` and setting `DISPLAY=:99`, or by running the whole command under `xvfb-run`. The runner then starts workers without wrapping them.
     - Run CI on Ubuntu 24.04, for example `runs-on: ubuntu-24.04`.
