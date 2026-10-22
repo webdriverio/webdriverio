@@ -185,6 +185,26 @@ describe('ReportAggregator', () => {
         expect(json.info.capabilities.browserName).toBe('chrome')
     })
 
+    it('keeps the device of an Appium session, which returns the capabilities without the appium: prefix', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        // the capabilities that Appium 3 (XCUITest) returns for a session
+        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, {
+            capabilities: { platformName: 'iOS', browserName: 'Safari', deviceName: 'iPhone 17', platformVersion: '26.3', automationName: 'XCUITest', udid: 'abc' }
+        })
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Device' } as never)
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(runner)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8'))
+        expect(json.info.capabilities).toEqual({ platformName: 'iOS', browserName: 'Safari', deviceName: 'iPhone 17', platformVersion: '26.3', automationName: 'XCUITest' })
+    })
+
     it('removes its process listeners when the runner ends', async () => {
         const { HtmlReporter } = await import('../src/index.js')
         const { RUNNER, SUITES } = await import('./testdata.js')

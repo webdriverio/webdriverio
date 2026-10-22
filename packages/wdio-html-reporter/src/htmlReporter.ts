@@ -23,9 +23,14 @@ const reportProxy = new ReportEvents()
 
 /**
  * the capabilities that the report files keep: they name the browser or the
- * device, and they have no credentials
+ * device, and they have no credentials. Appium returns its capabilities without
+ * the `appium:` prefix.
  */
-const REPORT_CAPABILITIES = ['browserName', 'browserVersion', 'platformName', 'appium:deviceName', 'appium:platformVersion', 'appium:automationName']
+const REPORT_CAPABILITIES = [
+    'browserName', 'browserVersion', 'platformName',
+    'appium:deviceName', 'appium:platformVersion', 'appium:automationName',
+    'deviceName', 'platformVersion', 'automationName'
+]
 
 function reportCapabilities (capabilities: unknown) {
     const caps = (capabilities ?? {}) as Record<string, unknown>
