@@ -195,4 +195,6 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
     if (failure) {
         throw failure
     }
+
+    return output
 }

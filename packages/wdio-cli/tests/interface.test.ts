@@ -115,6 +115,7 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.failed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(0)
+        expect(wdioClInterface.specs).toEqual({ passed: 0, failed: 0, skipped: 1, retries: 0 })
     })
 
     it('resets skipped spec results between watch reporting cycles', () => {

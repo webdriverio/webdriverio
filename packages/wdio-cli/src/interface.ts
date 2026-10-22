@@ -224,7 +224,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this._jobs.set(cid, { caps, specs, hasTests })
         if (hasTests) {
             this.onSpecRunning(cid)
-        } else {
+        } else if (hasTests === false) {
             this._skippedSpecs++
         }
     }

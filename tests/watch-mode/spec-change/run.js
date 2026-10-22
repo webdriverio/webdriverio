@@ -11,7 +11,7 @@ export default async function watchMode() {
     let source
     let watchedSpec
 
-    await runWatchModeTest({
+    const output = await runWatchModeTest({
         name: 'Watch mode',
         temporaryDirectoryPrefix: 'wdio-watch-mode-',
         configPath: path.join(directory, 'wdio.conf.js'),
@@ -43,4 +43,11 @@ export default async function watchMode() {
             assert.deepEqual(driver.deleted, [], 'The session must stay alive between runs')
         }
     })
+
+    const summaries = output.match(/Spec Files:[^\n]+/g) || []
+    // Shutdown can print the latest cycle's summary again.
+    assert.ok(summaries.length >= 3, 'Each watch run must report its spec results')
+    for (const summary of summaries) {
+        assert.doesNotMatch(summary, /skipped/, 'A watch rerun with tests must not count a skipped spec')
+    }
 }
