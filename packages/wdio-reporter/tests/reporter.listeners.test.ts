@@ -917,6 +917,16 @@ describe('WDIOReporter Listeners', () => {
                 expect(onContextEnd).toHaveBeenCalledWith(payload)
             })
 
+            it('returns the pending test after its test:end when the pending payload has no contextId', () => {
+                // Cucumber scenario level: only test:start and test:end have the contextId
+                start('A', 'ctx-a')
+                reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', state: 'pending' })
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
             it('returns the current test without a resolver for a sequential test', () => {
                 start('A')
                 expect(reporter.getContextTest()).toBe(reporter.tests.A)

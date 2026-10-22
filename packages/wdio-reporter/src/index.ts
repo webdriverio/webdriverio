@@ -71,10 +71,12 @@ export default class WDIOReporter extends EventEmitter {
             }
         }
         const trackContext = (test: Test, testStat: TestStats) => {
-            if (test.contextId) {
-                contextTests.set(test.contextId, testStat)
-                contextByUid.set(testStat.uid, test.contextId)
-                endedContextTests.delete(test.contextId)
+            // the stat keeps the contextId of its start when the payload has none (Cucumber scenario level)
+            const contextId = test.contextId ?? testStat.contextId
+            if (contextId) {
+                contextTests.set(contextId, testStat)
+                contextByUid.set(testStat.uid, contextId)
+                endedContextTests.delete(contextId)
             }
         }
         const getTestByContext = (contextId: string | undefined) => {
