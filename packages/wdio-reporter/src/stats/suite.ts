@@ -65,7 +65,7 @@ export default class SuiteStats extends RunnableStats {
          */
         this.description = suite.description
         this.rule = suite.rule
-        // only set when the payload has them (parallel mode, Vitest)
+        // only set when the payload has them (parallel mode)
         if (suite.parentUid !== undefined) {
             this.parentUid = suite.parentUid
         }

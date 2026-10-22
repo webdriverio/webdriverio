@@ -73,7 +73,7 @@ export default class TestStats extends RunnableStats {
     // `declare`: no own property when the payload has no value, so these stats stay the same
     /** the browsing context of a parallel test */
     declare contextId?: string
-    /** the uid of the suite of the test */
+    /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null
 
     constructor(test: Test) {
@@ -88,7 +88,7 @@ export default class TestStats extends RunnableStats {
         this.parent = test.parent
         // Mocha only
         this.body = test.body
-        // only set when the payload has them (parallel mode, Vitest)
+        // only set when the payload has them (parallel mode)
         if (test.contextId !== undefined) {
             this.contextId = test.contextId
         }
