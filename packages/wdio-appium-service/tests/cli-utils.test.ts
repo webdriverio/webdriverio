@@ -517,6 +517,15 @@ describe('checkInspectorPluginInstalled', () => {
         )
     })
 
+    it('should throw a plain Error with a code when the plugin is not installed', async () => {
+        mockOutput(pluginList({}))
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toMatchObject({
+            name: 'Error',
+            code: 'ERR_INSPECTOR_PLUGIN_NOT_INSTALLED'
+        })
+    })
+
     it('should throw error when inspector plugin is not installed', async () => {
         mockOutput(pluginList({ 'execute-driver': { pkgName: '@appium/execute-driver-plugin', installPath: '/x' } }))
 

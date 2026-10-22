@@ -9,7 +9,11 @@ import { promisify } from 'node:util'
 const APPIUM_START_TIMEOUT = 30 * 1000
 const INSPECTOR_PLUGIN_PACKAGE = 'appium-inspector-plugin'
 
-class InspectorPluginNotInstalledError extends Error {}
+const INSPECTOR_PLUGIN_NOT_INSTALLED = 'ERR_INSPECTOR_PLUGIN_NOT_INSTALLED'
+
+function inspectorPluginNotInstalledError(message: string) {
+    return Object.assign(new Error(message), { code: INSPECTOR_PLUGIN_NOT_INSTALLED })
+}
 
 function extractPortFromArgs(args: string[]): number | null {
     const portArgIndex = args.findIndex((arg) => arg.startsWith('--port'))
@@ -101,7 +105,7 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
         )
 
         if (!isInstalled) {
-            throw new InspectorPluginNotInstalledError(
+            throw inspectorPluginNotInstalledError(
                 `Appium Inspector plugin is not installed. ${helpMessage}`
             )
         }
@@ -167,7 +171,7 @@ export async function ensureInspectorPluginInstalled(appiumCommandPath: string):
         return await checkInspectorPluginInstalled(appiumCommandPath)
     } catch (err) {
         if (
-            !(err instanceof InspectorPluginNotInstalledError) ||
+            (err as { code?: string }).code !== INSPECTOR_PLUGIN_NOT_INSTALLED ||
             !process.stdin.isTTY ||
             !fs.existsSync('package.json') ||
             !await askToInstallInspectorPlugin()
