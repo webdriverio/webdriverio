@@ -369,6 +369,18 @@ describe('Mocha parallel mode', () => {
             expect(summary(await play('parallel', tests, undefined, true, options))).toEqual(sequential)
         })
 
+        it('gives a test the steps of its hooks as a sequential run does, with disableMochaHooks', async () => {
+            const tests: PlannedTest[] = [
+                { id: 'h1', title: 'first', suites: ['H'], outcome: 'pass' },
+                { id: 'i1', title: 'second', suites: ['I'], outcome: 'fail' },
+            ]
+            const steps = (played: { results: Result[] }) => Object.fromEntries(played.results.map((r) => [r.name, stepNames(r.steps)]))
+            const options = { disableMochaHooks: true }
+
+            const sequential = steps(await play('sequential', tests, undefined, false, options))
+            expect(steps(await play('parallel', tests, undefined, true, options))).toEqual(sequential)
+        })
+
         it('keeps the after hooks that an older framework sends before test:end', async () => {
             const legacy: PlannedTest = { ...A1, id: 'l1', title: 'legacy order', afterHooksBeforeEnd: true }
             const played = await play('parallel', [legacy, B1])
