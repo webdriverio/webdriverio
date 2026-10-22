@@ -76,6 +76,10 @@ export default class VideoReporter extends WdioReporter {
     #suites = new Map<string, { title: string, parentUid?: string | null }>()
     #takenNames = new Set<string>()
     /**
+     * Cucumber in parallel mode sends `test:end` after `test:pass` or `test:fail`
+     */
+    #endedTests = new Set<string>()
+    /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
      */
@@ -513,6 +517,9 @@ export default class VideoReporter extends WdioReporter {
          */
         const key = this.#keyOf(suite.contextId)
         const recording = this.#ownRecording(key)
+        if (suite.uid) {
+            this.#endedTests.delete(suite.uid)
+        }
         const startedAgain = recording.openTestTitle === suite.title
         recording.openTestTitle = suite.title
         if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
@@ -581,6 +588,12 @@ export default class VideoReporter extends WdioReporter {
     onTestEnd (test: TestStats) {
         if (!this.#record) {
             return
+        }
+        if (test.uid) {
+            if (this.#endedTests.has(test.uid)) {
+                return
+            }
+            this.#endedTests.add(test.uid)
         }
 
         const key = this.#keyOf(test.contextId)

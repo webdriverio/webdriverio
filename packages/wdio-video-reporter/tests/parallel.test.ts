@@ -294,3 +294,60 @@ describe('parallel video names', () => {
         expect(nameOf(reporter, 'ctx-b')).toBe(`${nameOf(reporter, 'ctx-a')}-2`)
     })
 })
+
+describe('Cucumber end events in parallel mode', () => {
+    const cucumberReporter = async (scenarioLevelReporter = false) => {
+        const reporter = new VideoReporter({ saveAllVideos: true })
+        ;(reporter as unknown as { getContextId: () => string | undefined }).getContextId = () => current
+        reporter.onRunnerStart({ ...runner, instanceOptions: { 'session-1': { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter }, reporters: [] } } })
+        await sleep(0)
+        return reporter
+    }
+    // Cucumber parallel mode sends test:pass (or test:fail), then test:end
+    const passAndEnd = (reporter: VideoReporter, uid: string) => {
+        const stats = test(uid, 'ctx-a', { state: 'passed', parentUid: 's1' })
+        reporter.onTestPass(stats)
+        reporter.onTestEnd(stats)
+    }
+
+    beforeEach(() => {
+        inContext('ctx-a')
+        vi.mocked(spawn).mockClear()
+    })
+
+    it('renders a scenario one time when Cucumber sends test:pass and test:end', async () => {
+        const reporter = await cucumberReporter(true)
+        reporter.onTestStart(test('s1', 'ctx-a', { title: 'scenario' }))
+        passAndEnd(reporter, 's1')
+        await sleep()
+
+        expect(spawn).toBeCalledTimes(1)
+    })
+
+    it('adds one end frame for a step that gets test:pass and test:end', async () => {
+        const reporter = await cucumberReporter()
+        reporter.onSuiteStart({ uid: 's1', title: 'scenario', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
+        reporter.onTestStart(test('step-1', 'ctx-a', { parentUid: 's1' }))
+        passAndEnd(reporter, 'step-1')
+
+        expect(reporter.frameNr).toBe(1)
+    })
+
+    it('keeps one recording for a retried scenario in parallel mode', async () => {
+        const reporter = await cucumberReporter()
+        vi.mocked(fs.mkdirSync).mockClear()
+        const scenario = { uid: 's1', title: 'scenario', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a', tests: [{ state: 'passed' }], hooks: [] } as any
+        reporter.onSuiteStart(scenario)
+        reporter.onTestStart(test('step-1', 'ctx-a', { parentUid: 's1' }))
+        passAndEnd(reporter, 'step-1')
+        // the retry runs in the same window, with the same scenario uid and new step uids
+        reporter.onSuiteRetry(scenario)
+        reporter.onTestStart(test('step-2', 'ctx-a', { parentUid: 's1' }))
+        passAndEnd(reporter, 'step-2')
+        reporter.onSuiteEnd(scenario)
+        await sleep()
+
+        expect(fs.mkdirSync).toBeCalledTimes(1)
+        expect(spawn).toBeCalledTimes(1)
+    })
+})
