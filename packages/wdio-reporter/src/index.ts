@@ -211,6 +211,13 @@ export default class WDIOReporter extends EventEmitter {
             if (startedTest) {
                 currentTest.start = startedTest.start
                 currentTest.output = startedTest.output
+                // the Cucumber parallel scenario payload has no contextId
+                if (currentTest.contextId === undefined && startedTest.contextId !== undefined) {
+                    currentTest.contextId = startedTest.contextId
+                }
+                if (currentTest.parentUid === undefined && startedTest.parentUid !== undefined) {
+                    currentTest.parentUid = startedTest.parentUid
+                }
             }
             // a pending test that never started (Mocha `it.skip`) ends now, with no duration
             currentTest.complete()
