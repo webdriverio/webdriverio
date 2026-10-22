@@ -26,6 +26,12 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
 
+## Protocol command availability
+
+Since v10, every known protocol command is present on the client. Calling a command whose protocol is unavailable for the session rejects with a message naming the required protocol, instead of `command is not a function`. This does not add support for that protocol to the browser or remote server.
+
+Do not use method presence to detect protocol support. Use session flags such as `browser.isChromium` or `browser.isMobile`. To replace a known protocol command with a custom implementation, use `overwriteCommand`; `addCommand` is for a new command name.
+
 ## Component tests
 
 The browser runner still runs in Chrome 90, Edge 90, Firefox 90 and Safari 14.1 or newer. See [Browser support](/docs/component-testing#browser-support).

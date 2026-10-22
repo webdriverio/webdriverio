@@ -41,7 +41,7 @@ describe('utils', () => {
         })
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
-        expect(typeof webdriverPrototype.sendCommand).toBe('undefined')
+        expect(typeof webdriverPrototype.sendCommand.value).toBe('function')
         expect(typeof webdriverPrototype.performActions.value).toBe('function')
         expect(typeof webdriverPrototype.lock).toBe('undefined')
 
@@ -86,6 +86,21 @@ describe('utils', () => {
         })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
+    })
+
+    it.each([
+        ['getDeviceTime', 'Appium'],
+        ['getNetworkConditions', 'Chromium'],
+        ['getMozContext', 'Gecko'],
+        ['getPageLogs', 'Sauce Labs'],
+        ['getHubConfig', 'Selenium'],
+        ['file', 'Chromium or Selenium']
+    ])('explains the required protocol for %s', async (name, protocolName) => {
+        const prototype = getPrototype({})
+        expect(typeof prototype[name].value).toBe('function')
+        await expect(prototype[name].value()).rejects.toThrow(
+            `The "${name}" command is not supported by this session. It requires ${protocolName} protocol support.`
+        )
     })
 
     describe('getBidiRequestOptions', () => {

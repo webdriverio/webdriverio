@@ -33,8 +33,10 @@ describe('downloadFile', () => {
             }
         })
 
+        vi.mocked(fetch).mockClear()
         await expect(browser.downloadFile('bar.jpg', '/foo/bar')).rejects.toEqual(
             new Error('The downloadFile command is not available in mockBrowser and only available when using Selenium Grid'))
+        expect(fetch).not.toHaveBeenCalled()
     })
 
     it('should throw if path is not a string', async function () {
@@ -51,6 +53,10 @@ describe('downloadFile', () => {
     })
 
     it('should unzip the file and use downloadFile command', async () => {
+        vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: {
+            sessionId: 'selenium-download-session',
+            capabilities: { browserName: 'chrome', 'se:cdp': 'ws://localhost/devtools', 'se:downloadsEnabled': true }
+        } }))
         vi.spyOn(JSZip, 'loadAsync').mockReturnValue(Promise.resolve(
             {
                 files: {
@@ -67,10 +73,10 @@ describe('downloadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.download = vi.fn().mockReturnValue({
+        vi.spyOn(browser, 'download').mockReturnValue(Promise.resolve({
             fileName: 'test',
             contents: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=='
-        })
+        }))
 
         await browser.downloadFile('toDownload.jpg', __dirname)
         const log = logger('test')
@@ -82,6 +88,10 @@ describe('downloadFile', () => {
     })
 
     it('reject on error', async () => {
+        vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: {
+            sessionId: 'selenium-download-session',
+            capabilities: { browserName: 'chrome', 'se:cdp': 'ws://localhost/devtools', 'se:downloadsEnabled': true }
+        } }))
         vi.spyOn(JSZip, 'loadAsync').mockRejectedValue('test'
         )
         const browser = await remote({
@@ -90,10 +100,10 @@ describe('downloadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.download = vi.fn().mockReturnValue({
+        vi.spyOn(browser, 'download').mockReturnValue(Promise.resolve({
             fileName: 'test',
             contents: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=='
-        })
+        }))
 
         await browser.downloadFile('toDownload.jpg', __dirname)
         const log = logger('test')
