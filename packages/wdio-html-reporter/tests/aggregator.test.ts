@@ -138,6 +138,8 @@ describe('ReportAggregator', () => {
         const error = vi.spyOn(console, 'error').mockImplementation(() => {})
         try {
             expect(await runCli(['master-report.html', outputDir, 'Title'], { CI: 'true' })).toBe(0)
+            // skipped without a TypeError stack
+            expect(error).not.toHaveBeenCalled()
             // a worker that stopped while it wrote its file
             fs.writeFileSync(path.join(outputDir, 'report-0-1.json'), '{"info":{"specs":["a.js"]')
             expect(await runCli(['master-report.html', outputDir, 'Title'], { CI: 'true' })).toBe(1)

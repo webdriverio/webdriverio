@@ -141,6 +141,7 @@ class ReportAggregator {
                 if (!report.info || !report.info.specs) {
                     this.LOG.error('report structure in question, no info or info.specs ', JSON.stringify(report))
                     this.LOG.debug('report content: ', JSON.stringify(report))
+                    continue
                 }
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 report.info.specs.forEach((spec: any) => {
