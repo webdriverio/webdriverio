@@ -276,6 +276,27 @@ describe('ReportAggregator', () => {
         expect(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')).not.toContain('hooksAndTests')
     })
 
+    it('reports a worker whose session did not start', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'No session' } as never)
+        const runner = { ...RUNNER, cid: '0-2', specs: ['file:///project/login.spec.js'] } as never
+        reporter.onRunnerStart(runner)
+        // the runner gives the error of the session start in runner:end
+        await reporter.onRunnerEnd({ ...(runner as object), failures: 1, error: 'connect ECONNREFUSED 127.0.0.1:9' } as never)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'No session' })
+        await reportAggregator.createReport()
+        expect(reportAggregator.failed).toBe(true)
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).toContain('0-2 (login.spec.js) could not start its session')
+        // the error text can have a host name with credentials: it stays in the logs
+        expect(fs.readFileSync(path.join(outputDir, 'report-0-2.json'), 'utf-8')).not.toContain('ECONNREFUSED')
+    })
+
     it('reports a worker that stopped before it wrote its results', async () => {
         const { HtmlReporter } = await import('../src/index.js')
         const { runCli } = await import('../src/makeReportCli.js')

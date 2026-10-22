@@ -623,3 +623,66 @@ describe('code review points', () => {
         warn.mockRestore()
     })
 })
+
+describe('second code review points', () => {
+    const dirs: string[] = []
+    const tempDir = (name: string) => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), `html-reporter-${name}-`))
+        dirs.push(dir)
+        return dir
+    }
+    const runWorker = async (outputDir: string, options: Record<string, unknown> = {}) => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Review', ...options } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        const file = path.join(outputDir, 'screenshots', 'shot.png')
+        fs.writeFileSync(file, 'png')
+        new ReportEvents().logScreenshot(file)
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        return file
+    }
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        for (const dir of dirs) {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('links the screenshots and the style from a report in a folder of the file name', async () => {
+        const dir = tempDir('subfolder')
+        const file = await runWorker(dir)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: path.join('html', 'master.html'), reportTitle: 'Sub', linkScreenshots: true })
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        const reportUrl = url.pathToFileURL(reportAggregator.reportFile)
+        const src = html.match(/<img[^>]*src="([^"]+)"/)?.[1]
+        expect(new URL(src!, reportUrl).href).toBe(url.pathToFileURL(file).href)
+        expect(fs.existsSync(url.fileURLToPath(new URL('report-styles.css', reportUrl)))).toBe(true)
+    })
+
+    it('writes valid script options when collapseTests and collapseSuites are undefined', async () => {
+        const dir = tempDir('collapse')
+        await runWorker(dir)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master.html', reportTitle: 'Collapse', collapseTests: undefined, collapseSuites: undefined })
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).not.toMatch(/if \(\s*\)/)
+        expect(html.match(/if \((true|false)\) \{/g)).toHaveLength(2)
+    })
+
+    it('makes the report when the folder has a broken symbolic link', async () => {
+        const dir = tempDir('symlink')
+        await runWorker(dir)
+        fs.symlinkSync(path.join(dir, 'deleted.webm'), path.join(dir, 'latest.webm'))
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master.html', reportTitle: 'Symlink' })
+        await expect(reportAggregator.createReport()).resolves.toBeUndefined()
+        expect(reportAggregator.failed).toBe(false)
+        expect(reportAggregator.reports).toHaveLength(1)
+    })
+})

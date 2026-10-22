@@ -16,21 +16,14 @@ import { withExtension } from './fileNames.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
-function  walk(dir:string, extensions: string[], filelist: string[] = []) {
-    const files = fs.readdirSync(dir)
-
-    files.forEach(function (file : string) {
-        const filepath = path.join(dir, file)
-        const stat = fs.statSync(filepath)
-
-        if (stat.isDirectory()) {
-            filelist = walk(filepath, extensions, filelist)
-        } else if (extensions.some((extension) => file.endsWith(extension))) {
-            filelist.push(filepath)
-        }
-    })
-
-    return filelist
+/**
+ * the files with one of the extensions in the folder and its subfolders (a symbolic
+ * link is not a file, also when it is broken)
+ */
+function walk(dir: string, extensions: string[]) {
+    return fs.readdirSync(dir, { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile() && extensions.some((extension) => entry.name.endsWith(extension)))
+        .map((entry) => path.join(entry.parentPath, entry.name))
 }
 
 type ReportSuite = { tests?: { events?: { type?: string, value?: unknown }[] }[], suites?: ReportSuite[] }
@@ -124,6 +117,10 @@ class ReportAggregator {
         let inputFailed = false
         /** the workers that stopped before they wrote their results, or could not write them */
         const incomplete: string[] = []
+        /** the workers whose session did not start: they have no tests */
+        const notStarted: string[] = []
+        const workerOf = (report: { info?: { cid?: string, specs?: string[] } }) =>
+            `${report.info?.cid} (${(report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')})`
         for (let i = 0; i < files.length; i++) {
             try {
                 const filename = files[i]
@@ -141,9 +138,11 @@ class ReportAggregator {
                     continue
                 }
                 if (report.incomplete) {
-                    const specs = (report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')
-                    incomplete.push(`${report.info?.cid} (${specs})`)
+                    incomplete.push(workerOf(report))
                     continue
+                }
+                if (report.info?.sessionFailed) {
+                    notStarted.push(workerOf(report))
                 }
                 if (!report.info || !report.info.specs) {
                     this.LOG.error('report structure in question, no info or info.specs ', JSON.stringify(report))
@@ -232,8 +231,12 @@ class ReportAggregator {
             this.reportFile,
             this.options.browserName)
         reportData.master = true
-        if (incomplete.length) {
-            reportData.message = `The report is not complete: worker ${incomplete.join(', ')} stopped before it wrote its results, or could not write them. See the logs of the run.`
+        const problems = [
+            ...(incomplete.length ? [`worker ${incomplete.join(', ')} stopped before it wrote its results, or could not write them`] : []),
+            ...(notStarted.length ? [`worker ${notStarted.join(', ')} could not start its session`] : [])
+        ]
+        if (problems.length) {
+            reportData.message = `The report is not complete: ${problems.join('; ')}. See the logs of the run.`
         } else if (noWorkerReport) {
             reportData.message = `${this.reports[0].info.cid}`
         }
@@ -241,7 +244,7 @@ class ReportAggregator {
         this.failed = false
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed || noWorkerReport || incomplete.length > 0
+            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed || noWorkerReport || problems.length > 0
             await this.finalize()
             this.LOG.info('Report Aggregation completed')
 

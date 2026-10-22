@@ -119,6 +119,9 @@ the title (default `Master Report`). The script opens the report in a browser, e
 variable is set. It ends with exit code 1 when the folder does not exist, has no JSON file of a worker, or when it
 cannot make the report, so a CI step fails.
 
+The script reads all JSON files in the folder. Empty the folder before each test run (for example remove it, or call
+`new ReportAggregator({ outputDir }).clean()` in `onPrepare`), or the results of an earlier run are in the report.
+
 ## PDF report
 
 To create a PDF file from the report, see [`@rpii/wdio-html-reporter-pdf`](https://www.npmjs.com/package/@rpii/wdio-html-reporter-pdf).

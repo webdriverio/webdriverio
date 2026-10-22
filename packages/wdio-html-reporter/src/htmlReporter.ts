@@ -60,7 +60,9 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         _duration: runner._duration,
         isMultiRemote: runner.isMultiRemote,
         retry: runner.retry,
-        capabilities
+        capabilities,
+        // the runner gives the error of a session that did not start; its text can have credentials
+        ...(runner.error ? { sessionFailed: true } : {})
     } as unknown as RunnerStats
 }
 
@@ -98,8 +100,6 @@ export default class HtmlReporter extends WDIOReporter {
             {
                 stdout: true,
                 logFile: './logs/reporter.log',
-                reporterSyncTimeout: 120000,
-                reporterSyncInterval: 1000,
             }, options))
         const opts = new HtmlReporterOptions()
         opts.stdout = true
