@@ -57,6 +57,8 @@ export default class WDIOReporter extends EventEmitter {
 
         let currentTest: TestStats
         const contextTests = new Map<string, TestStats>()
+        // the last test of a context after its test:end: Mocha runs afterEach / after hooks then
+        const endedContextTests = new Map<string, TestStats>()
         const contextByUid = new Map<string, string>()
         const retriesByContext = new Map<string, number>()
         const getContextId = (test: Test) => test.contextId ?? contextByUid.get(test.uid)
@@ -72,11 +74,12 @@ export default class WDIOReporter extends EventEmitter {
             if (test.contextId) {
                 contextTests.set(test.contextId, testStat)
                 contextByUid.set(testStat.uid, test.contextId)
+                endedContextTests.delete(test.contextId)
             }
         }
         const getTestByContext = (contextId: string | undefined) => {
             if (contextId) {
-                return contextTests.get(contextId)
+                return contextTests.get(contextId) ?? endedContextTests.get(contextId)
             }
             return contextTests.size === 0 ? currentTest : undefined
         }
@@ -262,6 +265,10 @@ export default class WDIOReporter extends EventEmitter {
             const testStat = this.tests[test.uid]
             const contextId = getContextId(test)
             if (contextId) {
+                const ended = contextTests.get(contextId)
+                if (ended) {
+                    endedContextTests.set(contextId, ended)
+                }
                 retriesByContext.delete(contextId)
                 contextTests.delete(contextId)
                 contextByUid.delete(test.uid)
