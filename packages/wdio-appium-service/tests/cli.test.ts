@@ -213,6 +213,19 @@ describe('cli run', () => {
         })
     })
 
+    it('should not report an error when Appium exited while it was being stopped', async () => {
+        mockPromisifiedTreeKill.mockImplementation(async () => {
+            mockProcess.exitCode = 0
+            throw new Error('process not found')
+        })
+
+        await testCleanup('SIGINT', async (handler) => {
+            await handler()
+            expect(console.error).not.toHaveBeenCalled()
+            expect(process.exit).toHaveBeenCalledWith(0)
+        })
+    })
+
     it('should handle error when determineAppiumCliCommand throws', async () => {
         await testErrorHandling(
             vi.mocked(cliUtils.determineAppiumCliCommand),

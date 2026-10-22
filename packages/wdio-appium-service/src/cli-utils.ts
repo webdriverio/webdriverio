@@ -115,27 +115,13 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
     }
 }
 
-type InstallChoice = 'dependency' | 'appium' | null
-
-async function askInstallChoice(): Promise<InstallChoice> {
+async function askToInstallInspectorPlugin(): Promise<boolean> {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
     try {
         const answer = await rl.question(
-            '❓ The Appium Inspector plugin is not installed. How do you want to install it?\n' +
-            '   1) Add it to this project as a dev dependency (saved in package.json)\n' +
-            '   2) Install it into Appium only (not saved, repeat on every machine)\n' +
-            '   3) Do not install\n' +
-            'Choice (1/2/3, default 1): '
+            '❓ The Appium Inspector plugin is not installed. Add it to this project as a dev dependency? (Y/n) '
         )
-        switch (answer.trim()) {
-        case '':
-        case '1':
-            return 'dependency'
-        case '2':
-            return 'appium'
-        default:
-            return null
-        }
+        return !/^n/i.test(answer.trim())
     } finally {
         rl.close()
     }
@@ -154,11 +140,14 @@ function getPackageManagerAddCommand(): [string, string[]] {
     return ['npm', ['install', '--save-dev']]
 }
 
-function runInstall(command: string, args: string[], useShell = false): Promise<void> {
+function installInspectorPlugin(): Promise<void> {
+    const [command, args] = getPackageManagerAddCommand()
+    const installArgs = [...args, INSPECTOR_PLUGIN_PACKAGE]
+
     return new Promise((resolve, reject) => {
-        const installProcess = useShell && os.platform() === 'win32'
-            ? spawn([command, ...args].join(' '), { stdio: 'inherit', shell: true })
-            : spawn(command, args, { stdio: 'inherit' })
+        const installProcess = os.platform() === 'win32'
+            ? spawn([command, ...installArgs].join(' '), { stdio: 'inherit', shell: true })
+            : spawn(command, installArgs, { stdio: 'inherit' })
         installProcess.once('error', reject)
         installProcess.once('exit', (exitCode) => {
             if (exitCode === 0) {
@@ -169,42 +158,26 @@ function runInstall(command: string, args: string[], useShell = false): Promise<
     })
 }
 
-function installInspectorPlugin(appiumCommandPath: string, choice: 'dependency' | 'appium'): Promise<void> {
-    if (choice === 'dependency') {
-        const [command, args] = getPackageManagerAddCommand()
-        return runInstall(command, [...args, INSPECTOR_PLUGIN_PACKAGE], true)
-    }
-    return runInstall('node', [appiumCommandPath, 'plugin', 'install', '--source=npm', INSPECTOR_PLUGIN_PACKAGE])
-}
-
 /**
- * Checks for the Inspector plugin and, in an interactive terminal, offers to install it
- * when it is missing. Without a TTY the original error is thrown.
+ * Checks for the Inspector plugin and, in an interactive terminal inside a project,
+ * offers to add it as a dev dependency when it is missing. Otherwise the original error is thrown.
  */
 export async function ensureInspectorPluginInstalled(appiumCommandPath: string): Promise<void> {
-    let choice: InstallChoice
     try {
         return await checkInspectorPluginInstalled(appiumCommandPath)
     } catch (err) {
-        if (!(err instanceof InspectorPluginNotInstalledError) || !process.stdin.isTTY) {
-            throw err
-        }
-        choice = await askInstallChoice()
-        if (!choice) {
+        if (
+            !(err instanceof InspectorPluginNotInstalledError) ||
+            !process.stdin.isTTY ||
+            !fs.existsSync('package.json') ||
+            !await askToInstallInspectorPlugin()
+        ) {
             throw err
         }
     }
 
     console.log('📦 Installing the Appium Inspector plugin...')
-    try {
-        await installInspectorPlugin(appiumCommandPath, choice)
-    } catch (err) {
-        /**
-         * Appium can fail to register the plugin because its manifest still lists it from an
-         * earlier install, although the package itself was installed. Only fail if it is still missing.
-         */
-        await checkInspectorPluginInstalled(appiumCommandPath).catch(() => { throw err })
-    }
+    await installInspectorPlugin()
     await checkInspectorPluginInstalled(appiumCommandPath)
     console.log('✅ Appium Inspector plugin installed.')
 }

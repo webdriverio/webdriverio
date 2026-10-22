@@ -592,7 +592,7 @@ describe('ensureInspectorPluginInstalled', () => {
         vi.clearAllMocks()
         originalIsTTY = process.stdin.isTTY
         process.stdin.isTTY = true
-        vi.mocked(fs.existsSync).mockImplementation((file) => file === '/project/node_modules/appium-inspector-plugin')
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === 'package.json' || file === '/project/node_modules/appium-inspector-plugin')
         vi.mocked(os.platform).mockReturnValue('darwin')
         vi.spyOn(console, 'log').mockImplementation(() => {})
     })
@@ -610,7 +610,7 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(spawn).not.toHaveBeenCalled()
     })
 
-    it('should add the plugin as dev dependency by default and check again', async () => {
+    it('should add the plugin as dev dependency when the user agrees and check again', async () => {
         mockPluginList(missing, installed)
         mockQuestion.mockResolvedValue('')
         mockInstall(0)
@@ -630,9 +630,9 @@ describe('ensureInspectorPluginInstalled', () => {
         ['yarn.lock', 'yarn', ['add', '-D', 'appium-inspector-plugin']],
         ['bun.lock', 'bun', ['add', '-d', 'appium-inspector-plugin']]
     ])('should use the package manager of the project for %s', async (lockFile, command, args) => {
-        vi.mocked(fs.existsSync).mockImplementation((file) => file === lockFile || file === '/project/node_modules/appium-inspector-plugin')
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === 'package.json' || file === lockFile || file === '/project/node_modules/appium-inspector-plugin')
         mockPluginList(missing, installed)
-        mockQuestion.mockResolvedValue('1')
+        mockQuestion.mockResolvedValue('y')
         mockInstall(0)
 
         await ensureInspectorPluginInstalled('/path/to/appium')
@@ -643,7 +643,7 @@ describe('ensureInspectorPluginInstalled', () => {
     it('should use a shell for the package manager on Windows', async () => {
         vi.mocked(os.platform).mockReturnValue('win32')
         mockPluginList(missing, installed)
-        mockQuestion.mockResolvedValue('1')
+        mockQuestion.mockResolvedValue('y')
         mockInstall(0)
 
         await ensureInspectorPluginInstalled('/path/to/appium')
@@ -651,23 +651,9 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(spawn).toHaveBeenCalledWith('npm install --save-dev appium-inspector-plugin', { stdio: 'inherit', shell: true })
     })
 
-    it('should install the plugin into Appium only when chosen', async () => {
-        mockPluginList(missing, installed)
-        mockQuestion.mockResolvedValue('2')
-        mockInstall(0)
-
-        await ensureInspectorPluginInstalled('/path/to/appium')
-
-        expect(spawn).toHaveBeenCalledWith(
-            'node',
-            ['/path/to/appium', 'plugin', 'install', '--source=npm', 'appium-inspector-plugin'],
-            { stdio: 'inherit' }
-        )
-    })
-
     it('should throw the original error when the user declines', async () => {
         mockPluginList(missing)
-        mockQuestion.mockResolvedValue('3')
+        mockQuestion.mockResolvedValue('n')
 
         await expect(ensureInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'Appium Inspector plugin is not installed'
@@ -685,22 +671,24 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(mockQuestion).not.toHaveBeenCalled()
     })
 
-    it('should continue when the installation reports an error but the plugin is installed afterwards', async () => {
-        mockPluginList(missing, installed, installed)
-        mockQuestion.mockResolvedValue('2')
-        mockInstall(1)
-
-        await expect(ensureInspectorPluginInstalled('/path/to/appium')).resolves.toBeUndefined()
-    })
-
-    it('should throw when the installation fails and the plugin is still missing', async () => {
-        mockPluginList(missing, missing)
-        mockQuestion.mockResolvedValue('1')
+    it('should throw when the installation fails', async () => {
+        mockPluginList(missing)
+        mockQuestion.mockResolvedValue('y')
         mockInstall(1)
 
         await expect(ensureInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'Installing the Appium Inspector plugin failed (exit code: 1)'
         )
+    })
+
+    it('should throw the original error without asking when there is no package.json', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(false)
+        mockPluginList(missing)
+
+        await expect(ensureInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Appium Inspector plugin is not installed'
+        )
+        expect(mockQuestion).not.toHaveBeenCalled()
     })
 
     it('should not offer an installation for other check failures', async () => {

@@ -48,13 +48,20 @@ export async function run() {
         }
         isCleaningUp = true
 
-        if (appiumProcess && appiumProcess.pid && typeof appiumProcess.exitCode !== 'number') {
+        const hasExited = () => typeof appiumProcess.exitCode === 'number' || typeof appiumProcess.signalCode === 'string'
+
+        if (appiumProcess && appiumProcess.pid && !hasExited()) {
             console.log('\n🛑 Stopping Appium server...')
             try {
                 await promisifiedTreeKill(appiumProcess.pid, 'SIGTERM')
                 console.log('✅ Appium server stopped successfully')
             } catch (err) {
-                console.error('Error stopping Appium:', err)
+                /**
+                 * Ctrl+C also sends SIGINT to Appium, so it can be gone before we try to kill it
+                 */
+                if (!hasExited()) {
+                    console.error('Error stopping Appium:', err)
+                }
             }
         }
         // Remove signal handlers before exiting to prevent duplicate handlers if run() is called again
