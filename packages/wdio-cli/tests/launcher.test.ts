@@ -829,6 +829,35 @@ describe('launcher', () => {
             )
         })
 
+        it('should wait before the last retry (retries=0)', async () => {
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    onWorkerStart: vi.fn(),
+                    specFileRetries: 2,
+                    specFileRetriesDelay: 0.01
+                })
+            } as any
+
+            await launcher['_startInstance'](['/foo.test.js'], { browserName: 'chrome' }, 0, '0-8', 0)
+
+            expect(sleep).toHaveBeenCalledWith(10)
+        })
+
+        it('should not wait in watch mode', async () => {
+            launcher['_isWatchMode'] = true
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    onWorkerStart: vi.fn(),
+                    specFileRetries: 2,
+                    specFileRetriesDelay: 0.01
+                })
+            } as any
+
+            await launcher['_startInstance'](['/foo.test.js'], { browserName: 'chrome' }, 0, '0-9', 0)
+
+            expect(sleep).not.toHaveBeenCalled()
+        })
+
         it('should not wait before starting an instance on the first run', async () => {
             const onWorkerStartMock = vi.fn()
             const caps = {
