@@ -61,14 +61,11 @@ class HtmlGenerator {
                 autoescape: true,
             })
 
-            environment.addGlobal('renderImage', function (screenshotFile: string, screenshotPath: string) {
+            environment.addGlobal('renderImage', function (screenshotFile: string) {
                 // occurs when there is an image to render
                 let relPath
                 try {
 
-                    if (!fs.existsSync(screenshotFile)) {
-                        screenshotFile = screenshotPath ? `${screenshotPath}/${screenshotFile}` : `${screenshotFile}`
-                    }
                     if (!fs.existsSync(screenshotFile)) {
                         HtmlGenerator.LOG.error('renderImage: file does not exist: ' + screenshotFile)
                     }

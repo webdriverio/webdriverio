@@ -17,6 +17,6 @@ describe('html reporter', () => {
     })
 
     it('logs an object', async () => {
-        reportEvents.logMessage({ title: await browser.getTitle() } as never)
+        reportEvents.logMessage({ title: await browser.getTitle() })
     })
 })
