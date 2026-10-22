@@ -4,7 +4,6 @@ import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
 import { hostname } from 'node:os'
 
-
 import type {
     AfterCommandArgs,
     Argument,
