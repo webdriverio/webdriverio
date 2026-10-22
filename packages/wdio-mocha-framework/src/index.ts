@@ -52,6 +52,8 @@ class MochaAdapter {
     private _testCnt: Map<string, number> = new Map()
     /** uid of the test between its test:start and its test:end */
     private _openTestUid?: string
+    /** Mocha test between its test:start and its test:end */
+    private _openTest?: Record<string, unknown>
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -321,6 +323,20 @@ class MochaAdapter {
          */
         if (payload.root) {
             return
+        }
+
+        /**
+         * Mocha 11.8+ sends a second 'test' event for the open test when a `beforeEach`
+         * hook fails with `failHookAffectedTests` (mochajs/mocha#6442), so ignore it.
+         * TODO: remove when the `mocha` version range of this package includes the fix.
+         */
+        if (event === 'test:start') {
+            if (payload === this._openTest) {
+                return
+            }
+            this._openTest = payload
+        } else if (event === 'test:end') {
+            this._openTest = undefined
         }
 
         const message = formatMessage({ type: event, payload, err })

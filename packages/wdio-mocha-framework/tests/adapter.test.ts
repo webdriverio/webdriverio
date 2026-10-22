@@ -438,6 +438,27 @@ test('emit does not emit anything on root level', () => {
     expect(wdioReporter.emit).not.toBeCalled()
 })
 
+test('emit ignores a second test:start for the test that is open', () => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory()
+    const t1 = { title: 't1', type: 'test' }
+    const t2 = { title: 't2', type: 'test' }
+
+    // failing beforeEach with failHookAffectedTests: Mocha 11.8+ sends `test` twice (mochajs/mocha#6442)
+    adapter.emit('test:start', t1)
+    adapter.emit('test:start', t1)
+    adapter.emit('test:fail', t1, new Error('hook failed') as any)
+    adapter.emit('test:end', t1)
+    adapter.emit('test:start', t2)
+
+    expect(wdioReporter.emit.mock.calls.map(([type, { uid }]) => [type, uid])).toEqual([
+        ['test:start', 'test-0-0'],
+        ['test:fail', 'test-0-0'],
+        ['test:end', 'test-0-0'],
+        ['test:start', 'test-0-1'],
+    ])
+})
+
 test('emit properly reports to reporter', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
