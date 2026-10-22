@@ -216,7 +216,7 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 
 ## Mobile (Appium)
 
-Appium sessions are captured in live and trace mode. Declare Appium under `selenium` with `use_appium: true`, `start_process: false` and `default_path_prefix: ''`. For a native app set `browserName: null`; otherwise Nightwatch fills in Firefox and the adapter treats the session as having a web page. Leave `bidi` off, since Appium serves no BiDi.
+Appium sessions are captured in live and trace mode. Declare Appium under `selenium` with `use_appium: true`, `start_process: false` and `default_path_prefix: ''`. For a native app set `browserName: null`; otherwise Nightwatch fills in Firefox and the adapter treats the session as having a web page. Leave `bidi` off, since Appium serves no BiDi. A native app's network is captured when `desiredCapabilities` sets `'appium:intercept': true` and Appium runs the appium-interceptor plugin; see [Native app network](/docs/devtools/mobile#native-app-network).
 
 ```js
 // nightwatch.mobile.conf.cjs
