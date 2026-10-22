@@ -31,6 +31,7 @@ const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
  * @param  {Function} afterArgsFn   function that returns args for `afterFn`
  * @param  {string}   cid           cid
  * @param  {number}   repeatTest    number of retries if hook fails
+ * @param  {string}   hookTitle     hook description, e.g. `beforeEach('seed database', fn)`
  * @return {Function}               wrapped framework hook function
  */
 export const runHook = function (
@@ -43,7 +44,8 @@ export const runHook = function (
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number,
-    timeout: number
+    timeout: number,
+    hookTitle?: string
 ) {
     const wrappedHook = function (
         this: unknown,
@@ -83,10 +85,10 @@ export const runHook = function (
      */
     wrappedHook.toString = () => hookFn.toString()
     /**
-     * Mocha titles a hook after its function name (`"before each" hook: login`),
-     * so keep the name of the user hook instead of `wrappedHook`
+     * Mocha titles a hook after its description or its function name (`"before each" hook: login`),
+     * so keep them instead of the name `wrappedHook`
      */
-    Object.defineProperty(wrappedHook, 'name', { value: hookFn.name })
+    Object.defineProperty(wrappedHook, 'name', { value: hookTitle ?? hookFn?.name ?? '' })
     return origFn(wrappedHook, timeout)
 }
 
@@ -249,7 +251,8 @@ export const wrapTestFunction = function (
             afterArgsFn,
             cid,
             retryCnt as number,
-            timeout
+            timeout,
+            typeof specTitle === 'string' ? specTitle : undefined
         )
     }
 }
