@@ -1,8 +1,9 @@
-import { resolveOptionalDependency } from '@wdio/utils/node'
+import { resolveOptionalDependency, installCommand } from '@wdio/utils/node'
 import { execSync, spawn, execFile, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 import fs from 'node:fs'
 import os from 'node:os'
+import path from 'node:path'
 import readline from 'node:readline/promises'
 import { promisify } from 'node:util'
 
@@ -131,22 +132,8 @@ async function askToInstallInspectorPlugin(): Promise<boolean> {
     }
 }
 
-function getPackageManagerAddCommand(): [string, string[]] {
-    if (fs.existsSync('pnpm-lock.yaml')) {
-        return ['pnpm', ['add', '-D']]
-    }
-    if (fs.existsSync('yarn.lock')) {
-        return ['yarn', ['add', '-D']]
-    }
-    if (fs.existsSync('bun.lock') || fs.existsSync('bun.lockb')) {
-        return ['bun', ['add', '-d']]
-    }
-    return ['npm', ['install', '--save-dev']]
-}
-
 function installInspectorPlugin(): Promise<void> {
-    const [command, args] = getPackageManagerAddCommand()
-    const installArgs = [...args, INSPECTOR_PLUGIN_PACKAGE]
+    const [command, ...installArgs] = installCommand(INSPECTOR_PLUGIN_PACKAGE).split(' ')
 
     return new Promise((resolve, reject) => {
         const installProcess = os.platform() === 'win32'
@@ -173,7 +160,7 @@ export async function ensureInspectorPluginInstalled(appiumCommandPath: string):
         if (
             (err as { code?: string }).code !== INSPECTOR_PLUGIN_NOT_INSTALLED ||
             !process.stdin.isTTY ||
-            !fs.existsSync('package.json') ||
+            !fs.existsSync(path.join(process.cwd(), 'package.json')) ||
             !await askToInstallInspectorPlugin()
         ) {
             throw err

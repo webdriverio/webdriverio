@@ -2,8 +2,10 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { spawn, execSync, execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
+import path from 'node:path'
 import url from 'node:url'
 import { resolve as resolveModule } from 'import-meta-resolve'
+import { installCommand } from '@wdio/utils/node'
 import {
     extractPortFromCliArgs,
     determineAppiumCliCommand,
@@ -26,6 +28,11 @@ vi.mock('node:readline/promises', () => ({
     default: {
         createInterface: vi.fn(() => ({ question: mockQuestion, close: vi.fn() }))
     }
+}))
+
+vi.mock('@wdio/utils/node', async (importActual) => ({
+    ...await importActual<Record<string, unknown>>(),
+    installCommand: vi.fn(() => 'npm i -D appium-inspector-plugin')
 }))
 
 vi.mock('import-meta-resolve', () => ({
@@ -601,7 +608,7 @@ describe('ensureInspectorPluginInstalled', () => {
         vi.clearAllMocks()
         originalIsTTY = process.stdin.isTTY
         process.stdin.isTTY = true
-        vi.mocked(fs.existsSync).mockImplementation((file) => file === 'package.json' || file === '/project/node_modules/appium-inspector-plugin')
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === path.join(process.cwd(), 'package.json') || file === '/project/node_modules/appium-inspector-plugin')
         vi.mocked(os.platform).mockReturnValue('darwin')
         vi.spyOn(console, 'log').mockImplementation(() => {})
     })
@@ -626,27 +633,20 @@ describe('ensureInspectorPluginInstalled', () => {
 
         await ensureInspectorPluginInstalled('/path/to/appium')
 
-        expect(spawn).toHaveBeenCalledWith(
-            'npm',
-            ['install', '--save-dev', 'appium-inspector-plugin'],
-            { stdio: 'inherit' }
-        )
+        expect(installCommand).toHaveBeenCalledWith('appium-inspector-plugin')
+        expect(spawn).toHaveBeenCalledWith('npm', ['i', '-D', 'appium-inspector-plugin'], { stdio: 'inherit' })
         expect(execFile).toHaveBeenCalledTimes(2)
     })
 
-    it.each([
-        ['pnpm-lock.yaml', 'pnpm', ['add', '-D', 'appium-inspector-plugin']],
-        ['yarn.lock', 'yarn', ['add', '-D', 'appium-inspector-plugin']],
-        ['bun.lock', 'bun', ['add', '-d', 'appium-inspector-plugin']]
-    ])('should use the package manager of the project for %s', async (lockFile, command, args) => {
-        vi.mocked(fs.existsSync).mockImplementation((file) => file === 'package.json' || file === lockFile || file === '/project/node_modules/appium-inspector-plugin')
+    it('should install with the package manager that @wdio/utils detects for the project', async () => {
+        vi.mocked(installCommand).mockReturnValueOnce('pnpm add -D appium-inspector-plugin')
         mockPluginList(missing, installed)
         mockQuestion.mockResolvedValue('y')
         mockInstall(0)
 
         await ensureInspectorPluginInstalled('/path/to/appium')
 
-        expect(spawn).toHaveBeenCalledWith(command, args, { stdio: 'inherit' })
+        expect(spawn).toHaveBeenCalledWith('pnpm', ['add', '-D', 'appium-inspector-plugin'], { stdio: 'inherit' })
     })
 
     it('should use a shell for the package manager on Windows', async () => {
@@ -657,7 +657,7 @@ describe('ensureInspectorPluginInstalled', () => {
 
         await ensureInspectorPluginInstalled('/path/to/appium')
 
-        expect(spawn).toHaveBeenCalledWith('npm install --save-dev appium-inspector-plugin', { stdio: 'inherit', shell: true })
+        expect(spawn).toHaveBeenCalledWith('npm i -D appium-inspector-plugin', { stdio: 'inherit', shell: true })
     })
 
     it('should throw the original error when the user declines', async () => {
