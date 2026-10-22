@@ -16,7 +16,44 @@ import type { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 
-const GLOB_CHARACTERS = /[*?{}[\]]/
+/**
+ * characters that make a path segment a glob: `*`, `?`, `[]`, `{}` and extglobs like `@(a|b)`
+ */
+const GLOB_CHARACTERS = /[*?{}[\]]|[@+!]\(/
+
+/**
+ * Split an absolute path into the directory that has to be watched and the glob
+ * pattern (relative to it, with `/` as separator). Segments that exist on disk are
+ * taken literally, e.g. a checkout in `/work/app[1]`. Without a glob the pattern is empty.
+ */
+function splitGlob(absolutePath: string) {
+    const segments = absolutePath.split(path.sep)
+    const pathOf = (count: number) => {
+        const joined = segments.slice(0, count).join(path.sep)
+        return joined === '' || /^[A-Za-z]:$/.test(joined) ? joined + path.sep : joined
+    }
+
+    let literalCount = 1
+    while (
+        literalCount < segments.length &&
+        (!GLOB_CHARACTERS.test(segments[literalCount]) || fs.existsSync(pathOf(literalCount + 1)))
+    ) {
+        literalCount++
+    }
+    if (literalCount >= segments.length) {
+        return { root: absolutePath, pattern: '' }
+    }
+
+    // watch the closest directory that exists
+    let rootCount = literalCount
+    while (rootCount > 1 && !fs.existsSync(pathOf(rootCount))) {
+        rootCount--
+    }
+    return {
+        root: pathOf(rootCount),
+        pattern: segments.slice(rootCount).join('/')
+    }
+}
 
 type Spec = string | string[]
 export default class Watcher {
@@ -103,42 +140,44 @@ export default class Watcher {
     private resolveFilesToWatch(filesToWatch: string[], rootDir: string) {
         const paths = new Set<string>()
         const literals: string[] = []
-        const patterns: string[] = []
+        const globs: { root: string, pattern: string }[] = []
         for (const file of filesToWatch) {
             const absolutePath = path.isAbsolute(file)
                 ? path.normalize(file)
                 : path.resolve(rootDir, file)
-            if (!GLOB_CHARACTERS.test(absolutePath)) {
+            const { root, pattern } = splitGlob(absolutePath)
+            if (!pattern) {
                 paths.add(absolutePath)
                 literals.push(absolutePath)
                 continue
             }
-
-            // watch the deepest directory without glob characters that exists
-            const staticSegments: string[] = []
-            for (const segment of absolutePath.split(path.sep)) {
-                if (GLOB_CHARACTERS.test(segment)) {
-                    break
-                }
-                staticSegments.push(segment)
-            }
-            let baseDir = staticSegments.join(path.sep) || path.sep
-            while (!fs.existsSync(baseDir) && path.dirname(baseDir) !== baseDir) {
-                baseDir = path.dirname(baseDir)
-            }
-            paths.add(baseDir)
-            patterns.push(absolutePath.replace(/\\/g, '/'))
+            paths.add(root)
+            globs.push({ root, pattern })
         }
 
-        const isWatched = (file: string) => (
+        const isWatched = (file: string, stats?: fs.Stats) => (
             literals.some((literal) => file === literal || file.startsWith(literal + path.sep)) ||
-            patterns.some((pattern) => minimatch(file.replace(/\\/g, '/'), pattern, { dot: true }))
+            globs.some(({ root, pattern }) => {
+                if (file === root) {
+                    return true
+                }
+                if (!file.startsWith(root + path.sep)) {
+                    return false
+                }
+                const relativePath = path.relative(root, file).split(path.sep).join('/')
+                /**
+                 * Files have to match the pattern. Everything else (or when chokidar
+                 * doesn't know yet) is kept if it can still lead to a match, so only
+                 * directories that can't contain a match are skipped.
+                 */
+                return minimatch(relativePath, pattern, { dot: true, partial: !stats?.isFile() })
+            })
         )
         return {
             paths: [...paths],
-            ignored: patterns.length === 0
+            ignored: globs.length === 0
                 ? undefined
-                : (file: string, stats?: fs.Stats) => Boolean(stats?.isFile()) && !isWatched(file)
+                : (file: string, stats?: fs.Stats) => !isWatched(path.normalize(file), stats) // chokidar passes `/` separators on Windows
         }
     }
 

@@ -254,42 +254,83 @@ describe('watcher', () => {
         })
     })
 
-    it('should watch the base directory of glob patterns in filesToWatch and ignore non-matching files', async () => {
-        const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-watcher-'))
-        onTestFinished(() => fs.rmSync(rootDir, { recursive: true, force: true }))
-        fs.mkdirSync(path.join(rootDir, 'src', 'nested'), { recursive: true })
-
-        const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
-        watcher['_configFile'] = path.join(rootDir, 'wdio.conf.js')
-        watcher['_launcher'] = {
-            run: vi.fn(),
-            initialize: vi.fn(),
-            interface: { finalise: vi.fn() },
-            configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['./src/**/*.js', './missing/**/*.ts', './static/file.json'] }),
-                getSpecs: vi.fn().mockReturnValue([]),
-                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
-            },
-            runner: { workerPool: {} }
-        } as any
-        vi.mocked(chokidar.watch).mockClear()
-        await watcher.watch()
-
-        const call = vi.mocked(chokidar.watch).mock.calls.find((c) => (c[0] as string[]).includes(path.join(rootDir, 'src')))
-        // a pattern without an existing directory falls back to the closest existing parent
-        expect(call![0]).toEqual([path.join(rootDir, 'src'), rootDir, path.join(rootDir, 'static', 'file.json')])
-
-        const ignored = (call![1] as any).ignored as (file: string, stats?: { isFile: () => boolean }) => boolean
+    describe('filesToWatch globs', () => {
         const file = { isFile: () => true }
-        // files that match the pattern, including new ones, are watched
-        expect(ignored(path.join(rootDir, 'src', 'a.js'), file)).toBe(false)
-        expect(ignored(path.join(rootDir, 'src', 'nested', 'new.js'), file)).toBe(false)
-        expect(ignored(path.join(rootDir, 'missing', 'deep', 'x.ts'), file)).toBe(false)
-        expect(ignored(path.join(rootDir, 'static', 'file.json'), file)).toBe(false)
-        // others are ignored, directories are never ignored so chokidar can descend
-        expect(ignored(path.join(rootDir, 'src', 'c.txt'), file)).toBe(true)
-        expect(ignored(path.join(rootDir, 'other.js'), file)).toBe(true)
-        expect(ignored(path.join(rootDir, 'src', 'nested'), { isFile: () => false })).toBe(false)
+        const dir = { isFile: () => false }
+        const makeRoot = (name = 'project') => {
+            const base = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-watcher-'))
+            onTestFinished(() => fs.rmSync(base, { recursive: true, force: true }))
+            const rootDir = path.join(base, name)
+            fs.mkdirSync(path.join(rootDir, 'src', 'nested'), { recursive: true })
+            fs.mkdirSync(path.join(rootDir, 'unrelated'), { recursive: true })
+            return rootDir
+        }
+        const resolve = (filesToWatch: string[], rootDir: string) => {
+            const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
+            return watcher['resolveFilesToWatch'](filesToWatch, rootDir)
+        }
+
+        it('should watch the base directory of glob patterns and ignore non-matching files', () => {
+            const rootDir = makeRoot()
+            const { paths, ignored } = resolve(['./src/**/*.js', './missing/**/*.ts', './static/file.json'], rootDir)
+
+            // a pattern without an existing directory falls back to the closest existing parent
+            expect(paths).toEqual([path.join(rootDir, 'src'), rootDir, path.join(rootDir, 'static', 'file.json')])
+            // files that match the pattern, including new ones, are watched
+            expect(ignored!(path.join(rootDir, 'src', 'a.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'nested', 'new.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'missing', 'deep', 'x.ts'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'static', 'file.json'), file)).toBe(false)
+            // chokidar passes `/` separators on Windows
+            expect(ignored!(path.join(rootDir, 'src', 'a.js').split(path.sep).join('/'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'c.txt').split(path.sep).join('/'), file)).toBe(true)
+            // others are ignored
+            expect(ignored!(path.join(rootDir, 'src', 'c.txt'), file)).toBe(true)
+            expect(ignored!(path.join(rootDir, 'other.js'), file)).toBe(true)
+            // directories that can lead to a match are kept so chokidar can descend
+            expect(ignored!(path.join(rootDir, 'src', 'nested'), dir)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'missing'), dir)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'missing', 'deep'))).toBe(false)
+        })
+
+        it('should not scan directories that can not contain a match', () => {
+            const rootDir = makeRoot()
+            const { ignored } = resolve(['./missing/**/*.ts'], rootDir)
+
+            expect(ignored!(path.join(rootDir, 'unrelated'), dir)).toBe(true)
+            expect(ignored!(path.join(rootDir, 'unrelated'))).toBe(true)
+            expect(ignored!(path.join(rootDir, 'src'), dir)).toBe(true)
+            expect(ignored!(rootDir, dir)).toBe(false)
+        })
+
+        it('should treat glob characters in existing directories of the checkout literally', () => {
+            const rootDir = makeRoot('app[1]')
+            const { paths, ignored } = resolve(['./src/**/*.js'], rootDir)
+
+            expect(paths).toEqual([path.join(rootDir, 'src')])
+            expect(ignored!(path.join(rootDir, 'src', 'a.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'nested', 'b.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'c.txt'), file)).toBe(true)
+        })
+
+        it('should support extglob patterns', () => {
+            const rootDir = makeRoot()
+            const { paths, ignored } = resolve(['./src/@(foo|bar).js', './src/nested/+(a|b).js'], rootDir)
+
+            expect(paths).toEqual([path.join(rootDir, 'src'), path.join(rootDir, 'src', 'nested')])
+            expect(ignored!(path.join(rootDir, 'src', 'foo.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'bar.js'), file)).toBe(false)
+            expect(ignored!(path.join(rootDir, 'src', 'baz.js'), file)).toBe(true)
+            expect(ignored!(path.join(rootDir, 'src', 'nested', 'ab.js'), file)).toBe(false)
+        })
+
+        it('should pass literal paths on without an ignore callback', () => {
+            const rootDir = makeRoot()
+            const { paths, ignored } = resolve(['./src', './does/not/exist.js'], rootDir)
+
+            expect(paths).toEqual([path.join(rootDir, 'src'), path.join(rootDir, 'does', 'not', 'exist.js')])
+            expect(ignored).toBeUndefined()
+        })
     })
 
     it('should resolve `wdio:specs` capabilities to file URLs instead of crashing', async () => {
