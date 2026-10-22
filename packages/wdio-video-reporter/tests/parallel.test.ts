@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
 import { browser } from '@wdio/globals'
 import VideoReporter from '../src/index.js'
@@ -349,5 +349,62 @@ describe('Cucumber end events in parallel mode', () => {
 
         expect(fs.mkdirSync).toBeCalledTimes(1)
         expect(spawn).toBeCalledTimes(1)
+    })
+})
+
+describe('frame waits in parallel mode', () => {
+    type Hook = (commandName: string, args?: unknown[]) => Promise<unknown> | undefined
+    /** the beforeCommand hook of the last reporter (the browser mock is shared) */
+    const lastHook = () => {
+        const hooks = (browser.options as { beforeCommand: Hook[] }).beforeCommand
+        return hooks[hooks.length - 1]
+    }
+    /** captures that answer only when the test says so */
+    const heldCaptures = () => {
+        const held: (() => void)[] = []
+        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(({ context }: any) => new Promise((resolve) => {
+            held.push(() => resolve({ data: Buffer.from(context).toString('base64') } as any))
+        }))
+        return () => held.splice(0).forEach((release) => release())
+    }
+    const settled = async (promise: unknown) => {
+        let done = false
+        void Promise.resolve(promise).then(() => { done = true })
+        await sleep()
+        return done
+    }
+
+    afterEach(() => {
+        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(async ({ context }: any) => ({ data: Buffer.from(context).toString('base64') }) as any)
+    })
+
+    it('does not make a command of test B wait for the frame of test A', async () => {
+        const reporter = await startReporter()
+        heldCaptures()
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a'))
+        navigate('ctx-a')()
+        inContext('ctx-b')
+        reporter.onTestStart(test('b', 'ctx-b'))
+
+        expect(await settled(lastHook()('url'))).toBe(true)
+        inContext('ctx-a')
+        expect(await settled(lastHook()('url'))).toBe(false)
+    })
+
+    it('waits for the last frame before the test window closes', async () => {
+        const reporter = await startReporter()
+        const release = heldCaptures()
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a'))
+        reporter.onTestEnd(test('a', 'ctx-a', { state: 'passed' }))
+        // the framework closes the window outside the test context
+        inContext(undefined)
+        const close = lastHook()('browsingContextClose', [{ context: 'ctx-a' }])
+
+        expect(await settled(close)).toBe(false)
+        release()
+        expect(await settled(close)).toBe(true)
+        expect(close).toBeInstanceOf(Promise)
     })
 })

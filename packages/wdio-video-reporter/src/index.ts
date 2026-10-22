@@ -80,6 +80,10 @@ export default class VideoReporter extends WdioReporter {
      */
     #endedTests = new Set<string>()
     /**
+     * parallel mode: the last frame of each test window, until the window closes
+     */
+    #lastFramesOfWindow = new Map<string, Promise<unknown>>()
+    /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
      */
@@ -632,6 +636,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         this.#clearInterval(recording)
+        this.#lastFramesOfWindow.set(key, recording.lastScreenshot)
         this.#recordings.delete(key)
     }
 
@@ -820,11 +825,21 @@ export default class VideoReporter extends WdioReporter {
         const hooks = options.beforeCommand
         options.beforeCommand = [
             ...(Array.isArray(hooks) ? hooks : hooks ? [hooks] : []),
-            (commandName: string) => {
+            (commandName: string, args?: unknown[]) => {
                 // the commands of the screenshot itself must not wait for it
                 if (REPORTER_COMMANDS.has(commandName)) {
                     return
                 }
+                // parallel mode: the framework closes the window of a test after its last frame
+                if (commandName === 'browsingContextClose') {
+                    const context = (args?.[0] as { context?: string } | undefined)?.context
+                    const lastFrame = context ? this.#lastFramesOfWindow.get(context) : undefined
+                    if (context && lastFrame) {
+                        this.#lastFramesOfWindow.delete(context)
+                        return endsInTime(lastFrame, FRAME_WAIT_TIMEOUT)
+                    }
+                }
+                // in parallel mode only the commands of the same test wait
                 const recording = this.#recordingOf()
                 const frame = recording?.pendingFrame
                 if (recording) {
