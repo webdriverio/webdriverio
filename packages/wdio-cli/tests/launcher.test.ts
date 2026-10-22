@@ -848,7 +848,7 @@ describe('launcher', () => {
                 caps,
                 0,
                 '0-7',
-                4
+                -1
             )
 
             expect(sleep).not.toHaveBeenCalled()
