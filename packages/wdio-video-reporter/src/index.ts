@@ -529,8 +529,8 @@ export default class VideoReporter extends WdioReporter {
         }
 
         /**
-         * Mocha reports a test as started again (with a new uid) when its beforeEach
-         * hook failed: keep the recording of the first start, with the frames of the hook
+         * Mocha can report a test as started again when its beforeEach hook failed
+         * (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
          */
         const key = this.#keyOf(suite.contextId)
         if (this.#isSkippedParallelTest(key)) {
