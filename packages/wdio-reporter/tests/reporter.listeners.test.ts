@@ -91,6 +91,21 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests['step-3'].output.map((entry) => entry.type)).toEqual(['command', 'result'])
         })
 
+        it('keeps the context and the parent of a started parallel test that ends as pending', () => {
+            // Cucumber parallel scenarioLevelReporter: the pending payload has no contextId
+            reporter.emit('test:start', { ...stat, uid: 'scenario-1', contextId: 'ctx-1', parentUid: 'feature-1' })
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-1', state: 'pending' })
+            expect(reporter.tests['scenario-1'].contextId).toBe('ctx-1')
+            expect(reporter.tests['scenario-1'].parentUid).toBe('feature-1')
+        })
+
+        it('adds no context or parent property to a sequential test that ends as pending', () => {
+            reporter.emit('test:start', { ...stat, uid: 'step-4' })
+            reporter.emit('test:pending', { ...stat, uid: 'step-4', state: 'pending' })
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('contextId')
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('parentUid')
+        })
+
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
             vi.useFakeTimers({ toFake: ['Date'] })
             try {
