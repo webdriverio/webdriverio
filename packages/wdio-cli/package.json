@@ -49,7 +49,7 @@
     "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "chalk": "^6.0.1",
-    "chokidar": "^5.0.0",
+    "chokidar": "^6.0.0",
     "create-wdio": "workspace:*",
     "dotenv": "^18.0.6",
     "import-meta-resolve": "^4.0.0",
