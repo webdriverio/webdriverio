@@ -27,7 +27,7 @@ type PlannedTest = {
     noAfterAll?: boolean
     /** leave the lane open: no pass/fail/end */
     unfinished?: boolean
-    /** older `@wdio/mocha-framework` (10.1): after hooks of a parallel test before its test:end, and no context:end */
+    /** `@wdio/mocha-framework` v10.1.x: after hooks of a parallel test before its test:end, and no context:end */
     afterHooksBeforeEnd?: boolean
     afterAllFails?: boolean
 }
