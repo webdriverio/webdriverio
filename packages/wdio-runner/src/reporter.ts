@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import logger from '@wdio/logger'
 import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
@@ -15,6 +16,9 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: unknown) => void)[] = []
+    private _resultId = randomUUID()
+    private _run = 0
+    private _testCounts: Reporters.TestCounts = { passed: 0, failed: 0, skipped: 0, retries: 0 }
 
     constructor(
         private _config: Options.Testrunner,
@@ -56,9 +60,28 @@ export default class BaseReporter {
         instanceOptions?: Options.Testrunner
         capabilities?: unknown
         retry?: number,
+        type?: string,
         contextId?: string
     }) {
         payload.cid = this._cid
+
+        // Count framework events once, independently of configured reporters.
+        if (e === 'runner:start') {
+            this._run++
+            this._testCounts = { passed: 0, failed: 0, skipped: 0, retries: 0 }
+        } else if (e === 'test:pass') {
+            this._testCounts.passed++
+        } else if (e === 'test:fail') {
+            this._testCounts.failed++
+        } else if (e === 'test:pending' || e === 'test:skip') {
+            this._testCounts.skipped++
+        } else if (e === 'test:retry' || e === 'suite:retry' || (
+            e === 'test:start' && payload.type === 'scenario' && typeof payload.retry === 'number' && payload.retry > 0
+        )) {
+            this._testCounts.retries++
+        } else if (e === 'runner:end') {
+            this.#emitData({ origin: 'worker', name: 'testCounts', cid: this._cid, content: { id: `${this._resultId}:${this._run}`, counts: { ...this._testCounts } } })
+        }
 
         /**
          * Send failure message (only once) in case of test or hook failure

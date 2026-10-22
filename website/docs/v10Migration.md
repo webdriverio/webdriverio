@@ -8,6 +8,17 @@ This guide collects the breaking changes of WebdriverIO `v10` and what you have 
 
 Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. The [legacy command signatures](#legacy-command-signatures) below are mechanical replacements. Each other section describes how to find the affected places in your suite.
 
+## Programmatic launcher results
+
+`Launcher.run()` from `@wdio/cli` now returns an object instead of a number. Read `result.exitCode` when setting a process status. `result.duration` is elapsed milliseconds; `result.tests` contains framework outcome counts across executed attempts, and `result.specs` contains spec-file job counts. The CLI exit behavior is unchanged. See [the module API](./api/Modules.md#launcherconfigpath-opts) for retry, pending and watch-mode semantics.
+
+```ts
+import { Launcher } from '@wdio/cli'
+
+const result = await new Launcher('./wdio.conf.js').run()
+process.exitCode = result.exitCode
+```
+
 ## Migrate with a coding agent
 
 Give your agent the v10 migration skill and ask it to migrate the suite to WebdriverIO v10, following this page. The skill is the procedure: what to search for, which codemod to run, and when to stop. This page is the source of truth for each break.

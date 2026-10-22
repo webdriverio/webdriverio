@@ -3,7 +3,7 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
-import type { Workers } from '@wdio/types'
+import type { Workers, Reporters } from '@wdio/types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
@@ -51,6 +51,27 @@ export default class WDIOCLInterface extends EventEmitter {
         teardown?: number
         total?: number
     }> = []
+
+    private _testCounts = new Map<string, Reporters.TestCounts>()
+
+    get testCounts(): Reporters.TestCounts {
+        const total = { passed: 0, failed: 0, skipped: 0, retries: 0 }
+        for (const counts of this._testCounts.values()) {
+            for (const name of ['passed', 'failed', 'skipped', 'retries'] as const) {
+                total[name] += counts[name]
+            }
+        }
+        return total
+    }
+
+    get specs() {
+        return {
+            passed: this.result.passed,
+            failed: this.result.failed,
+            skipped: this._skippedSpecs,
+            retries: this.result.retries
+        }
+    }
 
     private _jobs: Map<string, Workers.Job> = new Map()
     private _specFileRetries: number
@@ -109,6 +130,8 @@ export default class WDIOCLInterface extends EventEmitter {
             failed: 0
         }
         this.workerTimings = []
+        this._testCounts.clear()
+        this._skippedSpecs = 0
 
         this._messages = {
             reporter: {},
@@ -287,6 +310,12 @@ export default class WDIOCLInterface extends EventEmitter {
             return snapshotResults.forEach((snapshotResult) => {
                 this.#snapshotManager.add(snapshotResult)
             })
+        }
+
+        if (event.name === 'testCounts') {
+            const { id, counts } = event.content as { id: string, counts: Reporters.TestCounts }
+            this._testCounts.set(id, counts)
+            return
         }
 
         if (event.name === 'workerTimings') {

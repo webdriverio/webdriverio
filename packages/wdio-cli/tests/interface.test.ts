@@ -76,6 +76,21 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.failed).toBe(1)
     })
 
+    it('aggregates worker attempts and watch reruns without counting duplicate summaries', () => {
+        const send = (id: string, cid: string, passed: number, failed = 0, retries = 0) =>
+            wdioClInterface.onMessage({ origin: 'worker', name: 'testCounts', cid,
+                content: { id, counts: { passed, failed, retries, skipped: 1 } } })
+        send('worker-a:1', '0-0', 2, 1, 1)
+        send('worker-a:1', '0-0', 2, 1, 1)
+        send('worker-a:2', '0-0', 3)
+        send('worker-b:1', '0-0', 4)
+        send('worker-c:1', '0-1', 5)
+        expect(wdioClInterface.testCounts).toEqual({ passed: 14, failed: 1, skipped: 4, retries: 1 })
+        expect(wdioClInterface.result.finished).toBe(0)
+        wdioClInterface.setup()
+        expect(wdioClInterface.testCounts).toEqual({ passed: 0, failed: 0, skipped: 0, retries: 0 })
+    })
+
     it('should collect workerTimings messages', () => {
         wdioClInterface.onMessage({
             origin: 'worker',
@@ -100,6 +115,17 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.failed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(0)
+    })
+
+    it('resets skipped spec results between watch reporting cycles', () => {
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: false })
+        wdioClInterface.emit('job:end', { cid: '0-0' })
+        const previousCycle = wdioClInterface.specs
+        expect(previousCycle).toEqual({ passed: 0, failed: 0, skipped: 1, retries: 0 })
+
+        wdioClInterface.setup()
+        expect(wdioClInterface.specs).toEqual({ passed: 0, failed: 0, skipped: 0, retries: 0 })
+        expect(previousCycle.skipped).toBe(1)
     })
 
     it('should allow to store reporter messages', () => {

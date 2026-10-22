@@ -7,6 +7,7 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 - `smoke-mocha` runs a Mocha testrunner session and checks passed and skipped counts.
 - `smoke-jasmine` runs a Jasmine session, including spec filtering and reporters.
 - `smoke-cucumber` runs a Cucumber session, including line filters, tags, and pending steps.
+- `smoke-launcher-results` returns structured programmatic test/spec counts and duration while preserving numeric CLI exit codes.
 - `smoke-cli` runs spec and exclude selection from the CLI.
 - `smoke-plugin` runs a custom service and a custom reporter through the launcher.
 - `smoke-standalone` runs `remote`, `attach`, and `multiRemote` inside a worker with the mock driver.
@@ -28,6 +29,8 @@ Preconditions:
 
 - **List names.** Run `pnpm run test:smoke:list`. Exit 0 and stdout includes `standaloneTest`. This does not launch WebdriverIO.
 - **Mocha session.** Run `pnpm run test:smoke mochaTestrunner`. Exit 0, stdout contains `All smoke tests passed!`, and the suite assertion requires `passed` 4 and `skippedSpecs` 1. On Windows the suite returns before those counts; do not treat that early return as the count check.
+- **Programmatic launcher results.** Run `pnpm run test:smoke launcherRunResults`. Exit 0 and `All smoke tests passed!`; assertions cover mixed outcomes, framework and whole-spec retries, no specs, and child CLI exit codes 1 and 0.
+- **Cucumber launcher results.** Run `pnpm run test:smoke launcherCucumberResults`. Exit 0 and `All smoke tests passed!`; one actual native scenario retry is counted with both step-level and scenario-level reporting. Parallel scenario payloads are covered by the Cucumber adapter unit tests; real BiDi parallel integration requires a BiDi session and experimental capabilities.
 - **Ambiguous Cucumber step.** Run `pnpm run test:smoke cucumberFailAmbiguousDefinitions`. Exit 0 and `All smoke tests passed!` mean the child run failed as expected and its spec report lists the matching step definitions of the ambiguous step.
 - **Standalone client.** Run `pnpm run test:smoke standaloneTest`. Exit 0 and stdout contains `All smoke tests passed!`. The spec expects the mock title `Mock Page Title`.
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
