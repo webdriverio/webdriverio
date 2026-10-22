@@ -834,6 +834,37 @@ describe('webdriver request', () => {
             expect(Agent).toHaveBeenCalledTimes(1) // Once for global dispatcher mock, once for actual dispatcher
         })
 
+        it('should not verify certificates if strictSSL is disabled', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(Agent).toHaveBeenCalledWith(expect.objectContaining({
+                connect: { rejectUnauthorized: false }
+            }))
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(ProxyAgent).toHaveBeenCalledWith(expect.objectContaining({
+                requestTls: { rejectUnauthorized: false },
+                proxyTls: { rejectUnauthorized: false }
+            }))
+        })
+
+        it('should verify certificates by default', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: true })
+            expect(vi.mocked(Agent).mock.calls[0][0]).not.toHaveProperty('connect')
+        })
+
         it('should handle getGlobalDispatcher errors gracefully', async () => {
             // Mock getGlobalDispatcher to throw an error
             vi.mocked(getGlobalDispatcher).mockImplementation(() => {
