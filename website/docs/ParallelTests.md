@@ -143,6 +143,7 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 ### Mocha
 
 - `before()` and `after()` in a spec file run **once per test**, not once per `describe`, because every test has its own window. Each test runs `before`, `beforeEach`, the test, `afterEach` and `after` in its window. Put setup that should run once per spec file in the `beforeSuite` / `afterSuite` hooks in `wdio.conf.ts`. These run once, outside any test window.
+- Because each test runs its own hooks, a failing hook only affects its own test. A failing `before()` is reported one time for each test, not one time for the `describe`. A failing `beforeEach()` or `afterEach()` does not stop the other tests of the `describe`. In a sequential run, Mocha skips them. With `failHookAffectedTests` (the default), the test that a failed `before()` or `beforeEach()` skips fails with the same text as in a sequential run.
 - Only `mochaOpts.timeout` applies. `this.timeout()` in a test or hook throws, and `it(...).timeout()` or a `describe` timeout is ignored with a warning. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
 - `mochaOpts.bail` and `mochaOpts.retries` are not supported and fail the run. `this.retries()` throws.
 - `.only()`, `this.skip()`, `grep`, `fgrep` and `invert` work like in a sequential run.

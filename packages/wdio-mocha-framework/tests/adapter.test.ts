@@ -222,8 +222,11 @@ describe('parallel mode config hooks', () => {
         // beforeSuite + afterSuite → two start/end pairs
         expect(hookStarts.length).toBe(2)
         expect(hookEnds.length).toBe(2)
-        // prepareMessage payloads, not raw config-hook objects
-        expect(hookStarts[0][1].title).toBe('first suite')
+        // the titles of the root-suite hooks of a sequential run
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
+        expect(hookEnds.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
+        expect(hookStarts[0][1].fullTitle).toBe('"before all" hook in "{root}"')
+        expect(hookStarts[0][1].parent).toBe('')
         expect(hookStarts[0][1].type).toBe('hook:start')
         // start/end share a uid; afterSuite end carries duration + state
         expect(hookStarts[0][1].uid).toBe(hookEnds[0][1].uid)
@@ -231,6 +234,23 @@ describe('parallel mode config hooks', () => {
         expect(hookEnds[1][1].state).toBe('pass')
         expect(hookEnds[1][1].duration).toBeGreaterThanOrEqual(0)
         expect(runParallelTests).toBeCalledTimes(1)
+    })
+
+    test('titles beforeSuite/afterSuite with the first and the last test of the root suite, as Mocha does', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }], tests: [{ title: 'first' }, { title: 'last' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook for "first"', '"after all" hook for "last"'])
     })
 
     test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
@@ -309,7 +329,7 @@ describe('parallel mode mocha options', () => {
         expect(runParallelTests).toBeCalledWith(
             expect.anything(), expect.anything(), expect.anything(), '0-2', ['/foo/bar.test.js'],
             undefined,
-            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts' }
+            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts', failHookAffectedTests: true }
         )
     })
 
