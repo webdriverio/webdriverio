@@ -27,6 +27,17 @@ class ReportGenerator {
     isSynchronised() {
         return this.synchronised
     }
+    /**
+     * Write the worker file of a report that is not complete. The report at the end
+     * of the run replaces it: when the worker stops before (for example it is killed)
+     * or cannot write that report, the ReportAggregator finds this file.
+     */
+    startReport(reportData: ReportData) {
+        reportData.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid)
+        reportData.incomplete = true
+        return JsonGenerator.jsonOutput(this.options, reportData)
+    }
+
     async createReport(reportData: ReportData ) {
         this.synchronised = false
         this.LOG.info('Report Generation started')

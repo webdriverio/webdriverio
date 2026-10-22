@@ -122,6 +122,8 @@ class ReportAggregator {
          * makes the report incomplete; a valid JSON file of another tool is only skipped
          */
         let inputFailed = false
+        /** the workers that stopped before they wrote their results, or could not write them */
+        const incomplete: string[] = []
         for (let i = 0; i < files.length; i++) {
             try {
                 const filename = files[i]
@@ -136,6 +138,11 @@ class ReportAggregator {
                 // a master report of another name (for example from the command line)
                 if (report.master) {
                     this.LOG.info(`Skip the master report ${filename}`)
+                    continue
+                }
+                if (report.incomplete) {
+                    const specs = (report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')
+                    incomplete.push(`${report.info?.cid} (${specs})`)
                     continue
                 }
                 if (!report.info || !report.info.specs) {
@@ -221,14 +228,16 @@ class ReportAggregator {
             this.reportFile,
             this.options.browserName)
         reportData.master = true
-        if (noWorkerReport) {
+        if (incomplete.length) {
+            reportData.message = `The report is not complete: worker ${incomplete.join(', ')} stopped before it wrote its results, or could not write them. See the logs of the run.`
+        } else if (noWorkerReport) {
             reportData.message = `${this.reports[0].info.cid}`
         }
 
         this.failed = false
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed
+            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed || incomplete.length > 0
             await this.finalize()
             this.LOG.info('Report Aggregation completed')
 

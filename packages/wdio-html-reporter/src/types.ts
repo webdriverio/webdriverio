@@ -78,6 +78,8 @@ export class ReportData {
     master?: boolean
     /** a message for the reader, for example why the report has no results */
     message?: string
+    /** a worker file written at the runner start: the report at the runner end replaces it */
+    incomplete?: boolean
     constructor(title: string, info: RunnerStats, suites: SuiteStats[], metrics: Metrics, reportFile:string, browserName :string) {
         this.info = info
         this.metrics = metrics

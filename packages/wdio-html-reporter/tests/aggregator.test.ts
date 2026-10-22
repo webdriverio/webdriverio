@@ -241,4 +241,39 @@ describe('ReportAggregator', () => {
         await reporter.onRunnerEnd(RUNNER)
         expect(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')).not.toContain('hooksAndTests')
     })
+
+    it('reports a worker that stopped before it wrote its results', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { runCli } = await import('../src/makeReportCli.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const finished = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Stopped' } as never)
+        finished.onRunnerStart(RUNNER)
+        finished.onSuiteStart(SUITES[0])
+        finished.onTestStart(SUITES[0].tests[0])
+        finished.onTestPass(SUITES[0].tests[0])
+        finished.onSuiteEnd(SUITES[0])
+        await finished.onRunnerEnd(RUNNER)
+        expect(JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')).incomplete).toBeUndefined()
+        // a worker that is killed during its tests: no runner end
+        const stopped = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Stopped' } as never)
+        stopped.onRunnerStart({ ...RUNNER, cid: '0-1', specs: ['file:///project/killed.spec.js'] } as never)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+
+        const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Stopped' })
+        await reportAggregator.createReport()
+        expect(reportAggregator.failed).toBe(true)
+        const master = JSON.parse(fs.readFileSync(path.join(outputDir, 'master-report.json'), 'utf-8'))
+        expect(master.metrics.passed).toBe(1)
+        expect(master.message).toContain('0-1 (killed.spec.js)')
+        expect(fs.readFileSync(reportAggregator.reportFile, 'utf-8')).toContain('0-1 (killed.spec.js)')
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            expect(await runCli(['from-cli.html', outputDir, 'Stopped'], { CI: 'true' })).toBe(1)
+        } finally {
+            error.mockRestore()
+        }
+    })
 })

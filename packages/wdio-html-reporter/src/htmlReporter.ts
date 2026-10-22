@@ -125,6 +125,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.start = dayjs().utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
         const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
         this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
+        void this.reportGenerator?.startReport(this.#reportData(runner, []))
     }
 
     onSuiteStart(suite: SuiteStats) {
@@ -281,20 +282,23 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
         const suites = [...this.rootSuiteWithTests(runner), ...this.filterChildSuites()]
+        await this.reportGenerator?.createReport(this.#reportData(runner, suites))
+        reportProxy.disconnectMessageEvent(this.#onMessage)
+        reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
+        reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
+
+    }
+
+    #reportData(runner: RunnerStats, suites: SuiteStats[]) {
         // the report generator adds the cid to the file name
         const reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
-        const reportData = new ReportData(
+        return new ReportData(
             this.options.reportTitle,
             reportInfo(runner),
             suites,
             this.metrics,
             reportFile,
             this.options.browserName)
-        await this.reportGenerator?.createReport(reportData)
-        reportProxy.disconnectMessageEvent(this.#onMessage)
-        reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
-        reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
-
     }
 
     /**
