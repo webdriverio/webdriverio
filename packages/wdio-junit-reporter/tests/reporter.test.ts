@@ -222,6 +222,19 @@ describe('wdio-junit-reporter', () => {
         expect(stdout.match(/❗/g)).toHaveLength(2)
     })
 
+    it('places failed Cucumber hooks by their start time if the order was not recorded', () => {
+        const suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
+        const scenario = suites['hooks-scenario']
+        scenario.hooksAndTests = []
+        scenario.hooks[1].start = '2026-10-22T18:00:00.015Z'
+        reporter.suites = suites
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+        const stdout = output.slice(output.indexOf('<system-out>'))
+        expect(stdout.indexOf('❗ Before hook')).toBeLessThan(stdout.indexOf('Given a passing step'))
+        expect(stdout.indexOf('❗ After hook')).toBeGreaterThan(stdout.indexOf('Given a passing step'))
+    })
+
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
         reporter.suites = featuresWithFailingThenSkipStepLog as any
 

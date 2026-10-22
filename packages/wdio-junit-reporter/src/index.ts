@@ -126,19 +126,33 @@ class JunitReporter extends WDIOReporter {
      * reported as failed and not as skipped.
      */
     private _addFailedCucumberHooks(scenario: SuiteStats) {
-        const firstStepStart = scenario.tests.length > 0
-            ? new Date(scenario.tests[0].start).getTime()
-            : Infinity
-        const toStep = (hook: HookStats, isBefore: boolean) => ({
+        const firstStep = scenario.tests[0]
+        const order = scenario.hooksAndTests ?? []
+        const indexOf = (entry: HookStats | TestStats) => order.findIndex((recorded) => recorded === entry || recorded.uid === entry.uid)
+        const firstStepIndex = firstStep ? indexOf(firstStep) : -1
+        const isBefore = (hook: HookStats) => {
+            if (!firstStep) {
+                return true
+            }
+            /**
+             * the reporter records hooks and steps in the order they ran, a start time
+             * can be the same for a step and the hook right after it
+             */
+            const hookIndex = indexOf(hook)
+            if (hookIndex !== -1 && firstStepIndex !== -1) {
+                return hookIndex < firstStepIndex
+            }
+            return new Date(hook.start).getTime() < new Date(firstStep.start).getTime()
+        }
+        const toStep = (hook: HookStats, before: boolean) => ({
             _duration: hook._duration,
-            title: hook.title || (isBefore ? 'Before hook' : 'After hook'),
+            title: hook.title || (before ? 'Before hook' : 'After hook'),
             error: hook.error,
             state: 'failed',
             output: []
         }) as unknown as TestStats
 
         const failedHooks = scenario.hooks.filter((hook) => hook.error)
-        const isBefore = (hook: HookStats) => new Date(hook.start).getTime() <= firstStepStart
         scenario.tests.unshift(...failedHooks.filter(isBefore).map((hook) => toStep(hook, true)))
         scenario.tests.push(...failedHooks.filter((hook) => !isBefore(hook)).map((hook) => toStep(hook, false)))
         return scenario

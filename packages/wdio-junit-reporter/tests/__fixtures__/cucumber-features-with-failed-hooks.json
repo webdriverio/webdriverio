@@ -52,7 +52,7 @@
                     },
                     {
                         "type": "hook",
-                        "start": "2026-10-22T18:00:00.015Z",
+                        "start": "2026-10-22T18:00:00.010Z",
                         "_duration": 1,
                         "uid": "hook-2",
                         "cid": "0-0",
@@ -79,7 +79,62 @@
                     }
                 ],
                 "suites": [],
-                "hooksAndTests": [],
+                "hooksAndTests": [
+                    {
+                        "type": "hook",
+                        "start": "2026-10-22T18:00:00.002Z",
+                        "_duration": 1,
+                        "uid": "hook-1",
+                        "cid": "0-0",
+                        "title": "",
+                        "parent": "hooks-scenario",
+                        "errors": [],
+                        "state": "failed",
+                        "error": {
+                            "name": "Error",
+                            "message": "Error: Before hook failed",
+                            "stack": "Error: Before hook failed\n    at World.<anonymous> (steps.js:2:21)"
+                        }
+                    },
+                    {
+                        "type": "test",
+                        "start": "2026-10-22T18:00:00.010Z",
+                        "_duration": 0,
+                        "uid": "step-1",
+                        "cid": "0-0",
+                        "title": "Given a passing step",
+                        "fullTitle": "failing hooks: hooks fail: Given a passing step",
+                        "output": [],
+                        "state": "skipped"
+                    },
+                    {
+                        "type": "hook",
+                        "start": "2026-10-22T18:00:00.010Z",
+                        "_duration": 1,
+                        "uid": "hook-2",
+                        "cid": "0-0",
+                        "title": "",
+                        "parent": "hooks-scenario",
+                        "errors": [],
+                        "state": "failed",
+                        "error": {
+                            "name": "Error",
+                            "message": "Error: After hook failed",
+                            "stack": "Error: After hook failed\n    at World.<anonymous> (steps.js:3:21)"
+                        }
+                    },
+                    {
+                        "type": "hook",
+                        "start": "2026-10-22T18:00:00.017Z",
+                        "_duration": 1,
+                        "uid": "hook-3",
+                        "cid": "0-0",
+                        "title": "",
+                        "parent": "hooks-scenario",
+                        "errors": [],
+                        "state": "passed"
+                    }
+                ],
                 "end": "2026-10-22T18:00:00.020Z"
             }
         ],
@@ -127,7 +182,7 @@
             },
             {
                 "type": "hook",
-                "start": "2026-10-22T18:00:00.015Z",
+                "start": "2026-10-22T18:00:00.010Z",
                 "_duration": 1,
                 "uid": "hook-2",
                 "cid": "0-0",
@@ -154,7 +209,62 @@
             }
         ],
         "suites": [],
-        "hooksAndTests": [],
+        "hooksAndTests": [
+            {
+                "type": "hook",
+                "start": "2026-10-22T18:00:00.002Z",
+                "_duration": 1,
+                "uid": "hook-1",
+                "cid": "0-0",
+                "title": "",
+                "parent": "hooks-scenario",
+                "errors": [],
+                "state": "failed",
+                "error": {
+                    "name": "Error",
+                    "message": "Error: Before hook failed",
+                    "stack": "Error: Before hook failed\n    at World.<anonymous> (steps.js:2:21)"
+                }
+            },
+            {
+                "type": "test",
+                "start": "2026-10-22T18:00:00.010Z",
+                "_duration": 0,
+                "uid": "step-1",
+                "cid": "0-0",
+                "title": "Given a passing step",
+                "fullTitle": "failing hooks: hooks fail: Given a passing step",
+                "output": [],
+                "state": "skipped"
+            },
+            {
+                "type": "hook",
+                "start": "2026-10-22T18:00:00.010Z",
+                "_duration": 1,
+                "uid": "hook-2",
+                "cid": "0-0",
+                "title": "",
+                "parent": "hooks-scenario",
+                "errors": [],
+                "state": "failed",
+                "error": {
+                    "name": "Error",
+                    "message": "Error: After hook failed",
+                    "stack": "Error: After hook failed\n    at World.<anonymous> (steps.js:3:21)"
+                }
+            },
+            {
+                "type": "hook",
+                "start": "2026-10-22T18:00:00.017Z",
+                "_duration": 1,
+                "uid": "hook-3",
+                "cid": "0-0",
+                "title": "",
+                "parent": "hooks-scenario",
+                "errors": [],
+                "state": "passed"
+            }
+        ],
         "end": "2026-10-22T18:00:00.020Z"
     }
 }
