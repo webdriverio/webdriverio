@@ -458,3 +458,50 @@ describe('Allure in parallel mode', () => {
         expect(logMock.warn).toBeCalledWith('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
     })
 })
+
+describe('review fixes', () => {
+    beforeEach(() => {
+        inContext(undefined)
+        vi.mocked(fs.writeFileSync).mockClear()
+        vi.mocked(fs.mkdirSync).mockClear()
+    })
+
+    it('makes no recording for a scenario that Cucumber parallel mode skips without a window (failFast)', async () => {
+        const reporter = new VideoReporter({ saveAllVideos: true })
+        ;(reporter as unknown as { getContextId: () => string | undefined }).getContextId = () => current
+        reporter.onRunnerStart({ ...runner, instanceOptions: { 'session-1': { framework: 'cucumber', reporters: [] } } })
+        await sleep(0)
+        inContext('ctx-a')
+        reporter.onSuiteStart({ uid: 's1', title: 'runs', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
+        reporter.onSuiteEnd({ uid: 's1', title: 'runs', type: 'scenario', tests: [{ state: 'failed' }], hooks: [] } as any)
+        vi.mocked(fs.mkdirSync).mockClear()
+
+        // after the failure, the next scenario runs in skip mode, outside any window
+        inContext(undefined)
+        reporter.onSuiteStart({ uid: 's2', title: 'skipped', type: 'scenario', parentUid: 'f1' } as any)
+        navigate('main-tab')()
+        await sleep()
+
+        expect(fs.mkdirSync).not.toBeCalled()
+        expect(reporter.recordingPath).toBeUndefined()
+    })
+
+    it('shows the Allure warning of Cucumber parallel mode in the terminal', async () => {
+        const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const processOn = process.on.bind(process)
+        process.on = vi.fn() as any
+        try {
+            const reporter = new VideoReporter({ saveAllVideos: true })
+            ;(reporter as unknown as { getContextId: () => string | undefined }).getContextId = () => current
+            reporter.onRunnerStart({ ...runner, instanceOptions: { 'session-1': { framework: 'cucumber', reporters: [['allure', {}]] } } })
+            await sleep(0)
+            inContext('ctx-a')
+            reporter.onSuiteStart({ uid: 's1', title: 's1', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
+
+            expect(consoleWarn).toBeCalledWith('[@wdio/video-reporter] @wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+        } finally {
+            process.on = processOn
+            consoleWarn.mockRestore()
+        }
+    })
+})

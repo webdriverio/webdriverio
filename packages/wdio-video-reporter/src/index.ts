@@ -85,6 +85,10 @@ export default class VideoReporter extends WdioReporter {
     #lastFramesOfWindow = new Map<string, Promise<unknown>>()
     #warnedAllureParallel = false
     /**
+     * a test ran in its own window: the tests of this run are parallel
+     */
+    #isParallelRun = false
+    /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
      */
@@ -209,8 +213,16 @@ export default class VideoReporter extends WdioReporter {
         if (!recording) {
             recording = new Recording(key === MAIN ? undefined : key)
             this.#recordings.set(key, recording)
+            this.#isParallelRun ||= key !== MAIN
         }
         return recording
+    }
+
+    /**
+     * parallel mode: a test or scenario without a window (Cucumber `failFast` skips it) is not recorded
+     */
+    #isSkippedParallelTest (key: string) {
+        return key === MAIN && this.#isParallelRun
     }
 
     /**
@@ -439,7 +451,7 @@ export default class VideoReporter extends WdioReporter {
             this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
         }
 
-        if (suite.type === 'scenario') {
+        if (suite.type === 'scenario' && !this.#isSkippedParallelTest(key)) {
             this.#setRecordingPath(key, suite)
             // Ensure video attachment happens for Allure in Cucumber scenarios too
             this.#attachVideoToAllure(false, key)
@@ -521,6 +533,9 @@ export default class VideoReporter extends WdioReporter {
          * hook failed: keep the recording of the first start, with the frames of the hook
          */
         const key = this.#keyOf(suite.contextId)
+        if (this.#isSkippedParallelTest(key)) {
+            return
+        }
         const recording = this.#ownRecording(key)
         if (suite.uid) {
             this.#endedTests.delete(suite.uid)
@@ -1155,7 +1170,10 @@ export default class VideoReporter extends WdioReporter {
         if (key !== MAIN && this.isCucumberFramework) {
             if (!this.#warnedAllureParallel) {
                 this.#warnedAllureParallel = true
-                log.warn('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+                const message = '@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure'
+                log.warn(message)
+                // also in the terminal: with `outputDir`, WebdriverIO writes the worker log only to a file
+                console.warn(`[@wdio/video-reporter] ${message}`)
             }
             return
         }
