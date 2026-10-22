@@ -25,7 +25,7 @@ Resource Timing cannot see headers or bodies, and on Safari it reports no status
 
 When BiDi is serving the session, meaning it has delivered a network event and not merely accepted a subscription, the Resource Timing rows are dropped so each request is listed once. On Nightwatch, the Chrome performance log upgrades those rows in place with the headers and status it has.
 
-A native app session has no document, so it has no network capture at all.
+A native app session has no document, so neither source applies. Its network can be read from the appium-interceptor plugin instead when the session sets `appium:intercept: true`; see [Native app network](/docs/devtools/mobile#native-app-network).
 
 ## Demo
 

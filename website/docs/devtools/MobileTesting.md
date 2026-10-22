@@ -4,6 +4,9 @@ title: Mobile Testing
 description: "Capture Appium sessions (mobile browser, native and hybrid apps) in DevTools live and trace mode, and run the per-adapter mobile examples."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 DevTools captures Appium sessions in both live mode and [Trace Mode](/docs/devtools/wdio/trace-mode). What it captures depends on one question — **does this session have a web document right now?** — because every DOM drain, page script and viewport read is a round trip that can only fail without one.
 
 ## Three kinds of session
@@ -30,6 +33,7 @@ All four adapters detect a native session and skip page-side capture on one. The
 |---|---|---|---|---|
 | Native session detected, page-side capture skipped | ✅ | ✅ | ✅ | ✅ |
 | Follows a hybrid app into its webview | ✅ | ⚠️ ¹ | ⚠️ ¹ | ⚠️ ¹ |
+| Native app network through appium-interceptor (`appium:intercept`) | ✅ | ✅ | ✅ | ✅ |
 
 ¹ Answers from the startup capabilities only, so a hybrid session's webview half is captured as if it were still native — no DOM for those actions.
 
@@ -41,11 +45,80 @@ A phone capture is framed as the device: a full-height device column with the ac
 
 On a native session the A11y tab and element data come from the platform's XML tree rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML.
 
+## Native app network
+
+A native app has no document and Appium serves no BiDi network events, so by default the Network tab of a native session is empty. Every adapter can read the app's traffic from the [appium-interceptor](https://github.com/AppiumTestDistribution/appium-interceptor-plugin) plugin instead, which routes the device through a proxy of its own. Install the plugin and start Appium with it:
+
+```sh
+appium plugin install --source=npm appium-interceptor
+appium --use-plugins=appium-interceptor
+```
+
+Then ask for the proxy with `appium:intercept: true` in the session's capabilities (it is also read from inside `appium:options`):
+
+<Tabs groupId="devtools-mobile-network">
+<TabItem value="wdio" label="WebdriverIO" default>
+
+```ts
+capabilities: [{
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:app': '/path/to/app.apk',
+    'appium:intercept': true
+}]
+```
+
+</TabItem>
+<TabItem value="selenium" label="Selenium (Node.js)">
+
+```js
+const driver = await new Builder()
+  .usingServer('http://127.0.0.1:4723')
+  .withCapabilities({
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:app': '/path/to/app.apk',
+    'appium:intercept': true
+  })
+  .build()
+```
+
+</TabItem>
+<TabItem value="nightwatch" label="Nightwatch">
+
+```js
+desiredCapabilities: {
+  browserName: null,
+  platformName: 'Android',
+  'appium:automationName': 'UiAutomator2',
+  'appium:app': '/path/to/app.apk',
+  'appium:intercept': true
+}
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+from appium.options.android import UiAutomator2Options
+
+options = UiAutomator2Options()
+options.app = "/path/to/app.apk"
+options.set_capability("appium:intercept", True)
+```
+
+</TabItem>
+</Tabs>
+
+The adapter starts a listener for each session, including one that replaces it mid-run, in both live and trace mode. It reads what the proxy recorded at most every 2 seconds between commands, because each read returns the whole history, and always at the end of each test (before that test's trace slice is written) and at the end of the session. Each request shows its method, URL, status, headers and bodies. The plugin records no timing, so a request is placed at the moment it was first read and shows no duration, and requests the app makes before the listener starts (its launch traffic) are not listed. Without the plugin the adapter logs a warning and the session runs as usual.
+
+This applies to native sessions only; a mobile browser session already captures its network through the page. The plugin supports Android. For HTTPS traffic the app has to trust the certificate the plugin installs on the device, which a release build usually does not (see Android's network security configuration).
+
 ## What a mobile trace does not contain
 
 Per-action snapshots are issued from inside the command hook, and Appium serialises a probe behind the command it is observing. Where a session has a document to probe, that snapshot is therefore skipped.
 
-In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture, because the driver exposes none.
+In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture unless it opts into the appium-interceptor plugin (see [Native app network](#native-app-network)), because the driver exposes none.
 
 These absences are by design. They are not a capture failure, and they are the main thing to know before debugging a hybrid trace.
 
