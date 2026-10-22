@@ -129,6 +129,7 @@ packages/wdio-json-reporter/tests/__fixtures__/merged.json
 packages/wdio-html-reporter/tests/.reports
 tests/html-reporter/out
 tests/html-reporter/out-cucumber
+tests/html-reporter/out-cjs
 examples/wdio/mocha/*.json
 e2e/screenshot.png
 website/community/events

@@ -1096,6 +1096,21 @@ const htmlReporterCucumber = async () => {
 }
 
 /**
+ * @wdio/html-reporter in a CommonJS configuration and test file (`require()`)
+ */
+const htmlReporterCjs = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    const { passed } = await launch('htmlReporterCjs', path.resolve(basePath, 'html-reporter.cjs.conf.cjs'))
+    assert.strictEqual(passed, 1)
+    const outDir = path.join(basePath, 'out-cjs')
+    const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
+    for (const text of ['Smoke CJS Master Report', 'logs with ReportEvents from require()', 'a message from a CommonJS test']) {
+        assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
+    }
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -1792,6 +1807,7 @@ const jasmineAfterHookArgsValidation = async () => {
         reporterTestrunner,
         htmlReporter,
         htmlReporterCucumber,
+        htmlReporterCjs,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

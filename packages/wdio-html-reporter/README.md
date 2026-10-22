@@ -61,6 +61,8 @@ export const config: WebdriverIO.Config = {
 
 `outputDir` can be relative to the folder where you start WebdriverIO, or absolute.
 
+In a CommonJS configuration (`wdio.conf.cjs`), load the package with `const { ReportAggregator } = require('@wdio/html-reporter')`.
+
 When a worker stops before it writes its results (for example it is killed), or cannot write them, the master report says so and `reportAggregator.failed` is `true`.
 
 The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
