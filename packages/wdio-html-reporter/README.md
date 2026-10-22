@@ -34,11 +34,7 @@ export const config: WebdriverIO.Config = {
             outputDir: './reports/html-reports/',
             filename: 'report.html',
             reportTitle: 'Test Report Title',
-            linkScreenshots: true,
-            // show the report in a browser when it is done
-            showInBrowser: true,
-            collapseTests: false,
-            // take a screenshot after each screenshot command
+            // add the result of each screenshot command to the report
             useOnAfterCommandForScreenshot: false
         }]
     ],
@@ -49,7 +45,10 @@ export const config: WebdriverIO.Config = {
             filename: 'master-report.html',
             reportTitle: 'Master Report',
             browserName: 'chrome',
-            collapseTests: true
+            linkScreenshots: true,
+            collapseTests: true,
+            // show the report in a browser when it is done
+            showInBrowser: true
         })
         reportAggregator.clean()
     },
@@ -62,6 +61,8 @@ export const config: WebdriverIO.Config = {
 
 `outputDir` can be relative to the folder where you start WebdriverIO, or absolute.
 
+The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
+
 ## Options
 
 | Option | Default | Description |
@@ -72,7 +73,7 @@ export const config: WebdriverIO.Config = {
 | `showInBrowser` | `false` | Open the report in a browser when it is done (`ReportAggregator` only). |
 | `collapseTests` | `false` | Collapse the tests in the report. |
 | `collapseSuites` | `false` | Collapse the suites in the report. |
-| `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. |
+| `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. With `@wdio/video-reporter` in a WebDriver Classic session, the video frames also become screenshots: keep it `false`. |
 | `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
 | `linkUrls` | `false` | Make the `http` and `https` URLs in log messages links. The rest of the message stays escaped: HTML in a log message shows as text. |
 | `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |

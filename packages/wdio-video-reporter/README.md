@@ -165,7 +165,6 @@ reporters:
       outputDir: './reports/html-reports/',
       filename: 'report.html',
       reportTitle: 'Test Report Title',
-      linkScreenshots: true,
       // must be false to use the video
       useOnAfterCommandForScreenshot: false,
     }],
