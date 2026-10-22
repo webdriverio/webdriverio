@@ -468,6 +468,22 @@ test('emits "before all"-hook errors as hook:end', () => {
     expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
 })
 
+test('getUID gives a test that this.skip() skips at runtime the uid of its test:start', () => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory()
+
+    // this.skip() in the test or in beforeEach: Mocha sends test, pending, test end
+    expect(adapter.getUID({ type: 'test:start' })).toBe('test-0-0')
+    expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-0')
+    expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-0-0')
+    expect(adapter.getUID({ type: 'test:pending' })).toBe('test-0-0')
+    expect(adapter.getUID({ type: 'test:end' })).toBe('test-0-0')
+    // it.skip: Mocha sends pending and test end, with no test start
+    expect(adapter.getUID({ type: 'test:pending' })).toBe('test-0-1')
+    expect(adapter.getUID({ type: 'test:end' })).toBe('test-0-1')
+    expect(adapter.getUID({ type: 'test:start' })).toBe('test-0-2')
+})
+
 test('getUID', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()

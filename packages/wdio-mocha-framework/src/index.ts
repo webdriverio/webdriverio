@@ -50,6 +50,8 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
+    /** uid of the test between its test:start and its test:end */
+    private _openTestUid?: string
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -378,10 +380,18 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (['test:start', 'test:pending'].includes(message.type)) {
-            return this.getSyncEventIdStart('test')
+        if (message.type === 'test:start') {
+            this._openTestUid = this.getSyncEventIdStart('test')
+            return this._openTestUid
+        }
+        if (message.type === 'test:pending') {
+            // this.skip() at runtime ends the test that started; it.skip has no test:start
+            return this._openTestUid ?? this.getSyncEventIdStart('test')
         }
         if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {
+            if (message.type === 'test:end') {
+                this._openTestUid = undefined
+            }
             return this.getSyncEventIdEnd('test')
         }
 
