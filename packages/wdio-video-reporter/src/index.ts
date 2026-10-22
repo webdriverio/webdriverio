@@ -83,6 +83,7 @@ export default class VideoReporter extends WdioReporter {
      * parallel mode: the last frame of each test window, until the window closes
      */
     #lastFramesOfWindow = new Map<string, Promise<unknown>>()
+    #warnedAllureParallel = false
     /**
      * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
      * not as a suite with its steps as tests
@@ -1142,8 +1143,20 @@ export default class VideoReporter extends WdioReporter {
      *               started again is another Allure test
      */
     #attachVideoToAllure (again = false, contextId?: string) {
-        const testName = this.#recordingOf(contextId)?.testName
+        const key = this.#keyOf(contextId)
+        const testName = this.#recordings.get(key)?.testName
         if (!this.#usingAllure || !testName || !this.#record) {
+            return
+        }
+        /**
+         * the Allure reporter supports parallel mode only with Mocha: with Cucumber it
+         * would attach the video to the scenario that started last
+         */
+        if (key !== MAIN && this.isCucumberFramework) {
+            if (!this.#warnedAllureParallel) {
+                this.#warnedAllureParallel = true
+                log.warn('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+            }
             return
         }
 

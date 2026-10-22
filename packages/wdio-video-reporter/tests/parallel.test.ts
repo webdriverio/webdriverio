@@ -408,3 +408,53 @@ describe('frame waits in parallel mode', () => {
         expect(close).toBeInstanceOf(Promise)
     })
 })
+
+describe('Allure in parallel mode', () => {
+    const processOn = process.on.bind(process)
+    const allureReporter = async (framework: 'mocha' | 'cucumber') => {
+        const reporter = new VideoReporter({ saveAllVideos: true })
+        ;(reporter as unknown as { getContextId: () => string | undefined }).getContextId = () => current
+        reporter.onRunnerStart({ ...runner, instanceOptions: { 'session-1': { framework, reporters: [['allure', { outputDir: '/allure' }]] } } })
+        await sleep(0)
+        return reporter
+    }
+
+    beforeEach(async () => {
+        process.on = vi.fn() as any
+        const allure = await import('@wdio/allure-reporter')
+        vi.mocked(allure.addAttachment).mockClear()
+        logMock.warn.mockClear()
+    })
+    afterEach(() => {
+        process.on = processOn
+    })
+
+    it('attaches each Mocha parallel video to its test', async () => {
+        const reporter = await allureReporter('mocha')
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a', { title: 'first' }))
+        inContext('ctx-b')
+        reporter.onTestStart(test('b', 'ctx-b', { title: 'second' }))
+        await sleep()
+
+        const allure = await import('@wdio/allure-reporter')
+        const videos = vi.mocked(allure.addAttachment).mock.calls.map(([, video]) => path.basename(String(video)))
+        expect(videos).toHaveLength(2)
+        expect(videos[0]).toMatch(/^first--CHROME--/)
+        expect(videos[1]).toMatch(/^second--CHROME--/)
+    })
+
+    it('attaches no video to Allure in Cucumber parallel mode and warns one time', async () => {
+        const reporter = await allureReporter('cucumber')
+        for (const [uid, contextId] of [['s1', 'ctx-a'], ['s2', 'ctx-b']]) {
+            inContext(contextId)
+            reporter.onSuiteStart({ uid, title: uid, type: 'scenario', parentUid: 'f1', contextId } as any)
+        }
+        await sleep()
+
+        const allure = await import('@wdio/allure-reporter')
+        expect(allure.addAttachment).not.toBeCalled()
+        expect(logMock.warn).toBeCalledTimes(1)
+        expect(logMock.warn).toBeCalledWith('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+    })
+})
