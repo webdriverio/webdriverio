@@ -47,6 +47,7 @@ class FakeRequest {
 
 describe('session abort handling', () => {
     const originalRequest = environment.value.Request
+    const originalKillDriverProcess = environment.value.killDriverProcess
     let sessionCounter = 0
     let scope: BaseClient
     const getUrl = commandWrapper('GET', '/session/:sessionId/url', getUrlEndpoint)
@@ -65,6 +66,7 @@ describe('session abort handling', () => {
 
     afterEach(() => {
         environment.value.Request = originalRequest
+        environment.value.killDriverProcess = originalKillDriverProcess
     })
 
     it('aborts in-flight commands when the session is deleted after another command completed', async () => {
