@@ -75,6 +75,29 @@ vi.mock('@wdio/globals', () => ({
 
 const sleep = (ms = 20) => new Promise((resolve) => setTimeout(resolve, ms))
 
+type Hook = (commandName: string, args?: unknown[]) => Promise<unknown> | undefined
+/** the beforeCommand hook of the last reporter (the browser mock is shared) */
+const lastHook = () => {
+    const hooks = (browser.options as { beforeCommand: Hook[] }).beforeCommand
+    return hooks[hooks.length - 1]
+}
+/**
+ * captures that answer only when the test says so. A held capture must end with its test:
+ * its resend timers would call the shared mock in a later test
+ */
+const held: (() => void)[] = []
+const releaseHeld = () => held.splice(0).forEach((release) => release())
+const holdCaptures = () => {
+    vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(({ context }: any) => new Promise((resolve) => {
+        held.push(() => resolve({ data: Buffer.from(context).toString('base64') } as any))
+    }))
+    return releaseHeld
+}
+afterEach(() => {
+    releaseHeld()
+    vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(async ({ context }: any) => ({ data: Buffer.from(context).toString('base64') }) as any)
+})
+
 const runner: any = {
     isMultiRemote: false,
     sessionId: 'session-1',
@@ -373,20 +396,6 @@ describe('Cucumber end events in parallel mode', () => {
 })
 
 describe('frame waits in parallel mode', () => {
-    type Hook = (commandName: string, args?: unknown[]) => Promise<unknown> | undefined
-    /** the beforeCommand hook of the last reporter (the browser mock is shared) */
-    const lastHook = () => {
-        const hooks = (browser.options as { beforeCommand: Hook[] }).beforeCommand
-        return hooks[hooks.length - 1]
-    }
-    /** captures that answer only when the test says so */
-    const heldCaptures = () => {
-        const held: (() => void)[] = []
-        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(({ context }: any) => new Promise((resolve) => {
-            held.push(() => resolve({ data: Buffer.from(context).toString('base64') } as any))
-        }))
-        return () => held.splice(0).forEach((release) => release())
-    }
     const settled = async (promise: unknown) => {
         let done = false
         void Promise.resolve(promise).then(() => { done = true })
@@ -394,13 +403,9 @@ describe('frame waits in parallel mode', () => {
         return done
     }
 
-    afterEach(() => {
-        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(async ({ context }: any) => ({ data: Buffer.from(context).toString('base64') }) as any)
-    })
-
     it('does not make a command of test B wait for the frame of test A', async () => {
         const reporter = await startReporter()
-        heldCaptures()
+        holdCaptures()
         inContext('ctx-a')
         reporter.onTestStart(test('a', 'ctx-a'))
         navigate('ctx-a')()
@@ -414,7 +419,7 @@ describe('frame waits in parallel mode', () => {
 
     it('waits for the last frame before the test window closes', async () => {
         const reporter = await startReporter()
-        const release = heldCaptures()
+        const release = holdCaptures()
         inContext('ctx-a')
         reporter.onTestStart(test('a', 'ctx-a'))
         reporter.onTestEnd(test('a', 'ctx-a', { state: 'passed' }))
@@ -560,22 +565,9 @@ describe('review fixes', () => {
 })
 
 describe('frames after the end of a parallel test', () => {
-    type Hook = (commandName: string, args?: unknown[]) => Promise<unknown> | undefined
-    const lastHook = () => {
-        const hooks = (browser.options as { beforeCommand: Hook[] }).beforeCommand
-        return hooks[hooks.length - 1]
-    }
-
-    afterEach(() => {
-        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(async ({ context }: any) => ({ data: Buffer.from(context).toString('base64') }) as any)
-    })
-
     it('makes a command after the end of a parallel test wait for its last frame (afterEach after test:end)', async () => {
         const reporter = await startReporter()
-        let release!: () => void
-        vi.mocked(browser.browsingContextCaptureScreenshot).mockImplementation(({ context }: any) => new Promise((resolve) => {
-            release = () => resolve({ data: Buffer.from(context).toString('base64') } as any)
-        }))
+        const release = holdCaptures()
         inContext('ctx-a')
         reporter.onTestStart(test('a', 'ctx-a'))
         reporter.onTestEnd(test('a', 'ctx-a', { state: 'passed' }))
