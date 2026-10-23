@@ -1129,11 +1129,11 @@ export default class VideoReporter extends WdioReporter {
             browserName = `${deviceName.toUpperCase()}-${capabilities.platformName.toUpperCase()}`
         }
 
-        const baseName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
-        let testName = baseName
+        const maxLength = this.options.maxTestNameCharacters
+        let testName = generateFilename(maxLength, browserName, fullName)
         // parallel tests with the same title can start in the same millisecond
         for (let n = 2; this.#takenNames.has(testName); n++) {
-            testName = `${baseName}-${n}`
+            testName = `${generateFilename(maxLength - `-${n}`.length, browserName, fullName)}-${n}`
         }
         this.#takenNames.add(testName)
         const recording = this.#ownRecording(key)

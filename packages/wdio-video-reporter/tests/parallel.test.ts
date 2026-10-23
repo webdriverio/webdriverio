@@ -293,6 +293,26 @@ describe('parallel video names', () => {
 
         expect(nameOf(reporter, 'ctx-b')).toBe(`${nameOf(reporter, 'ctx-a')}-2`)
     })
+
+    it('keeps the second of 2 long names with the same time within maxTestNameCharacters', async () => {
+        const reporter = await startReporter()
+        const title = 'long title '.repeat(30)
+        vi.useFakeTimers({ toFake: ['Date'] })
+        try {
+            vi.setSystemTime(new Date(2026, 9, 21, 12, 0, 0, 0))
+            inContext('ctx-a')
+            reporter.onTestStart(test('a', 'ctx-a', { title }))
+            inContext('ctx-b')
+            reporter.onTestStart(test('b', 'ctx-b', { title }))
+        } finally {
+            vi.useRealTimers()
+        }
+
+        // with '.webm', 250 characters is 255, the longest file name on Linux and macOS
+        expect(nameOf(reporter, 'ctx-a')).toHaveLength(250)
+        expect(nameOf(reporter, 'ctx-b')).toHaveLength(250)
+        expect(nameOf(reporter, 'ctx-b').endsWith('-2')).toBe(true)
+    })
 })
 
 describe('Cucumber end events in parallel mode', () => {
