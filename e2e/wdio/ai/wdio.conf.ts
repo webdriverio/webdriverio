@@ -1,9 +1,11 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 
 import { actModel, cacheDir } from './model.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const isLinux = os.platform() === 'linux'
 
 export const config: WebdriverIO.Config = {
     specs: [path.join(__dirname, '*.e2e.ts')],
@@ -26,7 +28,8 @@ export const config: WebdriverIO.Config = {
          */
         browserVersion: '155',
         webSocketUrl: true,
-        'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+        // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
+        'goog:chromeOptions': { args: ['headless', 'disable-gpu', ...(isLinux ? ['no-sandbox'] : [])] }
     }, {
         browserName: 'firefox',
         webSocketUrl: true,
