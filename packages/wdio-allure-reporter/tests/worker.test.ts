@@ -1,7 +1,21 @@
+import type * as Fs from 'node:fs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { temporaryDirectory } from 'tempy'
+
+const failWrite = vi.hoisted(() => ({ enabled: false }))
+vi.mock('node:fs', async (importOriginal) => {
+    const actual = await importOriginal<typeof Fs>()
+    const writeFileSync = (file: string, data: string | NodeJS.ArrayBufferView) => {
+        if (failWrite.enabled) {
+            actual.writeFileSync(file, 'partial')
+            throw new Error('ENOSPC')
+        }
+        return actual.writeFileSync(file, data)
+    }
+    return { ...actual, default: { ...actual, writeFileSync }, writeFileSync }
+})
 
 vi.mock(
     '@wdio/reporter',
@@ -48,6 +62,17 @@ describe('offloadAttachment', () => {
         expect(path.basename(result.data.path).startsWith(PENDING_ATTACHMENT_PREFIX)).toBe(true)
         expect(path.basename(result.data.path).endsWith(PENDING_ATTACHMENT_SUFFIX)).toBe(true)
         expect(fs.readFileSync((result.data as { path: string }).path).equals(bytes)).toBe(true)
+    })
+
+    it('removes the partial file and rethrows when the write fails', () => {
+        const dir = path.join(temporaryDirectory(), 'failing')
+        failWrite.enabled = true
+        try {
+            expect(() => offloadAttachment(attachmentMessage(), dir)).toThrow('ENOSPC')
+        } finally {
+            failWrite.enabled = false
+        }
+        expect(fs.readdirSync(dir)).toEqual([])
     })
 
     it('decodes with the message encoding', () => {

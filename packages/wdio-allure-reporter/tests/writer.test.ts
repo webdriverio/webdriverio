@@ -1,9 +1,21 @@
+import type * as Fs from 'node:fs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { temporaryDirectory } from 'tempy'
 
 const warn = vi.hoisted(() => vi.fn())
+const failFs = vi.hoisted(() => ({ rename: false }))
+vi.mock('node:fs', async (importOriginal) => {
+    const actual = await importOriginal<typeof Fs>()
+    const renameSync = (...args: Parameters<typeof actual.renameSync>) => {
+        if (failFs.rename) {
+            throw Object.assign(new Error('EPERM: operation not permitted'), { code: 'EPERM' })
+        }
+        return actual.renameSync(...args)
+    }
+    return { ...actual, default: { ...actual, renameSync }, renameSync }
+})
 vi.mock('@wdio/logger', () => ({ default: () => ({ warn, info: vi.fn(), debug: vi.fn(), error: vi.fn() }) }))
 
 vi.mock(
@@ -28,6 +40,7 @@ describe('LinkingFileSystemWriter', () => {
 
     beforeEach(() => {
         warn.mockClear()
+        failFs.rename = false
         resultsDir = temporaryDirectory()
         writer = new LinkingFileSystemWriter(resultsDir)
     })
@@ -54,6 +67,23 @@ describe('LinkingFileSystemWriter', () => {
         writer.writeAttachmentFromPath('x-attachment.png', from)
         expect(fs.existsSync(from)).toBe(true)
         expect(fs.readFileSync(path.join(resultsDir, 'x-attachment.png'), 'utf-8')).toBe(content)
+    })
+
+    it('copies the pending file when the rename fails', () => {
+        const from = pendingFile(resultsDir)
+        fs.writeFileSync(from, content)
+        failFs.rename = true
+        writer.writeAttachmentFromPath('x-attachment.png', from)
+        expect(fs.readFileSync(path.join(resultsDir, 'x-attachment.png'), 'utf-8')).toBe(content)
+        expect(warn).not.toHaveBeenCalled()
+    })
+
+    it('warns without throwing when both the rename and the copy fail', () => {
+        failFs.rename = true
+        expect(() => writer.writeAttachmentFromPath('x-attachment.png', pendingFile(resultsDir))).not.toThrow()
+        expect(warn).toHaveBeenCalledTimes(1)
+        expect(warn.mock.calls[0][0]).toContain('EPERM')
+        expect(fs.existsSync(path.join(resultsDir, 'x-attachment.png'))).toBe(false)
     })
 
     it('warns instead of throwing when the pending file is gone', () => {

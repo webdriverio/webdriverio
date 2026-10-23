@@ -38,10 +38,9 @@ let sessionClosing: Promise<void> | undefined
 type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
 
 // content travels through task.meta, which Vitest resends on every task update, so the bytes go to disk
-// when an Allure reporter is configured, and are dropped when none is
+// when exactly one Allure reporter is configured
 type AttachmentTransport =
     | { mode: 'inline' }
-    | { mode: 'drop' }
     | { mode: 'offload', resultsDir: string, offloadAttachment: typeof AllureWorker.offloadAttachment }
 
 type RelayState = { activeTask: AsyncLocalStorage<TestTask>, handlers: Map<string, (payload: unknown) => void>, attachments: AttachmentTransport, warned: Set<string> }
@@ -61,7 +60,6 @@ function warnOnce(key: string, message: string) {
 }
 
 const ALLURE_REPORTER_NAMES = ['allure', '@wdio/allure-reporter']
-const ATTACHMENT_CONTENT_TYPES = ['attachment_content', 'global_attachment_content']
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
 
@@ -83,13 +81,6 @@ function relay(event: RelayedEntry['event'], payload: unknown) {
 function toAllureMessage(payload: unknown): [RelayedEntry['event'], unknown] | undefined {
     const transport = relayState.attachments
     if (transport.mode === 'inline') {
-        return ['allure:runtimeMessage', payload]
-    }
-    if (transport.mode === 'drop') {
-        if (ATTACHMENT_CONTENT_TYPES.includes((payload as { type?: string })?.type as string)) {
-            log.debug('Dropped an Allure attachment: no Allure reporter is configured')
-            return undefined
-        }
         return ['allure:runtimeMessage', payload]
     }
     try {
@@ -123,11 +114,16 @@ async function resolveAttachmentTransport(reporters: unknown[]): Promise<Attachm
     if (entries.some(([reporter]) => typeof reporter !== 'string')) {
         return { mode: 'inline' }
     }
-    const allureEntries = entries.filter(([reporter]) => ALLURE_REPORTER_NAMES.includes(reporter))
+    // the launcher parses the config again after onPrepare, so a missing entry here is not proof that none exists there
+    const allureEntries = entries.filter(([reporter]) => ALLURE_REPORTER_NAMES.includes(reporter.toLowerCase()))
     if (allureEntries.length === 0) {
-        return { mode: 'drop' }
+        return { mode: 'inline' }
     }
-    const resultsDirs = new Set<string>()
+    // every Allure reporter receives the same attachment_path, so a second one could not move the file
+    if (allureEntries.length > 1) {
+        log.warn('Several Allure reporters are configured, sending Allure attachments through the launcher instead')
+        return { mode: 'inline' }
+    }
     let worker: typeof AllureWorker
     try {
         worker = await import(/* @vite-ignore */ ALLURE_WORKER_MODULE)
@@ -135,12 +131,7 @@ async function resolveAttachmentTransport(reporters: unknown[]): Promise<Attachm
         log.warn(`Could not load ${ALLURE_WORKER_MODULE}, sending Allure attachments through the launcher instead: ${(err as Error).message}`)
         return { mode: 'inline' }
     }
-    allureEntries.forEach(([, options]) => resultsDirs.add(path.resolve(worker.resolveResultsDir(options ?? {}))))
-    if (resultsDirs.size > 1) {
-        log.warn(`The Allure reporters write to different folders (${[...resultsDirs].join(', ')}), sending Allure attachments through the launcher instead`)
-        return { mode: 'inline' }
-    }
-    return { mode: 'offload', resultsDir: [...resultsDirs][0], offloadAttachment: worker.offloadAttachment }
+    return { mode: 'offload', resultsDir: path.resolve(worker.resolveResultsDir(allureEntries[0][1] ?? {})), offloadAttachment: worker.offloadAttachment }
 }
 
 function stripConnectionKeys(caps: object) {

@@ -285,13 +285,18 @@ describe('setup', () => {
                 expect((await send(step))[0].payload).toEqual(step)
             })
 
-            it('drops attachment content when no reporter can be Allure', async () => {
+            it('keeps the content inline when no entry looks like Allure', async () => {
                 await configure(['junit', ['json', {}]])
-                expect(await send(attachment())).toBeUndefined()
-                expect(await send({ ...attachment(), type: 'global_attachment_content' })).toBeUndefined()
-                const step = { type: 'step_start', data: { name: 's', start: 1 } }
-                expect((await send(step))[0].payload).toEqual(step)
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+                expect(logs.warn).not.toHaveBeenCalled()
                 expect(pendingFiles()).toEqual([])
+            })
+
+            it('matches the Allure reporter name case-insensitively', async () => {
+                await configure([['Allure', { outputDir: resultsDir }]])
+                const [entry] = await send(attachment())
+                expect(entry.payload.type).toBe('attachment_path')
             })
 
             it('keeps the content inline when a reporter is a class, which could be Allure', async () => {
@@ -310,11 +315,12 @@ describe('setup', () => {
                 expect(pendingFiles()).toEqual([])
             })
 
-            it('offloads when several Allure reporters share one folder', async () => {
+            it('keeps the content inline and warns once when several Allure reporters share one folder', async () => {
                 await configure([['allure', { outputDir: resultsDir }], ['@wdio/allure-reporter', { resultsDir: path.join(resultsDir, '.') }]])
-                expect(logs.warn).not.toHaveBeenCalled()
+                expect(logs.warn).toHaveBeenCalledTimes(1)
                 const [entry] = await send(attachment())
-                expect(entry.payload.type).toBe('attachment_path')
+                expect(entry.payload).toEqual(attachment())
+                expect(pendingFiles()).toEqual([])
             })
 
             it('keeps the content inline and warns once when the file cannot be written', async () => {
