@@ -521,6 +521,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
     let stepStart: Date | undefined
     let stepResults: messages.TestStepResult[] = []
     let scenarioOpen = false
+    /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
+    let attempt = 0
     let openStep: Record<string, unknown> | undefined
     /**
      * test:end of the last finished step is held back: only testCaseFinished
@@ -585,6 +587,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         stepResults = []
         scenarioOpen = true
         pendingStepEnd = undefined
+        attempt = started.attempt ?? 0
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
@@ -597,6 +600,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
                     ...buildScenarioPayload(scenarioPayloadParams),
                     contextId,
                     parentUid: featureUID,
+                    ...(scenarioLevel ? { retries: attempt } : {}),
                 },
             })
         )
@@ -691,15 +695,29 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
      * mode emits a scenario `suite:end`, scenario-level mode emits `test:pass` /
      * `test:fail` resolved from the first non-passing step result (or the last).
      */
+    const scenarioResult = (result: messages.TestStepResult) => getStepResult(result, {
+        title: getTitle(pickle, cucumberOpts.tagsInTitle),
+        isStep: false,
+        ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
+        failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+        featureStack: () => getFeatureStack(uri, feature, pickle),
+    })
+
     const onTestCaseFinished = (finished: messages.TestCaseFinished) => {
+        const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (finished.willBeRetried) {
             pendingStepEnd = undefined
+            // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
+            if (scenarioLevel) {
+                const finalResult = stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
+                const { error } = finalResult ? scenarioResult(finalResult) : { error: undefined }
+                const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false, retries: attempt, contextId }
+                reporter.emit('test:retry', formatMessage({ payload }))
+            }
             return
         }
         scenarioOpen = false
         flushStepEnd()
-
-        const duration = testStart ? Date.now() - testStart.getTime() : 0
 
         if (!scenarioLevel) {
             const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
@@ -710,19 +728,13 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         const finalResult = stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'pass', duration, passed: true }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'pass', duration, passed: true, retries: attempt }
             reporter.emit('test:pass', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
             return
         }
 
-        const { state, error, pendingReason, titleSuffix } = getStepResult(finalResult, {
-            title: getTitle(pickle, cucumberOpts.tagsInTitle),
-            isStep: false,
-            ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
-            failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
-            featureStack: () => getFeatureStack(uri, feature, pickle),
-        })
+        const { state, error, pendingReason, titleSuffix } = scenarioResult(finalResult)
         const passed = ['pass', 'skip'].includes(state)
         const payload = {
             ...buildScenarioPayload(scenarioPayloadParams),
@@ -732,6 +744,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             ...(pendingReason ? { pendingReason } : {}),
             duration,
             passed,
+            retries: attempt,
         }
         payload.title += titleSuffix
         reporter.emit(`test:${state}`, formatMessage({ payload }))
@@ -754,7 +767,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         scenarioOpen = false
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (scenarioLevel) {
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false, retries: attempt }
             reporter.emit('test:fail', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
             return
