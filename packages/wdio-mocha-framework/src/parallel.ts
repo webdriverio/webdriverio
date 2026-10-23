@@ -18,7 +18,9 @@ import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
-import { dottedFullTitle, type TitledNode } from './common.js'
+import { dottedFullTitle, formatError, type TitledNode } from './common.js'
+import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
+import type { MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -119,6 +121,8 @@ interface CollectedTest {
     suiteIndex?: number
     /** Mocha's resolved timeout for this test (`_timeout`) */
     timeout?: number
+    /** Mocha's resolved retries for this test (`_retries`): `mochaOpts.retries`, `this.retries(n)` in a describe, `it().retries(n)` */
+    retries?: number
 }
 
 interface CollectedSuite {
@@ -198,7 +202,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 pending: !!test.pending || !fn,
                 file: test.file || undefined,
                 suiteIndex,
-                timeout: (test as unknown as { _timeout?: number })._timeout
+                timeout: (test as unknown as { _timeout?: number })._timeout,
+                retries: (test as unknown as { _retries?: number })._retries
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -267,7 +272,23 @@ interface TestMessage {
     contextId?: string
     duration?: number
     passed?: boolean
-    error?: { name: string; message: string; stack?: string }
+    error?: MochaError
+}
+
+/** The test name that formatError puts in the timeout text, as formatMessage builds it */
+const testNameOf = (test: CollectedTest) => test.parentTitle ? `${test.parentTitle} ${test.title}` : test.title
+
+/** Mocha's own timeout error (Runnable#_timeoutError), so the text is the same as in a sequential run */
+function mochaTimeoutError(ms: number, file?: string) {
+    const err = new Error(`Timeout of ${ms}ms exceeded. ${MOCHA_TIMEOUT_MESSAGE}${file ? ` (${file})` : ''}`)
+    return Object.assign(err, { code: 'ERR_MOCHA_TIMEOUT', timeout: ms, file })
+}
+
+/** Mocha's error for a test that a failed hook skips (`failHookAffectedTests`, runner.js createHookSkipError) */
+function hookSkipError(hookTitle: string, err: Error) {
+    const skipError = new Error(`Test skipped due to failure in hook "${hookTitle}": ${err.message}`)
+    skipError.stack = err.stack
+    return skipError
 }
 
 function baseMessage(type: string, test: CollectedTest, cid: string, specs: string[], uid: string, contextId?: string) {
@@ -301,11 +322,7 @@ function emitTestFail(
     error: Error,
     contextId: string
 ) {
-    const errorPayload = {
-        name: error.name || 'Error',
-        message: error.message,
-        stack: error.stack
-    }
+    const errorPayload = formatError(error as unknown as MochaError, testNameOf(test))
     reporter.emit('test:fail', { ...baseMessage('test:fail', test, cid, specs, uid, contextId), duration, error: errorPayload })
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, error: errorPayload })
 }
@@ -368,17 +385,18 @@ function emitHookEnd(
     uid: string,
     contextId: string,
     duration: number,
-    error?: Error
+    error?: Error,
+    pending?: boolean
 ) {
-    const errorPayload = error ? {
-        name: error.name || 'Error',
-        message: error.message,
-        stack: error.stack
-    } : undefined
+    const native = nativeHookTitle(kind, hook, test)
+    const errorPayload = error
+        ? formatError(error as unknown as MochaError, hook.parent?.title ? `${hook.parent.title} ${native}` : native)
+        : undefined
     reporter.emit('hook:end', {
         ...hookBaseMessage('hook:end', kind, hook, test, cid, specs, uid, contextId),
         duration,
-        state: error ? 'fail' : 'pass',
+        // `this.skip()` in a hook: no state and no error, as in a sequential run (#14649)
+        ...(pending ? { pending: true } : { state: error ? 'fail' : 'pass' }),
         ...(errorPayload ? { error: errorPayload } : {})
     })
 }
@@ -437,13 +455,14 @@ export function isSkipError(err?: unknown): boolean {
  * function arguments before the user fn runs (filterSpecArgs) — the same
  * limitation sequential mode has.
  */
-function createHookContext(testTitle: string | undefined, parentTitle: string | undefined, timeoutMs: number, fullTitle?: string) {
+function createHookContext(testTitle: string | undefined, parentTitle: string | undefined, timeoutMs: number, fullTitle?: string, file?: string) {
     const test = testTitle ? { title: testTitle, parent: { title: parentTitle || '' }, state: undefined as 'passed' | 'failed' | undefined } : undefined
     const resolvedFullTitle = fullTitle ?? `${parentTitle || ''} ${testTitle || ''}`.trim()
     return {
         test,
         currentTest: test,
-        _runnable: { _timeout: timeoutMs, title: testTitle, fullTitle: () => resolvedFullTitle },
+        // `_timeoutError`: the wdio shim fails a timed-out runnable with Mocha's own error
+        _runnable: { _timeout: timeoutMs, title: testTitle, file, fullTitle: () => resolvedFullTitle, _timeoutError: (ms: number) => mochaTimeoutError(ms, file) },
         skip: () => { throw new Error('sync skip; aborting execution') },
         timeout: () => { throw new Error('this.timeout() is not supported in parallel mode') },
         retries: () => { throw new Error('this.retries() is not supported in parallel mode') },
@@ -463,9 +482,8 @@ function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> 
     }
     if (timeoutMs && timeoutMs > 0) {
         return new Promise((resolve, reject) => {
-            const rejectTimeout = () => reject(new Error(
-                `Timeout of ${timeoutMs}ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.`
-            ))
+            const runnable = (ctx as { _runnable?: { file?: string } })._runnable
+            const rejectTimeout = () => reject(mochaTimeoutError(timeoutMs, runnable?.file))
             let graceTimer: ReturnType<typeof setTimeout> | undefined
             const timer = setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
             const settle = (onTime: () => void) => {
@@ -550,10 +568,11 @@ async function runOneTest(
     uid: string,
     reporter: EventEmitter,
     parallelStore: AsyncLocalStorage<string>,
-    timeoutMs: number
+    timeoutMs: number,
+    failHookAffectedTests: boolean
 ): Promise<TestRunResult> {
     const contextId = allocation.context
-    return parallelStore.run(contextId, async () => {
+    const runInContext = async (): Promise<TestRunResult> => {
         // Static pending tests (it.skip / it without fn): no hooks, no
         // test:start — matches the Mocha runner.
         if (test.pending) {
@@ -563,8 +582,10 @@ async function runOneTest(
 
         let hookCnt = 0
         // One context per test so `this.x` set in beforeEach is visible in the test and afterEach
-        const ctx = createHookContext(test.title, test.parentTitle, timeoutMs, test.fullTitle)
+        const ctx = createHookContext(test.title, test.parentTitle, timeoutMs, test.fullTitle, test.file)
         let caughtError: Error | undefined
+        /** the before / beforeEach hook whose failure skips the test */
+        let failedHook: { kind: HookKind, hook: MochaHookLike } | undefined
         let started = false
         let fnDuration = 0
         let passed = false
@@ -587,10 +608,23 @@ async function runOneTest(
                     await callHook(fn, ctx, timeoutMs)
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
-                    const hookError = err instanceof Error ? err : new Error(String(err))
+                    let hookError = err instanceof Error ? err : new Error(String(err))
+                    if (isSkipError(hookError) && kind === 'after all') {
+                        // Mocha fails this.skip() in an after all hook (runner.js `this.skip` forbidden)
+                        hookError = Object.assign(new Error('`this.skip` forbidden'), { code: 'ERR_MOCHA_UNSUPPORTED' })
+                    }
+                    if (isSkipError(hookError)) {
+                        emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart, undefined, true)
+                        if (fatal) {
+                            caughtError = hookError
+                            break
+                        }
+                        continue
+                    }
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart, hookError)
                     if (fatal) {
                         caughtError = hookError
+                        failedHook = { kind, hook }
                         break
                     }
                     hookFailures++
@@ -599,9 +633,36 @@ async function runOneTest(
             }
         }
 
+        /**
+         * Sends the result when the test is done, before its afterEach / after
+         * hooks, as Mocha does. A test that a failed hook skips fails with Mocha's
+         * text, or is not reported with `failHookAffectedTests: false`.
+         */
+        const report = (): Omit<TestRunResult, 'hookFailures'> => {
+            if (isSkipError(caughtError)) {
+                // this.skip() in the test or in a before / beforeEach hook → pending (Mocha parity)
+                emitTestPending(reporter, test, cid, specs, uid, started ? fnDuration : 0, contextId)
+                return { status: 'pending', name: test.title, duration: started ? fnDuration : 0 }
+            }
+            if (passed) {
+                emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
+                return { status: 'passed', name: test.title, duration: fnDuration }
+            }
+            const error = failedHook ? hookSkipError(nativeHookTitle(failedHook.kind, failedHook.hook, test), caughtError!) : caughtError!
+            if (!failedHook || failHookAffectedTests) {
+                if (!started) {
+                    // WDIOReporter's test:fail handler needs a prior test:start for this uid
+                    emitTestStart(reporter, test, cid, specs, uid, contextId)
+                }
+                emitTestFail(reporter, test, cid, specs, uid, fnDuration, error, contextId)
+            }
+            return { status: 'failed', name: test.title, duration: fnDuration, error: error.message }
+        }
+
         // Suite hooks run once per test, inside this test's browsing context
         // (see the warning in runParallelTests). beforeAll failure skips the
         // test but afterAll still runs — Mocha parity.
+        let result: Omit<TestRunResult, 'hookFailures'>
         await runHookChain(test._beforeAll, 'before all', true)
         if (!caughtError) {
             started = true
@@ -620,32 +681,18 @@ async function runOneTest(
                 }
             }
             if (ctx.test && !isSkipError(caughtError)) { ctx.test.state = passed ? 'passed' : 'failed' }
+            result = report()
             await runHookChain(test._afterEach, 'after each', false)
+        } else {
+            result = report()
         }
         await runHookChain(test._afterAll, 'after all', false)
-
-        if (!started) {
-            // this.skip() in a suite before() hook → pending, not failed (Mocha parity)
-            if (isSkipError(caughtError)) {
-                emitTestPending(reporter, test, cid, specs, uid, 0, contextId)
-                return { status: 'pending' as const, name: test.title, duration: 0, hookFailures }
-            }
-            // WDIOReporter's test:fail handler needs a prior test:start for this uid
-            emitTestStart(reporter, test, cid, specs, uid, contextId)
-            emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!, contextId)
-            return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message, hookFailures }
-        }
-        if (isSkipError(caughtError)) {
-            emitTestPending(reporter, test, cid, specs, uid, fnDuration, contextId)
-            return { status: 'pending' as const, name: test.title, duration: fnDuration, hookFailures }
-        }
-        if (passed) {
-            emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
-            return { status: 'passed' as const, name: test.title, duration: fnDuration, hookFailures }
-        }
-        emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!, contextId)
-        return { status: 'failed' as const, name: test.title, duration: fnDuration, error: caughtError!.message, hookFailures }
-    })
+        return { ...result, hookFailures }
+    }
+    return parallelStore.run(contextId, () => runInContext().finally(() => {
+        // the context sends no more events: reporters can close what they keep for it
+        reporter.emit('context:end', { type: 'context:end', cid, specs, uid, contextId })
+    }))
 }
 
 // ============================================================
@@ -657,6 +704,8 @@ export interface ParallelMochaOptions {
     invert?: boolean
     timeout?: number | string
     mode?: ParallelMode
+    /** `false`: a test that a failed hook skips is not reported, as in a sequential run (default `true`) */
+    failHookAffectedTests?: boolean
 }
 
 export async function runParallelTests(
@@ -705,6 +754,16 @@ export async function runParallelTests(
         log.warn(
             'Per-test and per-suite timeouts (it(...).timeout(n), this.timeout(n)) are not supported ' +
             `in parallel mode (parallelMode: "${mode}"); mochaOpts.timeout (${timeoutMs}ms) applies.`
+        )
+    }
+
+    // the parallel runner has no retry loop yet: fail like mochaOpts.retries instead of ignoring the retries
+    const retried = tests.find((t) => !t.pending && (t.retries ?? 0) > 0)
+    if (retried) {
+        const count = retried.retries!
+        throw new Error(
+            `retries is not supported in parallel mode (parallelMode: "${mode}"): ` +
+            `"${retried.fullTitle}" has ${count} ${count === 1 ? 'retry' : 'retries'}`
         )
     }
 
@@ -772,7 +831,8 @@ export async function runParallelTests(
                     value: await runOneTest(
                         tests[index], allocation, cid, specs,
                         `test-${cid}-${index}`,
-                        reporter, parallelStore, timeoutMs
+                        reporter, parallelStore, timeoutMs,
+                        mochaOptions?.failHookAffectedTests !== false
                     )
                 }
             } catch (reason) {
