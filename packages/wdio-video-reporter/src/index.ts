@@ -529,7 +529,7 @@ export default class VideoReporter extends WdioReporter {
         }
 
         /**
-         * older `@wdio/mocha-framework` versions report a test as started again when its beforeEach hook
+         * `@wdio/mocha-framework` 10.1.0 and older report a test as started again when its beforeEach hook
          * failed (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
          */
         const key = this.#keyOf(suite.contextId)
