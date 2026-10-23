@@ -675,6 +675,52 @@ describe('runParallelCucumber', () => {
         expect(suiteEnds.length).toBe(2)
     })
 
+    test('ends a retried scenario attempt with test:retry in scenario-level mode, as Mocha does', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
+        let calls = 0
+        const stepDefinition = {
+            id: 'sd-1',
+            code: async function () {
+                if (++calls === 1) {
+                    throw new Error('first attempt fails')
+                }
+            },
+            keyword: 'Given',
+            pattern: 'something',
+            uri: '/test/features',
+            line: 1,
+            options: {},
+            expression: { match: (text: string) => (text === 'something' ? [] : null) },
+            matchesStepName: (text: string) => text === 'something',
+            getInvocationParameters: async () => ({
+                parameters: [],
+                validCodeLengths: [0, 1],
+                getInvalidCodeLengthMessage: () => 'invalid code length',
+            }),
+        }
+        reporter.on('test:retry', (p) => reporterEvents.push({ event: 'test:retry', payload: p }))
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [stepDefinition] }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: true, retry: 1 }),
+        })
+
+        expect(calls).toBe(2)
+        const events = reporterEvents.filter((e) => e.event.startsWith('test:'))
+        expect(events.map((e) => e.event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'])
+        const [firstStart, retry, secondStart, pass] = events.map((e) => e.payload)
+        expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', contextId: 'ctx-0' })
+        expect((retry.error as Error).message).toContain('first attempt fails')
+        expect([firstStart.retries, retry.retries, secondStart.retries, pass.retries]).toEqual([0, 0, 1, 1])
+    })
+
     // ---- Failure semantics (strict / ignoreUndefinedDefinitions) ----
 
     test('pending steps fail only under strict mode', async () => {

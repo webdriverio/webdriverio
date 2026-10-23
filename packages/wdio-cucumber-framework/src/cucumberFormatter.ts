@@ -64,6 +64,8 @@ export default class CucumberFormatter extends Formatter {
     private specs: string[]
     private eventEmitter: EventEmitter
     private scenarioLevelReporter: boolean
+    /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
+    private _attempt = 0
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
@@ -101,9 +103,14 @@ export default class CucumberFormatter extends Formatter {
                  * only store result if step isn't retried
                  */
                 if (envelope.testCaseFinished.willBeRetried) {
-                    return log.debug(
+                    log.debug(
                         `test case with id ${envelope.testCaseFinished.testCaseStartedId} will be retried, ignoring result`
                     )
+                    // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
+                    if (this.scenarioLevelReporter) {
+                        this.onTestCaseFinished(results, true)
+                    }
+                    return
                 }
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
@@ -220,7 +227,8 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: PickleStep | undefined,
-        result: TestStepResult
+        result: TestStepResult,
+        retried = false
     ) {
         const title = step ? step?.text : this.getTitle(scenario)
         const { state, error, pendingReason, titleSuffix, failed } = getStepResult(
@@ -233,7 +241,7 @@ export default class CucumberFormatter extends Formatter {
                 featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
         )
-        if (failed) {
+        if (failed && !retried) {
             this.failedCount++
         }
 
@@ -259,6 +267,7 @@ export default class CucumberFormatter extends Formatter {
                 uid: scenario.id,
                 parent: this.featureId(uri, feature),
                 tags: scenario.tags,
+                retries: this._attempt,
                 ...common,
             }
 
@@ -269,7 +278,7 @@ export default class CucumberFormatter extends Formatter {
         if (titleSuffix) {
             payload.title += titleSuffix
         }
-        this.emit('test:' + state, payload)
+        this.emit(retried ? 'test:retry' : 'test:' + state, payload)
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
@@ -424,12 +433,13 @@ export default class CucumberFormatter extends Formatter {
         /**
          * if we are retrying a scenario, we need to emit the event as `suite:retry` instead of `suite:start`
          */
-        const isRetry = typeof testcase.attempt === 'number' && testcase.attempt > 0
+        this._attempt = testcase.attempt ?? 0
+        const isRetry = this._attempt > 0
         if (!this.scenarioLevelReporter && isRetry) {
             return this.emit('suite:retry', payload)
         }
 
-        this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', payload)
+        this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', this.scenarioLevelReporter ? { ...payload, retries: this._attempt } : payload)
     }
 
     onTestStepStarted(testStepStartedEvent: TestStepStarted) {
@@ -546,7 +556,7 @@ export default class CucumberFormatter extends Formatter {
         )
     }
 
-    onTestCaseFinished(results: TestStepResult[]) {
+    onTestCaseFinished(results: TestStepResult[], retried = false) {
         const tc = this._testCases.find(
             (tc) => tc.id === this._currentTestCase?.testCaseId
         )
@@ -588,7 +598,7 @@ export default class CucumberFormatter extends Formatter {
              * no step: the end event has the title, type and parent of the scenario,
              * as its `test:start` event
              */
-            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult)
+            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult, retried)
         }
         this.emit('suite:end', payload)
     }

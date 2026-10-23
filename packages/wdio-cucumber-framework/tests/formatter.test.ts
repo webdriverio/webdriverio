@@ -323,6 +323,33 @@ describe('CucumberFormatter', () => {
             return { started, finished: wdioReporter.emit.mock.calls[0] }
         }
 
+        /** attempt 0 fails and Cucumber retries it, attempt 1 passes */
+        function retryScenarioOnce () {
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testStepFinished: { ...testStepFinished, testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+            return wdioReporter.emit.mock.calls.filter(([event]: [string]) => event.startsWith('test:'))
+        }
+
+        it('ends a retried scenario attempt with test:retry, as Mocha does', () => {
+            const events = retryScenarioOnce()
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass'])
+            const [[, firstStart], [, retry], [, secondStart], [, pass]] = events
+            expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', title: firstStart.title, parent: firstStart.parent })
+            expect(retry.error.message).toContain('first try fails')
+            expect([firstStart.retries, retry.retries, secondStart.retries, pass.retries]).toEqual([0, 0, 1, 1])
+        })
+
         it('keeps the scenario title of a pending scenario', () => {
             const { started, finished: [event, payload] } = finishScenarioWith('PENDING')
             expect(event).toBe('test:pending')
