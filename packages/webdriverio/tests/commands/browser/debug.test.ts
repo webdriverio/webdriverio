@@ -34,6 +34,9 @@ describe('debug command', () => {
             expect(typeof context.require.resolve).toBe('function')
             expect(typeof context.process).toBe('object')
             expect(typeof context.Buffer).toBe('function')
+            expect(context.console).toBe(globalThis.console)
+            expect(context.TextEncoder).toBe(globalThis.TextEncoder)
+            expect(context.AbortController).toBe(globalThis.AbortController)
         })
 
         it('should expose custom context variables via options or positional argument', async () => {

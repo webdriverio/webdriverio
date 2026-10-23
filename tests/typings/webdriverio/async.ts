@@ -135,7 +135,7 @@ async function bar() {
     expectType<string>(await browser.$$('li').at(-1).getText())
     expectType<WebdriverIO.ElementArray>(await browser.$$('li').slice(0, 2))
     expectType<string>(await browser.$$('li').slice(1)[0].getText())
-    expectType<string>(await browser.$$('li').$$('li').at(0).getText())
+    expectType<string>(await browser.$('ul').$$('li').at(0).getText())
 
     ////////////////////////////////////////////////////////////////////////////////
 

@@ -69,23 +69,52 @@ function getDebugContext(
             ? globalRequire
             : undefined
 
-    const context: Record<string, unknown> = Object.assign(
-        {},
-        globalThis,
-        {
-            global: globalThis,
-            ...(typeof process !== 'undefined' ? { process } : {}),
-            ...(typeof globalThis.Buffer !== 'undefined' ? { Buffer: globalThis.Buffer } : {}),
-            ...(typeof globalThis.URL !== 'undefined' ? { URL: globalThis.URL } : {}),
-            ...(typeof globalThis.URLSearchParams !== 'undefined' ? { URLSearchParams: globalThis.URLSearchParams } : {}),
-            browser,
-            driver: browser,
-            $: browser.$.bind(browser),
-            $$: browser.$$.bind(browser),
-            ...(localRequire ? { require: localRequire } : {}),
-            ...customContext
+    const context: Record<string, unknown> = {}
+    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(globalThis))) {
+        if (key === 'global' || key === 'globalThis') {
+            continue
         }
-    )
+        try {
+            if ('value' in descriptor) {
+                Object.defineProperty(context, key, {
+                    ...descriptor,
+                    configurable: true,
+                    writable: true
+                })
+            } else if (typeof descriptor.get === 'function') {
+                const getter = descriptor.get
+                const setter = descriptor.set
+                Object.defineProperty(context, key, {
+                    ...descriptor,
+                    configurable: true,
+                    get: () => getter.call(globalThis),
+                    ...(typeof setter === 'function' ? { set: (val: unknown) => setter.call(globalThis, val) } : {})
+                })
+            }
+        } catch {
+            // ignore non-configurable host properties
+        }
+    }
+
+    const overrides: Record<string, unknown> = {
+        global: globalThis,
+        ...(typeof process !== 'undefined' ? { process } : {}),
+        browser,
+        driver: browser,
+        $: browser.$.bind(browser),
+        $$: browser.$$.bind(browser),
+        ...(localRequire ? { require: localRequire } : {}),
+        ...customContext
+    }
+
+    for (const [key, value] of Object.entries(overrides)) {
+        Object.defineProperty(context, key, {
+            value,
+            configurable: true,
+            enumerable: true,
+            writable: true
+        })
+    }
 
     return context
 }
