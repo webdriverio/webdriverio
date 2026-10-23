@@ -305,8 +305,8 @@ records each test (with Cucumber: each scenario) on its own: a video shows only 
 that the test opens, and the video file names are the same as in a sequential run.
 
 - With Mocha, the Allure reporter gets the video of each test.
-- With Cucumber, the Allure reporter does not support parallel mode yet: the reporter attaches no video to Allure
-  and logs a warning.
+- With Cucumber, the Allure reporter does not support parallel mode yet: the reporter attaches no video and no
+  browser arguments to Allure, and logs a warning.
 
 ## Cucumber Support
 

@@ -480,11 +480,11 @@ export default class VideoReporter extends WdioReporter {
         /**
          * with Cucumber step reporting, the scenario is the Allure test
          */
+        const key = this.#keyOf(suite.contextId)
         if (this.#isCucumberStepReporter && suite.type === 'scenario') {
-            this.#extendAllureReport()
+            this.#extendAllureReport(key)
         }
 
-        const key = this.#keyOf(suite.contextId)
         // also for a suite with no started test (for example only skipped Mocha tests)
         if (key === MAIN && (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite')) {
             this.testNameStructure.pop()
@@ -629,7 +629,7 @@ export default class VideoReporter extends WdioReporter {
          * once for each Allure test: with Cucumber step reporting, at the scenario end
          */
         if (!this.#isCucumberStepReporter) {
-            this.#extendAllureReport()
+            this.#extendAllureReport(key)
         }
 
         if (test.state === 'failed' || (test.state === 'passed' && this.options.saveAllVideos)) {
@@ -1096,8 +1096,9 @@ export default class VideoReporter extends WdioReporter {
         return promise
     }
 
-    #extendAllureReport () {
-        if (!this.#usingAllure) {
+    #extendAllureReport (key: string) {
+        // the same reason as for the video (#attachVideoToAllure): the scenario that started last would get them
+        if (!this.#usingAllure || (key !== MAIN && this.isCucumberFramework)) {
             return
         }
         const capabilities = getCurrentCapabilities(browser)

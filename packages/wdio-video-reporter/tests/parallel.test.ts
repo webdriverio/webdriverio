@@ -477,6 +477,39 @@ describe('Allure in parallel mode', () => {
         expect(logMock.warn).toBeCalledTimes(1)
         expect(logMock.warn).toBeCalledWith('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
     })
+
+    it.each([
+        ['cucumber', 0],
+        ['mocha', 1]
+    ] as const)('adds the browser arguments to Allure only when Allure supports the parallel mode of the framework (%s)', async (framework, calls) => {
+        const capabilities = browser.capabilities as Record<string, unknown>
+        capabilities.browserVersion = '155.0'
+        try {
+            const reporter = await allureReporter(framework)
+            const allure = await import('@wdio/allure-reporter')
+            vi.mocked(allure.addArgument).mockClear()
+            for (const [uid, contextId] of [['a', 'ctx-a'], ['b', 'ctx-b']]) {
+                inContext(contextId)
+                if (framework === 'cucumber') {
+                    reporter.onSuiteStart({ uid, title: uid, type: 'scenario', parentUid: 'f1', contextId } as any)
+                } else {
+                    reporter.onTestStart(test(uid, contextId))
+                }
+            }
+            // a ends while b runs: Allure would add the arguments of a to the scenario b
+            inContext('ctx-a')
+            if (framework === 'cucumber') {
+                reporter.onSuiteEnd({ uid: 'a', title: 'a', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a', tests: [] } as any)
+            } else {
+                reporter.onTestEnd(test('a', 'ctx-a', { state: 'passed' }))
+            }
+
+            await sleep()
+            expect(vi.mocked(allure.addArgument).mock.calls).toHaveLength(calls)
+        } finally {
+            delete capabilities.browserVersion
+        }
+    })
 })
 
 describe('review fixes', () => {
