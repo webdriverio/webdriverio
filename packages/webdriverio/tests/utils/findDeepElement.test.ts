@@ -994,6 +994,50 @@ describe('xpath lookups with known shadow roots', () => {
         ])
     })
 
+    it('should forget a stale shadow root on the Classic xpath path (findDeepElement)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['stale-root', 'live-root'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElement.mockRejectedValue(new Error('no such element: Unable to locate element'))
+        browser.findElementFromElement
+            .mockRejectedValueOnce(new Error('stale element reference: stale element not found in the current frame'))
+            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+
+        const result = await findDeepElement.call(browser, '//div')
+
+        expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+        expect(mockForgetNode).toHaveBeenCalledTimes(1)
+        expect(mockForgetNode).toHaveBeenCalledWith('ctx-1', 'stale-root')
+    })
+
+    it('should forget a detached shadow root on the Classic xpath path (findDeepElements)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['stale-root', 'live-root'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElements.mockResolvedValue([])
+        browser.findElementsFromElement
+            .mockRejectedValueOnce(new Error('detached shadow root: the shadow root is no longer attached'))
+            .mockResolvedValueOnce([{ [ELEMENT_KEY]: 'shadow-node' }])
+
+        const result = await findDeepElements.call(browser, '//div')
+
+        expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-node' }])
+        expect(mockForgetNode).toHaveBeenCalledTimes(1)
+        expect(mockForgetNode).toHaveBeenCalledWith('ctx-1', 'stale-root')
+    })
+
+    it('should not forget a shadow root that is still attached', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['live-root'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElement.mockResolvedValue({})
+        browser.findElementFromElement.mockRejectedValue(new Error('no such element: Unable to locate element'))
+
+        await findDeepElement.call(browser, '//div')
+
+        expect(mockForgetNode).not.toHaveBeenCalled()
+    })
+
     it('should keep the BiDi path for an xpath selector in another browsing context', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
 
