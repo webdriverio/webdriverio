@@ -735,6 +735,22 @@ describe('setup', () => {
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [0, expect.anything(), ['/repo/a.spec.ts']])
     })
 
+    it('counts a test that failed on attempt 0 and passed on attempt 1 as 0, and one that fails its last attempt as 1', async () => {
+        const error = new Error('boom')
+        const retried = task(false, { retryCount: 0, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(retried.task.result, { state: 'fail', errors: [error] }) }), retried)
+        Object.assign(retried.task.result, { retryCount: 1, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(retried.task.result, { state: 'pass' }) }), retried)
+        await callbacks.afterAll({}, file([{ type: 'test', result: retried.task.result }]))
+        expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [0, expect.anything(), ['/repo/a.spec.ts']])
+
+        utils.executeHooksWithArgs.mockClear()
+        const failed = task(false, { retryCount: 1, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(failed.task.result, { state: 'fail', errors: [error, error] }) }), failed)
+        await callbacks.afterAll({}, file([{ type: 'test', result: failed.task.result }]))
+        expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [1, expect.anything(), ['/repo/a.spec.ts']])
+    })
+
     it('counts a failed beforeAll of the file, whose tests were skipped, as a failure', async () => {
         await callbacks.afterAll({}, file([testTask('skip')], [new Error('beforeAll failed')]))
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [1, expect.anything(), ['/repo/a.spec.ts']])
