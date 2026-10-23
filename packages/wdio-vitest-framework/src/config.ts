@@ -89,6 +89,8 @@ export function toVitestConfig({ config, specs, configFile, args, onEvent }: Fra
             ...(isPositiveNumber(config.bail) ? { bail: config.bail } : {}),
             ...(parallelMode ? { maxConcurrency: resolveMaxContexts(maxParallelContexts, os.cpus().length) } : {}),
             ...passthrough,
+            // Vitest forks its own workers, so the local runner never applies runnerEnv to them
+            env: { NODE_ENV: process.env.NODE_ENV || 'test', ...config.runnerEnv, ...passthrough.env },
             ...(reporters ? { reporters } : {}),
             // the framework cannot work without these, so vitestOpts must not replace them
             include: specs.map(toLiteralGlob),

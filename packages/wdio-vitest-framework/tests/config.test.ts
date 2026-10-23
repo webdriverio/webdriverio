@@ -128,6 +128,21 @@ describe('toVitestConfig', () => {
         expect(build({ vitestOpts: { maxParallelContexts: 3 } }).test).not.toHaveProperty('maxConcurrency')
     })
 
+    describe('env', () => {
+        it('passes runnerEnv to the Vitest workers with NODE_ENV defaulting to test', () => {
+            vi.stubEnv('NODE_ENV', '')
+            expect(build({ runnerEnv: { A: '1' } }).test!.env).toEqual({ NODE_ENV: 'test', A: '1' })
+            vi.unstubAllEnvs()
+        })
+
+        it('keeps the launcher NODE_ENV and lets runnerEnv and vitestOpts.env override in that order', () => {
+            vi.stubEnv('NODE_ENV', 'staging')
+            expect(build({}).test!.env).toEqual({ NODE_ENV: 'staging' })
+            expect(build({ runnerEnv: { A: '1', B: '1', NODE_ENV: 'x' }, vitestOpts: { env: { B: '2' } } }).test!.env).toEqual({ NODE_ENV: 'x', A: '1', B: '2' })
+            vi.unstubAllEnvs()
+        })
+    })
+
     describe('reporters', () => {
         const buildWithEvents = (config: Partial<WebdriverIO.Config>) => toVitestConfig({
             config: { capabilities: [{ browserName: 'chrome' }], ...config } as WebdriverIO.Config,

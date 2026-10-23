@@ -32,7 +32,14 @@ vi.mock('@wdio/config/node', () => ({
         addService = vi.fn((service: unknown) => { added.services.push(service) })
     }
 }))
-vi.mock('expect-webdriverio', () => ({ expect: { name: 'wdio-expect' }, setDefaultOptions: vi.fn() }))
+const soft = vi.hoisted(() => ({ options: undefined as unknown, error: undefined as unknown, instances: [] as unknown[] }))
+vi.mock('expect-webdriverio', () => ({
+    expect: { name: 'wdio-expect' },
+    setDefaultOptions: vi.fn(),
+    SoftAssertionService: class {
+        constructor(options: unknown) { soft.options = options; soft.instances.push(this) }
+    }
+}))
 vi.mock('webdriverio', () => ({
     PARALLEL_CONTEXT_STORE_KEY: '__parallelContextStore',
     remote: vi.fn(async () => browser)
@@ -54,6 +61,9 @@ describe('setup', () => {
         signalListenersBefore = (['SIGINT', 'SIGTERM'] as const).map((signal) => [signal, process.listeners(signal)])
         vi.clearAllMocks()
         added.services = []
+        soft.options = undefined
+        soft.instances = []
+        soft.error = undefined
         args.value = { baseUrl: 'http://x' }
         utils.initializeWorkerService.mockResolvedValue([])
         injected.caps = { browserName: 'chrome', hostname: 'grid' }
@@ -222,6 +232,48 @@ describe('setup', () => {
             expect(options).toHaveProperty('beforeCommand')
             expect(options).not.toHaveProperty('before')
             expect(options).not.toHaveProperty('afterTest')
+        })
+    })
+
+    describe('soft assertions', () => {
+        const softError = new Error('1 soft assertion failure')
+        const mutateReport = (error?: unknown) => utils.executeHooksWithArgs.mockImplementation(async (name: string, _hooks: unknown, hookArgs: unknown[]) => {
+            if (name === 'afterTest' && error) {
+                (hookArgs[2] as { error?: unknown }).error = error
+            }
+            return []
+        })
+
+        afterEach(() => { utils.executeHooksWithArgs.mockImplementation(async () => []) })
+
+        it('registers the soft assertion service before the worker services, enabled by default', async () => {
+            const service = {}
+            utils.initializeWorkerService.mockResolvedValue([service])
+            await callbacks.beforeAll({}, { file: fileTask })
+            expect(soft.options).toEqual({ autoAssertOnTestEnd: true })
+            expect(added.services.indexOf(soft.instances.at(-1))).toBeLessThan(added.services.indexOf(service))
+        })
+
+        it('honors autoAssertOnTestEnd: false', async () => {
+            mockConfig.value = { ...mockConfig.value, autoAssertOnTestEnd: false }
+            await callbacks.beforeAll({}, { file: fileTask })
+            expect(soft.options).toEqual({ autoAssertOnTestEnd: false })
+        })
+
+        it('fails the test with the error an afterTest service puts on the result', async () => {
+            mutateReport(softError)
+            await expect(hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))).rejects.toBe(softError)
+        })
+
+        it('passes when no afterTest service adds an error', async () => {
+            mutateReport()
+            await expect(hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))).resolves.toBeUndefined()
+        })
+
+        it('keeps the error of a test that already failed', async () => {
+            const own = new Error('boom')
+            mutateReport(softError)
+            await expect(hooks.aroundEach(vi.fn(async () => { throw own }), task(false))).rejects.toBe(own)
         })
     })
 
