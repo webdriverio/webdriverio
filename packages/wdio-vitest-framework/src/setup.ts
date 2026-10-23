@@ -75,27 +75,32 @@ function relay(event: RelayedEntry['event'], payload: unknown) {
     }
     const meta = task.meta as Record<string, unknown>
     const entries = (meta[RUNTIME_META_KEY] ??= []) as RelayedEntry[]
-    entries.push({ event: entry[0], payload: entry[1], retry: task.result?.retryCount ?? 0 })
+    entries.push({ ...entry, retry: task.result?.retryCount ?? 0 })
 }
 
-function toAllureMessage(payload: unknown): [RelayedEntry['event'], unknown] | undefined {
+type Converted = Pick<RelayedEntry, 'event' | 'payload' | 'pendingFile'>
+
+function toAllureMessage(payload: unknown): Converted {
     const transport = relayState.attachments
     if (transport.mode === 'inline') {
-        return ['allure:runtimeMessage', payload]
+        return { event: 'allure:runtimeMessage', payload }
     }
     try {
-        return ['allure:runtimeMessage', transport.offloadAttachment(payload, transport.resultsDir) ?? payload]
+        const offloaded = transport.offloadAttachment(payload, transport.resultsDir)
+        return offloaded
+            ? { event: 'allure:runtimeMessage', payload: offloaded, pendingFile: offloaded.data.path }
+            : { event: 'allure:runtimeMessage', payload }
     } catch (err) {
         warnOnce('offload-failure', `Could not write an Allure attachment to ${transport.resultsDir}, sending attachments through the launcher instead: ${(err as Error).message}`)
-        return ['allure:runtimeMessage', payload]
+        return { event: 'allure:runtimeMessage', payload }
     }
 }
 
-const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => [RelayedEntry['event'], unknown] | undefined> = {
-    'allure:startStep': (name) => ['allure:runtimeMessage', { type: 'step_start', data: { name: name as string, start: Date.now() } }],
-    'allure:endStep': (arg) => ['allure:runtimeMessage', { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } }],
+const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => Converted | undefined> = {
+    'allure:startStep': (name) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: name as string, start: Date.now() } } }),
+    'allure:endStep': (arg) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } } }),
     'allure:runtimeMessage': toAllureMessage,
-    'junit:addProperty': (payload: unknown) => ['junit:addProperty', payload]
+    'junit:addProperty': (payload) => ({ event: 'junit:addProperty', payload })
 }
 
 // converted at call time so step timestamps are the worker's, not the replay's

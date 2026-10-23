@@ -11,6 +11,34 @@ export function resolveResultsDir(options: { outputDir?: string, resultsDir?: st
     return options.outputDir || options.resultsDir || 'allure-results'
 }
 
+// allure-js-commons does not export its content type table, so this covers the types the reporter and its users emit.
+// The pending file is named .tmp, which ReporterRuntime would otherwise take as the extension of the final file.
+const EXTENSIONS_BY_CONTENT_TYPE: Record<string, string> = {
+    'text/plain': '.txt',
+    'application/xml': '.xml',
+    'text/html': '.html',
+    'text/csv': '.csv',
+    'text/tab-separated-values': '.tsv',
+    'text/css': '.css',
+    'text/uri-list': '.uri',
+    'image/svg+xml': '.svg',
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/gif': '.gif',
+    'application/json': '.json',
+    'application/pdf': '.pdf',
+    'application/zip': '.zip',
+    'video/webm': '.webm',
+    'video/mp4': '.mp4'
+}
+
+function resolveExtension({ fileExtension, contentType }: { fileExtension?: string, contentType?: string }) {
+    if (fileExtension) {
+        return fileExtension.startsWith('.') ? fileExtension : `.${fileExtension}`
+    }
+    return EXTENSIONS_BY_CONTENT_TYPE[contentType ?? ''] ?? ''
+}
+
 type OffloadedMessage = RuntimeAttachmentPathMessage | RuntimeGlobalAttachmentPathMessage
 
 /**
@@ -32,5 +60,5 @@ export function offloadAttachment(message: unknown, resultsDir: string): Offload
         rmSync(path, { force: true })
         throw err
     }
-    return { type: type === 'attachment_content' ? 'attachment_path' : 'global_attachment_path', data: { ...rest, path } } as OffloadedMessage
+    return { type: type === 'attachment_content' ? 'attachment_path' : 'global_attachment_path', data: { ...rest, fileExtension: resolveExtension(rest), path } } as OffloadedMessage
 }

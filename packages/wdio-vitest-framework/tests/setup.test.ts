@@ -265,7 +265,8 @@ describe('setup', () => {
                 const [entry] = await send(attachment())
                 expect(entry.payload).toEqual({ type: 'attachment_path', data: { name: 'shot', contentType: 'image/png', fileExtension: '.png', wrapInStep: true, timestamp: 7, path: expect.stringContaining(resultsDir) } })
                 expect(fs.readFileSync(entry.payload.data.path).equals(Buffer.from(content, 'base64'))).toBe(true)
-                expect(JSON.stringify(entry)).not.toContain(content)
+                expect(JSON.stringify(entry.payload)).not.toContain(content)
+                expect((entry as { pendingFile?: string }).pendingFile).toBe(entry.payload.data.path)
             })
 
             it('accepts @wdio/allure-reporter and a results folder given as resultsDir', async () => {
@@ -289,6 +290,7 @@ describe('setup', () => {
                 await configure(['junit', ['json', {}]])
                 const [entry] = await send(attachment())
                 expect(entry.payload).toEqual(attachment())
+                expect(entry).not.toHaveProperty('pendingFile')
                 expect(logs.warn).not.toHaveBeenCalled()
                 expect(pendingFiles()).toEqual([])
             })

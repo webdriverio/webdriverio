@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
 
@@ -763,6 +766,57 @@ describe('WdioBridgeReporter', () => {
             await runTests(module, test)
 
             expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload)).toEqual([{ name: 'last', value: '2' }])
+        })
+
+        describe('pending attachment files', () => {
+            let dir: string
+            beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-pending-')) })
+            afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }) })
+
+            const pending = (name: string, retry: number) => {
+                const pendingFile = path.join(dir, `.wdio-attachment-${name}.tmp`)
+                fs.writeFileSync(pendingFile, name)
+                return { event: 'allure:runtimeMessage', payload: { type: 'attachment_path', data: { path: pendingFile } }, retry, pendingFile }
+            }
+
+            it('removes the files of attempts that are not replayed and keeps the replayed ones', async () => {
+                const module = makeModule()
+                const [first, last] = [pending('first', 0), pending('last', 1)]
+                const test = makeTest(module, module, 't', passed, 1, {
+                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                    meta: () => runtimeMeta(first, last)
+                })
+                await runTests(module, test)
+
+                expect(fs.existsSync(first.pendingFile)).toBe(false)
+                expect(fs.existsSync(last.pendingFile)).toBe(true)
+                expect(emittedOf().filter(([name]) => name === 'allure:runtimeMessage').map(([, payload]) => payload)).toEqual([last.payload])
+            })
+
+            it('removes the files of tests that are closed without a result', async () => {
+                const module = makeModule({ state: () => 'failed' })
+                const [a, b] = [pending('a', 0), pending('b', 1)]
+                const test = makeTest(module, module, 't', passed, 1, { meta: () => runtimeMeta(a, b) })
+                reporter.onTestModuleStart(module)
+                await reporter.onTestCaseReady(test)
+                await reporter.onTestModuleEnd(module)
+
+                expect(fs.existsSync(a.pendingFile)).toBe(false)
+                expect(fs.existsSync(b.pendingFile)).toBe(false)
+                expect(names(emittedOf())).not.toContain('allure:runtimeMessage')
+            })
+
+            it('does not fail when a file is already gone', async () => {
+                const module = makeModule()
+                const gone = { ...pending('gone', 0), pendingFile: path.join(dir, 'missing.tmp') }
+                const test = makeTest(module, module, 't', passed, 1, {
+                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                    meta: () => runtimeMeta(gone)
+                })
+                await runTests(module, test)
+
+                expect(errors).toEqual([])
+            })
         })
 
         it('replays nothing when the final attempt made no relayed calls', async () => {
