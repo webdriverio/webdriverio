@@ -537,3 +537,23 @@ describe('frames after the end of a parallel test', () => {
         expect(done).toBe(true)
     })
 })
+
+describe('end of a parallel context', () => {
+    beforeEach(() => {
+        inContext(undefined)
+    })
+
+    it('ends the recording of a test that gets context:end and no test:end (failing beforeEach, failHookAffectedTests: false)', async () => {
+        const reporter = await startReporter({ screenshotIntervalSecs: 1 })
+        inContext('ctx-a')
+        reporter.onTestStart(test('a', 'ctx-a'))
+        expect(reporter.intervalScreenshot).toBeDefined()
+
+        inContext(undefined)
+        reporter.onContextEnd({ contextId: 'ctx-a' } as any)
+
+        inContext('ctx-a')
+        expect(reporter.intervalScreenshot).toBeUndefined()
+        expect(reporter.recordingPath).toBeUndefined()
+    })
+})

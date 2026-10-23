@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
-import WdioReporter, { type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
+import WdioReporter, { type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type ContextEnd, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import { isSessionEndedError } from 'webdriver'
 import type { Options } from '@wdio/types'
@@ -641,6 +641,14 @@ export default class VideoReporter extends WdioReporter {
         if (!this.#isCucumberStepReporter) {
             this.#endRecording(key)
         }
+    }
+
+    /**
+     * parallel mode: a test with no end event (a failed beforeEach with `failHookAffectedTests: false`)
+     * also stops its recording when its window closes
+     */
+    onContextEnd ({ contextId }: ContextEnd) {
+        this.#endRecording(contextId)
     }
 
     /**
