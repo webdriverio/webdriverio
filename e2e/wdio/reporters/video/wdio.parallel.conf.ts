@@ -73,15 +73,19 @@ export const config: WebdriverIO.Config = {
             if (ownVideos.length !== 1) {
                 errors.push(`"${test}" has ${ownVideos.length} videos (found: ${videos.join(', ') || 'none'})`)
             }
-            for (const recording of recordings.filter((name) => name.startsWith(`${slug(test)}-`))) {
-                const frames = fs.readdirSync(path.join(rawDir, recording)).filter((file) => file.endsWith('.png'))
-                // another color is the page of another test (white: a window before its first page)
-                const foreign = frames.filter((frame) => {
+            const ownRecordings = recordings.filter((name) => name.startsWith(`${slug(test)}-`))
+            if (!ownRecordings.length) {
+                errors.push(`"${test}" has no recording`)
+            }
+            for (const recording of ownRecordings) {
+                const frames = fs.readdirSync(path.join(rawDir, recording)).filter((file) => file.endsWith('.png')).sort()
+                // another color: the page of another test; white is allowed only before the first page of the test
+                const foreign = frames.filter((frame, index) => {
                     const rgb = colorOf(path.join(rawDir, recording, frame))
-                    return ![...colors, 'ffffff'].some((hex) => near(rgb, hex))
+                    return ![...colors, ...(index === 0 ? ['ffffff'] : [])].some((hex) => near(rgb, hex))
                 })
                 if (!frames.length || foreign.length) {
-                    errors.push(`"${test}": ${frames.length} frames, ${foreign.length} with the page of another test (${foreign.join(', ')})`)
+                    errors.push(`"${test}": ${frames.length} frames, ${foreign.length} not of this test (${foreign.join(', ')})`)
                 }
             }
         }
