@@ -780,7 +780,7 @@ describe('WdioBridgeReporter', () => {
             })
 
             it('removes the files of tests that are closed without a result', async () => {
-                const module = makeModule({ state: () => 'failed' })
+                const module = makeModule({ state: () => 'failed', errors: () => [] })
                 const [a, b] = [pending('a', 0), pending('b', 1)]
                 const test = makeTest(module, module, 't', passed, 1, { meta: () => runtimeMeta(a, b) })
                 reporter.onTestModuleStart(module)
@@ -793,7 +793,7 @@ describe('WdioBridgeReporter', () => {
             })
 
             it('does not fail when a file is already gone', async () => {
-                const module = makeModule({ state: () => 'failed' })
+                const module = makeModule({ state: () => 'failed', errors: () => [] })
                 const gone = { ...pending('gone', 0), pendingFile: path.join(dir, 'missing.tmp') }
                 const test = makeTest(module, module, 't', passed, 1, { meta: () => runtimeMeta(gone) })
                 reporter.onTestModuleStart(module)
