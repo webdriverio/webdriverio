@@ -390,7 +390,9 @@ export class AiRuntime {
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
         const gate = new StepGate(test?.controller.signal)
-        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate })
+        const timeout = options.timeout ?? DEFAULT_TIMEOUT
+        const deadline = Date.now() + timeout
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate, deadline: () => deadline })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -400,7 +402,7 @@ export class AiRuntime {
                 systemPrompt: systemPrompt(await this.#projectInstructions(), true),
                 prompt: actPrompt(instruction, context, Boolean(scope)),
                 maxSteps,
-                timeout: options.timeout ?? DEFAULT_TIMEOUT,
+                timeout,
                 signal: gate.loopSignal,
                 middleware: [await workspace.middleware()]
             })
@@ -411,6 +413,7 @@ export class AiRuntime {
             }
             return { steps, summary: result.summary, usage: result.usage }
         } finally {
+            await gate.close()
             await workspace.writeEvents(agent.logs, agent.network)
             await workspace.writeSteps(steps)
             await this.#finishCall(workspace, test)
@@ -604,6 +607,7 @@ export class AiRuntime {
                     steps: replay.done
                 })
             }
+            signal?.throwIfAborted()
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder, test)
             await evidence?.after()
@@ -750,6 +754,7 @@ export class AiRuntime {
             workspace.keep = true
             throw new ActError({ instruction, reason: `the answer did not match the schema. ${feedback}`, usage, workspace: workspace.dir })
         } finally {
+            await gate.close()
             await this.#finishCall(workspace, test)
         }
     }

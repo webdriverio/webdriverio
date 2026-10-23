@@ -27,6 +27,25 @@ describe('StepGate', () => {
         expect(gate.loopSignal?.aborted).toBe(true)
     })
 
+    it('closes at once when no step runs', async () => {
+        await expect(new StepGate().close()).resolves.toBeUndefined()
+    })
+
+    it('closes once the running step ended and starts no step after', async () => {
+        const gate = new StepGate()
+        let finish: () => void = () => {}
+        const step = gate.step(() => new Promise<string>((resolve) => { finish = () => resolve('clicked') }))
+        let closed = false
+        const closing = gate.close().then(() => { closed = true })
+
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(closed).toBe(false)
+        await expect(gate.step(async () => 'late')).rejects.toThrow('the call already ended')
+        finish()
+        await closing
+        expect(await step).toBe('clicked')
+    })
+
     it('does not start a step once the test ended', async () => {
         const test = new AbortController()
         const gate = new StepGate(test.signal)

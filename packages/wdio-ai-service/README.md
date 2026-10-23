@@ -72,7 +72,7 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 })
 ```
 
-`act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason.
+`act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason. At the timeout, or when the test ends, a step whose action already runs finishes first: `act` never returns while one of its steps still uses the browser. A step that only waited for its element until then does not run its action, and a `wait` of the model ends by the timeout.
 
 ## Scope
 
@@ -92,7 +92,7 @@ On a frame or a tab the steps run in that browsing context, and the browser goes
 
 ## Extract
 
-`extract(instruction, schema, options?)` reads information from the page and validates it against a [Standard Schema](https://standardschema.dev): zod, valibot, arktype and others. The model can only read the page (`snapshot`, `find`, `get`, `is`, `scroll`, the workspace), never change it. When the schema library can describe itself as JSON Schema (zod 4 can), the model gets that shape. An answer that does not match is rejected and the model answers again once. `extract` results are never cached: a read has to see the current page.
+`extract(instruction, schema, options?)` reads information from the page and validates it against a [Standard Schema](https://standardschema.dev): zod, valibot, arktype and others. The model can only read the page (`snapshot`, `find`, `get`, `is`, `scroll`, the workspace), never change it. When the schema library can describe itself as JSON Schema (zod 4 can), the model gets that shape. An answer that does not match is rejected and the model answers again once. `extract` results are never cached: a read has to see the current page. Like `act`, it returns after a read step that still runs at its `timeout` or at the end of the test.
 
 Keep pass/fail decisions in code: let `extract` find the value, and assert it with `expect`.
 

@@ -83,6 +83,10 @@ export interface ToolContext {
      * stops the call between two tool calls once its test ended
      */
     gate?: StepGate
+    /**
+     * when the model loop times out, a `wait` of the model ends by then
+     */
+    deadline?: () => number
 }
 
 /**
@@ -207,7 +211,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                  */
                 const args = spec.name === 'snapshot' && context.scope
                     ? { ...input, scope: context.scope }
-                    : input
+                    : spec.name === 'wait' && context.deadline
+                        ? waitWithin(input, context.deadline())
+                        : input
                 if (context.scope) {
                     for (const key of TARGET_KEYS) {
                         const target = input[key]
@@ -225,6 +231,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 if (step) {
                     await context.effects?.start()
                 }
+                context.gate?.check()
                 const result = await agent.runAction(spec.name, substitute(args, values))
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
@@ -285,6 +292,24 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
             schema: actionSchema(z, spec)
         }))
         .concat(context.workspace ? [sourceTool(context, tool, z)] : [])
+}
+
+/**
+ * the default `--limit` of the `wait` action of `@wdio/session`
+ */
+const WAIT_LIMIT = 10_000
+
+/**
+ * A call returns after its running step, so a `wait` longer than the time
+ * left would hold the call, and the next call of the browser, past its timeout.
+ */
+function waitWithin (input: Record<string, unknown>, deadline: number) {
+    const left = Math.max(0, deadline - Date.now())
+    if (typeof input.target === 'string' && /^\d+$/.test(input.target)) {
+        return Number(input.target) > left ? { ...input, target: String(left) } : input
+    }
+    const limit = typeof input.limit === 'number' ? input.limit : WAIT_LIMIT
+    return limit > left ? { ...input, limit: left } : input
 }
 
 /**
