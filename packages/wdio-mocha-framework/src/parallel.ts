@@ -489,7 +489,10 @@ function callHook(hook: any, ctx: object, timeoutMs?: number, uncaught?: Uncaugh
     }
     return new Promise((resolve, reject) => {
         const runnable = (ctx as { _runnable?: { file?: string } })._runnable
-        const rejectTimeout = () => reject(mochaTimeoutError(timeoutMs!, runnable?.file))
+        const rejectTimeout = () => {
+            uncaught?.clear(fail)
+            reject(mochaTimeoutError(timeoutMs!, runnable?.file))
+        }
         let graceTimer: ReturnType<typeof setTimeout> | undefined
         const timer = timeoutMs && timeoutMs > 0
             ? setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)

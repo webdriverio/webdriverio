@@ -1756,6 +1756,29 @@ describe('runParallelTests — uncaught errors', () => {
         expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('late boom'))
     })
 
+    test('counts an error that comes after its test timed out as a failure of the run', async () => {
+        const wait = (ms: number) => () => new Promise((r) => setTimeout(r, ms))
+        const suite = mockSuite('root', {
+            tests: [mockTest('times out', async () => {
+                // the timeout (50 ms + 50 ms grace) fails the test at about 100 ms
+                setTimeout(() => { throw new Error('after timeout boom') }, 150)
+                await new Promise((r) => setTimeout(r, 500))
+            })],
+            // short hooks keep the run going in another window until about 320 ms
+            suites: [mockSuite('slow', {
+                tests: [mockTest('keeps running')],
+                _afterEach: Array.from({ length: 8 }, (_, i) => mockHook(`wait ${i}`, { title: 'slow' }, wait(40)))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { timeout: 50 })
+
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toMatch(/Timeout of 50ms exceeded/)
+        expect(outcome('keeps running')).toEqual(['test:pass'])
+        // the timed-out test does not keep the error target of its window
+        expect(failures).toBe(2)
+        expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('after timeout boom'))
+    })
+
     test('lets an uncaught error through with allowUncaught, as Mocha does', async () => {
         const suite = mockSuite('root', {
             tests: [mockTest('throws later', async () => {
