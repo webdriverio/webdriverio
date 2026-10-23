@@ -23,8 +23,12 @@ export class LinkingFileSystemWriter extends FileSystemWriter {
         }
         try {
             renameSync(source, join(this.#resultsDir, distFileName))
-        } catch (err) {
-            log.warn(`Could not move the attachment ${source} into the Allure results: ${(err as Error).message}`)
+        } catch (renameErr) {
+            try {
+                super.writeAttachmentFromPath(distFileName, from)
+            } catch {
+                log.warn(`Could not move the attachment ${source} into the Allure results: ${(renameErr as Error).message}`)
+            }
         }
     }
 }

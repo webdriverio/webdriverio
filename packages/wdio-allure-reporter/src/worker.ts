@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { RuntimeAttachmentContentMessage, RuntimeAttachmentPathMessage, RuntimeGlobalAttachmentContentMessage, RuntimeGlobalAttachmentPathMessage } from 'allure-js-commons/sdk'
@@ -26,6 +26,11 @@ export function offloadAttachment(message: unknown, resultsDir: string): Offload
     const { content, encoding, ...rest } = data
     mkdirSync(resultsDir, { recursive: true })
     const path = join(resultsDir, PENDING_ATTACHMENT_PREFIX + randomUUID() + PENDING_ATTACHMENT_SUFFIX)
-    writeFileSync(path, Buffer.from(content, encoding))
+    try {
+        writeFileSync(path, Buffer.from(content, encoding))
+    } catch (err) {
+        rmSync(path, { force: true })
+        throw err
+    }
     return { type: type === 'attachment_content' ? 'attachment_path' : 'global_attachment_path', data: { ...rest, path } } as OffloadedMessage
 }
