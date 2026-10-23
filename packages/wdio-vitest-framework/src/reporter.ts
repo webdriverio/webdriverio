@@ -33,11 +33,12 @@ type ModuleRun = {
     testCount: number
     entities: Map<string, Open>
     // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
-    runningHooks: Map<string, AllHookName>
+    runningHooks: Map<string, Set<AllHookName>>
     wrapper?: Titled
 }
 
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
+const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
 const join = (parent: string, title: string) => parent ? `${parent} ${title}` : title
 
@@ -93,7 +94,11 @@ export class WdioBridgeReporter implements Reporter {
             return
         }
         const run = this.#tryRun(entity.type === 'module' ? entity : entity.module)
-        run?.runningHooks.set(entity.id, name as AllHookName)
+        if (run) {
+            const running = run.runningHooks.get(entity.id) ?? new Set<AllHookName>()
+            running.add(name as AllHookName)
+            run.runningHooks.set(entity.id, running)
+        }
     }
 
     onHookEnd(hook: ReportedHookContext) {
@@ -101,7 +106,7 @@ export class WdioBridgeReporter implements Reporter {
         if (entity.type === 'test') {
             return
         }
-        this.#runs.get((entity.type === 'module' ? entity : entity.module).id)?.runningHooks.delete(entity.id)
+        this.#runs.get((entity.type === 'module' ? entity : entity.module).id)?.runningHooks.get(entity.id)?.delete(hook.name as AllHookName)
     }
 
     onTestCaseReady(testCase: TestCase) {
@@ -283,17 +288,19 @@ export class WdioBridgeReporter implements Reporter {
      * Mocha reports a failing all-hook as a failed hook of its suite, which the JUnit reporter turns into a failed testcase.
      */
     #emitFailedHook(run: ModuleRun, entity: TestSuite | TestModule, parent: Titled, title: string) {
-        const hookName = run.runningHooks.get(entity.id)
-        if (!hookName) {
-            return
-        }
+        const unfinished = run.runningHooks.get(entity.id)
         run.runningHooks.delete(entity.id)
-        const kind = HOOK_KIND[hookName]
-        const hookTitle = `"${kind}" hook in "${title}"`
-        const hook = { title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}` }
-        const error = toErrorPayload(entity.errors()[0] ?? { message: `${hookName} hook failed` })
-        this.#emit(run, 'hook:start', hook)
-        this.#emit(run, 'hook:end', { ...hook, state: 'fail', duration: 0, error })
+        const hookNames = ALL_HOOK_NAMES.filter((name) => unfinished?.has(name))
+        const errors = hookNames.length > 0 ? entity.errors() : []
+        hookNames.forEach((hookName, index) => {
+            const kind = HOOK_KIND[hookName]
+            const hookTitle = `"${kind}" hook in "${title}"`
+            const hook = { title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}` }
+            const own = hookNames.length > 1 && errors.length > 1 ? errors[index === 0 ? 0 : errors.length - 1] : errors[0]
+            const error = toErrorPayload(own ?? { message: `${hookName} hook failed` })
+            this.#emit(run, 'hook:start', hook)
+            this.#emit(run, 'hook:end', { ...hook, state: 'fail', duration: 0, error })
+        })
     }
 
     /**
@@ -331,7 +338,7 @@ export class WdioBridgeReporter implements Reporter {
                 const failed = state === 'failed'
                 // TestModuleState 'pending': the module did not finish, which a cancelled run leaves behind
                 run.incomplete ||= state === 'pending'
-                if (run.runningHooks.has(testModule.id)) {
+                if (run.runningHooks.get(testModule.id)?.size) {
                     this.#emitFailedHook(run, testModule, this.#parent(run, testModule), '{root}')
                 }
                 this.#closeUnfinished(run, testModule, failed)

@@ -32,13 +32,24 @@ vi.mock('@wdio/config/node', () => ({
         addService = vi.fn((service: unknown) => { added.services.push(service) })
     }
 }))
-const soft = vi.hoisted(() => ({ options: undefined as unknown, error: undefined as unknown, instances: [] as unknown[] }))
+const softFailure = vi.hoisted(() => new Error('1 soft assertion failure'))
+const soft = vi.hoisted(() => ({ options: undefined as unknown, error: undefined as unknown, instances: [] as unknown[], failures: new Map<string, string>() }))
 vi.mock('expect-webdriverio', () => ({
     expect: { name: 'wdio-expect' },
     setDefaultOptions: vi.fn(),
     SoftAssertionService: class {
         constructor(options: unknown) { soft.options = options; soft.instances.push(this) }
-    }
+        getTestId(test: { file: string, parent: string, title: string }) { return `${test.file}:${test.parent}:${test.title}` }
+        // mirrors expect-webdriverio: only a test without its own error asserts the recorded soft failures
+        afterTest(test: { file: string, parent: string, title: string }, _: unknown, result: { error?: unknown }) {
+            const id = this.getTestId(test)
+            if (!result.error && soft.failures.has(id)) {
+                soft.failures.delete(id)
+                result.error = softFailure
+            }
+        }
+    },
+    SoftAssertService: { getInstance: () => ({ clearFailures: (id: string) => { soft.failures.delete(id) } }) }
 }))
 vi.mock('webdriverio', () => ({
     PARALLEL_CONTEXT_STORE_KEY: '__parallelContextStore',
@@ -64,6 +75,7 @@ describe('setup', () => {
         soft.options = undefined
         soft.instances = []
         soft.error = undefined
+        soft.failures.clear()
         args.value = { baseUrl: 'http://x' }
         utils.initializeWorkerService.mockResolvedValue([])
         injected.caps = { browserName: 'chrome', hostname: 'grid' }
@@ -267,6 +279,19 @@ describe('setup', () => {
 
         it('passes when no afterTest service adds an error', async () => {
             mutateReport()
+            await expect(hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))).resolves.toBeUndefined()
+        })
+
+        it('does not throw the soft failures of a failed attempt in the passing retry', async () => {
+            utils.executeHooksWithArgs.mockImplementation(async (name: string, _hooks: unknown, hookArgs: unknown[]) => {
+                if (name === 'afterTest') {
+                    (soft.instances.at(-1) as { afterTest: (...a: unknown[]) => void }).afterTest(...hookArgs)
+                }
+                return []
+            })
+            const own = new Error('boom')
+            const attempt0 = vi.fn(async () => { soft.failures.set('/repo/a.spec.ts::t', 'x'); throw own })
+            await expect(hooks.aroundEach(attempt0, task(false))).rejects.toBe(own)
             await expect(hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))).resolves.toBeUndefined()
         })
 

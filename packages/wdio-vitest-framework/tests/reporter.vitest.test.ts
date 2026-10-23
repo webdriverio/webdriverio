@@ -133,4 +133,43 @@ describe('fine', () => { beforeAll(() => {}); afterAll(() => {}); test('t3', () 
         ])
         expect(recorded.filter(([name]) => name === 'hook:start').map(([, payload]) => payload.uid)).toEqual(hookEnds.map(({ uid }) => uid))
     })
+
+    const runHookSpec = async (spec: string, setup?: string) => {
+        recorded.length = 0
+        const hookDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-hooks2-'))
+        await fs.writeFile(path.join(hookDir, 'h.spec.js'), spec)
+        if (setup) {
+            await fs.writeFile(path.join(hookDir, 'setup.js'), setup)
+        }
+        const config = { reporters: [[RecorderReporter, {}]] } as unknown as WebdriverIO.Config
+        const bridge = new WdioBridgeReporter(config, () => {})
+        const vitest = await startVitest([], { run: true, watch: false, config: false }, {
+            root: hookDir,
+            test: { include: ['h.spec.js'], setupFiles: setup ? ['setup.js'] : [], reporters: [bridge], pool: 'forks', globals: true, provide: { wdioCapabilities: { browserName: 'chrome' } } }
+        } as never)
+        await vitest.close()
+        await fs.rm(hookDir, { recursive: true, force: true })
+        const hookEnds = recorded.filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+        expect(new Set(hookEnds.map(({ uid }) => uid)).size).toBe(hookEnds.length)
+        return hookEnds.map(({ title, error }) => [title, error.message])
+    }
+
+    it('keeps a failed beforeAll next to a passing or failing afterAll of the same suite', async () => {
+        expect(await runHookSpec(`
+describe('passing after', () => { beforeAll(() => { throw new Error('b1') }); afterAll(() => {}); test('t1', () => {}) })
+describe('failing both', () => { beforeAll(() => { throw new Error('b2') }); afterAll(() => { throw new Error('a2') }); test('t2', () => {}) })
+`)).toEqual([
+            ['"before all" hook in "passing after"', 'b1'],
+            ['"before all" hook in "failing both"', 'b2'],
+            ['"after all" hook in "failing both"', 'a2']
+        ])
+    })
+
+    it('keeps a failed session style beforeAll next to the module level afterAll of a setup file', async () => {
+        expect(await runHookSpec('test(\'t1\', () => {})', `
+import { afterAll, beforeAll } from 'vitest'
+beforeAll(() => { throw new Error('session boom') })
+afterAll(() => {})
+`)).toEqual([['"before all" hook in "{root}"', 'session boom']])
+    })
 })
