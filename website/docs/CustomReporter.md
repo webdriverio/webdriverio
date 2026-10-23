@@ -81,6 +81,7 @@ export default class CustomReporter extends WDIOReporter {
     onTestFail() {}
     onTestSkip() {}
     onTestEnd() {}
+    onContextEnd() {} // experimental, see "Reporters and parallel tests"
     onSuiteEnd() {}
     onRunnerEnd() {}
 }
@@ -128,9 +129,11 @@ With [parallel tests in a spec file](./ParallelTests.md), the tests of one spec 
 - `parentUid` on `suite:start`, `hook:start` and `test:start`: the uid of the owning suite (`null` for a top-level suite). The reporter adds the suite, hook or test to that suite, not to the suite that started last.
 - `contextId` on test and command events: the browsing context of the test. The reporter adds command output to the test that ran in that context.
 
+The test, hook and suite stats keep these fields when the event has them: in `onTestEnd(test)`, `test.contextId` is the browsing context of the test and `test.parentUid` the uid of its suite. Without parallel mode, the stats have no such properties.
+
 The `suites`, `tests` and `hooks` trees of the reporter are therefore correct. If your reporter keeps its own state, key it by the `uid` of the test or suite instead of tracking a single current test.
 
-Output that comes without an event, such as console output or a custom `process.emit` event, has no `uid`. Call `this.getContextTest()` to get the test whose browsing context wrote it. In parallel mode it returns `undefined` when no running test owns that context; without parallel mode it returns the test that started last. `before()` hooks of a parallel test run before its `test:start`, so no test owns the context yet; `this.getContextId()` returns the raw context id, which stays the same for the whole test.
+Output that comes without an event, such as console output or a custom `process.emit` event, has no `uid`. Call `this.getContextTest()` to get the test whose browsing context wrote it. In parallel mode it returns the test that started last in that context, also after its `test:end`, when its `afterEach` and `after` hooks run, and `undefined` when no test started in that context or after its `context:end`; without parallel mode it returns the test that started last. `before()` hooks of a parallel test run before its `test:start`, so no test owns the context yet; `this.getContextId()` returns the raw context id, which stays the same for the whole test.
 
 ```js
 import WDIOReporter from '@wdio/reporter'
@@ -144,6 +147,14 @@ export default class CustomReporter extends WDIOReporter {
     }
 }
 ```
+
+The `afterEach` and `after` hooks of a parallel test run after its `test:end`. To know when a context is done, use `onContextEnd(payload)`. It is called after the last hook of the test, and the context sends no more events after it. The payload has `cid`, `specs`, `uid` (the last test of the context) and `contextId`. Close or write what your reporter keeps for that context there.
+
+:::warning Experimental
+
+`context:end` and `onContextEnd` are experimental: only Mocha `parallelMode` sends them for now, and the name and the payload can change.
+
+:::
 
 ## Wait Until `isSynchronised`
 
