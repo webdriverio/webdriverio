@@ -14,6 +14,8 @@ export type RelayedEntry = {
     payload: unknown
     /** Retry attempt that made the call, so only the last attempt is replayed */
     retry: number
+    /** File the payload points at, which the reporter removes when the entry is not replayed */
+    pendingFile?: string
 }
 
 export type SessionMeta = {

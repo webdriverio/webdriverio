@@ -64,6 +64,19 @@ describe('offloadAttachment', () => {
         expect(fs.readFileSync((result.data as { path: string }).path).equals(bytes)).toBe(true)
     })
 
+    it('derives the extension from the content type when none is given', () => {
+        const extensionOf = (overrides: Record<string, unknown>) => (offloadAttachment(attachmentMessage({ fileExtension: undefined, ...overrides }), resultsDir)!.data as { fileExtension: string }).fileExtension
+        expect(extensionOf({ contentType: 'image/png' })).toBe('.png')
+        expect(extensionOf({ contentType: 'text/plain' })).toBe('.txt')
+        expect(extensionOf({ contentType: 'application/x-unknown' })).toBe('')
+    })
+
+    it('keeps an explicit extension and adds the missing dot', () => {
+        const extensionOf = (fileExtension: string) => (offloadAttachment(attachmentMessage({ fileExtension }), resultsDir)!.data as { fileExtension: string }).fileExtension
+        expect(extensionOf('.log')).toBe('.log')
+        expect(extensionOf('log')).toBe('.log')
+    })
+
     it('removes the partial file and rethrows when the write fails', () => {
         const dir = path.join(temporaryDirectory(), 'failing')
         failWrite.enabled = true

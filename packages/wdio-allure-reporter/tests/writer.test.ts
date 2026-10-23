@@ -94,12 +94,12 @@ describe('LinkingFileSystemWriter', () => {
 })
 
 describe('Allure reporter with an offloaded attachment', () => {
-    const run = async (wrapInStep: boolean) => {
+    const run = async (wrapInStep: boolean, attachment: Record<string, unknown> = { contentType: 'image/png', fileExtension: '.png' }) => {
         const outputDir = temporaryDirectory()
         const reporter = new AllureReporter({ outputDir })
         const message = offloadAttachment({
             type: 'attachment_content',
-            data: { name: 'shot', content: Buffer.from(content).toString('base64'), encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep }
+            data: { name: 'shot', content: Buffer.from(content).toString('base64'), encoding: 'base64', ...attachment, wrapInStep }
         }, outputDir)!
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -117,6 +117,16 @@ describe('Allure reporter with an offloaded attachment', () => {
         expect(result.attachments[0]).toMatchObject({ name: 'shot', type: 'image/png', source: expect.stringMatching(/^[0-9a-f-]+-attachment\.png$/) })
         expect(fs.readFileSync(path.join(outputDir, result.attachments[0].source), 'utf-8')).toBe(content)
         expect(fs.readdirSync(outputDir).filter((file) => file.startsWith(PENDING_ATTACHMENT_PREFIX))).toEqual([])
+    })
+
+    it.each([
+        ['image/png', undefined, /-attachment\.png$/],
+        ['text/plain', undefined, /-attachment\.txt$/],
+        ['image/png', '.log', /-attachment\.log$/]
+    ])('names the stored %s file (extension %s) after the explicit extension, else its type', async (contentType, fileExtension, expected) => {
+        const { outputDir, result } = await run(false, { contentType, fileExtension })
+        expect(result.attachments[0].source).toMatch(expected)
+        expect(fs.readdirSync(outputDir).filter((file) => file.endsWith(PENDING_ATTACHMENT_SUFFIX))).toEqual([])
     })
 
     it('puts it inside a step when wrapInStep is set', async () => {

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { rmSync } from 'node:fs'
 import logger from '@wdio/logger'
 import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
@@ -227,12 +228,31 @@ export class WdioBridgeReporter implements Reporter {
         return lanes
     }
 
+    #relayedEntries(testCase: TestCase) {
+        return ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
+    }
+
     // Only the last attempt is replayed, matching the single result the reporters get for a retried test
     #replayRuntimeCalls(run: ModuleRun, testCase: TestCase) {
-        const entries = ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
         const finalRetry = testCase.diagnostic()?.retryCount ?? 0
+        const entries = this.#relayedEntries(testCase)
         entries.filter(({ retry }) => retry === finalRetry).forEach(({ event, payload }) => {
             run.reporter?.emit(event, payload as Parameters<BaseReporter['emit']>[1])
+        })
+        this.#discardFiles(entries.filter(({ retry }) => retry !== finalRetry))
+    }
+
+    // Nobody else knows about files of calls that are never replayed, so they would stay in the results folder
+    #discardFiles(entries: RelayedEntry[]) {
+        entries.forEach(({ pendingFile }) => {
+            if (!pendingFile) {
+                return
+            }
+            try {
+                rmSync(pendingFile, { force: true })
+            } catch (err) {
+                log.debug(`Could not remove ${pendingFile}: ${(err as Error).message}`)
+            }
         })
     }
 
@@ -342,6 +362,12 @@ export class WdioBridgeReporter implements Reporter {
      */
     #closeUnfinished(run: ModuleRun, testModule: TestModule, failed: boolean) {
         const open = [...run.entities.values()]
+        const unfinishedIds = new Set([...run.entities].filter(([, { kind }]) => kind === 'test').map(([id]) => id))
+        for (const testCase of testModule.children.allTests()) {
+            if (unfinishedIds.has(testCase.id)) {
+                this.#discardFiles(this.#relayedEntries(testCase))
+            }
+        }
         for (const { kind, payload } of open) {
             if (kind !== 'test') {
                 continue
