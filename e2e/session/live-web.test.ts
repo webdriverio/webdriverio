@@ -23,11 +23,10 @@ describe('wdio session on live-web pages', () => {
         project = createProject('live-web')
         // Chrome 156 and 157 hang every BiDi command in a tab that `window.open` opened: https://issues.chromium.org/issues/571161446
         // Fixed in Chrome 158 (https://chromium-review.googlesource.com/c/chromium/src/+/8574800): remove the pin then.
-        // the first run downloads Chrome 155; a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
+        // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
         const sandbox = process.platform === 'linux' ? ['--arg=--no-sandbox'] : []
-        const open = await project.run(['open', 'chrome', `${server.url}/live.html`, '--browser-version', '155', ...sandbox], { timeout: 240_000 })
-        expect(open.code, open.stderr).toBe(0)
-    }, 250_000)
+        await run('open', 'chrome', `${server.url}/live.html`, '--browser-version', '155', ...sandbox)
+    }, 60_000)
 
     afterAll(async () => {
         await project.cleanup()
