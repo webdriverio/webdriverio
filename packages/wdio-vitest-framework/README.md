@@ -70,7 +70,7 @@ Maximum number of `test.concurrent` tests that run at once. Maps to Vitest's `ma
 
 ### Vitest options
 
-All other keys are passed to Vitest's `test` config and override the defaults of this framework, for example `testTimeout` (default `60000`), `hookTimeout` (default: `connectionRetryTimeout`, else `120000`, because `beforeAll` starts the session), `retry` or `reporters`.
+All other keys are passed to Vitest's `test` config and override the defaults of this framework, for example `testTimeout` (default `60000`), `hookTimeout` (default: `connectionRetryTimeout`, else `120000`, because `beforeAll` starts the session), `retry` or `reporters`. With `retry`, every attempt is reported to the WDIO reporters: the failed ones as retries, the last one as the test result.
 
 Specs and `exclude` come from `wdio.conf` (respecting `--spec`). The framework always sets `include` to the resolved specs, so `vitestOpts.include` is ignored, and `pool: 'forks'`. A `vitestOpts.setupFiles` is added after the framework's own setup file instead of replacing it. The framework also sets `isolate`, `globals`, `environment: 'node'`, `maxWorkers` (from `maxInstances`, or `wdio:maxInstances` per capability) and `bail`.
 

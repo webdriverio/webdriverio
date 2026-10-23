@@ -10,7 +10,7 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
-import { ATTACHMENT_DIR_KEY, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTACHMENT_DIR_KEY, ATTEMPT_EVENT, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptError, type RelayedEntry, type RelayedReporterEvent, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -64,7 +64,23 @@ function warnOnce(key: string, message: string) {
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
 
-function relay(event: RelayedEntry['event'], payload: unknown) {
+function recordAttempt(task: TestTask, start: number, error: unknown) {
+    const meta = task.meta as Record<string, unknown>
+    const entries = (meta[RUNTIME_META_KEY] ??= []) as RelayedEntry[]
+    entries.push({
+        event: ATTEMPT_EVENT,
+        retry: task.result?.retryCount ?? 0,
+        payload: { start, end: Date.now(), state: error === undefined ? 'passed' : 'failed', ...(error !== undefined && { error: serializeError(error) }) }
+    })
+}
+
+// task.meta crosses a worker boundary, so the error is reduced to what structured clone keeps
+function serializeError(error: unknown): AttemptError {
+    const { name, message, stack, expected, actual } = (typeof error === 'object' && error !== null ? error : { message: String(error) }) as Partial<AttemptError>
+    return { name, message: message ?? String(error), stack, expected, actual }
+}
+
+function relay(event: RelayedReporterEvent, payload: unknown) {
     const task = activeTask.getStore()
     if (!task) {
         warnOnce('outside-test', `Dropped ${event}: reporter runtime APIs only work in tests and beforeEach/afterEach hooks`)
@@ -79,7 +95,7 @@ function relay(event: RelayedEntry['event'], payload: unknown) {
     entries.push({ ...entry, retry: task.result?.retryCount ?? 0 })
 }
 
-type Converted = Pick<RelayedEntry, 'event' | 'payload' | 'pendingFile'>
+type Converted = Pick<Extract<RelayedEntry, { event: RelayedReporterEvent }>, 'event' | 'payload' | 'pendingFile'>
 
 function toAllureMessage(payload: unknown): Converted {
     const transport = relayState.attachments
@@ -97,7 +113,7 @@ function toAllureMessage(payload: unknown): Converted {
     }
 }
 
-const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => Converted | undefined> = {
+const toRuntimeMessage: Record<RelayedReporterEvent, (payload: unknown) => Converted | undefined> = {
     'allure:startStep': (name) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: name as string, start: Date.now() } } }),
     'allure:endStep': (arg) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } } }),
     'allure:runtimeMessage': toAllureMessage,
@@ -281,13 +297,17 @@ aroundEach(async (...args) => {
                 exception: error instanceof Error ? error.message : '',
                 status: error === undefined ? 'passed' : 'failed'
             }
-            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
-            // afterTest services such as the soft assertion service report a failure by mutating the report
-            if (error === undefined) {
-                serviceError = report.error
-            } else if (softAssertions) {
-                // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+            try {
+                await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
+                // afterTest services such as the soft assertion service report a failure by mutating the report
+                if (error === undefined) {
+                    serviceError = report.error
+                } else if (softAssertions) {
+                    // the service skips asserting a test that already failed and leaves its failures for the retry to throw
+                    SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+                }
+            } finally {
+                recordAttempt(task, startedAt, error ?? serviceError)
             }
         }
         if (serviceError !== undefined) {

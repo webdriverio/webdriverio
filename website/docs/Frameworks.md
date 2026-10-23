@@ -840,7 +840,7 @@ Default: `os.cpus().length`
 
 #### Other Vitest options
 
-All other keys are passed to Vitest's [`test` config](https://vitest.dev/config/) and override this framework's defaults, for example `testTimeout` (default `60000`), `hookTimeout` (default: `connectionRetryTimeout`, else `120000`, because `beforeAll` starts the session), `retry` or `reporters`.
+All other keys are passed to Vitest's [`test` config](https://vitest.dev/config/) and override this framework's defaults, for example `testTimeout` (default `60000`), `hookTimeout` (default: `connectionRetryTimeout`, else `120000`, because `beforeAll` starts the session), `retry` or `reporters`. With `retry`, every attempt is reported to the WDIO reporters: the failed ones as retries, the last one as the test result.
 
 The framework controls some keys itself:
 
