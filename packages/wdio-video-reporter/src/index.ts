@@ -14,7 +14,7 @@ import { removeAllureAttachments } from './allureResults.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getDeviceName, isUnknownBidiCommand, getVideoFormatSettings,
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
-    findAllureReporter, findFfmpeg
+    findAllureReporter, findFfmpeg, getNamePart
 } from './helpers.js'
 import {
     DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, BIDI_CAPTURE_TRIES, BIDI_CAPTURE_RETRY_DELAY,
@@ -448,7 +448,7 @@ export default class VideoReporter extends WdioReporter {
         const key = this.#keyOf(suite.contextId)
         // parallel mode names its videos from the suite chain (`#nameParts`)
         if (key === MAIN && ((this.isCucumberFramework && suite.type === 'scenario') || this.options.filenamePrefixSource === 'suite')) {
-            this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
+            this.testNameStructure.push(getNamePart(suite.title))
         }
 
         if (suite.type === 'scenario' && !this.#isSkippedParallelTest(key)) {
@@ -544,7 +544,7 @@ export default class VideoReporter extends WdioReporter {
         recording.openTestTitle = suite.title
         if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
             if (key === MAIN && this.options.filenamePrefixSource === 'test') {
-                this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
+                this.testNameStructure.push(getNamePart(suite.title))
             }
             // one recording for each test, also when the suite title gives the file name
             this.#setRecordingPath(key, suite)
@@ -1153,15 +1153,14 @@ export default class VideoReporter extends WdioReporter {
      * the same parts as `testNameStructure` in sequential mode, from the suite chain of the owner
      */
     #nameParts (owner: { title: string, parentUid?: string | null, type?: string }) {
-        const clean = (title: string) => title.replace(/ /g, '-').replace(/-{2,}/g, '-')
         const parts: string[] = []
         if (this.options.filenamePrefixSource === 'suite') {
             for (let suite = owner.parentUid ? this.#suites.get(owner.parentUid) : undefined; suite; suite = suite.parentUid ? this.#suites.get(suite.parentUid) : undefined) {
-                parts.unshift(clean(suite.title))
+                parts.unshift(getNamePart(suite.title))
             }
         }
         if (this.options.filenamePrefixSource === 'test' || owner.type === 'scenario') {
-            parts.push(clean(owner.title))
+            parts.push(getNamePart(owner.title))
         }
         return parts
     }
