@@ -143,9 +143,11 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 ### Mocha
 
 - `before()` and `after()` in a spec file run **once per test**, not once per `describe`, because every test has its own window. Each test runs `before`, `beforeEach`, the test, `afterEach` and `after` in its window. Put setup that should run once per spec file in the `beforeSuite` / `afterSuite` hooks in `wdio.conf.ts`. These run once, outside any test window.
+- Because each test runs its own hooks, a failing hook only affects its own test. A failing `before()` is reported one time for each test, not one time for the `describe`. A failing `beforeEach()` or `afterEach()` does not stop the other tests of the `describe`. In a sequential run, Mocha skips them. With `failHookAffectedTests` (the default), the test that a failed `before()` or `beforeEach()` skips fails with the same text as in a sequential run. Only the hook title can differ: a failed `beforeEach()` names the test of its own window (`"before each" hook for "t2"`), while a sequential run names the first test for all of them.
 - Only `mochaOpts.timeout` applies. `this.timeout()` in a test or hook throws, and `it(...).timeout()` or a `describe` timeout is ignored with a warning. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
-- `mochaOpts.bail` and `mochaOpts.retries` are not supported and fail the run. `this.retries()` throws.
+- `mochaOpts.bail` and Mocha retries are not supported and fail the run: `mochaOpts.retries`, `this.retries(n)` in a `describe` and `it(...).retries(n)`. `this.retries()` in a test or hook throws. The [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`) work in parallel mode.
 - `.only()`, `this.skip()`, `grep`, `fgrep` and `invert` work like in a sequential run.
+- `mochaOpts.dryRun`, `forbidPending` and `checkLeaks` do not apply in parallel mode yet: the tests run, a pending test does not fail, and a global leak is not reported.
 
 ### Cucumber
 
@@ -174,7 +176,7 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
+`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test and its `afterEach()` and `after()` hooks end. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
 
 `@wdio/spec-reporter` doesn't support parallel mode yet: a Mocha `describe` block that comes after another one, or a Cucumber scenario that starts while another one runs, is shown nested under it, and with Cucumber `retry` the passing count can be wrong. The results of the tests and the exit code are correct.
 
@@ -210,7 +212,7 @@ The test called a command from [Commands that throw in parallel mode](#commands-
 
 ### `bail is not supported in parallel mode` / `retries is not supported in parallel mode`
 
-Remove `mochaOpts.bail` or `mochaOpts.retries`, or run the spec file without `parallelMode`.
+Remove `mochaOpts.bail` or `mochaOpts.retries`, or the `this.retries(n)` / `.retries(n)` of the test that the error names, or run the spec file without `parallelMode`. To retry a test in parallel mode, use the [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`).
 
 ### `Suite-level hooks (before()/after()) run once per test in parallel mode`
 

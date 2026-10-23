@@ -178,16 +178,12 @@ Or install Appium locally in your project:
 npm install --save-dev appium
 ```
 
-**Important:** The Appium Inspector plugin must be installed for this CLI command to work. The command will automatically check if the plugin is installed before starting the server. If it's not installed, you'll see an error with instructions.
+**Important:** The Appium Inspector plugin must be installed for this CLI command to work. The command checks this before starting the server. If the plugin is missing and you run the command in an interactive terminal inside a project, it asks whether to add `appium-inspector-plugin` as a dev dependency (using the package manager of your project) and then continues. Without an interactive terminal it stops with an error instead.
 
-Install the Appium Inspector plugin:
+To install the plugin yourself:
 
 ```sh
-# Add it as a local dependency
-npm install --D appium-inspector-plugin
-
-# Add it globally, depending on how you installed it before
-appium plugin install inspector
+npm install --save-dev appium-inspector-plugin
 ```
 
 For more information about installing and using the Appium Inspector plugin, see the [Appium Inspector documentation](https://appium.github.io/appium-inspector/latest/quickstart/installation/#appium-plugin).
@@ -217,7 +213,7 @@ The CLI automatically opens the Appium Inspector web application at `http://loca
 
 **Note:**
 - The Appium Inspector requires CORS to be enabled on the Appium server. The CLI automatically adds the `--allow-cors` flag to ensure compatibility.
-- The CLI uses the `--use-plugins=inspector` flag to enable the Appium Inspector plugin. Before running the command, make sure you have installed the Appium Inspector plugin (see Prerequisites above).
+- The CLI uses the `--use-plugins=inspector` flag to enable the Appium Inspector plugin. Before running the command, the plugin has to be installed, see Prerequisites above.
 
 ## Native Mobile Selector Performance Optimizer
 
