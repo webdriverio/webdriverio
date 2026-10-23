@@ -1631,3 +1631,148 @@ describe('runParallelTests — reported fullTitle', () => {
         expect(fn).toBeCalledTimes(1)
     })
 })
+
+describe('runParallelTests — uncaught errors', () => {
+    const events = ['uncaughtException', 'unhandledRejection'] as const
+    let saved: Record<string, Function[]>
+    let escaped: unknown[]
+    let reporter: EventEmitter
+    let emitted: { event: string, payload: any }[]
+
+    beforeEach(() => {
+        // the errors must reach only the runner and this test, not Vitest's own handlers
+        saved = Object.fromEntries(events.map((e) => [e, process.listeners(e)]))
+        events.forEach((e) => process.removeAllListeners(e))
+        escaped = []
+        events.forEach((e) => process.on(e, (err: unknown) => { escaped.push(err) }))
+        reporter = new EventEmitter()
+        emitted = []
+        for (const event of ['test:start', 'test:pass', 'test:fail', 'test:pending', 'hook:end']) {
+            reporter.on(event, (payload) => emitted.push({ event, payload }))
+        }
+        return () => {
+            events.forEach((e) => process.removeAllListeners(e))
+            events.forEach((e) => saved[e].forEach((l) => process.on(e, l as any)))
+        }
+    })
+
+    const outcome = (title: string) => emitted.filter((e) => e.payload.title === title && e.event !== 'test:start').map((e) => e.event)
+
+    test('fails the test whose timer throws, as Mocha does, and runs the other tests', async () => {
+        const suite = mockSuite('root', {
+            tests: [
+                mockTest('throws later', async () => {
+                    setTimeout(() => { throw new Error('uncaught boom') }, 5)
+                    await new Promise((r) => setTimeout(r, 50))
+                }),
+                mockTest('other', async () => { await new Promise((r) => setTimeout(r, 20)) })
+            ]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('throws later')).toEqual(['test:fail'])
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toBe('uncaught boom')
+        expect(outcome('other')).toEqual(['test:pass'])
+        expect(failures).toBe(1)
+    })
+
+    test('fails the hook whose timer throws', async () => {
+        const afterEach = mockHook('cleanup', { title: 'root' }, async () => {
+            setTimeout(() => { throw new Error('hook boom') }, 5)
+            await new Promise((r) => setTimeout(r, 50))
+        })
+        const suite = mockSuite('root', { tests: [mockTest('passes')], _afterEach: [afterEach] })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('passes')).toEqual(['test:pass'])
+        expect(emitted.find((e) => e.event === 'hook:end')!.payload.error.message).toBe('hook boom')
+        expect(failures).toBe(1)
+    })
+
+    test('fails the afterEach whose timer throws after a failed test of the same window ended late', async () => {
+        const afterEach = mockHook('cleanup', { title: 'root' }, async () => {
+            setTimeout(() => { throw new Error('hook boom') }, 40)
+            await new Promise((r) => setTimeout(r, 80))
+        })
+        const suite = mockSuite('root', {
+            tests: [mockTest('throws early', async () => {
+                setTimeout(() => { throw new Error('test boom') }, 5)
+                // still runs when its afterEach starts
+                await new Promise((r) => setTimeout(r, 20))
+            })],
+            _afterEach: [afterEach]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toBe('test boom')
+        expect(emitted.find((e) => e.event === 'hook:end')!.payload.error?.message).toBe('hook boom')
+        expect(failures).toBe(2)
+    })
+
+    test('keeps the worker alive on an unhandled rejection and does not fail the test, as Mocha does', async () => {
+        let listenedDuringTest = 0
+        const suite = mockSuite('root', {
+            tests: [mockTest('rejects', async () => {
+                // without a listener Node ends the process on an unhandled rejection
+                listenedDuringTest = process.listenerCount('unhandledRejection') - 1
+                void Promise.reject(new Error('rejection boom'))
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(listenedDuringTest).toBe(1)
+        expect(outcome('rejects')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+        // the other listeners of the process still get it
+        expect(escaped.map((e) => (e as Error).message)).toEqual(['rejection boom'])
+    })
+
+    test('ignores this.skip() called from a timer, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('skips later', async function (this: any) {
+                setTimeout(() => { this.skip() }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('skips later')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+    })
+
+    test('counts an error after the test ended as a failure of the run', async () => {
+        const suite = mockSuite('root', {
+            tests: [
+                mockTest('ends first', () => { setTimeout(() => { throw new Error('late boom') }, 10) }),
+                mockTest('runs longer', async () => { await new Promise((r) => setTimeout(r, 60)) })
+            ]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('ends first')).toEqual(['test:pass'])
+        expect(outcome('runs longer')).toEqual(['test:pass'])
+        expect(failures).toBe(1)
+        expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('late boom'))
+    })
+
+    test('lets an uncaught error through with allowUncaught, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('throws later', async () => {
+                setTimeout(() => { throw new Error('allowed boom') }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { allowUncaught: true })
+
+        expect(outcome('throws later')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+        expect(escaped.map((e) => (e as Error).message)).toEqual(['allowed boom'])
+    })
+
+    test('removes its listeners after the run', async () => {
+        const before = events.map((e) => process.listenerCount(e))
+        await runParallelTests(mockSuite('root', { tests: [mockTest('passes')] }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(events.map((e) => process.listenerCount(e))).toEqual(before)
+    })
+})

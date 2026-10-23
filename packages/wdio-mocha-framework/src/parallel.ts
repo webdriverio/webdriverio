@@ -469,8 +469,15 @@ function createHookContext(testTitle: string | undefined, parentTitle: string | 
     }
 }
 
+/** lets an uncaught error of a context fail the runnable (hook or test) that runs in it */
+interface UncaughtTarget {
+    set(fail: (err: Error) => void): void
+    /** a runnable that ends after its failure must not clear the target of the next one */
+    clear(fail: (err: Error) => void): void
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> {
+function callHook(hook: any, ctx: object, timeoutMs?: number, uncaught?: UncaughtTarget): Promise<unknown> {
     const fn: Function = typeof hook.fn === 'function' ? hook.fn : hook
     const run = (): Promise<unknown> => {
         if (fn.length >= 1) {
@@ -480,29 +487,31 @@ function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> 
         }
         return Promise.resolve(fn.call(ctx))
     }
-    if (timeoutMs && timeoutMs > 0) {
-        return new Promise((resolve, reject) => {
-            const runnable = (ctx as { _runnable?: { file?: string } })._runnable
-            const rejectTimeout = () => reject(mochaTimeoutError(timeoutMs, runnable?.file))
-            let graceTimer: ReturnType<typeof setTimeout> | undefined
-            const timer = setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
-            const settle = (onTime: () => void) => {
-                clearTimeout(timer)
-                if (!graceTimer) {
-                    return onTime()
-                }
-                clearTimeout(graceTimer)
-                rejectTimeout()
+    return new Promise((resolve, reject) => {
+        const runnable = (ctx as { _runnable?: { file?: string } })._runnable
+        const rejectTimeout = () => reject(mochaTimeoutError(timeoutMs!, runnable?.file))
+        let graceTimer: ReturnType<typeof setTimeout> | undefined
+        const timer = timeoutMs && timeoutMs > 0
+            ? setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
+            : undefined
+        const fail = (err: Error) => settle(() => reject(err))
+        const settle = (onTime: () => void) => {
+            clearTimeout(timer)
+            uncaught?.clear(fail)
+            if (!graceTimer) {
+                return onTime()
             }
-            Promise.resolve()
-                .then(run)
-                .then(
-                    (value) => settle(() => resolve(value)),
-                    (err) => settle(() => reject(err))
-                )
-        })
-    }
-    return run()
+            clearTimeout(graceTimer)
+            rejectTimeout()
+        }
+        uncaught?.set(fail)
+        Promise.resolve()
+            .then(run)
+            .then(
+                (value) => settle(() => resolve(value)),
+                (err) => settle(() => reject(err))
+            )
+    })
 }
 
 // ============================================================
@@ -569,9 +578,14 @@ async function runOneTest(
     reporter: EventEmitter,
     parallelStore: AsyncLocalStorage<string>,
     timeoutMs: number,
-    failHookAffectedTests: boolean
+    failHookAffectedTests: boolean,
+    uncaughtTargets: Map<string, (err: Error) => void>
 ): Promise<TestRunResult> {
     const contextId = allocation.context
+    const uncaught: UncaughtTarget = {
+        set: (fail) => uncaughtTargets.set(contextId, fail),
+        clear: (fail) => { if (uncaughtTargets.get(contextId) === fail) { uncaughtTargets.delete(contextId) } }
+    }
     const runInContext = async (): Promise<TestRunResult> => {
         // Static pending tests (it.skip / it without fn): no hooks, no
         // test:start — matches the Mocha runner.
@@ -605,7 +619,7 @@ async function runOneTest(
                 emitHookStart(reporter, kind, hook, test, cid, specs, hookUid, contextId)
                 const hookStart = Date.now()
                 try {
-                    await callHook(fn, ctx, timeoutMs)
+                    await callHook(fn, ctx, timeoutMs, uncaught)
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
                     let hookError = err instanceof Error ? err : new Error(String(err))
@@ -671,7 +685,7 @@ async function runOneTest(
             if (!caughtError) {
                 const fnStart = Date.now()
                 try {
-                    await callHook(test.fn, ctx, timeoutMs)
+                    await callHook(test.fn, ctx, timeoutMs, uncaught)
                     passed = true
                 } catch (err) {
                     caughtError = err instanceof Error ? err : new Error(String(err))
@@ -706,6 +720,8 @@ export interface ParallelMochaOptions {
     mode?: ParallelMode
     /** `false`: a test that a failed hook skips is not reported, as in a sequential run (default `true`) */
     failHookAffectedTests?: boolean
+    /** `true`: an uncaught error is not caught, as with Mocha's `allowUncaught` */
+    allowUncaught?: boolean
 }
 
 export async function runParallelTests(
@@ -794,6 +810,22 @@ export async function runParallelTests(
     let allocationError: unknown
     let allocationFailed = false
 
+    // Mocha's Runner#uncaught: an uncaught error fails the runnable of its context (the
+    // AsyncLocalStorage store follows timers and promises); Mocha ignores a skip error
+    const uncaughtTargets = new Map<string, (err: Error) => void>()
+    let uncaughtOutside = 0
+    const onUncaught = (err: unknown) => {
+        const error = err instanceof Error ? err : new Error(String(err))
+        if (isSkipError(error)) { return }
+        const contextId = parallelStore.getStore()
+        const fail = contextId ? uncaughtTargets.get(contextId) : undefined
+        if (fail) { return fail(error) }
+        uncaughtOutside++
+        log.error(`[Parallel] uncaught error outside a running test or hook: ${error.stack ?? error.message}`)
+    }
+    // Mocha does not fail a test on an unhandled rejection of user code; without a listener Node ends the worker
+    const onUnhandled = () => {}
+
     log.info(
         `[Parallel] Collected ${tests.length} tests. ` +
         `Slots: ${slotCount}, max contexts: ${maxContexts}`
@@ -832,7 +864,8 @@ export async function runParallelTests(
                         tests[index], allocation, cid, specs,
                         `test-${cid}-${index}`,
                         reporter, parallelStore, timeoutMs,
-                        mochaOptions?.failHookAffectedTests !== false
+                        mochaOptions?.failHookAffectedTests !== false,
+                        uncaughtTargets
                     )
                 }
             } catch (reason) {
@@ -843,9 +876,13 @@ export async function runParallelTests(
         }
     }
 
+    if (!mochaOptions?.allowUncaught) { process.on('uncaughtException', onUncaught) }
+    process.on('unhandledRejection', onUnhandled)
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
+        process.removeListener('uncaughtException', onUncaught)
+        process.removeListener('unhandledRejection', onUnhandled)
         for (const spare of spares.splice(0)) {
             const unused = await spare.catch(() => undefined)
             if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
@@ -860,7 +897,7 @@ export async function runParallelTests(
     const pending = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'pending').length
     // Pending tests are not failures; failing teardown hooks are, like Mocha
     const hookFailures = allResults.reduce((n, r) => n + (r.status === 'fulfilled' ? r.value.hookFailures : 0), 0)
-    const failed = tests.length - passed - pending + hookFailures
+    const failed = tests.length - passed - pending + hookFailures + uncaughtOutside
 
     // --- Emit suite:end for nested describe blocks (reverse order) ---
     for (const s of [...suites].reverse()) {
