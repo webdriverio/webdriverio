@@ -858,6 +858,15 @@ describe('WdioBridgeReporter', () => {
                 expect(starts).toEqual([undefined, 1, 2])
             })
 
+            it('times the final attempt by its own marker, not the cumulative diagnostic', async () => {
+                const { module, test } = failedTwice(passed, { diagnostic: () => ({ duration: 5647, startTime: 0, retryCount: 2 }) })
+                await runTests(module, test)
+
+                const byName = (name: string) => emittedOf().find(([n]) => n === name)![1]
+                expect(byName('test:pass')).toMatchObject({ start: 200, end: 210, duration: 10 })
+                expect(byName('test:end')).toMatchObject({ duration: 10 })
+            })
+
             it('counts only the final attempt as a failed test', async () => {
                 const { module, test } = failedTwice({ state: 'failed', errors: [{ message: 'fail 3' }] })
                 await runTests(module, test)
