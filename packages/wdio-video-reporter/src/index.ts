@@ -1097,8 +1097,8 @@ export default class VideoReporter extends WdioReporter {
     }
 
     #extendAllureReport (key: string) {
-        // the same reason as for the video (#attachVideoToAllure): the scenario that started last would get them
-        if (!this.#usingAllure || (key !== MAIN && this.isCucumberFramework)) {
+        // as for the video (#attachVideoToAllure): Allure would add them to the last started scenario, also for failFast skips
+        if (!this.#usingAllure || (this.isCucumberFramework && (key !== MAIN || this.#isParallelRun))) {
             return
         }
         const capabilities = getCurrentCapabilities(browser)

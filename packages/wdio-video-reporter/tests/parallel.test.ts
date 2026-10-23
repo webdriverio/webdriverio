@@ -515,6 +515,29 @@ describe('Allure in parallel mode', () => {
             delete capabilities.browserVersion
         }
     })
+
+    it('adds no browser arguments to Allure for a scenario that Cucumber parallel mode skips without a window (failFast)', async () => {
+        const capabilities = browser.capabilities as Record<string, unknown>
+        capabilities.browserVersion = '155.0'
+        try {
+            const reporter = await allureReporter('cucumber')
+            const allure = await import('@wdio/allure-reporter')
+            inContext('ctx-a')
+            reporter.onSuiteStart({ uid: 'a', title: 'a', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
+            await sleep()
+            vi.mocked(allure.addArgument).mockClear()
+            // failFast: the next scenario gets no window, so it has no context
+            inContext(undefined)
+            const skipped = { uid: 'b', title: 'b', type: 'scenario', parentUid: 'f1', tests: [{ state: 'skipped' }] } as any
+            reporter.onSuiteStart(skipped)
+            reporter.onSuiteEnd(skipped)
+            await sleep()
+
+            expect(allure.addArgument).not.toBeCalled()
+        } finally {
+            delete capabilities.browserVersion
+        }
+    })
 })
 
 describe('review fixes', () => {
