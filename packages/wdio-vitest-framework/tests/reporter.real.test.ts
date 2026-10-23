@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
 import { describe, expect, it, vi } from 'vitest'
 import { BaseReporter } from '@wdio/runner'
 
@@ -103,5 +107,30 @@ describe('WdioBridgeReporter with the real BaseReporter', () => {
 
         expect(errors).toEqual([])
         expect(events.at(-1)).toMatchObject({ type: 'job:end', passed: true })
+    })
+})
+
+describe('WdioBridgeReporter with the real JUnit reporter', () => {
+    it('writes a failure for a module that failed on an import error', async () => {
+        // @wdio/junit-reporter is not a dependency of this package; its build is only a test fixture
+        const { default: JunitReporter } = await import('../../wdio-junit-reporter/build/index.js')
+        const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-junit-'))
+        try {
+            const config = { reporters: [[JunitReporter, { outputDir }]] } as unknown as WebdriverIO.Config
+            const bridge = new WdioBridgeReporter(config, () => {})
+            const module: any = {
+                type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
+                project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
+                meta: () => ({}), state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }]
+            }
+
+            bridge.onTestModuleStart(module)
+            await bridge.onTestModuleEnd(module)
+
+            const [file] = await fs.readdir(outputDir)
+            expect(await fs.readFile(path.join(outputDir, file), 'utf8')).toContain('<failure message="Cannot find module ./missing"')
+        } finally {
+            await fs.rm(outputDir, { recursive: true, force: true })
+        }
     })
 })

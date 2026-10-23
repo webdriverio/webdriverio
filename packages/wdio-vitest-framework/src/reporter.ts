@@ -343,11 +343,14 @@ export class WdioBridgeReporter implements Reporter {
                 }
                 this.#closeUnfinished(run, testModule, failed)
                 this.#closeWrapper(run)
+                // An import or setup error leaves no failed test or hook to report it, so it goes on runner:end like the
+                // WDIO runner's session init error, which the JUnit reporter writes as the failure of an empty suite
+                const moduleError = failed && run.failedTests === 0 && run.hookCount === 0 ? testModule.errors()[0] : undefined
                 // session or hook errors skip the tests, so the module fails without a failed test
                 if ((failed || run.incomplete) && run.failedTests === 0) {
                     run.failedTests = 1
                 }
-                this.#emit(run, 'runner:end', { failures: run.failedTests, retries: 0 })
+                this.#emit(run, 'runner:end', { failures: run.failedTests, retries: 0, ...(moduleError && { error: moduleError.message }) })
             } finally {
                 await run.reporter?.waitForSync()
             }

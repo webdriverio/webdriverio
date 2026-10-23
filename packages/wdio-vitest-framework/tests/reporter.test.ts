@@ -48,6 +48,7 @@ const makeModule = (overrides: Record<string, unknown> = {}) => ({
     project: { config: { provide: { wdioCapabilities: requestedCaps } } },
     meta: () => ({ wdio: { sessionId: 'sess-1', capabilities: sessionCaps } }),
     state: () => 'passed',
+    errors: () => [] as { name?: string, message: string }[],
     ...overrides
 }) as any
 const makeSuite = (module: any, parent: any, name: string) => ({ type: 'suite' as const, id: `suite-${nextId++}`, name, module, parent }) as any
@@ -173,6 +174,31 @@ describe('WdioBridgeReporter', () => {
         await runTests(module, makeTest(module, module, 'bad', { state: 'failed', errors: [{ message: 'nope' }] }))
 
         expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ name: 'Error', message: 'nope' })
+    })
+
+    it('sends the module error on runner:end when no failed test or hook represents the failure', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }] })
+        reporter.onTestModuleStart(module)
+        await reporter.onTestModuleEnd(module)
+
+        expect(emittedOf().at(-1)![1]).toMatchObject({ failures: 1, error: 'Cannot find module ./missing' })
+    })
+
+    it('does not send the module error when a failed test already represents it', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'module boom' }] })
+        await runTests(module, makeTest(module, module, 'bad', { state: 'failed', errors: [{ message: 'nope' }] }))
+        await reporter.onTestModuleEnd(module)
+
+        expect(emittedOf().at(-1)![1]).not.toHaveProperty('error')
+    })
+
+    it('does not send the module error when a failed hook already represents it', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'session boom' }] })
+        reporter.onTestModuleStart(module)
+        reporter.onHookStart({ name: 'beforeAll', entity: module })
+        await reporter.onTestModuleEnd(module)
+
+        expect(emittedOf().at(-1)![1]).not.toHaveProperty('error')
     })
 
     it('counts a failed module without a failed test as one failure', async () => {
