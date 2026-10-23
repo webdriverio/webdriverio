@@ -223,7 +223,7 @@ WebdriverIO provides tools to help you get started by recording your test action
 
 You’ll need [Node.js](http://nodejs.org) installed.
 
-- Install at least v22.23.4, v24.22.1 or v26.12.1 (or a later release of these lines). These are the first releases with the [October 2026 security fixes](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)
+- Install at least v22.23.4, v24.22.1 or v26.12.1 (or a later release of these lines). These are the first releases with the [updated CA store](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases) for the eMudhra intermediate CA compromise
 - Only releases that are or will become an LTS release are officially supported
 
 If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
