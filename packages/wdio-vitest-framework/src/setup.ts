@@ -3,7 +3,7 @@ import { SUPPORTED_HOOKS } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWorkerService, type ParallelContextBrowser } from '@wdio/utils'
-import { expect, setDefaultOptions } from 'expect-webdriverio'
+import { expect, setDefaultOptions, SoftAssertionService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Capabilities } from '@wdio/types'
@@ -101,6 +101,8 @@ beforeAll(async ({}, suite) => {
         capabilities = ('alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities) as WebdriverIO.Capabilities
 
         const { ignoredWorkerServices } = inject('wdioArgs') as { ignoredWorkerServices?: string[] }
+        // built-in, added ahead of the worker services like the WDIO runner does
+        configParser.addService(new SoftAssertionService({ autoAssertOnTestEnd: config.autoAssertOnTestEnd ?? true }))
         const services = await initializeWorkerService(config, capabilities, ignoredWorkerServices ?? [])
         services.forEach((service) => configParser.addService(service))
         config = configParser.getConfig() as WebdriverIO.Config
@@ -153,6 +155,7 @@ aroundEach(async (...args) => {
     const startedAt = Date.now()
 
     let error: unknown
+    let serviceError: unknown
     const runWithHooks = async () => {
         await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
         try {
@@ -166,7 +169,7 @@ aroundEach(async (...args) => {
             if (error !== undefined) {
                 failures++
             }
-            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, {
+            const report = {
                 error,
                 result: undefined,
                 passed: error === undefined,
@@ -175,7 +178,16 @@ aroundEach(async (...args) => {
                 skipped: task.mode === 'skip' || task.result?.state === 'skip',
                 exception: error instanceof Error ? error.message : '',
                 status: error === undefined ? 'passed' : 'failed'
-            }])
+            }
+            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
+            // afterTest services such as the soft assertion service report a failure by mutating the report
+            if (error === undefined) {
+                serviceError = report.error
+            }
+        }
+        if (serviceError !== undefined) {
+            failures++
+            throw serviceError
         }
     }
 

@@ -108,4 +108,29 @@ describe('WdioBridgeReporter with a real Vitest run', () => {
             'a.spec.js top level', 'block fails', 'block nested deep', 'block passes', 'block skipped', 'parallel fast', 'parallel slow'
         ])
     })
+
+    it('reports a failing beforeAll and afterAll as failed hooks of their suite, and nothing for passing hooks', async () => {
+        recorded.length = 0
+        const hookDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-hooks-'))
+        await fs.writeFile(path.join(hookDir, 'h.spec.js'), `
+describe('after', () => { afterAll(() => { throw new Error('after boom') }); test('t1', () => {}) })
+describe('before', () => { beforeAll(() => { throw new Error('before boom') }); test('t2', () => {}) })
+describe('fine', () => { beforeAll(() => {}); afterAll(() => {}); test('t3', () => {}) })
+`)
+        const config = { reporters: [[RecorderReporter, {}]] } as unknown as WebdriverIO.Config
+        const bridge = new WdioBridgeReporter(config, () => {})
+        const vitest = await startVitest([], { run: true, watch: false, config: false }, {
+            root: hookDir,
+            test: { include: ['h.spec.js'], reporters: [bridge], pool: 'forks', globals: true, provide: { wdioCapabilities: { browserName: 'chrome' } } }
+        } as never)
+        await vitest.close()
+        await fs.rm(hookDir, { recursive: true, force: true })
+
+        const hookEnds = recorded.filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+        expect(hookEnds.map(({ title, state, parent, error }) => ({ title, state, parent, message: error.message }))).toEqual([
+            { title: '"after all" hook in "after"', state: 'fail', parent: 'after', message: 'after boom' },
+            { title: '"before all" hook in "before"', state: 'fail', parent: 'before', message: 'before boom' }
+        ])
+        expect(recorded.filter(([name]) => name === 'hook:start').map(([, payload]) => payload.uid)).toEqual(hookEnds.map(({ uid }) => uid))
+    })
 })

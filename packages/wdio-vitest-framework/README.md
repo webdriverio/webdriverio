@@ -72,6 +72,8 @@ All other keys are passed to Vitest's `test` config and override the defaults of
 
 Specs and `exclude` come from `wdio.conf` (respecting `--spec`). The framework always sets `include` to the resolved specs, so `vitestOpts.include` is ignored, and `pool: 'forks'`. A `vitestOpts.setupFiles` is added after the framework's own setup file instead of replacing it. The framework also sets `isolate`, `globals`, `environment: 'node'`, `maxWorkers` (from `maxInstances`, or `wdio:maxInstances` per capability) and `bail`.
 
+`runnerEnv` from `wdio.conf` is passed to the Vitest workers as Vitest's `env`, with `NODE_ENV` defaulting to `test`. `vitestOpts.env` is merged on top and wins. `NODE_OPTIONS` in `runnerEnv` only reaches the worker's `process.env` (and the processes it spawns), because Vitest has already forked the worker by then. Node flags such as `--import` do not apply to it.
+
 ## Reporters
 
 The console output comes from Vitest. Set `vitestOpts.reporters` to change it, for example `['dot']`; the WDIO reporters are added to your list. The `spec`, `dot` and `concise` reporters (also as `@wdio/*-reporter` or with options) are ignored with a warning, because they would print next to Vitest's output. Reporter classes are always used.
@@ -109,6 +111,7 @@ Each test opens its own window, and every command in the test targets it. The wi
 - Top-level config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again.
 - `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
-- Hook results (`hook:start`, `hook:end`) are not reported to WDIO reporters.
+- Hook results are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook in "<suite>"`) so that the JUnit reporter adds a failing testcase for it.
+- Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
 - Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
 - `browser.options.vitestOpts` is not set inside specs.

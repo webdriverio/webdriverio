@@ -519,6 +519,71 @@ describe('WdioBridgeReporter', () => {
         expect(events.at(-1)).toMatchObject({ passed: false })
     })
 
+    describe('failing all-hooks', () => {
+        const hookEvents = (emitted: [string, Record<string, any>][]) => emitted.filter(([name]) => name.startsWith('hook:'))
+
+        it('reports a failing afterAll as a paired failed hook before its suite ends', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'cleanup')
+            s.errors = () => [{ name: 'Error', message: 'after boom', stack: 'at hook' }]
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: s })
+            reporter.onHookEnd({ name: 'beforeAll', entity: s })
+            reporter.onHookStart({ name: 'afterAll', entity: s })
+            await describeBlock(s, [makeTest(module, s, 'ok', passed)])
+            await reporter.onTestModuleEnd(module)
+
+            const emitted = emittedOf()
+            expect(names(emitted)).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end', 'hook:start', 'hook:end', 'suite:end', 'runner:end'])
+            const [[, start], [, end]] = hookEvents(emitted)
+            expect(start).toMatchObject({ title: '"after all" hook in "cleanup"', parent: 'cleanup', parentUid: 'suite-0-0-0', file: '/repo/a.spec.ts' })
+            expect(end).toMatchObject({ uid: start.uid, title: start.title, state: 'fail', error: { name: 'Error', message: 'after boom', stack: 'at hook' } })
+        })
+
+        it('reports a failing beforeAll with the before all title', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'setup')
+            s.errors = () => [{ message: 'before boom' }]
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: s })
+            await describeBlock(s, [])
+            await reporter.onTestModuleEnd(module)
+
+            const [[, start], [, end]] = hookEvents(emittedOf())
+            expect(start.title).toBe('"before all" hook in "setup"')
+            expect(end).toMatchObject({ uid: start.uid, state: 'fail', error: { name: 'Error', message: 'before boom' } })
+        })
+
+        it('reports a failing module level hook under the root title', async () => {
+            const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'session boom' }] })
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: module })
+            await reporter.onTestModuleEnd(module)
+
+            const emitted = emittedOf()
+            const [[, start], [, end]] = hookEvents(emitted)
+            expect(start).toMatchObject({ title: '"before all" hook in "{root}"', parent: 'a.spec.ts' })
+            expect(end).toMatchObject({ uid: start.uid, state: 'fail', error: { message: 'session boom' } })
+            expect(names(emitted).indexOf('hook:end')).toBeLessThan(names(emitted).indexOf('suite:end'))
+        })
+
+        it('emits no hook events for hooks that finished', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'fine')
+            reporter.onTestModuleStart(module)
+            for (const name of ['beforeAll', 'afterAll'] as const) {
+                reporter.onHookStart({ name, entity: s })
+                reporter.onHookEnd({ name, entity: s })
+            }
+            reporter.onHookStart({ name: 'beforeAll', entity: module })
+            reporter.onHookEnd({ name: 'beforeAll', entity: module })
+            await describeBlock(s, [makeTest(module, s, 'ok', passed)])
+            await reporter.onTestModuleEnd(module)
+
+            expect(hookEvents(emittedOf())).toEqual([])
+        })
+    })
+
     it('uses a generic error for an unfinished test when the module has no errors', async () => {
         const module = makeModule({ state: () => 'failed', errors: () => [] })
         const test = makeTest(module, module, 'stuck', passed)

@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
-import type { Reporter, TestCase, TestModule, TestSuite } from 'vitest/node'
+import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
 
 import { SESSION_META_KEY, type SessionMeta } from './types.js'
 
@@ -12,6 +12,7 @@ const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporte
 
 type TestError = { name?: string, message: string, stack?: string }
 type Titled = { uid: string, title: string, fullTitle: string }
+type AllHookName = 'beforeAll' | 'afterAll'
 type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
 
 type ModuleRun = {
@@ -28,12 +29,16 @@ type ModuleRun = {
     incomplete: boolean
     failedTests: number
     suiteCount: number
+    hookCount: number
     testCount: number
     entities: Map<string, Open>
+    // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
+    runningHooks: Map<string, AllHookName>
     wrapper?: Titled
 }
 
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
+const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
 const join = (parent: string, title: string) => parent ? `${parent} ${title}` : title
 
 /**
@@ -76,9 +81,27 @@ export class WdioBridgeReporter implements Reporter {
         const run = this.#tryRun(testSuite.module)
         return run && this.#enqueue(run, () => {
             const suite = this.#openSuite(run, testSuite)
+            this.#emitFailedHook(run, testSuite, suite, testSuite.name)
             run.entities.delete(testSuite.id)
             this.#emit(run, 'suite:end', this.#suitePayload(run, testSuite, suite))
         })
+    }
+
+    onHookStart(hook: ReportedHookContext) {
+        const { name, entity } = hook
+        if (entity.type === 'test') {
+            return
+        }
+        const run = this.#tryRun(entity.type === 'module' ? entity : entity.module)
+        run?.runningHooks.set(entity.id, name as AllHookName)
+    }
+
+    onHookEnd(hook: ReportedHookContext) {
+        const { entity } = hook
+        if (entity.type === 'test') {
+            return
+        }
+        this.#runs.get((entity.type === 'module' ? entity : entity.module).id)?.runningHooks.delete(entity.id)
     }
 
     onTestCaseReady(testCase: TestCase) {
@@ -144,7 +167,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, testCount: 0, entities: new Map(),
+            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
@@ -257,6 +280,23 @@ export class WdioBridgeReporter implements Reporter {
     }
 
     /**
+     * Mocha reports a failing all-hook as a failed hook of its suite, which the JUnit reporter turns into a failed testcase.
+     */
+    #emitFailedHook(run: ModuleRun, entity: TestSuite | TestModule, parent: Titled, title: string) {
+        const hookName = run.runningHooks.get(entity.id)
+        if (!hookName) {
+            return
+        }
+        run.runningHooks.delete(entity.id)
+        const kind = HOOK_KIND[hookName]
+        const hookTitle = `"${kind}" hook in "${title}"`
+        const hook = { title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}` }
+        const error = toErrorPayload(entity.errors()[0] ?? { message: `${hookName} hook failed` })
+        this.#emit(run, 'hook:start', hook)
+        this.#emit(run, 'hook:end', { ...hook, state: 'fail', duration: 0, error })
+    }
+
+    /**
      * Bail, a failing beforeAll or an abort leave entities that became ready without a result.
      */
     #closeUnfinished(run: ModuleRun, testModule: TestModule, failed: boolean) {
@@ -291,6 +331,9 @@ export class WdioBridgeReporter implements Reporter {
                 const failed = state === 'failed'
                 // TestModuleState 'pending': the module did not finish, which a cancelled run leaves behind
                 run.incomplete ||= state === 'pending'
+                if (run.runningHooks.has(testModule.id)) {
+                    this.#emitFailedHook(run, testModule, this.#parent(run, testModule), '{root}')
+                }
                 this.#closeUnfinished(run, testModule, failed)
                 this.#closeWrapper(run)
                 // session or hook errors skip the tests, so the module fails without a failed test

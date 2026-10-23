@@ -781,6 +781,7 @@ For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed
 - The WDIO hooks `beforeSession`, `before`, `after` and `afterSession` run once per spec file, and `beforeTest` and `afterTest` once per test. Worker services (for example Sauce Labs, BrowserStack or Appium) are initialized like in the WDIO runner, so their hooks run too.
 - The console output comes from Vitest. File reporters from `wdio.conf.ts`, such as `junit`, `allure` or `json`, receive the Vitest results. Every spec file and capability is reported as one job. Skipped and `todo` tests are reported as pending.
 - `maxInstances` (or `wdio:maxInstances` per capability) sets Vitest's `maxWorkers`, and `bail` sets Vitest's `bail`.
+- `runnerEnv` is passed to the Vitest workers as Vitest's `env`, with `NODE_ENV` defaulting to `test`. `vitestOpts.env` is merged on top and wins. `NODE_OPTIONS` in `runnerEnv` only reaches the worker's `process.env`, because Vitest has already forked the worker. Node flags such as `--import` do not apply to it.
 
 ### Concurrent tests
 
@@ -847,6 +848,8 @@ The framework controls some keys itself:
 - `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - Top-level config changes made in `onPrepare` do not reach the specs, because each Vitest worker parses the config file again. Changes to capabilities do reach them.
 - Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
+- A failing `beforeAll` or `afterAll` is reported to WDIO reporters as a failed hook, so the JUnit reporter adds a failing testcase for it. Other hook results are not reported.
+- Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
 
 ## Using Serenity/JS
 
