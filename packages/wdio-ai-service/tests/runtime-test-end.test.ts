@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { AiRuntime, type RuntimeOptions } from '../src/runtime.js'
 import type { ActError } from '../src/errors.js'
 import { Workspace } from '../src/workspace.js'
+import { ActCache } from '../src/cache.js'
 import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
@@ -429,6 +430,66 @@ describe('AiRuntime when a test ends during act()', () => {
         await Promise.all([first, second])
         expect(clicks()).toEqual(['e3', 'e4', 'e3', 'e4'])
         expect(actions()).not.toContain('frame top')
+    })
+
+    it('does not return while a page-source read of the model runs', async () => {
+        let read: () => void = () => {}
+        const getPageSource = vi.fn(() => new Promise<string>((resolve) => { read = () => resolve('<html></html>') }))
+        ;(fake.agent.browser as unknown as { getPageSource: typeof getPageSource }).getPageSource = getPageSource
+        const { runtime: ai } = runtime({ cache: 'off' }, [{ tool: 'source' }, { tool: 'done', args: { summary: 'Read' } }])
+        ai.startTest(spec, 'reads the source')
+        let settled = false
+        const stale = ai.act(browser, 'Read the page').finally(() => { settled = true })
+        await vi.waitFor(() => expect(getPageSource).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        expect(settled).toBe(false)
+        read()
+
+        await expect(stale).rejects.toThrow(ENDED)
+    })
+
+    it('does not start the model when the test ended during the last heal alternative', async () => {
+        fake.setRef({ id: 'e3', role: 'button', name: 'Pay now', candidates: ['role/button[name="Pay now"]', '#pay'] })
+        await record()
+        fs.rmSync(path.join(dir, 'workspaces'), { recursive: true, force: true })
+        const { runtime: ai, model } = runtime({ cache: 'write' }, [])
+        ai.startTest(spec, 'pays')
+        fake.waitForExist.mockRejectedValueOnce(new Error('element ("role/button[name="Pay now"]") still not existing after 100ms'))
+        let found: () => void = () => {}
+        const lookup = new Promise<void>((resolve) => { found = resolve })
+        fake.$$.mockImplementation(() => ({ getElements: vi.fn(async () => { await lookup; return [] }) }) as never)
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(fake.$$).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        found()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(model.calls).toHaveLength(0)
+        expect(fs.existsSync(path.join(dir, 'workspaces', '0', 'pay.e2e.ts', 'pays'))).toBe(false)
+    })
+
+    it('does not start the model when the test ended while the cache was read', async () => {
+        const { runtime: ai, model } = runtime({ cache: 'write' })
+        ai.startTest(spec, 'pays')
+        const get = ActCache.prototype.get
+        let loaded: () => void = () => {}
+        const held = new Promise<void>((resolve) => { loaded = resolve })
+        vi.spyOn(ActCache.prototype, 'get').mockImplementationOnce(async function (this: ActCache, key) {
+            await held
+            return get.call(this, key)
+        })
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(ActCache.prototype.get).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        loaded()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(model.calls).toHaveLength(0)
+        expect(fs.existsSync(path.join(dir, 'workspaces', '0', 'pay.e2e.ts', 'pays'))).toBe(false)
     })
 
     /**

@@ -298,7 +298,7 @@ function gated<A extends unknown[], R> (gate: StepGate | undefined, run: (...arg
  * save the page source into the workspace instead of the prompt
  */
 function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadToolKit>>['tool'], z: typeof Zod) {
-    return tool(async () => {
+    return tool(gated(context.gate, async () => {
         try {
             const native = !context.agent.session.plan.applies.includes('W')
             const { agent } = context
@@ -317,7 +317,7 @@ function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadT
         } catch (err) {
             return `Error: ${redact((err as Error).message, [...Object.entries(context.values), ...(context.secrets || [])])}`
         }
-    }, {
+    }), {
         name: 'source',
         description: 'Save the page HTML or app source to the workspace, for searching attributes and text that the snapshot leaves out',
         schema: z.object({})

@@ -369,6 +369,11 @@ export class AiRuntime {
      * Let the model perform an instruction and record the steps it took.
      */
     async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder, test?: TestContext): Promise<PlanResult> {
+        /**
+         * the test can end while the cache is read or a cached step is healed:
+         * its workspace would get the events of the next test
+         */
+        test?.controller.signal.throwIfAborted()
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
