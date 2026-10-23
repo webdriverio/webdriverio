@@ -447,6 +447,42 @@ test('afterScenario only counts the last attempt of a retried scenario', () => {
     expect(service['_failures']).toBe(2)
 })
 
+test('a failed Cucumber hook of a retried scenario that passes in the end does not fail the job', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
+    const world = { pickle: { id: 'a', name: 'a' } } as any
+
+    // first attempt: the Before hook fails, so does the scenario
+    service.beforeScenario(world)
+    service.afterHook({} as never, {} as never, { passed: false, error: new Error('Before failed') } as any)
+    service.afterScenario(world, { passed: false })
+    expect(service['_failures']).toBe(1)
+
+    // retry passes
+    service.beforeScenario(world)
+    service.afterHook({} as never, {} as never, { passed: true } as any)
+    service.afterScenario(world, { passed: true })
+    expect(service['_failures']).toBe(0)
+})
+
+test('a failed hook outside of a Cucumber scenario still fails the job', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
+    const world = { pickle: { id: 'a', name: 'a' } } as any
+
+    service.beforeScenario(world)
+    service.afterScenario(world, { passed: true })
+    // e.g. a failing AfterAll
+    service.afterHook({} as never, {} as never, { passed: false, error: new Error('AfterAll failed') } as any)
+    expect(service['_failures']).toBe(1)
+})
+
 test('beforeScenario should set context', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
