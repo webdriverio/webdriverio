@@ -135,7 +135,8 @@
                         "state": "passed"
                     }
                 ],
-                "end": "2026-10-22T18:00:00.020Z"
+                "end": "2026-10-22T18:00:00.020Z",
+                "file": "/features/sample_feature.feature"
             }
         ],
         "hooksAndTests": [],
@@ -265,6 +266,7 @@
                 "state": "passed"
             }
         ],
-        "end": "2026-10-22T18:00:00.020Z"
+        "end": "2026-10-22T18:00:00.020Z",
+        "file": "/features/sample_feature.feature"
     }
 }
