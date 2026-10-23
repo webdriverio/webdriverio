@@ -286,6 +286,79 @@ describe('setup', () => {
                 expect(markers(context)).toHaveLength(1)
             })
         })
+        describe('attempt hooks', () => {
+            afterEach(() => {
+                utils.executeHooksWithArgs.mockImplementation(async () => [])
+            })
+
+            const markers = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+            const attemptWith = async (result: Record<string, any>, after: Record<string, any>, retryCount = 0) => {
+                const context = task(false, { retryCount, ...result })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, after) }), context)
+                return markers(context)[0].payload
+            }
+
+            it('records the state of the hook kinds that ran in the attempt', async () => {
+                const payload = await attemptWith({}, { hooks: { beforeEach: 'pass', afterEach: 'pass', beforeAll: 'pass' } })
+                expect(payload.hooks).toEqual({ beforeEach: { state: 'pass' }, afterEach: { state: 'pass' } })
+            })
+
+            it('attributes a failing beforeEach to the first error of this attempt, not an earlier one', async () => {
+                const earlier = new Error('previous attempt')
+                const failure = new Error('before each failed')
+                const payload = await attemptWith({ errors: [earlier] }, { hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
+                expect(payload.hooks).toEqual({
+                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }) },
+                    afterEach: { state: 'pass' }
+                })
+            })
+
+            it('attributes a failing afterEach to the last error of this attempt', async () => {
+                const body = new Error('body')
+                const after = new Error('after each failed')
+                const payload = await attemptWith({}, { state: 'fail', hooks: { beforeEach: 'pass', afterEach: 'run' }, errors: [body, after] })
+                expect(payload.hooks).toEqual({
+                    beforeEach: { state: 'pass' },
+                    afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
+                })
+            })
+
+            it('adds no hooks field when the test has no hooks', async () => {
+                expect(await attemptWith({}, {})).not.toHaveProperty('hooks')
+            })
+
+            it('does not take the previous attempt hook states when beforeTest throws', async () => {
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { if (name === 'beforeTest') { throw new Error('beforeTest') } })
+                const runTest = vi.fn()
+                const context = task(false, { retryCount: 1, hooks: { beforeEach: 'pass', afterEach: 'pass' } })
+                await expect(hooks.aroundEach(runTest, context)).rejects.toThrow('beforeTest')
+
+                expect(runTest).not.toHaveBeenCalled()
+                expect(markers(context)).toEqual([{ event: 'wdio:attempt', retry: 1, payload: { start: expect.any(Number), end: expect.any(Number), state: 'failed', error: expect.objectContaining({ message: 'beforeTest' }) } }])
+            })
+        })
+
+        describe('unclonable assertion values', () => {
+            const marker = async (error: object) => {
+                const context = task(false, { retryCount: 0, state: 'fail', errors: [error] })
+                await hooks.aroundEach(vi.fn(async () => {}), context)
+                return (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')!.payload.error
+            }
+
+            it('keeps primitives and clonable objects', async () => {
+                const error = await marker(Object.assign(new Error('x'), { expected: 1, actual: { a: [1] } }))
+                expect(error).toMatchObject({ expected: 1, actual: { a: [1] } })
+            })
+
+            it('turns an object holding a function into a string that survives structured clone', async () => {
+                const error = await marker(Object.assign(new Error('x'), { expected: { fn: () => 1, nested: { deep: 1 } }, actual: 'plain' }))
+                expect(typeof error.expected).toBe('string')
+                expect(error.expected).toContain('deep')
+                expect(error.actual).toBe('plain')
+                expect(() => structuredClone(error)).not.toThrow()
+            })
+        })
+
         describe('Allure attachments', () => {
             const content = Buffer.from([1, 2, 3, 250]).toString('base64')
             const attachment = (wrapInStep = true) => ({ type: 'attachment_content', data: { name: 'shot', content, encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep, timestamp: 7 } })
