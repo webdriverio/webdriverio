@@ -257,7 +257,7 @@ export class WdioBridgeReporter implements Reporter {
     #relayedEntries(testCase: TestCase) {
         return ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
     }
-
+    // The worker closes every attempt with a marker; a marker can be missing only when the worker died mid-attempt
     // The worker closes every attempt with a marker; an attempt that died before it (a failing beforeTest) has none
     #attempts(testCase: TestCase) {
         const entries = this.#relayedEntries(testCase)
