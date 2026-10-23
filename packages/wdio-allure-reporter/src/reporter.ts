@@ -1087,6 +1087,7 @@ export default class AllureReporter extends WDIOReporter {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
+            this._emitHistoryIdsFrom(this._mochaFullTitle(cid, hook.title))
             this._startHook({ name: hook.title || 'Hook', type: hookType, start })
             this._endHook({
                 status: AllureStatusEnum.BROKEN,
@@ -1098,6 +1099,7 @@ export default class AllureReporter extends WDIOReporter {
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
                 duration: hook.duration,
+                statusDetails: getMessageAndTraceFromError(hook.error),
                 stop: AllureReporter.getTimeOrNow(hook.end)
             })
             return
@@ -1121,10 +1123,16 @@ export default class AllureReporter extends WDIOReporter {
         })
 
         if (hook.error && !hadPendingTest && hadPendingHook) {
+            /**
+             * the hook fixture has just been closed above, so the metadata lands on the
+             * synthetic hook-failure test instead of on the still-open fixture
+             */
+            this._emitHistoryIdsFrom(this._mochaFullTitle(cid, hook.title))
             this._endTest({
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
                 duration: hook.duration,
+                statusDetails: getMessageAndTraceFromError(hook.error),
                 stop: AllureReporter.getTimeOrNow(hook.end)
             })
         }
