@@ -159,7 +159,7 @@ describe('effect checks during replay', () => {
     }
     const recorder = (...effects: StepEffect[]): EffectCheck => ({
         mode: 'strict',
-        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
+        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), cancel: vi.fn(), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
     })
 
     it('does not run the step when its test ended while the effect recording started', async () => {
@@ -176,6 +176,7 @@ describe('effect checks during replay', () => {
 
         await expect(replay).rejects.toThrow('the test ended')
         expect(run).not.toHaveBeenCalled()
+        expect(check.recorder.cancel).toHaveBeenCalled()
     })
 
     it('does not start the effect recording when its test ended while it waited for the element', async () => {

@@ -85,7 +85,10 @@ async function runChecked (agent: AgentSession, step: ActStep, args: Record<stri
         return agent.runAction(step.action, args)
     }
     await effects.recorder.start()
-    signal?.throwIfAborted()
+    if (signal?.aborted) {
+        effects.recorder.cancel()
+        signal.throwIfAborted()
+    }
     const result = await agent.runAction(step.action, args)
     const actual = redact(await effects.recorder.settle({ timeout }), values)
     const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)

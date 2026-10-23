@@ -391,7 +391,7 @@ export class AiRuntime {
         await workspace.writeEvents(agent.logs, agent.network)
         const gate = new StepGate(test?.controller.signal)
         const timeout = options.timeout ?? DEFAULT_TIMEOUT
-        const deadline = Date.now() + timeout
+        let deadline = Number.POSITIVE_INFINITY
         const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate, deadline: () => deadline })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
@@ -403,6 +403,7 @@ export class AiRuntime {
                 prompt: actPrompt(instruction, context, Boolean(scope)),
                 maxSteps,
                 timeout,
+                onStart: (at) => { deadline = at },
                 signal: gate.loopSignal,
                 middleware: [await workspace.middleware()]
             })

@@ -13,6 +13,7 @@ import { Workspace } from '../src/workspace.js'
 import { ActCache } from '../src/cache.js'
 import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
+import { ACTIONS } from '@wdio/session'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
 vi.mock('@wdio/session/agent', () => ({ createAgentSession }))
@@ -555,12 +556,12 @@ describe('AiRuntime when a test ends during act()', () => {
             ai.startTest(spec, 'pays')
             let checked: () => void = () => {}
             ;(fake.agent.contains as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise((resolve) => { checked = () => resolve(true) }))
-            const call = ai.act(element, 'Pay', { timeout: 50 })
+            const call = ai.act(element, 'Pay', { timeout: 300 })
             await vi.waitFor(() => expect(fake.agent.contains).toHaveBeenCalled())
-            await new Promise((resolve) => setTimeout(resolve, 150))
+            await new Promise((resolve) => setTimeout(resolve, 500))
             checked()
 
-            await expect(call).rejects.toThrow('timed out after 50ms')
+            await expect(call).rejects.toThrow('timed out after 300ms')
             expect(clicks()).toEqual([])
         })
     })
@@ -576,14 +577,14 @@ describe('AiRuntime when a test ends during act()', () => {
             ai.startTest(spec, 'pays')
             holdNextClick()
             let settled = false
-            const call = ai.act(browser, 'Pay', { timeout: 50 }).finally(() => { settled = true })
+            const call = ai.act(browser, 'Pay', { timeout: 300 }).finally(() => { settled = true })
             await vi.waitFor(() => expect(clicks()).toHaveLength(1))
-            await new Promise((resolve) => setTimeout(resolve, 150))
+            await new Promise((resolve) => setTimeout(resolve, 500))
             expect(settled).toBe(false)
             release()
 
             const error = await call.catch((err: ActError) => err)
-            expect(error.message).toContain('timed out after 50ms')
+            expect(error.message).toContain('timed out after 300ms')
             expect(error.steps.map(({ action }) => action)).toEqual(['click'])
         })
 
@@ -591,9 +592,9 @@ describe('AiRuntime when a test ends during act()', () => {
             const { runtime: ai } = runtime({ cache: 'off' }, [...script, ...script])
             ai.startTest(spec, 'pays')
             holdNextClick()
-            const first = ai.act(browser, 'Pay', { timeout: 50 }).catch((err: Error) => err)
+            const first = ai.act(browser, 'Pay', { timeout: 300 }).catch((err: Error) => err)
             await vi.waitFor(() => expect(clicks()).toHaveLength(1))
-            await new Promise((resolve) => setTimeout(resolve, 150))
+            await new Promise((resolve) => setTimeout(resolve, 500))
             const next = ai.act(browser, 'Pay again')
             await new Promise((resolve) => setTimeout(resolve, 50))
             expect(clicks()).toEqual(['e3'])
@@ -611,13 +612,13 @@ describe('AiRuntime when a test ends during act()', () => {
             const { runtime: ai } = runtime({ cache: 'off' }, [{ tool: 'source' }, { tool: 'done', args: { summary: 'Read' } }])
             ai.startTest(spec, 'reads the source')
             let settled = false
-            const call = ai.act(browser, 'Read the page', { timeout: 50 }).finally(() => { settled = true })
+            const call = ai.act(browser, 'Read the page', { timeout: 300 }).finally(() => { settled = true })
             await vi.waitFor(() => expect(getPageSource).toHaveBeenCalled())
-            await new Promise((resolve) => setTimeout(resolve, 150))
+            await new Promise((resolve) => setTimeout(resolve, 500))
             expect(settled).toBe(false)
             read()
 
-            await expect(call).rejects.toThrow('timed out after 50ms')
+            await expect(call).rejects.toThrow('timed out after 300ms')
         })
 
         it('returns after every step of the answer that still runs', async () => {
@@ -636,13 +637,13 @@ describe('AiRuntime when a test ends during act()', () => {
                 return original(action, args)
             })
             let settled = false
-            const call = ai.act(browser, 'Pay', { timeout: 50 }).finally(() => { settled = true })
+            const call = ai.act(browser, 'Pay', { timeout: 300 }).finally(() => { settled = true })
             await vi.waitFor(() => expect(clicks()).toHaveLength(2))
-            await new Promise((resolve) => setTimeout(resolve, 150))
+            await new Promise((resolve) => setTimeout(resolve, 500))
             expect(settled).toBe(false)
             finish()
 
-            await expect(call).rejects.toThrow('timed out after 50ms')
+            await expect(call).rejects.toThrow('timed out after 300ms')
         })
 
         it('ends a wait of the model by the timeout', async () => {
@@ -658,6 +659,42 @@ describe('AiRuntime when a test ends during act()', () => {
             expect(waits[0]).toMatchObject({ text: 'Paid', limit: expect.any(Number) })
             expect(waits[0].limit).toBeLessThanOrEqual(5000)
             expect(Number(waits[1].target)).toBeLessThanOrEqual(5000)
+        })
+
+        it('counts the time of a wait of the model from the start of the loop', async () => {
+            const middleware = Workspace.prototype.middleware
+            vi.spyOn(Workspace.prototype, 'middleware').mockImplementationOnce(async function (this: Workspace) {
+                await new Promise((resolve) => setTimeout(resolve, 1000))
+                return middleware.call(this)
+            })
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { text: 'Paid', limit: 600_000 } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait until paid', { timeout: 3000 })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(args.limit).toBeGreaterThan(2500)
+        })
+
+        it('counts the time left of a wait of the model after its scope check', async () => {
+            const element = { elementId: 'cart', selector: '#cart', parent: browser } as unknown as WebdriverIO.Element
+            ;(fake.agent.contains as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(true), 1000)))
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { target: 'e3', limit: 600_000 } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(element, 'Wait for the button', { timeout: 3000 })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(args.limit).toBeLessThan(2100)
+        })
+
+        it('reads the default wait limit of @wdio/session', () => {
+            const wait = ACTIONS.find((spec) => spec.name === 'wait')!
+            expect(wait.options?.limit?.desc).toContain('default 10000')
         })
 
         it('keeps a wait of the model that ends before the timeout', async () => {
@@ -987,13 +1024,13 @@ describe('AiRuntime when a test ends during extract()', () => {
         })
         ai.startTest(spec, 'reads the qty')
         let settled = false
-        const read = ai.extract(browser, 'the qty', z.number(), { timeout: 50 }).finally(() => { settled = true })
+        const read = ai.extract(browser, 'the qty', z.number(), { timeout: 300 }).finally(() => { settled = true })
         await vi.waitFor(() => expect(fake.run).toHaveBeenCalledWith('snapshot', expect.anything()))
-        await new Promise((resolve) => setTimeout(resolve, 150))
+        await new Promise((resolve) => setTimeout(resolve, 500))
         expect(settled).toBe(false)
         release()
 
-        await expect(read).rejects.toThrow('timed out after 50ms')
+        await expect(read).rejects.toThrow('timed out after 300ms')
     })
 
     it('keeps the evidence of a stopped read in its error', async () => {

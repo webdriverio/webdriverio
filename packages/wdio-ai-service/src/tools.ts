@@ -211,9 +211,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                  */
                 const args = spec.name === 'snapshot' && context.scope
                     ? { ...input, scope: context.scope }
-                    : spec.name === 'wait' && context.deadline
-                        ? waitWithin(input, context.deadline())
-                        : input
+                    : input
                 if (context.scope) {
                     for (const key of TARGET_KEYS) {
                         const target = input[key]
@@ -228,12 +226,21 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                 }
                 const step = isStep(spec, input)
-                if (step) {
-                    context.gate?.check()
-                    await context.effects?.start()
-                }
                 context.gate?.check()
-                const result = await agent.runAction(spec.name, substitute(args, values))
+                if (step && context.effects) {
+                    await context.effects.start()
+                    /**
+                     * the test or the call can end while the recording starts
+                     */
+                    try {
+                        context.gate?.check()
+                    } catch (err) {
+                        context.effects.cancel()
+                        throw err
+                    }
+                }
+                const action = spec.name === 'wait' && context.deadline ? waitWithin(args, context.deadline()) : args
+                const result = await agent.runAction(spec.name, substitute(action, values))
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
                  * A step still running at the timeout keeps the parts that
@@ -303,6 +310,7 @@ const WAIT_LIMIT = 10_000
 /**
  * A call returns after its running step, so a `wait` longer than the time
  * left would hold the call, and the next call of the browser, past its timeout.
+ * Other actions end within the limits of `@wdio/session` (page load, `waitforTimeout`).
  */
 function waitWithin (input: Record<string, unknown>, deadline: number) {
     const left = Math.max(0, deadline - Date.now())
