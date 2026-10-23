@@ -110,8 +110,8 @@ RELAYED_REPORTER_EVENTS.forEach((event) => {
     }
 })
 
-async function resolveAttachmentTransport(resultsDir: string | null): Promise<AttachmentTransport> {
-    if (resultsDir === null) {
+async function resolveAttachmentTransport(resultsDir: string | null | undefined): Promise<AttachmentTransport> {
+    if (!resultsDir) {
         return { mode: 'inline' }
     }
     try {
