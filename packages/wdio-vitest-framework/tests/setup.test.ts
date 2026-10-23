@@ -613,6 +613,23 @@ describe('setup', () => {
             mutateReport(softError)
             await expect(hooks.aroundEach(vi.fn(async () => { throw own }), task(false))).rejects.toBe(own)
         })
+
+        it('records the soft assertion error as the error of the attempt it failed and passes the retry', async () => {
+            const context = task(false, { retryCount: 0, state: 'run', errors: [] })
+            mutateReport(softError)
+            await expect(hooks.aroundEach(vi.fn(async () => {}), context)).rejects.toBe(softError)
+            Object.assign(context.task.result, { state: 'fail', errors: [softError] })
+
+            mutateReport()
+            Object.assign(context.task.result, { retryCount: 1, state: 'run' })
+            await expect(hooks.aroundEach(vi.fn(async () => {}), context)).resolves.toBeUndefined()
+
+            const attempts = (context.task.meta['wdio:runtime'] as { event: string, retry: number, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+            expect(attempts.map(({ retry, payload }) => [retry, payload.state, payload.error?.message])).toEqual([
+                [0, 'failed', '1 soft assertion failure'],
+                [1, 'passed', undefined]
+            ])
+        })
     })
 
     describe('afterTest result', () => {
