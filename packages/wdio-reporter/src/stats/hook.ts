@@ -17,6 +17,8 @@ export interface Hook {
     currentTest?: string
     /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
     parentUid?: string | null
+    /** the browsing context of a parallel hook */
+    contextId?: string
 }
 
 export default class HookStats extends RunnableStats {
@@ -30,6 +32,11 @@ export default class HookStats extends RunnableStats {
     error?: Error
     state?: 'failed' | 'passed'
     currentTest?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the browsing context of a parallel hook */
+    declare contextId?: string
+    /** the uid of the suite of the hook */
+    declare parentUid?: string | null
 
     constructor (runner: Hook) {
         super('hook')
@@ -39,6 +46,7 @@ export default class HookStats extends RunnableStats {
         this.parent = runner.parent
         this.currentTest = runner.currentTest
         this.body = runner.body
+        this.keepParallelFields(runner)
     }
 
     complete (errors?: Error[]) {
