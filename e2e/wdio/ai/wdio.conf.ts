@@ -19,6 +19,12 @@ export const config: WebdriverIO.Config = {
     bidiConnectTimeout: 30000,
     capabilities: [{
         browserName: 'chrome',
+        /**
+         * Chrome 156 and 157 hang every BiDi command in a tab that `window.open`
+         * opened (frames.e2e.ts): https://issues.chromium.org/issues/571161446
+         * Fixed in Chrome 158 (https://chromium-review.googlesource.com/c/chromium/src/+/8574800): remove the pin then.
+         */
+        browserVersion: '155',
         webSocketUrl: true,
         'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
     }, {
