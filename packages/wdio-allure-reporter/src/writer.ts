@@ -1,5 +1,5 @@
 import { basename, dirname, join, resolve } from 'node:path'
-import { renameSync } from 'node:fs'
+import { renameSync, rmSync } from 'node:fs'
 import logger from '@wdio/logger'
 import { FileSystemWriter } from 'allure-js-commons/sdk/reporter'
 
@@ -26,6 +26,7 @@ export class LinkingFileSystemWriter extends FileSystemWriter {
         } catch (renameErr) {
             try {
                 super.writeAttachmentFromPath(distFileName, from)
+                rmSync(source, { force: true })
             } catch {
                 log.warn(`Could not move the attachment ${source} into the Allure results: ${(renameErr as Error).message}`)
             }
