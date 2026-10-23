@@ -1,11 +1,14 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { AiRuntime, type RuntimeOptions } from '../src/runtime.js'
+import type { ActError } from '../src/errors.js'
+import { Workspace } from '../src/workspace.js'
 import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
@@ -41,6 +44,7 @@ describe('AiRuntime when a test ends during act()', () => {
 
     afterEach(() => {
         release?.()
+        vi.restoreAllMocks()
         fs.rmSync(dir, { recursive: true, force: true })
     })
 
@@ -428,38 +432,111 @@ describe('AiRuntime when a test ends during act()', () => {
     })
 
     /**
-     * parallel mode (`parallelMode`) runs the tests of a spec file at the same time
+     * parallel mode (`parallelMode`) runs the tests of a spec file at the same time,
+     * each in the store of its browsing context
      */
-    it('does not stop the call of another test when a test ends in parallel mode', async () => {
-        const { runtime: ai } = runtime({ cache: 'off' })
-        ai.startTest(spec, 'pays')
-        ai.startTest(spec, 'confirms')
-        hold((action) => action === 'click')
-        const call = ai.act(browser, 'Pay')
-        await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+    describe('in parallel mode', () => {
+        const store = new AsyncLocalStorage<string>()
+        const tab = { ...browser, __parallelContextStore: store } as unknown as WebdriverIO.Browser
+        const inContext = <T>(contextId: string, fn: () => T) => store.run(contextId, fn)
 
-        await ai.endTest(true, spec, 'pays')
-        release()
+        it('does not stop the call of a test when another test ends', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'pays', 'ctx-a')
+            ai.startTest(spec, 'confirms', 'ctx-b')
+            hold((action) => action === 'click')
+            const call = inContext('ctx-a', () => ai.act(tab, 'Pay'))
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
 
-        await expect(call).resolves.toMatchObject({ source: 'model' })
-        expect(ai.records.at(-1)).toMatchObject({ test: 'confirms' })
+            await ai.endTest(true, spec, 'confirms', 'ctx-b')
+            release()
+
+            await expect(call).resolves.toMatchObject({ source: 'model' })
+            expect(ai.records.at(-1)).toMatchObject({ test: 'pays' })
+        })
+
+        it('stops the call of the test that ended, and runs the call of the other test', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [...script, ...script])
+            ai.startTest(spec, 'pays', 'ctx-a')
+            ai.startTest(spec, 'confirms', 'ctx-b')
+            hold((action) => action === 'click')
+            const stale = inContext('ctx-a', () => ai.act(tab, 'Pay'))
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+            const next = inContext('ctx-b', () => ai.act(tab, 'Pay again'))
+
+            await ai.endTest(false, spec, 'pays', 'ctx-a')
+            release()
+
+            await expect(stale).rejects.toThrow('the test "pays" ended before the call finished')
+            await expect(next).resolves.toMatchObject({ source: 'model' })
+            expect(ai.records.map(({ test, error }) => [test, Boolean(error)])).toEqual([['pays', true], ['confirms', false]])
+        })
+
+        it('tells apart two tests with the same title', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'pays', 'ctx-a')
+            ai.startTest(spec, 'pays', 'ctx-b')
+            hold((action) => action === 'click')
+            const call = inContext('ctx-b', () => ai.act(tab, 'Pay'))
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+
+            await ai.endTest(true, spec, 'pays', 'ctx-a')
+            release()
+
+            await expect(call).resolves.toMatchObject({ source: 'model' })
+        })
+
+        it('runs a call of a hook before its test started as a standalone call', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'confirms', 'ctx-b')
+            hold((action) => action === 'click')
+            const call = inContext('ctx-a', () => ai.act(tab, 'Pay'))
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+
+            await ai.endTest(true, spec, 'confirms', 'ctx-b')
+            release()
+
+            await expect(call).resolves.toMatchObject({ source: 'model' })
+            expect(ai.records.at(-1)?.test).toBeUndefined()
+        })
     })
 
-    it('stops the call of the test that ended after another test started in parallel mode', async () => {
-        const { runtime: ai } = runtime({ cache: 'off' }, [...script, ...script])
+    it('keeps the tokens of a call that completed while its test ended', async () => {
+        const { runtime: ai } = runtime({ cache: 'off' })
         ai.startTest(spec, 'pays')
-        hold((action) => action === 'click')
+        const writeSteps = Workspace.prototype.writeSteps
+        let written: () => void = () => {}
+        const held = new Promise<void>((resolve) => { written = resolve })
+        vi.spyOn(Workspace.prototype, 'writeSteps').mockImplementationOnce(async function (this: Workspace, steps) {
+            await held
+            return writeSteps.call(this, steps)
+        })
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(Workspace.prototype.writeSteps).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        written()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(clicks()).toEqual(['e3', 'e4'])
+        expect(ai.records.at(-1)?.usage.input).toBeGreaterThan(0)
+    })
+
+    it('keeps the steps and the evidence of a stopped call in its error', async () => {
+        const { runtime: ai } = runtime({ cache: 'off' })
+        ai.startTest(spec, 'pays')
+        holdNextClick()
         const stale = ai.act(browser, 'Pay')
         await vi.waitFor(() => expect(clicks()).toHaveLength(1))
-        ai.startTest(spec, 'confirms')
-        const next = ai.act(browser, 'Pay again')
 
-        await ai.endTest(false, spec, 'pays')
+        await ai.endTest(false)
         release()
 
-        await expect(stale).rejects.toThrow('the test "pays" ended before the call finished')
-        await expect(next).resolves.toMatchObject({ source: 'model' })
-        expect(ai.records.map(({ test, error }) => [test, Boolean(error)])).toEqual([['pays', true], ['confirms', false]])
+        const error = await stale.catch((err: ActError) => err)
+        expect(error.message).toContain(ENDED)
+        expect(error.message).toContain(`Evidence: ${path.join(dir, 'workspaces')}`)
+        expect(error.steps).toHaveLength(1)
+        expect(ai.records.at(-1)?.error).toContain('Evidence:')
     })
 
     it('does not leave a deleted workspace behind', async () => {
@@ -544,5 +621,48 @@ describe('AiRuntime when a test ends during extract()', () => {
 
         await expect(stale).rejects.toThrow(ENDED)
         expect(model.calls).toHaveLength(0)
+    })
+
+    it('reads for the test of its browsing context in parallel mode', async () => {
+        const store = new AsyncLocalStorage<string>()
+        const tab = { ...browser, __parallelContextStore: store } as unknown as WebdriverIO.Browser
+        const { runtime: ai } = runtime([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 1 } }])
+        const original = fake.run.getMockImplementation()!
+        const gate = new Promise<void>((resolve) => { release = resolve })
+        fake.run.mockImplementationOnce(async (action, args) => {
+            await gate
+            return original(action, args)
+        })
+        ai.startTest(spec, 'reads the qty', 'ctx-a')
+        ai.startTest(spec, 'removes the shirt', 'ctx-b')
+        const read = store.run('ctx-a', () => ai.extract(tab, 'the qty', z.number()))
+        await vi.waitFor(() => expect(fake.run).toHaveBeenCalledWith('snapshot', expect.anything()))
+
+        await ai.endTest(true, spec, 'removes the shirt', 'ctx-b')
+        release()
+
+        await expect(read).resolves.toBe(1)
+        expect(ai.records.at(-1)).toMatchObject({ kind: 'extract', test: 'reads the qty' })
+    })
+
+    it('keeps the evidence of a stopped read in its error', async () => {
+        const { runtime: ai } = runtime([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 1 } }])
+        const original = fake.run.getMockImplementation()!
+        const gate = new Promise<void>((resolve) => { release = resolve })
+        fake.run.mockImplementationOnce(async (action, args) => {
+            await gate
+            return original(action, args)
+        })
+        ai.startTest(spec, 'reads the qty')
+        const stale = ai.extract(browser, 'the qty', z.number())
+        await vi.waitFor(() => expect(fake.run).toHaveBeenCalledWith('snapshot', expect.anything()))
+
+        await ai.endTest(false)
+        release()
+
+        const error = await stale.catch((err: ActError) => err)
+        expect(error.message).toContain(ENDED)
+        expect(error.message).toContain(`Evidence: ${path.join(dir, 'workspaces')}`)
+        expect(error.usage?.input).toBeGreaterThan(0)
     })
 })

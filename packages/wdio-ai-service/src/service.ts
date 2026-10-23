@@ -2,7 +2,7 @@ import url from 'node:url'
 
 import type { Services } from '@wdio/types'
 
-import { AiRuntime } from './runtime.js'
+import { AiRuntime, parallelContextOf } from './runtime.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 import type { ActOptions, AiServiceOptions, ExtractOptions } from './types.js'
@@ -47,6 +47,7 @@ interface CucumberWorld {
 export default class AiService implements Services.ServiceInstance {
     readonly runtime: AiRuntime
     #specs: string[] = []
+    #browser?: WebdriverIO.Browser
 
     constructor (options: AiServiceOptions = {}, _capabilities?: unknown, config: Partial<WebdriverIO.Config> = {}) {
         this.runtime = new AiRuntime({
@@ -66,6 +67,7 @@ export default class AiService implements Services.ServiceInstance {
         const instances = (browser as WebdriverIO.MultiRemoteBrowser).isMultiRemote
             ? (browser as WebdriverIO.MultiRemoteBrowser).instances.map((name) => (browser as WebdriverIO.MultiRemoteBrowser).getInstance(name))
             : [browser as WebdriverIO.Browser]
+        this.#browser = instances[0]
         await Promise.all(instances.map((instance) => this.runtime.agentFor(instance)))
     }
 
@@ -80,8 +82,8 @@ export default class AiService implements Services.ServiceInstance {
         await this.runtime.endTest(result?.passed ?? true, ...this.#testOf(test))
     }
 
-    #testOf (test: TestLike): [spec: string, title: string] {
-        return [specPath(test.file || this.#specs[0]), test.fullTitle || test.fullName || test.title || test.description || 'test']
+    #testOf (test: TestLike): [spec: string, title: string, contextId?: string] {
+        return [specPath(test.file || this.#specs[0]), test.fullTitle || test.fullName || test.title || test.description || 'test', parallelContextOf(this.#browser)]
     }
 
     /**
@@ -95,8 +97,8 @@ export default class AiService implements Services.ServiceInstance {
         await this.runtime.endTest(result?.passed ?? true, ...this.#scenarioOf(world))
     }
 
-    #scenarioOf (world: CucumberWorld): [spec: string, title: string] {
-        return [specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario']
+    #scenarioOf (world: CucumberWorld): [spec: string, title: string, contextId?: string] {
+        return [specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario', parallelContextOf(this.#browser)]
     }
 
     async after () {

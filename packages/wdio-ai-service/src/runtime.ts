@@ -68,6 +68,10 @@ interface TestContext {
      * set when the test ended, a call that stops later finishes the workspace again
      */
     passed?: boolean
+    /**
+     * browsing context of the test in parallel mode
+     */
+    contextId?: string
 }
 
 export type ActScope = WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext
@@ -84,6 +88,14 @@ export function browserOf (scope: ActScope): WebdriverIO.Browser {
         current = current.parent as WebdriverIO.Browser | WebdriverIO.Element
     }
     return current as WebdriverIO.Browser
+}
+
+/**
+ * The browsing context of the running test in parallel mode (`parallelMode`
+ * of Mocha or Cucumber), from the store the framework adapters also use.
+ */
+export function parallelContextOf (browser?: WebdriverIO.Browser): string | undefined {
+    return (browser as unknown as { __parallelContextStore?: { getStore (): string | undefined } } | undefined)?.__parallelContextStore?.getStore()
 }
 
 function isBrowsingContext (scope: ActScope): scope is WebdriverIO.BrowsingContext {
@@ -171,22 +183,24 @@ export class AiRuntime {
     /**
      * a test or scenario starts, its `act` calls are counted from 1
      */
-    startTest (spec: string, title: string) {
-        this.#test = { spec, title, calls: 0, startedAt: Date.now(), controller: new AbortController() }
+    startTest (spec: string, title: string, contextId?: string) {
+        this.#test = { spec, title, calls: 0, startedAt: Date.now(), controller: new AbortController(), contextId }
         this.#openTests.push(this.#test)
     }
 
     /**
      * The test ended, its workspace is kept on failure or heal (by default).
      * A call of the test that still runs, e.g. after the timeout of the test
-     * framework, stops before its next step. `spec` and `title` name the test:
-     * in parallel mode, the current test can be another one.
+     * framework, stops before its next step. `contextId`, or else `spec` and
+     * `title`, name the test: in parallel mode, the current test can be another one.
      */
-    async endTest (passed = true, spec?: string, title?: string) {
-        const test = title === undefined
-            ? this.#test
-            : this.#openTests.findLast((open) => open.spec === spec && open.title === title)
-                ?? (this.#openTests.length === 1 ? this.#openTests[0] : undefined)
+    async endTest (passed = true, spec?: string, title?: string, contextId?: string) {
+        const test = contextId !== undefined
+            ? this.#openTests.findLast((open) => open.contextId === contextId)
+            : title === undefined
+                ? this.#test
+                : this.#openTests.findLast((open) => open.spec === spec && open.title === title)
+                    ?? (this.#openTests.length === 1 ? this.#openTests[0] : undefined)
         if (!test) {
             return
         }
@@ -197,6 +211,17 @@ export class AiRuntime {
         test.passed = passed
         test.controller.abort(new TestEndedError(test.title))
         await test.workspace?.finish(this.#keepPolicy, passed)
+    }
+
+    /**
+     * The test of a call: in parallel mode the test of the caller's browsing
+     * context, not the test that started last.
+     */
+    #testOf (browser: WebdriverIO.Browser) {
+        const contextId = parallelContextOf(browser)
+        return contextId === undefined
+            ? this.#test
+            : this.#openTests.findLast((open) => open.contextId === contextId)
     }
 
     /**
@@ -389,10 +414,10 @@ export class AiRuntime {
 
     async act (scope: ActScope, instruction: string, options: ActOptions = {}): Promise<ActResult> {
         const started = Date.now()
-        const test = this.#test
+        const test = this.#testOf(browserOf(scope))
         const signal = test?.controller.signal
         const base = { ...(test ? { spec: test.spec, test: test.title } : {}), instruction }
-        const evidence = this.#evidenceFor(scope, instruction)
+        const evidence = this.#evidenceFor(scope, instruction, test)
         const artifacts = async () => {
             const files = await evidence?.end() ?? []
             return files.length ? { artifacts: files } : {}
@@ -411,13 +436,13 @@ export class AiRuntime {
             })
             return result
         } catch (err) {
-            const error = signal?.aborted ? new ActError({ instruction, reason: (signal.reason as Error).message }) : err as Error
+            const error = signal?.aborted ? stoppedError(instruction, signal, err) : err as Error
             this.#record({
                 ...base,
                 ...await artifacts(),
                 source: 'model',
                 error: error.message,
-                usage: err instanceof ActError && err.usage ? err.usage : NO_USAGE,
+                usage: error instanceof ActError && error.usage ? error.usage : NO_USAGE,
                 durationMs: Date.now() - started
             })
             throw error
@@ -428,12 +453,11 @@ export class AiRuntime {
      * where the screenshots and video of a heal go, captured only once a
      * cached step fails
      */
-    #evidenceFor (scope: ActScope, instruction: string) {
+    #evidenceFor (scope: ActScope, instruction: string, test?: TestContext) {
         const browser = browserOf(scope)
         if (!capturesHealEvidence(this.options) || (browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
             return undefined
         }
-        const test = this.#test
         const name = test ? `${path.basename(test.spec)}-${test.title}` : instruction
         return new HealEvidence(browser, path.join(this.#workspaceRoot, 'heals', `${slug(name)}-${crypto.randomUUID().slice(0, 8)}`))
     }
@@ -502,7 +526,9 @@ export class AiRuntime {
             /**
              * the last step ended after the test, the call is stopped like any other
              */
-            signal?.throwIfAborted()
+            if (signal?.aborted) {
+                throw new ActError({ instruction, reason: (signal.reason as Error).message, usage: outcome.usage })
+            }
             return outcome
         } catch (err) {
             if (signal?.aborted) {
@@ -621,7 +647,7 @@ export class AiRuntime {
         }
         assertValues(instruction, options.values)
         const started = Date.now()
-        const test = this.#test
+        const test = this.#testOf(browserOf(scope))
         const signal = test?.controller.signal
         const base = { kind: 'extract' as const, ...(test ? { spec: test.spec, test: test.title } : {}), instruction, source: 'model' as const }
         const usage = { input: 0, output: 0 }
@@ -630,7 +656,7 @@ export class AiRuntime {
             this.#record({ ...base, ...(evidence?.length ? { evidence } : {}), usage, durationMs: Date.now() - started })
             return value
         } catch (err) {
-            const error = signal?.aborted ? new ActError({ instruction, reason: (signal.reason as Error).message, usage }) : err as Error
+            const error = signal?.aborted ? stoppedError(instruction, signal, err, usage) : err as Error
             this.#record({ ...base, error: error.message, usage, durationMs: Date.now() - started })
             throw error
         }
@@ -735,6 +761,20 @@ export class AiRuntime {
             recordedAt: new Date().toISOString()
         }, this.mode(options.cache) === 'heal' ? 'heal' : 'cache')
     }
+}
+
+/**
+ * the error of a call whose test ended, with the steps, tokens and evidence of the call
+ */
+function stoppedError (instruction: string, signal: AbortSignal, err: unknown, usage?: TokenUsage) {
+    const details = err instanceof ActError ? err : undefined
+    return new ActError({
+        instruction,
+        reason: (signal.reason as Error).message,
+        steps: details?.steps,
+        usage: details?.usage ?? usage,
+        workspace: details?.workspace
+    })
 }
 
 /**
