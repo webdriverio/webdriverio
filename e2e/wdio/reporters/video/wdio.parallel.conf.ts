@@ -17,7 +17,7 @@ let server: Server | undefined
 
 /**
  * Real-browser check of `@wdio/video-reporter` in Mocha parallel mode:
- * `pnpm run test:e2e:video-reporter:parallel`. The 4 tests run at the same time. The
+ * `pnpm run test:e2e:video-reporter-parallel`. The 4 tests run at the same time. The
  * run fails in `onComplete` when a test has no video, when a frame shows the page
  * of another test, or when an Allure video is not the video of its test.
  */

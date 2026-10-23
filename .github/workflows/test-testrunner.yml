@@ -61,7 +61,7 @@ jobs:
           pnpm run test:e2e:lighthouse
           pnpm run test:e2e:ai
           pnpm run test:e2e:video-reporter
-          pnpm run test:e2e:video-reporter:parallel
+          pnpm run test:e2e:video-reporter-parallel
           pnpm run test:e2e:parallel
         shell: bash
 
