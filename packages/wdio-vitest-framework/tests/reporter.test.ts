@@ -554,6 +554,64 @@ describe('WdioBridgeReporter', () => {
             expect(end).toMatchObject({ uid: start.uid, state: 'fail', error: { name: 'Error', message: 'before boom' } })
         })
 
+        it('keeps a failed beforeAll when the afterAll of the same suite then passes', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'setup')
+            s.errors = () => [{ message: 'before boom' }]
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: s })
+            reporter.onHookStart({ name: 'afterAll', entity: s })
+            reporter.onHookEnd({ name: 'afterAll', entity: s })
+            await describeBlock(s, [])
+            await reporter.onTestModuleEnd(module)
+
+            const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook in "setup"', 'before boom']])
+        })
+
+        it('reports both hooks with their own errors when beforeAll and afterAll fail', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'both')
+            s.errors = () => [{ message: 'before boom' }, { message: 'middle' }, { message: 'after boom' }]
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'afterAll', entity: s })
+            reporter.onHookStart({ name: 'beforeAll', entity: s })
+            await describeBlock(s, [])
+            await reporter.onTestModuleEnd(module)
+
+            const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([
+                ['"before all" hook in "both"', 'before boom'], ['"after all" hook in "both"', 'after boom']
+            ])
+            expect(new Set(ends.map(({ uid }) => uid)).size).toBe(2)
+        })
+
+        it('gives the only error to both unfinished hooks', async () => {
+            const module = makeModule()
+            const s = makeSuite(module, module, 'one')
+            s.errors = () => [{ message: 'shared boom' }]
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: s })
+            reporter.onHookStart({ name: 'afterAll', entity: s })
+            await describeBlock(s, [])
+            await reporter.onTestModuleEnd(module)
+
+            const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+            expect(ends.map(({ error }) => error.message)).toEqual(['shared boom', 'shared boom'])
+        })
+
+        it('keeps a failed module level beforeAll when the module afterAll passes', async () => {
+            const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'session boom' }] })
+            reporter.onTestModuleStart(module)
+            reporter.onHookStart({ name: 'beforeAll', entity: module })
+            reporter.onHookStart({ name: 'afterAll', entity: module })
+            reporter.onHookEnd({ name: 'afterAll', entity: module })
+            await reporter.onTestModuleEnd(module)
+
+            const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
+            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook in "{root}"', 'session boom']])
+        })
+
         it('reports a failing module level hook under the root title', async () => {
             const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'session boom' }] })
             reporter.onTestModuleStart(module)

@@ -3,7 +3,7 @@ import { SUPPORTED_HOOKS } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWorkerService, type ParallelContextBrowser } from '@wdio/utils'
-import { expect, setDefaultOptions, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setDefaultOptions, SoftAssertionService, SoftAssertService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Capabilities } from '@wdio/types'
@@ -25,6 +25,7 @@ let config: WebdriverIO.Config
 let requestedCapabilities: Capabilities.RequestedStandaloneCapabilities
 let capabilities: WebdriverIO.Capabilities
 let browser: ParallelBrowser | undefined
+let softAssertions: SoftAssertionService | undefined
 let specFile = ''
 let failures = 0
 let sessionHookArgs: [WebdriverIO.Config, WebdriverIO.Capabilities, string[]] | undefined
@@ -102,7 +103,8 @@ beforeAll(async ({}, suite) => {
 
         const { ignoredWorkerServices } = inject('wdioArgs') as { ignoredWorkerServices?: string[] }
         // built-in, added ahead of the worker services like the WDIO runner does
-        configParser.addService(new SoftAssertionService({ autoAssertOnTestEnd: config.autoAssertOnTestEnd ?? true }))
+        softAssertions = new SoftAssertionService({ autoAssertOnTestEnd: config.autoAssertOnTestEnd ?? true })
+        configParser.addService(softAssertions)
         const services = await initializeWorkerService(config, capabilities, ignoredWorkerServices ?? [])
         services.forEach((service) => configParser.addService(service))
         config = configParser.getConfig() as WebdriverIO.Config
@@ -183,6 +185,9 @@ aroundEach(async (...args) => {
             // afterTest services such as the soft assertion service report a failure by mutating the report
             if (error === undefined) {
                 serviceError = report.error
+            } else if (softAssertions) {
+                // the service skips asserting a test that already failed and leaves its failures for the retry to throw
+                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
             }
         }
         if (serviceError !== undefined) {

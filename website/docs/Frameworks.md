@@ -850,6 +850,7 @@ The framework controls some keys itself:
 - Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
 - A failing `beforeAll` or `afterAll` is reported to WDIO reporters as a failed hook, so the JUnit reporter adds a failing testcase for it. Other hook results are not reported.
 - Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
+- Soft assertions outside a test (in `beforeAll` or `afterAll`) are not asserted: their failures are dropped.
 
 ## Using Serenity/JS
 

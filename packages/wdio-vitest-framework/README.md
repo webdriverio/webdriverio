@@ -113,5 +113,6 @@ Each test opens its own window, and every command in the test targets it. The wi
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
 - Hook results are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook in "<suite>"`) so that the JUnit reporter adds a failing testcase for it.
 - Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
+- Soft assertions outside a test (in `beforeAll` or `afterAll`) are not asserted: their failures are dropped.
 - Reporter runtime APIs that emit from inside a test, such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter`, are not supported yet. Reporters run in the launcher process while tests run in Vitest workers, so these calls do nothing.
 - `browser.options.vitestOpts` is not set inside specs.
