@@ -75,6 +75,7 @@ describe('LinkingFileSystemWriter', () => {
         failFs.rename = true
         writer.writeAttachmentFromPath('x-attachment.png', from)
         expect(fs.readFileSync(path.join(resultsDir, 'x-attachment.png'), 'utf-8')).toBe(content)
+        expect(fs.existsSync(from)).toBe(false)
         expect(warn).not.toHaveBeenCalled()
     })
 
