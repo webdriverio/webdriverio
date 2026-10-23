@@ -18,6 +18,7 @@ const parser = vi.hoisted(() => ({ args: [] as unknown[] }))
 const callbacks = vi.hoisted(() => ({ beforeAll: undefined as unknown as (...args: unknown[]) => Promise<void>, afterAll: undefined as unknown as (...args: unknown[]) => Promise<void> }))
 const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
+const attachmentDir = vi.hoisted(() => ({ value: null as string | null }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
 const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn() }))
 
@@ -27,7 +28,7 @@ vi.mock('vitest', () => ({
     aroundEach: vi.fn((fn) => { hooks.aroundEach = fn }),
     beforeAll: vi.fn((fn) => { callbacks.beforeAll = fn }),
     afterAll: vi.fn((fn) => { callbacks.afterAll = fn }),
-    inject: vi.fn((key: string) => key === 'wdioConfigFile' ? configFile : key === 'wdioArgs' ? args.value : key === 'wdioProjectIndex' ? 2 : injected.caps)
+    inject: vi.fn((key: string) => key === 'wdioAllureAttachmentDir' ? attachmentDir.value : key === 'wdioConfigFile' ? configFile : key === 'wdioArgs' ? args.value : key === 'wdioProjectIndex' ? 2 : injected.caps)
 }))
 vi.mock('@wdio/utils', () => utils)
 vi.mock('@wdio/config/node', () => ({
@@ -259,8 +260,8 @@ describe('setup', () => {
             const attachment = (wrapInStep = true) => ({ type: 'attachment_content', data: { name: 'shot', content, encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep, timestamp: 7 } })
             let resultsDir: string
 
-            const configure = async (reporters: unknown[] | undefined) => {
-                mockConfig.value = { ...mockConfig.value, reporters }
+            const configure = async (dir: string | null) => {
+                attachmentDir.value = dir
                 await callbacks.beforeAll({}, { file: fileTask })
             }
             const send = (message: unknown) => runInTest(() => { process.emit('allure:runtimeMessage' as never, message as never) }) as Promise<{ payload: any }[]>
@@ -273,8 +274,8 @@ describe('setup', () => {
                 fs.rmSync(resultsDir, { recursive: true, force: true })
             })
 
-            it('writes the bytes into the results folder and relays only an attachment_path message', async () => {
-                await configure([['allure', { outputDir: resultsDir }]])
+            it('writes the bytes into the injected results folder and relays only an attachment_path message', async () => {
+                await configure(resultsDir)
                 const [entry] = await send(attachment())
                 expect(entry.payload).toEqual({ type: 'attachment_path', data: { name: 'shot', contentType: 'image/png', fileExtension: '.png', wrapInStep: true, timestamp: 7, path: expect.stringContaining(resultsDir) } })
                 expect(fs.readFileSync(entry.payload.data.path).equals(Buffer.from(content, 'base64'))).toBe(true)
@@ -282,25 +283,24 @@ describe('setup', () => {
                 expect((entry as { pendingFile?: string }).pendingFile).toBe(entry.payload.data.path)
             })
 
-            it('accepts @wdio/allure-reporter and a results folder given as resultsDir', async () => {
-                await configure([['allure', { resultsDir }]])
+            it('ignores the worker-side reporter list, the launcher decides', async () => {
+                mockConfig.value = { ...mockConfig.value, reporters: [['allure', { outputDir: resultsDir }]] }
+                await configure(null)
                 const [entry] = await send(attachment())
-                expect(path.dirname(entry.payload.data.path)).toBe(resultsDir)
-                await configure([['@wdio/allure-reporter', { resultsDir }]])
-                const [second] = await send(attachment())
-                expect(path.dirname(second.payload.data.path)).toBe(resultsDir)
+                expect(entry.payload).toEqual(attachment())
+                expect(pendingFiles()).toEqual([])
             })
 
             it('offloads the global variant and leaves other messages inline', async () => {
-                await configure([['allure', { outputDir: resultsDir }]])
+                await configure(resultsDir)
                 const step = { type: 'step_start', data: { name: 's', start: 1 } }
                 const entries = await send({ ...attachment(), type: 'global_attachment_content' })
                 expect(entries[0].payload.type).toBe('global_attachment_path')
                 expect((await send(step))[0].payload).toEqual(step)
             })
 
-            it('keeps the content inline when no entry looks like Allure', async () => {
-                await configure(['junit', ['json', {}]])
+            it('keeps the content inline without a warning when no folder is injected', async () => {
+                await configure(null)
                 const [entry] = await send(attachment())
                 expect(entry.payload).toEqual(attachment())
                 expect(entry).not.toHaveProperty('pendingFile')
@@ -308,40 +308,10 @@ describe('setup', () => {
                 expect(pendingFiles()).toEqual([])
             })
 
-            it('matches the Allure reporter name case-insensitively', async () => {
-                await configure([['Allure', { outputDir: resultsDir }]])
-                const [entry] = await send(attachment())
-                expect(entry.payload.type).toBe('attachment_path')
-            })
-
-            it('keeps the content inline when a reporter is a class, which could be Allure', async () => {
-                class CustomReporter {}
-                await configure([CustomReporter, ['allure', { outputDir: resultsDir }]])
-                const [entry] = await send(attachment())
-                expect(entry.payload).toEqual(attachment())
-                expect(pendingFiles()).toEqual([])
-            })
-
-            it('keeps the content inline and warns once when the Allure reporters write to different folders', async () => {
-                await configure([['allure', { outputDir: resultsDir }], ['allure', { outputDir: path.join(resultsDir, 'other') }]])
-                expect(logs.warn).toHaveBeenCalledTimes(1)
-                const [entry] = await send(attachment())
-                expect(entry.payload).toEqual(attachment())
-                expect(pendingFiles()).toEqual([])
-            })
-
-            it('keeps the content inline and warns once when several Allure reporters share one folder', async () => {
-                await configure([['allure', { outputDir: resultsDir }], ['@wdio/allure-reporter', { resultsDir: path.join(resultsDir, '.') }]])
-                expect(logs.warn).toHaveBeenCalledTimes(1)
-                const [entry] = await send(attachment())
-                expect(entry.payload).toEqual(attachment())
-                expect(pendingFiles()).toEqual([])
-            })
-
             it('keeps the content inline and warns once when the file cannot be written', async () => {
                 const blocker = path.join(resultsDir, 'file')
                 fs.writeFileSync(blocker, '')
-                await configure([['allure', { outputDir: path.join(blocker, 'results') }]])
+                await configure(path.join(blocker, 'results'))
                 const first = await send(attachment())
                 const second = await send(attachment())
                 expect(first[0].payload).toEqual(attachment())
@@ -352,7 +322,7 @@ describe('setup', () => {
             it('keeps the content inline and warns once when the worker module cannot be loaded', async () => {
                 vi.doMock('@wdio/allure-reporter/worker', () => { throw new Error('cannot load') })
                 try {
-                    await configure([['allure', { outputDir: resultsDir }]])
+                    await configure(resultsDir)
                 } finally {
                     vi.doUnmock('@wdio/allure-reporter/worker')
                 }
