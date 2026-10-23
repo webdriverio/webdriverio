@@ -468,6 +468,30 @@ test('a failed Cucumber hook of a retried scenario that passes in the end does n
     expect(service['_failures']).toBe(0)
 })
 
+test('a failed Cucumber hook is not counted twice while scenarios overlap (parallelMode)', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
+    const a = { pickle: { id: 'a', name: 'a' } } as any
+    const b = { pickle: { id: 'b', name: 'b' } } as any
+
+    service.beforeScenario(a)
+    service.beforeScenario(b)
+    // A finishes while B still runs
+    service.afterScenario(a, { passed: true })
+    // B's hook fails on the first attempt
+    service.afterHook({} as never, {} as never, { passed: false, error: new Error('Before failed') } as any)
+    service.afterScenario(b, { passed: false })
+    expect(service['_failures']).toBe(1)
+
+    // B passes on retry
+    service.beforeScenario(b)
+    service.afterScenario(b, { passed: true })
+    expect(service['_failures']).toBe(0)
+})
+
 test('a failed hook outside of a Cucumber scenario still fails the job', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser

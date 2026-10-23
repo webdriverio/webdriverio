@@ -26,7 +26,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _maxErrorStackLength = 5
     private _failures = 0 // counts failures between reloads
     private _failedScenarios = new Set<string>() // Cucumber scenarios counted in `_failures`
-    private _isInScenario = false // between beforeScenario and afterScenario (Cucumber)
+    private _runningScenarios = 0 // Cucumber scenarios between beforeScenario and afterScenario, more than one in `parallelMode`
     private _isServiceEnabled = true
     private _isJobNameSet = false
     private _testStartTime: Date
@@ -202,7 +202,7 @@ export default class SauceService implements Services.ServiceInstance {
          * a failed Cucumber `Before` or `After` hook fails its scenario, `afterScenario`
          * counts it with the result of the scenario's last attempt
          */
-        if (!results.passed && !this._isInScenario) {
+        if (!results.passed && this._runningScenarios === 0) {
             ++this._failures
         }
     }
@@ -229,7 +229,7 @@ export default class SauceService implements Services.ServiceInstance {
      * @param world world object containing information on pickle and test step
      */
     beforeScenario (world: Frameworks.World) {
-        this._isInScenario = true
+        ++this._runningScenarios
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -256,7 +256,7 @@ export default class SauceService implements Services.ServiceInstance {
      * @param result.duration duration of scenario in milliseconds
      */
     afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
-        this._isInScenario = false
+        this._runningScenarios = Math.max(0, this._runningScenarios - 1)
 
         /**
          * a retried scenario runs this hook for every attempt, with the same pickle:
