@@ -385,6 +385,14 @@ async function findRoleElementsByScript(
 }
 
 /**
+ * Whether a Classic lookup failed because the shadow root it started from is
+ * gone, as opposed to the selector simply not matching inside it.
+ */
+function isStaleShadowRootError(err: unknown) {
+    return err instanceof Error && (isStaleElementError(err) || err.message.includes('detached shadow root'))
+}
+
+/**
  * Classic XPath cannot cross shadow boundaries. After searching the
  * document or host, also query each known shadow root so legacy-only
  * `aria/` matches (e.g. aria-describedby, title, generic text) stay
@@ -395,7 +403,8 @@ async function findElementViaClassic(
     browser: WebdriverIO.Browser,
     using: string,
     value: string,
-    shadowRoots: string[] = []
+    shadowRoots: string[] = [],
+    onStaleRoot?: (rootId: string) => void
 ) {
     const classic = toClassicSelector(using, value)
     const elementId = getScopedElementId(ctx)
@@ -420,8 +429,11 @@ async function findElementViaClassic(
             if (getElementFromResponse(result)) {
                 return result
             }
-        } catch {
+        } catch (err) {
             // stale or detached shadow root — keep looking
+            if (onStaleRoot && isStaleShadowRootError(err)) {
+                onStaleRoot(rootId)
+            }
         }
     }
 
@@ -436,7 +448,8 @@ async function findElementsViaClassic(
     browser: WebdriverIO.Browser,
     using: string,
     value: string,
-    shadowRoots: string[] = []
+    shadowRoots: string[] = [],
+    onStaleRoot?: (rootId: string) => void
 ) {
     const classic = toClassicSelector(using, value)
     const elementId = getScopedElementId(ctx)
@@ -460,8 +473,11 @@ async function findElementsViaClassic(
             if (Array.isArray(result)) {
                 collected.push(...result.filter((node) => getElementFromResponse(node)))
             }
-        } catch {
+        } catch (err) {
             // stale or detached shadow root — keep looking
+            if (onStaleRoot && isStaleShadowRootError(err)) {
+                onStaleRoot(rootId)
+            }
         }
     }
 
@@ -770,9 +786,14 @@ export async function findDeepElement(
      * findable. Use that path directly instead - it returns what the fallback already
      * returned, in one round trip less and without the warning. A lookup in another
      * browsing context keeps the BiDi path, since Classic only sees the current one.
+     *
+     * The BiDi path drops a tracked shadow root once the browser reports it gone
+     * (see `locateNodes` below). Do the same here, so a root left over from a
+     * document that is no longer shown is not queried again on every lookup.
      */
     if (using === 'xpath' && shadowRoots.length > 0 && !await foreignContextId(this)) {
-        return findElementViaClassic(this, browser, using, value, shadowRoots)
+        const forgetStaleRoot = (rootId: string) => shadowRootManager.forgetNode(context, rootId)
+        return findElementViaClassic(this, browser, using, value, shadowRoots, forgetStaleRoot)
     }
 
     const locator = transformClassicToBidiSelector(using, value)
@@ -976,10 +997,12 @@ export async function findDeepElements(
 
     /**
      * See `findDeepElement`: a shadow root is not a valid XPath context node, and
-     * only Classic can reach an XPath match inside one.
+     * only Classic can reach an XPath match inside one. Shadow roots the browser
+     * reports as gone are forgotten, as on the BiDi path.
      */
     if (using === 'xpath' && shadowRoots.length > 0 && !await foreignContextId(this)) {
-        return findElementsViaClassic(this, browser, using, value, shadowRoots)
+        const forgetStaleRoot = (rootId: string) => shadowRootManager.forgetNode(context, rootId)
+        return findElementsViaClassic(this, browser, using, value, shadowRoots, forgetStaleRoot)
     }
 
     const locator = transformClassicToBidiSelector(using, value)
