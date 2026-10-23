@@ -906,6 +906,100 @@ describe('WdioBridgeReporter', () => {
                 expect(emittedOf().find(([name]) => name === 'test:retry')![1]).toMatchObject({ duration: 0, error: { message: 'test failed' } })
                 expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload.name)).toEqual(['first'])
             })
+
+            describe('hooks', () => {
+                const hookOf = (state: 'pass' | 'fail', error?: object) => ({ state, ...(error && { error }) })
+                const withHooks = (retry: number, state: 'passed' | 'failed', hooks?: object, error?: object) => ({
+                    event: 'wdio:attempt', retry, payload: { start: 100 * retry, end: 100 * retry + 10, state, ...(error && { error }), ...(hooks && { hooks }) }
+                })
+                const bothHooks = { beforeEach: hookOf('pass'), afterEach: hookOf('pass') }
+                const hookSequence = () => sequence().filter((entry) => !entry.startsWith('junit'))
+                const build = (final: Result, entries: object[], extra: Record<string, unknown> = {}) => {
+                    const module = makeModule()
+                    const test = makeTest(module, module, 't', final, 5, { diagnostic: () => ({ duration: 5, retryCount: 2 }), meta: () => runtimeMeta(...entries), ...extra })
+                    return { module, test }
+                }
+
+                it('sends one hook pair per kind and attempt around the test events, as a sequential Mocha run', async () => {
+                    const { module, test } = build(passed, [
+                        call('a0', 0), withHooks(0, 'failed', bothHooks, { message: 'f1' }),
+                        call('a1', 1), withHooks(1, 'failed', bothHooks, { message: 'f2' }),
+                        call('a2', 2), withHooks(2, 'passed', bothHooks)
+                    ])
+                    await runTests(module, test)
+
+                    const hook = (attempt: string, kind: string) => [`hook:start(test-0-0-0${attempt}-${kind})`, `hook:end(test-0-0-0${attempt}-${kind})`]
+                    expect(hookSequence()).toEqual([
+                        'test:start(test-0-0-0)', ...hook('', 'beforeEach'), 'test:retry(test-0-0-0)', ...hook('', 'afterEach'),
+                        'test:start(test-0-0-0-retry-1)', ...hook('-retry-1', 'beforeEach'), 'test:retry(test-0-0-0-retry-1)', ...hook('-retry-1', 'afterEach'),
+                        'test:start(test-0-0-0-retry-2)', ...hook('-retry-2', 'beforeEach'), 'test:pass(test-0-0-0-retry-2)', 'test:end(test-0-0-0-retry-2)', ...hook('-retry-2', 'afterEach')
+                    ])
+                    const uids = emittedOf().filter(([name]) => name.startsWith('hook:start')).map(([, payload]) => payload.uid)
+                    expect(new Set(uids).size).toBe(6)
+                })
+
+                it('gives the hooks the Mocha titles and the test parent, file and specs', async () => {
+                    const { module, test } = build(passed, [withHooks(0, 'failed', bothHooks, { message: 'f1' }), withHooks(1, 'failed'), withHooks(2, 'passed')])
+                    await runTests(module, test)
+
+                    const [start, end] = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
+                    expect(start).toEqual({
+                        type: 'hook:start', cid: '0-0', specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', uid: 'test-0-0-0-beforeEach',
+                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String)
+                    })
+                    expect(end).toEqual({ ...start, type: 'hook:end', duration: 0, state: 'pass' })
+                    const after = emittedOf().filter(([name]) => name === 'hook:start').map(([, payload]) => payload.title)
+                    expect(after).toEqual(['"before each" hook for "t"', '"after each" hook for "t"'])
+                })
+
+                it('ends a failed beforeEach with its error, then the failed test result', async () => {
+                    const { module, test } = build({ state: 'failed', errors: [{ message: 'be' }] }, [
+                        withHooks(0, 'failed', { beforeEach: hookOf('fail', { message: 'be', stack: 's' }), afterEach: hookOf('pass') }, { message: 'be' }),
+                        withHooks(1, 'failed'), withHooks(2, 'failed')
+                    ])
+                    await runTests(module, test)
+
+                    expect(hookSequence().slice(0, 5)).toEqual([
+                        'test:start(test-0-0-0)', 'hook:start(test-0-0-0-beforeEach)', 'hook:end(test-0-0-0-beforeEach)', 'test:retry(test-0-0-0)', 'hook:start(test-0-0-0-afterEach)'
+                    ])
+                    const end = emittedOf().find(([name, payload]) => name === 'hook:end' && payload.uid === 'test-0-0-0-beforeEach')![1]
+                    expect(end).toMatchObject({ state: 'fail', error: { name: 'Error', message: 'be', stack: 's' } })
+                })
+
+                it('falls back to the attempt error when the worker could not tell the hook error', async () => {
+                    const { module, test } = build(passed, [
+                        withHooks(0, 'failed', { afterEach: hookOf('fail') }, { message: 'attempt error' }), withHooks(1, 'failed'), withHooks(2, 'passed')
+                    ])
+                    await runTests(module, test)
+
+                    expect(emittedOf().find(([name]) => name === 'hook:end')![1]).toMatchObject({ state: 'fail', error: { message: 'attempt error' } })
+                })
+
+                it('sends no hook events when no hook ran, and never an end without a start', async () => {
+                    const { module, test } = build(passed, [withHooks(0, 'failed'), withHooks(1, 'failed'), withHooks(2, 'passed')])
+                    await runTests(module, test)
+                    expect(names(emittedOf()).filter((name) => name.startsWith('hook:'))).toEqual([])
+
+                    instances.length = 0
+                    reporter = new WdioBridgeReporter(config, (event) => events.push(event), (err) => errors.push(err))
+                    const second = build(passed, [withHooks(0, 'failed', bothHooks), withHooks(1, 'failed', { afterEach: hookOf('pass') }), withHooks(2, 'passed', { beforeEach: hookOf('pass') })])
+                    await runTests(second.module, second.test)
+                    const hooks = names(emittedOf()).filter((name) => name.startsWith('hook:'))
+                    expect(hooks.filter((name) => name === 'hook:start')).toHaveLength(hooks.filter((name) => name === 'hook:end').length)
+                    expect(hooks.every((name, index) => name === (index % 2 === 0 ? 'hook:start' : 'hook:end'))).toBe(true)
+                })
+
+                it('tags hooks with the contextId and closes the context after the last afterEach', async () => {
+                    const { module, test } = build(passed, [withHooks(0, 'failed', bothHooks), withHooks(1, 'failed', bothHooks), withHooks(2, 'passed', bothHooks)], { options: { concurrent: true } })
+                    await runTests(module, test)
+
+                    const hooks = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
+                    expect(hooks).toHaveLength(12)
+                    expect(hooks.every((payload) => payload.contextId === test.id)).toBe(true)
+                    expect(names(emittedOf()).slice(-3)).toEqual(['hook:start', 'hook:end', 'context:end'])
+                    expect(emittedOf().filter(([name]) => name === 'context:end')).toHaveLength(1)
+                })
+            })
         })
 
         it('tags concurrent tests with a contextId and resolves it while replaying', async () => {

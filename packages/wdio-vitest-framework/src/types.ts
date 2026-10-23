@@ -16,11 +16,19 @@ export const ATTEMPT_EVENT = 'wdio:attempt'
 
 export type AttemptError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 
+export const ATTEMPT_HOOK_KINDS = ['beforeEach', 'afterEach'] as const
+
+export type AttemptHookKind = typeof ATTEMPT_HOOK_KINDS[number]
+
+export type AttemptHook = { state: 'pass' | 'fail', error?: AttemptError }
+
 export type AttemptMarker = {
     start: number
     end: number
     state: 'passed' | 'failed'
     error?: AttemptError
+    /** The outcome of the hook kinds that ran in this attempt; absent when none did */
+    hooks?: Partial<Record<AttemptHookKind, AttemptHook>>
 }
 
 export type RelayedEntry =

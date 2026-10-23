@@ -5,7 +5,7 @@ import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
 import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
 
-import { ATTEMPT_EVENT, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTEMPT_EVENT, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -42,6 +42,7 @@ type ModuleRun = {
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
 const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
+const HOOK_TITLES: Record<AttemptHookKind, string> = { beforeEach: 'before each', afterEach: 'after each' }
 const join = (parent: string, title: string) => parent ? `${parent} ${title}` : title
 
 /**
@@ -95,7 +96,7 @@ export class WdioBridgeReporter implements Reporter {
 
     onHookStart(hook: ReportedHookContext) {
         const { name, entity } = hook
-        if (entity.type === 'test') {
+        if (entity.type === 'test' || !(name in HOOK_KIND)) {
             return
         }
         const run = this.#tryRun(entity.type === 'module' ? entity : entity.module)
@@ -134,17 +135,20 @@ export class WdioBridgeReporter implements Reporter {
                 if (attempt > 0) {
                     this.#emit(run, 'test:start', { ...retryBase, retries: attempt })
                 }
+                this.#emitHook(run, retryBase, 'beforeEach', marker)
                 this.#replay(run, calls)
                 const times = marker ? { start: marker.start, end: marker.end } : {}
                 this.#emit(run, 'test:retry', {
                     ...retryBase, ...times, duration: marker ? marker.end - marker.start : 0, pending: false,
                     error: toErrorPayload(marker?.error ?? { message: 'test failed' })
                 })
+                this.#emitHook(run, retryBase, 'afterEach', marker)
             })
             const last = this.#attemptBase(base, finalAttempt)
             if (finalAttempt > 0) {
                 this.#emit(run, 'test:start', { ...last, retries: finalAttempt })
             }
+            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker)
             this.#replay(run, attempts[finalAttempt].calls)
             // Events reach the launcher batched, so the receipt time is not the time the test ran; startTime is the worker's Date.now()
             const times = diagnostic?.startTime === undefined ? {} : { start: diagnostic.startTime, end: diagnostic.startTime + duration }
@@ -162,6 +166,7 @@ export class WdioBridgeReporter implements Reporter {
                 this.#emit(run, 'test:pending', { ...last, ...times, duration, pending: true })
                 this.#emit(run, 'test:end', { ...last, duration, passed: false, pending: true })
             }
+            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker)
             if (typeof last.contextId === 'string') {
                 this.#emit(run, 'context:end', { type: 'context:end', cid: run.cid, uid: last.uid, contextId: last.contextId })
             }
@@ -267,6 +272,26 @@ export class WdioBridgeReporter implements Reporter {
     // A retry is a new test to the reporters, as in a sequential WDIO run; attempt 0 keeps the uid of the test:start sent when the test became ready
     #attemptBase<T extends { uid: string }>(base: T, attempt: number): T {
         return attempt === 0 ? base : { ...base, uid: `${base.uid}-retry-${attempt}` }
+    }
+
+    // The worker reports one outcome per hook kind and attempt, not one per registered hook
+    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker?: AttemptMarker) {
+        const outcome = marker?.hooks?.[kind]
+        if (!outcome) {
+            return
+        }
+        const title = `"${HOOK_TITLES[kind]}" hook for "${test.title}"`
+        const testParent = test.fullTitle === test.title ? '' : test.fullTitle.slice(0, -(test.title.length + 1))
+        const base = {
+            uid: `${test.uid}-${kind}`, title, fullTitle: join(testParent, title), parent: test.parent, parentUid: test.parentUid,
+            ...(test.contextId !== undefined && { contextId: test.contextId })
+        }
+        const error = outcome.state === 'fail' ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
+        this.#emit(run, 'hook:start', { ...base, type: 'hook:start', cid: run.cid })
+        this.#emit(run, 'hook:end', {
+            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: outcome.state,
+            ...(error && { error: toErrorPayload(error) })
+        })
     }
 
     #replay(run: ModuleRun, calls: RelayedEntry[]) {
