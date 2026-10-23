@@ -329,17 +329,13 @@ aroundEach(async (...args) => {
                 exception: error instanceof Error ? error.message : '',
                 status: error === undefined ? 'passed' : 'failed'
             }
-            try {
-                await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
-                // afterTest services such as the soft assertion service report a failure by mutating the report
-                if (error === undefined) {
-                    serviceError = report.error
-                } else if (softAssertions) {
-                    // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                    SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
-                }
-            } finally {
-                recordAttempt(task, startedAt, error ?? serviceError)
+            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
+            // afterTest services such as the soft assertion service report a failure by mutating the report
+            if (error === undefined) {
+                serviceError = report.error
+            } else if (softAssertions) {
+                // the service skips asserting a test that already failed and leaves its failures for the retry to throw
+                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
             }
         }
         if (serviceError !== undefined) {
