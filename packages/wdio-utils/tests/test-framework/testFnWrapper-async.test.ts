@@ -6,6 +6,7 @@ import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFn
 
 vi.mock('../../src/shim', () => ({
     executeHooksWithArgs: vi.fn(),
+    followFrameworkTimer: vi.fn(),
     executeAsync: async (fn: Function, { limit, attempts }: any, args = []) => fn('async', limit, attempts, ...args),
     runSync: null,
 }))
