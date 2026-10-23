@@ -1096,9 +1096,16 @@ export default class VideoReporter extends WdioReporter {
         return promise
     }
 
+    /**
+     * the Allure reporter supports parallel mode only with Mocha: with Cucumber it would add the video
+     * and the arguments to the scenario that started last, also for a failFast skip without a window
+     */
+    #isAllureUnsupported (key: string) {
+        return this.isCucumberFramework && (key !== MAIN || this.#isParallelRun)
+    }
+
     #extendAllureReport (key: string) {
-        // as for the video (#attachVideoToAllure): Allure would add them to the last started scenario, also for failFast skips
-        if (!this.#usingAllure || (this.isCucumberFramework && (key !== MAIN || this.#isParallelRun))) {
+        if (!this.#usingAllure || this.#isAllureUnsupported(key)) {
             return
         }
         const capabilities = getCurrentCapabilities(browser)
@@ -1175,11 +1182,7 @@ export default class VideoReporter extends WdioReporter {
         if (!this.#usingAllure || !testName || !this.#record) {
             return
         }
-        /**
-         * the Allure reporter supports parallel mode only with Mocha: with Cucumber it
-         * would attach the video to the scenario that started last
-         */
-        if (key !== MAIN && this.isCucumberFramework) {
+        if (this.#isAllureUnsupported(key)) {
             if (!this.#warnedAllureParallel) {
                 this.#warnedAllureParallel = true
                 const message = '@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure'
