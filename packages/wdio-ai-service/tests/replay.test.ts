@@ -162,6 +162,39 @@ describe('effect checks during replay', () => {
         recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
     })
 
+    it('does not run the step when its test ended while the effect recording started', async () => {
+        const { agent, run } = fakeAgent()
+        const check = recorder(CART)
+        let started: () => void = () => {}
+        vi.mocked(check.recorder.start).mockImplementationOnce(() => new Promise<void>((resolve) => { started = resolve }))
+        const test = new AbortController()
+        const replay = replaySteps(agent, [step], {}, 100, check, undefined, undefined, test.signal)
+        await vi.waitFor(() => expect(check.recorder.start).toHaveBeenCalled())
+
+        test.abort(new Error('the test ended'))
+        started()
+
+        await expect(replay).rejects.toThrow('the test ended')
+        expect(run).not.toHaveBeenCalled()
+    })
+
+    it('does not start the effect recording when its test ended while it waited for the element', async () => {
+        const { agent, run } = fakeAgent()
+        let appear: () => void = () => {}
+        withBrowser(agent, vi.fn(() => new Promise((resolve) => { appear = () => resolve(true) })))
+        const check = recorder(CART)
+        const test = new AbortController()
+        const replay = replaySteps(agent, [step], {}, 100, check, undefined, undefined, test.signal)
+        await vi.waitFor(() => expect(agent.browser.$).toHaveBeenCalled())
+
+        test.abort(new Error('the test ended'))
+        appear()
+
+        await expect(replay).rejects.toThrow('the test ended')
+        expect(check.recorder.start).not.toHaveBeenCalled()
+        expect(run).not.toHaveBeenCalled()
+    })
+
     it('reports a step still running at the timeout as such, not as a behavior change, and waits at least the wait timeout', async () => {
         const { agent, run } = fakeAgent()
         const check = recorder({})

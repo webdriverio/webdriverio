@@ -229,6 +229,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 }
                 const step = isStep(spec, input)
                 if (step) {
+                    context.gate?.check()
                     await context.effects?.start()
                 }
                 context.gate?.check()

@@ -80,8 +80,8 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
  * can already be on the page of the next test.
  */
 async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck, timeout = DEFAULT_SETTLE_TIMEOUT, signal?: AbortSignal) {
+    signal?.throwIfAborted()
     if (!effects || effects.mode === 'off') {
-        signal?.throwIfAborted()
         return agent.runAction(step.action, args)
     }
     await effects.recorder.start()
