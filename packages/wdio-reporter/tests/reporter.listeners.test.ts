@@ -819,13 +819,24 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests.B.output.map((o: any) => [o.command, o.type])).toEqual([['b1', 'command'], ['b1', 'result']])
         })
 
-        it('drops commands for an ended context while other contexts are active', () => {
+        it('routes the commands of an ended context to its last test, as a sequential run routes them to the current test', () => {
             start('A', 'ctx-a')
             start('B', 'ctx-b')
             reporter.emit('test:end', { uid: 'A' })
-            command('client:beforeCommand', 'late', 'ctx-a')
-            expect(reporter.tests.A.output).toHaveLength(0)
+            // afterEach and after hooks run after test:end
+            command('client:beforeCommand', 'teardown', 'ctx-a')
+            command('client:afterCommand', 'teardown', 'ctx-a')
+            expect(reporter.tests.A.output.map((o: any) => [o.command, o.type])).toEqual([['teardown', 'command'], ['teardown', 'result']])
             expect(reporter.tests.B.output).toHaveLength(0)
+        })
+
+        it('routes the commands of a context to the test that started last in it', () => {
+            start('S1', 'ctx-a')
+            reporter.emit('test:end', { uid: 'S1', contextId: 'ctx-a' })
+            start('S2', 'ctx-a')
+            command('client:beforeCommand', 'step 2', 'ctx-a')
+            expect(reporter.tests.S1.output).toHaveLength(0)
+            expect(reporter.tests.S2.output).toHaveLength(1)
         })
 
         it('does not attribute commands from an unstarted context to the last ended test', () => {
@@ -886,12 +897,44 @@ describe('WDIOReporter Listeners', () => {
                 expect(reporter.getContextTest()).toBe(reporter.tests.B)
             })
 
-            it('returns undefined for an ended context', () => {
+            it('returns the last test of an ended context, for output of its afterEach and after hooks', () => {
                 start('A', 'ctx-a')
                 start('B', 'ctx-b')
                 reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
                 reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns undefined for a context after its context:end', () => {
+                const onContextEnd = vi.spyOn(reporter, 'onContextEnd')
+                start('A', 'ctx-a')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                const payload = { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' }
+                reporter.emit('context:end', payload)
+                reporter.setContextIdResolver(() => 'ctx-a')
+
                 expect(reporter.getContextTest()).toBeUndefined()
+                expect(onContextEnd).toHaveBeenCalledWith(payload)
+            })
+
+            it('returns undefined after context:end for a test that never ended', () => {
+                // failHookAffectedTests: false: a failed beforeEach sends no result and no test:end
+                start('A', 'ctx-a')
+                reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(reporter.tests.A.state).toBe('pending')
+            })
+
+            it('returns the pending test after its test:end when the pending payload has no contextId', () => {
+                // Cucumber scenario level: only test:start and test:end have the contextId
+                start('A', 'ctx-a')
+                reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', state: 'pending' })
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
             })
 
             it('returns the current test without a resolver for a sequential test', () => {
