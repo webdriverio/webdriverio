@@ -321,7 +321,7 @@ aroundEach(async (...args) => {
             testRan = true
             await runTest()
             // runTest() resolves even when the test fails; the outcome is on the task
-            error = task.result?.state === 'fail' ? task.result.errors?.[0] ?? new Error('test failed') : undefined
+            error = task.result?.state === 'fail' ? task.result.errors?.slice(errorsBefore)[0] ?? new Error('test failed') : undefined
         } catch (err) {
             error = err
             throw err

@@ -871,6 +871,49 @@ describe('WdioBridgeReporter', () => {
                 expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
             })
 
+            describe('errors across attempts, with Vitest accumulating result.errors', () => {
+                const accumulated = [{ message: 'e0' }, { message: 'e1' }, { message: 'e2' }]
+                const markedAttempts = (final: 'passed' | 'failed') => [
+                    attempt(0, 'failed', { message: 'e0' }), attempt(1, 'failed', { message: 'e1' }),
+                    attempt(2, final, ...(final === 'failed' ? [{ message: 'e2' }] : []))
+                ]
+
+                it('reports e0 and e1 as retries and e2 as the failure of the final attempt', async () => {
+                    const module = makeModule()
+                    const test = makeTest(module, module, 't', { state: 'failed', errors: accumulated }, 5, {
+                        diagnostic: () => ({ duration: 5, retryCount: 2 }), meta: () => runtimeMeta(...markedAttempts('failed'))
+                    })
+                    await runTests(module, test)
+
+                    expect(emittedOf().filter(([name]) => name === 'test:retry').map(([, payload]) => payload.error.message)).toEqual(['e0', 'e1'])
+                    expect(emittedOf().find(([name]) => name === 'test:fail')![1].error.message).toBe('e2')
+                    expect(emittedOf().find(([name]) => name === 'test:end')![1].error.message).toBe('e2')
+                })
+
+                it('reports e0 and e1 as retries and then a pass when the final attempt passes', async () => {
+                    const module = makeModule()
+                    const test = makeTest(module, module, 't', passed, 5, {
+                        diagnostic: () => ({ duration: 5, retryCount: 2 }), meta: () => runtimeMeta(...markedAttempts('passed'))
+                    })
+                    await runTests(module, test)
+
+                    expect(sequence().filter((entry) => entry.startsWith('test:')).map((entry) => entry.split('(')[0])).toEqual([
+                        'test:start', 'test:retry', 'test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'
+                    ])
+                    expect(emittedOf().filter(([name]) => name === 'test:retry').map(([, payload]) => payload.error.message)).toEqual(['e0', 'e1'])
+                })
+
+                it('falls back to the last accumulated error when the final attempt left no marker', async () => {
+                    const module = makeModule()
+                    const test = makeTest(module, module, 't', { state: 'failed', errors: accumulated }, 5, {
+                        diagnostic: () => ({ duration: 5, retryCount: 2 }), meta: () => runtimeMeta(attempt(0, 'failed', { message: 'e0' }), attempt(1, 'failed', { message: 'e1' }))
+                    })
+                    await runTests(module, test)
+
+                    expect(emittedOf().find(([name]) => name === 'test:fail')![1].error.message).toBe('e2')
+                })
+            })
+
             it('keeps the contextId across attempts and closes the context once', async () => {
                 const { module, test } = failedTwice(passed, { options: { concurrent: true } })
                 await runTests(module, test)
