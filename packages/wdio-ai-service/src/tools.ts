@@ -7,6 +7,7 @@ import type { ActStep, StepTarget } from './types.js'
 import type { Workspace } from './workspace.js'
 import { describeEffect, isEmpty } from './effects.js'
 import type { EffectRecorder } from './recorder.js'
+import type { StepGate } from './stop.js'
 
 /**
  * `@wdio/session` actions the model may use. Code execution, cookies,
@@ -78,6 +79,10 @@ export interface ToolContext {
      * placeholder values of earlier calls, redacted from what the model reads
      */
     secrets?: [name: string, value: string][]
+    /**
+     * stops the call between two tool calls once its test ended
+     */
+    gate?: StepGate
 }
 
 /**
@@ -187,7 +192,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
     let diffArgs: Record<string, unknown> = context.scope ? { scope: context.scope } : {}
     return context.agent.actions
         .filter((spec) => allowed.has(spec.name))
-        .map((spec) => tool(async (input: Record<string, unknown>) => {
+        .map((spec) => tool(gated(context.gate, async (input: Record<string, unknown>) => {
             const { agent, values } = context
             /**
              * what the model reads hides every value of this and earlier
@@ -274,12 +279,19 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
             } catch (err) {
                 return `Error: ${redact((err as Error).message, hidden)}`
             }
-        }, {
+        }), {
             name: spec.name,
             description: spec.desc,
             schema: actionSchema(z, spec)
         }))
         .concat(context.workspace ? [sourceTool(context, tool, z)] : [])
+}
+
+/**
+ * a tool call that runs as one step of the gate
+ */
+function gated<A extends unknown[], R> (gate: StepGate | undefined, run: (...args: A) => Promise<R>) {
+    return gate ? (...args: A) => gate.step(() => run(...args)) : run
 }
 
 /**

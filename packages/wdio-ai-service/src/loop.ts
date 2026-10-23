@@ -17,6 +17,10 @@ export interface LoopOptions {
      */
     maxSteps: number
     timeout: number
+    /**
+     * aborts when the test of the call ended
+     */
+    signal?: AbortSignal
     middleware?: AgentMiddleware[]
     /**
      * tools that end the loop and the outcome they write to, default `done` and `fail`
@@ -25,7 +29,10 @@ export interface LoopOptions {
 }
 
 export interface LoopResult {
-    status: 'done' | 'fail'
+    /**
+     * `stopped` when `signal` aborted, its reason is the summary
+     */
+    status: 'done' | 'fail' | 'stopped'
     summary: string
     usage: TokenUsage
     /**
@@ -83,13 +90,16 @@ export async function runLoop (options: LoopOptions): Promise<LoopResult> {
                  * every tool call is a model step plus a tool step
                  */
                 recursionLimit: options.maxSteps * 2 + 2,
-                signal: AbortSignal.timeout(options.timeout),
+                signal: options.signal ? AbortSignal.any([AbortSignal.timeout(options.timeout), options.signal]) : AbortSignal.timeout(options.timeout),
                 callbacks: [counter]
             }
         ) as { messages: BaseMessage[] }
         messages = result.messages
     } catch (err) {
         const error = err as Error
+        if (options.signal?.aborted) {
+            return { status: 'stopped', summary: (options.signal.reason as Error).message, usage, modelCalls }
+        }
         if (error instanceof GraphRecursionError || error.name === 'GraphRecursionError') {
             return { status: 'fail', summary: `stopped after ${options.maxSteps} steps without completing the instruction`, usage, modelCalls }
         }

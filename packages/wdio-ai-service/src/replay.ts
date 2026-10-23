@@ -133,8 +133,9 @@ export function alternativeSelectors (step: ActStep): string[] {
  * element and the action succeeds. The page already had the wait timeout of
  * the original selector to settle, so alternatives are not waited for.
  */
-export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck, scope?: string): Promise<ActStep | undefined> {
+export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck, scope?: string, signal?: AbortSignal): Promise<ActStep | undefined> {
     for (const selector of alternativeSelectors(step)) {
+        signal?.throwIfAborted()
         try {
             const matches = await agent.scope.$$(selector).getElements()
             if (matches.length !== 1 || (scope && !await agent.contains(scope, selector))) {
@@ -159,6 +160,7 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
             if (err instanceof EffectTimeoutError) {
                 throw err
             }
+            signal?.throwIfAborted()
             // invalid or stale selector, try the next one
         }
     }
@@ -181,16 +183,19 @@ export class HealMismatchError extends Error {
 /**
  * Run recorded steps in order. A step whose target is gone, or outside the
  * element of a scoped call, is healed with an alternative selector. Stop at
- * the first step that cannot be healed.
+ * the first step that cannot be healed, or before the next step once
+ * `signal` aborted.
  */
-export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, heal?: HealHooks, scope?: string): Promise<ReplayResult> {
+export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, heal?: HealHooks, scope?: string, signal?: AbortSignal): Promise<ReplayResult> {
     const done: ActStep[] = []
     const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
+        signal?.throwIfAborted()
         try {
             await runStep(agent, step, values, waitTimeout, effects, scope)
             done.push(step)
         } catch (err) {
+            signal?.throwIfAborted()
             await heal?.begin()
             /**
              * the element was there and the step ran, it just did something
@@ -204,7 +209,7 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             }
             let fixed: ActStep | undefined
             try {
-                fixed = await healStep(agent, step, values, effects, scope)
+                fixed = await healStep(agent, step, values, effects, scope, signal)
             } catch (healErr) {
                 if (healErr instanceof HealMismatchError) {
                     return { done, healed, failed: { step, index, error: healErr.message, kind: 'effect', healedWith: healErr.selector } }
