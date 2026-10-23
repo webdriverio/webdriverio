@@ -161,7 +161,8 @@ describe('WdioBridgeReporter with the real JUnit reporter', () => {
             const module: any = {
                 type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
                 project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
-                meta: () => ({}), state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }]
+                meta: () => ({}), state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }],
+                children: { allTests: () => [] }
             }
 
             bridge.onTestModuleStart(module)
