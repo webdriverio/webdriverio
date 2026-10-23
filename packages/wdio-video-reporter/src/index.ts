@@ -528,10 +528,6 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        /**
-         * `@wdio/mocha-framework` 10.1.0 and older report a test as started again when its beforeEach hook
-         * failed (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
-         */
         const key = this.#keyOf(suite.contextId)
         if (this.#isSkippedParallelTest(key)) {
             return
@@ -540,6 +536,10 @@ export default class VideoReporter extends WdioReporter {
         if (suite.uid) {
             this.#endedTests.delete(suite.uid)
         }
+        /**
+         * `@wdio/mocha-framework` 10.1.0 and older report a test as started again when its beforeEach hook
+         * failed (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
+         */
         const startedAgain = recording.openTestTitle === suite.title
         recording.openTestTitle = suite.title
         if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
