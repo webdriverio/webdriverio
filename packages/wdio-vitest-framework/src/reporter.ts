@@ -154,7 +154,7 @@ export class WdioBridgeReporter implements Reporter {
             const times = diagnostic?.startTime === undefined ? {} : { start: diagnostic.startTime, end: diagnostic.startTime + duration }
             if (result.state === 'failed') {
                 run.failedTests++
-                const error = toErrorPayload(result.errors[0])
+                const error = toErrorPayload(attempts[finalAttempt].marker?.error ?? result.errors[result.errors.length - 1])
                 this.#emit(run, 'test:fail', { ...last, ...times, duration, error })
                 this.#emit(run, 'test:end', { ...last, duration, passed: false, error })
             } else if (result.state === 'passed') {

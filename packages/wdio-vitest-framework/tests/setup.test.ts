@@ -269,13 +269,25 @@ describe('setup', () => {
 
             it('serializes the error of a failed attempt with its expected and actual values', async () => {
                 const failure = Object.assign(new Error('nope'), { expected: 'a', actual: 'b' })
-                const context = task(false, { retryCount: 0, state: 'fail', errors: [failure] })
-                await hooks.aroundEach(vi.fn(async () => {}), context)
+                const context = task(false, { retryCount: 0 })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [failure] }) }), context)
 
                 expect(markers(context)[0].payload).toMatchObject({
                     state: 'failed',
                     error: { name: 'Error', message: 'nope', stack: failure.stack, expected: 'a', actual: 'b' }
                 })
+            })
+
+            it('takes the error of each attempt although Vitest accumulates result.errors across attempts', async () => {
+                const errors = ['e0', 'e1', 'e2'].map((message) => new Error(message))
+                const context = task(false, { retryCount: 0 })
+                for (const retryCount of errors.keys()) {
+                    await hooks.aroundEach(vi.fn(async () => {
+                        Object.assign(context.task.result, { retryCount, state: 'fail', errors: errors.slice(0, retryCount + 1) })
+                    }), context)
+                }
+
+                expect(markers(context).map(({ payload }) => payload.error.message)).toEqual(['e0', 'e1', 'e2'])
             })
 
             it('still records the marker when afterTest throws', async () => {
@@ -340,8 +352,8 @@ describe('setup', () => {
 
         describe('unclonable assertion values', () => {
             const marker = async (error: object) => {
-                const context = task(false, { retryCount: 0, state: 'fail', errors: [error] })
-                await hooks.aroundEach(vi.fn(async () => {}), context)
+                const context = task(false, { retryCount: 0 })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [error] }) }), context)
                 return (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')!.payload.error
             }
 
@@ -668,7 +680,8 @@ describe('setup', () => {
 
     it('cleans up and reports a failure when a concurrent test fails', async () => {
         const error = new Error('boom')
-        await hooks.aroundEach(vi.fn(async () => {}), task(true, { state: 'fail', errors: [error] }))
+        const context = task(true, {})
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [error] }) }), context)
         expect(utils.cleanupAllocation).toHaveBeenCalledTimes(1)
         expect(afterTestResult()).toMatchObject({ passed: false, error })
     })
