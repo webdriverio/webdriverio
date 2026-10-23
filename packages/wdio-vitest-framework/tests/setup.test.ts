@@ -12,7 +12,7 @@ const utils = vi.hoisted(() => ({
 const added = vi.hoisted(() => ({ services: [] as unknown[] }))
 const args = vi.hoisted(() => ({ value: { baseUrl: 'http://x' } as Record<string, unknown> }))
 const parser = vi.hoisted(() => ({ args: [] as unknown[] }))
-const callbacks = vi.hoisted(() => ({ beforeAll: undefined as unknown as (...args: unknown[]) => Promise<void>, afterAll: undefined as unknown as () => Promise<void> }))
+const callbacks = vi.hoisted(() => ({ beforeAll: undefined as unknown as (...args: unknown[]) => Promise<void>, afterAll: undefined as unknown as (...args: unknown[]) => Promise<void> }))
 const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
@@ -57,6 +57,8 @@ vi.mock('webdriverio', () => ({
 }))
 
 const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result } })
+const testTask = (state: string) => ({ type: 'test', result: { state } })
+const file = (tasks: object[] = [], errors?: Error[]) => ({ tasks, result: { state: errors ? 'fail' : 'pass', errors } })
 const afterTestResult = () => utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterTest')![2][2]
 
 describe('setup', () => {
@@ -183,7 +185,7 @@ describe('setup', () => {
             const { calls } = await startWithRecorder()
             await callbacks.beforeAll({}, { file: fileTask })
             await hooks.aroundEach(vi.fn(async () => { calls.push('test') }), task(false))
-            await callbacks.afterAll()
+            await callbacks.afterAll({}, file())
             expect(calls).toEqual(['beforeSession', 'remote', 'before', 'beforeTest', 'test', 'afterTest', 'after', 'deleteSession', 'afterSession'])
             const [, , beforeSessionArgs] = utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'beforeSession')!
             expect(beforeSessionArgs).toEqual([mockConfig.value, expect.objectContaining({ browserName: 'chrome' }), ['/repo/a.spec.ts'], `2-${process.env.VITEST_POOL_ID ?? 0}`])
@@ -204,8 +206,8 @@ describe('setup', () => {
             const { remote } = await import('webdriverio')
             vi.mocked(remote).mockRejectedValueOnce(new Error('no session'))
             await expect(callbacks.beforeAll({}, { file: fileTask })).rejects.toThrow('no session')
-            await callbacks.afterAll()
-            await callbacks.afterAll()
+            await callbacks.afterAll({}, file())
+            await callbacks.afterAll({}, file())
             expect(calls.filter((name) => name === 'afterSession')).toHaveLength(1)
         })
 
@@ -213,7 +215,7 @@ describe('setup', () => {
             const { calls } = await startWithRecorder()
             await callbacks.beforeAll({}, { file: fileTask })
             browser.deleteSession.mockRejectedValueOnce(new Error('gone'))
-            await expect(callbacks.afterAll()).rejects.toThrow('gone')
+            await expect(callbacks.afterAll({}, file())).rejects.toThrow('gone')
             expect(calls.at(-1)).toBe('afterSession')
         })
 
@@ -395,29 +397,30 @@ describe('setup', () => {
     })
 
     it('passes the number of failed tests to the after hook', async () => {
-        await hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'fail', errors: [new Error('a')] }))
-        await hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))
-        await hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'fail', errors: [new Error('b')] }))
-        await callbacks.afterAll()
+        await callbacks.afterAll({}, file([testTask('fail'), testTask('pass'), testTask('fail')]))
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [2, expect.anything(), ['/repo/a.spec.ts']])
     })
 
-    it('passes 0 to the after hook when all tests pass', async () => {
-        await hooks.aroundEach(vi.fn(async () => {}), task(false, { state: 'pass' }))
-        await callbacks.afterAll()
+    it('passes 0 to the after hook when all tests pass, including one that passed on retry', async () => {
+        await callbacks.afterAll({}, file([testTask('pass'), testTask('pass')]))
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [0, expect.anything(), ['/repo/a.spec.ts']])
     })
 
-    it('counts a failing before hook as a failure', async () => {
-        utils.executeHooksWithArgs.mockImplementationOnce(async () => { throw new Error('before failed') })
-        await expect(callbacks.beforeAll({}, { file: { filepath: '/repo/a.spec.ts', meta: {} } })).rejects.toThrow('before failed')
-        await callbacks.afterAll()
+    it('counts a failed beforeAll of the file, whose tests were skipped, as a failure', async () => {
+        await callbacks.afterAll({}, file([testTask('skip')], [new Error('beforeAll failed')]))
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [1, expect.anything(), ['/repo/a.spec.ts']])
+    })
+
+    it('counts failed tests and failed hooks of nested suites', async () => {
+        const nested = { type: 'suite', tasks: [testTask('fail'), testTask('pass')], result: { state: 'fail', errors: [new Error('afterAll failed')] } }
+        const clean = { type: 'suite', tasks: [testTask('pass')], result: { state: 'pass' } }
+        await callbacks.afterAll({}, file([nested, clean, testTask('fail')]))
+        expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [3, expect.anything(), ['/repo/a.spec.ts']])
     })
 
     it('deletes the session even when the after hook fails', async () => {
         utils.executeHooksWithArgs.mockImplementation(async (name: string) => { if (name === 'after') { throw new Error('after failed') } return [] })
-        await expect(callbacks.afterAll()).rejects.toThrow('after failed')
+        await expect(callbacks.afterAll({}, file())).rejects.toThrow('after failed')
         expect(browser.deleteSession).toHaveBeenCalledTimes(1)
     })
     describe('exit signals', () => {
@@ -448,7 +451,7 @@ describe('setup', () => {
 
         it('does not tear down twice when afterAll runs as well', async () => {
             process.emit('SIGINT')
-            await callbacks.afterAll()
+            await callbacks.afterAll({}, file())
             await vi.waitFor(() => expect(kill).toHaveBeenCalled())
             expect(browser.deleteSession).toHaveBeenCalledTimes(1)
             expect(utils.executeHooksWithArgs.mock.calls.filter(([name]) => name === 'afterSession')).toHaveLength(1)
@@ -476,7 +479,7 @@ describe('setup', () => {
 
         it('removes the handlers after normal teardown', async () => {
             const before = [signalListeners('SIGINT'), signalListeners('SIGTERM')]
-            await callbacks.afterAll()
+            await callbacks.afterAll({}, file())
             expect([signalListeners('SIGINT'), signalListeners('SIGTERM')]).toEqual([before[0] - 1, before[1] - 1])
             process.emit('SIGINT')
             expect(kill).not.toHaveBeenCalled()

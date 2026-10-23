@@ -1,4 +1,4 @@
-import { aroundEach, beforeAll, afterAll, inject } from 'vitest'
+import { aroundEach, beforeAll, afterAll, inject, type RunnerTestSuite } from 'vitest'
 import { SUPPORTED_HOOKS } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
@@ -27,7 +27,6 @@ let capabilities: WebdriverIO.Capabilities
 let browser: ParallelBrowser | undefined
 let softAssertions: SoftAssertionService | undefined
 let specFile = ''
-let failures = 0
 let sessionHookArgs: [WebdriverIO.Config, WebdriverIO.Capabilities, string[]] | undefined
 let sessionClosing: Promise<void> | undefined
 
@@ -90,45 +89,48 @@ function setGlobals(instance: WebdriverIO.Browser, injectGlobals: boolean | unde
 // eslint-disable-next-line no-empty-pattern
 beforeAll(async ({}, suite) => {
     specFile = suite.file.filepath
-    failures = 0
     sessionHookArgs = undefined
     sessionClosing = undefined
-    try {
-        const configParser = new ConfigParser(inject('wdioConfigFile'), inject('wdioArgs') as ConstructorParameters<typeof ConfigParser>[1])
-        await configParser.initialize()
-        config = configParser.getConfig() as WebdriverIO.Config
-        // cloned so beforeSession mutations do not leak into the next spec file of this worker
-        requestedCapabilities = structuredClone(inject('wdioCapabilities'))
-        capabilities = ('alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities) as WebdriverIO.Capabilities
+    const configParser = new ConfigParser(inject('wdioConfigFile'), inject('wdioArgs') as ConstructorParameters<typeof ConfigParser>[1])
+    await configParser.initialize()
+    config = configParser.getConfig() as WebdriverIO.Config
+    // cloned so beforeSession mutations do not leak into the next spec file of this worker
+    requestedCapabilities = structuredClone(inject('wdioCapabilities'))
+    capabilities = ('alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities) as WebdriverIO.Capabilities
 
-        const { ignoredWorkerServices } = inject('wdioArgs') as { ignoredWorkerServices?: string[] }
-        // built-in, added ahead of the worker services like the WDIO runner does
-        softAssertions = new SoftAssertionService({ autoAssertOnTestEnd: config.autoAssertOnTestEnd ?? true })
-        configParser.addService(softAssertions)
-        const services = await initializeWorkerService(config, capabilities, ignoredWorkerServices ?? [])
-        services.forEach((service) => configParser.addService(service))
-        config = configParser.getConfig() as WebdriverIO.Config
+    const { ignoredWorkerServices } = inject('wdioArgs') as { ignoredWorkerServices?: string[] }
+    // built-in, added ahead of the worker services like the WDIO runner does
+    softAssertions = new SoftAssertionService({ autoAssertOnTestEnd: config.autoAssertOnTestEnd ?? true })
+    configParser.addService(softAssertions)
+    const services = await initializeWorkerService(config, capabilities, ignoredWorkerServices ?? [])
+    services.forEach((service) => configParser.addService(service))
+    config = configParser.getConfig() as WebdriverIO.Config
 
-        const cid = `${inject('wdioProjectIndex')}-${process.env.VITEST_POOL_ID ?? 0}`
-        sessionHookArgs = [config, capabilities, [specFile]]
-        await executeHooksWithArgs('beforeSession', config.beforeSession, [config, capabilities, [specFile], cid])
+    const cid = `${inject('wdioProjectIndex')}-${process.env.VITEST_POOL_ID ?? 0}`
+    sessionHookArgs = [config, capabilities, [specFile]]
+    await executeHooksWithArgs('beforeSession', config.beforeSession, [config, capabilities, [specFile], cid])
 
-        browser = await remote(toRemoteOptions()) as ParallelBrowser
-        signalHandlers.forEach(([signal, handler]) => process.on(signal, handler))
-        Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
-        setGlobals(browser, config.injectGlobals)
-        setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
+    browser = await remote(toRemoteOptions()) as ParallelBrowser
+    signalHandlers.forEach(([signal, handler]) => process.on(signal, handler))
+    Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
+    setGlobals(browser, config.injectGlobals)
+    setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
 
-        await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])
-    } catch (err) {
-        failures++
-        throw err
-    }
+    await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])
 })
 
-afterAll(async () => {
+// Same meaning as the count a regular WDIO worker passes to `after`: failed tests, with a failed
+// suite or hook counting as one. Vitest has settled every test of the file by the time afterAll runs,
+// so a test that passed on retry is not counted and a test skipped by a failed beforeAll is not either.
+function countFailures(suite: RunnerTestSuite): number {
+    const own = suite.result?.errors?.length ? 1 : 0
+    return suite.tasks.reduce((sum, child) => sum + (child.type === 'suite' ? countFailures(child) : child.result?.state === 'fail' ? 1 : 0), own)
+}
+
+// eslint-disable-next-line no-empty-pattern
+afterAll(async ({}, suite) => {
     try {
-        await executeHooksWithArgs('after', config?.after, [failures, capabilities, [specFile]])
+        await executeHooksWithArgs('after', config?.after, [countFailures(suite), capabilities, [specFile]])
     } finally {
         await closeSession()
     }
@@ -168,9 +170,6 @@ aroundEach(async (...args) => {
             error = err
             throw err
         } finally {
-            if (error !== undefined) {
-                failures++
-            }
             const report = {
                 error,
                 result: undefined,
@@ -191,7 +190,6 @@ aroundEach(async (...args) => {
             }
         }
         if (serviceError !== undefined) {
-            failures++
             throw serviceError
         }
     }
