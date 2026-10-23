@@ -25,6 +25,18 @@ export interface AfterCommandArgs extends CommandArgs {
     result: unknown
 }
 
+/**
+ * Payload of `context:end`: the browsing context of a parallel test sends no more events
+ * @experimental sent only in Mocha `parallelMode` for now; the name and the fields may change
+ */
+export interface ContextEnd {
+    cid: string
+    specs?: string[]
+    /** uid of the last test of the context */
+    uid: string
+    contextId: string
+}
+
 export interface Argument {
     rows?: {
         cells: string[]

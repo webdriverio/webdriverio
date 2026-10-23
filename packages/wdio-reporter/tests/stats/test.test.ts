@@ -24,6 +24,30 @@ describe('TestStats', () => {
         vi.resetAllMocks()
     })
 
+    it('keeps the context and the parent of a parallel test', () => {
+        const parallel = new TestStats({
+            type: 'test:start', title: 'a', parent: 'suite', fullTitle: 'suite a', pending: false,
+            cid: '0-0', specs: [], uid: 'test-0-0-0', contextId: 'ctx-1', parentUid: 'suite-1'
+        })
+
+        expect(parallel.contextId).toBe('ctx-1')
+        expect(parallel.parentUid).toBe('suite-1')
+    })
+
+    it('keeps the null parent of a top-level parallel test', () => {
+        const topLevel = new TestStats({
+            type: 'test:start', title: 'a', parent: '', fullTitle: 'a', pending: false,
+            cid: '0-0', specs: [], uid: 'test-0-0-1', contextId: 'ctx-1', parentUid: null
+        })
+
+        expect(topLevel.parentUid).toBeNull()
+    })
+
+    it('adds no context or parent property when the payload has none', () => {
+        expect(Object.keys(stat)).not.toContain('contextId')
+        expect(Object.keys(stat)).not.toContain('parentUid')
+    })
+
     it('defines a start date', () => {
         expect(stat.type).toBe('test')
         expect(stat.start instanceof Date).toBe(true)

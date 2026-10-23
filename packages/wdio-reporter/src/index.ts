@@ -11,7 +11,7 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument } from './types.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
@@ -57,6 +57,8 @@ export default class WDIOReporter extends EventEmitter {
 
         let currentTest: TestStats
         const contextTests = new Map<string, TestStats>()
+        // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
+        const endedContextTests = new Map<string, TestStats>()
         const contextByUid = new Map<string, string>()
         const retriesByContext = new Map<string, number>()
         const getContextId = (test: Test) => test.contextId ?? contextByUid.get(test.uid)
@@ -69,14 +71,17 @@ export default class WDIOReporter extends EventEmitter {
             }
         }
         const trackContext = (test: Test, testStat: TestStats) => {
-            if (test.contextId) {
-                contextTests.set(test.contextId, testStat)
-                contextByUid.set(testStat.uid, test.contextId)
+            // the stat keeps the contextId of its start when the payload has none (Cucumber scenario level)
+            const contextId = test.contextId ?? testStat.contextId
+            if (contextId) {
+                contextTests.set(contextId, testStat)
+                contextByUid.set(testStat.uid, contextId)
+                endedContextTests.delete(contextId)
             }
         }
         const getTestByContext = (contextId: string | undefined) => {
             if (contextId) {
-                return contextTests.get(contextId)
+                return contextTests.get(contextId) ?? endedContextTests.get(contextId)
             }
             return contextTests.size === 0 ? currentTest : undefined
         }
@@ -211,6 +216,13 @@ export default class WDIOReporter extends EventEmitter {
             if (startedTest) {
                 currentTest.start = startedTest.start
                 currentTest.output = startedTest.output
+                // the Cucumber parallel scenario payload has no contextId
+                if (currentTest.contextId === undefined && startedTest.contextId !== undefined) {
+                    currentTest.contextId = startedTest.contextId
+                }
+                if (currentTest.parentUid === undefined && startedTest.parentUid !== undefined) {
+                    currentTest.parentUid = startedTest.parentUid
+                }
             }
             // a pending test that never started (Mocha `it.skip`) ends now, with no duration
             currentTest.complete()
@@ -255,6 +267,10 @@ export default class WDIOReporter extends EventEmitter {
             const testStat = this.tests[test.uid]
             const contextId = getContextId(test)
             if (contextId) {
+                const ended = contextTests.get(contextId)
+                if (ended) {
+                    endedContextTests.set(contextId, ended)
+                }
                 retriesByContext.delete(contextId)
                 contextTests.delete(contextId)
                 contextByUid.delete(test.uid)
@@ -262,6 +278,18 @@ export default class WDIOReporter extends EventEmitter {
                 this.retries = 0
             }
             this.onTestEnd(testStat)
+        })
+
+        this.on('context:end', (payload: ContextEnd) => {
+            endedContextTests.delete(payload.contextId)
+            // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
+            const open = contextTests.get(payload.contextId)
+            if (open) {
+                contextByUid.delete(open.uid)
+                contextTests.delete(payload.contextId)
+            }
+            retriesByContext.delete(payload.contextId)
+            this.onContextEnd(payload)
         })
 
         this.on('suite:end', (suite: Suite) => {
@@ -380,6 +408,12 @@ export default class WDIOReporter extends EventEmitter {
     onTestSkip(_testStats: TestStats) { }
     onTestPending(_testStats: TestStats) { }
     onTestEnd(_testStats: TestStats) { }
+    /**
+     * Called when the browsing context of a parallel test sends no more events, after the
+     * `afterEach` and `after` hooks of its test
+     * @experimental sent only in Mocha `parallelMode` for now; the name and the payload may change
+     */
+    onContextEnd(_payload: ContextEnd) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
     onRunnerEnd(_runnerStats: RunnerStats) { }
@@ -405,5 +439,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName
 }
