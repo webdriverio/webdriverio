@@ -28,9 +28,11 @@ import {
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
-import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
+import { getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
+import { LinkingFileSystemWriter } from './writer.js'
+import { resolveResultsDir } from './worker.js'
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState, isOpen } from './state.js'
 import {
@@ -177,7 +179,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     constructor(options: AllureReporterOptions) {
-        const { outputDir, resultsDir, includeVersionInHistoryId: _includeVersionInHistoryId, ...rest } = options
+        const { outputDir, resultsDir: _resultsDir, includeVersionInHistoryId: _includeVersionInHistoryId, ...rest } = options
 
         const normalizeTpl = (tpl?: string) => (tpl ? tpl.replace(/\{\}/g, '%s') : tpl)
 
@@ -197,9 +199,7 @@ export default class AllureReporter extends WDIOReporter {
             ...rest,
             links,
             environmentInfo: options.reportedEnvironmentVars,
-            writer: new FileSystemWriter({
-                resultsDir: outputDir || resultsDir || 'allure-results',
-            }),
+            writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
         })
 
         this._capabilities = {}

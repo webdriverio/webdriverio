@@ -6,8 +6,10 @@ import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWor
 import { expect, setDefaultOptions, SoftAssertionService, SoftAssertService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { AsyncLocalStorage } from 'node:async_hooks'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
+import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
 import { RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
 
@@ -35,41 +37,111 @@ let sessionClosing: Promise<void> | undefined
 
 type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
 
-type RelayState = { activeTask: AsyncLocalStorage<TestTask>, handlers: Map<string, (payload: unknown) => void> }
+// content travels through task.meta, which Vitest resends on every task update, so the bytes go to disk
+// when an Allure reporter is configured, and are dropped when none is
+type AttachmentTransport =
+    | { mode: 'inline' }
+    | { mode: 'drop' }
+    | { mode: 'offload', resultsDir: string, offloadAttachment: typeof AllureWorker.offloadAttachment }
+
+type RelayState = { activeTask: AsyncLocalStorage<TestTask>, handlers: Map<string, (payload: unknown) => void>, attachments: AttachmentTransport, warned: Set<string> }
 
 // isolate: false evaluates this module once per spec file in one process, so the listeners and the
 // storage they read live on the global to stay a single set
 const RELAY_STATE_KEY = Symbol.for('@wdio/vitest-framework:relay')
 const globalWithRelay = globalThis as typeof globalThis & { [RELAY_STATE_KEY]?: RelayState }
-const relayState = (globalWithRelay[RELAY_STATE_KEY] ??= { activeTask: new AsyncLocalStorage<TestTask>(), handlers: new Map() })
+const relayState = (globalWithRelay[RELAY_STATE_KEY] ??= { activeTask: new AsyncLocalStorage<TestTask>(), handlers: new Map(), attachments: { mode: 'inline' }, warned: new Set() })
 const activeTask = relayState.activeTask
 
-function relay([event, payload]: [RelayedEntry['event'], unknown]) {
+function warnOnce(key: string, message: string) {
+    if (!relayState.warned.has(key)) {
+        relayState.warned.add(key)
+        log.warn(message)
+    }
+}
+
+const ALLURE_REPORTER_NAMES = ['allure', '@wdio/allure-reporter']
+const ATTACHMENT_CONTENT_TYPES = ['attachment_content', 'global_attachment_content']
+// not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
+const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
+
+function relay(event: RelayedEntry['event'], payload: unknown) {
     const task = activeTask.getStore()
     if (!task) {
-        log.debug(`Dropped ${event}: reporter runtime APIs only work in tests and beforeEach/afterEach hooks`)
+        warnOnce('outside-test', `Dropped ${event}: reporter runtime APIs only work in tests and beforeEach/afterEach hooks`)
+        return
+    }
+    const entry = toRuntimeMessage[event](payload)
+    if (!entry) {
         return
     }
     const meta = task.meta as Record<string, unknown>
     const entries = (meta[RUNTIME_META_KEY] ??= []) as RelayedEntry[]
-    entries.push({ event, payload, retry: task.result?.retryCount ?? 0 })
+    entries.push({ event: entry[0], payload: entry[1], retry: task.result?.retryCount ?? 0 })
 }
 
-const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => [RelayedEntry['event'], unknown]> = {
+function toAllureMessage(payload: unknown): [RelayedEntry['event'], unknown] | undefined {
+    const transport = relayState.attachments
+    if (transport.mode === 'inline') {
+        return ['allure:runtimeMessage', payload]
+    }
+    if (transport.mode === 'drop') {
+        if (ATTACHMENT_CONTENT_TYPES.includes((payload as { type?: string })?.type as string)) {
+            log.debug('Dropped an Allure attachment: no Allure reporter is configured')
+            return undefined
+        }
+        return ['allure:runtimeMessage', payload]
+    }
+    try {
+        return ['allure:runtimeMessage', transport.offloadAttachment(payload, transport.resultsDir) ?? payload]
+    } catch (err) {
+        warnOnce('offload-failure', `Could not write an Allure attachment to ${transport.resultsDir}, sending attachments through the launcher instead: ${(err as Error).message}`)
+        return ['allure:runtimeMessage', payload]
+    }
+}
+
+const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => [RelayedEntry['event'], unknown] | undefined> = {
     'allure:startStep': (name) => ['allure:runtimeMessage', { type: 'step_start', data: { name: name as string, start: Date.now() } }],
     'allure:endStep': (arg) => ['allure:runtimeMessage', { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } }],
-    'allure:runtimeMessage': (payload: unknown) => ['allure:runtimeMessage', payload],
+    'allure:runtimeMessage': toAllureMessage,
     'junit:addProperty': (payload: unknown) => ['junit:addProperty', payload]
 }
 
 // converted at call time so step timestamps are the worker's, not the replay's
 RELAYED_REPORTER_EVENTS.forEach((event) => {
-    const handler = relayState.handlers.get(event) ?? ((payload: unknown) => relay(toRuntimeMessage[event](payload)))
+    const handler = relayState.handlers.get(event) ?? ((payload: unknown) => relay(event, payload))
     relayState.handlers.set(event, handler)
     if (!process.listeners(event as never).includes(handler)) {
         process.on(event, handler)
     }
 })
+
+// Mirrors how the launcher-side BaseReporter hands options to the reporters (only the entry's own options)
+// and how the Allure reporter picks its results folder, so both sides name the same directory
+async function resolveAttachmentTransport(reporters: unknown[]): Promise<AttachmentTransport> {
+    const entries = reporters.map((entry) => Array.isArray(entry) ? entry : [entry, {}])
+    if (entries.some(([reporter]) => typeof reporter !== 'string')) {
+        return { mode: 'inline' }
+    }
+    const allureEntries = entries.filter(([reporter]) => ALLURE_REPORTER_NAMES.includes(reporter))
+    if (allureEntries.length === 0) {
+        return { mode: 'drop' }
+    }
+    const resultsDirs = new Set<string>()
+    let worker: typeof AllureWorker
+    try {
+        worker = await import(/* @vite-ignore */ ALLURE_WORKER_MODULE)
+    } catch (err) {
+        log.warn(`Could not load ${ALLURE_WORKER_MODULE}, sending Allure attachments through the launcher instead: ${(err as Error).message}`)
+        return { mode: 'inline' }
+    }
+    allureEntries.forEach(([, options]) => resultsDirs.add(path.resolve(worker.resolveResultsDir(options ?? {}))))
+    if (resultsDirs.size > 1) {
+        log.warn(`The Allure reporters write to different folders (${[...resultsDirs].join(', ')}), sending Allure attachments through the launcher instead`)
+        return { mode: 'inline' }
+    }
+    return { mode: 'offload', resultsDir: [...resultsDirs][0], offloadAttachment: worker.offloadAttachment }
+}
 
 function stripConnectionKeys(caps: object) {
     return Object.fromEntries(Object.entries(caps).filter(([key]) => !(CONNECTION_KEYS as readonly string[]).includes(key)))
@@ -135,6 +207,7 @@ beforeAll(async ({}, suite) => {
     const configParser = new ConfigParser(inject('wdioConfigFile'), inject('wdioArgs') as ConstructorParameters<typeof ConfigParser>[1])
     await configParser.initialize()
     config = configParser.getConfig() as WebdriverIO.Config
+    relayState.attachments = await resolveAttachmentTransport(config.reporters ?? [])
     // cloned so beforeSession mutations do not leak into the next spec file of this worker
     requestedCapabilities = structuredClone(inject('wdioCapabilities'))
     capabilities = ('alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities) as WebdriverIO.Capabilities
