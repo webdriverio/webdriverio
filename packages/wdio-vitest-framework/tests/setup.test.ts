@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const hooks = vi.hoisted(() => ({ aroundEach: undefined as unknown as (runTest: () => Promise<void>, context: unknown) => Promise<void> }))
@@ -16,6 +19,9 @@ const callbacks = vi.hoisted(() => ({ beforeAll: undefined as unknown as (...arg
 const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
+const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn() }))
+
+vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: vi.fn() }) }))
 
 vi.mock('vitest', () => ({
     aroundEach: vi.fn((fn) => { hooks.aroundEach = fn }),
@@ -75,6 +81,7 @@ describe('setup', () => {
     beforeEach(async () => {
         signalListenersBefore = (['SIGINT', 'SIGTERM'] as const).map((signal) => [signal, process.listeners(signal)])
         vi.clearAllMocks()
+        delete (globalThis as Record<symbol, unknown>)[Symbol.for('@wdio/vitest-framework:relay')]
         added.services = []
         soft.options = undefined
         soft.instances = []
@@ -246,6 +253,113 @@ describe('setup', () => {
             await hooks.aroundEach(vi.fn(async () => {}), context)
             process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
             expect(context.task.meta).toEqual({})
+        })
+        describe('Allure attachments', () => {
+            const content = Buffer.from([1, 2, 3, 250]).toString('base64')
+            const attachment = (wrapInStep = true) => ({ type: 'attachment_content', data: { name: 'shot', content, encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep, timestamp: 7 } })
+            let resultsDir: string
+
+            const configure = async (reporters: unknown[] | undefined) => {
+                mockConfig.value = { ...mockConfig.value, reporters }
+                await callbacks.beforeAll({}, { file: fileTask })
+            }
+            const send = (message: unknown) => runInTest(() => { process.emit('allure:runtimeMessage' as never, message as never) }) as Promise<{ payload: any }[]>
+            const pendingFiles = (dir = resultsDir) => fs.existsSync(dir) ? fs.readdirSync(dir) : []
+
+            beforeEach(() => {
+                resultsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-allure-'))
+            })
+            afterEach(() => {
+                fs.rmSync(resultsDir, { recursive: true, force: true })
+            })
+
+            it('writes the bytes into the results folder and relays only an attachment_path message', async () => {
+                await configure([['allure', { outputDir: resultsDir }]])
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual({ type: 'attachment_path', data: { name: 'shot', contentType: 'image/png', fileExtension: '.png', wrapInStep: true, timestamp: 7, path: expect.stringContaining(resultsDir) } })
+                expect(fs.readFileSync(entry.payload.data.path).equals(Buffer.from(content, 'base64'))).toBe(true)
+                expect(JSON.stringify(entry)).not.toContain(content)
+            })
+
+            it('accepts @wdio/allure-reporter and a results folder given as resultsDir', async () => {
+                await configure([['allure', { resultsDir }]])
+                const [entry] = await send(attachment())
+                expect(path.dirname(entry.payload.data.path)).toBe(resultsDir)
+                await configure([['@wdio/allure-reporter', { resultsDir }]])
+                const [second] = await send(attachment())
+                expect(path.dirname(second.payload.data.path)).toBe(resultsDir)
+            })
+
+            it('offloads the global variant and leaves other messages inline', async () => {
+                await configure([['allure', { outputDir: resultsDir }]])
+                const step = { type: 'step_start', data: { name: 's', start: 1 } }
+                const entries = await send({ ...attachment(), type: 'global_attachment_content' })
+                expect(entries[0].payload.type).toBe('global_attachment_path')
+                expect((await send(step))[0].payload).toEqual(step)
+            })
+
+            it('drops attachment content when no reporter can be Allure', async () => {
+                await configure(['junit', ['json', {}]])
+                expect(await send(attachment())).toBeUndefined()
+                expect(await send({ ...attachment(), type: 'global_attachment_content' })).toBeUndefined()
+                const step = { type: 'step_start', data: { name: 's', start: 1 } }
+                expect((await send(step))[0].payload).toEqual(step)
+                expect(pendingFiles()).toEqual([])
+            })
+
+            it('keeps the content inline when a reporter is a class, which could be Allure', async () => {
+                class CustomReporter {}
+                await configure([CustomReporter, ['allure', { outputDir: resultsDir }]])
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+                expect(pendingFiles()).toEqual([])
+            })
+
+            it('keeps the content inline and warns once when the Allure reporters write to different folders', async () => {
+                await configure([['allure', { outputDir: resultsDir }], ['allure', { outputDir: path.join(resultsDir, 'other') }]])
+                expect(logs.warn).toHaveBeenCalledTimes(1)
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+                expect(pendingFiles()).toEqual([])
+            })
+
+            it('offloads when several Allure reporters share one folder', async () => {
+                await configure([['allure', { outputDir: resultsDir }], ['@wdio/allure-reporter', { resultsDir: path.join(resultsDir, '.') }]])
+                expect(logs.warn).not.toHaveBeenCalled()
+                const [entry] = await send(attachment())
+                expect(entry.payload.type).toBe('attachment_path')
+            })
+
+            it('keeps the content inline and warns once when the file cannot be written', async () => {
+                const blocker = path.join(resultsDir, 'file')
+                fs.writeFileSync(blocker, '')
+                await configure([['allure', { outputDir: path.join(blocker, 'results') }]])
+                const first = await send(attachment())
+                const second = await send(attachment())
+                expect(first[0].payload).toEqual(attachment())
+                expect(second[0].payload).toEqual(attachment())
+                expect(logs.warn).toHaveBeenCalledTimes(1)
+            })
+
+            it('keeps the content inline and warns once when the worker module cannot be loaded', async () => {
+                vi.doMock('@wdio/allure-reporter/worker', () => { throw new Error('cannot load') })
+                try {
+                    await configure([['allure', { outputDir: resultsDir }]])
+                } finally {
+                    vi.doUnmock('@wdio/allure-reporter/worker')
+                }
+                expect(logs.warn).toHaveBeenCalledTimes(1)
+                expect(logs.warn.mock.calls[0][0]).toContain('Could not load @wdio/allure-reporter/worker')
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+            })
+        })
+
+        it('warns once when a reporter API is called outside a test', () => {
+            process.emit('allure:runtimeMessage' as never, { type: 'step_start', data: { name: 's', start: 1 } } as never)
+            process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            expect(logs.warn).toHaveBeenCalledTimes(1)
+            expect(logs.warn.mock.calls[0][0]).toContain('Dropped allure:runtimeMessage')
         })
     })
 
