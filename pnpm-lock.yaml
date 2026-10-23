@@ -1412,8 +1412,8 @@ importers:
   packages/wdio-utils:
     dependencies:
       '@puppeteer/browsers':
-        specifier: ^2.2.0
-        version: 2.11.0
+        specifier: ^2.13.2
+        version: 2.13.2
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger

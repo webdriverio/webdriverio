@@ -1,0 +1,120 @@
+import fsp from 'node:fs/promises'
+import path from 'node:path'
+import cp from 'node:child_process'
+import { promisify } from 'node:util'
+
+import logger from '@wdio/logger'
+import { install, Cache, detectBrowserPlatform, getDownloadUrl, type InstallOptions } from '@puppeteer/browsers'
+
+const log = logger('webdriver')
+
+/**
+ * `@puppeteer/browsers` v2 unzips with `extract-zip` and `yauzl` 2. On Node 26 that
+ * promise never settles and the extracted folder has no executable (#15608).
+ * Like `@puppeteer/browsers` v3, unzip the archive with an OS tool first, so that
+ * `install()` finds a complete build folder and only runs its setup.
+ * Other archive types (Firefox `.tar.xz`, `.tar.bz2`, `.dmg`, `.exe`) and the case without
+ * an OS tool stay with `install()`, as before.
+ * Only on Node 26 and later: older versions keep `extract-zip`, which works there.
+ */
+export async function unzipWithOsTool (args: InstallOptions) {
+    if (Number(process.versions.node.split('.')[0]) < 26) {
+        return
+    }
+
+    const platform = args.platform ?? detectBrowserPlatform()
+    if (!platform) {
+        // `install()` reports the unsupported platform
+        return
+    }
+
+    // same file name as `install()`, so that it uses the archive downloaded here
+    const fileName = decodeURIComponent(getDownloadUrl(args.browser, platform, args.buildId, args.baseUrl).toString()).split('/').pop()
+    if (!fileName?.endsWith('.zip')) {
+        // `install()` downloads and unpacks it as before, nothing is downloaded here
+        return
+    }
+
+    const cache = new Cache(args.cacheDir)
+    const outputPath = cache.installationDir(args.browser, platform, args.buildId)
+    if (await fsp.access(outputPath).then(() => true, () => false)) {
+        // installed already, or a partial folder that `install()` reports
+        return
+    }
+
+    const archivePath = await install({ ...args, platform, unpack: false }).catch(async (err) => {
+        // `install()` reuses an archive that exists, so never keep a partial download
+        await removeOrWarn(path.join(cache.browserRoot(args.browser), `${args.buildId}-${fileName}`))
+        throw err
+    })
+
+    try {
+        await fsp.mkdir(outputPath, { recursive: true })
+        const tool = await extractZip(archivePath, outputPath)
+        if (tool) {
+            log.info(`Unzipped ${args.browser} v${args.buildId} with ${tool}`)
+            return
+        }
+    } catch (err) {
+        // never reuse a folder or an archive that failed to unzip
+        await removeOrWarn(outputPath)
+        await removeOrWarn(archivePath)
+        throw err
+    }
+
+    await removeOrWarn(outputPath)
+    log.warn(
+        `No unzip tool found, ${args.browser} v${args.buildId} is unzipped with extract-zip, which fails on Node 26. ` +
+        'Install `unzip` (or `tar.exe`/PowerShell on Windows) to fix this.'
+    )
+}
+
+async function removeOrWarn (file: string) {
+    await fsp.rm(file, { recursive: true, force: true }).catch((err) => {
+        log.warn(`Couldn't remove ${file}, the retry can fail: ${err}`)
+    })
+}
+
+/**
+ * Same tools and order as `@puppeteer/browsers` v3.
+ * @returns the tool that unzipped the archive, or `undefined` if no tool is installed
+ * @throws the error of the first tool that is installed but failed
+ */
+async function extractZip (archivePath: string, folderPath: string): Promise<string | undefined> {
+    const execFile = promisify(cp.execFile)
+    const systemRoot = process.env.SystemRoot ?? process.env.SYSTEMROOT ?? 'C:\\Windows'
+    // PowerShell joins and parses again all arguments after -Command, which splits paths with spaces
+    const expandArchive = ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force']
+    const powershellOptions = { env: { ...process.env, WDIO_ZIP_ARCHIVE: archivePath, WDIO_ZIP_FOLDER: folderPath } }
+    const tools: [string, string, string[], cp.ExecFileOptions][] = process.platform === 'win32'
+        ? [
+            ['tar.exe', `${systemRoot}\\System32\\tar.exe`, ['-xf', archivePath, '-C', folderPath], {}],
+            ['powershell.exe', 'powershell.exe', expandArchive, powershellOptions],
+            ['pwsh.exe', 'pwsh.exe', expandArchive, powershellOptions]
+        ]
+        : [['unzip', 'unzip', ['-o', archivePath, '-d', folderPath], {}]]
+
+    let failure: Error | undefined
+    for (const [name, file, toolArgs, options] of tools) {
+        try {
+            await execFile(file, toolArgs, options)
+            return name
+        } catch (err) {
+            const { code, stderr } = err as { code?: string | number, stderr?: string | Buffer }
+            if (code === 'ENOENT') {
+                continue
+            }
+            // unzip exits with 1 when it printed warnings but extracted all files
+            if (name === 'unzip' && code === 1) {
+                log.info(`unzip exited with code 1 (warnings) for ${archivePath}: ${stderr?.toString().trim()}`)
+                return name
+            }
+            log.debug(`${name} failed to unzip ${archivePath}: ${err}`)
+            failure ??= new Error(`Failed to unzip ${archivePath} with ${name}: ${stderr?.toString().trim() || (err as Error)?.message || err}`)
+        }
+    }
+    if (failure) {
+        throw failure
+    }
+    return undefined
+}
