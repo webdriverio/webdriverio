@@ -116,7 +116,8 @@ describe('utils', () => {
                 try {
                     expect(getFeatureId(path.join(tmp, 'node_modules', 'pkg', 'login.feature'), feature, rootLink)).toBe('node_modules/pkg/login.feature:3:1')
                 } finally {
-                    fs.rmSync(rootLink, { force: true })
+                    // rmSync of a folder link throws ERR_FS_EISDIR on Node 24.12-24.13
+                    fs.unlinkSync(rootLink)
                 }
             })
 
