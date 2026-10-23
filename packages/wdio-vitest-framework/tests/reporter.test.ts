@@ -754,20 +754,6 @@ describe('WdioBridgeReporter', () => {
             expect(emitted[start + 2][1]).toEqual({ name: 'k', value: 'v' })
         })
 
-        it('replays only the last retry attempt', async () => {
-            const module = makeModule()
-            const test = makeTest(module, module, 't', passed, 1, {
-                diagnostic: () => ({ duration: 1, retryCount: 1 }),
-                meta: () => runtimeMeta(
-                    { event: 'junit:addProperty', payload: { name: 'first', value: '1' }, retry: 0 },
-                    { event: 'junit:addProperty', payload: { name: 'last', value: '2' }, retry: 1 }
-                )
-            })
-            await runTests(module, test)
-
-            expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload)).toEqual([{ name: 'last', value: '2' }])
-        })
-
         describe('pending attachment files', () => {
             let dir: string
             beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-pending-')) })
@@ -779,7 +765,7 @@ describe('WdioBridgeReporter', () => {
                 return { event: 'allure:runtimeMessage', payload: { type: 'attachment_path', data: { path: pendingFile } }, retry, pendingFile }
             }
 
-            it('removes the files of attempts that are not replayed and keeps the replayed ones', async () => {
+            it('hands the files of every attempt to the reporters', async () => {
                 const module = makeModule()
                 const [first, last] = [pending('first', 0), pending('last', 1)]
                 const test = makeTest(module, module, 't', passed, 1, {
@@ -788,9 +774,9 @@ describe('WdioBridgeReporter', () => {
                 })
                 await runTests(module, test)
 
-                expect(fs.existsSync(first.pendingFile)).toBe(false)
+                expect(fs.existsSync(first.pendingFile)).toBe(true)
                 expect(fs.existsSync(last.pendingFile)).toBe(true)
-                expect(emittedOf().filter(([name]) => name === 'allure:runtimeMessage').map(([, payload]) => payload)).toEqual([last.payload])
+                expect(emittedOf().filter(([name]) => name === 'allure:runtimeMessage').map(([, payload]) => payload)).toEqual([first.payload, last.payload])
             })
 
             it('removes the files of tests that are closed without a result', async () => {
@@ -807,27 +793,15 @@ describe('WdioBridgeReporter', () => {
             })
 
             it('does not fail when a file is already gone', async () => {
-                const module = makeModule()
+                const module = makeModule({ state: () => 'failed' })
                 const gone = { ...pending('gone', 0), pendingFile: path.join(dir, 'missing.tmp') }
-                const test = makeTest(module, module, 't', passed, 1, {
-                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
-                    meta: () => runtimeMeta(gone)
-                })
-                await runTests(module, test)
+                const test = makeTest(module, module, 't', passed, 1, { meta: () => runtimeMeta(gone) })
+                reporter.onTestModuleStart(module)
+                await reporter.onTestCaseReady(test)
+                await reporter.onTestModuleEnd(module)
 
                 expect(errors).toEqual([])
             })
-        })
-
-        it('replays nothing when the final attempt made no relayed calls', async () => {
-            const module = makeModule()
-            const test = makeTest(module, module, 't', passed, 1, {
-                diagnostic: () => ({ duration: 1, retryCount: 1 }),
-                meta: () => runtimeMeta({ event: 'junit:addProperty', payload: { name: 'first', value: '1' }, retry: 0 })
-            })
-            await runTests(module, test)
-
-            expect(names(emittedOf())).not.toContain('junit:addProperty')
         })
 
         it('replays nothing without relayed calls', async () => {
@@ -835,6 +809,103 @@ describe('WdioBridgeReporter', () => {
             await runTests(module, makeTest(module, module, 't', passed))
 
             expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end'])
+        })
+
+        describe('retries', () => {
+            const call = (name: string, retry: number) => ({ event: 'junit:addProperty', payload: { name, value: name }, retry })
+            const attempt = (retry: number, state: 'passed' | 'failed', error?: object) => ({
+                event: 'wdio:attempt', retry, payload: { start: 100 * retry, end: 100 * retry + 10, state, ...(error && { error }) }
+            })
+            const failedTwice = (final: Result, extra: Record<string, unknown> = {}) => {
+                const module = makeModule()
+                const test = makeTest(module, module, 't', final, 5, {
+                    diagnostic: () => ({ duration: 5, retryCount: 2 }),
+                    meta: () => runtimeMeta(
+                        call('a0', 0), attempt(0, 'failed', { name: 'AssertionError', message: 'fail 1', stack: 's1', expected: 1, actual: 2 }),
+                        call('a1', 1), attempt(1, 'failed', { message: 'fail 2' }),
+                        call('a2', 2), attempt(2, final.state === 'passed' ? 'passed' : 'failed')
+                    ),
+                    ...extra
+                })
+                return { module, test }
+            }
+            const runtimeMeta = (...entries: object[]) => ({ 'wdio:runtime': entries })
+            const sequence = () => emittedOf().slice(emittedOf().findIndex(([name]) => name === 'test:start')).map(([name, payload]) => payload?.uid ? `${name}(${payload.uid})` : name)
+
+            it('reports every attempt: retry for the failed ones, pass for the last', async () => {
+                const { module, test } = failedTwice(passed)
+                await runTests(module, test)
+
+                expect(sequence()).toEqual([
+                    'test:start(test-0-0-0)', 'junit:addProperty', 'test:retry(test-0-0-0)',
+                    'test:start(test-0-0-0-retry-1)', 'junit:addProperty', 'test:retry(test-0-0-0-retry-1)',
+                    'test:start(test-0-0-0-retry-2)', 'junit:addProperty', 'test:pass(test-0-0-0-retry-2)', 'test:end(test-0-0-0-retry-2)'
+                ])
+                expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload.name)).toEqual(['a0', 'a1', 'a2'])
+            })
+
+            it('gives the retry the worker timing, error and attempt index', async () => {
+                const { module, test } = failedTwice(passed)
+                await runTests(module, test)
+
+                const retries = emittedOf().filter(([name]) => name === 'test:retry').map(([, payload]) => payload)
+                expect(retries[0]).toMatchObject({
+                    title: 't', parent: 'a.spec.ts', file: '/repo/a.spec.ts', specs: ['/repo/a.spec.ts'], start: 0, end: 10, duration: 10, pending: false,
+                    error: { name: 'AssertionError', message: 'fail 1', stack: 's1' }
+                })
+                expect(retries[1]).toMatchObject({ start: 100, end: 110, error: { name: 'Error', message: 'fail 2' } })
+                const starts = emittedOf().filter(([name]) => name === 'test:start').map(([, payload]) => payload.retries)
+                expect(starts).toEqual([undefined, 1, 2])
+            })
+
+            it('counts only the final attempt as a failed test', async () => {
+                const { module, test } = failedTwice({ state: 'failed', errors: [{ message: 'fail 3' }] })
+                await runTests(module, test)
+                await reporter.onTestModuleEnd(module)
+
+                expect(sequence().filter((entry) => !entry.startsWith('junit')).slice(0, 7)).toEqual([
+                    'test:start(test-0-0-0)', 'test:retry(test-0-0-0)', 'test:start(test-0-0-0-retry-1)', 'test:retry(test-0-0-0-retry-1)',
+                    'test:start(test-0-0-0-retry-2)', 'test:fail(test-0-0-0-retry-2)', 'test:end(test-0-0-0-retry-2)'
+                ])
+                expect(names(emittedOf())).not.toContain('context:end')
+                expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+            })
+
+            it('keeps the contextId across attempts and closes the context once', async () => {
+                const { module, test } = failedTwice(passed, { options: { concurrent: true } })
+                await runTests(module, test)
+
+                const testEvents = emittedOf().filter(([name]) => name.startsWith('test:'))
+                expect(new Set(testEvents.map(([, payload]) => payload.contextId))).toEqual(new Set([test.id]))
+                expect(new Set(testEvents.map(([, payload]) => payload.uid)).size).toBe(3)
+                const ends = emittedOf().filter(([name]) => name === 'context:end')
+                expect(ends).toEqual([['context:end', expect.objectContaining({ type: 'context:end', cid: '0-0', uid: 'test-0-0-0-retry-2', contextId: test.id, specs: ['/repo/a.spec.ts'] })]])
+                expect(names(emittedOf()).slice(-2)).toEqual(['test:end', 'context:end'])
+            })
+
+            it('sends context:end for a lane test that was not retried, and none without lanes', async () => {
+                const module = makeModule()
+                const laned = makeTest(module, module, 'c', passed, 1, { options: { concurrent: true } })
+                await runTests(module, laned)
+                expect(names(emittedOf()).slice(-3)).toEqual(['test:pass', 'test:end', 'context:end'])
+
+                instances.length = 0
+                const plain = makeModule({ id: 'chrome-0:/repo/b.spec.ts', moduleId: '/repo/b.spec.ts' })
+                await runTests(plain, makeTest(plain, plain, 's', passed, 1))
+                expect(names(emittedOf())).not.toContain('context:end')
+            })
+
+            it('reports a retry whose attempt left no marker with a generic error', async () => {
+                const module = makeModule()
+                const test = makeTest(module, module, 't', passed, 1, {
+                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                    meta: () => runtimeMeta(call('first', 0))
+                })
+                await runTests(module, test)
+
+                expect(emittedOf().find(([name]) => name === 'test:retry')![1]).toMatchObject({ duration: 0, error: { message: 'test failed' } })
+                expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload.name)).toEqual(['first'])
+            })
         })
 
         it('tags concurrent tests with a contextId and resolves it while replaying', async () => {

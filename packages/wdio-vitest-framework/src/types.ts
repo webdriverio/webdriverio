@@ -9,14 +9,30 @@ export const RUNTIME_META_KEY = 'wdio:runtime'
 
 export const RELAYED_REPORTER_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty'] as const
 
-export type RelayedEntry = {
-    event: typeof RELAYED_REPORTER_EVENTS[number]
-    payload: unknown
-    /** Retry attempt that made the call, so only the last attempt is replayed */
-    retry: number
-    /** File the payload points at, which the reporter removes when the entry is not replayed */
-    pendingFile?: string
+export type RelayedReporterEvent = typeof RELAYED_REPORTER_EVENTS[number]
+
+/** Marks the end of one attempt of a test; the launcher splits the relayed calls into attempts by it. */
+export const ATTEMPT_EVENT = 'wdio:attempt'
+
+export type AttemptError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
+
+export type AttemptMarker = {
+    start: number
+    end: number
+    state: 'passed' | 'failed'
+    error?: AttemptError
 }
+
+export type RelayedEntry =
+    | {
+        event: RelayedReporterEvent
+        payload: unknown
+        /** Retry attempt that made the call, so the launcher can replay each attempt on its own */
+        retry: number
+        /** File the payload points at, which the reporter removes when the entry is never replayed */
+        pendingFile?: string
+    }
+    | { event: typeof ATTEMPT_EVENT, payload: AttemptMarker, retry: number, pendingFile?: undefined }
 
 export type SessionMeta = {
     sessionId: string

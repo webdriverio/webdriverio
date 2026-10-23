@@ -160,8 +160,10 @@ describe('setup', () => {
         const runInTest = async (body: () => void, overrides: { concurrent?: boolean, result?: object } = {}) => {
             const context = task(overrides.concurrent ?? false, overrides.result)
             await hooks.aroundEach(vi.fn(async () => { body() }), context)
-            return context.task.meta['wdio:runtime']
+            const calls = (context.task.meta['wdio:runtime'] as { event: string }[]).filter(({ event }) => event !== 'wdio:attempt')
+            return calls.length > 0 ? calls : undefined
         }
+        const callsOf = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string }[]).filter(({ event }) => event !== 'wdio:attempt')
 
         it('adds no listeners when the module is evaluated again in the same process', async () => {
             const counts = () => RELAYED_EVENTS.map((event) => process.listenerCount(event))
@@ -228,8 +230,8 @@ describe('setup', () => {
                 process.emit('junit:addProperty' as never, { name, value: name } as never)
             }), context)
             await Promise.all([run(first, 'a'), run(second, 'b')])
-            expect(first.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
-            expect(second.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
+            expect(callsOf(first)).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
+            expect(callsOf(second)).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
         })
 
         it('drops calls made outside a test', () => {
@@ -240,7 +242,49 @@ describe('setup', () => {
             const context = task(false)
             await hooks.aroundEach(vi.fn(async () => {}), context)
             process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
-            expect(context.task.meta).toEqual({})
+            expect(callsOf(context)).toEqual([])
+        })
+
+        describe('attempt markers', () => {
+            afterEach(() => {
+                utils.executeHooksWithArgs.mockImplementation(async () => [])
+            })
+
+            const markers = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, retry: number, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+
+            it('records one marker per attempt after the afterTest hook, tagged with the attempt', async () => {
+                const order: string[] = []
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { order.push(name) })
+                const context = task(false, { retryCount: 1 })
+                await hooks.aroundEach(vi.fn(async () => {
+                    process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+                    order.push('test')
+                }), context)
+
+                expect(order).toEqual(['beforeTest', 'test', 'afterTest'])
+                const meta = context.task.meta['wdio:runtime'] as { event: string }[]
+                expect(meta.map(({ event }) => event)).toEqual(['junit:addProperty', 'wdio:attempt'])
+                expect(markers(context)).toEqual([{ event: 'wdio:attempt', retry: 1, payload: { start: expect.any(Number), end: expect.any(Number), state: 'passed' } }])
+            })
+
+            it('serializes the error of a failed attempt with its expected and actual values', async () => {
+                const failure = Object.assign(new Error('nope'), { expected: 'a', actual: 'b' })
+                const context = task(false, { retryCount: 0, state: 'fail', errors: [failure] })
+                await hooks.aroundEach(vi.fn(async () => {}), context)
+
+                expect(markers(context)[0].payload).toMatchObject({
+                    state: 'failed',
+                    error: { name: 'Error', message: 'nope', stack: failure.stack, expected: 'a', actual: 'b' }
+                })
+            })
+
+            it('still records the marker when afterTest throws', async () => {
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { if (name === 'afterTest') { throw new Error('hook') } })
+                const context = task(false)
+                await expect(hooks.aroundEach(vi.fn(async () => {}), context)).rejects.toThrow('hook')
+
+                expect(markers(context)).toHaveLength(1)
+            })
         })
         describe('Allure attachments', () => {
             const content = Buffer.from([1, 2, 3, 250]).toString('base64')
