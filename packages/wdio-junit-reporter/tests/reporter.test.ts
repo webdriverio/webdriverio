@@ -207,7 +207,8 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('reports failed Cucumber hooks as failures of the scenario', () => {
-        reporter.suites = featuresWithFailedHooksLog as any
+        // the report adds the failed hooks to the steps, keep the fixture as it is for the next test
+        reporter.suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
 
         const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
         expect(output).toContain('<testsuites tests="1" failures="1" errors="0" skipped="0">')
@@ -225,6 +226,7 @@ describe('wdio-junit-reporter', () => {
     it('places failed Cucumber hooks by their start time if the order was not recorded', () => {
         const suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
         const scenario = suites['hooks-scenario']
+        expect(scenario.tests.map((test: { title: string }) => test.title)).toEqual(['Given a passing step'])
         scenario.hooksAndTests = []
         scenario.hooks[1].start = '2026-10-22T18:00:00.015Z'
         reporter.suites = suites
