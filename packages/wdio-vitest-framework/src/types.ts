@@ -59,3 +59,6 @@ declare global {
         }
     }
 }
+
+/** Provided to the workers by the launcher: the single Allure results folder, or null when attachments travel inline */
+export const ATTACHMENT_DIR_KEY = 'wdioAllureAttachmentDir'

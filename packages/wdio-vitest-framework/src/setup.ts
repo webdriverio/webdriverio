@@ -6,12 +6,11 @@ import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWor
 import { expect, setDefaultOptions, SoftAssertionService, SoftAssertService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { AsyncLocalStorage } from 'node:async_hooks'
-import path from 'node:path'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
-import { RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTACHMENT_DIR_KEY, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -38,7 +37,7 @@ let sessionClosing: Promise<void> | undefined
 type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
 
 // content travels through task.meta, which Vitest resends on every task update, so the bytes go to disk
-// when exactly one Allure reporter is configured
+// when the launcher provides an Allure results folder
 type AttachmentTransport =
     | { mode: 'inline' }
     | { mode: 'offload', resultsDir: string, offloadAttachment: typeof AllureWorker.offloadAttachment }
@@ -59,7 +58,6 @@ function warnOnce(key: string, message: string) {
     }
 }
 
-const ALLURE_REPORTER_NAMES = ['allure', '@wdio/allure-reporter']
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
 
@@ -112,31 +110,17 @@ RELAYED_REPORTER_EVENTS.forEach((event) => {
     }
 })
 
-// Mirrors how the launcher-side BaseReporter hands options to the reporters (only the entry's own options)
-// and how the Allure reporter picks its results folder, so both sides name the same directory
-async function resolveAttachmentTransport(reporters: unknown[]): Promise<AttachmentTransport> {
-    const entries = reporters.map((entry) => Array.isArray(entry) ? entry : [entry, {}])
-    if (entries.some(([reporter]) => typeof reporter !== 'string')) {
+async function resolveAttachmentTransport(resultsDir: string | null): Promise<AttachmentTransport> {
+    if (resultsDir === null) {
         return { mode: 'inline' }
     }
-    // the launcher parses the config again after onPrepare, so a missing entry here is not proof that none exists there
-    const allureEntries = entries.filter(([reporter]) => ALLURE_REPORTER_NAMES.includes(reporter.toLowerCase()))
-    if (allureEntries.length === 0) {
-        return { mode: 'inline' }
-    }
-    // every Allure reporter receives the same attachment_path, so a second one could not move the file
-    if (allureEntries.length > 1) {
-        log.warn('Several Allure reporters are configured, sending Allure attachments through the launcher instead')
-        return { mode: 'inline' }
-    }
-    let worker: typeof AllureWorker
     try {
-        worker = await import(/* @vite-ignore */ ALLURE_WORKER_MODULE)
+        const worker: typeof AllureWorker = await import(/* @vite-ignore */ ALLURE_WORKER_MODULE)
+        return { mode: 'offload', resultsDir, offloadAttachment: worker.offloadAttachment }
     } catch (err) {
-        log.warn(`Could not load ${ALLURE_WORKER_MODULE}, sending Allure attachments through the launcher instead: ${(err as Error).message}`)
+        warnOnce('worker-load', `Could not load ${ALLURE_WORKER_MODULE}, sending Allure attachments through the launcher instead: ${(err as Error).message}`)
         return { mode: 'inline' }
     }
-    return { mode: 'offload', resultsDir: path.resolve(worker.resolveResultsDir(allureEntries[0][1] ?? {})), offloadAttachment: worker.offloadAttachment }
 }
 
 function stripConnectionKeys(caps: object) {
@@ -203,7 +187,7 @@ beforeAll(async ({}, suite) => {
     const configParser = new ConfigParser(inject('wdioConfigFile'), inject('wdioArgs') as ConstructorParameters<typeof ConfigParser>[1])
     await configParser.initialize()
     config = configParser.getConfig() as WebdriverIO.Config
-    relayState.attachments = await resolveAttachmentTransport(config.reporters ?? [])
+    relayState.attachments = await resolveAttachmentTransport(inject(ATTACHMENT_DIR_KEY))
     // cloned so beforeSession mutations do not leak into the next spec file of this worker
     requestedCapabilities = structuredClone(inject('wdioCapabilities'))
     capabilities = ('alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities) as WebdriverIO.Capabilities

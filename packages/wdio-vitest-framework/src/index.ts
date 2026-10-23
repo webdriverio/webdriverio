@@ -40,7 +40,7 @@ export async function launch(params: Frameworks.FrameworkLaunchParams): Promise<
         running?.cancelCurrentRun('keyboard-input').catch((err) => log.warn('Failed to cancel the Vitest run:', err))
     }
     params.signal?.addEventListener('abort', cancel, { once: true })
-    const viteConfig = toVitestConfig(params, () => bridgeFailures++)
+    const viteConfig = await toVitestConfig(params, () => bridgeFailures++)
     const reporters = viteConfig.test!.reporters
     viteConfig.test!.reporters = [...(reporters === undefined ? ['default'] : Array.isArray(reporters) ? reporters : [reporters]), {
         onInit(instance: Vitest) {
