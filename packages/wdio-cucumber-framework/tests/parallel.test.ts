@@ -675,6 +675,30 @@ describe('runParallelCucumber', () => {
         expect(suiteEnds.length).toBe(2)
     })
 
+    test('does not end a scenario-level attempt again after its test:retry when the run stops', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
+        const failsOnce = { ...makeStepDefinition('something', async function () { throw new Error('first attempt fails') }) }
+        // a listener of test:retry throws: the runner stops before the next attempt starts
+        reporter.on('test:retry', (p) => reporterEvents.push({ event: 'test:retry', payload: p }))
+        reporter.on('test:retry', () => { throw new Error('listener fails') })
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [failsOnce] }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: true, retry: 1 }),
+        })
+
+        // the attempt ended with test:retry: the abort of the run does not end it again
+        const events = reporterEvents.filter((e) => e.event.startsWith('test:')).map((e) => e.event)
+        expect(events).toEqual(['test:start', 'test:retry'])
+    })
+
     test('ends a retried scenario attempt with test:retry in scenario-level mode, as Mocha does', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])

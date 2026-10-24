@@ -735,6 +735,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
             const finalResult = getScenarioResult(stepResults, cucumberOpts)
             if (scenarioLevel && finalResult) {
+                // test:retry ends the attempt: an abort before the next attempt does not end it again
+                scenarioOpen = false
                 reporter.emit('test:retry', formatMessage({ payload: scenarioEndPayload(finalResult, duration) }))
             }
             return
