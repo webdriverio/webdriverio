@@ -180,6 +180,41 @@ test('getFailedCount', () => {
     expect(jasmineReporter.getFailedCount()).toBe(1)
 })
 
+test('getFailedCount counts a failing afterAll of a suite with specs', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar' } as any)
+    jasmineReporter.specDone({ id: '24', description: 'some test spec', failedExpectations: [], status: 'passed', fullName: 'foobar' } as any)
+    jasmineReporter.suiteDone({
+        id: '23',
+        description: 'some test suite',
+        failedExpectations: [new Error('afterAll failed') as any],
+        fullName: 'foobar'
+    } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+    // the failure is not reported as an extra test, the hook event covers it
+    expect(vi.mocked(runnerReporter.emit).mock.calls.map(([event]) => event)).toEqual([
+        'suite:start', 'test:start', 'test:pass', 'test:end', 'suite:end'
+    ])
+})
+
+test('getFailedCount counts a failure of a suite without specs once', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.suiteDone({
+        id: '23',
+        description: 'some test suite',
+        failedExpectations: [new Error('afterAll failed') as any],
+        fullName: 'foobar'
+    } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+})
+
+test('getFailedCount counts failures outside of a suite', () => {
+    jasmineReporter.jasmineDone({ failedExpectations: [new Error('top level afterAll failed')] } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+    jasmineReporter.jasmineDone({ failedExpectations: [] } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+})
+
 test('do not clean stack option', () => {
     const error = new Error('foobar')
     error.stack += '\n\tat foobar (/foo/bar/node_modules/package/test.js)'
