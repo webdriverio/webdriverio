@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -106,8 +106,8 @@ export async function setCookies(
      * A parallel test owns its browsing context. Falling back to addCookie would
      * act on the session's main window, so BiDi errors propagate.
      */
-    const parallelPartition = await parallelCookiePartition(this)
-    if (parallelPartition) {
+    const parallelScope = await parallelCookieScope(this)
+    if (parallelScope) {
         const defaultDomain = cookieObjsList.every((cookie) => cookie.domain)
             ? undefined
             : new URL(await this.getUrl()).hostname
@@ -121,7 +121,7 @@ export async function setCookies(
                         value: cookie.value,
                     }
                 },
-                partition: parallelPartition
+                partition: parallelScope.partition
             })
         )))
         return
