@@ -16,7 +16,7 @@ let server: Server | undefined
 /**
  * Parallel-mode run of `@wdio/html-reporter`, for Mocha or Cucumber
  * (`HTML_PARALLEL_FRAMEWORK`). Some tests fail on purpose, so `checkParallel.mjs`
- * starts this run and checks the report: `pnpm run test:e2e:html-reporter:parallel`.
+ * starts this run and checks the report: `pnpm run test:e2e:html-reporter-parallel`.
  */
 export const config: WebdriverIO.Config = {
     specs: framework === 'cucumber'

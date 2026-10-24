@@ -62,6 +62,7 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
     const afterCommandDir = path.join(htmlDir, 'screenshots')
     const found = new Set()
     const md5Logs = []
+    const md5Owners = new Map()
     const afterCommandShots = []
     for (const test of tests.values()) {
         const owner = test.title.match(/^(?:Given |When |Then )?([TS]\d+)/)?.[1] ?? test.title
@@ -78,6 +79,7 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
                 if (hash) {
                     ownMd5.add(hash)
                     md5Logs.push(hash)
+                    md5Owners.set(hash, new Set([...md5Owners.get(hash) ?? [], sender]))
                 }
             } else if (event.type === 'screenshot') {
                 shots.push(String(event.value))
@@ -95,6 +97,13 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
         }
     }
 
+    // the md5 tells the tests apart only if each test shows its own page (a blank window is white in CI)
+    for (const [hash, owners] of md5Owners) {
+        if (owners.size > 1) {
+            errors.push(`${[...owners].join(', ')} have the same screenshot ${hash}, so the check cannot tell them apart`)
+        }
+    }
+    // the `-2` file name needs 2 screenshots in the same millisecond, so this run does not always prove it (a unit test does)
     const lost = tokens.filter((token) => !found.has(token))
     if (lost.length) {
         errors.push(`logs not in the report: ${lost.join(', ')}`)
