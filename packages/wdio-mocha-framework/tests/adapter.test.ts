@@ -313,7 +313,7 @@ describe('parallel mode setBrowser', () => {
 describe('parallel mode mocha options', () => {
     test('threads grep/invert/timeout into runParallelTests', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', timeout: 5000 } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', timeout: 5000, allowUncaught: true } })
         await adapter.init()
         adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
         adapter['_mocha']!.options = { grep: /beta/, invert: true } as any
@@ -329,7 +329,7 @@ describe('parallel mode mocha options', () => {
         expect(runParallelTests).toBeCalledWith(
             expect.anything(), expect.anything(), expect.anything(), '0-2', ['/foo/bar.test.js'],
             undefined,
-            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts', failHookAffectedTests: true }
+            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts', failHookAffectedTests: true, allowUncaught: true }
         )
     })
 
