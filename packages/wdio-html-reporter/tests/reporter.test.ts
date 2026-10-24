@@ -780,6 +780,20 @@ describe('parallel mode', () => {
         expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }, { type: 'log', value: 'after hook of b' }])
     })
 
+    it('adds the events of a Before hook of a Cucumber retry to the first step of the retry', () => {
+        const reporter = start()
+        const scenario = { type: 'suite:start', title: 's', fullTitle: 's', uid: 's', cid: '0-0', parent: '', contextId: 'context-a' }
+        reporter.emit('suite:start', scenario)
+        startTest(reporter, 'step', 'context-a')
+        reporter.emit('test:fail', { uid: 'step', contextId: 'context-a', error: { message: 'first try' } })
+        reporter.emit('test:end', { uid: 'step', contextId: 'context-a' })
+        reporter.emit('suite:retry', { ...scenario, type: 'suite:retry' })
+        context = 'context-a'
+        new ReportEvents().logMessage('Before hook of the retry')
+        startTest(reporter, 'step', 'context-a')
+        expect(eventsOf(reporter, 'step')).toEqual([{ type: 'log', value: 'Before hook of the retry' }])
+    })
+
     it('gives 2 screenshots of the same millisecond 2 files', () => {
         vi.useFakeTimers({ toFake: ['Date'] })
         vi.setSystemTime(new Date('2026-10-22T10:00:00.000Z'))
