@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
+FROM mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm
 
 # the image can ship a 24.x below the engines floor; nvm/current/bin is first on PATH
 RUN su node -c '. /usr/local/share/nvm/nvm.sh && nvm install 24 && nvm alias default 24 \
@@ -23,8 +23,8 @@ RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
         apt-get install -y microsoft-edge-stable ; \
 	fi
 
-RUN corepack enable \
+RUN su node -c "corepack enable \
 	&& corepack prepare pnpm@11.27.1 --activate \
-	&& npm i -g http-server diff-so-fancy
+	&& npm i -g http-server diff-so-fancy"
 
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt
