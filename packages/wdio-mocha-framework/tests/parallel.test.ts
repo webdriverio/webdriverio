@@ -1795,6 +1795,22 @@ describe('runParallelTests — uncaught errors', () => {
         expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('real cause'))
     })
 
+    // Mocha's isError: an object with a string message is an error (also an Error of another realm)
+    test('keeps the message and stack of a thrown object that has a string message, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('object throw', async () => {
+                setTimeout(() => { throw { message: 'boom-obj', stack: 'boom-obj stack' } }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const { error } = emitted.find((e) => e.event === 'test:fail')!.payload
+        expect(error.message).toBe('boom-obj')
+        expect(error.stack).toBe('boom-obj stack')
+        expect(failures).toBe(1)
+    })
+
     test('fails the test of a thrown value that has no string form', async () => {
         const suite = mockSuite('root', {
             tests: [mockTest('odd throw', async () => {

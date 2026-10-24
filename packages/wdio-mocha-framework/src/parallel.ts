@@ -480,9 +480,14 @@ function keepWorkerOnUnhandledRejection() {
     }
 }
 
-/** the texts of Mocha's Runner#uncaught for a thrown value that is no Error (runner.js thrown2Error) */
+/** Mocha's isError (runner.js): an Error, also of another realm, or an object with a string message */
+function isError(value: unknown): value is Error {
+    return value instanceof Error || typeof (value as { message?: unknown } | null)?.message === 'string'
+}
+
+/** Mocha's Runner#uncaught for a thrown value that is no error (runner.js thrown2Error) */
 function toError(value: unknown): Error {
-    if (value instanceof Error) { return value }
+    if (isError(value)) { return value }
     if (!value) {
         return new Error('Caught falsy/undefined exception which would otherwise be uncaught. No stack trace found; try a debugger')
     }
@@ -653,7 +658,7 @@ async function runOneTest(
                     await callHook(fn, ctx, timeoutMs, uncaught)
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
-                    let hookError = err instanceof Error ? err : new Error(String(err))
+                    let hookError = isError(err) ? err : new Error(String(err))
                     if (isSkipError(hookError) && kind === 'after all') {
                         // Mocha fails this.skip() in an after all hook (runner.js `this.skip` forbidden)
                         hookError = Object.assign(new Error('`this.skip` forbidden'), { code: 'ERR_MOCHA_UNSUPPORTED' })
@@ -719,7 +724,7 @@ async function runOneTest(
                     await callHook(test.fn, ctx, timeoutMs, uncaught)
                     passed = true
                 } catch (err) {
-                    caughtError = err instanceof Error ? err : new Error(String(err))
+                    caughtError = isError(err) ? err : new Error(String(err))
                 } finally {
                     // Reported duration excludes hook time — Mocha parity
                     fnDuration = Date.now() - fnStart
