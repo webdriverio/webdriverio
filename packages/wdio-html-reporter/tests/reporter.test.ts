@@ -771,6 +771,18 @@ describe('parallel mode', () => {
         expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }])
     })
 
+    it('adds the events of a before hook to the test that it skips', () => {
+        const reporter = start()
+        startTest(reporter, 'a', 'context-a')
+        context = 'context-b'
+        // `this.skip()` in the before hook: the test ends as pending and never starts
+        new ReportEvents().logMessage('before hook of b')
+        reporter.emit('test:pending', { type: 'test:pending', title: 'b', fullTitle: 'b', uid: 'b', cid: '0-0', parent: '', contextId: 'context-b' })
+        new ReportEvents().logMessage('after hook of b')
+        expect(eventsOf(reporter, 'a')).toEqual([])
+        expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }, { type: 'log', value: 'after hook of b' }])
+    })
+
     it('gives 2 screenshots of the same millisecond 2 files', () => {
         vi.useFakeTimers({ toFake: ['Date'] })
         vi.setSystemTime(new Date('2026-10-22T10:00:00.000Z'))

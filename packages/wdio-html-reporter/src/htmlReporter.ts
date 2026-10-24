@@ -211,6 +211,16 @@ export default class HtmlReporter extends WDIOReporter {
     onTestSkip(test: TestStats) {
         this.LOG.info(`onTestSkip: ${test.cid}:${test.uid}`)
         this.#keepEventsOfStartedTest(test)
+        // parallel mode: a test that a before hook skips (`this.skip()`) never starts, it takes the events of its context
+        if (test.contextId && !this._testUids.has(test.uid)) {
+            //@ts-ignore
+            test.events = this.#earlyEvents.get(test.contextId) ?? []
+            //@ts-ignore
+            test.errorIndex = 0
+            this._testUids.set(test.uid, test)
+            this.#contextTests.set(test.contextId, test.uid)
+            this.#earlyEvents.delete(test.contextId)
+        }
         if (!this.#countScenarios) {
             this.metrics.skipped++
         }
