@@ -26,6 +26,12 @@ test('should allow to be called complete', () => {
     expect(hook.end).toBeInstanceOf(Date)
 })
 
+test('keeps retried only when the payload has it', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    expect('retried' in new HookStats(payload)).toBe(false)
+    expect(new HookStats({ ...payload, retried: true }).retried).toBe(true)
+})
+
 test('should mark hook as failed if onComplete has errors', () => {
     const hook = new HookStats({
         cid: '0-0',

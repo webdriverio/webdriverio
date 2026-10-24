@@ -160,8 +160,10 @@ describe('setup', () => {
         const runInTest = async (body: () => void, overrides: { concurrent?: boolean, result?: object } = {}) => {
             const context = task(overrides.concurrent ?? false, overrides.result)
             await hooks.aroundEach(vi.fn(async () => { body() }), context)
-            return context.task.meta['wdio:runtime']
+            const calls = (context.task.meta['wdio:runtime'] as { event: string }[]).filter(({ event }) => event !== 'wdio:attempt')
+            return calls.length > 0 ? calls : undefined
         }
+        const callsOf = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string }[]).filter(({ event }) => event !== 'wdio:attempt')
 
         it('adds no listeners when the module is evaluated again in the same process', async () => {
             const counts = () => RELAYED_EVENTS.map((event) => process.listenerCount(event))
@@ -228,8 +230,8 @@ describe('setup', () => {
                 process.emit('junit:addProperty' as never, { name, value: name } as never)
             }), context)
             await Promise.all([run(first, 'a'), run(second, 'b')])
-            expect(first.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
-            expect(second.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
+            expect(callsOf(first)).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
+            expect(callsOf(second)).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
         })
 
         it('drops calls made outside a test', () => {
@@ -240,8 +242,135 @@ describe('setup', () => {
             const context = task(false)
             await hooks.aroundEach(vi.fn(async () => {}), context)
             process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
-            expect(context.task.meta).toEqual({})
+            expect(callsOf(context)).toEqual([])
         })
+
+        describe('attempt markers', () => {
+            afterEach(() => {
+                utils.executeHooksWithArgs.mockImplementation(async () => [])
+            })
+
+            const markers = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, retry: number, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+
+            it('records one marker per attempt after the afterTest hook, tagged with the attempt', async () => {
+                const order: string[] = []
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { order.push(name) })
+                const context = task(false, { retryCount: 1 })
+                await hooks.aroundEach(vi.fn(async () => {
+                    process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+                    order.push('test')
+                }), context)
+
+                expect(order).toEqual(['beforeTest', 'test', 'afterTest'])
+                const meta = context.task.meta['wdio:runtime'] as { event: string }[]
+                expect(meta.map(({ event }) => event)).toEqual(['junit:addProperty', 'wdio:attempt'])
+                expect(markers(context)).toEqual([{ event: 'wdio:attempt', retry: 1, payload: { start: expect.any(Number), end: expect.any(Number), state: 'passed' } }])
+            })
+
+            it('serializes the error of a failed attempt with its expected and actual values', async () => {
+                const failure = Object.assign(new Error('nope'), { expected: 'a', actual: 'b' })
+                const context = task(false, { retryCount: 0 })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [failure] }) }), context)
+
+                expect(markers(context)[0].payload).toMatchObject({
+                    state: 'failed',
+                    error: { name: 'Error', message: 'nope', stack: failure.stack, expected: 'a', actual: 'b' }
+                })
+            })
+
+            it('takes the error of each attempt although Vitest accumulates result.errors across attempts', async () => {
+                const errors = ['e0', 'e1', 'e2'].map((message) => new Error(message))
+                const context = task(false, { retryCount: 0 })
+                for (const retryCount of errors.keys()) {
+                    await hooks.aroundEach(vi.fn(async () => {
+                        Object.assign(context.task.result, { retryCount, state: 'fail', errors: errors.slice(0, retryCount + 1) })
+                    }), context)
+                }
+
+                expect(markers(context).map(({ payload }) => payload.error.message)).toEqual(['e0', 'e1', 'e2'])
+            })
+
+            it('still records the marker when afterTest throws', async () => {
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { if (name === 'afterTest') { throw new Error('hook') } })
+                const context = task(false)
+                await expect(hooks.aroundEach(vi.fn(async () => {}), context)).rejects.toThrow('hook')
+
+                expect(markers(context)).toHaveLength(1)
+            })
+        })
+        describe('attempt hooks', () => {
+            afterEach(() => {
+                utils.executeHooksWithArgs.mockImplementation(async () => [])
+            })
+
+            const markers = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+            const attemptWith = async (result: Record<string, any>, after: Record<string, any>, retryCount = 0) => {
+                const context = task(false, { retryCount, ...result })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, after) }), context)
+                return markers(context)[0].payload
+            }
+
+            it('records the state of the hook kinds that ran in the attempt', async () => {
+                const payload = await attemptWith({}, { hooks: { beforeEach: 'pass', afterEach: 'pass', beforeAll: 'pass' } })
+                expect(payload.hooks).toEqual({ beforeEach: { state: 'pass' }, afterEach: { state: 'pass' } })
+            })
+
+            it('attributes a failing beforeEach to the first error of this attempt, not an earlier one', async () => {
+                const earlier = new Error('previous attempt')
+                const failure = new Error('before each failed')
+                const payload = await attemptWith({ errors: [earlier] }, { hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
+                expect(payload.hooks).toEqual({
+                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }) },
+                    afterEach: { state: 'pass' }
+                })
+            })
+
+            it('attributes a failing afterEach to the last error of this attempt', async () => {
+                const body = new Error('body')
+                const after = new Error('after each failed')
+                const payload = await attemptWith({}, { state: 'fail', hooks: { beforeEach: 'pass', afterEach: 'run' }, errors: [body, after] })
+                expect(payload.hooks).toEqual({
+                    beforeEach: { state: 'pass' },
+                    afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
+                })
+            })
+
+            it('adds no hooks field when the test has no hooks', async () => {
+                expect(await attemptWith({}, {})).not.toHaveProperty('hooks')
+            })
+
+            it('does not take the previous attempt hook states when beforeTest throws', async () => {
+                utils.executeHooksWithArgs.mockImplementation(async (name: string) => { if (name === 'beforeTest') { throw new Error('beforeTest') } })
+                const runTest = vi.fn()
+                const context = task(false, { retryCount: 1, hooks: { beforeEach: 'pass', afterEach: 'pass' } })
+                await expect(hooks.aroundEach(runTest, context)).rejects.toThrow('beforeTest')
+
+                expect(runTest).not.toHaveBeenCalled()
+                expect(markers(context)).toEqual([{ event: 'wdio:attempt', retry: 1, payload: { start: expect.any(Number), end: expect.any(Number), state: 'failed', error: expect.objectContaining({ message: 'beforeTest' }) } }])
+            })
+        })
+
+        describe('unclonable assertion values', () => {
+            const marker = async (error: object) => {
+                const context = task(false, { retryCount: 0 })
+                await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [error] }) }), context)
+                return (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')!.payload.error
+            }
+
+            it('keeps primitives and clonable objects', async () => {
+                const error = await marker(Object.assign(new Error('x'), { expected: 1, actual: { a: [1] } }))
+                expect(error).toMatchObject({ expected: 1, actual: { a: [1] } })
+            })
+
+            it('turns an object holding a function into a string that survives structured clone', async () => {
+                const error = await marker(Object.assign(new Error('x'), { expected: { fn: () => 1, nested: { deep: 1 } }, actual: 'plain' }))
+                expect(typeof error.expected).toBe('string')
+                expect(error.expected).toContain('deep')
+                expect(error.actual).toBe('plain')
+                expect(() => structuredClone(error)).not.toThrow()
+            })
+        })
+
         describe('Allure attachments', () => {
             const content = Buffer.from([1, 2, 3, 250]).toString('base64')
             const attachment = (wrapInStep = true) => ({ type: 'attachment_content', data: { name: 'shot', content, encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep, timestamp: 7 } })
@@ -484,6 +613,23 @@ describe('setup', () => {
             mutateReport(softError)
             await expect(hooks.aroundEach(vi.fn(async () => { throw own }), task(false))).rejects.toBe(own)
         })
+
+        it('records the soft assertion error as the error of the attempt it failed and passes the retry', async () => {
+            const context = task(false, { retryCount: 0, state: 'run', errors: [] })
+            mutateReport(softError)
+            await expect(hooks.aroundEach(vi.fn(async () => {}), context)).rejects.toBe(softError)
+            Object.assign(context.task.result, { state: 'fail', errors: [softError] })
+
+            mutateReport()
+            Object.assign(context.task.result, { retryCount: 1, state: 'run' })
+            await expect(hooks.aroundEach(vi.fn(async () => {}), context)).resolves.toBeUndefined()
+
+            const attempts = (context.task.meta['wdio:runtime'] as { event: string, retry: number, payload: any }[]).filter(({ event }) => event === 'wdio:attempt')
+            expect(attempts.map(({ retry, payload }) => [retry, payload.state, payload.error?.message])).toEqual([
+                [0, 'failed', '1 soft assertion failure'],
+                [1, 'passed', undefined]
+            ])
+        })
     })
 
     describe('afterTest result', () => {
@@ -551,7 +697,8 @@ describe('setup', () => {
 
     it('cleans up and reports a failure when a concurrent test fails', async () => {
         const error = new Error('boom')
-        await hooks.aroundEach(vi.fn(async () => {}), task(true, { state: 'fail', errors: [error] }))
+        const context = task(true, {})
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(context.task.result, { state: 'fail', errors: [error] }) }), context)
         expect(utils.cleanupAllocation).toHaveBeenCalledTimes(1)
         expect(afterTestResult()).toMatchObject({ passed: false, error })
     })
@@ -586,6 +733,22 @@ describe('setup', () => {
     it('passes 0 to the after hook when all tests pass, including one that passed on retry', async () => {
         await callbacks.afterAll({}, file([testTask('pass'), testTask('pass')]))
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [0, expect.anything(), ['/repo/a.spec.ts']])
+    })
+
+    it('counts a test that failed on attempt 0 and passed on attempt 1 as 0, and one that fails its last attempt as 1', async () => {
+        const error = new Error('boom')
+        const retried = task(false, { retryCount: 0, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(retried.task.result, { state: 'fail', errors: [error] }) }), retried)
+        Object.assign(retried.task.result, { retryCount: 1, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(retried.task.result, { state: 'pass' }) }), retried)
+        await callbacks.afterAll({}, file([{ type: 'test', result: retried.task.result }]))
+        expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [0, expect.anything(), ['/repo/a.spec.ts']])
+
+        utils.executeHooksWithArgs.mockClear()
+        const failed = task(false, { retryCount: 1, state: 'run', errors: [] })
+        await hooks.aroundEach(vi.fn(async () => { Object.assign(failed.task.result, { state: 'fail', errors: [error, error] }) }), failed)
+        await callbacks.afterAll({}, file([{ type: 'test', result: failed.task.result }]))
+        expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('after', mockConfig.value.after, [1, expect.anything(), ['/repo/a.spec.ts']])
     })
 
     it('counts a failed beforeAll of the file, whose tests were skipped, as a failure', async () => {

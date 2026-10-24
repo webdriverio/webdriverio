@@ -6,11 +6,12 @@ import { allocateContext, cleanupAllocation, executeHooksWithArgs, initializeWor
 import { expect, setDefaultOptions, SoftAssertionService, SoftAssertService } from 'expect-webdriverio'
 import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { inspect } from 'node:util'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
-import { ATTACHMENT_DIR_KEY, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTACHMENT_DIR_KEY, ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptError, type AttemptMarker, type RelayedEntry, type RelayedReporterEvent, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -61,7 +62,53 @@ function warnOnce(key: string, message: string) {
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
 
-function relay(event: RelayedEntry['event'], payload: unknown) {
+function recordAttempt(task: TestTask, start: number, error: unknown, hooks: AttemptMarker['hooks']) {
+    const meta = task.meta as Record<string, unknown>
+    const entries = (meta[RUNTIME_META_KEY] ??= []) as RelayedEntry[]
+    entries.push({
+        event: ATTEMPT_EVENT,
+        retry: task.result?.retryCount ?? 0,
+        payload: { start, end: Date.now(), state: error === undefined ? 'passed' : 'failed', ...(error !== undefined && { error: serializeError(error) }), ...(hooks && { hooks }) }
+    })
+}
+
+/**
+ * Vitest keeps the last state of each hook kind on the task and appends to task.result.errors across
+ * attempts, so this attempt's errors are the ones after `errorsBefore`. A hook that threw stays in the
+ * 'run' state; the beforeEach error is the first of an attempt and the afterEach error the last.
+ */
+function readAttemptHooks(task: TestTask, errorsBefore: number): AttemptMarker['hooks'] {
+    const states = (task.result?.hooks ?? {}) as Record<string, string | undefined>
+    const errors = (task.result?.errors ?? []).slice(errorsBefore)
+    const hooks: NonNullable<AttemptMarker['hooks']> = {}
+    for (const kind of ATTEMPT_HOOK_KINDS) {
+        const state = states[kind]
+        if (state === 'pass') {
+            hooks[kind] = { state: 'pass' }
+        } else if (state === 'run' || state === 'fail') {
+            const error = kind === 'beforeEach' ? errors[0] : errors[errors.length - 1]
+            hooks[kind] = { state: 'fail', ...(error && { error: serializeError(error) }) }
+        }
+    }
+    return Object.keys(hooks).length > 0 ? hooks : undefined
+}
+
+// task.meta crosses a worker boundary, so the error is reduced to what structured clone keeps
+function serializeError(error: unknown): AttemptError {
+    const { name, message, stack, expected, actual } = (typeof error === 'object' && error !== null ? error : { message: String(error) }) as Partial<AttemptError>
+    return { name, message: message ?? String(error), stack, expected: cloneable(expected), actual: cloneable(actual) }
+}
+
+// a value that structured clone rejects (a function, a DOM node) must not break the task update that carries it
+function cloneable(value: unknown) {
+    try {
+        return structuredClone(value)
+    } catch {
+        return inspect(value, { depth: 5 })
+    }
+}
+
+function relay(event: RelayedReporterEvent, payload: unknown) {
     const task = activeTask.getStore()
     if (!task) {
         warnOnce('outside-test', `Dropped ${event}: reporter runtime APIs only work in tests and beforeEach/afterEach hooks`)
@@ -76,7 +123,7 @@ function relay(event: RelayedEntry['event'], payload: unknown) {
     entries.push({ ...entry, retry: task.result?.retryCount ?? 0 })
 }
 
-type Converted = Pick<RelayedEntry, 'event' | 'payload' | 'pendingFile'>
+type Converted = Pick<Extract<RelayedEntry, { event: RelayedReporterEvent }>, 'event' | 'payload' | 'pendingFile'>
 
 function toAllureMessage(payload: unknown): Converted {
     const transport = relayState.attachments
@@ -94,7 +141,7 @@ function toAllureMessage(payload: unknown): Converted {
     }
 }
 
-const toRuntimeMessage: Record<RelayedEntry['event'], (payload: unknown) => Converted | undefined> = {
+const toRuntimeMessage: Record<RelayedReporterEvent, (payload: unknown) => Converted | undefined> = {
     'allure:startStep': (name) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: name as string, start: Date.now() } } }),
     'allure:endStep': (arg) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } } }),
     'allure:runtimeMessage': toAllureMessage,
@@ -252,14 +299,22 @@ aroundEach(async (...args) => {
     const test = { title: task.name, fullTitle: task.fullName, parent: task.suite?.name ?? '', file: specFile }
     const startedAt = Date.now()
 
+    const errorsBefore = task.result?.errors?.length ?? 0
     let error: unknown
     let serviceError: unknown
-    const runWithHooks = async () => {
-        await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
+    let testRan = false
+    const runAttempt = async () => {
         try {
+            await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
+        } catch (err) {
+            error = err
+            throw err
+        }
+        try {
+            testRan = true
             await runTest()
             // runTest() resolves even when the test fails; the outcome is on the task
-            error = task.result?.state === 'fail' ? task.result.errors?.[0] ?? new Error('test failed') : undefined
+            error = task.result?.state === 'fail' ? task.result.errors?.slice(errorsBefore)[0] ?? new Error('test failed') : undefined
         } catch (err) {
             error = err
             throw err
@@ -285,6 +340,14 @@ aroundEach(async (...args) => {
         }
         if (serviceError !== undefined) {
             throw serviceError
+        }
+    }
+    const runWithHooks = async () => {
+        try {
+            await runAttempt()
+        } finally {
+            // before runTest the hook states are still the previous attempt's
+            recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore) : undefined)
         }
     }
 

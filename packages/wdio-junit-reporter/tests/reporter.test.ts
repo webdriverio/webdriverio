@@ -77,6 +77,13 @@ describe('wdio-junit-reporter', () => {
         expect(written).not.toContain('<testcase')
     })
 
+    it('adds the failed hooks of a suite as testcases, except those of a retried attempt', () => {
+        const hook = (title: string, retried?: boolean) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(retried && { retried }) })
+        const suite = { tests: [], hooks: [hook('"before each" hook for "a"', true), hook('"before each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"before each" hook for "b"'])
+    })
+
     it('should prepare name', () => {
         expect(reporter['_prepareName']()).toMatchSnapshot()
         expect(reporter['_prepareName']('Chrome something_odd.foobar')).toMatchSnapshot()

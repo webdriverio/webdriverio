@@ -19,6 +19,8 @@ export interface Hook {
     parentUid?: string | null
     /** the browsing context of a parallel hook */
     contextId?: string
+    /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
+    retried?: boolean
 }
 
 export default class HookStats extends RunnableStats {
@@ -37,6 +39,8 @@ export default class HookStats extends RunnableStats {
     declare contextId?: string
     /** the uid of the suite of the hook */
     declare parentUid?: string | null
+    /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
+    declare retried?: boolean
 
     constructor (runner: Hook) {
         super('hook')
@@ -47,6 +51,9 @@ export default class HookStats extends RunnableStats {
         this.currentTest = runner.currentTest
         this.body = runner.body
         this.keepParallelFields(runner)
+        if (runner.retried !== undefined) {
+            this.retried = runner.retried
+        }
     }
 
     complete (errors?: Error[]) {
