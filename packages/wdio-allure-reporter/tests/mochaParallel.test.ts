@@ -282,7 +282,7 @@ afterEach(() => {
 })
 
 describe('Mocha parallel mode', () => {
-    // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+    // the name in any case and the scoped package, as initializePlugin loads them
     it.each(['Mocha', '@wdio/mocha-framework'])('keeps the steps with their test for framework %s', async (framework) => {
         const { results } = await play('parallel', [A1, B1], undefined, true, undefined, framework)
 

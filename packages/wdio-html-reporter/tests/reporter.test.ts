@@ -157,7 +157,7 @@ describe('HtmlReporter with Cucumber', () => {
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0, skipped: 2 })
     })
 
-    // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+    // the name in any case and the scoped package, as initializePlugin loads them
     it.each(['Cucumber', '@wdio/cucumber-framework'])('counts scenarios, not steps, for framework %s', (framework) => {
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
         reporter.onRunnerStart({ cid: '0-0', config: { framework } } as never)

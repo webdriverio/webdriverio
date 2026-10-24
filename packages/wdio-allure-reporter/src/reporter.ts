@@ -161,7 +161,7 @@ export default class AllureReporter extends WDIOReporter {
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
     private _laneMode = false
-    /** the framework of the run in any form that WebdriverIO loads; `undefined` when not known */
+    /** the framework of the run, from its name in any case or its scoped package; `undefined` when not known */
     private _framework?: ReturnType<typeof knownFramework>
     // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
     private _lanesSeen = false

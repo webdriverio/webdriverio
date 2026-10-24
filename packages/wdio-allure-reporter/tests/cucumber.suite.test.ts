@@ -1053,7 +1053,7 @@ describe('Cucumber tests as the base reporter gives them (a TestStats keeps no t
 
 // every framework name that initializePlugin loads (wdio-utils initializePlugin.ts): the exact
 // name, another case, the scoped package; any other name keeps the title, keyword and file rules
-describe('the framework of the runner config, in every form that WebdriverIO loads', () => {
+describe('the framework of the runner config, by its name in any case or its scoped package', () => {
     const asTestStats = (t: Record<string, unknown>, title: string) => {
         const { file: _file, keyword: _keyword, ...rest } = t
         return { ...rest, type: 'test', title } as any

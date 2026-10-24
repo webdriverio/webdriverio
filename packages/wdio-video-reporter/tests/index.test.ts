@@ -615,7 +615,7 @@ describe('Video Reporter', () => {
             )
         })
 
-        // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+        // the name in any case and the scoped package, as initializePlugin loads them
         it.each(['cucumber', 'Cucumber', '@wdio/cucumber-framework'])('records a Cucumber step of framework %s in its scenario, not on its own', (framework) => {
             const reporter = new VideoReporter({})
             reporter.onRunnerStart({ ...allureRunner, instanceOptions: { 1234: { framework } } })
