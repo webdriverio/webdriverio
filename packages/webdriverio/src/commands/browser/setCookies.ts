@@ -1,8 +1,9 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
+import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -60,6 +61,16 @@ const log = logger('webdriverio')
  * @type cookie
  *
  */
+/** the JSDoc and WebDriver Classic use "Lax" / "Strict"; WebDriver BiDi only accepts lowercase values */
+function toBidiCookie(cookie: Cookie, domain: string): remote.StoragePartialCookie {
+    return {
+        ...cookie,
+        domain,
+        ...(typeof cookie.sameSite === 'string' ? { sameSite: cookie.sameSite.toLowerCase() as remote.NetworkSameSite } : {}),
+        value: { type: 'string', value: cookie.value }
+    }
+}
+
 export async function setCookies(
     this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     cookieObjs: Cookie | Cookie[]
@@ -85,14 +96,7 @@ export async function setCookies(
         const url = new URL(origin)
         await Promise.all(cookieObjsList.map((cookie) => (
             browser.storageSetCookie({
-                cookie: {
-                    ...cookie,
-                    domain: cookie.domain || url.hostname,
-                    value: {
-                        type: 'string',
-                        value: cookie.value,
-                    }
-                },
+                cookie: toBidiCookie(cookie, cookie.domain || url.hostname),
                 partition: {
                     type: 'context',
                     context: this.contextId
@@ -106,22 +110,15 @@ export async function setCookies(
      * A parallel test owns its browsing context. Falling back to addCookie would
      * act on the session's main window, so BiDi errors propagate.
      */
-    const parallelPartition = await parallelCookiePartition(this)
-    if (parallelPartition) {
+    const parallelScope = await parallelCookieScope(this)
+    if (parallelScope) {
         const defaultDomain = cookieObjsList.every((cookie) => cookie.domain)
             ? undefined
             : new URL(await this.getUrl()).hostname
         await Promise.all(cookieObjsList.map((cookie) => (
             this.storageSetCookie({
-                cookie: {
-                    ...cookie,
-                    domain: cookie.domain || defaultDomain!,
-                    value: {
-                        type: 'string',
-                        value: cookie.value,
-                    }
-                },
-                partition: parallelPartition
+                cookie: toBidiCookie(cookie, cookie.domain || defaultDomain!),
+                partition: parallelScope.partition
             })
         )))
         return
@@ -145,14 +142,7 @@ export async function setCookies(
     try {
         await Promise.all(cookieObjsList.map((cookie) => (
             this.storageSetCookie({
-                cookie: {
-                    ...cookie,
-                    domain: cookie.domain || url.hostname,
-                    value: {
-                        type: 'string',
-                        value: cookie.value,
-                    }
-                },
+                cookie: toBidiCookie(cookie, cookie.domain || url.hostname),
                 partition: getCookiePartition(url.origin)
             })
         )))

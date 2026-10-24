@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookieScope, type ParallelCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -56,9 +56,9 @@ export async function deleteCookies(
      * A parallel test owns its browsing context. Falling back to classic would
      * act on the session's main window, so BiDi errors propagate.
      */
-    const parallelPartition = await parallelCookiePartition(this)
-    if (parallelPartition) {
-        await deleteBidiCookies(this, parallelPartition, filterArray)
+    const parallelScope = await parallelCookieScope(this)
+    if (parallelScope) {
+        await deleteParallelCookies(this, parallelScope, filterArray)
         return
     }
 
@@ -95,6 +95,27 @@ export async function deleteCookies(
     }
 
     return
+}
+
+/**
+ * the jar of a parallel test holds the cookies of every host and path: delete only the
+ * cookies that the page sees, as WebDriver Classic does
+ */
+async function deleteParallelCookies(
+    browser: WebdriverIO.Browser,
+    { partition, isVisible }: ParallelCookieScope,
+    filterArray?: (string | remote.StorageCookieFilter)[]
+) {
+    if (!isVisible) {
+        await deleteBidiCookies(browser, partition, filterArray)
+        return
+    }
+    const filters = (filterArray ?? [undefined]).map((f) => typeof f === 'string' ? { name: f } : f)
+    const found = await Promise.all(filters.map((filter) => browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })))
+    const cookies = found.flatMap(({ cookies }) => cookies).filter(isVisible)
+    await Promise.all(cookies.map(({ name, domain, path }) => (
+        browser.storageDeleteCookies({ filter: { name, domain, path }, partition })
+    )))
 }
 
 async function deleteBidiCookies(

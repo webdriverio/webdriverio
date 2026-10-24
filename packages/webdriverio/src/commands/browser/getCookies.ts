@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -40,7 +40,7 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
- * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). Inside a parallel test, null drops only the origin; cookies stay limited to the test's user context
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). Inside a parallel test, the origin (or the page) only filters the cookies of the test window by host, and null returns all cookies of that window
  * @return {Cookie[]}                           requested cookies
  *
  */
@@ -64,12 +64,14 @@ export async function getCookies(
         }, filter)
     }
 
-    const parallelPartition = await parallelCookiePartition(this, sourceOrigin)
-    if (parallelPartition) {
-        return readBidiCookies(this, {
-            partition: parallelPartition,
+    const parallelScope = await parallelCookieScope(this, sourceOrigin)
+    if (parallelScope) {
+        const cookies = await readBidiCookies(this, {
+            partition: parallelScope.partition,
             ...(typeof filter !== 'undefined' ? { filter } : {})
         }, filter, true)
+        const { isVisible } = parallelScope
+        return isVisible ? cookies.filter(isVisible) : cookies
     }
 
     let url: URL
@@ -103,9 +105,9 @@ async function readBidiCookies (
     try {
         const { cookies } = await browser.storageGetCookies(params)
         /**
-         * A context partition, or a parallel test's origin partition, already
-         * names the right tab or origin. An empty result is authoritative. The
-         * classic fallback would read the focused window.
+         * A context partition (also the one of a parallel test) already names the
+         * right tab. An empty result is authoritative. The classic fallback would
+         * read the focused window.
          */
         if (cookies.length === 0 && !isolated) {
             log.debug('BiDi getCookies returned empty, falling back to classic')
