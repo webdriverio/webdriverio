@@ -516,6 +516,24 @@ describe('Mocha parallel mode', () => {
         })
     })
 
+    describe('failed before all hooks', () => {
+        it('keeps a distinct history id when two suites share the same hook title', async () => {
+            const first: PlannedTest = { id: 'h1', title: 'first', suites: ['Outer A', 'Shared'], outcome: 'hook-fail' }
+            const second: PlannedTest = { id: 'h2', title: 'second', suites: ['Outer B', 'Shared'], outcome: 'hook-fail' }
+            const { results } = await play('parallel', [first, second])
+
+            const hookResults = results.filter((r) => r.name === '"before all" hook for Shared')
+            expect(hookResults).toHaveLength(2)
+            expect(hookResults.map((r) => r.statusDetails.message)).toEqual([
+                'before all exploded',
+                'before all exploded',
+            ])
+            const historyIds = hookResults.map((r) => r.historyId)
+            expect(historyIds.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
+            expect(new Set(historyIds).size).toBe(2)
+        })
+    })
+
     describe('result timing and console logs', () => {
         const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
 
