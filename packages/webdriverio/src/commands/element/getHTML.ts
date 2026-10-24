@@ -65,7 +65,7 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
  * @alias element.getHTML
  * @param {GetHTMLOptions} options                    command options
  * @param {boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
- * @param {boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
+ * @param {boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM, in WebDriver BiDi sessions only (default: `true`)
  * @param {boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
  * @param {boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
  * @return {Promise}  the HTML of the specified element (as a string)
@@ -114,7 +114,6 @@ export async function getHTML(
             )
         }
 
-        const { load } = await import('cheerio')
         const shadowRootManager = getShadowRootManager(browser)
         const context = await contextIdOf(this)
         const shadowRootElementPairs = await shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
@@ -138,26 +137,48 @@ export async function getHTML(
         ]) as [string, HTMLElement, HTMLElement | undefined][]
 
         /**
-         * then get the HTML of the element and its shadow roots
+         * then get the HTML of the element and its shadow roots, with the tag of
+         * the element: its own shadow root is attached to it
          */
         const { html, shadowElementHTML } = await this.execute(
             getHTMLShadowScript,
-            includeSelectorTag,
+            true,
             elementsWithShadowRootAndIdVerified
         )
 
-        const $ = load(html)
+        const $ = await parseHTML(html)
         populateHTML($, shadowElementHTML.map(({ id, ...props }) => ({
             ...props,
             id,
             mode: shadowRootManager.getShadowRootModeById(context, id) || 'open'
         })))
 
+        if (!includeSelectorTag) {
+            const [element] = $.root().children()
+            $(element).replaceWith($(element).contents())
+        }
+
         return sanitizeHTML($, { removeCommentNodes, prettify, excludeElements })
     }
 
     const returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
     return sanitizeHTML(returnHTML, { removeCommentNodes, prettify })
+}
+
+/**
+ * Parse the HTML the browser serialized and keep it as it is: htmlparser2
+ * (`cheerio/slim`) parses it as a fragment, where parse5 would put it in a
+ * `<body>` and drop table parts, `<template>`, `<head>` or `<body>` tags.
+ * The browser already wrote the case of names and the entities.
+ */
+export async function parseHTML (html: string) {
+    const { load } = await import('cheerio/slim')
+    return load(html, {
+        decodeEntities: false,
+        lowerCaseTags: false,
+        lowerCaseAttributeNames: false,
+        emptyAttrs: true
+    } as Parameters<typeof load>[1])
 }
 
 function populateHTML (
@@ -259,7 +280,7 @@ export function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = 
         }
     }
 
-    let returnHTML = isCheerioObject ? $('body').html() as string : $
+    let returnHTML = isCheerioObject ? $.root().html() as string : $
 
     /**
      * Fallback regex-based comment removal for string input
@@ -284,7 +305,7 @@ export interface GetHTMLOptions {
     includeSelectorTag?: boolean
     /**
      * if true, it includes content of the shadow roots of all web
-     * components in the DOM (default: true if WebDriver Bidi is enabled)
+     * components in the DOM; WebDriver Classic sessions do not include them
      * @default true
      */
     pierceShadowRoot?: boolean
