@@ -564,42 +564,18 @@ export default class VideoReporter extends WdioReporter {
     /**
    * Remove empty directories
    */
-    onTestSkip(payload: TestStats) {
-        if (!this.#record) {
-            return
-        }
-        if (!this.isCucumberFramework) {
+    onTestSkip() {
+        // every framework sends test:end after it: onTestEnd makes the end frame and the video
+        if (this.#record && !this.isCucumberFramework) {
             this.clearScreenshotInterval()
-            return
         }
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
     }
 
     /**
-     * a Cucumber step or scenario that returns 'pending' (Mocha and Jasmine also send
-     * `test:end` for a test that becomes pending while it runs)
+     * a step or test that becomes pending while it runs (test:end follows, as for a skip)
      */
-    onTestPending(payload: TestStats) {
-        this.onTestSkip(payload)
-    }
-
-    onTestPass(payload: TestStats): void {
-        if (!this.#record || !this.isCucumberFramework) {
-            return
-        }
-
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
-    }
-
-    onTestFail(payload: TestStats): void {
-        if (!this.#record || !this.isCucumberFramework) {
-            return
-        }
-
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
+    onTestPending() {
+        this.onTestSkip()
     }
 
     /**

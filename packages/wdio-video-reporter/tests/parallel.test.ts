@@ -366,10 +366,9 @@ describe('Cucumber end events in parallel mode', () => {
         await sleep(0)
         return reporter
     }
-    // Cucumber parallel mode sends test:pass (or test:fail), then test:end
+    // Cucumber sends test:pass (or test:fail), then test:end
     const passAndEnd = (reporter: VideoReporter, uid: string) => {
         const stats = test(uid, 'ctx-a', { state: 'passed', parentUid: 's1' })
-        reporter.onTestPass(stats)
         reporter.onTestEnd(stats)
     }
 
