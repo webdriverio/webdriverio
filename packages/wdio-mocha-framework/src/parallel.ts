@@ -16,6 +16,7 @@
 
 import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
+import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
 import { dottedFullTitle, formatError, type TitledNode } from './common.js'
@@ -469,6 +470,27 @@ function createHookContext(testTitle: string | undefined, parentTitle: string | 
     }
 }
 
+// Mocha does not fail a test on an unhandled rejection of user code, and keeps its listener for the
+// whole worker (WebdriverIO never disposes the runner): without one, Node ends the worker on a late
+// rejection, for example of a command with no await when the session ends
+const ignoreUnhandledRejection = () => {}
+function keepWorkerOnUnhandledRejection() {
+    if (!process.listeners('unhandledRejection').includes(ignoreUnhandledRejection)) {
+        process.on('unhandledRejection', ignoreUnhandledRejection)
+    }
+}
+
+/** the texts of Mocha's Runner#uncaught for a thrown value that is no Error (runner.js thrown2Error) */
+function toError(value: unknown): Error {
+    if (value instanceof Error) { return value }
+    if (!value) {
+        return new Error('Caught falsy/undefined exception which would otherwise be uncaught. No stack trace found; try a debugger')
+    }
+    // `canonicalType` is not in @types/mocha
+    const { canonicalType } = Mocha.utils as unknown as { canonicalType: (value: unknown) => string }
+    return new Error(`the ${canonicalType(value)} ${Mocha.utils.stringify(value)} was thrown, throw an Error :)`)
+}
+
 /** lets an uncaught error of a context fail the runnable (hook or test) that runs in it */
 interface UncaughtTarget {
     set(fail: (err: Error) => void): void
@@ -497,11 +519,17 @@ function callHook(hook: any, ctx: object, timeoutMs?: number, uncaught?: Uncaugh
         const timer = timeoutMs && timeoutMs > 0
             ? setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
             : undefined
-        const fail = (err: Error) => settle(() => reject(err))
+        const fail = (err: Error) => {
+            if (graceTimer) {
+                // the runnable fails with the timeout text: keep the real cause in the log
+                log.error(`[Parallel] uncaught error after the timeout of ${timeoutMs}ms: ${err.stack ?? err.message}`)
+            }
+            settle(() => reject(err))
+        }
         const settle = (onTime: () => void) => {
             clearTimeout(timer)
-            uncaught?.clear(fail)
             if (!graceTimer) {
+                uncaught?.clear(fail)
                 return onTime()
             }
             clearTimeout(graceTimer)
@@ -814,20 +842,18 @@ export async function runParallelTests(
     let allocationFailed = false
 
     // Mocha's Runner#uncaught: an uncaught error fails the runnable of its context (the
-    // AsyncLocalStorage store follows timers and promises); Mocha ignores a skip error
+    // AsyncLocalStorage store follows timers and promises); a skip error makes it pending
     const uncaughtTargets = new Map<string, (err: Error) => void>()
     let uncaughtOutside = 0
     const onUncaught = (err: unknown) => {
-        const error = err instanceof Error ? err : new Error(String(err))
-        if (isSkipError(error)) { return }
+        const error = toError(err)
         const contextId = parallelStore.getStore()
         const fail = contextId ? uncaughtTargets.get(contextId) : undefined
         if (fail) { return fail(error) }
+        if (isSkipError(error)) { return }
         uncaughtOutside++
         log.error(`[Parallel] uncaught error outside a running test or hook: ${error.stack ?? error.message}`)
     }
-    // Mocha does not fail a test on an unhandled rejection of user code; without a listener Node ends the worker
-    const onUnhandled = () => {}
 
     log.info(
         `[Parallel] Collected ${tests.length} tests. ` +
@@ -880,12 +906,10 @@ export async function runParallelTests(
     }
 
     if (!mochaOptions?.allowUncaught) { process.on('uncaughtException', onUncaught) }
-    process.on('unhandledRejection', onUnhandled)
+    keepWorkerOnUnhandledRejection()
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
-        process.removeListener('uncaughtException', onUncaught)
-        process.removeListener('unhandledRejection', onUnhandled)
         for (const spare of spares.splice(0)) {
             const unused = await spare.catch(() => undefined)
             if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
@@ -894,6 +918,8 @@ export async function runParallelTests(
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
         }
+        // a test can still throw while its window closes
+        process.removeListener('uncaughtException', onUncaught)
     }
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
