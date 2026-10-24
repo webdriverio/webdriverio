@@ -369,6 +369,11 @@ export class AiRuntime {
      * Let the model perform an instruction and record the steps it took.
      */
     async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder, test?: TestContext): Promise<PlanResult> {
+        /**
+         * the test can end while the cache is read or a cached step is healed:
+         * its workspace would get the events of the next test
+         */
+        test?.controller.signal.throwIfAborted()
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
@@ -385,7 +390,9 @@ export class AiRuntime {
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
         const gate = new StepGate(test?.controller.signal)
-        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate })
+        const timeout = options.timeout ?? DEFAULT_TIMEOUT
+        let deadline = Number.POSITIVE_INFINITY
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder, gate, deadline: () => deadline })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -395,7 +402,8 @@ export class AiRuntime {
                 systemPrompt: systemPrompt(await this.#projectInstructions(), true),
                 prompt: actPrompt(instruction, context, Boolean(scope)),
                 maxSteps,
-                timeout: options.timeout ?? DEFAULT_TIMEOUT,
+                timeout,
+                onStart: (at) => { deadline = at },
                 signal: gate.loopSignal,
                 middleware: [await workspace.middleware()]
             })
@@ -406,6 +414,7 @@ export class AiRuntime {
             }
             return { steps, summary: result.summary, usage: result.usage }
         } finally {
+            await gate.close()
             await workspace.writeEvents(agent.logs, agent.network)
             await workspace.writeSteps(steps)
             await this.#finishCall(workspace, test)
@@ -599,6 +608,10 @@ export class AiRuntime {
                     steps: replay.done
                 })
             }
+            /**
+             * plan() stops for an ended test too, this check keeps the log right
+             */
+            signal?.throwIfAborted()
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder, test)
             await evidence?.after()
@@ -745,6 +758,7 @@ export class AiRuntime {
             workspace.keep = true
             throw new ActError({ instruction, reason: `the answer did not match the schema. ${feedback}`, usage, workspace: workspace.dir })
         } finally {
+            await gate.close()
             await this.#finishCall(workspace, test)
         }
     }

@@ -62,7 +62,7 @@ const FRAME_KEYWORDS = new Set(['top', 'parent'])
  * Wait until the targets of a step exist, like an `await $(selector)` in a
  * spec would, then run the step.
  */
-export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, scope?: string) {
+export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, scope?: string, signal?: AbortSignal) {
     const args = substitute(step.args, values)
     for (const key of TARGET_KEYS) {
         const selector = args[key]
@@ -71,17 +71,24 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
             await assertInScope(agent, scope, selector)
         }
     }
-    return runChecked(agent, step, args, values, effects, Math.max(DEFAULT_SETTLE_TIMEOUT, waitTimeout))
+    return runChecked(agent, step, args, values, effects, Math.max(DEFAULT_SETTLE_TIMEOUT, waitTimeout), signal)
 }
 
 /**
- * run a step and check that it has the effect it had when it was recorded
+ * Run a step and check that it has the effect it had when it was recorded.
+ * The step does not run once `signal` aborted: the element it waited for
+ * can already be on the page of the next test.
  */
-async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck, timeout = DEFAULT_SETTLE_TIMEOUT) {
+async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck, timeout = DEFAULT_SETTLE_TIMEOUT, signal?: AbortSignal) {
+    signal?.throwIfAborted()
     if (!effects || effects.mode === 'off') {
         return agent.runAction(step.action, args)
     }
     await effects.recorder.start()
+    if (signal?.aborted) {
+        effects.recorder.cancel()
+        signal.throwIfAborted()
+    }
     const result = await agent.runAction(step.action, args)
     const actual = redact(await effects.recorder.settle({ timeout }), values)
     const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)
@@ -142,7 +149,7 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
                 continue
             }
             const args = { ...step.args, target: selector }
-            const result = await runChecked(agent, step, substitute(args, values), values, effects)
+            const result = await runChecked(agent, step, substitute(args, values), values, effects, undefined, signal)
             return {
                 ...step,
                 args,
@@ -192,7 +199,7 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
     for (const [index, step] of steps.entries()) {
         signal?.throwIfAborted()
         try {
-            await runStep(agent, step, values, waitTimeout, effects, scope)
+            await runStep(agent, step, values, waitTimeout, effects, scope, signal)
             done.push(step)
         } catch (err) {
             signal?.throwIfAborted()
