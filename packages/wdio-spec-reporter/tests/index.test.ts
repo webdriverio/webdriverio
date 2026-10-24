@@ -106,6 +106,20 @@ describe('SpecReporter', () => {
             } as any)
             expect(events).toEqual([row1, row2Retry])
         })
+
+        // parallel mode: the attempts of the two rows come interleaved; a Cucumber scenario keeps its uid on a retry
+        it('pairs a retry with the earlier attempt of the same uid when tests of the same title overlap', () => {
+            const stat = (uid: string, state: string, retries: number) =>
+                Object.assign(new TestStats({ type: 'test:start', uid, title: 'outline', fullTitle: 'f: outline', cid: '0-0', specs: [] }), { state, retries })
+            const a0 = stat('row-a', 'failed', 0)
+            const b0 = stat('row-b', 'failed', 0)
+            const a1 = stat('row-a', 'failed', 1)
+            const b1 = stat('row-b', 'passed', 1)
+            const events = tmpReporter.getEventsToReport({
+                tests: [a0, b0, a1, b1], hooks: [], hooksAndTests: [a0, b0, a1, b1]
+            } as any)
+            expect(events).toEqual([a1, b1])
+        })
     })
 
     describe('onTestPass', () => {
