@@ -713,20 +713,16 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         featureStack: () => getFeatureStack(uri, feature, pickle),
     })
 
-    // as the sequential formatter: the first result that did not pass, or the last one;
-    // Cucumber retries only a FAILED attempt, so a retry ends with that result
+    // a scenario-level end: as on the result of a step, the window of the scenario
+    const scenarioEndBase = (duration: number) => ({ ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, duration })
 
     const scenarioEndPayload = (finalResult: messages.TestStepResult, duration: number) => {
         const { state, error, pendingReason, titleSuffix } = scenarioResult(finalResult)
         const payload = {
-            ...buildScenarioPayload(scenarioPayloadParams),
-            parentUid: featureUID,
-            // as on the result of a step: the window of the scenario
-            contextId,
+            ...scenarioEndBase(duration),
             state,
             error,
             ...(pendingReason ? { pendingReason } : {}),
-            duration,
             passed: ['pass', 'skip'].includes(state),
         }
         payload.title += titleSuffix
@@ -754,7 +750,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const finalResult = getScenarioResult(stepResults)
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'pass', duration, passed: true }
+            const payload = { ...scenarioEndBase(duration), state: 'pass', passed: true }
             reporter.emit('test:pass', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload }))
             return
@@ -777,7 +773,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         scenarioOpen = false
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (scenarioLevel) {
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'fail', error, duration, passed: false }
+            const payload = { ...scenarioEndBase(duration), state: 'fail', error, passed: false }
             reporter.emit('test:fail', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload }))
             return
