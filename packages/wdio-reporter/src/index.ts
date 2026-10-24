@@ -59,9 +59,8 @@ export default class WDIOReporter extends EventEmitter {
         const contextTests = new Map<string, TestStats>()
         // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
         const endedContextTests = new Map<string, TestStats>()
-        const contextByUid = new Map<string, string>()
         const retriesByContext = new Map<string, number>()
-        const getContextId = (test: Test) => test.contextId ?? contextByUid.get(test.uid)
+        const getContextId = (test: Test) => test.contextId ?? this.tests[test.uid]?.contextId
         const getRetries = (contextId?: string) => contextId ? retriesByContext.get(contextId) ?? 0 : this.retries
         const setRetries = (contextId: string | undefined, count: number) => {
             if (contextId) {
@@ -75,7 +74,6 @@ export default class WDIOReporter extends EventEmitter {
             const contextId = test.contextId ?? testStat.contextId
             if (contextId) {
                 contextTests.set(contextId, testStat)
-                contextByUid.set(testStat.uid, contextId)
                 endedContextTests.delete(contextId)
             }
         }
@@ -203,7 +201,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test: Test) => {
-            test.retries = getRetries(test.contextId)
+            test.retries = getRetries(getContextId(test))
             const currentSuite = this.#owningSuite(test.parentUid)
             /**
              * a test that started and did not end, and now ends as pending or skipped
@@ -273,7 +271,6 @@ export default class WDIOReporter extends EventEmitter {
                 }
                 retriesByContext.delete(contextId)
                 contextTests.delete(contextId)
-                contextByUid.delete(test.uid)
             } else {
                 this.retries = 0
             }
@@ -283,11 +280,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('context:end', (payload: ContextEnd) => {
             endedContextTests.delete(payload.contextId)
             // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
-            const open = contextTests.get(payload.contextId)
-            if (open) {
-                contextByUid.delete(open.uid)
-                contextTests.delete(payload.contextId)
-            }
+            contextTests.delete(payload.contextId)
             retriesByContext.delete(payload.contextId)
             this.onContextEnd(payload)
         })

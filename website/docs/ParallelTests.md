@@ -147,6 +147,7 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 - Only `mochaOpts.timeout` applies. `this.timeout()` in a test or hook throws, and `it(...).timeout()` or a `describe` timeout is ignored with a warning. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
 - `mochaOpts.bail` and Mocha retries are not supported and fail the run: `mochaOpts.retries`, `this.retries(n)` in a `describe` and `it(...).retries(n)`. `this.retries()` in a test or hook throws. The [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`) work in parallel mode.
 - `.only()`, `this.skip()`, `grep`, `fgrep` and `invert` work like in a sequential run.
+- An error that no test awaits (for example a timer that throws) fails the test or hook of the window it comes from, and the other tests go on. As in a sequential run, an unhandled rejection does not fail a test, and with `mochaOpts.allowUncaught` the error ends the worker. An error that comes after its test ended, while other tests still run, fails the run and is logged, but no test shows it (a sequential run shows it on the test that runs at that time). After the last window closed, such an error ends the worker, as in a sequential run. The same is true for an error from an event emitter that your code made outside a test, and on Node.js 22 for an error from `queueMicrotask()`, because the window of the test is not known there.
 - `mochaOpts.dryRun`, `forbidPending` and `checkLeaks` do not apply in parallel mode yet: the tests run, a pending test does not fail, and a global leak is not reported.
 
 ### Cucumber
@@ -183,6 +184,8 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 `@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
 
 `@wdio/html-reporter` doesn't support parallel mode yet: the logs, screenshots and videos that a test sends after another test started can land under the wrong test. Use it with sequential runs.
+
+`@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
