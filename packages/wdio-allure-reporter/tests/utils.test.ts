@@ -32,6 +32,7 @@ describe('utils', () => {
             ['cucumber', 'cucumber'], ['Cucumber', 'cucumber'], ['@wdio/cucumber-framework', 'cucumber'],
             ['mocha', 'mocha'], ['MOCHA', 'mocha'], ['@wdio/mocha-framework', 'mocha'],
             ['jasmine', 'jasmine'], ['@wdio/jasmine-framework', 'jasmine'],
+            ['vitest', 'vitest'], ['@wdio/vitest-framework', 'vitest'],
         ])('gives %s as %s', (name, expected) => {
             expect(knownFramework(name)).toBe(expected)
         })

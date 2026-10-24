@@ -19,9 +19,9 @@ import process from 'node:process'
  * the framework of a runner config in every form that `initializePlugin` loads it
  * (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for any other framework
  */
-export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | undefined {
+export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | 'vitest' | undefined {
     const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
-    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' ? short : undefined
+    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' || short === 'vitest' ? short : undefined
 }
 
 export const getTestStatus = (

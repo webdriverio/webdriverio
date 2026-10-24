@@ -343,7 +343,7 @@ describe('Failed tests', () => {
     })
 
     // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
-    it.each(['mocha', 'Mocha', '@wdio/mocha-framework', 'jasmine', '@wdio/jasmine-framework'])('reports a %s test titled "When ..." as a test', async (framework) => {
+    it.each(['mocha', 'Mocha', '@wdio/mocha-framework', 'jasmine', '@wdio/jasmine-framework', 'vitest', '@wdio/vitest-framework'])('reports a %s test titled "When ..." as a test', async (framework) => {
         const reporter = new AllureReporter({ outputDir })
         const runner = runnerStart()
         reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework } } as any)
