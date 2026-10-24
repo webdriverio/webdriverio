@@ -826,10 +826,6 @@ function isFailedResult(
 }
 
 /**
- * @param allocation  the window of the scenario; without it, the scenario runs in skip mode, as
- *                    Cucumber runs the scenarios after a failFast stop: nothing is executed
- */
-/**
  * Cucumber adds one process listener per running step or hook, so in parallel mode every
  * running step would get every uncaught error. Send an error to the step or hook of its own
  * window only (no window: BeforeAll / AfterAll), as Mocha parallel mode does.
@@ -861,6 +857,10 @@ function routeUncaughtErrors(parallelStore: AsyncLocalStorage<string>, manager: 
     }
 }
 
+/**
+ * @param allocation  the window of the scenario; without it, the scenario runs in skip mode, as
+ *                    Cucumber runs the scenarios after a failFast stop: nothing is executed
+ */
 async function runScenario(
     { pickle, group, index, allocation }: { pickle: messages.Pickle; group: FeatureGroup; index: number; allocation?: ParallelContextAllocation },
     params: {
