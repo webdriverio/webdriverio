@@ -12,6 +12,21 @@ import {
 } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('get-port', () => ({
+    portNumbers: (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i),
+    default: vi.fn(async (options?: { port?: number | Iterable<number>, exclude?: Iterable<number> }) => {
+        const exclude = new Set(options?.exclude || [])
+        const ports = typeof options?.port === 'number'
+            ? [options.port]
+            : options?.port || [9222]
+        for (const port of ports) {
+            if (!exclude.has(port)) {
+                return port
+            }
+        }
+        return 9222
+    })
+}))
 
 beforeEach(() => {
     delete process.env.CI
@@ -82,46 +97,49 @@ describe('configureBrowserInspector', () => {
         expect(hasInspectorOption({}, {} as any, ['--inspect-brk=127.0.0.1:9229'])).toBe(true)
     })
 
-    it('resolves unique browser inspector port without colliding with Node debugger port', () => {
-        expect(getInspectorPort({ inspect: 9555 }, {} as any, '0-0', [])).toBe(9555)
-        expect(getInspectorPort({}, { execArgv: ['--inspect=9333'] } as any, '0-0', [])).toBe(9222)
-        expect(getInspectorPort({}, { execArgv: ['--inspect=9222'] } as any, '0-0', [])).toBe(9223)
-        expect(getInspectorPort({ inspect: true }, {} as any, '0-0', [])).toBe(9222)
-        expect(getInspectorPort({ inspect: true }, {} as any, '0-1', [])).toBe(9223)
-        expect(getInspectorPort({ inspect: true }, {} as any, '1-0', [])).toBe(9224)
-        expect(getInspectorPort({ inspect: true }, {} as any, '0-2', [])).toBe(9225)
+    it('resolves unique browser inspector port without colliding with Node debugger port', async () => {
+        const allocatedPorts = new Set<number>()
+        expect(await getInspectorPort({ inspect: 9555 }, {} as any, [])).toBe(9555)
+        expect(await getInspectorPort({}, { execArgv: ['--inspect=9333'] } as any, [])).toBe(9222)
+        expect(await getInspectorPort({}, { execArgv: ['--inspect=9222'] } as any, [])).toBe(9223)
+        expect(await getInspectorPort({ inspect: true }, {} as any, [], allocatedPorts)).toBe(9222)
+        expect(await getInspectorPort({ inspect: true }, {} as any, [], allocatedPorts)).toBe(9223)
+        expect(await getInspectorPort({ inspect: true }, {} as any, [], allocatedPorts)).toBe(9224)
+        allocatedPorts.delete(9222)
+        expect(await getInspectorPort({ inspect: true }, {} as any, [], allocatedPorts)).toBe(9222)
+        expect(await getInspectorPort({ inspect: 65535 }, {} as any, ['--inspect=65535'])).toBe(1024)
     })
 
-    it('adds remote debugging port to browser capabilities when inspect is enabled', () => {
-        expect(configureBrowserInspector({}, {} as any, { browserName: 'chrome' }, '0-0', [])).toEqual({
+    it('adds remote debugging port to browser capabilities when inspect is enabled', async () => {
+        const allocatedPorts = new Set<number>()
+        expect(await configureBrowserInspector({}, {} as any, { browserName: 'chrome' }, [], allocatedPorts)).toEqual({
             browserName: 'chrome'
         })
-        expect(configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'chrome' }, '0-0', [])).toEqual({
+        expect(await configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'chrome' }, [], allocatedPorts)).toEqual({
             browserName: 'chrome',
             'goog:chromeOptions': {
                 args: ['--remote-debugging-port=9222']
             }
         })
-        expect(configureBrowserInspector({ inspect: 9333 }, {} as any, { browserName: 'msedge' }, '0-0', [])).toEqual({
+        expect(await configureBrowserInspector({ inspect: 9333 }, {} as any, { browserName: 'msedge' }, [], allocatedPorts)).toEqual({
             browserName: 'msedge',
             'ms:edgeOptions': {
                 args: ['--remote-debugging-port=9333']
             }
         })
-        expect(configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'firefox' }, '0-1', [])).toEqual({
+        expect(await configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'firefox' }, [], allocatedPorts)).toEqual({
             browserName: 'firefox',
             'moz:firefoxOptions': {
                 args: ['-remote-debugging-port', '9223']
             }
         })
-        expect(configureBrowserInspector(
+        expect(await configureBrowserInspector(
             { inspect: true },
             {} as any,
             {
                 alwaysMatch: { browserName: 'chrome' },
                 firstMatch: [{ browserVersion: 'stable' }]
             } as any,
-            '0-0',
             []
         )).toEqual({
             alwaysMatch: {
@@ -138,7 +156,7 @@ describe('configureBrowserInspector', () => {
                 args: ['--remote-debugging-port=9999']
             }
         }
-        expect(configureBrowserInspector({ inspect: true }, {} as any, existingCaps, '0-0', [])).toEqual(existingCaps)
+        expect(await configureBrowserInspector({ inspect: true }, {} as any, existingCaps, [], allocatedPorts)).toEqual(existingCaps)
     })
 })
 
