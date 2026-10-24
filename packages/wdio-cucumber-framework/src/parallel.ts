@@ -733,7 +733,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (finished.willBeRetried) {
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
-            const finalResult = getScenarioResult(stepResults, true)
+            const finalResult = getScenarioResult(stepResults)
             if (scenarioLevel && finalResult) {
                 reporter.emit('test:retry', formatMessage({ payload: scenarioEndPayload(finalResult, duration) }))
             }

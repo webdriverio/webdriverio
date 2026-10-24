@@ -1671,6 +1671,20 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(events.filter((e) => e.event === 'context:end')).toHaveLength(2)
     })
 
+    test('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', async () => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary(),
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => { throw new Error('After hook fails') }, id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: ['has no definition'] }])], defaultCucumberOpts({ ignoreUndefinedDefinitions: true }), supportCodeLibrary as never)
+
+        const end = events.find((e) => e.event === 'test:fail' || e.event === 'test:pending' || e.event === 'test:pass')!
+        expect(end.event).toBe('test:fail')
+        expect(end.payload.error.message).toContain('After hook fails')
+        expect(result).toBe(1)
+    })
+
     test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
         const browser = mockBrowser({ contexts: ['ctx-a'] })
         await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [] }])], defaultCucumberOpts({ scenarioLevelReporter: false }))

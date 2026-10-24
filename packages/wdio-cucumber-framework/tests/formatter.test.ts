@@ -26,7 +26,9 @@ import {
     testRunFinished,
 } from './fixtures/envelopes.js'
 
-vi.mock('@cucumber/messages', () => ({
+vi.mock('@cucumber/messages', async (importOriginal) => ({
+    // the real rule for the result of a scenario
+    getWorstTestStepResult: (await importOriginal<{ getWorstTestStepResult: unknown }>()).getWorstTestStepResult,
     IdGenerator: { incrementing: vi.fn() },
     TestStepResultStatus: {
         UNKNOWN: 'UNKNOWN',
@@ -485,6 +487,42 @@ describe('CucumberFormatter', () => {
 
             expect(formatter['failedCount']).toBe(0)
         })
+    })
+
+    it('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', () => {
+        const eventBroadcaster = new EventEmitter()
+        const formatter = new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: true,
+                _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('After hook fails')
+        expect(formatter['failedCount']).toBe(1)
     })
 
     describe('provides a fail counter', () => {

@@ -500,15 +500,15 @@ describe('utils', () => {
 })
 
 describe('getScenarioResult', () => {
-    const r = (status: string, message?: string) => ({ status, message })
+    const r = (status: string, message?: string) => ({ status, message }) as any
 
-    it('gives the first result that did not pass, else the last one', () => {
-        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED')])).toEqual(r('PENDING'))
-        expect(getScenarioResult([r('PASSED'), r('PASSED', 'last')])).toEqual(r('PASSED', 'last'))
-        expect(getScenarioResult([])).toBeUndefined()
+    it('gives the worst result, as Cucumber: the first one of the worst status', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED', 'After hook fails')])).toEqual(r('FAILED', 'After hook fails'))
+        expect(getScenarioResult([r('UNDEFINED'), r('SKIPPED'), r('UNDEFINED', 'second')])).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult([r('PASSED', 'first'), r('PASSED')])).toEqual(r('PASSED', 'first'))
     })
 
-    it('gives the failure of a retried attempt, also after a pending step', () => {
-        expect(getScenarioResult([r('PENDING'), r('FAILED', 'After hook fails')], true)).toEqual(r('FAILED', 'After hook fails'))
+    it('gives nothing for a scenario with no steps', () => {
+        expect(getScenarioResult([])).toBeUndefined()
     })
 })
