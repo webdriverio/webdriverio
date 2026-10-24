@@ -32,7 +32,9 @@ vi.mock('../src/helpers.js', async (importOriginal) => ({
     findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
 }))
 
-vi.mock('@wdio/reporter', () => ({
+vi.mock('@wdio/reporter', async () => ({
+    // the real rule for the name of the framework
+    knownFramework: (await vi.importActual<{ knownFramework: unknown }>('../../wdio-reporter/src/utils.js')).knownFramework,
     default: class {
         options: unknown
         write = vi.fn()
@@ -611,6 +613,15 @@ describe('Video Reporter', () => {
                 expect.stringContaining(`${path.sep}foo-bar--CHROME--`),
                 { recursive: true }
             )
+        })
+
+        // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+        it.each(['cucumber', 'Cucumber', '@wdio/cucumber-framework'])('records a Cucumber step of framework %s in its scenario, not on its own', (framework) => {
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart({ ...allureRunner, instanceOptions: { 1234: { framework } } })
+            expect(reporter.isCucumberFramework).toBe(true)
+            reporter.onTestStart({ title: 'Given a step' } as any)
+            expect(fs.mkdirSync).not.toBeCalledWith(expect.stringContaining('Given-a-step'), expect.anything())
         })
 
         it('sets the recording path for a Cucumber scenario reported as a test (scenarioLevelReporter)', () => {

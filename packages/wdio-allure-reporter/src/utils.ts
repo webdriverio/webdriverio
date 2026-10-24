@@ -1,5 +1,5 @@
 import stripAnsi from 'strip-ansi'
-import type { CommandArgs, HookStats, Tag, TestStats } from '@wdio/reporter'
+import { knownFramework, type CommandArgs, type HookStats, type Tag, type TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
 import type { Label, StatusDetails } from 'allure-js-commons'
 import { Status as AllureStatus } from 'allure-js-commons'
@@ -15,15 +15,6 @@ import process from 'node:process'
  * @param config {Object} - wdio config object
  * @private
  */
-/**
- * the framework of a runner config in every form that `initializePlugin` loads it
- * (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for any other framework
- */
-export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | 'vitest' | undefined {
-    const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
-    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' || short === 'vitest' ? short : undefined
-}
-
 export const getTestStatus = (
     test: TestStats | HookStats,
     config?: Options.Testrunner

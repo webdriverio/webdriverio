@@ -36,14 +36,16 @@ vi.mock('../src/helpers.js', async (importOriginal) => ({
     findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
 }))
 
-vi.mock('@wdio/reporter', () => ({
+vi.mock('@wdio/reporter', async () => ({
     default: class {
         options: unknown
         write = vi.fn()
         constructor (options: unknown) {
             this.options = options
         }
-    }
+    },
+    // the real rule for the name of the framework
+    knownFramework: (await vi.importActual<{ knownFramework: unknown }>('../../wdio-reporter/src/utils.js')).knownFramework
 }))
 
 vi.mock('@wdio/allure-reporter', () => ({

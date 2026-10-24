@@ -157,6 +157,17 @@ describe('HtmlReporter with Cucumber', () => {
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0, skipped: 2 })
     })
 
+    // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+    it.each(['Cucumber', '@wdio/cucumber-framework'])('counts scenarios, not steps, for framework %s', (framework) => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
+        reporter.onRunnerStart({ cid: '0-0', config: { framework } } as never)
+        // 2 passed steps of 1 scenario: 1 passed scenario
+        reporter.onTestPass({ uid: 'step-1', state: 'passed' } as never)
+        reporter.onTestPass({ uid: 'step-2', state: 'passed' } as never)
+        reporter.onSuiteEnd({ ...scenario('passed'), uid: 'scenario-passed' } as never)
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0, skipped: 0 })
+    })
+
     it('counts the steps as tests with scenarioLevelReporter', () => {
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
         reporter.onRunnerStart({ cid: '0-0', config: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } } as never)

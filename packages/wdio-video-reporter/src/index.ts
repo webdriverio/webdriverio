@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
-import WdioReporter, { type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type ContextEnd, type SuiteStats, type TestStats } from '@wdio/reporter'
+import WdioReporter, { knownFramework, type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type ContextEnd, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import { isSessionEndedError } from 'webdriver'
 import type { Options } from '@wdio/types'
@@ -272,7 +272,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        this.isCucumberFramework = runnerInstance.framework === 'cucumber'
+        this.isCucumberFramework = knownFramework(runnerInstance.framework) === 'cucumber'
         this.#isScenarioLevelReporter = this.isCucumberFramework &&
             Boolean((runnerInstance as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts?.scenarioLevelReporter)
         const allureOptions = findAllureReporter(runnerInstance.reporters)

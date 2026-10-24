@@ -4,6 +4,15 @@ import { COLORS } from './constants.js'
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
 /**
+ * the framework of a runner config in every form that `initializePlugin` loads it
+ * (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for any other framework
+ */
+export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | 'vitest' | undefined {
+    const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
+    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' || short === 'vitest' ? short : undefined
+}
+
+/**
  * replaces whitespaces with underscore and removes dots
  * @param  {string} str  variable to sanitize
  * @return {String}      sanitized variable

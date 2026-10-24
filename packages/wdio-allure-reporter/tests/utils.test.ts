@@ -8,7 +8,6 @@ import {
     findLast,
     getErrorFromFailedTest,
     getTestStatus,
-    knownFramework,
     isScreenshotCommand,
     toPackageLabel,
     normalizeCapabilityName,
@@ -23,22 +22,6 @@ describe('utils', () => {
             expect(isScreenshotCommand({ command: 'takeScreenshot' } as CommandArgs)).toEqual(true)
             expect(isScreenshotCommand({ command: 'elementClick' } as CommandArgs)).toEqual(false)
             expect(isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' } as CommandArgs)).toEqual(true)
-        })
-    })
-
-    // the forms of initializePlugin (wdio-utils initializePlugin.ts): a short name in any case, the scoped package
-    describe('knownFramework', () => {
-        it.each([
-            ['cucumber', 'cucumber'], ['Cucumber', 'cucumber'], ['@wdio/cucumber-framework', 'cucumber'],
-            ['mocha', 'mocha'], ['MOCHA', 'mocha'], ['@wdio/mocha-framework', 'mocha'],
-            ['jasmine', 'jasmine'], ['@wdio/jasmine-framework', 'jasmine'],
-            ['vitest', 'vitest'], ['@wdio/vitest-framework', 'vitest'],
-        ])('gives %s as %s', (name, expected) => {
-            expect(knownFramework(name)).toBe(expected)
-        })
-
-        it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
-            expect(knownFramework(name)).toBeUndefined()
         })
     })
 

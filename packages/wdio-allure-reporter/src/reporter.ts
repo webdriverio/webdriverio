@@ -13,7 +13,7 @@ import type {
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -40,7 +40,6 @@ import {
     getErrorFromFailedTest,
     getStatusDetailsFromFailedTest,
     getTestStatus,
-    knownFramework,
     isEmptyObject,
     isObject,
     isScreenshotCommand,
