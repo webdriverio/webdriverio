@@ -1670,6 +1670,16 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(events.filter((e) => e.event === 'context:end')).toHaveLength(2)
     })
 
+    test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-a'] })
+        await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [] }])], defaultCucumberOpts({ scenarioLevelReporter: false }))
+
+        const scenario = events.find((e) => e.event === 'suite:start' && e.payload.type === 'scenario')!
+        const contextEnds = events.filter((e) => e.event === 'context:end')
+        expect(contextEnds).toHaveLength(1)
+        expect(contextEnds[0].payload).toMatchObject({ contextId: 'ctx-a', uid: scenario.payload.uid })
+    })
+
     test('an aborted scenario closes what is open, then its window sends context:end', async () => {
         const browser = mockBrowser({ contexts: ['ctx-a'] })
         // a listener that throws when a step starts makes runner.run() reject in the middle of the scenario

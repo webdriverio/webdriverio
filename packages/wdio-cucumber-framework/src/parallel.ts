@@ -547,7 +547,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
     /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
     let attempt = 0
     let openStep: Record<string, unknown> | undefined
-    let lastTestUid = ''
+    // a scenario with no steps has no test: its window ends with the uid of the scenario
+    let lastTestUid = scenarioUID
 
     /**
      * Shared scenario payload — every event emitted for this scenario
