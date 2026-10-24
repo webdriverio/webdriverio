@@ -712,6 +712,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const payload = {
             ...buildScenarioPayload(scenarioPayloadParams),
             parentUid: featureUID,
+            // as on the result of a step: the window of the scenario
+            contextId,
             state,
             error,
             ...(pendingReason ? { pendingReason } : {}),
@@ -729,7 +731,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
             const finalResult = finalStepResult(true)
             if (scenarioLevel && finalResult) {
-                reporter.emit('test:retry', formatMessage({ payload: { ...scenarioEndPayload(finalResult, duration), contextId } }))
+                reporter.emit('test:retry', formatMessage({ payload: scenarioEndPayload(finalResult, duration) }))
             }
             return
         }
@@ -744,15 +746,15 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const finalResult = finalStepResult(false)
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'pass', duration, passed: true, retries: attempt }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'pass', duration, passed: true, retries: attempt }
             reporter.emit('test:pass', formatMessage({ payload }))
-            reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
+            reporter.emit('test:end', formatMessage({ payload }))
             return
         }
 
         const payload = scenarioEndPayload(finalResult, duration)
         reporter.emit(`test:${payload.state}`, formatMessage({ payload }))
-        reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
+        reporter.emit('test:end', formatMessage({ payload }))
     }
 
     broadcaster.on('envelope', (envelope: messages.Envelope) => {
@@ -767,9 +769,9 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         scenarioOpen = false
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (scenarioLevel) {
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false, retries: attempt }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'fail', error, duration, passed: false, retries: attempt }
             reporter.emit('test:fail', formatMessage({ payload }))
-            reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
+            reporter.emit('test:end', formatMessage({ payload }))
             return
         }
         if (openStep) {

@@ -1650,6 +1650,13 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(events.filter((e) => e.event === 'suite:end')).toHaveLength(1)
     })
 
+    test('a scenario-level result carries the contextId of its window, as a step result does', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
+        await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])])
+
+        expect(events.filter((e) => e.event === 'test:pass').map((e) => e.payload.contextId).sort()).toEqual(['ctx-a', 'ctx-b'])
+    })
+
     test('a scenario-level window sends context:end after its result, with the uid of the scenario', async () => {
         const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
         await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])])
