@@ -132,8 +132,9 @@ export const isScreenshotCommand = (command: CommandArgs): boolean => {
     return (
         // WebDriver protocol
         (command.endpoint && isScrenshotEndpoint.test(command.endpoint)) ||
-        // DevTools protocol
-        command.command === 'takeScreenshot'
+        // DevTools protocol, and the WebDriver BiDi overrides, which send no endpoint
+        command.command === 'takeScreenshot' ||
+        command.command === 'takeElementScreenshot'
     )
 }
 

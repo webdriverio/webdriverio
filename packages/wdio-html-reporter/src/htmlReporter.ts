@@ -280,8 +280,9 @@ export default class HtmlReporter extends WDIOReporter {
         return (
             // WebDriver protocol
             (command.endpoint && isScreenshotEndpoint.test(command.endpoint)) ||
-            // DevTools protocol
-            command.command === 'takeScreenshot'
+            // DevTools protocol, and the WebDriver BiDi overrides, which send no endpoint
+            command.command === 'takeScreenshot' ||
+            command.command === 'takeElementScreenshot'
         )
 
     }
