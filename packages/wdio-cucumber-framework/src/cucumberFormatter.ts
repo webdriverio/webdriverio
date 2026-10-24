@@ -279,6 +279,10 @@ export default class CucumberFormatter extends Formatter {
             payload.title += titleSuffix
         }
         this.emit(retried ? 'test:retry' : 'test:' + state, payload)
+        // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried attempt has none)
+        if (!retried) {
+            this.emit('test:end', payload)
+        }
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {

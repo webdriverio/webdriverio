@@ -98,6 +98,7 @@ onBeforeCommand
 onAfterCommand
 onAfterAssertion
 onTestPass
+onTestEnd
 onHookStart
 onHookEnd
 onHookStart

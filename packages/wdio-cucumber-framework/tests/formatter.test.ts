@@ -142,6 +142,17 @@ describe('CucumberFormatter', () => {
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
+            it.each([
+                [TestStepResultStatus.PASSED, 'test:pass'],
+                [TestStepResultStatus.FAILED, 'test:fail'],
+            ])('ends a %s step with test:end after its result, as Mocha and Jasmine', (status, result) => {
+                const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                step.testStepResult = { ...step.testStepResult, status }
+                eventBroadcaster.emit('envelope', { testStepFinished: step })
+                const events = wdioReporter.emit.mock.calls.map(([event, payload]: [string, { uid: string }]) => [event, payload.uid])
+                expect(events).toEqual([[result, events[0][1]], ['test:end', events[0][1]]])
+            })
+
             it('passed step', () => {
                 const passingStep: TestStepFinished = JSON.parse(
                     JSON.stringify(testStepFinished)
@@ -149,7 +160,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: passingStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
@@ -164,7 +176,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: failedStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
@@ -208,7 +221,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', {
                 testStepFinished: hookFinished,
             })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -281,7 +295,8 @@ describe('CucumberFormatter', () => {
             wdioReporter.emit.mockClear()
 
             eventBroadcaster.emit('envelope', { testCaseFinished })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -345,7 +360,7 @@ describe('CucumberFormatter', () => {
 
         it('ends a retried scenario attempt with test:retry, as Mocha does', () => {
             const events = retryScenarioOnce()
-            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass'])
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'])
             const [[, firstStart], [, retry], [, secondStart], [, pass]] = events
             expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', title: firstStart.title, parent: firstStart.parent })
             expect(retry.error.message).toContain('first try fails')
@@ -354,7 +369,7 @@ describe('CucumberFormatter', () => {
 
         it('counts a scenario that fails on every attempt one time', () => {
             const events = retryScenarioOnce(true)
-            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:fail'])
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:fail', 'test:end'])
             expect(events[3][1].retries).toBe(1)
             expect(formatter['failedCount']).toBe(1)
         })
@@ -795,10 +810,13 @@ describe('CucumberFormatter', () => {
             expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
                 ['test:start', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
                 ['test:pass', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:end', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
                 ['test:start', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
                 ['test:pass', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:end', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
                 ['test:start', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
                 ['test:pass', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+                ['test:end', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
             ])
         })
 
