@@ -765,7 +765,11 @@ function withAttempt (err: Error, attempt: number, totalAttempts: number) {
  * @param  {Function} fn         spec or hook method
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
- * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
+ * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to
+ *                               complete, resolved by the framework adapter from the test's own
+ *                               timeout or the framework default
+ * @param  {string}   title      the title to report in the timeout error for frameworks that
+ *                               expose no runnable to read it from, like Jasmine
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 export async function executeAsync(
@@ -773,7 +777,8 @@ export async function executeAsync(
     fn: Function,
     retries: Frameworks.TestRetries,
     args: unknown[] = [],
-    timeout: number = 20000
+    timeout?: number,
+    title?: string
 ): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
@@ -796,11 +801,38 @@ export async function executeAsync(
         /**
          * The current framework timeout. A Mocha test or hook can change it with
          * `this.timeout()` while it runs, and `0` turns it off.
+         *
+         * The framework adapter resolves its own deadline into `timeout`: a
+         * per-spec `it(title, fn, 15000)` timeout must extend the WDIO backstop
+         * beyond the Jasmine default, or the spec is cut off early (#16120).
+         * The backstop must not fire before the framework's own timer either,
+         * or a shorter per-spec timeout would have its Jasmine error replaced
+         * by the WDIO one, so `timeout` only ever extends the default.
+         * A negative `timeout` is an explicit opt-out (e.g. Cucumber's
+         * `cucumberOpts.timeout: -1`) and keeps the WDIO timer off; `0` or
+         * `undefined` means the caller did not resolve one (e.g. `it(title, fn)`
+         * before the Jasmine global exists), so it must not disable the timer
+         * either.
          */
-        const frameworkTimeout = (): number => (
-            // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
-        )
+        const frameworkTimeout = (): number => {
+            if (runnable?._timeout !== undefined) {
+                return runnable._timeout
+            }
+            if (timeout && timeout < 0) {
+                return timeout
+            }
+            /**
+             * with Jasmine the framework fires its own timeout error, so WDIO only acts
+             * as a backstop: never shorten, only extend to the Jasmine default. Without
+             * Jasmine (e.g. Cucumber) the caller timeout is used as it is.
+             */
+            const jasmineDefault = (globalThis as { jasmine?: { DEFAULT_TIMEOUT_INTERVAL?: number } })
+                .jasmine?.DEFAULT_TIMEOUT_INTERVAL
+            if (jasmineDefault === undefined) {
+                return timeout ?? 20000
+            }
+            return Math.max(timeout ?? 0, jasmineDefault)
+        }
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
          */
@@ -809,7 +841,7 @@ export async function executeAsync(
         const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
-        const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
+        const testTitle = fullTitle || runnable?.title || title || fn.name || 'unknown test or hook'
         const attempt = retries.attempts + 1
         const totalAttempts = retries.limit + 1
         /**
@@ -888,7 +920,7 @@ export async function executeAsync(
         }
         if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args, timeout)
+            return await executeAsync.call(this, fn, retries, args, timeout, title)
         }
 
         throw err
