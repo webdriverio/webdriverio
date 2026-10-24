@@ -2,6 +2,7 @@ import process from 'node:process'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
+import { hostname } from 'node:os'
 
 import type {
     AfterCommandArgs,
@@ -637,6 +638,7 @@ export default class AllureReporter extends WDIOReporter {
                 const pkg = toPackageLabelCucumber(file || this._pkgByCid.get(cid) || '')
                 const labels = [
                     ...getSuiteLabels(suitePath),
+                    { name: LabelName.HOST, value: hostname() },
                     ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
                     { name: LabelName.LANGUAGE, value: 'javascript' },
                     { name: LabelName.FRAMEWORK, value: 'wdio' },
@@ -1024,6 +1026,7 @@ export default class AllureReporter extends WDIOReporter {
         const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
         const labels = [
             ...getSuiteLabels(suitePath),
+            { name: LabelName.HOST, value: hostname() },
             ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
@@ -1322,6 +1325,7 @@ export default class AllureReporter extends WDIOReporter {
         const suitePath = [...this._suiteStack(cid)]
         const labels = [
             ...getSuiteLabels(suitePath),
+            { name: LabelName.HOST, value: hostname() },
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
