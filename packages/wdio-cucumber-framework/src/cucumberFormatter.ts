@@ -35,7 +35,8 @@ import {
     getRule,
     getStepType,
     buildStepPayload,
-    getScenarioDescription
+    getScenarioDescription,
+    getScenarioResult
 } from './utils.js'
 
 import type { HookParams, ReporterScenario } from './types.js'
@@ -573,12 +574,7 @@ export default class CucumberFormatter extends Formatter {
             return
         }
 
-        /**
-         * propagate the first non passing result or the last one
-         */
-        // Cucumber retries only a FAILED attempt: a retry ends with that result
-        const finalResult = (retried && results.find((r) => r.status === Status.FAILED))
-            || results.find((r) => r.status !== Status.PASSED) || results.pop()
+        const finalResult = getScenarioResult(results, retried)
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri

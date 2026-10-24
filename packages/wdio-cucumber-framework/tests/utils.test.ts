@@ -14,6 +14,7 @@ import {
     convertStatus,
     getAmbiguousStepMessage,
     getFeatureStack,
+    getScenarioResult,
     getStepResult,
     withAmbiguousMessage
 } from '../src/utils.js'
@@ -495,5 +496,19 @@ describe('utils', () => {
             const { error } = getStepResult(result(Status.AMBIGUOUS), { ...params, failAmbiguousDefinitions: true })
             expect(error?.message).toBe('Step "a step" matches multiple step definitions. Make the step definitions unique by removing duplicate or overlapping expressions.')
         })
+    })
+})
+
+describe('getScenarioResult', () => {
+    const r = (status: string, message?: string) => ({ status, message })
+
+    it('gives the first result that did not pass, else the last one', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED')])).toEqual(r('PENDING'))
+        expect(getScenarioResult([r('PASSED'), r('PASSED', 'last')])).toEqual(r('PASSED', 'last'))
+        expect(getScenarioResult([])).toBeUndefined()
+    })
+
+    it('gives the failure of a retried attempt, also after a pending step', () => {
+        expect(getScenarioResult([r('PENDING'), r('FAILED', 'After hook fails')], true)).toEqual(r('FAILED', 'After hook fails'))
     })
 })

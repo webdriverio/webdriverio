@@ -370,6 +370,15 @@ export interface StepResult {
 }
 
 /**
+ * the result of a scenario from the results of its steps and hooks: the failure of a retried
+ * attempt (Cucumber retries only a FAILED attempt), else the first result that did not pass, else the last
+ */
+export function getScenarioResult<T extends { status: string }>(results: T[], retried = false): T | undefined {
+    return (retried && results.find((r) => r.status === 'FAILED'))
+        || results.find((r) => r.status !== 'PASSED') || results[results.length - 1]
+}
+
+/**
  * The reported state of a step or scenario result, the same in sequential and parallel runs.
  * @param result - the Cucumber result
  * @param params.title - the step text, or the scenario title

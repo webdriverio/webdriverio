@@ -48,6 +48,7 @@ import {
     getFeatureStack,
     getRule,
     getScenarioDescription,
+    getScenarioResult,
     getStepResult,
     getStepType,
     buildStepPayload,
@@ -714,8 +715,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
 
     // as the sequential formatter: the first result that did not pass, or the last one;
     // Cucumber retries only a FAILED attempt, so a retry ends with that result
-    const finalStepResult = (retried: boolean) => (retried && stepResults.find((r) => r.status === 'FAILED'))
-        || stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
 
     const scenarioEndPayload = (finalResult: messages.TestStepResult, duration: number) => {
         const { state, error, pendingReason, titleSuffix } = scenarioResult(finalResult)
@@ -738,7 +737,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (finished.willBeRetried) {
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
-            const finalResult = finalStepResult(true)
+            const finalResult = getScenarioResult(stepResults, true)
             if (scenarioLevel && finalResult) {
                 reporter.emit('test:retry', formatMessage({ payload: scenarioEndPayload(finalResult, duration) }))
             }
@@ -752,7 +751,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             return
         }
 
-        const finalResult = finalStepResult(false)
+        const finalResult = getScenarioResult(stepResults)
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
             const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'pass', duration, passed: true }
