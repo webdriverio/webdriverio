@@ -524,18 +524,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
     /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
     let attempt = 0
     let openStep: Record<string, unknown> | undefined
-    /**
-     * test:end of the last finished step is held back: only testCaseFinished
-     * knows whether a retry follows, and the reporter's per-context state must
-     * not be cleared for a step whose attempt is repeated.
-     */
-    let pendingStepEnd: Record<string, unknown> | undefined
-
-    const flushStepEnd = () => {
-        if (!pendingStepEnd) { return }
-        reporter.emit('test:end', formatMessage({ payload: pendingStepEnd }))
-        pendingStepEnd = undefined
-    }
 
     /**
      * Shared scenario payload — every event emitted for this scenario
@@ -586,7 +574,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         testStart = new Date()
         stepResults = []
         scenarioOpen = true
-        pendingStepEnd = undefined
         attempt = started.attempt ?? 0
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
@@ -624,7 +611,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
 
         const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
         if (!info.isHook) {
-            flushStepEnd()
             openStep = payload
         }
         reporter.emit(`${type}:start`, formatMessage({ payload }))
@@ -685,8 +671,9 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         }
         payload.title += titleSuffix
         reporter.emit(`test:${state}`, formatMessage({ payload }))
+        // as in a sequential run: the result, then the end of the step (also in an attempt that is retried)
+        reporter.emit('test:end', formatMessage({ payload }))
         openStep = undefined
-        pendingStepEnd = payload
     }
 
     /**
@@ -727,7 +714,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
     const onTestCaseFinished = (finished: messages.TestCaseFinished) => {
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (finished.willBeRetried) {
-            pendingStepEnd = undefined
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
             const finalResult = finalStepResult(true)
             if (scenarioLevel && finalResult) {
@@ -736,7 +722,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             return
         }
         scenarioOpen = false
-        flushStepEnd()
 
         if (!scenarioLevel) {
             const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
@@ -785,7 +770,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             reporter.emit('test:end', formatMessage({ payload }))
             openStep = undefined
         }
-        flushStepEnd()
         const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
         reporter.emit('suite:end', formatMessage({ payload }))
     }

@@ -721,6 +721,33 @@ describe('runParallelCucumber', () => {
         expect([firstStart.retries, retry.retries, secondStart.retries, pass.retries]).toEqual([0, 0, 1, 1])
     })
 
+    test('ends every step result with test:end right after it, also the last step of a retried attempt', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
+        let calls = 0
+        const stepDefinition = makeStepDefinition('something', async function () {
+            calls++
+            if (calls === 1) {
+                throw new Error('first attempt fails')
+            }
+        })
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [stepDefinition] }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, retry: 1 }),
+        })
+
+        // as in a sequential run: the step of attempt 1 fails and ends, the scenario restarts (suite:retry)
+        const steps = reporterEvents.filter((e) => e.event.startsWith('test:')).map((e) => e.event)
+        expect(steps).toEqual(['test:start', 'test:fail', 'test:end', 'test:start', 'test:pass', 'test:end'])
+    })
+
     // ---- Failure semantics (strict / ignoreUndefinedDefinitions) ----
 
     test('pending steps fail only under strict mode', async () => {
