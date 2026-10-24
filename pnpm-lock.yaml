@@ -1026,8 +1026,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       chokidar:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^6.0.0
+        version: 6.0.0
       create-wdio:
         specifier: workspace:*
         version: link:../create-wdio
@@ -1087,8 +1087,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       pretty-ms:
-        specifier: ^9.0.0
-        version: 9.3.1
+        specifier: ^10.0.0
+        version: 10.0.0
 
   packages/wdio-config:
     dependencies:
@@ -1241,8 +1241,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(chokidar@3.6.0)
       open:
-        specifier: ^8.4.0
-        version: 8.4.2
+        specifier: ^11.0.4
+        version: 11.0.4
     devDependencies:
       '@types/nunjucks':
         specifier: ^3.2.3
@@ -1657,8 +1657,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       pretty-ms:
-        specifier: ^9.0.0
-        version: 9.3.1
+        specifier: ^10.0.0
+        version: 10.0.0
 
   packages/wdio-static-server-service:
     dependencies:
@@ -1747,8 +1747,8 @@ importers:
         specifier: ^5.3.2
         version: 5.3.2
       decamelize:
-        specifier: ^6.0.0
-        version: 6.0.1
+        specifier: ^7.0.0
+        version: 7.0.0
       deepmerge-ts:
         specifier: ^8.0.0
         version: 8.0.2
@@ -1982,8 +1982,8 @@ importers:
         specifier: npm:react-dom@19.3.0
         version: react-dom@19.3.0(react@18.3.1)
       safe-stable-stringify:
-        specifier: ^2.4.3
-        version: 2.5.0
+        specifier: ^3.0.0
+        version: 3.0.0
 
   tests:
     dependencies:
@@ -7935,6 +7935,10 @@ packages:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
     engines: {node: '>= 20.19.0'}
 
+  chokidar@6.0.0:
+    resolution: {integrity: sha512-Ec2Z7wpcKBiMpR7DxteoqS/sq5G5d2A4fpxzPv6+fD7xNNdrTghn7L11YwV5EN1B3i72Erc3XVT5FkWIDx90+A==}
+    engines: {node: '>= 22.22'}
+
   chownr@1.1.4:
     resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
 
@@ -8703,6 +8707,10 @@ packages:
     resolution: {integrity: sha512-G7Cqgaelq68XHJNGlZ7lrNQyhZGsFqpwtGFexqUv4IQdjKoSYF7ipZ9UuTJZUSQXFj/XaoBLuEVIVqr8EJngEQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  decamelize@7.0.0:
+    resolution: {integrity: sha512-uT/0KzZIx9u4b5vW3HLWtSYwjLTuY2QFVY3xNmfXXUmTqnfgzfT8DEA2gY93go5sXEjnbqP66KcURdVxm0rDXA==}
+    engines: {node: '>=22'}
+
   decimal.js@10.6.0:
     resolution: {integrity: sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==}
 
@@ -8764,10 +8772,6 @@ packages:
 
   default-browser@5.2.1:
     resolution: {integrity: sha512-WY/3TUME0x3KPYdRRxEJJvXRHV4PyPoUsxtZa78lwItwRQRHhd2U9xOscaT/YTf8uCXIAjeJOFBVEh/7FtD8Xg==}
-    engines: {node: '>=18'}
-
-  default-browser@5.4.0:
-    resolution: {integrity: sha512-XDuvSq38Hr1MdN47EDvYtx3U0MTqpCEn+F6ft8z2vYDzMrvQhVp0ui9oQdqW3MvK3vqUETglt1tVGgjLuJ5izg==}
     engines: {node: '>=18'}
 
   default-browser@5.5.1:
@@ -9038,9 +9042,6 @@ packages:
 
   electron-to-chromium@1.5.439:
     resolution: {integrity: sha512-qu6QIPXhsb+CRcAiTMNjR4A1y/7tCYKkKjr5CZXRVih6qkDf79peZ2BpEU3qoDBNCRrcy3Mra3X9nG5oruuA7Q==}
-
-  electron-to-chromium@1.5.456:
-    resolution: {integrity: sha512-8hboqI6xesozteFb8aa7OGknvxUtTeRJLz0FoePysUEh/oWbddykIGdgpEJRbPRg/nIMfBf2DFos+H2MtvJl2A==}
 
   electron-to-chromium@1.5.461:
     resolution: {integrity: sha512-3WZFARz1By+/rYcqQ0OLj4UcEdhd6tz2LEcDtKBUq7ey77EeJ1OtetY/5hjSUxw7dC5r5mA7FfkhRbqO9vnTCg==}
@@ -13078,6 +13079,10 @@ packages:
     resolution: {integrity: sha512-byhRAPguVKMQIj4kjJwJ5lAskVhfuiSdiYl/aLTWpgkGEmic2jYhJh1yE9ih8Ox44Xg9ccCT11/S6QrzSJuNrg==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
+  pretty-ms@10.0.0:
+    resolution: {integrity: sha512-6BWuxY2dCNgT45VnGzZcfNy7WeLqXiZqhhy4aHThTE6KI56R2ZBw9HQ7spPFKYchDizvJbPxTEknIpmW4FSmQA==}
+    engines: {node: '>=22'}
+
   pretty-ms@9.3.1:
     resolution: {integrity: sha512-HzMy3Geq23nVALD/M2LliU+F+M+gVNsvkQWWqeBZ8HDiCgzo6YPJ/Omrmtq24EFrIsk0a3EkQGEd7bDOo+IhGA==}
     engines: {node: '>=18'}
@@ -13688,6 +13693,10 @@ packages:
   safe-stable-stringify@2.5.0:
     resolution: {integrity: sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==}
     engines: {node: '>=10'}
+
+  safe-stable-stringify@3.0.0:
+    resolution: {integrity: sha512-1z5+QfsSGAtBGJrCw2DP9cwfdvSEMRN4BKKaZxFIKwcwRbshkrtKzzueVFAJ2d1QJm+J3AmpYvI88jFnlEZmyg==}
+    engines: {node: '>=18'}
 
   safe-stringify@1.3.0:
     resolution: {integrity: sha512-gX28YjHEpEpgMeOFD4txJYhoQSNpRUK9AtY3X0R2XtG+AZBwubM5/O9+wKbhyWlTITGfQ3vifeuk/e1/FHWTIw==}
@@ -22080,7 +22089,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.11
       caniuse-lite: 1.0.30001806
-      electron-to-chromium: 1.5.456
+      electron-to-chromium: 1.5.461
       node-releases: 2.0.51
       update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
@@ -22355,6 +22364,10 @@ snapshots:
       fsevents: 2.3.3
 
   chokidar@5.0.0:
+    dependencies:
+      readdirp: 5.1.1
+
+  chokidar@6.0.0:
     dependencies:
       readdirp: 5.1.1
 
@@ -23174,6 +23187,8 @@ snapshots:
 
   decamelize@6.0.1: {}
 
+  decamelize@7.0.0: {}
+
   decimal.js@10.6.0: {}
 
   decode-named-character-reference@1.2.0:
@@ -23235,11 +23250,6 @@ snapshots:
   default-browser-id@5.0.1: {}
 
   default-browser@5.2.1:
-    dependencies:
-      bundle-name: 4.1.0
-      default-browser-id: 5.0.1
-
-  default-browser@5.4.0:
     dependencies:
       bundle-name: 4.1.0
       default-browser-id: 5.0.1
@@ -23548,8 +23558,6 @@ snapshots:
   ejs@7.0.2: {}
 
   electron-to-chromium@1.5.439: {}
-
-  electron-to-chromium@1.5.456: {}
 
   electron-to-chromium@1.5.461: {}
 
@@ -27518,14 +27526,14 @@ snapshots:
 
   open@10.1.0:
     dependencies:
-      default-browser: 5.4.0
+      default-browser: 5.5.1
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       is-wsl: 3.1.0
 
   open@10.2.0:
     dependencies:
-      default-browser: 5.4.0
+      default-browser: 5.5.1
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
@@ -28496,6 +28504,8 @@ snapshots:
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
 
+  pretty-ms@10.0.0: {}
+
   pretty-ms@9.3.1:
     dependencies:
       parse-ms: 4.0.0
@@ -29257,6 +29267,8 @@ snapshots:
       ret: 0.5.0
 
   safe-stable-stringify@2.5.0: {}
+
+  safe-stable-stringify@3.0.0: {}
 
   safe-stringify@1.3.0: {}
 

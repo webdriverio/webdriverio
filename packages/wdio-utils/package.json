@@ -42,7 +42,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "aria-query": "^5.3.2",
-    "decamelize": "^6.0.0",
+    "decamelize": "^7.0.0",
     "deepmerge-ts": "^8.0.0",
     "edgedriver": "^8.0.0",
     "electron-to-chromium": "^1.5.439",
