@@ -1007,51 +1007,6 @@ describe('Cucumber retries (issue #15177)', () => {
         })
     })
 
-    describe('scenarioLevelReporter: separate test:start per attempt generates separate result files', () => {
-        let outputDir: string
-        let results: any[]
-
-        beforeAll(async () => {
-            outputDir = temporaryDirectory()
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
-
-            reporter.onRunnerStart(runnerStart())
-            reporter.onSuiteStart(cucumberHelper.featureStart())
-            // ----- Attempt 1 (willBeRetried=true → no test:fail emitted by cucumberFormatter) -----
-            // test:start fires for the scenario as a whole
-            reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
-            // ----- Attempt 2 (willBeRetried=false) -----
-            // test:start fires again → our fix detects the pending test and closes attempt 1
-            reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
-            // The scenario finally fails (sent by afterTest in cucumberFormatter)
-            reporter.onTestFail(cucumberHelper.testFail())
-            reporter.onSuiteEnd(cucumberHelper.featureEnd({ tests: [cucumberHelper.testFail()], hooks: [] }))
-            await reporter.onRunnerEnd(runnerEnd())
-
-            await new Promise(resolve => setTimeout(resolve, 100))
-
-            results = getResults(outputDir).results
-        })
-
-        afterAll(() => clean(outputDir))
-
-        it('should produce two separate Allure result files', () => {
-            expect(results).toHaveLength(2)
-        })
-
-        it('should assign the same historyId to both attempts', () => {
-            expect(results[0].historyId).toBeDefined()
-            expect(results[0].historyId).toBe(results[1].historyId)
-        })
-
-        it('attempt 1 should be tagged as "retried" with FAILED status (not "unknown")', () => {
-            const attempt1 = results.find((r: any) =>
-                r.labels.some((l: Label) => l.name === LabelName.TAG && l.value === 'retried')
-            )
-            expect(attempt1).toBeDefined()
-            expect(attempt1.status).toBe(Status.FAILED)
-        })
-    })
 })
 
 describe('Cucumber tests as the base reporter gives them (a TestStats keeps no type, keyword or file)', () => {

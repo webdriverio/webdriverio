@@ -994,23 +994,6 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        // Detect a scenarioLevelReporter retry: test:start fires again for a scenario while
-        // a previous scenario test is still open (because testCaseFinished was skipped for
-        // the willBeRetried=true attempt).  End the first attempt explicitly so Allure
-        // generates a separate result file for it before opening the retry result.
-        if (getType(test) === 'scenario' && this._hasPendingTest) {
-            this._pushRuntimeMessage({
-                type: 'metadata',
-                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
-            })
-            this._attachLogs()
-            this._endTest({
-                stage: AllureStage.FINISHED,
-                status: AllureStatusEnum.FAILED,
-                stop: Date.now(),
-            })
-        }
-
         this._laneKey()
         if (!this._lanesSeen) { this._ensureSuitesStarted(cid) }
         const start = AllureReporter.getTimeOrNow((test as TestStats).start)
