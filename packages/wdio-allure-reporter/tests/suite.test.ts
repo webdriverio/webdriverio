@@ -342,6 +342,20 @@ describe('Failed tests', () => {
         expect(attempt.labels.filter((l: Label) => l.name === LabelName.TAG)).toEqual([])
     })
 
+    it('reports a Mocha test whose title starts with a Gherkin keyword as a test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework: 'mocha' } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+    })
+
     it('should detect failed test case without start event', async () => {
         const reporter = new AllureReporter({ outputDir })
 

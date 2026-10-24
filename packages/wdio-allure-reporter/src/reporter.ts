@@ -958,6 +958,12 @@ export default class AllureReporter extends WDIOReporter {
         const isFeatureFile = isFeatureFilePath(file)
 
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
+        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides when it is known
+        const framework = this._config?.framework
+        if (framework) {
+            const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts
+            return framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
+        }
         if (kind === 'step') { return true }
         if (keyword) { return true }
         if (parentType === 'scenario') { return true }

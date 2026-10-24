@@ -1053,3 +1053,45 @@ describe('Cucumber retries (issue #15177)', () => {
         })
     })
 })
+
+describe('Cucumber tests as the base reporter gives them (a TestStats keeps no type, keyword or file)', () => {
+    const asTestStats = (t: Record<string, unknown>, title: string) => {
+        const { file: _file, keyword: _keyword, ...rest } = t
+        return { ...rest, type: 'test', title } as any
+    }
+    const cucumberRunner = (scenarioLevelReporter: boolean) => {
+        const runner = runnerStart()
+        return { ...runner, config: { ...runner.config, framework: 'cucumber', cucumberOpts: { scenarioLevelReporter } } } as any
+    }
+    let outputDir: string
+    beforeEach(() => { outputDir = temporaryDirectory() })
+    afterEach(() => clean(outputDir))
+
+    it('reports a step in another language as a step of its scenario', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(cucumberRunner(false))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        reporter.onSuiteStart(cucumberHelper.scenarioStart())
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'Soit je passe'))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'Soit je passe'))
+        reporter.onSuiteEnd(cucumberHelper.scenarioEnd({ tests: [cucumberHelper.testPass()], hooks: [] }))
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => [r.name, r.status, r.steps.map((s: any) => s.name)])).toEqual([['MyScenario', Status.PASSED, ['Soit je passe']]])
+    })
+
+    it('reports a scenario-level scenario whose name starts with a keyword as a test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(cucumberRunner(true))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'Given a user logs in'))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'Given a user logs in'))
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => [r.name, r.status])).toEqual([['Given a user logs in', Status.PASSED]])
+    })
+})
