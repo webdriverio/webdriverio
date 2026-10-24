@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
-import WdioReporter, { type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type ContextEnd, type SuiteStats, type TestStats } from '@wdio/reporter'
+import WdioReporter, { knownFramework, type RunnerStats, type AfterCommandArgs, type BeforeCommandArgs, type ContextEnd, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import { isSessionEndedError } from 'webdriver'
 import type { Options } from '@wdio/types'
@@ -75,10 +75,6 @@ export default class VideoReporter extends WdioReporter {
      */
     #suites = new Map<string, { title: string, parentUid?: string | null }>()
     #takenNames = new Set<string>()
-    /**
-     * Cucumber in parallel mode sends `test:end` after `test:pass` or `test:fail`
-     */
-    #endedTests = new Set<string>()
     /**
      * parallel mode: the last frame of each test window, until the window closes
      */
@@ -276,7 +272,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        this.isCucumberFramework = runnerInstance.framework === 'cucumber'
+        this.isCucumberFramework = knownFramework(runnerInstance.framework) === 'cucumber'
         this.#isScenarioLevelReporter = this.isCucumberFramework &&
             Boolean((runnerInstance as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts?.scenarioLevelReporter)
         const allureOptions = findAllureReporter(runnerInstance.reporters)
@@ -533,9 +529,6 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         const recording = this.#ownRecording(key)
-        if (suite.uid) {
-            this.#endedTests.delete(suite.uid)
-        }
         /**
          * `@wdio/mocha-framework` 10.1.0 and older report a test as started again when its beforeEach hook
          * failed (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
@@ -562,44 +555,19 @@ export default class VideoReporter extends WdioReporter {
     }
 
     /**
-   * Remove empty directories
-   */
-    onTestSkip(payload: TestStats) {
-        if (!this.#record) {
-            return
-        }
-        if (!this.isCucumberFramework) {
+     * stops the screenshots of a skipped test at once; test:end follows and makes the end frame and the video
+     */
+    onTestSkip() {
+        if (this.#record && !this.isCucumberFramework) {
             this.clearScreenshotInterval()
-            return
         }
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
     }
 
     /**
-     * a Cucumber step or scenario that returns 'pending' (Mocha and Jasmine also send
-     * `test:end` for a test that becomes pending while it runs)
+     * a step or test that becomes pending while it runs (test:end follows, as for a skip)
      */
-    onTestPending(payload: TestStats) {
-        this.onTestSkip(payload)
-    }
-
-    onTestPass(payload: TestStats): void {
-        if (!this.#record || !this.isCucumberFramework) {
-            return
-        }
-
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
-    }
-
-    onTestFail(payload: TestStats): void {
-        if (!this.#record || !this.isCucumberFramework) {
-            return
-        }
-
-        // Only on cucumber because `onTestEnd` isn't called
-        this.onTestEnd(payload)
+    onTestPending() {
+        this.onTestSkip()
     }
 
     /**
@@ -609,13 +577,6 @@ export default class VideoReporter extends WdioReporter {
         if (!this.#record) {
             return
         }
-        if (test.uid) {
-            if (this.#endedTests.has(test.uid)) {
-                return
-            }
-            this.#endedTests.add(test.uid)
-        }
-
         const key = this.#keyOf(test.contextId)
         const recording = this.#recordings.get(key)
         this.#clearInterval(recording)

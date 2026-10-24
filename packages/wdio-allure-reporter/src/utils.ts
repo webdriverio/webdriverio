@@ -1,5 +1,5 @@
 import stripAnsi from 'strip-ansi'
-import type { CommandArgs, HookStats, Tag, TestStats } from '@wdio/reporter'
+import { knownFramework, type CommandArgs, type HookStats, type Tag, type TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
 import type { Label, StatusDetails } from 'allure-js-commons'
 import { Status as AllureStatus } from 'allure-js-commons'
@@ -19,7 +19,7 @@ export const getTestStatus = (
     test: TestStats | HookStats,
     config?: Options.Testrunner
 ): AllureStatus => {
-    if (config && config.framework === 'jasmine') {
+    if (knownFramework(config?.framework) === 'jasmine') {
         return AllureStatus.FAILED
     }
 

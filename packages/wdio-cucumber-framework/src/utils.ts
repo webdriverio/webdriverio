@@ -16,6 +16,7 @@ import type {
     StepDefinition,
     TestStepResult
 } from '@cucumber/messages'
+import { getWorstTestStepResult } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
 import { AMBIGUOUS_STEP_MESSAGE, CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
@@ -367,6 +368,24 @@ export interface StepResult {
     titleSuffix: string
     /** the result counts as a failure of the run */
     failed: boolean
+}
+
+/**
+ * the result of a scenario from the results of its steps and hooks: of the results that fail under the
+ * options (see `getStepResult`), the worst one as Cucumber orders them (a retried attempt has a FAILED one);
+ * else the first result that did not pass, else the last one; `undefined` for a scenario with no steps
+ */
+export function getScenarioResult(
+    results: TestStepResult[],
+    options: { ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean }
+): TestStepResult | undefined {
+    const failing = results.filter(({ status }) => status === 'FAILED' ||
+        (status === 'UNDEFINED' && !options.ignoreUndefinedDefinitions) ||
+        (status === 'AMBIGUOUS' && options.failAmbiguousDefinitions))
+    if (failing.length) {
+        return getWorstTestStepResult(failing)
+    }
+    return results.find(({ status }) => status !== 'PASSED') || results[results.length - 1]
 }
 
 /**
