@@ -106,7 +106,14 @@ Set both in `mochaOpts` or in `cucumberOpts`.
 
 Pick `'contexts'` by default. Pick `'userContexts'` when tests must not see each other's cookies or storage, for example tests that log in as different users. Like `'contexts'`, `'userContexts'` falls back to a sequential run with a warning when the session is not WebDriver BiDi or `'wdio:experimentalBiDiCommands'` is missing from the capabilities. If the driver does not support `browser.createUserContext`, the run fails rather than falling back.
 
-`browser.newWindow()` opens the window in the default user context, so a window opened that way is outside the test's cookie and storage isolation.
+A tab or window that a test opens with `browser.newWindow(url)` opens from the window of the test, so it has the cookies and storage of the test. To open a window outside the test's cookie and storage isolation, create it with `browser.browsingContextCreate()`, and get its browsing context from `browser.browsingContexts()`:
+
+```js
+const { context } = await browser.browsingContextCreate({ type: 'window' })
+await browser.browsingContextNavigate({ context, url: 'https://example.com', wait: 'complete' })
+const outside = (await browser.browsingContexts()).find((c) => c.contextId === context)
+await outside.$('h1').getText()
+```
 
 ## What each test owns
 
