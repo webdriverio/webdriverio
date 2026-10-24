@@ -43,6 +43,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
+    private _literalCliSpecPaths = new Map<string, string>()
     private _config: TestrunnerOptionsWithParameters
     private _capabilities?: Capabilities.TestrunnerCapabilities = []
 
@@ -66,7 +67,13 @@ export default class ConfigParser {
          * rather than relative to the config file
          */
         if (_initialConfig.spec) {
-            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
+            const raw = _initialConfig.spec
+            const globs = makeRelativeToCWD(raw) as string[]
+            const literalPaths = makeRelativeToCWD(raw, false) as string[]
+            globs.forEach((glob, index) => {
+                this._literalCliSpecPaths.set(glob, literalPaths[index])
+            })
+            _initialConfig.spec = globs
         }
 
         this.merge(_initialConfig, false)
@@ -243,7 +250,12 @@ export default class ConfigParser {
             /**
              * `this._config.spec` is string instead of Array in watch mode
              */
-            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...new Set(this._config.spec)] : [this._config.spec]
+            // Cucumber compares these paths to filesystem paths after selecting
+            // feature line numbers. Glob escapes are only for the lookup stage.
+            const specs = Array.isArray(this._config.spec) ? this._config.spec : [this._config.spec]
+            this._config.cucumberFeaturesWithLineNumbers = [
+                ...new Set(specs.map(spec => this._literalCliSpecPaths.get(spec) ?? spec))
+            ]
         }
 
         /**
@@ -411,10 +423,14 @@ export default class ConfigParser {
                 this._pathService
             )
             if (this._pathService.isFile(filteredFile)) {
+                /**
+                 * `isFile` found a relative path from the current working directory,
+                 * so it has to become absolute from there, not from the config file (#14447)
+                 */
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
                         filteredFile,
-                        path.dirname(this.#configFilePath)
+                        process.cwd()
                     )
                 )
             } else if (globMatchedFiles.length) {
