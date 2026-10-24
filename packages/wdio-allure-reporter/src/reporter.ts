@@ -953,13 +953,6 @@ export default class AllureReporter extends WDIOReporter {
 
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
         const kind = getType(exec)
-        const keyword = getKeyword(exec)
-        const parentType = getParentType(exec)
-        const file = (exec as unknown as MaybeFile).file
-        const title = getTitle(exec)
-        const hasCucumberKeyword = hasCucumberKeywordInTitle(title)
-        const isFeatureFile = isFeatureFilePath(file)
-
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
         // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
         // framework; another one (a custom framework or adapter) keeps the rules below
@@ -968,11 +961,10 @@ export default class AllureReporter extends WDIOReporter {
             return this._framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
         }
         if (kind === 'step') { return true }
-        if (keyword) { return true }
-        if (parentType === 'scenario') { return true }
-        if (isFeatureFile) { return true }
-        if (hasCucumberKeyword) { return true }
-        return false
+        if (getKeyword(exec)) { return true }
+        if (getParentType(exec) === 'scenario') { return true }
+        if (isFeatureFilePath((exec as unknown as MaybeFile).file)) { return true }
+        return hasCucumberKeywordInTitle(getTitle(exec))
     }
 
     onTestStart(test: TestStats | HookStats): void {
