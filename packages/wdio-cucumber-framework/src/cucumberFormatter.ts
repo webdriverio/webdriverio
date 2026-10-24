@@ -572,7 +572,9 @@ export default class CucumberFormatter extends Formatter {
         /**
          * propagate the first non passing result or the last one
          */
-        const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
+        // Cucumber retries only a FAILED attempt: a retry ends with that result
+        const finalResult = (retried && results.find((r) => r.status === Status.FAILED))
+            || results.find((r) => r.status !== Status.PASSED) || results.pop()
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri

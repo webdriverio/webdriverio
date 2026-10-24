@@ -1055,10 +1055,16 @@ export default class AllureReporter extends WDIOReporter {
             this._handleCucumberStepEnd(test, getTestStatus(test, this._config), getStatusDetailsFromFailedTest(test))
             return
         }
+        // the attempt shows under "Retries" of its test, as a retried Cucumber scenario (onSuiteRetry)
+        this._pushRuntimeMessage({
+            type: 'metadata',
+            data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
+        })
         this._attachLogs()
         const status = getTestStatus(test, this._config)
         this._endTest({
             status,
+            stage: AllureStage.FINISHED,
             statusDetails: getStatusDetailsFromFailedTest(test),
             stop: AllureReporter.getTimeOrNow(test.end),
             duration: test.duration,
