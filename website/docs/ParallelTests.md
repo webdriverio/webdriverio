@@ -184,6 +184,8 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/html-reporter` doesn't support parallel mode yet: the logs, screenshots and videos that a test sends after another test started can land under the wrong test. Use it with sequential runs.
 
+`@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
+
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
 ## Cloud vendors

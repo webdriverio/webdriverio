@@ -43,7 +43,7 @@ jobs:
           [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($screen.Bounds.Left, ($screen.Bounds.Bottom - 1))
           Write-Host "Cursor after: $([System.Windows.Forms.Cursor]::Position)"
 
-      # @wdio/video-reporter does not ship ffmpeg (test:e2e:video-reporter needs it)
+      # @wdio/video-reporter does not ship ffmpeg (test:e2e:video-reporter and its :parallel run need it)
       - name: Install ffmpeg
         shell: bash
         run: |
@@ -61,6 +61,7 @@ jobs:
           pnpm run test:e2e:lighthouse
           pnpm run test:e2e:ai
           pnpm run test:e2e:video-reporter
+          pnpm run test:e2e:video-reporter-parallel
           pnpm run test:e2e:parallel
         shell: bash
 

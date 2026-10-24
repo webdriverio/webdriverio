@@ -81,6 +81,7 @@
     "test:e2e:chromedriver": "cd ./e2e && npx wdio run ./wdio/chromedriver/wdio.conf.ts",
     "test:e2e:cucumberjs-json-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/cucumberjs-json/wdio.conf.ts",
     "test:e2e:video-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.conf.ts",
+    "test:e2e:video-reporter-parallel": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.parallel.conf.ts",
     "test:e2e:html-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/html/wdio.conf.ts",
     "test:e2e": "run-s test:e2e:* ",
     "test:ios:local": "cd ./e2e && npx wdio run ./wdio/mobile/wdio.ios.conf.ts",
