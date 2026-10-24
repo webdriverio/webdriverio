@@ -19,10 +19,16 @@ interface TargetInfo {
 }
 
 /**
- * a grid or a cloud service can block the ChromeDriver CDP endpoint, and each
- * failed request is retried, so do not use it again in this process
+ * only a driver on this machine: a grid, a cloud service or a proxy can block
+ * the ChromeDriver CDP endpoint or never answer it
  */
-let isEndpointBlocked = false
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]']
+
+/**
+ * drivers whose CDP endpoint failed: each failed request is retried, so do not
+ * use that endpoint again in this process
+ */
+const failedEndpoints = new Set<string>()
 
 export function getBidiMapperLogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, BidiMapperLogManager)
@@ -41,13 +47,18 @@ export class BidiMapperLogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, BidiMapperLogManager.name)
 
-        if (!this.isEnabled() || !browser.isChromium || isEndpointBlocked) {
+        const { hostname = '', port } = browser.options
+        const endpoint = `${hostname}:${port}`
+        if (
+            !this.isEnabled() || !browser.isChromium || browser.isMobile ||
+            !LOCAL_HOSTS.includes(hostname) || failedEndpoints.has(endpoint)
+        ) {
             this.#initialize = Promise.resolve(true)
             return
         }
 
         this.#initialize = removeMapperLog(browser).then(() => true, (err: Error) => {
-            isEndpointBlocked = true
+            failedEndpoints.add(endpoint)
             log.debug(`Could not remove the log of the BiDi Mapper: ${err.message}`)
             return false
         })
@@ -61,8 +72,11 @@ export class BidiMapperLogManager extends SessionManager {
 async function removeMapperLog(browser: WebdriverIO.Browser) {
     // hidden targets are listed only with an explicit filter
     const { targetInfos } = await browser.sendCommandAndGetResult('Target.getTargets', { filter: [{}] }) as { targetInfos: TargetInfo[] }
-    // the Mapper target is `other` in Chrome and `page` in chrome-headless-shell; `tab` is its tab entry
-    for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && type !== 'tab')) {
+    /**
+     * ChromeDriver never answers a non-flat attach to a `page` target, and the
+     * session then hangs: chrome-headless-shell, whose Mapper is a `page`, keeps its log
+     */
+    for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && type === 'other')) {
         /**
          * the ChromeDriver endpoint takes no CDP session id, so only the non-flat
          * mode (deprecated, https://crbug.com/991325) can reach another target

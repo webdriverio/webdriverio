@@ -33,6 +33,8 @@ describe('BidiMapperLogManager', () => {
         manager = await import('../../src/session/bidiMapperLog.js')
         browser = {
             isChromium: true,
+            isMobile: false,
+            options: { hostname: 'localhost', port: 4321 },
             isEnabled: vi.fn().mockReturnValue(true),
             sendCommandAndGetResult: vi.fn(async (cmd: string) => {
                 if (cmd === 'Target.getTargets') {
@@ -67,11 +69,24 @@ describe('BidiMapperLogManager', () => {
         ])
     })
 
-    // chrome-headless-shell gives the hidden Mapper target the type `page`
-    it('finds the BiDi Mapper by its title, whatever its target type', async () => {
+    // chrome-headless-shell gives the Mapper the type `page`; ChromeDriver never answers that attach
+    it('does not attach to a page target, also when it is titled as the BiDi Mapper', async () => {
         browser.sendCommandAndGetResult.mockResolvedValueOnce({ targetInfos: [PAGE, { ...MAPPER, type: 'page' }] })
-        await new manager.BidiMapperLogManager(browser).initialize()
-        expect(browser.sendCommandAndGetResult).toBeCalledWith('Target.attachToTarget', { targetId: 'mapper', flatten: false })
+        expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(calls()).toEqual(['Target.getTargets'])
+    })
+
+    // a grid, a cloud service or a proxy can block the CDP endpoint or never answer it
+    it('does nothing when the driver does not run on this machine', async () => {
+        browser.options.hostname = 'grid.example.com'
+        expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(browser.sendCommandAndGetResult).not.toBeCalled()
+    })
+
+    it('does nothing in a mobile session', async () => {
+        browser.isMobile = true
+        expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(browser.sendCommandAndGetResult).not.toBeCalled()
     })
 
     it('changes only the page of the BiDi Mapper', () => {
@@ -117,11 +132,19 @@ describe('BidiMapperLogManager', () => {
         expect(browser.sendCommandAndGetResult).toBeCalledWith('Target.detachFromTarget', { sessionId: 'mapper-session' })
     })
 
-    // a grid or a cloud service can block the ChromeDriver CDP endpoint; each failed request is retried
-    it('does not use the CDP endpoint again in this process after it failed once', async () => {
+    // each failed request is retried
+    it('does not use a CDP endpoint again after it failed once', async () => {
         browser.sendCommandAndGetResult.mockRejectedValueOnce(new Error('unknown command'))
         expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(false)
         expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(true)
         expect(calls()).toEqual(['Target.getTargets'])
+    })
+
+    it('still uses the CDP endpoint of another driver after a failure', async () => {
+        browser.sendCommandAndGetResult.mockRejectedValueOnce(new Error('unknown command'))
+        expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(false)
+        browser.options.port = 4444
+        expect(await new manager.BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(calls()).toContain('Target.attachToTarget')
     })
 })
