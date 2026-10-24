@@ -54,6 +54,7 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
+    updateSnapshots: 'none',
     /**
      * these specs `render()` fixtures directly into `document.body` without
      * cleaning up between tests, so generic selectors legitimately accumulate
