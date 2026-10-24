@@ -89,6 +89,8 @@ export default class CustomReporter extends WDIOReporter {
 
 The method names are pretty self explanatory.
 
+After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). An attempt that is retried ends with `onTestRetry` and gets no `onTestEnd`, so finish your work for a test in `onTestEnd`, not in the result methods.
+
 To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 
 ```js
