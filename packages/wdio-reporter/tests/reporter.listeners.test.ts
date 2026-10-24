@@ -99,6 +99,16 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests['scenario-1'].parentUid).toBe('feature-1')
         })
 
+        it('gives a parallel test that ends as pending the retries of its context', () => {
+            // Cucumber parallel retry: a failed attempt, then a new attempt that ends as pending
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:retry', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            // the pending payload has no contextId
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-2', state: 'pending' })
+            expect(reporter.tests['scenario-2'].retries).toBe(1)
+        })
+
         it('adds no context or parent property to a sequential test that ends as pending', () => {
             reporter.emit('test:start', { ...stat, uid: 'step-4' })
             reporter.emit('test:pending', { ...stat, uid: 'step-4', state: 'pending' })
