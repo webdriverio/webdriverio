@@ -147,6 +147,23 @@ describe('BrowserRunner', () => {
         expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
     })
 
+    it('configures remote debugging port and timeout when inspect is enabled', async () => {
+        const config = {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any
+        const runner = new BrowserRunner({ inspect: true }, config)
+        expect(config.mochaOpts.timeout).toBe(24 * 60 * 60 * 1000)
+
+        await runner.initialize()
+        vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+        const runArgs = { caps: { browserName: 'chrome' }, command: 'run', args: {}, cid: '0-0', execArgv: [] } as any
+        await runner.run(runArgs)
+        expect(runArgs.caps['goog:chromeOptions']).toEqual({
+            args: ['--remote-debugging-port=9222']
+        })
+    })
+
     it('shutdown', async () => {
         const runner = new BrowserRunner({}, {
             rootDir: '/foo/bar',

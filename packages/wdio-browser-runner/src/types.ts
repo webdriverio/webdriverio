@@ -130,6 +130,14 @@ export interface BrowserRunnerOptions {
      * @default http://0.0.0.0
      */
     host?: string
+    /**
+     * Enable remote debugging in the browser so an IDE debugger (e.g. VS Code)
+     * can attach and pause on breakpoints in frontend and test code.
+     * Pass `true` to use the default port (`9222`), or specify a custom port number.
+     *
+     * @default false
+     */
+    inspect?: boolean | number
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
