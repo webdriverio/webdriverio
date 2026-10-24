@@ -574,7 +574,10 @@ export default class CucumberFormatter extends Formatter {
             return
         }
 
-        const finalResult = getScenarioResult(results)
+        const finalResult = getScenarioResult(results, {
+            ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+            failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+        })
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri

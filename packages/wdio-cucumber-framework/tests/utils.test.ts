@@ -501,14 +501,28 @@ describe('utils', () => {
 
 describe('getScenarioResult', () => {
     const r = (status: string, message?: string) => ({ status, message }) as any
+    const defaults = { ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false }
 
-    it('gives the worst result, as Cucumber: the first one of the worst status', () => {
-        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED', 'After hook fails')])).toEqual(r('FAILED', 'After hook fails'))
-        expect(getScenarioResult([r('UNDEFINED'), r('SKIPPED'), r('UNDEFINED', 'second')])).toEqual(r('UNDEFINED'))
-        expect(getScenarioResult([r('PASSED', 'first'), r('PASSED')])).toEqual(r('PASSED', 'first'))
+    it('gives the worst result of the ones that fail under the options, as Cucumber orders them', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED', 'After hook fails')], defaults)).toEqual(r('FAILED', 'After hook fails'))
+        expect(getScenarioResult([r('UNDEFINED'), r('FAILED', 'After hook fails')], defaults)).toEqual(r('FAILED', 'After hook fails'))
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], { ...defaults, failAmbiguousDefinitions: true })).toEqual(r('AMBIGUOUS'))
+    })
+
+    it('keeps a result that fails before a worse one that does not fail under the options', () => {
+        // with the defaults an ambiguous step is skipped, an undefined step fails
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], defaults)).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult([r('AMBIGUOUS'), r('UNDEFINED')], defaults)).toEqual(r('UNDEFINED'))
+    })
+
+    it('gives the first result that did not pass when none fails, else the last one', () => {
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], { ...defaults, ignoreUndefinedDefinitions: true })).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('SKIPPED')], defaults)).toEqual(r('PENDING'))
+        expect(getScenarioResult([r('PASSED', 'first'), r('PASSED', 'last')], defaults)).toEqual(r('PASSED', 'last'))
     })
 
     it('gives nothing for a scenario with no steps', () => {
-        expect(getScenarioResult([])).toBeUndefined()
+        expect(getScenarioResult([], defaults)).toBeUndefined()
     })
 })
+

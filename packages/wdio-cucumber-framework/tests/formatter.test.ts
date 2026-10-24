@@ -489,6 +489,41 @@ describe('CucumberFormatter', () => {
         })
     })
 
+    it('ends a scenario-level scenario with an undefined step as failed, also when an ambiguous step follows (default options)', () => {
+        const eventBroadcaster = new EventEmitter()
+        new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: false,
+                _failAmbiguousDefinitions: false,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const ambiguousStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(ambiguousStep.testStepResult, { status: 'AMBIGUOUS', message: 'Multiple step definitions match:' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('has undefined steps')
+    })
+
     it('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', () => {
         const eventBroadcaster = new EventEmitter()
         const formatter = new CucumberFormatter({

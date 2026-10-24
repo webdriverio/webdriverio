@@ -1671,6 +1671,16 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(events.filter((e) => e.event === 'context:end')).toHaveLength(2)
     })
 
+    test('ends a scenario-level scenario with an undefined step as failed, also when an ambiguous step follows (default options)', async () => {
+        const ambiguous = [makeStepDefinition('I am ambiguous', async function () {}), { ...makeStepDefinition('I am ambiguous', async function () {}), id: 'sd-ambiguous-2', line: 2 }]
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: ['has no definition', 'I am ambiguous'] }])], defaultCucumberOpts(), mockSupportCodeLibrary({ stepDefinitions: ambiguous }) as never)
+
+        const end = events.find((e) => e.event === 'test:fail' || e.event === 'test:skip' || e.event === 'test:pass' || e.event === 'test:pending')!
+        expect(end.event).toBe('test:fail')
+        expect(end.payload.error.message).toContain('has undefined steps')
+        expect(result).toBe(1)
+    })
+
     test('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', async () => {
         const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
         const supportCodeLibrary = {
