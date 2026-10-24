@@ -121,12 +121,13 @@ export async function getHTML(
 
         /**
          * verify that shadow elements captured by the shadow root manager is still attached to the DOM
+         * (BiDi still resolves a removed node, so only `isConnected` tells)
          */
         const elementsWithShadowRootAndIdVerified = ((
             await Promise.all(
                 shadowRootElementPairs.map(([elemId, elem]) => (
-                    executeInContext(browser, context, (elem: HTMLElement) => elem.tagName, { [ELEMENT_KEY]: elemId }).then(
-                        () => [elemId, elem],
+                    executeInContext(browser, context, (elem: HTMLElement) => elem.isConnected, { [ELEMENT_KEY]: elemId }).then(
+                        (connected) => connected ? [elemId, elem] : undefined,
                         () => undefined
                     )
                 ))

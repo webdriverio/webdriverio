@@ -6,6 +6,7 @@ import { remote } from '../../../src/index.js'
 import { sanitizeHTML } from '../../../src/commands/element/getHTML.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getShadowRootManager } from '../../../src/session/shadowRoot.js'
+import { LocalValue } from '../../../src/utils/bidi/value.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -49,6 +50,44 @@ describe('getHTML test', () => {
         ).rejects.toThrow(
             'Passing a boolean to `getHTML` was removed in WebdriverIO v10. Use `element.getHTML({ includeSelectorTag: false })`.'
         )
+    })
+
+    /**
+     * A tracked shadow host can be one that the page removed. Its `tagName` still works,
+     * so only `isConnected` tells: an old host would make the script a stale element error.
+     */
+    it('does not send a tracked shadow host that the page removed', async ({ onTestFinished }) => {
+        const browser = await remote({
+            capabilities: {
+                browserName: 'bidi'
+            }
+        })
+        const elem = await browser.$({ [ELEMENT_KEY]: 'outer-host' })
+        const shadowRootManager = getShadowRootManager(browser)
+        const hosts: Record<string, unknown> = {
+            'outer-host': { tagName: 'OUTER-ELEMENT', isConnected: true },
+            'old-host': { tagName: 'OLD-ELEMENT', isConnected: false }
+        }
+        const mocks: { mockRestore: () => void }[] = [
+            vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('context-id'),
+            vi.spyOn(shadowRootManager, 'getShadowElementPairsByContextId').mockResolvedValue([
+                ['outer-host', 'outer-root'],
+                ['old-host', 'old-root']
+            ]),
+            vi.spyOn(browser, 'scriptCallFunction').mockImplementation(async (params) => {
+                const fn = new Function(`return (${params.functionDeclaration})`)()
+                const args = (params.arguments as { sharedId?: string }[]).map((arg) => hosts[arg.sharedId as string])
+                return { type: 'success', realm: 'realm-1', result: LocalValue.getArgument(await fn(...args)).asMap() } as never
+            })
+        ]
+        onTestFinished(() => mocks.forEach((mock) => mock.mockRestore()))
+        const execute = vi.spyOn(elem, 'execute').mockResolvedValue({ html: '<outer-element></outer-element>', shadowElementHTML: [] })
+        mocks.push(execute)
+
+        await elem.getHTML({ prettify: false })
+
+        const sent = execute.mock.calls[0][2] as [string, unknown, unknown][]
+        expect(sent.map(([elementId]) => elementId)).toEqual(['outer-host'])
     })
 
     it('should exclude elements from reconstructed nested shadow roots in Node.js', async ({ onTestFinished }) => {

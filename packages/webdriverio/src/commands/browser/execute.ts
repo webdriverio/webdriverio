@@ -1,5 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, ELEMENT_KEY, type remote } from 'webdriver'
 
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
@@ -81,7 +81,11 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
             await assertFrameAttached(held)
         }
         const context = held ? held.contextId : await contextIdOf(this)
-        const functionDeclaration = createBidiFunctionDeclaration(script)
+        const scriptArgs = verifyArgsAndStripIfElement(args) as unknown[]
+        /**
+         * W3C "get a known element": BiDi still resolves an element that the page removed
+         */
+        const functionDeclaration = createBidiFunctionDeclaration(script, { knownElements: hasElement(scriptArgs) })
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
@@ -90,7 +94,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
              * not found throws a clear error: the serializer would read it as a plain
              * object and fail on its first command ("Unsupported type: function")
              */
-            arguments: (verifyArgsAndStripIfElement(args) as unknown[]).map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            arguments: scriptArgs.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }
@@ -153,6 +157,23 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     }
 
     return browser.executeScript(script, scriptArgs)
+}
+
+/**
+ * an element in the arguments, also in an array or an object
+ */
+function hasElement (value: unknown, depth = 0): boolean {
+    if (!value || typeof value !== 'object' || depth > 32) {
+        return false
+    }
+    if (typeof (value as Record<string, unknown>)[ELEMENT_KEY] === 'string') {
+        return true
+    }
+    if (Array.isArray(value)) {
+        return value.some((item) => hasElement(item, depth + 1))
+    }
+    const proto = Object.getPrototypeOf(value)
+    return (proto === Object.prototype || proto === null) && Object.values(value).some((item) => hasElement(item, depth + 1))
 }
 
 function isScriptError (result: unknown): result is { __wdioError: true, message: string, name?: string, stack?: string } {

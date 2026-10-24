@@ -5,6 +5,8 @@ import elementContains from '../scripts/elementContains.js'
 import elementsContainedIn from '../scripts/elementsContainedIn.js'
 import elementsConnected from '../scripts/elementsConnected.js'
 import { executeInContext } from './bidi/index.js'
+import { withKnownElement } from './foreignContext.js'
+import { UNKNOWN_ELEMENT_ERROR } from '../commands/constant.js'
 
 const log = logger('webdriverio')
 
@@ -38,7 +40,8 @@ async function runBatchedElementCheck (
     contextId: string | undefined,
     onElementCheckError: ((elementId: string) => void) | undefined,
     batchCheck: () => Promise<boolean[]>,
-    perElementCheck: (elementId: string) => Promise<boolean>
+    perElementCheck: (elementId: string) => Promise<boolean>,
+    isFatal: (err: Error) => boolean = () => false
 ): Promise<boolean[]> {
     if (elementIds.length === 0) {
         return []
@@ -57,6 +60,9 @@ async function runBatchedElementCheck (
         }
         return result
     } catch (err) {
+        if (isFatal(err as Error)) {
+            throw err
+        }
         log.warn(`Failed to batch-check element ${checkName}${inContext}: ${(err as Error).message}. Falling back to per-element checks.`)
     }
 
@@ -102,6 +108,36 @@ export async function checkElementsContainedIn (
             { [ELEMENT_KEY]: scope } as unknown as HTMLElement,
             { [ELEMENT_KEY]: elementId } as unknown as HTMLElement
         )
+    )
+}
+
+/**
+ * The containment check of a search from `scope`. W3C "get a known element": a stale
+ * `scope` throws a stale element error, also when the search found nothing.
+ */
+export async function checkElementsContainedInKnownScope (
+    browser: WebdriverIO.Browser,
+    scope: string,
+    elementIds: string[],
+    contextId?: string
+): Promise<boolean[]> {
+    const scopeRef = { [ELEMENT_KEY]: scope } as unknown as HTMLElement
+    if (elementIds.length === 0) {
+        await run(browser, contextId)(withKnownElement(() => null), scopeRef)
+        return []
+    }
+    return runBatchedElementCheck(
+        elementIds,
+        `containment for scope ${scope}`,
+        contextId,
+        undefined,
+        () => run(browser, contextId)(
+            withKnownElement(elementsContainedIn),
+            scopeRef,
+            elementIds.map((elementId) => ({ [ELEMENT_KEY]: elementId })) as unknown as HTMLElement[]
+        ),
+        (elementId) => run(browser, contextId)(elementContains, scopeRef, { [ELEMENT_KEY]: elementId } as unknown as HTMLElement),
+        (err) => err.message.includes(UNKNOWN_ELEMENT_ERROR) || err.message.includes(scope)
     )
 }
 
