@@ -505,7 +505,14 @@ function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): Sup
     return { stepDefinitions, hookTitles }
 }
 
-function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error) => void {
+interface ScenarioTranslator {
+    /** runner.run() rejected mid-scenario: close whatever is open */
+    abort: (error: Error) => void
+    /** uid of the last test of the scenario (step, or the scenario at scenario level), for `context:end` */
+    lastTestUid: () => string
+}
+
+function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTranslator {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
         gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
@@ -524,6 +531,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
     /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
     let attempt = 0
     let openStep: Record<string, unknown> | undefined
+    let lastTestUid = ''
 
     /**
      * Shared scenario payload — every event emitted for this scenario
@@ -575,6 +583,9 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         stepResults = []
         scenarioOpen = true
         attempt = started.attempt ?? 0
+        if (scenarioLevel) {
+            lastTestUid = String(buildScenarioPayload(scenarioPayloadParams).uid)
+        }
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
@@ -612,6 +623,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
         if (!info.isHook) {
             openStep = payload
+            lastTestUid = String(payload.uid)
         }
         reporter.emit(`${type}:start`, formatMessage({ payload }))
     }
@@ -750,11 +762,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         if (envelope.testCaseFinished) { return onTestCaseFinished(envelope.testCaseFinished) }
     })
 
-    /**
-     * runner.run() rejected mid-scenario: close whatever is open so the
-     * reporter's per-context state is released.
-     */
-    return (error: Error) => {
+    const abort = (error: Error) => {
         if (!scenarioOpen) { return }
         scenarioOpen = false
         const duration = testStart ? Date.now() - testStart.getTime() : 0
@@ -773,6 +781,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
         reporter.emit('suite:end', formatMessage({ payload }))
     }
+    return { abort, lastTestUid: () => lastTestUid }
 }
 
 // ============================================================
@@ -835,7 +844,7 @@ async function runScenario(
     const execute = async () => {
         const scenarioBroadcaster = new EventEmitter()
 
-        const abortScenario = wireScenarioTranslator({
+        const translator = wireScenarioTranslator({
             broadcaster: scenarioBroadcaster,
             reporter,
             eventEmitter,
@@ -871,8 +880,13 @@ async function runScenario(
         try {
             status = await runner.run()
         } catch (err) {
-            abortScenario(err as Error)
+            translator.abort(err as Error)
             throw err
+        } finally {
+            // the window sends no more events after the last attempt (also after an abort), as Mocha after the last hook of a test
+            if (contextId) {
+                reporter.emit('context:end', { type: 'context:end', cid, specs, uid: translator.lastTestUid(), contextId })
+            }
         }
         const duration = Date.now() - testStart
 

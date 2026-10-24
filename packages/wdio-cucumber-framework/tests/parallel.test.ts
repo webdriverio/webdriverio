@@ -164,7 +164,7 @@ describe('runParallelCucumber', () => {
         reporter = new EventEmitter()
         eventEmitter = new EventEmitter()
         reporterEvents = []
-        for (const ev of ['suite:start', 'suite:end', 'suite:retry', 'test:start', 'test:pass', 'test:fail', 'test:skip', 'test:pending', 'test:end', 'hook:start', 'hook:end']) {
+        for (const ev of ['suite:start', 'suite:end', 'suite:retry', 'test:start', 'test:pass', 'test:fail', 'test:skip', 'test:pending', 'test:end', 'hook:start', 'hook:end', 'context:end']) {
             reporter.on(ev, (p) => reporterEvents.push({ event: ev, payload: p }))
         }
     })
@@ -746,6 +746,10 @@ describe('runParallelCucumber', () => {
         // as in a sequential run: the step of attempt 1 fails and ends, the scenario restarts (suite:retry)
         const steps = reporterEvents.filter((e) => e.event.startsWith('test:')).map((e) => e.event)
         expect(steps).toEqual(['test:start', 'test:fail', 'test:end', 'test:start', 'test:pass', 'test:end'])
+        // the window ends one time, after the last attempt
+        const contextEnds = reporterEvents.filter((e) => e.event === 'context:end')
+        expect(contextEnds).toHaveLength(1)
+        expect(reporterEvents.indexOf(contextEnds[0])).toBe(reporterEvents.length - 2)
     })
 
     // ---- Failure semantics (strict / ignoreUndefinedDefinitions) ----
@@ -999,6 +1003,12 @@ describe('runParallelCucumber', () => {
         expect(ends).toHaveLength(1)
         expect(ends[0].payload.contextId).toBe('ctx-step')
         expect(ends[0].payload.uid).toBe(start.payload.uid)
+        // the window sends no more events: context:end right after the scenario suite:end, with the last step
+        const contextEnds = reporterEvents.filter((e) => e.event === 'context:end')
+        expect(contextEnds).toHaveLength(1)
+        expect(contextEnds[0].payload).toMatchObject({ contextId: 'ctx-step', uid: start.payload.uid })
+        const scenarioEnd = reporterEvents.findIndex((e) => e.event === 'suite:end' && e.payload.type === 'scenario')
+        expect(reporterEvents.indexOf(contextEnds[0])).toBe(scenarioEnd + 1)
         const names = reporterEvents.map((e) => e.event)
         expect(names.indexOf('test:end')).toBeGreaterThan(names.indexOf('test:pass'))
         expect(names.indexOf('test:end')).toBeLessThan(names.lastIndexOf('suite:end'))
@@ -1048,6 +1058,9 @@ describe('runParallelCucumber', () => {
         const uid = skip.payload.uid
         const trail = reporterEvents.filter((e) => e.payload?.uid === uid).map((e) => e.event)
         expect(trail).toEqual(['test:start', 'test:skip', 'test:end'])
+        // a scenario in skip mode has no window: its events have no context and no context:end follows them
+        expect(skip.payload.contextId).toBeUndefined()
+        expect(reporterEvents.filter((e) => e.event === 'context:end').every((e) => e.payload.contextId)).toBe(true)
     })
 
     test('failFast reports unrun scenarios as skipped and reconciles the summary', async () => {
@@ -1075,6 +1088,8 @@ describe('runParallelCucumber', () => {
         // Every start is closed exactly once — the stream stays balanced
         expect(starts.length).toBe(fails.length + skips.length)
         expect(reporterEvents.filter((e) => e.event === 'test:end').length).toBe(starts.length)
+        // one context:end for each window: the 2 scenarios that ran, not the skipped one
+        expect(reporterEvents.filter((e) => e.event === 'context:end')).toHaveLength(fails.length)
         // The skipped scenario gets no tab; only unused prefetched tabs may exceed 2, all closed
         expect(browser.browsingContextCreate.mock.calls.length).toBeLessThanOrEqual(2 + 2)
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
@@ -1633,6 +1648,33 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(error?.message).toBe('assemble boom')
         expect(afterAll).toHaveBeenCalledTimes(1)
         expect(events.filter((e) => e.event === 'suite:end')).toHaveLength(1)
+    })
+
+    test('a scenario-level window sends context:end after its result, with the uid of the scenario', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
+        await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])])
+
+        for (const end of events.filter((e) => e.event === 'test:end')) {
+            const contextEnd = events.find((e) => e.event === 'context:end' && e.payload.contextId === end.payload.contextId)!
+            expect(contextEnd.payload.uid).toBe(end.payload.uid)
+            // the 2 scenarios run at the same time: other events can come in between
+            expect(events.indexOf(contextEnd)).toBeGreaterThan(events.indexOf(end))
+        }
+        expect(events.filter((e) => e.event === 'context:end')).toHaveLength(2)
+    })
+
+    test('an aborted scenario closes what is open, then its window sends context:end', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-a'] })
+        // a listener that throws when a step starts makes runner.run() reject in the middle of the scenario
+        eventEmitter.on('getHookParams', (params: { step?: unknown }) => {
+            if (params.step) { throw new Error('listener boom') }
+        })
+        const outcome = await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts({ scenarioLevelReporter: false }))
+
+        expect(outcome.result).toBe(1)
+        expect(events.map((e) => `${e.event}:${e.payload.type}`)).toEqual([
+            'suite:start:feature', 'suite:start:scenario', 'suite:end:scenario', 'context:end:context:end', 'suite:end:feature'
+        ])
     })
 
     test('emits test:end with the contextId after each scenario-level result', async () => {
