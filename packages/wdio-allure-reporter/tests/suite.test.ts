@@ -1205,6 +1205,26 @@ describe('command reporting', () => {
         expect(screenshotAttachments).toHaveLength(1)
     })
 
+    // the events of the WebDriver BiDi override: no endpoint, the base64 image in `result.value`
+    it('should add step with a WebDriver BiDi element screenshot', async () => {
+        const reporter = new AllureReporter({ stdout: true, outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand({ command: 'takeElementScreenshot', body: ['element-1'] } as never)
+        reporter.onAfterCommand({ command: 'takeElementScreenshot', result: { value: Buffer.from('png').toString('base64') } } as never)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const screenshotAttachments = results[0].steps[0].attachments.filter(
+            (attachment: Attachment) => attachment.name === 'Screenshot',
+        )
+        expect(screenshotAttachments).toHaveLength(1)
+    })
+
     it('should add step with screenshot command when disableWebdriverStepsReporting=true', async () => {
         const allureOptions = {
             stdout: true,
