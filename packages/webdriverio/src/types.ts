@@ -773,7 +773,8 @@ export type NewWindowOptions = {
     type?: 'tab' | 'window'
     /**
      * Top-level browsing context the new tab or window is opened from.
-     * A frame is rejected. BiDi only.
+     * A frame is rejected. BiDi only. In parallel mode, a tab is opened from
+     * the window of its test when this is not set.
      */
     referenceContext?: string | WebdriverIO.BrowsingContext
 }

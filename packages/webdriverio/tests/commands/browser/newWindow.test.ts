@@ -5,6 +5,7 @@ import path from 'node:path'
 import { expect, describe, beforeEach, afterEach, it, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -172,6 +173,41 @@ describe('newWindow', () => {
             context: 'new-tab-handle',
             url: 'https://webdriver.io',
             wait: 'complete'
+        })
+    })
+
+    // Firefox opens a tab with no referenceContext in the focused window, which can be the new
+    // window of another parallel test (Mozilla bug 2084843)
+    describe('in parallel mode', () => {
+        const create = async (options: Parameters<WebdriverIO.Browser['newWindow']>[1]) => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'bidi' } })
+            const spy: MockInstance = vi.spyOn(browser, 'browsingContextCreate')
+            spy.mockImplementation(() => ({ context: 'new-context', type: options?.type }))
+            vi.spyOn(browser, 'browsingContextNavigate').mockImplementation(() => ({}) as never)
+            await browser.newWindow('https://webdriver.io', options)
+            return spy
+        }
+
+        beforeEach(() => {
+            setParallelContextStore({ getStore: () => 'test-window', run: (_id, fn) => fn() })
+        })
+        afterEach(() => {
+            setParallelContextStore({ getStore: () => undefined, run: (_id, fn) => fn() })
+        })
+
+        it('opens a tab in the window of the test', async () => {
+            const spy = await create({ type: 'tab' })
+            expect(spy).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'test-window' })
+        })
+
+        it('keeps the referenceContext that the test passes', async () => {
+            const spy = await create({ type: 'tab', referenceContext: 'other-window' })
+            expect(spy).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'other-window' })
+        })
+
+        it('opens a new window with no referenceContext', async () => {
+            const spy = await create({ type: 'window' })
+            expect(spy).toHaveBeenCalledWith({ type: 'window' })
         })
     })
 })

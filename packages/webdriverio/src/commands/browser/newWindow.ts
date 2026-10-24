@@ -2,6 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getBrowsingContext } from '../../browsingContext.js'
+import { getParallelContextStore } from '../../session/context.js'
 import { historyReadiness } from '../../utils/traverseHistory.js'
 import type { NewWindowOptions } from '../../types.js'
 
@@ -89,9 +90,14 @@ export async function newWindow (
         if (reference && typeof reference !== 'string' && reference.isFrame) {
             throw new Error('`referenceContext` must be a top-level browsing context')
         }
+        /**
+         * Parallel mode: a tab opens in the window of its test. Firefox opens a tab with no
+         * reference in the focused window, which can be the new window of another test,
+         * and then returns the id of that window (Mozilla bug 2084843)
+         */
         const referenceContext = typeof reference === 'string'
             ? reference
-            : reference?.contextId
+            : reference?.contextId ?? (type === 'tab' ? getParallelContextStore().getStore() : undefined)
         const { context } = await this.browsingContextCreate({
             type,
             ...(referenceContext ? { referenceContext } : {})
