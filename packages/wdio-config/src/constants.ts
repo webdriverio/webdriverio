@@ -15,6 +15,7 @@ export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     groupLogsByTestSpec: false,
     excludeDriverLogs: [],
     bail: 0,
+    timeout: 0,
     waitforInterval: 100,
     waitforTimeout: 5000,
     framework: 'mocha' as const,

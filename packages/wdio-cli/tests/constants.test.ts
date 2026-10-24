@@ -6,6 +6,18 @@ class CustomReporter {}
 describe('constants', () => {
 
     describe('TESTRUNNER_DEFAULTS', () => {
+        it('validates an optional whole-run timeout without setTimeout overflow', () => {
+            const timeout = Reflect.get(TESTRUNNER_DEFAULTS, 'timeout')
+            expect(timeout).toBeDefined()
+            expect(timeout.default).toBe(0)
+            for (const value of [0, 250, 2_147_483_647]) {
+                expect(() => timeout.validate(value)).not.toThrow()
+            }
+            for (const value of [-1, 0.5, NaN, Infinity, 2_147_483_648]) {
+                expect(() => timeout.validate(value)).toThrow(/timeout/i)
+            }
+        })
+
         it('should expect specs to be an array', () => {
             TESTRUNNER_DEFAULTS.specs!.validate!([])
             // @ts-expect-error wrong parameter

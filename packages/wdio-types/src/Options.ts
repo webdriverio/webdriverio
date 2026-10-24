@@ -242,6 +242,13 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     maxInstances?: number
     /**
+     * Overall testrunner deadline in milliseconds after configuration is loaded and validated.
+     * Must be an integer from 0 to 2147483647; 0 or undefined disables the deadline.
+     * Starts graceful shutdown when exceeded and fails the run; cleanup may take longer.
+     * Positive values are not supported in watch mode.
+     */
+    timeout?: number
+    /**
      * Maximum number of total parallel running workers per capability.
      */
     maxInstancesPerCapability?: number

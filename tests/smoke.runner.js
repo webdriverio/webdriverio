@@ -74,6 +74,24 @@ async function runTests (tests) {
 }
 
 /**
+ * One deadline covers launcher hooks, serial specs, retries and teardown.
+ * The driver is the repository's normal webdriver-mock service.
+ */
+const launcherTimeout = async () => {
+    const env = { ...process.env }
+    // The child must not open a parent-owned log while its modules load.
+    delete env.WDIO_LOG_PATH
+    delete env.WDIO_LOG_LEVEL
+    await new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [path.resolve(__dirname, 'launcher-timeout/run.js')], { env, stdio: 'inherit' })
+        child.once('error', reject)
+        child.once('exit', (code, signal) => code === 0
+            ? resolve()
+            : reject(new Error(`launcherTimeout child failed: exit ${code}, signal ${signal}`)))
+    })
+}
+
+/**
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
@@ -1758,6 +1776,7 @@ const jasmineAfterHookArgsValidation = async () => {
 
 (async () => {
     const smokeTests = [
+        launcherTimeout,
         watchMode,
         watchFilesToWatch,
         mochaTestrunner,

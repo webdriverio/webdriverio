@@ -31,6 +31,17 @@ const configStrictSelectorsWrongType: WebdriverIO.Config = {
     strictSelectors: 'yes'
 }
 
+const configWithTimeout: WebdriverIO.Config = {
+    capabilities: [],
+    timeout: 60_000
+}
+
+expectType<number | undefined>(configWithTimeout.timeout)
+configWithTimeout.timeout = 0
+configWithTimeout.timeout = undefined
+// @ts-expect-error timeout needs to be a number
+configWithTimeout.timeout = '60000'
+
 const configA: WebdriverIO.Config = {
     // @ts-expect-error should not be available
     beforeFeature () {
