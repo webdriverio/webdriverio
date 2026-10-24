@@ -600,14 +600,11 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         stepResults = []
         scenarioOpen = true
         attempt = started.attempt ?? 0
-        if (scenarioLevel) {
-            lastTestUid = String(buildScenarioPayload(scenarioPayloadParams).uid)
-        }
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
         // the event stream balanced (the final attempt closes with `suite:end`).
-        const isRetry = typeof started.attempt === 'number' && started.attempt > 0
+        const isRetry = attempt > 0
         reporter.emit(
             scenarioLevel ? 'test:start' : (isRetry ? 'suite:retry' : 'suite:start'),
             formatMessage({
