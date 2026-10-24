@@ -555,10 +555,9 @@ export default class VideoReporter extends WdioReporter {
     }
 
     /**
-   * Remove empty directories
-   */
+     * stops the screenshots of a skipped test at once; test:end follows and makes the end frame and the video
+     */
     onTestSkip() {
-        // every framework sends test:end after it: onTestEnd makes the end frame and the video
         if (this.#record && !this.isCucumberFramework) {
             this.clearScreenshotInterval()
         }
