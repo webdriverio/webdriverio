@@ -133,6 +133,8 @@ export default class HtmlReporter extends WDIOReporter {
             }
         })
         this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
+        // a Cucumber retry runs in the same context: its Before hook events are for the first step of the retry
+        this.on('suite:retry', ({ contextId }: { contextId?: string }) => contextId && this.#contextTests.delete(contextId))
     }
 
     get isSynchronised() : boolean {
