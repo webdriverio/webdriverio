@@ -452,6 +452,41 @@ describe('CucumberFormatter', () => {
         return counts
     }
 
+    describe('counts only the failures of the last attempt of a retried scenario', () => {
+        it.each([false, true])('scenario level: %s', (scenarioLevelReporter) => {
+            const eventBroadcaster = new EventEmitter()
+            const formatter = new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testStepFinished: { ...JSON.parse(JSON.stringify(testStepFinished)), testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+
+            expect(formatter['failedCount']).toBe(0)
+        })
+    })
+
     describe('provides a fail counter', () => {
         it('should increment failed counter on `failed` status', () => {
             expect(reportedFailedCount(TestStepResultStatus.FAILED)).toEqual([1])

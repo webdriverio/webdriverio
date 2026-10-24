@@ -70,6 +70,8 @@ export default class CucumberFormatter extends Formatter {
     private rootDir?: string
 
     private failedCount = 0
+    /** `failedCount` when the attempt started: a retried attempt does not count */
+    private _failedCountAtAttemptStart = 0
 
     private _featureStart?: Date
     private _scenarioStart?: Date
@@ -89,6 +91,7 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
                 results = []
+                this._failedCountAtAttemptStart = this.failedCount
                 this.onTestCaseStarted(envelope.testCaseStarted)
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
@@ -108,6 +111,7 @@ export default class CucumberFormatter extends Formatter {
                     if (this.scenarioLevelReporter) {
                         this.onTestCaseFinished(results, true)
                     }
+                    this.failedCount = this._failedCountAtAttemptStart
                     return
                 }
                 this.onTestCaseFinished(results)
@@ -239,7 +243,7 @@ export default class CucumberFormatter extends Formatter {
                 featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
         )
-        if (failed && !retried) {
+        if (failed) {
             this.failedCount++
         }
 
