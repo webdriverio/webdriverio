@@ -2130,6 +2130,31 @@ describe('runParallelCucumber uncaught errors', () => {
         expect(emitted).toEqual([])
     })
 
+    test('keeps parallel mode when the Cucumber module for uncaught errors cannot load', async () => {
+        const cached = requireCjs.cache[requireCjs.resolve('@cucumber/cucumber/lib/uncaught_exception_manager')]!
+        const { exports } = cached
+        Object.defineProperty(cached, 'exports', { configurable: true, get: () => { throw new Error('Cannot find module') } })
+        vi.resetModules()
+        try {
+            const fresh = await import('../src/parallel.js')
+            expect(fresh.isParallelAvailable()).toBe(true)
+            const failures = await fresh.runParallelCucumber({
+                browser: mockBrowser() as unknown as WebdriverIO.Browser,
+                reporter,
+                eventEmitter: new EventEmitter(),
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: ['waits'] }])],
+                supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [waits] }) as never,
+                cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false }),
+            })
+            expect(failures).toBe(0)
+            expect(outcome('waits')).toEqual(['test:pass'])
+        } finally {
+            Object.defineProperty(cached, 'exports', { configurable: true, writable: true, enumerable: true, value: exports })
+        }
+    })
+
     test('removes its listener and restores Cucumber after the run', async () => {
         const { registerHandler, unregisterHandler } = UncaughtExceptionManager
         const listeners = process.listenerCount('uncaughtException')

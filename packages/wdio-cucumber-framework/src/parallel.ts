@@ -207,7 +207,7 @@ let TestCaseRunner: { new (options: INewTestCaseRunnerOptions): TestCaseRunnerIn
 let PickleFilter: new (options: IPickleFilterOptions) => IPickleFilter
 let emitSupportCodeMessages: EmitSupportCodeMessages
 let orderPickles: <T>(items: T[], order: string, logger: { warn(message: string): void }) => void
-let UncaughtExceptionManager: IUncaughtExceptionManager
+let UncaughtExceptionManager: IUncaughtExceptionManager | undefined
 
 try {
     ;({ default: PickleFilter } = require_('@cucumber/cucumber/lib/pickle_filter') as {
@@ -236,8 +236,6 @@ try {
         orderPickles: typeof orderPickles
     })
 
-    UncaughtExceptionManager = require_('@cucumber/cucumber/lib/uncaught_exception_manager').default as IUncaughtExceptionManager
-
     TestCaseRunner = require_('@cucumber/cucumber/lib/runtime/test_case_runner').default as {
         new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance
     }
@@ -251,6 +249,13 @@ try {
         'Falling back to sequential execution.\n' +
         `Module resolution error: ${reqErr.code || 'unknown'}`
     )
+}
+
+// only the routing of uncaught errors needs it: parallel mode runs without it, as before
+try {
+    UncaughtExceptionManager = require_('@cucumber/cucumber/lib/uncaught_exception_manager').default as IUncaughtExceptionManager
+} catch (err) {
+    log.warn(`Failed to load Cucumber's uncaught error module: ${(err as Error).message}. In parallel mode, an uncaught error fails every running step.`)
 }
 
 export function isParallelAvailable(): boolean {
@@ -831,8 +836,8 @@ function isFailedResult(
  * running step would get every uncaught error. Send an error to the step or hook of its own
  * window only (no window: BeforeAll / AfterAll), as Mocha parallel mode does.
  */
-function routeUncaughtErrors(parallelStore: AsyncLocalStorage<string>) {
-    const { registerHandler, unregisterHandler } = UncaughtExceptionManager
+function routeUncaughtErrors(parallelStore: AsyncLocalStorage<string>, manager: IUncaughtExceptionManager) {
+    const { registerHandler, unregisterHandler } = manager
     const owners = new Map<UncaughtHandler, string | undefined>()
     let outside = 0
     const onUncaught = (error: unknown) => {
@@ -846,14 +851,14 @@ function routeUncaughtErrors(parallelStore: AsyncLocalStorage<string>) {
         outside++
         log.error(`[Parallel] uncaught error outside a running step or hook: ${(error as Error)?.stack ?? String(error)}`)
     }
-    UncaughtExceptionManager.registerHandler = (handler) => { owners.set(handler, parallelStore.getStore()) }
-    UncaughtExceptionManager.unregisterHandler = (handler) => { owners.delete(handler) }
+    manager.registerHandler = (handler) => { owners.set(handler, parallelStore.getStore()) }
+    manager.unregisterHandler = (handler) => { owners.delete(handler) }
     process.on('uncaughtException', onUncaught)
     return {
         outside: () => outside,
         restore: () => {
             process.removeListener('uncaughtException', onUncaught)
-            Object.assign(UncaughtExceptionManager, { registerHandler, unregisterHandler })
+            Object.assign(manager, { registerHandler, unregisterHandler })
         },
     }
 }
@@ -946,8 +951,8 @@ async function runScenario(
 
 export async function runParallelCucumber(params: Parameters<typeof runParallel>[0]): Promise<number> {
     const parallelStore = (params.browser as ParallelBrowser).__parallelContextStore
-    if (!parallelStore || !isParallelAvailable()) { return runParallel(params) }
-    const uncaught = routeUncaughtErrors(parallelStore)
+    if (!parallelStore || !UncaughtExceptionManager) { return runParallel(params) }
+    const uncaught = routeUncaughtErrors(parallelStore, UncaughtExceptionManager)
     try {
         return await runParallel(params) + uncaught.outside()
     } finally {
