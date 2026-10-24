@@ -239,8 +239,8 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                         throw err
                     }
                 }
-                const action = spec.name === 'wait' && context.deadline ? waitWithin(args, context.deadline()) : args
-                const result = await agent.runAction(spec.name, substitute(action, values))
+                const substituted = substitute(args, values)
+                const result = await agent.runAction(spec.name, spec.name === 'wait' && context.deadline ? waitWithin(substituted, context.deadline()) : substituted)
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
                  * A step still running at the timeout keeps the parts that

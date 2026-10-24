@@ -690,6 +690,18 @@ describe('AiRuntime when a test ends during act()', () => {
             expect(wait.options?.limit?.desc).toContain('default 10000')
         })
 
+        it('ends a wait of the model whose duration is a placeholder by the timeout', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { target: '{{duration}}' } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait {{duration}} ms', { timeout: 1000, values: { duration: '30000' } })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(Number(args.target)).toBeLessThanOrEqual(1000)
+        })
+
         it('keeps a wait of the model that ends before the timeout', async () => {
             const { runtime: ai } = runtime({ cache: 'off' }, [
                 { tool: 'wait', args: { text: 'Paid' } },
