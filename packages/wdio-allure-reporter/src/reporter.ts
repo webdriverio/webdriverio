@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { hostname } from 'node:os'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
@@ -131,6 +132,14 @@ function splitTitlePathPart(part?: string): string[] {
         .split('/')
         .map((p) => p.trim())
         .filter(Boolean)
+}
+
+function hostAndEnvironmentLabels() {
+    const environmentLabels = getEnvironmentLabels()
+    if (environmentLabels.some((label) => label.name === LabelName.HOST)) {
+        return environmentLabels
+    }
+    return [{ name: LabelName.HOST, value: hostname() }, ...environmentLabels]
 }
 
 export default class AllureReporter extends WDIOReporter {
@@ -641,7 +650,7 @@ export default class AllureReporter extends WDIOReporter {
                     { name: LabelName.LANGUAGE, value: 'javascript' },
                     { name: LabelName.FRAMEWORK, value: 'wdio' },
                     { name: LabelName.THREAD, value: cid },
-                    ...getEnvironmentLabels(),
+                    ...hostAndEnvironmentLabels(),
                 ]
                 this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
 
@@ -1028,7 +1037,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...getEnvironmentLabels(),
+            ...hostAndEnvironmentLabels(),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }
@@ -1325,7 +1334,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...getEnvironmentLabels(),
+            ...hostAndEnvironmentLabels(),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }

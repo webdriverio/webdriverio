@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { hostname } from 'node:os'
 import { log } from 'node:console'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, } from 'vitest'
 import type { Attachment, Label, Link, Parameter } from 'allure-js-commons'
@@ -166,12 +167,13 @@ describe('Passing tests', () => {
         expect(browsers[0].value).toEqual('chrome-68')
     })
 
-    it('should add label, story, feature, severity, issue, testId, thread and package labels', () => {
+    it('should add label, story, feature, severity, issue, testId, host, thread and package labels', () => {
         const labels = mapBy<Label>(allureResult.labels, 'name')
         const customLabels = labels.customLabel
         const features = labels[LabelName.FEATURE]
         const stories = labels[LabelName.STORY]
         const severities = labels[LabelName.SEVERITY]
+        const hosts = labels[LabelName.HOST]
         const threads = labels[LabelName.THREAD]
         const packages = labels[LabelName.PACKAGE]
 
@@ -183,6 +185,8 @@ describe('Passing tests', () => {
         expect(stories[0].value).toEqual('Story')
         expect(severities).toHaveLength(1)
         expect(severities[0].value).toEqual('baz')
+        expect(hosts).toHaveLength(1)
+        expect(hosts[0].value).toEqual(hostname())
         expect(threads).toHaveLength(1)
         expect(threads[0].value).toEqual(testStart().cid)
         expect(packages).toHaveLength(1)
@@ -846,6 +850,31 @@ describe('Allure ID', () => {
         expect(allureId).toHaveLength(1)
         expect(allureId[0].value).toEqual('explicitly set allureId')
         expect(allureResult.testCaseId).toBeDefined()
+    })
+})
+
+describe('Host label', () => {
+    const outputDir = temporaryDirectory()
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        clean(outputDir)
+    })
+
+    it('keeps a host label set through ALLURE_LABEL_host', async () => {
+        vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1')
+        const reporter = new AllureReporter({ outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const hosts = mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]
+        expect(hosts).toEqual([{ name: LabelName.HOST, value: 'ci-agent-1' }])
     })
 })
 
