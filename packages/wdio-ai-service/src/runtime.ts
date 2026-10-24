@@ -608,6 +608,9 @@ export class AiRuntime {
                     steps: replay.done
                 })
             }
+            /**
+             * plan() stops for an ended test too, this check keeps the log right
+             */
             signal?.throwIfAborted()
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder, test)

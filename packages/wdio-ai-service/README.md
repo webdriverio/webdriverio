@@ -72,7 +72,7 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 })
 ```
 
-`act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason. At the timeout, or when the test ends, a step whose action already runs finishes first: `act` never returns while one of its steps still uses the browser. A step that only waited for its element until then does not run its action, and a `wait` of the model ends by the timeout.
+`act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason. At the timeout, or when the test ends, a step whose action already runs finishes first: `act` never returns while one of its steps still uses the browser. A cached step that only waited for its element until then does not run its action, and a `wait` of the model ends by the timeout.
 
 ## Scope
 

@@ -20,6 +20,11 @@ export class StepGate {
     #stop = new AbortController()
     #closed = false
     #idle: (() => void)[] = []
+    /**
+     * One step at a time: the tool calls of one answer share the page, the
+     * agent session and the effect recorder of the browser.
+     */
+    #turn: Promise<void> = Promise.resolve()
 
     constructor (signal?: AbortSignal) {
         this.signal = signal
@@ -36,10 +41,19 @@ export class StepGate {
 
     async step<T> (run: () => Promise<T>): Promise<T> {
         this.check()
+        const busy = this.#running > 0
         this.#running++
+        const previous = this.#turn
+        let next: () => void = () => {}
+        this.#turn = new Promise<void>((resolve) => { next = resolve })
         try {
+            if (busy) {
+                await previous
+                this.check()
+            }
             return await run()
         } finally {
+            next()
             this.#running--
             this.#stopWhenIdle()
             if (!this.#running) {
