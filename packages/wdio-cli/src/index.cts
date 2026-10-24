@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { LauncherResult } from './types.js'
 class Launcher {
     #esmLauncher: any
 
@@ -13,9 +14,9 @@ class Launcher {
 
     /**
      * run sequence
-     * @return  {Promise}  that only gets resolved with either an exitCode or an error
+     * @return structured test and spec results, or reject on a launcher error
      */
-    async run(): Promise<undefined | number> {
+    async run(): Promise<LauncherResult> {
         return (await this.#esmLauncher).run()
     }
 }

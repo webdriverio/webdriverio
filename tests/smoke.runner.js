@@ -7,6 +7,7 @@ import assert from 'node:assert'
 import { expect } from 'expect-webdriverio'
 
 import { SevereServiceError } from 'webdriverio'
+import { Launcher } from '@wdio/cli'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
@@ -76,6 +77,81 @@ async function runTests (tests) {
 /**
  * Mocha wdio testrunner tests
  */
+/** Programmatic results describe tests, independently of spec-file counts. */
+const launcherRunResults = async () => {
+    const result = await new Launcher(baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'launcher-results.js')],
+        strictSelectors: false,
+        logLevel: 'error'
+    }).run()
+    assert.equal(typeof result, 'object', 'Launcher.run must return structured results')
+    assert.equal(result.exitCode, 1)
+    assert.deepEqual(result.tests, { passed: 2, failed: 1, skipped: 1, retries: 1 })
+    assert.deepEqual(result.specs, { passed: 0, failed: 1, skipped: 0, retries: 0 })
+    assert.ok(Number.isFinite(result.duration) && result.duration >= 0)
+    console.log('Launcher results:', JSON.stringify(result))
+    const retried = await new Launcher(baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'launcher-results.js')],
+        strictSelectors: false,
+        logLevel: 'error',
+        specFileRetries: 1
+    }).run()
+    assert.equal(retried.exitCode, 1)
+    assert.deepEqual(retried.tests, { passed: 4, failed: 2, skipped: 2, retries: 2 })
+    assert.deepEqual(retried.specs, { passed: 0, failed: 1, skipped: 0, retries: 1 })
+    console.log('Retried launcher results:', JSON.stringify(retried))
+    const passed = await new Launcher(baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'launcher-results.js')],
+        strictSelectors: false,
+        logLevel: 'error',
+        mochaOpts: { grep: 'passes', invert: false }
+    }).run()
+    assert.equal(passed.exitCode, 0)
+    assert.deepEqual(passed.tests, { passed: 1, failed: 0, skipped: 0, retries: 0 })
+    const empty = await new Launcher(baseConfig, { specs: [], logLevel: 'error' }).run()
+    assert.equal(empty.exitCode, 1)
+    assert.deepEqual(empty.tests, { passed: 0, failed: 0, skipped: 0, retries: 0 })
+    assert.deepEqual(empty.specs, { passed: 0, failed: 0, skipped: 0, retries: 0 })
+
+    const env = { ...process.env }
+    delete env.WDIO_UNIT_TESTS
+    const runCli = (extra = []) => new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [
+            path.resolve(__dirname, '../packages/wdio-cli/bin/wdio.js'), 'run', baseConfig,
+            '--spec', path.resolve(__dirname, 'mocha', 'launcher-results.js'), '--logLevel', 'error', ...extra
+        ], { env, stdio: ['ignore', 'pipe', 'pipe'] })
+        let output = ''
+        child.stdout.on('data', data => { output += data })
+        child.stderr.on('data', data => { output += data })
+        child.once('error', reject)
+        child.once('close', code => resolve({ code, output }))
+    })
+    const failCli = await runCli()
+    assert.equal(failCli.code, 1, failCli.output)
+    const passCli = await runCli(['--mochaOpts.grep', 'passes', '--mochaOpts.invert', 'false'])
+    assert.equal(passCli.code, 0, passCli.output)
+    console.log('Numeric CLI exit codes:', failCli.code, passCli.code)
+}
+
+const launcherCucumberResults = async () => {
+    for (const scenarioLevelReporter of [false, true]) {
+        const result = await new Launcher(path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'), {
+            specs: [path.resolve(__dirname, 'cucumber', 'launcher-results.feature')],
+            strictSelectors: false,
+            logLevel: 'error',
+            cucumberOpts: { tags: '', retry: 1, scenarioLevelReporter }
+        }).run()
+        console.log('Cucumber launcher results:', JSON.stringify({ scenarioLevelReporter, ...result }))
+        assert.equal(result.exitCode, 0)
+        assert.equal(result.tests.passed, 1)
+        // Scenario-level Cucumber omits the intermediate failed attempt's outcome event.
+        assert.equal(result.tests.failed, scenarioLevelReporter ? 0 : 1)
+        assert.equal(result.tests.skipped, 0)
+        assert.equal(result.tests.retries, 1, 'Count the actual native Cucumber scenario retry')
+        assert.deepEqual(result.specs, { passed: 1, failed: 0, skipped: 0, retries: 0 })
+    }
+}
+
 const mochaTestrunner = async () => {
     const { skippedSpecs, passed } = await launch('mochaTestrunner', baseConfig, {
         specs: [
@@ -484,10 +560,7 @@ const cucumberFailAmbiguousDefinitions = async () => {
  * Cucumber pending status test
  */
 const cucumberPendingTest = async () => {
-    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberPendingTest.log')
-    await fs.rm(logFile, { force: true })
-
-    await launch(
+    const { tests } = await launch(
         'cucumberPendingTest',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
@@ -496,9 +569,7 @@ const cucumberPendingTest = async () => {
             ],
             reporters: [
                 ['spec', {
-                    outputDir: __dirname,
-                    stdout: false,
-                    logFile
+                    stdout: false
                 }]
             ],
             cucumberOpts: {
@@ -508,12 +579,7 @@ const cucumberPendingTest = async () => {
         }
     )
 
-    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
-    const pendingMatch = specLogs.match(/(\d+)\s+pending/)
-    assert.ok(
-        pendingMatch && parseInt(pendingMatch[1], 10) === 1,
-        'Expected exactly 1 pending test in output'
-    )
+    assert.equal(tests.skipped, 1, 'Expected exactly 1 pending scenario')
 }
 
 /**
@@ -1761,6 +1827,8 @@ const jasmineAfterHookArgsValidation = async () => {
         watchMode,
         watchFilesToWatch,
         mochaTestrunner,
+        launcherRunResults,
+        launcherCucumberResults,
         jasmineTestrunner,
         multiRemote,
         parallelMultiRemote,

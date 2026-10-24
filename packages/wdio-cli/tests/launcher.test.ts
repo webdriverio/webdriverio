@@ -26,6 +26,8 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('../src/interface', () => ({
     default: class {
         totalWorkerCnt: number
+        testCounts = { passed: 0, failed: 0, skipped: 0, retries: 0 }
+        specs = { passed: 0, failed: 0, skipped: 0, retries: 0 }
         hasAnsiSupport = true
         emit = vi.fn()
         on = vi.fn()
@@ -917,8 +919,31 @@ describe('launcher', () => {
             launcher['_runMode'] = vi.fn().mockImplementation(() => 0)
         })
 
+        it('returns test counts separately from spec jobs and includes shutdown time', async () => {
+            const now = vi.spyOn(Date, 'now').mockReturnValue(100)
+            launcher['_runMode'] = vi.fn().mockImplementation(() => {
+                launcher.interface!.testCounts.passed = 8
+                launcher.interface!.testCounts.failed = 2
+                launcher.interface!.testCounts.skipped = 1
+                launcher.interface!.testCounts.retries = 3
+                launcher.interface!.specs.passed = 1
+                launcher.interface!.specs.failed = 1
+                now.mockReturnValue(150)
+                return 1
+            })
+            try {
+                expect(await launcher.run()).toEqual({
+                    exitCode: 1, duration: 50,
+                    tests: { passed: 8, failed: 2, skipped: 1, retries: 3 },
+                    specs: { passed: 1, failed: 1, skipped: 0, retries: 0 }
+                })
+            } finally {
+                now.mockRestore()
+            }
+        })
+
         it('exit code 0', async () => {
-            expect(await launcher.run()).toEqual(0)
+            expect((await launcher.run()).exitCode).toEqual(0)
             expect(launcher['configParser'].initialize).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
@@ -936,7 +961,7 @@ describe('launcher', () => {
 
         it('should not shutdown runner if was called before', async () => {
             launcher['_hasTriggeredExitRoutine'] = true
-            expect(await launcher.run()).toEqual(0)
+            expect((await launcher.run()).exitCode).toEqual(0)
             expect(launcher.runner!.shutdown).not.toBeCalled()
         })
 
@@ -960,7 +985,7 @@ describe('launcher', () => {
         it('warns instead of failing the run when the runner dispose rejects', async () => {
             mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose: vi.fn().mockRejectedValue(new Error('dispose failed')) })
 
-            expect(await launcher.run()).toEqual(0)
+            expect((await launcher.run()).exitCode).toEqual(0)
             expect(vi.mocked(logger('@wdio/cli:launcher').warn)).toHaveBeenCalledWith('Failed to dispose the runner:', expect.any(Error))
         })
 
@@ -973,7 +998,7 @@ describe('launcher', () => {
                 ignoredWorkerServices: [],
             } as never)
 
-            expect(await launcher.run()).toEqual(0)
+            expect((await launcher.run()).exitCode).toEqual(0)
 
             const onComplete = (config.onComplete as unknown as ReturnType<typeof vi.fn>[])[0]
             expect(dispose).toBeCalledTimes(1)
@@ -985,7 +1010,7 @@ describe('launcher', () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            expect(await launcher.run()).toEqual(1)
+            expect((await launcher.run()).exitCode).toEqual(1)
             expect(launcher.runner!.shutdown).toBeCalled()
         })
 

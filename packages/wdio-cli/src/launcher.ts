@@ -11,7 +11,7 @@ import type { Capabilities, Services } from '@wdio/types'
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError, shouldEnableTsx, enableTsx } from './utils.js'
 import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
-import type { RunCommandArguments } from './types.js'
+import type { RunCommandArguments, LauncherResult } from './types.js'
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -70,9 +70,10 @@ class Launcher {
 
     /**
      * run sequence
-     * @return  {Promise}  that only gets resolved with either an exitCode or an error
+     * @return structured test and spec results, or reject on a launcher error
      */
-    async run(): Promise<undefined | number> {
+    async run(): Promise<LauncherResult> {
+        const start = Date.now()
         await this.initialize()
         const config = this.configParser.getConfig()
 
@@ -178,7 +179,12 @@ class Launcher {
             throw error
         }
 
-        return exitCode
+        return {
+            exitCode,
+            duration: Date.now() - start,
+            tests: { ...this.interface!.testCounts },
+            specs: this.interface!.specs
+        }
     }
 
     /**
