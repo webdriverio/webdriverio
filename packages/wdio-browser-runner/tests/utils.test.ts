@@ -82,12 +82,14 @@ describe('configureBrowserInspector', () => {
         expect(hasInspectorOption({}, {} as any, ['--inspect-brk=127.0.0.1:9229'])).toBe(true)
     })
 
-    it('resolves inspector port from options, execArgv or cid', () => {
+    it('resolves unique browser inspector port without colliding with Node debugger port', () => {
         expect(getInspectorPort({ inspect: 9555 }, {} as any, '0-0', [])).toBe(9555)
-        expect(getInspectorPort({}, { execArgv: ['--inspect=9444'] } as any, '0-0', [])).toBe(9444)
-        expect(getInspectorPort({}, {} as any, '0-0', ['--inspect-brk=127.0.0.1:9333'])).toBe(9333)
+        expect(getInspectorPort({}, { execArgv: ['--inspect=9333'] } as any, '0-0', [])).toBe(9222)
+        expect(getInspectorPort({}, { execArgv: ['--inspect=9222'] } as any, '0-0', [])).toBe(9223)
         expect(getInspectorPort({ inspect: true }, {} as any, '0-0', [])).toBe(9222)
-        expect(getInspectorPort({ inspect: true }, {} as any, '0-2', [])).toBe(9224)
+        expect(getInspectorPort({ inspect: true }, {} as any, '0-1', [])).toBe(9223)
+        expect(getInspectorPort({ inspect: true }, {} as any, '1-0', [])).toBe(9224)
+        expect(getInspectorPort({ inspect: true }, {} as any, '0-2', [])).toBe(9225)
     })
 
     it('adds remote debugging port to browser capabilities when inspect is enabled', () => {
@@ -111,6 +113,24 @@ describe('configureBrowserInspector', () => {
             'moz:firefoxOptions': {
                 args: ['-remote-debugging-port', '9223']
             }
+        })
+        expect(configureBrowserInspector(
+            { inspect: true },
+            {} as any,
+            {
+                alwaysMatch: { browserName: 'chrome' },
+                firstMatch: [{ browserVersion: 'stable' }]
+            } as any,
+            '0-0',
+            []
+        )).toEqual({
+            alwaysMatch: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    args: ['--remote-debugging-port=9222']
+                }
+            },
+            firstMatch: [{ browserVersion: 'stable' }]
         })
         const existingCaps: WebdriverIO.Capabilities = {
             browserName: 'chrome',
