@@ -26,10 +26,6 @@ updates:
     # whitespace is lost. Update on purpose, with release notes.
     - dependency-name: "htmlfy"
       update-types: ["version-update:semver-major"]
-    # normalize-package-data 9 (create-wdio) requires Node.js ^22.22.2, but
-    # WebdriverIO supports Node.js 22.19.0. Version 8 is fine.
-    - dependency-name: "normalize-package-data"
-      versions: [">=9.0.0"]
     # Vite 8 (Rolldown, oxc) is a migration of @wdio/browser-runner: its default
     # config uses esbuild and Rollup plugins, and users' viteConfig and framework
     # plugins change. Update all Vite packages together in that migration.
