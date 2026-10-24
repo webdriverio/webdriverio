@@ -4,17 +4,25 @@ import { SessionManager } from './session.js'
 
 const log = logger('webdriverio:BidiMapperLogManager')
 
+const MAPPER_TITLE = 'BiDi-CDP Mapper'
+
 /**
  * Runs in the page of the BiDi Mapper. Without `#logs`, the Mapper does not
  * write the BiDi messages into its page; nothing else reads that element.
  */
-export const REMOVE_MAPPER_LOG = 'if (document.title === "BiDi-CDP Mapper") { document.getElementById("logs")?.remove() }'
+export const REMOVE_MAPPER_LOG = `if (document.title === "${MAPPER_TITLE}") { document.getElementById("logs")?.remove() }`
 
 interface TargetInfo {
     targetId: string
     type: string
-    url: string
+    title: string
 }
+
+/**
+ * a grid or a cloud service can block the ChromeDriver CDP endpoint, and each
+ * failed request is retried, so do not use it again in this process
+ */
+let isEndpointBlocked = false
 
 export function getBidiMapperLogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, BidiMapperLogManager)
@@ -33,13 +41,13 @@ export class BidiMapperLogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, BidiMapperLogManager.name)
 
-        if (!this.isEnabled() || !browser.isChromium) {
+        if (!this.isEnabled() || !browser.isChromium || isEndpointBlocked) {
             this.#initialize = Promise.resolve(true)
             return
         }
 
         this.#initialize = removeMapperLog(browser).then(() => true, (err: Error) => {
-            // a grid or a cloud service can block the ChromeDriver CDP endpoint
+            isEndpointBlocked = true
             log.debug(`Could not remove the log of the BiDi Mapper: ${err.message}`)
             return false
         })
@@ -53,12 +61,20 @@ export class BidiMapperLogManager extends SessionManager {
 async function removeMapperLog(browser: WebdriverIO.Browser) {
     // hidden targets are listed only with an explicit filter
     const { targetInfos } = await browser.sendCommandAndGetResult('Target.getTargets', { filter: [{}] }) as { targetInfos: TargetInfo[] }
-    for (const { targetId } of targetInfos.filter(({ type, url }) => type === 'other' && url === 'about:blank')) {
+    // the Mapper target is `other` in Chrome and `page` in chrome-headless-shell; `tab` is its tab entry
+    for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && type !== 'tab')) {
+        /**
+         * the ChromeDriver endpoint takes no CDP session id, so only the non-flat
+         * mode (deprecated, https://crbug.com/991325) can reach another target
+         */
         const { sessionId } = await browser.sendCommandAndGetResult('Target.attachToTarget', { targetId, flatten: false }) as { sessionId: string }
-        await browser.sendCommandAndGetResult('Target.sendMessageToTarget', {
-            sessionId,
-            message: JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: REMOVE_MAPPER_LOG } })
-        })
-        await browser.sendCommandAndGetResult('Target.detachFromTarget', { sessionId })
+        try {
+            await browser.sendCommandAndGetResult('Target.sendMessageToTarget', {
+                sessionId,
+                message: JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: REMOVE_MAPPER_LOG } })
+            })
+        } finally {
+            await browser.sendCommandAndGetResult('Target.detachFromTarget', { sessionId })
+        }
     }
 }
