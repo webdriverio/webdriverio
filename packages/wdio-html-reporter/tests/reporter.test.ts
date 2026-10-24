@@ -34,6 +34,15 @@ describe('HtmlReporter', () => {
         } as never)
     })
 
+    // a WebDriver BiDi override (the v10 default for Chrome and Firefox) sends no endpoint
+    it('finds a screenshot command by its endpoint or by its command name', () => {
+        const isShot = (command: object) => Boolean(htmlReporter.isScreenshotCommand(command as never))
+        expect(isShot({ endpoint: '/session/id/element/id/screenshot' })).toBe(true)
+        expect(isShot({ command: 'takeScreenshot' })).toBe(true)
+        expect(isShot({ command: 'takeElementScreenshot' })).toBe(true)
+        expect(isShot({ command: 'elementClick', endpoint: '/session/id/element/id/click' })).toBe(false)
+    })
+
     afterAll(() => {
         process.removeAllListeners('test:log')
         process.removeAllListeners('test:screenshot')
