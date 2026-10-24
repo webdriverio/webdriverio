@@ -23,7 +23,7 @@ export async function downloadFile(
     /**
      * check if command is available
      */
-    if (typeof this.download !== 'function') {
+    if (!this.isSeleniumStandalone) {
         throw new Error(`The downloadFile command is not available in ${(this.capabilities as WebdriverIO.Capabilities).browserName} and only available when using Selenium Grid`)
     }
 
