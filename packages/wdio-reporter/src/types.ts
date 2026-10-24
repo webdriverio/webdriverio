@@ -32,7 +32,7 @@ export interface AfterCommandArgs extends CommandArgs {
 export interface ContextEnd {
     cid: string
     specs?: string[]
-    /** uid of the last test of the context */
+    /** uid of the last test of the context (Cucumber: of its scenario, when the scenario has no step) */
     uid: string
     contextId: string
 }
