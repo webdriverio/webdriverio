@@ -342,6 +342,22 @@ describe('Failed tests', () => {
         expect(attempt.labels.filter((l: Label) => l.name === LabelName.TAG)).toEqual([])
     })
 
+    // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+    it.each(['mocha', 'Mocha', '@wdio/mocha-framework', 'jasmine', '@wdio/jasmine-framework'])('reports a %s test titled "When ..." as a test', async (framework) => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+        clean(outputDir)
+    })
+
     it('reports a Mocha test whose title starts with a Gherkin keyword as a test', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runner = runnerStart()

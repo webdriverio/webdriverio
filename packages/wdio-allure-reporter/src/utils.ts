@@ -15,11 +15,20 @@ import process from 'node:process'
  * @param config {Object} - wdio config object
  * @private
  */
+/**
+ * the framework of a runner config in every form that `initializePlugin` loads it
+ * (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for any other framework
+ */
+export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | undefined {
+    const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
+    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' ? short : undefined
+}
+
 export const getTestStatus = (
     test: TestStats | HookStats,
     config?: Options.Testrunner
 ): AllureStatus => {
-    if (config && config.framework === 'jasmine') {
+    if (knownFramework(config?.framework) === 'jasmine') {
         return AllureStatus.FAILED
     }
 

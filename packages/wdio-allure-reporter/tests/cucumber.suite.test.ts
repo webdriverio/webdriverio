@@ -1050,3 +1050,70 @@ describe('Cucumber tests as the base reporter gives them (a TestStats keeps no t
         expect(results.map((r: any) => [r.name, r.status])).toEqual([['Given a user logs in', Status.PASSED]])
     })
 })
+
+// every framework name that initializePlugin loads (wdio-utils initializePlugin.ts): the exact
+// name, another case, the scoped package; any other name keeps the title, keyword and file rules
+describe('the framework of the runner config, in every form that WebdriverIO loads', () => {
+    const asTestStats = (t: Record<string, unknown>, title: string) => {
+        const { file: _file, keyword: _keyword, ...rest } = t
+        return { ...rest, type: 'test', title } as any
+    }
+    const runnerWith = (framework: string, scenarioLevelReporter = false) => {
+        const runner = runnerStart()
+        return { ...runner, config: { ...runner.config, framework, cucumberOpts: { scenarioLevelReporter } } } as any
+    }
+    const resultsOfOneStep = async (framework: string, title: string, scenarioLevelReporter = false) => {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerWith(framework, scenarioLevelReporter))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        if (!scenarioLevelReporter) { reporter.onSuiteStart(cucumberHelper.scenarioStart()) }
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), title))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), title))
+        if (!scenarioLevelReporter) { reporter.onSuiteEnd(cucumberHelper.scenarioEnd({ tests: [cucumberHelper.testPass()], hooks: [] })) }
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+        const { results } = getResults(outputDir)
+        clean(outputDir)
+        return results.map((r: any) => [r.name, r.status, r.steps.map((s: any) => s.name)])
+    }
+    const cucumberNames = ['cucumber', 'Cucumber', 'CUCUMBER', '@wdio/cucumber-framework']
+
+    describe.each(cucumberNames)('framework %s', (framework) => {
+        it.each(['Given I open the page', 'Soit je passe', '* a star step', 'I do something'])('reports the step "%s" as a step of its scenario', async (title) => {
+            expect(await resultsOfOneStep(framework, title)).toEqual([['MyScenario', Status.PASSED, [title]]])
+        })
+
+        it('reports a scenario-level scenario titled "Given ..." as a test', async () => {
+            expect(await resultsOfOneStep(framework, 'Given a user logs in', true)).toEqual([['Given a user logs in', Status.PASSED, []]])
+        })
+
+        it('tags a retried scenario-level attempt "retried"', async () => {
+            const outputDir = temporaryDirectory()
+            const reporter = new AllureReporter({ outputDir })
+            reporter.onRunnerStart(runnerWith(framework, true))
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'flaky'))
+            reporter.onTestRetry(asTestStats(cucumberHelper.testFail(), 'flaky'))
+            reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'flaky'))
+            reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'flaky'))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd())
+            await reporter.onRunnerEnd(runnerEnd())
+            const { results } = getResults(outputDir)
+            clean(outputDir)
+            const tags = (r: any) => r.labels.filter((l: Label) => l.name === LabelName.TAG).map((l: Label) => l.value)
+            expect(results.map((r: any) => [r.status, tags(r)]).sort()).toEqual([[Status.FAILED, ['retried']], [Status.PASSED, []]])
+        })
+    })
+
+    describe.each(['@serenity-js/webdriverio', 'my-custom-framework'])('an unknown framework %s keeps the title rules', (framework) => {
+        it('reports an English step as a step of its scenario', async () => {
+            expect(await resultsOfOneStep(framework, 'Given I open the page')).toEqual([['MyScenario', Status.PASSED, ['Given I open the page']]])
+        })
+
+        it('reports a title with no keyword as a test', async () => {
+            const results = await resultsOfOneStep(framework, 'I do something')
+            expect(results.map(([name]: [string]) => name)).toContain('I do something')
+        })
+    })
+})

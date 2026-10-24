@@ -8,6 +8,7 @@ import {
     findLast,
     getErrorFromFailedTest,
     getTestStatus,
+    knownFramework,
     isScreenshotCommand,
     toPackageLabel,
     normalizeCapabilityName,
@@ -25,10 +26,30 @@ describe('utils', () => {
         })
     })
 
+    // the forms of initializePlugin (wdio-utils initializePlugin.ts): a short name in any case, the scoped package
+    describe('knownFramework', () => {
+        it.each([
+            ['cucumber', 'cucumber'], ['Cucumber', 'cucumber'], ['@wdio/cucumber-framework', 'cucumber'],
+            ['mocha', 'mocha'], ['MOCHA', 'mocha'], ['@wdio/mocha-framework', 'mocha'],
+            ['jasmine', 'jasmine'], ['@wdio/jasmine-framework', 'jasmine'],
+        ])('gives %s as %s', (name, expected) => {
+            expect(knownFramework(name)).toBe(expected)
+        })
+
+        it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
+            expect(knownFramework(name)).toBeUndefined()
+        })
+    })
+
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
             const config: any = { framework: 'jasmine' }
             expect(getTestStatus({} as any, config)).toEqual(Status.FAILED)
+        })
+
+        // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+        it.each(['jasmine', 'Jasmine', '@wdio/jasmine-framework'])('return the jasmine status for framework %s', (framework) => {
+            expect(getTestStatus({} as any, { framework } as any)).toEqual(Status.FAILED)
         })
 
         it('broken for test with no error', () => {

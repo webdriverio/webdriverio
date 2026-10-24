@@ -40,6 +40,7 @@ import {
     getErrorFromFailedTest,
     getStatusDetailsFromFailedTest,
     getTestStatus,
+    knownFramework,
     isEmptyObject,
     isObject,
     isScreenshotCommand,
@@ -958,8 +959,9 @@ export default class AllureReporter extends WDIOReporter {
         const isFeatureFile = isFeatureFilePath(file)
 
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
-        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides when it is known
-        const framework = this._config?.framework
+        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
+        // framework; another one (a custom framework or adapter) keeps the rules below
+        const framework = knownFramework(this._config?.framework)
         if (framework) {
             const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts
             return framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
@@ -1045,7 +1047,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         // a retried Cucumber scenario attempt keeps its tag, as in onSuiteRetry (its TestStats type is 'test')
-        if (this._config?.framework === 'cucumber') {
+        if (knownFramework(this._config?.framework) === 'cucumber') {
             this._pushRuntimeMessage({
                 type: 'metadata',
                 data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
