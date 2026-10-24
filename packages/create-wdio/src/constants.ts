@@ -60,10 +60,12 @@ export const PROGRAM_TITLE = `
                     ${colorIt('test framework for Node.js')}
 `
 
+export const SUPPORTED_NODE_VERSIONS = '>=18.20.8 <19 || >=20.20.2 <21 || >=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1'
+
 export const UNSUPPORTED_NODE_VERSION = (
     '⚠️  Unsupported Node.js Version Error ⚠️\n' +
-    `You are using Node.js ${process.version} which is too old to be used with WebdriverIO.\n` +
-    'Please update to Node.js v20 to continue.\n'
+    `You are using Node.js ${process.version} which is not supported by WebdriverIO.\n` +
+    'Please update to Node.js v22.23.4, v24.22.1, v26.12.1 or a later release of these lines to continue.\n'
 )
 
 export const INSTALL_COMMAND: Record<PACKAGE_MANAGER, string> = {
