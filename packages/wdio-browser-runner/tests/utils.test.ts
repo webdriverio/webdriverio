@@ -2,7 +2,14 @@ import path from 'node:path'
 
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from '../src/utils.js'
+import {
+    makeHeadless,
+    getCoverageByFactor,
+    adjustWindowInWatchMode,
+    hasInspectorOption,
+    getInspectorPort,
+    configureBrowserInspector
+} from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -54,6 +61,64 @@ describe('makeHeadless', () => {
         expect(makeHeadless({}, { browserName: 'safari' })).toEqual({
             browserName: 'safari'
         })
+        expect(makeHeadless({ inspect: true }, { browserName: 'chrome' })).toEqual({
+            browserName: 'chrome'
+        })
+        expect(makeHeadless({ inspect: true, headless: true }, { browserName: 'chrome' })).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['headless', 'disable-gpu']
+            }
+        })
+    })
+})
+
+describe('configureBrowserInspector', () => {
+    it('detects when inspector option or execArgv is present', () => {
+        expect(hasInspectorOption({}, {} as any, [])).toBe(false)
+        expect(hasInspectorOption({ inspect: true }, {} as any, [])).toBe(true)
+        expect(hasInspectorOption({ inspect: 9333 }, {} as any, [])).toBe(true)
+        expect(hasInspectorOption({}, { execArgv: ['--inspect'] } as any, [])).toBe(true)
+        expect(hasInspectorOption({}, {} as any, ['--inspect-brk=127.0.0.1:9229'])).toBe(true)
+    })
+
+    it('resolves inspector port from options, execArgv or cid', () => {
+        expect(getInspectorPort({ inspect: 9555 }, {} as any, '0-0', [])).toBe(9555)
+        expect(getInspectorPort({}, { execArgv: ['--inspect=9444'] } as any, '0-0', [])).toBe(9444)
+        expect(getInspectorPort({}, {} as any, '0-0', ['--inspect-brk=127.0.0.1:9333'])).toBe(9333)
+        expect(getInspectorPort({ inspect: true }, {} as any, '0-0', [])).toBe(9222)
+        expect(getInspectorPort({ inspect: true }, {} as any, '0-2', [])).toBe(9224)
+    })
+
+    it('adds remote debugging port to browser capabilities when inspect is enabled', () => {
+        expect(configureBrowserInspector({}, {} as any, { browserName: 'chrome' }, '0-0', [])).toEqual({
+            browserName: 'chrome'
+        })
+        expect(configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'chrome' }, '0-0', [])).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['--remote-debugging-port=9222']
+            }
+        })
+        expect(configureBrowserInspector({ inspect: 9333 }, {} as any, { browserName: 'msedge' }, '0-0', [])).toEqual({
+            browserName: 'msedge',
+            'ms:edgeOptions': {
+                args: ['--remote-debugging-port=9333']
+            }
+        })
+        expect(configureBrowserInspector({ inspect: true }, {} as any, { browserName: 'firefox' }, '0-1', [])).toEqual({
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                args: ['-remote-debugging-port', '9223']
+            }
+        })
+        const existingCaps: WebdriverIO.Capabilities = {
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['--remote-debugging-port=9999']
+            }
+        }
+        expect(configureBrowserInspector({ inspect: true }, {} as any, existingCaps, '0-0', [])).toEqual(existingCaps)
     })
 })
 

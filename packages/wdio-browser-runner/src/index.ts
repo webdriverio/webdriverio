@@ -15,11 +15,11 @@ import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartially
 import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
-import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY } from './constants.js'
+import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY, DEBUG_TIMEOUT } from './constants.js'
 import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, configureBrowserInspector, hasInspectorOption } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -57,6 +57,13 @@ export default class BrowserRunner extends LocalRunner {
                 .map((r: 'string') => path.join(this.#config.rootDir || process.cwd(), r))
                 .map((r: 'string') => url.pathToFileURL(r).pathname)
         }
+
+        if (hasInspectorOption(this.#options, this.#config)) {
+            this.#config.mochaOpts = {
+                ...this.#config.mochaOpts,
+                timeout: Math.max(Number(this.#config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+            }
+        }
     }
 
     /**
@@ -88,6 +95,7 @@ export default class BrowserRunner extends LocalRunner {
     async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
+        runArgs.caps = configureBrowserInspector(this.options, this.#config, runArgs.caps, runArgs.cid, runArgs.execArgv)
 
         const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
         this.#servers.add(server)

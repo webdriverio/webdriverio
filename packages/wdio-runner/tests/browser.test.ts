@@ -354,4 +354,44 @@ describe('BrowserFramework browser errors', () => {
             process.off('unhandledRejection', unhandled)
         }
     })
+
+    it('does not stack overlapping error checks while paused at a breakpoint', async () => {
+        let resolveExecute!: (value: unknown) => void
+        browser.execute.mockReturnValue(new Promise((resolve) => {
+            resolveExecute = resolve
+        }))
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(browser.execute).toHaveBeenCalledTimes(1)
+
+        resolveExecute({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        await finishSpec(0)
+        expect(await result).toBe(0)
+    })
+
+    it('uses extended timeout when inspect option is enabled', async () => {
+        const on = vi.spyOn(process, 'on').mockImplementation(() => process)
+        const inspectFramework = new BrowserFramework(
+            '0-0',
+            { runner: ['browser', { inspect: true }] } as unknown as WebdriverIO.Config,
+            [url.pathToFileURL(path.resolve('spec.test.js')).href],
+            { emit: vi.fn() } as unknown as BaseReporter
+        )
+        const inspectHandler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
+        on.mockRestore()
+
+        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.getLogs.mockResolvedValue([])
+
+        const result = inspectFramework.run()
+        await vi.advanceTimersByTimeAsync(120_000)
+        expect(sentErrors()).toEqual([])
+
+        await inspectHandler({
+            command: 'workerRequest',
+            args: { id: 1, message: browserChannelMessage(MESSAGE_TYPES.browserTestResult, { failures: 0, events: [] }) }
+        } as unknown as Workers.WorkerCommand)
+        expect(await result).toBe(0)
+    })
 })

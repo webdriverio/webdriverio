@@ -143,6 +143,13 @@ If set to `true` the runner will update capabilities to run tests headless. By d
 __Type:__ `boolean`<br />
 __Default:__ `false`, set to `true` if `CI` environment variable is set
 
+#### `inspect`
+
+Enables remote debugging port on the browser (defaults to `9222`) and increases the test timeout so you can attach a debugger (such as VS Code) and pause execution on breakpoints in your test and component files.
+
+__Type:__ `boolean | number`<br />
+__Default:__ `false`
+
 #### `rootDir`
 
 Project root directory.
