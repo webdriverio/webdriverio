@@ -8,6 +8,7 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 - `smoke-jasmine` runs a Jasmine session, including spec filtering and reporters.
 - `smoke-cucumber` runs a Cucumber session, including line filters, tags, and pending steps.
 - `smoke-cli` runs spec and exclude selection from the CLI.
+- `capabilitySpecsWithSuites` runs a suite across mixed capabilities, preserving capability-specific groups and empty spec lists, then verifies explicit CLI specs take precedence.
 - `smoke-plugin` runs a custom service and a custom reporter through the launcher.
 - `smoke-standalone` runs `remote`, `attach`, and `multiRemote` inside a worker with the mock driver.
 - `smoke-watch` runs the testrunner with `--watch` and checks that a spec change reruns in the same session, including a failing rerun and a `filesToWatch` rerun of every spec.

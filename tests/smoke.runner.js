@@ -1572,6 +1572,56 @@ const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
     assert.strictEqual(failed, 0)
 }
 
+/**
+ * A suite remains the default for capabilities without their own spec patterns.
+ * Capability groups override it, unless an explicit CLI --spec is also passed.
+ */
+const capabilitySpecsWithSuites = async () => {
+    const suiteSpec = path.resolve(__dirname, 'tests-cli-spec-arg/mocha.test01.js')
+    const capabilitySpecs = [
+        path.resolve(__dirname, 'tests-cli-spec-arg/mocha.test02.js'),
+        path.resolve(__dirname, 'tests-cli-spec-arg/mocha.test03.js')
+    ]
+    const capabilities = [
+        { browserName: 'chrome' },
+        { browserName: 'firefox', 'wdio:specs': [capabilitySpecs] },
+        { browserName: 'safari', 'wdio:specs': [] }
+    ]
+    const workers = new Map()
+    const options = {
+        specs: [],
+        suite: ['smoke'],
+        suites: { smoke: [suiteSpec] },
+        capabilities,
+        onWorkerStart: [(cid, caps, specs) => {
+            workers.set(cid, { browserName: caps.browserName, specs: specs.map(spec => url.fileURLToPath(spec)) })
+        }]
+    }
+    const result = await launch('capabilitySpecsWithSuites', baseConfig, options)
+    assert.deepStrictEqual([...workers.values()].sort((a, b) => a.browserName.localeCompare(b.browserName)), [
+        { browserName: 'chrome', specs: [suiteSpec] },
+        { browserName: 'firefox', specs: capabilitySpecs }
+    ])
+    assert.strictEqual(result.passed, 2)
+    assert.strictEqual(result.failed, 0)
+    assert.strictEqual(result.skippedSpecs, 0)
+
+    workers.clear()
+    const cliResult = await launch('capabilitySpecsWithSuites --spec', baseConfig, {
+        ...options,
+        spec: [capabilitySpecs[0]]
+    })
+    for (const { browserName } of capabilities) {
+        assert.deepStrictEqual([...workers.values()].filter(worker => worker.browserName === browserName).map(worker => worker.specs).sort(), [
+            [capabilitySpecs[0]], [suiteSpec]
+        ].sort())
+    }
+    assert.strictEqual(cliResult.passed, 6)
+    assert.strictEqual(cliResult.failed, 0)
+    assert.strictEqual(cliResult.skippedSpecs, 0)
+    console.log('capabilitySpecsWithSuites: 2 mixed-capability workers; CLI --spec: 6 workers; 0 failed or skipped')
+}
+
 const cliSpecsWithWildCard = async () => {
     const { passed, skippedSpecs, failed } = await launch(
         'cliSpecsWithWildCard',
@@ -1824,6 +1874,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cliExcludeParamValidationExcludeNonExistentByKeyword,
         cliExcludeParamValidationExcludeFromConfigByKeyword,
         cliExcludeParamValidationExcludeMultipleSpecsByPath,
+        capabilitySpecsWithSuites,
         cliSpecsWithWildCard,
         cliSpecsTheSameWithWildCard,
         cliSpecsWithWildCardAndGroup,
