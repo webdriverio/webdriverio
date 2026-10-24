@@ -182,7 +182,7 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
 
-`@wdio/html-reporter` doesn't support parallel mode yet: the logs, screenshots and videos that a test sends after another test started can land under the wrong test. Use it with sequential runs.
+`@wdio/html-reporter` supports parallel mode with Mocha and Cucumber. It shows each log, screenshot and video under the test that sent it, also when it comes from a hook or after the test ends.
 
 `@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
 
