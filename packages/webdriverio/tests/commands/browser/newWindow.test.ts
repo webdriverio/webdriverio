@@ -2,10 +2,11 @@
  * @vitest-environment jsdom
  */
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, beforeEach, afterEach, it, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore } from '../../../src/session/context.js'
+import { getParallelContextStore, setParallelContextStore } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -177,37 +178,41 @@ describe('newWindow', () => {
     })
 
     // Firefox opens a tab with no referenceContext in the focused window, which can be the new
-    // window of another parallel test (https://bugzilla.mozilla.org/show_bug.cgi?id=2084843)
+    // window of another parallel test (https://bugzilla.mozilla.org/show_bug.cgi?id=2084843);
+    // the reference also gives the new context the user context of the test
     describe('in parallel mode', () => {
-        const create = async (options: Parameters<WebdriverIO.Browser['newWindow']>[1]) => {
+        let previousStore: ReturnType<typeof getParallelContextStore>
+        const store = new AsyncLocalStorage<string>()
+        const create = async (options?: Parameters<WebdriverIO.Browser['newWindow']>[1]) => {
             const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'bidi' } })
             const spy: MockInstance = vi.spyOn(browser, 'browsingContextCreate')
             spy.mockImplementation(() => ({ context: 'new-context', type: options?.type }))
             vi.spyOn(browser, 'browsingContextNavigate').mockImplementation(() => ({}) as never)
-            await browser.newWindow('https://webdriver.io', options)
+            await store.run('test-window', () => browser.newWindow('https://webdriver.io', options))
             return spy
         }
 
         beforeEach(() => {
-            setParallelContextStore({ getStore: () => 'test-window', run: (_id, fn) => fn() })
+            previousStore = getParallelContextStore()
+            setParallelContextStore(store)
         })
         afterEach(() => {
-            setParallelContextStore({ getStore: () => undefined, run: (_id, fn) => fn() })
+            setParallelContextStore(previousStore)
         })
 
-        it('opens a tab in the window of the test', async () => {
-            const spy = await create({ type: 'tab' })
-            expect(spy).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'test-window' })
+        it.each([
+            ['a tab', { type: 'tab' as const }],
+            ['a window', { type: 'window' as const }],
+            ['the default type', undefined]
+        ])('opens %s from the window of the test', async (_, options) => {
+            const spy = await create(options)
+            expect(spy).toHaveBeenCalledWith({ type: options?.type ?? 'window', referenceContext: 'test-window' })
         })
 
-        it('keeps the referenceContext that the test passes', async () => {
-            const spy = await create({ type: 'tab', referenceContext: 'other-window' })
-            expect(spy).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'other-window' })
-        })
-
-        it('opens a new window with no referenceContext', async () => {
-            const spy = await create({ type: 'window' })
-            expect(spy).toHaveBeenCalledWith({ type: 'window' })
+        it('keeps the referenceContext that the test passes, also a browsing context', async () => {
+            expect(await create({ type: 'tab', referenceContext: 'other-window' })).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'other-window' })
+            const context = { contextId: 'held-window', isFrame: false } as unknown as WebdriverIO.BrowsingContext
+            expect(await create({ type: 'tab', referenceContext: context })).toHaveBeenCalledWith({ type: 'tab', referenceContext: 'held-window' })
         })
     })
 })
