@@ -978,7 +978,8 @@ describe('Cucumber retries (issue #15177)', () => {
             outputDir = temporaryDirectory()
             const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
-            reporter.onRunnerStart(runnerStart())
+            const runner = runnerStart()
+            reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework: 'cucumber' } } as any)
             reporter.onSuiteStart(cucumberHelper.featureStart())
             reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
             reporter.onTestRetry({ ...cucumberHelper.testFail(), type: 'scenario' } as any)
