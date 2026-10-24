@@ -1,0 +1,241 @@
+---
+id: mobile
+title: Mobile Testing
+description: "Capture Appium sessions (mobile browser, native and hybrid apps) in DevTools live and trace mode, and run the per-adapter mobile examples."
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+DevTools captures Appium sessions in both live mode and [Trace Mode](/docs/devtools/wdio/trace-mode). What it captures depends on one question — **does this session have a web document right now?** — because every DOM drain, page script and viewport read is a round trip that can only fail without one.
+
+## Three kinds of session
+
+| Session | Has a document | What is captured |
+|---|---|---|
+| **Mobile browser** (Chrome on Android, Safari on iOS) | always | DOM time-travel, console and replay as on desktop; network from the page's own record, since Appium serves no BiDi (see [Network Logs](/docs/devtools/wdio/network-logs#without-webdriver-bidi)) |
+| **Native app** | never | commands, screenshots and element data from the platform's XML tree; no DOM |
+| **Hybrid app** | only while in a webview context | native halves as an app, webview halves as a page |
+
+The discriminator is the **browser name in the capabilities**, not the device: a mobile browser states one, a native app states none. A device is not required either — a Mac2, WinAppDriver or tvOS session has no document and is treated the same way.
+
+## Hybrid apps and the active context
+
+A hybrid app is the case capabilities alone cannot answer, because the answer changes during the run. Appium reports either `NATIVE_APP` or a webview context, and **anything that is not `NATIVE_APP` counts as a webview** — the `WEBVIEW_` prefix is a convention, and a driver naming its webview differently would otherwise have its DOM capture skipped.
+
+Following the context costs no extra round trip: the context-switch command carries its destination in its own arguments, and a switch that failed is ignored.
+
+## Adapter support
+
+All four adapters detect a native session and skip page-side capture on one. They differ on hybrid apps:
+
+| Capability | WebdriverIO | Selenium | Nightwatch | Python |
+|---|---|---|---|---|
+| Native session detected, page-side capture skipped | ✅ | ✅ | ✅ | ✅ |
+| Follows a hybrid app into its webview | ✅ | ⚠️ ¹ | ⚠️ ¹ | ⚠️ ¹ |
+| Native app network through appium-interceptor (`appium:intercept`) | ✅ | ✅ | ✅ | ✅ |
+
+¹ Answers from the startup capabilities only, so a hybrid session's webview half is captured as if it were still native — no DOM for those actions.
+
+The **device itself** needs no adapter support: it is derived from the session's capabilities by the shared trace exporter on the way into the archive, and by the dashboard for a live session whose adapter sent none. Every adapter therefore gets the device frame.
+
+## In the dashboard
+
+A phone capture is framed as the device: a full-height device column with the action list and dock beside it, in **both** live mode and the [trace player](/docs/devtools/trace-player). The trace's `context-options` records the platform, model and OS version, read back on open so the player labels frames without guessing.
+
+On a native session the A11y tab and element data come from the platform's XML tree rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML.
+
+## Native app network
+
+A native app has no document and Appium serves no BiDi network events, so by default the Network tab of a native session is empty. Every adapter can read the app's traffic from the [appium-interceptor](https://github.com/AppiumTestDistribution/appium-interceptor-plugin) plugin instead, which routes the device through a proxy of its own. Install the plugin and start Appium with it:
+
+```sh
+appium plugin install --source=npm appium-interceptor
+appium --use-plugins=appium-interceptor
+```
+
+Then ask for the proxy with `appium:intercept: true` in the session's capabilities (it is also read from inside `appium:options`):
+
+<Tabs groupId="devtools-mobile-network">
+<TabItem value="wdio" label="WebdriverIO" default>
+
+```ts
+capabilities: [{
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:app': '/path/to/app.apk',
+    'appium:intercept': true
+}]
+```
+
+</TabItem>
+<TabItem value="selenium" label="Selenium (Node.js)">
+
+```js
+const driver = await new Builder()
+  .usingServer('http://127.0.0.1:4723')
+  .withCapabilities({
+    platformName: 'Android',
+    'appium:automationName': 'UiAutomator2',
+    'appium:app': '/path/to/app.apk',
+    'appium:intercept': true
+  })
+  .build()
+```
+
+</TabItem>
+<TabItem value="nightwatch" label="Nightwatch">
+
+```js
+desiredCapabilities: {
+  browserName: null,
+  platformName: 'Android',
+  'appium:automationName': 'UiAutomator2',
+  'appium:app': '/path/to/app.apk',
+  'appium:intercept': true
+}
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+from appium.options.android import UiAutomator2Options
+
+options = UiAutomator2Options()
+options.app = "/path/to/app.apk"
+options.set_capability("appium:intercept", True)
+```
+
+</TabItem>
+</Tabs>
+
+The adapter starts a listener for each session, including one that replaces it mid-run, in both live and trace mode. It reads what the proxy recorded at most every 2 seconds between commands, because each read returns the whole history, and always at the end of each test (before that test's trace slice is written) and at the end of the session. Each request shows its method, URL, status, headers and bodies. The plugin records no timing, so a request is placed at the moment it was first read and shows no duration, and requests the app makes before the listener starts (its launch traffic) are not listed. Without the plugin the adapter logs a warning and the session runs as usual.
+
+This applies to native sessions only; a mobile browser session already captures its network through the page. The plugin supports Android. For HTTPS traffic the app has to trust the certificate the plugin installs on the device, which a release build usually does not (see Android's network security configuration).
+
+## What a mobile trace does not contain
+
+Per-action snapshots are issued from inside the command hook, and Appium serialises a probe behind the command it is observing. Where a session has a document to probe, that snapshot is therefore skipped.
+
+In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture unless it opts into the appium-interceptor plugin (see [Native app network](#native-app-network)), because the driver exposes none.
+
+These absences are by design. They are not a capture failure, and they are the main thing to know before debugging a hybrid trace.
+
+## Running an example
+
+The repo carries one mobile example per adapter, and all four drive the same
+flow, so a difference between two dashboards is a difference in the adapter
+rather than in the test.
+
+The examples live in the [devtools repo](https://github.com/webdriverio/devtools),
+not in the adapter packages, so installing an adapter into your own project does
+not give you these scripts. Clone and build that repo once:
+
+```sh
+git clone https://github.com/webdriverio/devtools.git
+cd devtools
+pnpm install
+pnpm build
+```
+
+The Python example runs the `python3` on your `PATH`, so install the adapter and
+the Appium client into it first (a virtual environment keeps them out of your
+system Python):
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e packages/selenium-devtools-py
+pip install -r examples/selenium-py/requirements-mobile.txt
+```
+
+Then, with Appium and a device ready (see [Prerequisites](#prerequisites)), run
+any of them from the root of that checkout:
+
+```sh
+pnpm demo:wdio:mobile
+pnpm demo:selenium:mobile
+pnpm demo:nightwatch:mobile
+pnpm demo:python:mobile
+```
+
+They drive the **Clock app**, which ships with every Android system image — so
+there is no `.apk` to supply, nothing to upload and no credentials. The flow
+stays on the timer setup screen: open the Timers tab, backspace the entry to
+zero, key a duration on the keypad, read it back, and correct it with backspace.
+
+They deliberately never **start** a timer. A running timer survives the session
+and replaces the setup screen with its card, so a spec that starts one is
+re-runnable only if it also finishes — an interrupted run would break every run
+after it. Not starting one removes that class of failure, and the keypad still
+exercises what an example is for: real input, real state change, captured.
+
+They also avoid Clock's preset chips, which look like fixed controls and are
+not: they are recently-used-duration suggestions, so a freshly reset Clock
+offers only the keypad and a preset-based flow fails on any device without
+timer history — including CI. Two Clock layouts exist on one app version, and
+the keypad is common to both.
+
+`DEVTOOLS_MODE=trace` switches any of them to trace mode, `DEVTOOLS_MOBILE=web`
+drives the device's own browser instead of an app — Chrome on Android, Safari on
+iOS — and `APPIUM_APP` points one at a real app. [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md)
+in the repo is the full setup guide.
+
+## iOS
+
+```sh
+DEVTOOLS_MOBILE_PLATFORM=ios pnpm demo:wdio:mobile
+```
+
+**All four adapters.** Each carries an `android/` and an `ios/` spec directory
+and the runner picks between them, so the command above works with
+`demo:selenium:mobile`, `demo:nightwatch:mobile` and `demo:python:mobile` too.
+Capture itself was never platform-specific — what each adapter needed was a
+spec, not adapter work.
+
+iOS drives **Settings**, not Clock, because Clock is not installed on the
+simulator at all: `xcrun simctl listapps` lists Settings, Calendar, Reminders,
+Maps and Safari, and no Clock. Settings is on every simulator and every device,
+which is the same property that makes Clock the Android choice. The flow
+navigates into General and back, checking the navigation bar title each way —
+the same shape as the Android flow, with the app the platform actually ships.
+
+Android and iOS are **separate specs**, not one spec with a branch, because they
+share no selectors: iOS locators are accessibility ids and labels rather than
+resource-ids.
+
+`DEVTOOLS_MOBILE=web` works here too, and needs less than it does on Android: it
+opens **Safari**, which the XCUITest driver drives itself — no Chromedriver to
+match and nothing to add to the `appium` command.
+
+**Which simulator gets driven is resolved to a udid, never a bare name.** Naming
+one that does not exist does not fail — the XCUITest driver *creates* it and
+boots it, every run, beside the simulator already running, leaving a new
+simulator behind each time. So the examples default to whichever simulator is
+already booted, and an `IOS_DEVICE_NAME` matching none of them is refused with
+the list of booted ones rather than passed through.
+
+That is **local** policy. `xcrun simctl` enumerates local simulators and nothing
+else, so `IOS_UDID` names a device outright and is checked against nothing — a
+real device has no entry to match — and against a remote or cloud Appium
+(`APPIUM_HOST` set to anything but localhost) a device name is passed straight
+through, since naming one is how such a service selects it.
+
+Beyond the Android prerequisites, none of which iOS uses, you need Xcode (the
+Command Line Tools ship no simulators), a simulator runtime
+(`xcodebuild -downloadPlatform iOS`, a separate ~8 GB download), a booted
+simulator, and `appium driver install xcuitest` — whose first run also builds
+WebDriverAgent. Appium loads drivers at **startup**, so a server that was
+already running when you installed the driver will report that it cannot find
+XCUITest until you restart it.
+
+## Prerequisites
+
+Running against a local Android emulator needs, beyond [Getting Started](/docs/devtools/getting-started):
+
+1. **Java JDK** and the **Android SDK** — with `ANDROID_HOME` pointing at the SDK the `sdkmanager` on your `PATH` actually installs into, which is not always `~/Library/Android/sdk`.
+2. **An AVD and a running emulator**, or a physical device with USB debugging.
+3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`), or the XCUITest driver for iOS — see [iOS](#ios) above.
+4. **A matching Chromedriver**, for a mobile browser or a hybrid app. A webview is driven by Chromedriver, and Appium's autodownload frequently has no build matching the Chrome on the system image — in either direction. It surfaces as `No Chromedriver found that can automate Chrome '<version>'` when entering a webview, which reads as a capture failure but is an environment gap. Start Appium with `--default-capabilities '{"appium:chromedriverExecutableDir": "<path>"}'` plus `--allow-insecure=uiautomator2:chromedriver_autodownload`. **A native-app run needs none of this.**
+5. **Classic WebDriver protocol** for WebdriverIO — Appium's BiDi shim for UiAutomator2 does not implement every BiDi command, so set `'wdio:enforceWebDriverClassic': true` in the capability block.

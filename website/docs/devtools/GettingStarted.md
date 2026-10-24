@@ -19,6 +19,7 @@ values={[
 {label: 'WebdriverIO', value: 'wdio'},
 {label: 'Selenium', value: 'selenium'},
 {label: 'Nightwatch', value: 'nightwatch'},
+{label: 'Python', value: 'python'},
 ]}
 >
 <TabItem value="wdio">
@@ -128,10 +129,30 @@ nightwatch
 See the [Nightwatch page](/docs/devtools/nightwatch) for the Cucumber/BDD setup.
 
 </TabItem>
+<TabItem value="python">
+
+Needs Python 3.10+, `selenium>=4.44`, and Node.js 22.19+ on `PATH` (the dashboard backend is a Node application). Install the adapter, then the backend once:
+
+```bash
+pip install selenium-devtools-py
+selenium-devtools install-backend
+```
+
+Under pytest nothing goes in your test files. Turn capture on with a flag:
+
+```bash
+pytest --devtools tests/          # live dashboard
+pytest --devtools-trace tests/    # write a trace archive instead
+```
+
+See the Python tabs on the [Selenium page](/docs/devtools/selenium) for plain scripts, ini options and environment variables.
+
+</TabItem>
 </Tabs>
 
 ## Next steps
 
 - **[Trace Mode](/docs/devtools/wdio/trace-mode)** — set `mode: 'trace'` to skip the UI and produce a portable, offline trace artifact for CI.
-- **[Configuration Reference](/docs/devtools/reference)** — every option across all three adapters.
+- **[Configuration Reference](/docs/devtools/reference)**: every option across the adapters.
+- **[Mobile Testing](/docs/devtools/mobile)**: capture Appium sessions.
 - **Frameworks** — full per-adapter guides: [WebdriverIO](/docs/devtools/wdio), [Selenium](/docs/devtools/selenium), [Nightwatch](/docs/devtools/nightwatch).

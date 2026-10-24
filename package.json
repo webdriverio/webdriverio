@@ -80,6 +80,9 @@
     "test:e2e:display-server": "cd ./e2e && npx wdio run ./wdio/display-server/wdio.conf.ts && npx wdio run ./wdio/display-server/wdio.runner.conf.ts",
     "test:e2e:chromedriver": "cd ./e2e && npx wdio run ./wdio/chromedriver/wdio.conf.ts",
     "test:e2e:cucumberjs-json-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/cucumberjs-json/wdio.conf.ts",
+    "test:e2e:video-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.conf.ts",
+    "test:e2e:video-reporter-parallel": "cd ./e2e && npx wdio run ./wdio/reporters/video/wdio.parallel.conf.ts",
+    "test:e2e:html-reporter": "cd ./e2e && npx wdio run ./wdio/reporters/html/wdio.conf.ts",
     "test:e2e": "run-s test:e2e:* ",
     "test:ios:local": "cd ./e2e && npx wdio run ./wdio/mobile/wdio.ios.conf.ts",
     "test:android:local": "cd ./e2e && npx wdio run ./wdio/mobile/wdio.android.conf.ts",
@@ -139,7 +142,7 @@
     "webdriverio": "workspace:*"
   },
   "engines": {
-    "node": ">=22.19.0",
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1",
     "pnpm": ">=11 <12"
   }
 }

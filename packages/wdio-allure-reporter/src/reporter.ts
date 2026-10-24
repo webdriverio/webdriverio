@@ -7,6 +7,7 @@ import type {
     AfterCommandArgs,
     Argument,
     BeforeCommandArgs,
+    ContextEnd,
     HookStats,
     RunnerStats,
     SuiteStats,
@@ -67,12 +68,14 @@ type StepWrapper = { step: StepPayload }
 
 type ReportLane = {
     main: WDIORuntimeMessage[]
-    // after-each/after-all hooks run before test:pass in parallel mode but after test:end in
-    // sequential mode, so they are held back here and replayed after the test's own messages
+    // added for the Mocha framework: a framework that sends the after hooks of a parallel test
+    // before its test:pass gets them held back here and replayed after the test's own messages
     tail: WDIORuntimeMessage[]
     inTail: boolean
     console: string
     suitePath?: string[]
+    // title of the test after its test:end: the lane stays open for the after hooks that follow
+    endedTitle?: string
 }
 
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
@@ -228,7 +231,7 @@ export default class AllureReporter extends WDIOReporter {
                     const lane = self._openLane()
                     if (!lane) {
                         if (!self._lanesSeen) { self._consoleOutput += str }
-                    } else if (!lane.inTail) {
+                    } else if (!lane.inTail && lane.endedTitle === undefined) {
                         lane.console += str
                     }
                 }
@@ -277,7 +280,24 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         const lane = this._openLane(key)
-        if (lane) { (lane.inTail ? lane.tail : lane.main).push(message) }
+        if (!lane) { return }
+        // after test:end the context runs only the after hooks of its test: their messages
+        // (also the runtime API of a hook with disableMochaHooks) belong to that test, as in a sequential run
+        (lane.inTail ? lane.tail : lane.main).push(message)
+    }
+
+    /**
+     * In parallel mode every suite:end comes after the last test and its hooks, so a lane
+     * that no context:end closed (older framework) closes there, with its after hooks
+     */
+    private _closeEndedLanes(): void {
+        let closed = false
+        for (const [key, lane] of [...this._lanes]) {
+            if (lane.endedTitle === undefined) { continue }
+            this._closeLane(key, lane.endedTitle)
+            closed = true
+        }
+        if (closed) { this._flushIncrementally() }
     }
 
     /**
@@ -783,6 +803,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onSuiteEnd(suite: SuiteStats & { end: Date }): void {
+        this._closeEndedLanes()
         const isScenario = suite.type === 'scenario'
         const cid = this._currentCid()
 
@@ -1158,7 +1179,15 @@ export default class AllureReporter extends WDIOReporter {
     onTestEnd(test: TestStats): void {
         const key = this._laneKey()
         if (!key) { return }
-        this._closeLane(key, test.title)
+        const lane = this._openLane(key)
+        if (lane) { lane.endedTitle = test.title }
+    }
+
+    // the context runs no more hooks: write its test now, while other tests still run
+    onContextEnd(payload: ContextEnd): void {
+        const lane = this._lanes.get(payload.contextId)
+        if (!lane) { return }
+        this._closeLane(payload.contextId, lane.endedTitle ?? payload.contextId)
         this._flushIncrementally()
     }
 

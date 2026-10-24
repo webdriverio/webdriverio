@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import url from 'node:url'
 
 import { describe, expect, it, vi } from 'vitest'
@@ -48,21 +49,46 @@ describe('AiService test tracking', () => {
         const spec = path.resolve('/project/test/cart.e2e.ts')
         await service.before({}, [url.pathToFileURL(spec).href], { addCommand: vi.fn() } as unknown as WebdriverIO.Browser)
         service.beforeTest({ file: spec, fullTitle: 'cart adds a shirt' })
-        expect(startTest).toHaveBeenLastCalledWith(spec, 'cart adds a shirt')
-        await service.afterTest({}, {}, { passed: false })
-        expect(endTest).toHaveBeenCalledWith(false)
+        expect(startTest).toHaveBeenLastCalledWith(spec, 'cart adds a shirt', undefined)
+        await service.afterTest({ file: spec, fullTitle: 'cart adds a shirt' }, {}, { passed: false })
+        expect(endTest).toHaveBeenCalledWith(false, spec, 'cart adds a shirt', undefined)
 
         service.beforeTest({ fullName: 'jasmine spec name' })
-        expect(startTest).toHaveBeenLastCalledWith(spec, 'jasmine spec name')
+        expect(startTest).toHaveBeenLastCalledWith(spec, 'jasmine spec name', undefined)
 
         const feature = path.resolve('/project/features/cart.feature')
         service.beforeScenario({ pickle: { uri: url.pathToFileURL(feature).href, name: 'Add a shirt' } })
-        expect(startTest).toHaveBeenLastCalledWith(feature, 'Add a shirt')
-        await service.afterScenario({}, { passed: true })
-        expect(endTest).toHaveBeenLastCalledWith(true)
+        expect(startTest).toHaveBeenLastCalledWith(feature, 'Add a shirt', undefined)
+        await service.afterScenario({ pickle: { uri: url.pathToFileURL(feature).href, name: 'Add a shirt' } }, { passed: true })
+        expect(endTest).toHaveBeenLastCalledWith(true, feature, 'Add a shirt', undefined)
 
         await service.after()
         expect(flush).toHaveBeenCalled()
+    })
+
+    /**
+     * parallel mode runs the hooks of a test in the store of its browsing context
+     */
+    it('names the browsing context of a test and a scenario in parallel mode', async () => {
+        const store = new AsyncLocalStorage<string>()
+        const service = new AiService()
+        const startTest = vi.spyOn(service.runtime, 'startTest')
+        const endTest = vi.spyOn(service.runtime, 'endTest')
+        vi.spyOn(service.runtime, 'agentFor').mockResolvedValue({} as never)
+        const spec = path.resolve('/project/test/cart.e2e.ts')
+        await service.before({}, [spec], { addCommand: vi.fn(), __parallelContextStore: store } as unknown as WebdriverIO.Browser)
+
+        await store.run('ctx-1', async () => {
+            service.beforeTest({ file: spec, title: 'pays' })
+            await service.afterTest({ file: spec, title: 'pays' }, {}, { passed: true })
+        })
+        await store.run('ctx-2', async () => {
+            service.beforeScenario({ pickle: { uri: spec, name: 'Pay' } })
+            await service.afterScenario({ pickle: { uri: spec, name: 'Pay' } }, { passed: true })
+        })
+
+        expect(startTest.mock.calls).toEqual([[spec, 'pays', 'ctx-1'], [spec, 'Pay', 'ctx-2']])
+        expect(endTest.mock.calls).toEqual([[true, spec, 'pays', 'ctx-1'], [true, spec, 'Pay', 'ctx-2']])
     })
 })
 

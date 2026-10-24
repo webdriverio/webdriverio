@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter",
   "license": "MIT",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
     "@wdio/types": "workspace:*",
     "chalk": "^6.0.1",
     "easy-table": "^1.2.0",
-    "pretty-ms": "^9.0.0"
+    "pretty-ms": "^10.0.0"
   },
   "publishConfig": {
     "access": "public"

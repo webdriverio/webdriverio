@@ -28,6 +28,13 @@ interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     mochaOpts: MochaOptsImport
 }
 
+/** The reporter fields of a root-suite hook in a sequential run (Mocha's setHookTitle) */
+function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
+    const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
+    const title = test ? `"${kind}" hook for "${test.title}"` : `"${kind}" hook in "{root}"`
+    return { title, fullTitle: title, parent: '' }
+}
+
 /**
  * Mocha runner
  */
@@ -43,6 +50,8 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
+    /** Mocha test and its uid between its test:start and its test:end */
+    private _openTest?: { payload: Record<string, unknown>, uid: string }
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -182,17 +191,19 @@ class MochaAdapter {
         }
 
         // Config hooks are surfaced as paired hook:start/hook:end events like
-        // sequential mode's root-suite hooks (wrapHook), with prepareMessage
-        // payloads. They run against the session-global context (no tab).
+        // sequential mode's root-suite hooks (wrapHook): prepareMessage payloads
+        // with Mocha's root hook title. They run against the session-global context (no tab).
+        const rootTests = (mocha.suite as unknown as { tests?: { title: string }[] }).tests
         const beforeSuiteMsg = this.prepareMessage('beforeSuite')
+        const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
         const beforeSuiteUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...beforeSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         try {
             await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         } catch (err) {
             log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         }
 
         let failures: number
@@ -207,7 +218,9 @@ class MochaAdapter {
                     grep: mocha.options?.grep as RegExp | undefined,
                     invert: mocha.options?.invert,
                     timeout: this._config.mochaOpts.timeout,
-                    mode
+                    mode,
+                    failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
+                    allowUncaught: this._config.mochaOpts.allowUncaught
                 }
             )
         } catch (err) {
@@ -216,14 +229,15 @@ class MochaAdapter {
         }
 
         const afterSuiteMsg = this.prepareMessage('afterSuite')
+        const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
         const afterSuiteStartUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...afterSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+        this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
         try {
             await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
         } catch (err) {
             log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
         }
 
         return this._finalize(failures, runtimeError)
@@ -310,11 +324,28 @@ class MochaAdapter {
             return
         }
 
+        /**
+         * Mocha 11.8+ sends a second 'test' event for the open test when a `beforeEach`
+         * hook fails with `failHookAffectedTests` (mochajs/mocha#6442), so ignore it.
+         * TODO: remove when the `mocha` version range of this package includes the fix of
+         * https://github.com/mochajs/mocha/issues/6442
+         */
+        const isOpenTest = payload === this._openTest?.payload
+        if (event === 'test:start' && isOpenTest) {
+            return
+        }
+
         const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
-        message.uid = this.getUID(message)
+        // this.skip() at runtime ends the test that started; it.skip has no test:start
+        message.uid = event === 'test:pending' && isOpenTest ? this._openTest!.uid : this.getUID(message)
+        if (event === 'test:start') {
+            this._openTest = { payload, uid: message.uid }
+        } else if (event === 'test:end') {
+            this._openTest = undefined
+        }
 
         this._reporter.emit(message.type, message)
     }
@@ -367,7 +398,7 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (['test:start', 'test:pending'].includes(message.type)) {
+        if (message.type === 'test:start' || message.type === 'test:pending') {
             return this.getSyncEventIdStart('test')
         }
         if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {

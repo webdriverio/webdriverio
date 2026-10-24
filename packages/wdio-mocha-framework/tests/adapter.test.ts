@@ -222,8 +222,11 @@ describe('parallel mode config hooks', () => {
         // beforeSuite + afterSuite → two start/end pairs
         expect(hookStarts.length).toBe(2)
         expect(hookEnds.length).toBe(2)
-        // prepareMessage payloads, not raw config-hook objects
-        expect(hookStarts[0][1].title).toBe('first suite')
+        // the titles of the root-suite hooks of a sequential run
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
+        expect(hookEnds.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
+        expect(hookStarts[0][1].fullTitle).toBe('"before all" hook in "{root}"')
+        expect(hookStarts[0][1].parent).toBe('')
         expect(hookStarts[0][1].type).toBe('hook:start')
         // start/end share a uid; afterSuite end carries duration + state
         expect(hookStarts[0][1].uid).toBe(hookEnds[0][1].uid)
@@ -231,6 +234,23 @@ describe('parallel mode config hooks', () => {
         expect(hookEnds[1][1].state).toBe('pass')
         expect(hookEnds[1][1].duration).toBeGreaterThanOrEqual(0)
         expect(runParallelTests).toBeCalledTimes(1)
+    })
+
+    test('titles beforeSuite/afterSuite with the first and the last test of the root suite, as Mocha does', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }], tests: [{ title: 'first' }, { title: 'last' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook for "first"', '"after all" hook for "last"'])
     })
 
     test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
@@ -293,7 +313,7 @@ describe('parallel mode setBrowser', () => {
 describe('parallel mode mocha options', () => {
     test('threads grep/invert/timeout into runParallelTests', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', timeout: 5000 } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', timeout: 5000, allowUncaught: true } })
         await adapter.init()
         adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
         adapter['_mocha']!.options = { grep: /beta/, invert: true } as any
@@ -309,7 +329,7 @@ describe('parallel mode mocha options', () => {
         expect(runParallelTests).toBeCalledWith(
             expect.anything(), expect.anything(), expect.anything(), '0-2', ['/foo/bar.test.js'],
             undefined,
-            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts' }
+            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts', failHookAffectedTests: true, allowUncaught: true }
         )
     })
 
@@ -418,6 +438,53 @@ test('emit does not emit anything on root level', () => {
     expect(wdioReporter.emit).not.toBeCalled()
 })
 
+test('emit ignores a second test:start for the test that is open', () => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory()
+    const t1 = { title: 't1', type: 'test' }
+    const t2 = { title: 't2', type: 'test' }
+
+    // failing beforeEach with failHookAffectedTests: Mocha 11.8+ sends `test` twice (mochajs/mocha#6442)
+    adapter.emit('test:start', t1)
+    adapter.emit('test:start', t1)
+    adapter.emit('test:fail', t1, new Error('hook failed') as any)
+    adapter.emit('test:end', t1)
+    adapter.emit('test:start', t2)
+
+    expect(wdioReporter.emit.mock.calls.map(([type, { uid }]) => [type, uid])).toEqual([
+        ['test:start', 'test-0-0'],
+        ['test:fail', 'test-0-0'],
+        ['test:end', 'test-0-0'],
+        ['test:start', 'test-0-1'],
+    ])
+})
+
+test('emit gives an it.skip its own uid after a test that a failed beforeEach left open', () => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory()
+    const t1 = { title: 't1', type: 'test' }
+    const t2 = { title: 't2', type: 'test' }
+
+    // failHookAffectedTests: false: Mocha sends no `test end` for the test of a failed beforeEach
+    adapter.emit('suite:start', { title: 'A' })
+    adapter.emit('test:start', t1)
+    adapter.emit('hook:start', { title: '"before each" hook', type: 'hook' })
+    adapter.emit('hook:end', { title: '"before each" hook', type: 'hook' }, new Error('hook failed') as any)
+    adapter.emit('suite:end', { title: 'A' })
+    adapter.emit('suite:start', { title: 'B' })
+    adapter.emit('test:pending', t2)
+    adapter.emit('test:end', t2)
+
+    expect(wdioReporter.emit.mock.calls
+        .filter(([type]) => type.startsWith('test:'))
+        .map(([type, { uid }]) => [type, uid])
+    ).toEqual([
+        ['test:start', 'test-00-0'],
+        ['test:pending', 'test-01-0'],
+        ['test:end', 'test-01-0'],
+    ])
+})
+
 test('emit properly reports to reporter', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
@@ -446,6 +513,36 @@ test('emits "before all"-hook errors as hook:end', () => {
 
     expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
     expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
+})
+
+test('emit gives a test that this.skip() skips at runtime the uid of its test:start', () => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory()
+    const t1 = { title: 't1', type: 'test' }
+    const t2 = { title: 't2', type: 'test' }
+    const t3 = { title: 't3', type: 'test' }
+
+    // this.skip() in the test or in beforeEach: Mocha sends test, pending, test end
+    adapter.emit('test:start', t1)
+    adapter.emit('hook:start', { title: '"before each" hook', type: 'hook' })
+    adapter.emit('hook:end', { title: '"before each" hook', type: 'hook' })
+    adapter.emit('test:pending', t1)
+    adapter.emit('test:end', t1)
+    // it.skip: Mocha sends pending and test end, with no test start
+    adapter.emit('test:pending', t2)
+    adapter.emit('test:end', t2)
+    adapter.emit('test:start', t3)
+
+    expect(wdioReporter.emit.mock.calls.map(([type, { uid }]) => [type, uid])).toEqual([
+        ['test:start', 'test-0-0'],
+        ['hook:start', 'hook-0-0'],
+        ['hook:end', 'hook-0-0'],
+        ['test:pending', 'test-0-0'],
+        ['test:end', 'test-0-0'],
+        ['test:pending', 'test-0-1'],
+        ['test:end', 'test-0-1'],
+        ['test:start', 'test-0-2'],
+    ])
 })
 
 test('getUID', () => {

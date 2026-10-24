@@ -17,17 +17,18 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Trace mode + `show-trace` player | ✅ | ✅ | ✅ |
 | DOM time-travel (mutation capture) | ✅ | ✅ ¹ | ✅ |
 | A11y tab + pick-locator overlay (trace player) | ✅ | ✅ | ✅ |
+| Native Appium session detected | ✅ | ✅ | ✅ |
+| Follows a hybrid app into its webview | ✅ | ⚠️ startup caps only | ⚠️ startup caps only |
 | Transcript + Copy-for-LLM | ✅ | ✅ | ✅ |
 | Per-test `screenshot` / `video` | ✅ inline Allure | ✅ inline Allure | ⚠️ produce-only ² |
-| `emitArtifactsManifest` auto-detect | ✅ | ✅ | ⚠️ opt-in only |
 | Retry-aware `tracePolicy` | ✅ | ✅ | ⚠️ `retain-on-failure` only ³ |
 | `traceGranularity: 'test'` | ✅ | ✅ | ⚠️ Cucumber / exports-object; BDD `describe/it` collapses to a session slice |
 | Cucumber Feature→Scenario→Step nesting | Scenario→Step ⁴ | ✅ full | Feature→Scenario ⁵ |
 | BiDi capture (console / network / exceptions) | ✅ auto | ✅ auto | ⚠️ opt-in (`bidi: true` + `webSocketUrl`) |
 | Screencast (filmstrip / video) | CDP push | CDP push | polling only |
-| Live-dashboard A11y tab + overlay | ✅ | trace player only | trace player only |
+| A11y and Transcript tabs | trace player only | trace player only | trace player only |
 
-¹ Selenium reconstructs the DOM per navigation; anchor timing is approximate (a navigation's snapshot can lag the command that triggered it).
+¹ With BiDi, Selenium registers the page collector at document start, so every document anchors its own DOM as WebdriverIO's does. Without BiDi it falls back to injecting the collector after each navigation, and there a navigation's snapshot can lag the command that triggered it.
 ² Nightwatch has no live Allure attach API, so per-test artifacts are written to the trace output dir and listed in the manifest, but not attached to an Allure test.
 ³ Nightwatch's `--retries` re-runs a test internally without re-firing the plugin's per-test hooks, so the retry-aware policies (`on-first-retry`, `retain-on-first-failure`, …) degrade to `retain-on-failure`.
 ⁴ WebdriverIO does not yet carry feature-level ancestry, so its Cucumber nesting is Scenario→Step.

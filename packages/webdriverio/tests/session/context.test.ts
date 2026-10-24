@@ -12,6 +12,7 @@ import {
     PARALLEL_CONTEXTS_KEY,
     PARALLEL_SAFE_CLASSIC_COMMANDS,
 } from '../../src/session/context.js'
+import { withScreenshotEvents } from '../../src/utils/screenshotEvents.js'
 import { logMock } from '@wdio/logger'
 import { WebDriverProtocol } from '@wdio/protocols'
 import { SESSION_ENDED_ERROR } from 'webdriver'
@@ -831,6 +832,22 @@ describe('ContextManager — parallel mode guards', () => {
         try {
             getParallelContextStore().run('ctx-parallel-a', () => {
                 expect(() => cmHandler({ command: 'browsingContextGetTree', body: {} })).not.toThrow()
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('does not throw for the Classic screenshot events of a WebDriver BiDi capture', async () => {
+        const { wid, cmHandler } = getCommandHandler()
+        try {
+            const emitter = { emit: (name: string, event: unknown) => name === 'command' && cmHandler(event) } as unknown as WebdriverIO.Browser
+            await getParallelContextStore().run('ctx-parallel-a', async () => {
+                await expect(withScreenshotEvents(emitter, 'takeScreenshot', () => Promise.resolve('data'))).resolves.toBe('data')
+                await expect(withScreenshotEvents(emitter, 'takeElementScreenshot', () => Promise.resolve('data'), 'element-1'))
+                    .resolves.toBe('data')
+                expect(() => cmHandler({ command: 'takeScreenshot', method: 'GET', endpoint: '/session/:sessionId/screenshot', body: {} }))
+                    .toThrow(parallelModeError('takeScreenshot'))
             })
         } finally {
             process.env.WDIO_UNIT_TESTS = wid

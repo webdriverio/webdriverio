@@ -638,7 +638,7 @@ export interface AppiumCapabilities {
     'appium:deviceName'?: string
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-appbundle.md),
+     * or [.apks file (Android App Bundle)](https://appium.github.io/appium-uiautomator2-driver/latest/guides/appbundle/),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -690,7 +690,7 @@ export interface AppiumCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://github.com/appium/appium-uiautomator2-driver#capabilities
+ * @see https://appium.github.io/appium-uiautomator2-driver/latest/reference/capabilities/
  */
 export interface AppiumAndroidCapabilities {
     'appium:appiumVersion'?: string

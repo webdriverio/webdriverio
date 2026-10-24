@@ -34,6 +34,15 @@ describe('runHook', () => {
         )
         expect(hookFunction.mock.calls[0][0].toString()).toBe('hookFn')
     })
+
+    it.each([
+        ['the name of a named hook', async function login () {}, 'login'],
+        ['no name for an anonymous hook', [async () => {}][0], ''],
+    ])('should give the wrapped hook %s, as Mocha titles a hook after its function', (_, hookFn, name) => {
+        const origFn = vi.fn()
+        runHook(hookFn, origFn, [], () => [], [], () => [], 'cid', 0, 0)
+        expect(origFn.mock.calls[0][0].name).toBe(name)
+    })
 })
 
 describe('runSpec', () => {
@@ -104,6 +113,15 @@ describe('wrapTestFunction', () => {
             123
         )
         expect(hookFunction).toBeCalledWith(expect.any(Function), 123)
+    })
+
+    it('should keep the title of a hook that has one, as Mocha titles the hook after it', () => {
+        const origFn = vi.fn()
+        const fn = wrapTestFunction(origFn, false, [], () => [] as any, [], () => [] as any, 'cid')
+        fn('seed database' as any, async function login () {})
+        // Mocha's hook(title, fn): a function as the first argument gives its name as the title
+        const [first] = origFn.mock.calls[0]
+        expect(typeof first === 'function' ? first.name : first).toBe('seed database')
     })
 
     it('should run pending function', () => {

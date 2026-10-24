@@ -3,6 +3,7 @@ import type { EventEmitter } from 'node:events'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
+import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
@@ -145,6 +146,33 @@ describe('CucumberAdapter', () => {
         expect(adapter.hasTests()).toBe(true)
     })
 
+    it('picks the random order seed once and logs it', async () => {
+        const cucumberWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { order: 'random' } }, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false)
+            const [, seed] = (adapter._cucumberOpts.order as string).split(':')
+            expect(seed).toMatch(/^\d+$/)
+            expect(warn).toHaveBeenCalledWith(`Random order using seed: ${seed}`)
+            // loadSources got the seed, so Cucumber did not pick and log its own
+            expect(cucumberWarn).not.toHaveBeenCalledWith(expect.stringContaining('Random order using seed'))
+        } finally {
+            cucumberWarn.mockRestore()
+            warn.mockRestore()
+        }
+    })
+
+    it.each(['defined', 'random:7'])('keeps the order %s', async (order) => {
+        const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { order } }, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false)
+            expect(adapter._cucumberOpts.order).toBe(order)
+            expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Random order using seed'))
+        } finally {
+            warn.mockRestore()
+        }
+    })
+
     it('respects user-defined formatOptions', async () => {
 
         const formatOptions =  { myFormatter: { MyOption: 'MyValue' } }
@@ -242,6 +270,25 @@ describe('CucumberAdapter', () => {
         await expect(adapter.run()).rejects.toThrow('no createUserContext')
         expect(runParallelCucumber).toHaveBeenCalledTimes(1)
         expect((adapter as any)._runSequential).not.toHaveBeenCalled()
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
+    it('reads the feature file of a spec with line numbers in parallel mode', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        const feature = path.join(__dirname, 'fixtures', 'test_no_tags.feature')
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' }, cucumberFeaturesWithLineNumbers: [`${feature}:7`] },
+            [feature], {}, {}, {}, false, 'progress'
+        )
+        await adapter.run()
+
+        const [{ specs, gherkinDocuments }] = vi.mocked(runParallelCucumber).mock.calls[0]
+        // the line numbers stay for Cucumber's line filter, the document has the file
+        expect(specs).toEqual([`${feature}:7`])
+        expect(gherkinDocuments.flat().map((doc) => doc.uri)).toEqual([feature])
         delete (globalThis as Record<string, unknown>).browser
     })
 
@@ -792,6 +839,52 @@ describe('CucumberAdapter', () => {
 
         expect(result).toBe(0)
         expect(executeHooksWithArgs).toBeCalledTimes(1)
+    })
+
+    it('should wrap user tag expressions so `or` can not bypass generated skip tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true, tags: '@a or @b' } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).toMatch(/^\(not @skip.*\) and \(@a or @b\)$/)
+    })
+
+    it('should not add parentheses when there are no user tags', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'chrome' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).not.toContain('(@')
+        expect(adapter['_cucumberOpts'].tags).toMatch(/^\(not @skip.*\)$/)
+    })
+
+    it('should keep only the wrapped user tags when no skip tags are generated', async () => {
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { format: [], dryRun: true, tags: '@a or @b' } },
+            ['packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'],
+            { browserName: 'foobar' },
+            {},
+            {},
+            true,
+            'progress'
+        )
+
+        expect(adapter['_cucumberOpts'].tags).toMatch(/\(@a or @b\)$/)
     })
 
     it('wrapSteps should not call wrapStep if step doesn\'t has wrapperOptions', async () => {
