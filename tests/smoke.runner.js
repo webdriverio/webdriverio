@@ -1456,6 +1456,57 @@ function runWdio (configPath, cliArgs) {
 }
 
 /**
+ * Ctrl+C during a run hands over to the launcher's graceful shutdown that ends the
+ * WebDriver sessions. `create-wdio` must not exit the process first with its prompt
+ * cancellation handler.
+ */
+const sigintGracefulShutdown = async () => {
+    /**
+     * no POSIX signals or process groups on Windows
+     */
+    if (process.platform === 'win32') {
+        return
+    }
+    const wdio = path.resolve(__dirname, '..', 'packages', 'wdio-cli', 'bin', 'wdio.js')
+    // same env as runWdio: a failed run must exit with the launcher status
+    const env = { ...process.env }
+    delete env.WDIO_UNIT_TESTS
+    const spec = path.resolve(__dirname, 'mocha', 'sigint_long_running.js')
+    const child = spawn(process.execPath, [wdio, 'run', baseConfig, '--spec', spec], {
+        cwd: __dirname,
+        env,
+        detached: true,
+        stdio: ['ignore', 'pipe', 'pipe']
+    })
+    let output = ''
+    const killGroup = () => {
+        try {
+            process.kill(-child.pid, 'SIGKILL')
+        } catch {}
+    }
+    const timer = setTimeout(killGroup, 30000)
+    const exited = new Promise((resolve) => child.on('exit', resolve))
+    const ready = new Promise((resolve) => {
+        const onData = (chunk) => {
+            output += chunk.toString()
+            if (output.includes('SIGINT_SMOKE_READY')) {
+                resolve()
+            }
+        }
+        child.stdout.on('data', onData)
+        child.stderr.on('data', onData)
+    })
+    await Promise.race([ready, exited])
+    child.kill('SIGINT')
+    await exited
+    clearTimeout(timer)
+    killGroup()
+    assert.ok(output.includes('SIGINT_SMOKE_READY'), `the spec never started:\n${output}`)
+    assert.ok(output.includes('Ending WebDriver sessions gracefully'), `expected the graceful shutdown message, got:\n${output}`)
+    assert.ok(!output.includes('Goodbye'), `create-wdio exited the process on SIGINT:\n${output}`)
+}
+
+/**
  * `--headless` / `--headless=false` rewrite browser args before the session
  * starts. The mock driver does not return those args, so the config records
  * the capabilities the worker is about to send.
@@ -1816,6 +1867,7 @@ const jasmineAfterHookArgsValidation = async () => {
         runSpecsWithFlagDirectPath,
         runSpecsWithFlagNoArg,
         headlessFlag,
+        sigintGracefulShutdown,
         jasmineHooksTestrunner,
         jasmineAfterHookArgsValidation,
         cliExcludeParamValidationAllExcludedByKeyword,
