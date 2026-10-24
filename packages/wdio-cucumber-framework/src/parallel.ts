@@ -544,8 +544,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
     let stepStart: Date | undefined
     let stepResults: messages.TestStepResult[] = []
     let scenarioOpen = false
-    /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
-    let attempt = 0
     let openStep: Record<string, unknown> | undefined
     // a scenario with no steps has no test: its window ends with the uid of the scenario
     let lastTestUid = scenarioUID
@@ -599,12 +597,11 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         testStart = new Date()
         stepResults = []
         scenarioOpen = true
-        attempt = started.attempt ?? 0
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
         // the event stream balanced (the final attempt closes with `suite:end`).
-        const isRetry = attempt > 0
+        const isRetry = typeof started.attempt === 'number' && started.attempt > 0
         reporter.emit(
             scenarioLevel ? 'test:start' : (isRetry ? 'suite:retry' : 'suite:start'),
             formatMessage({
@@ -612,7 +609,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                     ...buildScenarioPayload(scenarioPayloadParams),
                     contextId,
                     parentUid: featureUID,
-                    ...(scenarioLevel ? { retries: attempt } : {}),
                 },
             })
         )
@@ -733,7 +729,6 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             ...(pendingReason ? { pendingReason } : {}),
             duration,
             passed: ['pass', 'skip'].includes(state),
-            retries: attempt,
         }
         payload.title += titleSuffix
         return payload
@@ -760,7 +755,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const finalResult = finalStepResult(false)
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'pass', duration, passed: true, retries: attempt }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'pass', duration, passed: true }
             reporter.emit('test:pass', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload }))
             return
@@ -783,7 +778,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         scenarioOpen = false
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (scenarioLevel) {
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'fail', error, duration, passed: false, retries: attempt }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, contextId, state: 'fail', error, duration, passed: false }
             reporter.emit('test:fail', formatMessage({ payload }))
             reporter.emit('test:end', formatMessage({ payload }))
             return

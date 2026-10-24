@@ -738,17 +738,17 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests[testEndEvent.uid].retries).toBe(1)
         })
 
-        // Cucumber sends no test:end, so its attempt number is in the payload
-        it('keeps the retries of the payload on test:start and test:pending', () => {
-            reporter.emit('test:start', { uid: 'S', title: 'scenario', retries: 0 })
-            reporter.emit('test:retry', { uid: 'S', title: 'scenario', retries: 0 })
-            reporter.emit('test:start', { uid: 'S', title: 'scenario', retries: 1 })
+        // a retried attempt has no test:end, so the counter goes on; the final test:end resets it
+        it('counts the retries of a test that keeps its uid, and resets them at test:end', () => {
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:retry', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
             expect(reporter.tests.S.retries).toBe(1)
-            reporter.emit('test:pass', { uid: 'S', title: 'scenario', retries: 1 })
-            // the next scenario: no test:end reset the counter
-            reporter.emit('test:start', { uid: 'T', title: 'next', retries: 0 })
+            reporter.emit('test:pass', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:end', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'T', title: 'next' })
             expect(reporter.tests.T.retries).toBe(0)
-            reporter.emit('test:pending', { uid: 'U', title: 'pending', retries: 0 })
+            reporter.emit('test:pending', { uid: 'U', title: 'pending' })
             expect(reporter.tests.U.retries).toBe(0)
         })
 

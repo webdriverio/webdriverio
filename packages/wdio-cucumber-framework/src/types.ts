@@ -348,6 +348,4 @@ export interface Payload {
     passed?: boolean
     contextId?: string
     parentUid?: string | null
-    /** the attempt of a retried scenario (scenario-level events) */
-    retries?: number
 }

@@ -64,8 +64,6 @@ export default class CucumberFormatter extends Formatter {
     private specs: string[]
     private eventEmitter: EventEmitter
     private scenarioLevelReporter: boolean
-    /** the attempt of a retried scenario: its scenario-level payloads carry it as `retries` */
-    private _attempt = 0
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
@@ -267,7 +265,6 @@ export default class CucumberFormatter extends Formatter {
                 uid: scenario.id,
                 parent: this.featureId(uri, feature),
                 tags: scenario.tags,
-                retries: this._attempt,
                 ...common,
             }
 
@@ -437,13 +434,12 @@ export default class CucumberFormatter extends Formatter {
         /**
          * if we are retrying a scenario, we need to emit the event as `suite:retry` instead of `suite:start`
          */
-        this._attempt = testcase.attempt ?? 0
-        const isRetry = this._attempt > 0
+        const isRetry = typeof testcase.attempt === 'number' && testcase.attempt > 0
         if (!this.scenarioLevelReporter && isRetry) {
             return this.emit('suite:retry', payload)
         }
 
-        this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', this.scenarioLevelReporter ? { ...payload, retries: this._attempt } : payload)
+        this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', payload)
     }
 
     onTestStepStarted(testStepStartedEvent: TestStepStarted) {

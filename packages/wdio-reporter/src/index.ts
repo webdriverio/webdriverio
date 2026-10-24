@@ -153,8 +153,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test: Test) => {
-            // Cucumber sends no test:end to reset the counter: its payloads carry the attempt
-            test.retries = typeof test.retries === 'number' ? test.retries : getRetries(test.contextId)
+            test.retries = getRetries(test.contextId)
             currentTest = new TestStats(test)
             trackContext(test, currentTest)
             const currentSuite = this.#owningSuite(test.parentUid)
@@ -202,8 +201,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test: Test) => {
-            // Cucumber sends no test:end to reset the counter: its payloads carry the attempt
-            test.retries = typeof test.retries === 'number' ? test.retries : getRetries(getContextId(test))
+            test.retries = getRetries(getContextId(test))
             const currentSuite = this.#owningSuite(test.parentUid)
             /**
              * a test that started and did not end, and now ends as pending or skipped

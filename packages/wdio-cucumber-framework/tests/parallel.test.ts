@@ -715,10 +715,11 @@ describe('runParallelCucumber', () => {
         expect(calls).toBe(2)
         const events = reporterEvents.filter((e) => e.event.startsWith('test:'))
         expect(events.map((e) => e.event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'])
-        const [firstStart, retry, secondStart, pass] = events.map((e) => e.payload)
+        const [firstStart, retry, secondStart] = events.map((e) => e.payload)
         expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', contextId: 'ctx-0' })
         expect((retry.error as Error).message).toContain('first attempt fails')
-        expect([firstStart.retries, retry.retries, secondStart.retries, pass.retries]).toEqual([0, 0, 1, 1])
+        // the reporter counts the retries of the window from test:retry
+        expect(secondStart).toMatchObject({ uid: firstStart.uid, contextId: 'ctx-0' })
     })
 
     test('ends every step result with test:end right after it, also the last step of a retried attempt', async () => {

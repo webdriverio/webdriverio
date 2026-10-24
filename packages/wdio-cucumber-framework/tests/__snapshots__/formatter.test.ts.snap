@@ -509,7 +509,6 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
       "parent": "features/my-feature.feature:3:1",
-      "retries": 0,
       "rule": "rule name",
       "specs": [
         "/foobar.js",
@@ -555,7 +554,6 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
       "parent": "features/my-feature.feature:3:1",
       "passed": true,
-      "retries": 0,
       "specs": [
         "/foobar.js",
       ],
@@ -596,7 +594,6 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
       "parent": "features/my-feature.feature:3:1",
       "passed": true,
-      "retries": 0,
       "specs": [
         "/foobar.js",
       ],
