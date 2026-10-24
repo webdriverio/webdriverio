@@ -370,11 +370,11 @@ describe('BrowserFramework browser errors', () => {
         expect(await result).toBe(0)
     })
 
-    it('uses extended timeout when inspect option is enabled', async () => {
+    it('uses extended timeout when inspect option is enabled even with configured mochaOpts.timeout', async () => {
         const on = vi.spyOn(process, 'on').mockImplementation(() => process)
         const inspectFramework = new BrowserFramework(
             '0-0',
-            { runner: ['browser', { inspect: true }] } as unknown as WebdriverIO.Config,
+            { runner: ['browser', { inspect: true }], mochaOpts: { timeout: 60_000 } } as unknown as WebdriverIO.Config,
             [url.pathToFileURL(path.resolve('spec.test.js')).href],
             { emit: vi.fn() } as unknown as BaseReporter
         )

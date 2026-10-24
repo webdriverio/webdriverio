@@ -74,6 +74,18 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
+
+        if (this.#isInspecting()) {
+            this._config.mochaOpts = {
+                ...this._config.mochaOpts,
+                timeout: Math.max(Number(this._config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+            }
+        }
+    }
+
+    #isInspecting () {
+        return Boolean(this.#runnerOptions.inspect) ||
+            [...(this._config.execArgv || []), ...process.execArgv].some((arg) => INSPECT_ARG_REGEXP.test(arg))
     }
 
     /**
@@ -122,9 +134,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     async #runSpec (spec: string, retried = false): Promise<number> {
         this.#retryOutdatedOptimizeDep = false
-        const isInspecting = Boolean(this.#runnerOptions.inspect) ||
-            [...(this._config.execArgv || []), ...process.execArgv].some((arg) => INSPECT_ARG_REGEXP.test(arg))
-        const timeout = Number(this._config.mochaOpts?.timeout) || (isInspecting ? DEBUG_TIMEOUT : DEFAULT_TIMEOUT)
+        const configuredTimeout = Number(this._config.mochaOpts?.timeout) || DEFAULT_TIMEOUT
+        const timeout = this.#isInspecting() ? Math.max(configuredTimeout, DEBUG_TIMEOUT) : configuredTimeout
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
         /**

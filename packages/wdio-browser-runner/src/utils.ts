@@ -31,21 +31,35 @@ export function getInspectorPort (
     cid?: string,
     execArgv: string[] = process.execArgv
 ): number {
-    if (typeof options.inspect === 'number') {
-        return options.inspect
-    }
+    const basePort = typeof options.inspect === 'number'
+        ? options.inspect
+        : DEFAULT_DEBUG_PORT
 
+    const cidMatch = cid?.match(/^(\d+)-(\d+)$/)
+    const capId = cidMatch ? Number(cidMatch[1]) : 0
+    const workerId = cidMatch ? Number(cidMatch[2]) : 0
+    const workerOffset = ((workerId + capId) * (workerId + capId + 1)) / 2 + capId
+
+    const nodeDebugPorts = new Set<number>()
     const args = [...(config?.execArgv || []), ...execArgv]
     for (const arg of args) {
         const match = arg.match(INSPECT_PORT_REGEXP)
         if (match) {
-            return Number(match[1])
+            nodeDebugPorts.add(Number(match[1]))
+        } else if (INSPECT_ARG_REGEXP.test(arg)) {
+            nodeDebugPorts.add(process.debugPort || 9229)
         }
     }
 
-    const cidMatch = cid?.match(/^\d+-(\d+)$/)
-    const workerOffset = cidMatch ? Number(cidMatch[1]) : 0
-    return DEFAULT_DEBUG_PORT + workerOffset
+    let port = basePort
+    let remainingOffset = workerOffset
+    while (nodeDebugPorts.has(port) || remainingOffset > 0) {
+        if (!nodeDebugPorts.has(port)) {
+            remainingOffset--
+        }
+        port++
+    }
+    return port
 }
 
 export function configureBrowserInspector (
@@ -59,14 +73,25 @@ export function configureBrowserInspector (
         return caps
     }
 
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+    const isW3C = 'alwaysMatch' in caps
+    const capability = isW3C ? (caps as Capabilities.W3CCapabilities).alwaysMatch : caps
     const port = getInspectorPort(options, config, cid, execArgv)
+    const mergeCapability = (patch: WebdriverIO.Capabilities): WebdriverIO.Capabilities => {
+        const merged = deepmerge(capability, patch)
+        if (isW3C) {
+            return {
+                ...caps,
+                alwaysMatch: merged
+            } as WebdriverIO.Capabilities
+        }
+        return merged
+    }
 
     if (capability.browserName === 'chrome') {
         if (capability['goog:chromeOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
-        return deepmerge(capability, {
+        return mergeCapability({
             'goog:chromeOptions': {
                 args: [`--remote-debugging-port=${port}`]
             }
@@ -75,7 +100,7 @@ export function configureBrowserInspector (
         if (capability['ms:edgeOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
-        return deepmerge(capability, {
+        return mergeCapability({
             'ms:edgeOptions': {
                 args: [`--remote-debugging-port=${port}`]
             }
@@ -84,7 +109,7 @@ export function configureBrowserInspector (
         if (capability['moz:firefoxOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
-        return deepmerge(capability, {
+        return mergeCapability({
             'moz:firefoxOptions': {
                 args: ['-remote-debugging-port', String(port)]
             }
@@ -105,7 +130,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
 
     if (
         // do not force headless when inspect mode is enabled unless explicitly requested
-        (Boolean(options.inspect) && options.headless !== true) ||
+        (options.inspect && options.headless !== true) ||
         // either user sets headless option implicitly
         (typeof options.headless === 'boolean' && !options.headless) ||
         // or CI environment is set
