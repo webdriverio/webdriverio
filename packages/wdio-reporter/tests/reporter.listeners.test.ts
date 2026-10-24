@@ -1042,4 +1042,54 @@ describe('WDIOReporter Listeners', () => {
             expect(suite.tests[0].end).toBeDefined()
         })
     })
+
+    describe('Reported test times', () => {
+        const base = {
+            type: 'test:start' as const, title: 't', parent: 'p', fullTitle: 'p t', pending: false,
+            cid: '0-0', specs: ['/a.js'], uid: 'timed', parentUid: null
+        }
+
+        it('uses start and end of the payload instead of the receipt time', () => {
+            reporter.emit('test:start', base)
+            reporter.emit('test:pass', { ...base, type: 'test:pass', start: 1_000, end: 1_040 })
+
+            expect(reporter.tests.timed.start.getTime()).toBe(1_000)
+            expect(reporter.tests.timed.end!.getTime()).toBe(1_040)
+            expect(reporter.tests.timed.duration).toBe(40)
+        })
+
+        it('applies them to failing and pending tests as well', () => {
+            reporter.emit('test:start', { ...base, uid: 'failing' })
+            reporter.emit('test:fail', { ...base, uid: 'failing', type: 'test:fail', start: 2_000, end: 2_010, error: new Error('x') })
+            reporter.emit('test:pending', { ...base, uid: 'skipped', type: 'test:pending', start: 3_000, end: 3_005 })
+
+            expect(reporter.tests.failing.duration).toBe(10)
+            expect(reporter.tests.skipped.start.getTime()).toBe(3_000)
+            expect(reporter.tests.skipped.duration).toBe(5)
+        })
+
+        it('stamps the receipt time when the payload carries no times', () => {
+            vi.useFakeTimers()
+            vi.setSystemTime(5_000)
+            reporter.emit('test:start', { ...base, uid: 'plain' })
+            vi.setSystemTime(5_020)
+            reporter.emit('test:pass', { ...base, uid: 'plain', type: 'test:pass' })
+            vi.useRealTimers()
+
+            expect(reporter.tests.plain.start.getTime()).toBe(5_000)
+            expect(reporter.tests.plain.duration).toBe(20)
+        })
+
+        it('ignores a start without an end, as Jasmine sends one on every payload', () => {
+            vi.useFakeTimers()
+            vi.setSystemTime(6_000)
+            reporter.emit('test:start', { ...base, uid: 'jasmine', start: 1 })
+            vi.setSystemTime(6_030)
+            reporter.emit('test:pending', { ...base, uid: 'jasmine', type: 'test:pending', start: 1 })
+            vi.useRealTimers()
+
+            expect(reporter.tests.jasmine.start.getTime()).toBe(6_000)
+            expect(reporter.tests.jasmine.duration).toBe(30)
+        })
+    })
 })

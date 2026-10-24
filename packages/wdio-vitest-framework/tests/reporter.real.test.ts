@@ -27,7 +27,46 @@ class RecorderReporter {
     }
 }
 
+class ResolverReporter {
+    static contextIds: (string | undefined)[] = []
+    isSynchronised = true
+    resolver?: () => string | undefined
+    constructor(public options: Record<string, unknown>) {}
+    setContextIdResolver(resolver: () => string | undefined) {
+        this.resolver = resolver
+    }
+    emit(event: string) {
+        if (event === 'test:pass') {
+            ResolverReporter.contextIds.push(this.resolver?.())
+        }
+    }
+}
+
 describe('WdioBridgeReporter with the real BaseReporter', () => {
+    it('hands the context resolver to the reporter instances created by initReporters', async () => {
+        ResolverReporter.contextIds = []
+        const config = { reporters: [[ResolverReporter, {}]] } as unknown as WebdriverIO.Config
+        const bridge = new WdioBridgeReporter(config, () => {})
+        const test: any = {
+            type: 'test', id: 'concurrent-1', name: 't', parent: undefined,
+            result: () => ({ state: 'passed' }), diagnostic: () => ({ duration: 1 }), meta: () => ({}), options: { concurrent: true }
+        }
+        const module: any = {
+            type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
+            project: { config: { provide: { wdioCapabilities: {} } } },
+            meta: () => ({}), state: () => 'passed', children: { allTests: () => [test] }
+        }
+        test.module = module
+        test.parent = module
+
+        bridge.onTestModuleStart(module)
+        await bridge.onTestCaseReady(test)
+        await bridge.onTestCaseResult(test)
+        await bridge.onTestModuleEnd(module)
+
+        expect(ResolverReporter.contextIds).toEqual(['concurrent-1'])
+    })
+
     it('delivers ordered events to a configured reporter without mutating the config', async () => {
         recorded.length = 0
         const reporters = [[RecorderReporter, {}]]
@@ -41,12 +80,13 @@ describe('WdioBridgeReporter with the real BaseReporter', () => {
             relativeModuleId: 'a.spec.ts',
             project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
             meta: () => ({ wdio: { sessionId: 'sess-1', capabilities: { browserVersion: '130' } } }),
-            state: () => 'passed'
+            state: () => 'passed',
+            children: { allTests: () => [] }
         }
         const suite: any = { type: 'suite', id: 's1', name: 'login', module, parent: module }
         const test: any = {
             type: 'test', id: 't1', name: 'shows form', module, parent: suite,
-            result: () => ({ state: 'passed' }), diagnostic: () => ({ duration: 7 })
+            result: () => ({ state: 'passed' }), diagnostic: () => ({ duration: 7 }), meta: () => ({}), options: { concurrent: false }
         }
 
         bridge.onTestModuleStart(module)
@@ -93,11 +133,11 @@ describe('WdioBridgeReporter with the real BaseReporter', () => {
         const module: any = {
             type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
             project: { config: { provide: { wdioCapabilities: {} } } },
-            meta: () => ({}), state: () => 'passed'
+            meta: () => ({}), state: () => 'passed', children: { allTests: () => [] }
         }
         const test: any = {
             type: 'test', id: 't1', name: 'good', module, parent: module,
-            result: () => ({ state: 'passed' }), diagnostic: () => undefined
+            result: () => ({ state: 'passed' }), diagnostic: () => undefined, meta: () => ({}), options: { concurrent: false }
         }
 
         bridge.onTestModuleStart(module)
@@ -121,7 +161,8 @@ describe('WdioBridgeReporter with the real JUnit reporter', () => {
             const module: any = {
                 type: 'module', id: 'm', moduleId: '/repo/a.spec.ts', relativeModuleId: 'a.spec.ts',
                 project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
-                meta: () => ({}), state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }]
+                meta: () => ({}), state: () => 'failed', errors: () => [{ name: 'Error', message: 'Cannot find module ./missing' }],
+                children: { allTests: () => [] }
             }
 
             bridge.onTestModuleStart(module)

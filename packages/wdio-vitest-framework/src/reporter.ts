@@ -1,9 +1,11 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { rmSync } from 'node:fs'
 import logger from '@wdio/logger'
 import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
 import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
 
-import { SESSION_META_KEY, type SessionMeta } from './types.js'
+import { RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -54,6 +56,9 @@ export class WdioBridgeReporter implements Reporter {
     #runs = new Map<string, ModuleRun>()
     #pending = new Set<Promise<void>>()
     #launched = 0
+    #laneModules = new Map<string, boolean>()
+    // Reporters resolve the test of an API call (e.g. addStep) by the concurrent test being replayed
+    #replayedContext = new AsyncLocalStorage<string>()
 
     constructor(config: WebdriverIO.Config, onEvent: (event: Frameworks.FrameworkLaunchEvent) => void, onError: (error: unknown) => void = () => {}) {
         const reporterName = (entry: unknown) => Array.isArray(entry) ? entry[0] : entry
@@ -111,31 +116,35 @@ export class WdioBridgeReporter implements Reporter {
 
     onTestCaseReady(testCase: TestCase) {
         const run = this.#tryRun(testCase.module)
-        return run && this.#enqueue(run, () => this.#openTest(run, testCase))
+        return run && this.#enqueue(run, () => this.#inContext(testCase, () => this.#openTest(run, testCase)))
     }
 
     onTestCaseResult(testCase: TestCase) {
         const run = this.#tryRun(testCase.module)
-        return run && this.#enqueue(run, () => {
+        return run && this.#enqueue(run, () => this.#inContext(testCase, () => {
             const base = this.#openTest(run, testCase)
             run.entities.delete(testCase.id)
+            this.#replayRuntimeCalls(run, testCase)
             const result = testCase.result()
-            const duration = testCase.diagnostic()?.duration ?? 0
+            const diagnostic = testCase.diagnostic()
+            const duration = diagnostic?.duration ?? 0
+            // Events reach the launcher batched, so the receipt time is not the time the test ran; startTime is the worker's Date.now()
+            const times = diagnostic?.startTime === undefined ? {} : { start: diagnostic.startTime, end: diagnostic.startTime + duration }
             if (result.state === 'failed') {
                 run.failedTests++
                 const error = toErrorPayload(result.errors[0])
-                this.#emit(run, 'test:fail', { ...base, duration, error })
+                this.#emit(run, 'test:fail', { ...base, ...times, duration, error })
                 this.#emit(run, 'test:end', { ...base, duration, passed: false, error })
             } else if (result.state === 'passed') {
-                this.#emit(run, 'test:pass', { ...base, duration, passed: true })
+                this.#emit(run, 'test:pass', { ...base, ...times, duration, passed: true })
                 this.#emit(run, 'test:end', { ...base, duration, passed: true })
             } else {
                 // TestResultPending: collected but never finished; 'skipped' is a deliberate skip
                 run.incomplete ||= result.state === 'pending'
-                this.#emit(run, 'test:pending', { ...base, duration, pending: true })
+                this.#emit(run, 'test:pending', { ...base, ...times, duration, pending: true })
                 this.#emit(run, 'test:end', { ...base, duration, passed: false, pending: true })
             }
-        })
+        }))
     }
 
     onTestModuleEnd(testModule: TestModule) {
@@ -177,7 +186,10 @@ export class WdioBridgeReporter implements Reporter {
         }
         this.#runs.set(testModule.id, run)
         this.#notify(run, { type: 'job:start', cid, caps, specs })
-        run.queue = reporter?.initReporters().catch((err) => this.#fail(run, err)) ?? Promise.resolve()
+        // BaseReporter only hands the resolver to reporters that exist, which initReporters creates asynchronously
+        run.queue = reporter?.initReporters()
+            .then(() => reporter.setContextIdResolver(() => this.#replayedContext.getStore()))
+            .catch((err) => this.#fail(run, err)) ?? Promise.resolve()
         return run
     }
 
@@ -200,6 +212,48 @@ export class WdioBridgeReporter implements Reporter {
     #enqueue(run: ModuleRun, task: () => unknown) {
         run.queue = run.queue.then(async () => { await task() }).catch((err) => this.#fail(run, err))
         return run.queue
+    }
+
+    #inContext<T>(testCase: TestCase, fn: () => T): T {
+        return this.#hasLanes(testCase.module) ? this.#replayedContext.run(testCase.id, fn) : fn()
+    }
+
+    // The Allure reporter latches into lane mode on the first contextId it sees, so one module must not mix tagged and untagged tests
+    #hasLanes(testModule: TestModule) {
+        let lanes = this.#laneModules.get(testModule.id)
+        if (lanes === undefined) {
+            lanes = [...testModule.children.allTests()].some((test) => test.options.concurrent)
+            this.#laneModules.set(testModule.id, lanes)
+        }
+        return lanes
+    }
+
+    #relayedEntries(testCase: TestCase) {
+        return ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
+    }
+
+    // Only the last attempt is replayed, matching the single result the reporters get for a retried test
+    #replayRuntimeCalls(run: ModuleRun, testCase: TestCase) {
+        const finalRetry = testCase.diagnostic()?.retryCount ?? 0
+        const entries = this.#relayedEntries(testCase)
+        entries.filter(({ retry }) => retry === finalRetry).forEach(({ event, payload }) => {
+            run.reporter?.emit(event, payload as Parameters<BaseReporter['emit']>[1])
+        })
+        this.#discardFiles(entries.filter(({ retry }) => retry !== finalRetry))
+    }
+
+    // Nobody else knows about files of calls that are never replayed, so they would stay in the results folder
+    #discardFiles(entries: RelayedEntry[]) {
+        entries.forEach(({ pendingFile }) => {
+            if (!pendingFile) {
+                return
+            }
+            try {
+                rmSync(pendingFile, { force: true })
+            } catch (err) {
+                log.debug(`Could not remove ${pendingFile}: ${(err as Error).message}`)
+            }
+        })
     }
 
     #emit(run: ModuleRun, event: string, payload: Record<string, unknown>) {
@@ -276,7 +330,7 @@ export class WdioBridgeReporter implements Reporter {
         const known = run.entities.get(testCase.id)
         const parent = this.#parent(run, testCase.parent)
         const test = known ?? { uid: `test-${run.cid}-${run.testCount++}`, title: testCase.name, fullTitle: join(parent.fullTitle, testCase.name) }
-        const base = { uid: test.uid, title: test.title, fullTitle: test.fullTitle, parent: parent.title, parentUid: parent.uid }
+        const base = { uid: test.uid, title: test.title, fullTitle: test.fullTitle, parent: parent.title, parentUid: parent.uid, ...(this.#hasLanes(testCase.module) && { contextId: testCase.id }) }
         if (!known) {
             run.entities.set(testCase.id, { ...test, kind: 'test', payload: base })
             this.#emit(run, 'test:start', base)
@@ -308,18 +362,31 @@ export class WdioBridgeReporter implements Reporter {
      */
     #closeUnfinished(run: ModuleRun, testModule: TestModule, failed: boolean) {
         const open = [...run.entities.values()]
+        const unfinishedIds = new Set([...run.entities].filter(([, { kind }]) => kind === 'test').map(([id]) => id))
+        for (const testCase of testModule.children.allTests()) {
+            if (unfinishedIds.has(testCase.id)) {
+                this.#discardFiles(this.#relayedEntries(testCase))
+            }
+        }
         for (const { kind, payload } of open) {
             if (kind !== 'test') {
                 continue
             }
-            if (failed) {
-                run.failedTests++
-                const error = toErrorPayload(testModule.errors()[0] ?? { message: 'test did not finish' })
-                this.#emit(run, 'test:fail', { ...payload, duration: 0, error })
-                this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, error })
+            const close = () => {
+                if (failed) {
+                    run.failedTests++
+                    const error = toErrorPayload(testModule.errors()[0] ?? { message: 'test did not finish' })
+                    this.#emit(run, 'test:fail', { ...payload, duration: 0, error })
+                    this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, error })
+                } else {
+                    this.#emit(run, 'test:pending', { ...payload, duration: 0, pending: true })
+                    this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, pending: true })
+                }
+            }
+            if (typeof payload.contextId === 'string') {
+                this.#replayedContext.run(payload.contextId, close)
             } else {
-                this.#emit(run, 'test:pending', { ...payload, duration: 0, pending: true })
-                this.#emit(run, 'test:end', { ...payload, duration: 0, passed: false, pending: true })
+                close()
             }
         }
         for (const { kind, payload } of open.reverse()) {
@@ -356,6 +423,7 @@ export class WdioBridgeReporter implements Reporter {
             }
         })
         this.#runs.delete(testModule.id)
+        this.#laneModules.delete(testModule.id)
         this.#notify(run, { type: 'job:end', cid: run.cid, passed: run.failedTests === 0 && !run.failed && !run.incomplete })
     }
 }
