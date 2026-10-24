@@ -296,7 +296,7 @@ export default class VideoReporter extends WdioReporter {
         if (commandArgs?.command === 'deleteSession' && browser) {
             this.#endedSessions.add(getScreenshotBrowser(browser).sessionId)
         }
-        const contextId = (commandArgs as { contextId?: string } | undefined)?.contextId
+        const contextId = commandArgs?.contextId
         if (!this.#usingAllure || !this.#recordingOf(contextId)?.testName || !this.#record) {
             return
         }
@@ -337,7 +337,7 @@ export default class VideoReporter extends WdioReporter {
         instance.on('result', (result) => this.#frameForResult(result))
     }
 
-    #frameForResult (commandArgs: Pick<AfterCommandArgs, 'endpoint' | 'method'> & { contextId?: string }) {
+    #frameForResult (commandArgs: Pick<AfterCommandArgs, 'endpoint' | 'method' | 'contextId'>) {
         if (!this.#record) {
             return
         }
