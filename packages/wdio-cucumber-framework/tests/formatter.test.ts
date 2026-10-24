@@ -227,11 +227,12 @@ describe('CucumberFormatter', () => {
 
     describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
         let eventBroadcaster: EventEmitter
+        let formatter: CucumberFormatter
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
-            new CucumberFormatter({
+            formatter = new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
@@ -323,8 +324,8 @@ describe('CucumberFormatter', () => {
             return { started, finished: wdioReporter.emit.mock.calls[0] }
         }
 
-        /** attempt 0 fails and Cucumber retries it, attempt 1 passes */
-        function retryScenarioOnce () {
+        /** attempt 0 fails and Cucumber retries it, attempt 1 passes (or fails too) */
+        function retryScenarioOnce (lastAttemptFails = false) {
             const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
             loadGherkin(eventBroadcaster)
@@ -336,7 +337,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
             eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
             eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
-            eventBroadcaster.emit('envelope', { testStepFinished: { ...testStepFinished, testCaseStartedId: '29' } })
+            const lastStep: TestStepFinished = { ...JSON.parse(JSON.stringify(lastAttemptFails ? failing : testStepFinished)), testCaseStartedId: '29' }
+            eventBroadcaster.emit('envelope', { testStepFinished: lastStep })
             eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
             return wdioReporter.emit.mock.calls.filter(([event]: [string]) => event.startsWith('test:'))
         }
@@ -348,6 +350,39 @@ describe('CucumberFormatter', () => {
             expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', title: firstStart.title, parent: firstStart.parent })
             expect(retry.error.message).toContain('first try fails')
             expect([firstStart.retries, retry.retries, secondStart.retries, pass.retries]).toEqual([0, 0, 1, 1])
+        })
+
+        it('counts a scenario that fails on every attempt one time', () => {
+            const events = retryScenarioOnce(true)
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:fail'])
+            expect(events[3][1].retries).toBe(1)
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it('does not count a scenario that passes on retry as failed', () => {
+            retryScenarioOnce()
+            expect(formatter['failedCount']).toBe(0)
+        })
+
+        // Cucumber retries only a FAILED attempt: a pending step and a failing After hook
+        it('gives test:retry the error that made Cucumber retry the attempt', () => {
+            const pending: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(pending.testStepResult, { status: 'PENDING' })
+            const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: pending })
+            eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            const [[event, payload]] = wdioReporter.emit.mock.calls
+            expect(event).toBe('test:retry')
+            expect(payload).toMatchObject({ state: 'fail', passed: false })
+            expect(payload.error.message).toContain('After hook fails')
         })
 
         it('keeps the scenario title of a pending scenario', () => {

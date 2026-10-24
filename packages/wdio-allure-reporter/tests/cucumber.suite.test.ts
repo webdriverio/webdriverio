@@ -970,6 +970,42 @@ describe('Cucumber retries (issue #15177)', () => {
         })
     })
 
+    describe('scenarioLevelReporter: a retried attempt that ends with test:retry', () => {
+        let outputDir: string
+        let results: any[]
+
+        beforeAll(async () => {
+            outputDir = temporaryDirectory()
+            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
+            reporter.onTestRetry({ ...cucumberHelper.testFail(), type: 'scenario' } as any)
+            reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
+            reporter.onTestPass({ ...cucumberHelper.testPass(), type: 'scenario' } as any)
+            reporter.onSuiteEnd(cucumberHelper.featureEnd({ tests: [cucumberHelper.testPass()], hooks: [] }))
+            await reporter.onRunnerEnd(runnerEnd())
+
+            await new Promise(resolve => setTimeout(resolve, 100))
+
+            results = getResults(outputDir).results
+        })
+
+        afterAll(() => clean(outputDir))
+
+        it('keeps attempt 1 as a finished, failed result with the "retried" tag, as before', () => {
+            expect(results).toHaveLength(2)
+            const attempt1 = results.find((r: any) =>
+                r.labels.some((l: Label) => l.name === LabelName.TAG && l.value === 'retried')
+            )
+            expect(attempt1).toBeDefined()
+            expect(attempt1.status).toBe(Status.FAILED)
+            expect(attempt1.stage).toBe('finished')
+            expect(results.find((r: any) => r !== attempt1).status).toBe(Status.PASSED)
+        })
+    })
+
     describe('scenarioLevelReporter: separate test:start per attempt generates separate result files', () => {
         let outputDir: string
         let results: any[]

@@ -345,7 +345,8 @@ export default class SpecReporter extends WDIOReporter {
              */
             ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
                 if (currentItem instanceof TestStats) {
-                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    // the last one: tests of the same title (Scenario Outline rows) each keep their row
+                    const existingTestIndex = accumulator.findLastIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
                     if (existingTestIndex === -1) {
                         accumulator.push(currentItem)
                     } else {

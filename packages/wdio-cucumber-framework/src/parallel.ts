@@ -703,16 +703,35 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
         featureStack: () => getFeatureStack(uri, feature, pickle),
     })
 
+    // as the sequential formatter: the first result that did not pass, or the last one;
+    // Cucumber retries only a FAILED attempt, so a retry ends with that result
+    const finalStepResult = (retried: boolean) => (retried && stepResults.find((r) => r.status === 'FAILED'))
+        || stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
+
+    const scenarioEndPayload = (finalResult: messages.TestStepResult, duration: number) => {
+        const { state, error, pendingReason, titleSuffix } = scenarioResult(finalResult)
+        const payload = {
+            ...buildScenarioPayload(scenarioPayloadParams),
+            parentUid: featureUID,
+            state,
+            error,
+            ...(pendingReason ? { pendingReason } : {}),
+            duration,
+            passed: ['pass', 'skip'].includes(state),
+            retries: attempt,
+        }
+        payload.title += titleSuffix
+        return payload
+    }
+
     const onTestCaseFinished = (finished: messages.TestCaseFinished) => {
         const duration = testStart ? Date.now() - testStart.getTime() : 0
         if (finished.willBeRetried) {
             pendingStepEnd = undefined
             // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
-            if (scenarioLevel) {
-                const finalResult = stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
-                const { error } = finalResult ? scenarioResult(finalResult) : { error: undefined }
-                const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false, retries: attempt, contextId }
-                reporter.emit('test:retry', formatMessage({ payload }))
+            const finalResult = finalStepResult(true)
+            if (scenarioLevel && finalResult) {
+                reporter.emit('test:retry', formatMessage({ payload: { ...scenarioEndPayload(finalResult, duration), contextId } }))
             }
             return
         }
@@ -725,7 +744,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             return
         }
 
-        const finalResult = stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
+        const finalResult = finalStepResult(false)
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
             const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'pass', duration, passed: true, retries: attempt }
@@ -734,20 +753,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error
             return
         }
 
-        const { state, error, pendingReason, titleSuffix } = scenarioResult(finalResult)
-        const passed = ['pass', 'skip'].includes(state)
-        const payload = {
-            ...buildScenarioPayload(scenarioPayloadParams),
-            parentUid: featureUID,
-            state,
-            error,
-            ...(pendingReason ? { pendingReason } : {}),
-            duration,
-            passed,
-            retries: attempt,
-        }
-        payload.title += titleSuffix
-        reporter.emit(`test:${state}`, formatMessage({ payload }))
+        const payload = scenarioEndPayload(finalResult, duration)
+        reporter.emit(`test:${payload.state}`, formatMessage({ payload }))
         reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
     }
 
