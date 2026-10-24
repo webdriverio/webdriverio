@@ -1,7 +1,9 @@
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
+import type { Frameworks } from '@wdio/types'
 import Launcher from '../src/launcher.js'
 
 const caps: WebdriverIO.Capabilities = {
@@ -34,7 +36,7 @@ vi.mock('../src/interface', () => ({
         logHookError = vi.fn()
         finalise = vi.fn()
 
-        constructor (_config: WebdriverIO.Config, totalWorkerCnt: number) {
+        constructor (public _config: WebdriverIO.Config, totalWorkerCnt: number) {
             this.totalWorkerCnt = totalWorkerCnt
         }
     }
@@ -979,6 +981,216 @@ describe('launcher', () => {
             expect(dispose).toBeCalledTimes(1)
             expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(onComplete.mock.invocationCallOrder[0])
             expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(serviceOnComplete.mock.invocationCallOrder[0])
+        })
+
+        describe('framework with launch export', () => {
+            const launch = vi.fn()
+            const defaultPlugin = vi.mocked(initializePlugin).getMockImplementation()!
+            const [specA, specB, specC] = ['/repo/a.ts', '/repo/b.ts', '/repo/c.ts'].map((spec) => path.resolve(spec))
+
+            const mockFramework = (framework: () => Promise<unknown>) => vi.mocked(initializePlugin).mockImplementation(
+                (name, type) => type === 'framework' ? framework() as never : defaultPlugin(name, type)
+            )
+
+            beforeEach(() => {
+                launch.mockReset()
+                launcher.interface!.logHookError = vi.fn()
+                config.framework = 'vitest'
+                launcher['_configFilePath'] = '/repo/wdio.conf.ts'
+                launcher.configParser.getSpecs = vi.fn().mockReturnValue([pathToFileURL(specA).href, [specB, pathToFileURL(specC).href]])
+            })
+
+            afterEach(() => {
+                vi.mocked(initializePlugin).mockImplementation(defaultPlugin)
+            })
+
+            it('delegates to launch instead of scheduling workers', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+
+                expect(await launcher.run()).toEqual(0)
+                expect(launch).toHaveBeenCalledWith({
+                    config: { ...config, capabilities: {} },
+                    specs: [specA, specB, specC],
+                    configFile: '/repo/wdio.conf.ts',
+                    args: launcher['_args'],
+                    signal: expect.any(AbortSignal),
+                    onEvent: expect.any(Function)
+                })
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(config.onComplete![0]).toBeCalledTimes(1)
+            })
+
+            it('maps framework events onto the CLI interface', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockImplementation(async ({ onEvent }: Frameworks.FrameworkLaunchParams) => {
+                    onEvent!({ type: 'job:start', cid: '0-0', caps: { browserName: 'chrome' }, specs: ['/repo/a.ts'] })
+                    onEvent!({ type: 'message', message: { origin: 'reporter', name: 'x', cid: '0-0' } })
+                    onEvent!({ type: 'job:end', cid: '0-0', passed: false })
+                    return 1
+                })
+
+                await launcher.run()
+
+                expect(launcher.interface!.emit).toHaveBeenCalledWith('job:start', { cid: '0-0', caps: { browserName: 'chrome' }, specs: ['/repo/a.ts'], hasTests: true })
+                expect(launcher.interface!.onMessage).toHaveBeenCalledWith({ origin: 'reporter', name: 'x', cid: '0-0' })
+                expect(launcher.interface!.emit).toHaveBeenCalledWith('job:end', { cid: '0-0', passed: false, retries: 0 })
+            })
+
+            it('creates the CLI interface without spec file retries and warns once', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+                config.specFileRetries = 2
+                const warn = vi.mocked(logger('@wdio/cli:launcher').warn)
+                warn.mockClear()
+
+                await launcher.run()
+
+                expect((launcher.interface as any)._config.specFileRetries).toBe(0)
+                expect(config.specFileRetries).toBe(2)
+                expect(warn.mock.calls.filter(([message]) => String(message).includes('specFileRetries'))).toHaveLength(1)
+            })
+
+            it('keeps spec file retries for frameworks without launch', async () => {
+                mockFramework(async () => ({}))
+                config.specFileRetries = 2
+
+                await launcher.run()
+
+                expect((launcher.interface as any)._config.specFileRetries).toBe(2)
+            })
+
+            it('turns a failure count into exit code 1', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(3)
+
+                expect(await launcher.run()).toEqual(1)
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(config.onComplete![0]).toBeCalledTimes(1)
+            })
+
+            it('reports exit code 1 to onComplete and rethrows when launch throws', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockRejectedValue(new Error('vitest crashed'))
+
+                await expect(launcher.run()).rejects.toThrow('vitest crashed')
+                expect(vi.mocked(config.onComplete![0])).toBeCalledWith(1, expect.anything(), expect.anything(), expect.anything())
+            })
+
+            it('aborts the signal on exit and waits for launch before calling the callback', async () => {
+                mockFramework(async () => ({ launch }))
+                const order: string[] = []
+                let finish!: () => void
+                launch.mockImplementation(({ signal }: Frameworks.FrameworkLaunchParams) => new Promise<number>((resolve) => {
+                    finish = () => { order.push('settled'); resolve(0) }
+                    signal!.addEventListener('abort', () => order.push('aborted'))
+                }))
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launch).toBeCalled())
+                const callback = vi.fn(() => order.push('callback'))
+
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                await Promise.resolve()
+                expect(order).toEqual(['aborted'])
+                expect(callback).not.toBeCalled()
+                finish()
+                await exiting
+                await running
+
+                expect(order).toEqual(['aborted', 'settled', 'callback'])
+            })
+
+            it('drops args that cannot be structured-cloned', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+                launcher['_args'] = { baseUrl: 'http://x', reporters: [class {}], onComplete: () => {} } as never
+
+                await launcher.run()
+                expect(launch.mock.calls[0][0].args).toEqual({ baseUrl: 'http://x', ignoredWorkerServices: [] })
+            })
+
+            it('passes a signal that is already aborted when exit was triggered before launch', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+                vi.mocked(config.onPrepare![0]).mockImplementationOnce(() => { launcher['_exitHandler'](vi.fn() as any) })
+
+                await launcher.run()
+                expect(launch.mock.calls[0][0].signal.aborted).toBe(true)
+            })
+
+            it('still calls the callback when launch rejects after abort', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockImplementation(({ signal }: Frameworks.FrameworkLaunchParams) => new Promise<number>((_, reject) => {
+                    signal!.addEventListener('abort', () => reject(new Error('cancelled')))
+                }))
+                const running = launcher.run().catch(() => undefined)
+                await vi.waitFor(() => expect(launch).toBeCalled())
+                const callback = vi.fn()
+
+                await launcher['_exitHandler'](callback as any)
+                await running
+
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('rejects watch mode before starting the launcher services', async () => {
+                mockFramework(async () => ({ launch }))
+                launcher['_isWatchMode'] = true
+
+                await expect(launcher.run()).rejects.toThrow('--watch is not supported by the vitest framework yet')
+                expect(launch).not.toBeCalled()
+                expect(config.onPrepare![0]).not.toBeCalled()
+            })
+
+            it.each([
+                ['flat', 'wdio:specs', { 'wdio:specs': ['a.ts'] }],
+                ['flat', 'wdio:exclude', { 'wdio:exclude': ['a.ts'] }],
+                ['alwaysMatch', 'wdio:specs', { alwaysMatch: { 'wdio:specs': ['a.ts'] } }],
+                ['firstMatch', 'wdio:specs', { alwaysMatch: {}, firstMatch: [{}, { 'wdio:specs': ['a.ts'] }] }],
+                ['firstMatch', 'wdio:exclude', { alwaysMatch: {}, firstMatch: [{ 'wdio:exclude': ['a.ts'] }] }]
+            ])('rejects %s capabilities with %s', async (_shape, key, cap) => {
+                mockFramework(async () => ({ launch }))
+                vi.mocked(launcher.configParser.getCapabilities).mockReturnValue([cap] as any)
+
+                await expect(launcher.run()).rejects.toThrow(new RegExp(`"${key}".*vitest framework`))
+                expect(launch).not.toBeCalled()
+                expect(config.onPrepare![0]).not.toBeCalled()
+            })
+
+            it('keeps scheduling workers when the framework has no launch export', async () => {
+                mockFramework(async () => ({ default: {} }))
+
+                expect(await launcher.run()).toEqual(0)
+                expect(launcher['_runMode']).toBeCalledTimes(1)
+            })
+
+            it('throws when the framework cannot be imported in the launcher', async () => {
+                mockFramework(async () => { throw new Error('not found') })
+
+                await expect(launcher.run()).rejects.toThrow('not found')
+                expect(launcher['_runMode']).not.toBeCalled()
+            })
+
+            it('runs no hook, service or shutdown when the run is rejected', async () => {
+                mockFramework(async () => ({ launch }))
+                launcher['_isWatchMode'] = true
+
+                await expect(launcher.run()).rejects.toThrow('--watch is not supported')
+                expect(config.onPrepare![0]).not.toBeCalled()
+                expect(config.onComplete![0]).not.toBeCalled()
+                expect(launcher.runner!.initialize).not.toBeCalled()
+                expect(launcher.runner!.shutdown).not.toBeCalled()
+            })
+
+            it('does not import frameworks outside the launcher allowlist', async () => {
+                config.framework = 'mocha'
+                mockFramework(async () => ({ launch }))
+
+                expect(await launcher.run()).toEqual(0)
+                expect(vi.mocked(initializePlugin).mock.calls.some(([, type]) => type === 'framework')).toBe(false)
+                expect(launch).not.toBeCalled()
+                expect(launcher['_runMode']).toBeCalledTimes(1)
+            })
         })
 
         it('onComplete error', async () => {

@@ -1,0 +1,54 @@
+{
+  "name": "@wdio/vitest-framework",
+  "version": "10.1.0",
+  "description": "A WebdriverIO plugin. Runs Vitest specs through the WebdriverIO testrunner.",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-vitest-framework",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./setup": {
+      "source": "./src/setup.ts",
+      "import": "./build/setup.js",
+      "types": "./build/setup.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "6.0.3",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-vitest-framework"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-framework"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "@types/node": "^22.20.4",
+    "@wdio/config": "workspace:*",
+    "@wdio/globals": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/runner": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "expect-webdriverio": "^8.0.0",
+    "vitest": "^5.0.2",
+    "webdriverio": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
