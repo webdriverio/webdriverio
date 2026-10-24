@@ -43,6 +43,23 @@ describe('HtmlReporter', () => {
         expect(isShot({ command: 'elementClick', endpoint: '/session/id/element/id/click' })).toBe(false)
     })
 
+    // the result event of the WebDriver BiDi override: no endpoint, the base64 image in `result.value`
+    it('writes a WebDriver BiDi element screenshot to the current test', () => {
+        const reporter = new HtmlReporter({
+            logFile: path.join(outputRoot, 'bidi-shot.log'),
+            outputDir: path.join(outputRoot, 'bidi-shot') + path.sep,
+            filename: 'report.html',
+            useOnAfterCommandForScreenshot: true
+        } as never)
+        const test = { ...SUITES[0].tests[0], uid: 'bidi-shot-test' } as TestStats
+        reporter.onRunnerStart(RUNNER)
+        reporter.onTestStart(test)
+        reporter.onAfterCommand({ command: 'takeElementScreenshot', result: { value: Buffer.from('png').toString('base64') } } as never)
+        const shots = eventsOf(test).filter((event) => event.type === 'screenshot')
+        expect(shots).toHaveLength(1)
+        expect(fs.readFileSync(shots[0].value as string, 'utf8')).toBe('png')
+    })
+
     afterAll(() => {
         process.removeAllListeners('test:log')
         process.removeAllListeners('test:screenshot')
