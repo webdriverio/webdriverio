@@ -42,6 +42,10 @@ export interface EndMessage {
 
 class Launcher {
     #isInitialized: boolean = false
+    #globalTimeoutTimer?: ReturnType<typeof setTimeout>
+    #hasExceededGlobalTimeout = false
+    #resolveWorkersEnded?: () => void
+    #pendingWorkerEnds = 0
 
     public configParser: ConfigParser
     public isMultiRemote = false
@@ -151,6 +155,7 @@ class Launcher {
         } catch (err) {
             error = err as HookError
         } finally {
+            clearTimeout(this.#globalTimeoutTimer)
             try {
                 if (!this._hasTriggeredExitRoutine) {
                     this._hasTriggeredExitRoutine = true
@@ -346,6 +351,8 @@ class Launcher {
                 return resolve(1)
             }
 
+            this.#startGlobalTimeout(config)
+
             /**
              * return immediately if no spec was run
              */
@@ -353,6 +360,73 @@ class Launcher {
                 resolve(0)
             }
         })
+    }
+
+    /**
+     * Stop the run once it took longer than `globalTimeout`. The timer starts with the first
+     * spec file, so `onPrepare` and driver setup do not count against it, and `onComplete`
+     * still runs afterwards, e.g. for reporters that generate their report there.
+     */
+    #startGlobalTimeout(config: Required<WebdriverIO.Config>) {
+        const { globalTimeout } = config
+        if (this._isWatchMode || typeof globalTimeout !== 'number' || globalTimeout <= 0) {
+            return
+        }
+
+        this.#globalTimeoutTimer = setTimeout(
+            () => this.#onGlobalTimeout(globalTimeout).catch((err) => {
+                log.error(`Failed to stop the test run after the globalTimeout: ${(err as Error).message}`)
+                this._resolve?.(1)
+            }),
+            globalTimeout
+        )
+    }
+
+    async #onGlobalTimeout(globalTimeout: number) {
+        /**
+         * the run is already ending, e.g. after a SIGINT
+         */
+        if (this._hasTriggeredExitRoutine) {
+            return
+        }
+
+        const specsLeft = this._getNumberOfSpecsLeft()
+        log.info(`The test run exceeded the globalTimeout of ${globalTimeout}ms, ${specsLeft} spec file(s) will not be started`)
+        this.#hasExceededGlobalTimeout = true
+        this._hasTriggeredExitRoutine = true
+        this._schedule.forEach((schedule) => { schedule.specs = [] })
+        this.interface?.globalTimeoutTrigger(globalTimeout, specsLeft)
+
+        /**
+         * spec files that end from now on report through `_endHandler`, which leaves
+         * resolving the run to this method
+         */
+        const workersEnded = this._getNumberOfRunningInstances() === 0
+            ? Promise.resolve()
+            : new Promise<void>((resolve) => { this.#resolveWorkersEnded = resolve })
+
+        await this.runner?.shutdown()
+
+        /**
+         * `shutdown` ends the WebDriver sessions, but a test that does not wait on the
+         * browser keeps its worker running. Interrupt the workers the way ctrl+c does and
+         * wait for them to exit, so their reporters are done before `onComplete` runs.
+         */
+        for (const worker of Object.values<{ kill?: (signal: NodeJS.Signals) => void }>(this.runner?.workerPool || {})) {
+            worker.kill?.('SIGINT')
+        }
+        await workersEnded
+        this._resolve?.(1)
+    }
+
+    /**
+     * after `globalTimeout` elapsed: let the run end once no worker runs anymore and
+     * every `_endHandler` finished its `onWorkerEnd` hooks
+     */
+    #resolveWorkersEndedIfIdle() {
+        if (this._getNumberOfRunningInstances() === 0 && this.#pendingWorkerEnds === 0) {
+            this.#resolveWorkersEnded?.()
+        }
     }
 
     /**
@@ -590,6 +664,18 @@ class Launcher {
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
 
+        /**
+         * `globalTimeout` elapsed while this start waited for the retry delay or the
+         * `onWorkerStart` hooks; the worker is not running yet, so give its slot back
+         */
+        if (this.#hasExceededGlobalTimeout) {
+            log.info(`Not starting worker ${runnerId}, the test run exceeded its globalTimeout`)
+            this._schedule[cid].availableInstances++
+            this._schedule[cid].runningInstances--
+            this.#resolveWorkersEndedIfIdle()
+            return
+        }
+
         // prefer launcher settings in capabilities over general launcher
         const worker = await this.runner.run({
             cid: runnerId,
@@ -688,10 +774,19 @@ class Launcher {
 
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
-        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
-            .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
-            .catch((error) => this._workerHookError(error))
+        /**
+         * the instance no longer counts as running, but a run stopped by `globalTimeout`
+         * must still wait for its `onWorkerEnd` hooks before `onComplete`
+         */
+        this.#pendingWorkerEnds++
+        try {
+            await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
+                .catch((error) => this._workerHookError(error))
+            await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
+                .catch((error) => this._workerHookError(error))
+        } finally {
+            this.#pendingWorkerEnds--
+        }
 
         /**
          * do nothing if
@@ -708,6 +803,14 @@ class Launcher {
                 this.interface?.finalise()
             }
 
+            return
+        }
+
+        /**
+         * a run stopped by `globalTimeout` resolves once all workers have ended
+         */
+        if (this.#hasExceededGlobalTimeout) {
+            this.#resolveWorkersEndedIfIdle()
             return
         }
 

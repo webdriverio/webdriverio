@@ -277,6 +277,177 @@ describe('launcher', () => {
         })
     })
 
+    describe('globalTimeout', () => {
+        beforeEach(() => {
+            vi.useFakeTimers()
+            launcher.configParser.getSpecs = vi.fn().mockReturnValue(['/a.js', '/b.js', '/c.js'])
+            launcher.interface!.globalTimeoutTrigger = vi.fn()
+            launcher['_launcher'] = []
+        })
+
+        afterEach(() => {
+            vi.useRealTimers()
+        })
+
+        it('should stop the run with exit code 1 once the timeout elapsed', async () => {
+            launcher.runner = { shutdown: vi.fn().mockResolvedValue(true) } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            const run = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+
+            await vi.advanceTimersByTimeAsync(999)
+            expect(launcher.runner!.shutdown).not.toBeCalled()
+
+            await vi.advanceTimersByTimeAsync(1)
+            expect(await run).toBe(1)
+            expect(launcher.runner!.shutdown).toBeCalledTimes(1)
+            expect(launcher.interface!.globalTimeoutTrigger).toBeCalledWith(1000, 3)
+            expect(launcher['_getNumberOfSpecsLeft']()).toBe(0)
+            expect(launcher['_hasTriggeredExitRoutine']).toBe(true)
+        })
+
+        it('should fail the run even if a worker ending during the shutdown passed', async () => {
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({ onWorkerEnd: vi.fn() })
+            launcher.runner = {
+                shutdown: vi.fn().mockImplementation(async () => {
+                    /**
+                     * the worker that was running when the timeout elapsed ends while
+                     * the runner shuts down, and its spec file happened to pass
+                     */
+                    await launcher['_endHandler']({ cid: '0-0', exitCode: 0, specs: ['/a.js'], retries: 0 })
+                    return true
+                })
+            } as any
+            const run = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            launcher['_schedule'][0].runningInstances = 1
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(await run).toBe(1)
+        })
+
+        it('should interrupt running workers and wait for them to end', async () => {
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({ onWorkerEnd: vi.fn() })
+            const kill = vi.fn()
+            launcher.runner = {
+                shutdown: vi.fn().mockResolvedValue(true),
+                workerPool: { '0-0': { kill } }
+            } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            const run = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            launcher['_schedule'][0].runningInstances = 1
+            const onSettled = vi.fn()
+            run.then(onSettled)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(kill).toBeCalledWith('SIGINT')
+            expect(onSettled).not.toBeCalled()
+
+            // like the real `_runSpecs` once the exit routine was triggered
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(true)
+            await launcher['_endHandler']({ cid: '0-0', exitCode: 130, specs: ['/a.js'], retries: 0 })
+            expect(await run).toBe(1)
+        })
+
+        it('should not start a worker whose onWorkerStart hook ends after the timeout', async () => {
+            let releaseHook = () => {}
+            const hook = vi.fn(() => new Promise<void>((resolve) => { releaseHook = resolve }))
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({
+                maxInstances: 1,
+                onWorkerStart: [hook],
+                onWorkerEnd: vi.fn()
+            })
+            const run = vi.fn()
+            launcher.runner = { run, shutdown: vi.fn().mockResolvedValue(true), workerPool: {} } as any
+            const result = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            await vi.advanceTimersByTimeAsync(0)
+            expect(hook).toBeCalledTimes(1)
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(1)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            releaseHook()
+
+            expect(await result).toBe(1)
+            expect(run).not.toBeCalled()
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
+        })
+
+        it('should wait for the onWorkerEnd hooks of an ended worker before ending the run', async () => {
+            let releaseWorkerEnd = () => {}
+            const onWorkerEnd = vi.fn(() => new Promise<void>((resolve) => { releaseWorkerEnd = resolve }))
+            let releaseWorkerStart = () => {}
+            const onWorkerStart = vi.fn(() => new Promise<void>((resolve) => { releaseWorkerStart = resolve }))
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({ maxInstances: 2, onWorkerStart: [onWorkerStart], onWorkerEnd: [onWorkerEnd] })
+            const run = vi.fn()
+            launcher.runner = { run, shutdown: vi.fn().mockResolvedValue(true), workerPool: {} } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            const result = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            // one worker is running, a second one is still starting
+            launcher['_schedule'][0].runningInstances = 2
+            const starting = launcher['_startInstance'](['/b.js'], caps as any, 0, '0-1', 0)
+            const onSettled = vi.fn()
+            result.then(onSettled)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(true)
+            // the running worker ends and its onWorkerEnd hook is still busy ...
+            const ending = launcher['_endHandler']({ cid: '0-0', exitCode: 130, specs: ['/a.js'], retries: 0 })
+            await vi.advanceTimersByTimeAsync(0)
+            expect(onWorkerEnd).toBeCalledTimes(1)
+            // ... while the start that was still pending is cancelled
+            releaseWorkerStart()
+            await starting
+            await vi.advanceTimersByTimeAsync(0)
+            expect(run).not.toBeCalled()
+            expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
+            expect(onSettled).not.toBeCalled()
+
+            releaseWorkerEnd()
+            await ending
+            expect(await result).toBe(1)
+        })
+
+        it('should not stop the run if no globalTimeout is set', async () => {
+            launcher.runner = { shutdown: vi.fn() } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            launcher['_runMode']({ specs: ['./'], globalTimeout: 0, shard } as any, [caps])
+
+            await vi.advanceTimersByTimeAsync(24 * 60 * 60 * 1000)
+            expect(launcher.runner!.shutdown).not.toBeCalled()
+            expect(launcher['_getNumberOfSpecsLeft']()).toBe(3)
+        })
+
+        it('should not stop the run in watch mode', async () => {
+            launcher['_isWatchMode'] = true
+            launcher.runner = { shutdown: vi.fn() } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(launcher.runner!.shutdown).not.toBeCalled()
+        })
+
+        it('should do nothing if the run is already ending', async () => {
+            launcher.runner = { shutdown: vi.fn() } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+            launcher['_hasTriggeredExitRoutine'] = true
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(launcher.runner!.shutdown).not.toBeCalled()
+            expect(launcher.interface!.globalTimeoutTrigger).not.toBeCalled()
+        })
+
+        it('should fail the run if the shutdown fails', async () => {
+            launcher.runner = { shutdown: vi.fn().mockRejectedValue(new Error('boom')) } as any
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(false)
+            const run = launcher['_runMode']({ specs: ['./'], globalTimeout: 1000, shard } as any, [caps])
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(await run).toBe(1)
+            expect(logger('@wdio/cli:launcher').error).toBeCalledWith(
+                'Failed to stop the test run after the globalTimeout: boom')
+        })
+    })
+
     describe('hasTriggeredExitRoutine', () => {
         it('should return false if there are specs left of running when hasTriggeredExitRoutine is false', () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
