@@ -1,5 +1,6 @@
 import util from 'node:util'
 
+import getPort, { portNumbers } from 'get-port'
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
@@ -11,6 +12,9 @@ import type { BrowserRunnerOptions, CoverageOptions } from './types.js'
 const log = logger('@wdio/browser-runner')
 const INSPECT_ARG_REGEXP = /^--(debug|inspect)(-brk)?(=|$)/
 const INSPECT_PORT_REGEXP = /^--(?:debug|inspect)(?:-brk)?=(?:[^:]+:)?(\d+)$/
+const MIN_PORT = 1024
+const MAX_PORT = 65535
+let portAllocationQueue = Promise.resolve()
 
 export function hasInspectorOption (
     options: BrowserRunnerOptions = {},
@@ -25,57 +29,77 @@ export function hasInspectorOption (
     return args.some((arg) => INSPECT_ARG_REGEXP.test(arg))
 }
 
-export function getInspectorPort (
+export async function getInspectorPort (
     options: BrowserRunnerOptions = {},
     config?: WebdriverIO.Config,
-    cid?: string,
-    execArgv: string[] = process.execArgv
-): number {
-    const basePort = typeof options.inspect === 'number'
+    execArgv: string[] = process.execArgv,
+    allocatedPorts?: Set<number>
+): Promise<number> {
+    const basePort = typeof options.inspect === 'number' &&
+        Number.isInteger(options.inspect) &&
+        options.inspect >= MIN_PORT &&
+        options.inspect <= MAX_PORT
         ? options.inspect
         : DEFAULT_DEBUG_PORT
-
-    const cidMatch = cid?.match(/^(\d+)-(\d+)$/)
-    const capId = cidMatch ? Number(cidMatch[1]) : 0
-    const workerId = cidMatch ? Number(cidMatch[2]) : 0
-    const workerOffset = ((workerId + capId) * (workerId + capId + 1)) / 2 + capId
 
     const nodeDebugPorts = new Set<number>()
     const args = [...(config?.execArgv || []), ...execArgv]
     for (const arg of args) {
         const match = arg.match(INSPECT_PORT_REGEXP)
         if (match) {
-            nodeDebugPorts.add(Number(match[1]))
+            const port = Number(match[1])
+            if (port >= MIN_PORT && port <= MAX_PORT) {
+                nodeDebugPorts.add(port)
+            }
         } else if (INSPECT_ARG_REGEXP.test(arg)) {
-            nodeDebugPorts.add(process.debugPort || 9229)
+            const defaultNodePort = process.debugPort || 9229
+            if (defaultNodePort >= MIN_PORT && defaultNodePort <= MAX_PORT) {
+                nodeDebugPorts.add(defaultNodePort)
+            }
         }
     }
 
-    let port = basePort
-    let remainingOffset = workerOffset
-    while (nodeDebugPorts.has(port) || remainingOffset > 0) {
-        if (!nodeDebugPorts.has(port)) {
-            remainingOffset--
-        }
-        port++
+    const previousAllocation = portAllocationQueue
+    let releaseQueue!: () => void
+    portAllocationQueue = new Promise<void>((resolve) => {
+        releaseQueue = resolve
+    })
+
+    await previousAllocation
+    try {
+        const exclude = new Set<number>([
+            ...nodeDebugPorts,
+            ...(allocatedPorts || [])
+        ])
+        const preferredPorts = [
+            ...portNumbers(basePort, MAX_PORT),
+            ...(basePort > MIN_PORT ? portNumbers(MIN_PORT, basePort - 1) : [])
+        ]
+        const port = await getPort({
+            port: preferredPorts,
+            exclude
+        })
+        allocatedPorts?.add(port)
+        return port
+    } finally {
+        releaseQueue()
     }
-    return port
 }
 
-export function configureBrowserInspector (
+export async function configureBrowserInspector (
     options: BrowserRunnerOptions,
     config: WebdriverIO.Config,
     caps: WebdriverIO.Capabilities,
-    cid?: string,
-    execArgv: string[] = process.execArgv
-): WebdriverIO.Capabilities {
+    execArgv: string[] = process.execArgv,
+    allocatedPorts?: Set<number>,
+    onPortAllocated?: (port: number) => void
+): Promise<WebdriverIO.Capabilities> {
     if (!hasInspectorOption(options, config, execArgv)) {
         return caps
     }
 
     const isW3C = 'alwaysMatch' in caps
     const capability = isW3C ? (caps as Capabilities.W3CCapabilities).alwaysMatch : caps
-    const port = getInspectorPort(options, config, cid, execArgv)
     const mergeCapability = (patch: WebdriverIO.Capabilities): WebdriverIO.Capabilities => {
         const merged = deepmerge(capability, patch)
         if (isW3C) {
@@ -91,6 +115,8 @@ export function configureBrowserInspector (
         if (capability['goog:chromeOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
+        const port = await getInspectorPort(options, config, execArgv, allocatedPorts)
+        onPortAllocated?.(port)
         return mergeCapability({
             'goog:chromeOptions': {
                 args: [`--remote-debugging-port=${port}`]
@@ -100,6 +126,8 @@ export function configureBrowserInspector (
         if (capability['ms:edgeOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
+        const port = await getInspectorPort(options, config, execArgv, allocatedPorts)
+        onPortAllocated?.(port)
         return mergeCapability({
             'ms:edgeOptions': {
                 args: [`--remote-debugging-port=${port}`]
@@ -109,6 +137,8 @@ export function configureBrowserInspector (
         if (capability['moz:firefoxOptions']?.args?.some((arg) => arg.includes('remote-debugging-port'))) {
             return caps
         }
+        const port = await getInspectorPort(options, config, execArgv, allocatedPorts)
+        onPortAllocated?.(port)
         return mergeCapability({
             'moz:firefoxOptions': {
                 args: ['-remote-debugging-port', String(port)]

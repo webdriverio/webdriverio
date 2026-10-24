@@ -28,6 +28,7 @@ export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
     #config: WebdriverIO.Config
     #servers: Set<ViteServer> = new Set()
+    #debugPorts: Set<number> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
     #viteOptimizations: InlineConfig = {}
@@ -95,7 +96,6 @@ export default class BrowserRunner extends LocalRunner {
     async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
-        runArgs.caps = configureBrowserInspector(this.options, this.#config, runArgs.caps, runArgs.cid, runArgs.execArgv)
 
         const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
         this.#servers.add(server)
@@ -121,7 +121,35 @@ export default class BrowserRunner extends LocalRunner {
             runArgs.args.baseUrl = this._config.baseUrl
         }
 
-        const worker = await super.run(runArgs)
+        let allocatedDebugPort: number | undefined
+        runArgs.caps = await configureBrowserInspector(
+            this.options,
+            this.#config,
+            runArgs.caps,
+            runArgs.execArgv,
+            this.#debugPorts,
+            (port) => {
+                allocatedDebugPort = port
+            }
+        )
+
+        let worker: WorkerInstance
+        try {
+            worker = await super.run(runArgs)
+        } catch (err) {
+            if (allocatedDebugPort !== undefined) {
+                this.#debugPorts.delete(allocatedDebugPort)
+            }
+            throw err
+        }
+
+        if (allocatedDebugPort !== undefined) {
+            const debugPort = allocatedDebugPort
+            worker.on('exit', () => {
+                this.#debugPorts.delete(debugPort)
+            })
+        }
+
         this.#communicator.register(server, worker)
         return worker
     }
@@ -133,6 +161,7 @@ export default class BrowserRunner extends LocalRunner {
      */
     async shutdown() {
         await super.shutdown()
+        this.#debugPorts.clear()
         await Promise.allSettled(Array.from(this.#servers).map((server) => server.close()))
         return this._generateCoverageReports()
     }
