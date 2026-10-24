@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { cookieMatchesHost, getCookiePartition, parallelCookieScope, type ParallelCookieScope } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookieScope, type ParallelCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -98,21 +98,21 @@ export async function deleteCookies(
 }
 
 /**
- * the jar of a parallel test holds the cookies of every host: delete only the cookies
- * of the page host, as WebDriver Classic does
+ * the jar of a parallel test holds the cookies of every host and path: delete only the
+ * cookies that the page sees, as WebDriver Classic does
  */
 async function deleteParallelCookies(
     browser: WebdriverIO.Browser,
-    { partition, host }: ParallelCookieScope,
+    { partition, isVisible }: ParallelCookieScope,
     filterArray?: (string | remote.StorageCookieFilter)[]
 ) {
-    if (!host) {
+    if (!isVisible) {
         await deleteBidiCookies(browser, partition, filterArray)
         return
     }
     const filters = (filterArray ?? [undefined]).map((f) => typeof f === 'string' ? { name: f } : f)
     const found = await Promise.all(filters.map((filter) => browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })))
-    const cookies = found.flatMap(({ cookies }) => cookies).filter((cookie) => cookieMatchesHost(cookie.domain, host))
+    const cookies = found.flatMap(({ cookies }) => cookies).filter(isVisible)
     await Promise.all(cookies.map(({ name, domain, path }) => (
         browser.storageDeleteCookies({ filter: { name, domain, path }, partition })
     )))
