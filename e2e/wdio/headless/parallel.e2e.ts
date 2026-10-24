@@ -115,4 +115,21 @@ describe('parallel mode e2e test', () => {
             await fs.rm(filepath, { force: true })
         }
     })
+
+    // the cookie commands use the jar of the test window: Chrome rejected the sourceOrigin (CHIPS) partition
+    it('sets, reads and deletes a cookie in its own context', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+        const value = `v${Date.now()}`
+        await browser.setCookies({ name: 'parallel-e2e', value })
+        expect((await browser.getCookies({ name: 'parallel-e2e' })).map((cookie) => cookie.value)).toEqual([value])
+        expect(await browser.execute(() => document.cookie)).toContain(`parallel-e2e=${value}`)
+
+        await browser.deleteCookies({ name: 'parallel-e2e' })
+        expect(await browser.getCookies({ name: 'parallel-e2e' })).toEqual([])
+        expect(await browser.execute(() => document.cookie)).not.toContain('parallel-e2e=')
+    })
 })

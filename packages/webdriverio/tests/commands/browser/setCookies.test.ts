@@ -108,14 +108,16 @@ describe('setCookies', () => {
             setParallelContextStore(parallelStore)
         })
 
-        it('should scope to the context origin inside a parallel scope', async () => {
+        // Chrome rejects a cookie that is not secure in a sourceOrigin (CHIPS) partition
+        it('should set the cookie in the jar of the test window inside a parallel scope', async () => {
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-1', children: [] }]
             } as any)
             await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
-            expect(storageSetCookie).toBeCalledWith(expect.objectContaining({
-                partition: { type: 'storageKey', sourceOrigin: 'https://webdriver.io', userContext: 'uc-1' }
-            }))
+            expect(storageSetCookie).toBeCalledWith({
+                cookie: { name: 'cookie1', domain: 'webdriver.io', value: { type: 'string', value: cookie1.value } },
+                partition: { type: 'context', context: 'ctx-1' }
+            })
         })
 
         it('should propagate BiDi errors inside a parallel scope without addCookie', async () => {

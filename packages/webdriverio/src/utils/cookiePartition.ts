@@ -2,49 +2,48 @@ import type { remote } from 'webdriver'
 
 import { getParallelContextStore } from '../session/context.js'
 
+export interface ParallelCookieScope {
+    partition: remote.StoragePartitionDescriptor
+    /** the host whose cookies the commands see, as WebDriver Classic for the page; none: all cookies of the jar */
+    host?: string
+}
+
 /**
- * Parallel tests share one user context by default, so a `context` partition
- * would resolve to the whole user-context jar in Chrome. The partition is
- * scoped to the origin of the test's own browsing context instead. Without a
- * usable origin (e.g. about:blank) it falls back to the context partition.
- * An explicit `sourceOrigin` string replaces that origin and `null` drops it;
- * both stay scoped to the test's user context.
+ * The cookie jar of a parallel test: the storage partition of its window (WebDriver BiDi
+ * "context" partition: the key of the navigable's storage partition). A `sourceOrigin` is
+ * a partition key, not a cookie filter: Chrome reads it as the key of a partitioned
+ * (CHIPS) jar, where a cookie that is not `secure` is rejected, and Firefox ignores it.
+ * The host of the page (or of an explicit `sourceOrigin`) filters the cookies instead,
+ * as WebDriver Classic returns the cookies of the page; `null` keeps all cookies of the jar.
  */
-export async function parallelCookiePartition(
+export async function parallelCookieScope(
     browser: WebdriverIO.Browser,
     explicitOrigin?: string | null
-): Promise<remote.StoragePartitionDescriptor | undefined> {
+): Promise<ParallelCookieScope | undefined> {
     const context = getParallelContextStore().getStore()
     if (!context) {
         return undefined
     }
 
-    const { contexts } = await browser.browsingContextGetTree({ root: context, maxDepth: 0 })
-    const info = contexts[0]
-    const userContext = info?.userContext ? { userContext: info.userContext } : {}
-    if (explicitOrigin !== undefined) {
-        return {
-            type: 'storageKey',
-            ...(explicitOrigin === null ? {} : { sourceOrigin: explicitOrigin }),
-            ...userContext
-        }
+    const partition: remote.StoragePartitionDescriptor = { type: 'context', context }
+    if (explicitOrigin === null) {
+        return { partition }
     }
-
-    let sourceOrigin: string | undefined
+    let host: string | undefined
     try {
-        const { origin } = new URL(info?.url)
-        sourceOrigin = origin === 'null' ? undefined : origin
+        const source = explicitOrigin ?? (await browser.browsingContextGetTree({ root: context, maxDepth: 0 })).contexts[0]?.url
+        host = new URL(source).hostname || undefined
     } catch {
-        sourceOrigin = undefined
+        host = undefined
     }
-    if (!sourceOrigin) {
-        return { type: 'context', context }
-    }
-    return {
-        type: 'storageKey',
-        sourceOrigin,
-        ...userContext
-    }
+    return { partition, host }
+}
+
+/** RFC 6265 domain-match of a cookie domain (with or without the leading dot) and a host */
+export function cookieMatchesHost(domain: string, host: string) {
+    const cookieDomain = domain.replace(/^\./, '').toLowerCase()
+    const hostName = host.toLowerCase()
+    return hostName === cookieDomain || hostName.endsWith(`.${cookieDomain}`)
 }
 
 export function getCookiePartition(sourceOrigin: string): remote.StoragePartitionDescriptor {

@@ -122,7 +122,7 @@ Inside a parallel test, these commands act on the test's own window:
 - navigation: `url`, `back`, `forward`, `refresh`, `getUrl`, `getTitle`
 - element commands: `$`, `$$`, `shadow$`, `click`, `setValue`, `getText`, the `waitFor*` commands, and others
 - `execute`, `actions`, `addInitScript`
-- cookies: `getCookies`, `setCookies`, `deleteCookies` use the test's cookie partition
+- cookies: `getCookies`, `setCookies`, `deleteCookies` use the cookies of the test's window (its user context with `'userContexts'`), and `getCookies` and `deleteCookies` see the cookies of the page host, as in a sequential run
 - `mock()`: a mock created in a parallel test only intercepts and records requests of that test's window and its frames, so two tests can mock the same URL. A test can override a mock of the same URL that `beforeSuite` in `wdio.conf.ts` created: the mock of the test answers in its window, and the `beforeSuite` mock keeps answering in the other windows. Create a default mock in `beforeSuite` and override it in the test, or in a `before()` or `beforeEach()` hook of the spec file. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request)
 - `mockClearAll()`, `mockRestoreAll()`: only the mocks that the test created, also in its `before()` hook and on tabs it opened. Mocks created in the `beforeSuite` hook in `wdio.conf.ts`, outside the test windows, stay
 - screenshots: `saveScreenshot`, `takeElementScreenshot`
