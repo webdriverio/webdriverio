@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
 import { browser, $, $$, expect } from '@wdio/globals'
 import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
 
@@ -94,5 +98,21 @@ describe('parallel mode e2e test', () => {
 
         const firstNameCell = await $('#table1 tbody tr:nth-child(1) td:nth-child(2)')
         expect(await firstNameCell.getText()).toBe('John')
+    })
+
+    it('saves a screenshot in its own context', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+        const filepath = path.join(os.tmpdir(), `wdio-parallel-${process.pid}-${Date.now()}.png`)
+        try {
+            await browser.saveScreenshot(filepath)
+            const png = await fs.readFile(filepath)
+            expect(png.subarray(1, 4).toString()).toBe('PNG')
+        } finally {
+            await fs.rm(filepath, { force: true })
+        }
     })
 })

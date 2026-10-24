@@ -219,7 +219,8 @@ class MochaAdapter {
                     invert: mocha.options?.invert,
                     timeout: this._config.mochaOpts.timeout,
                     mode,
-                    failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests
+                    failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
+                    allowUncaught: this._config.mochaOpts.allowUncaught
                 }
             )
         } catch (err) {

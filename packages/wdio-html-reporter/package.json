@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-html-reporter",
   "license": "MIT",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -43,7 +43,7 @@
     "@wdio/types": "workspace:*",
     "dayjs": "^1.11.9",
     "nunjucks": "^3.2.4",
-    "open": "^8.4.0"
+    "open": "^11.0.4"
   },
   "devDependencies": {
     "@types/nunjucks": "^3.2.3"
