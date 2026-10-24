@@ -10,7 +10,7 @@ import { resolve } from 'import-meta-resolve'
 
 import { runProgram, getPackageVersion } from './utils.js'
 import {
-    ASCII_ROBOT, PROGRAM_TITLE, UNSUPPORTED_NODE_VERSION, DEFAULT_NPM_TAG,
+    ASCII_ROBOT, PROGRAM_TITLE, SUPPORTED_NODE_VERSIONS, UNSUPPORTED_NODE_VERSION, DEFAULT_NPM_TAG,
     INSTALL_COMMAND, DEV_FLAG, SUPPORTED_PACKAGE_MANAGERS, EXECUTER, EXECUTE_COMMAND
 } from './constants.js'
 import type { ProgramOpts } from './types.js'
@@ -31,7 +31,7 @@ export async function run(operation = createWebdriverIO) {
     /**
      * ensure right Node.js version is used
      */
-    const unsupportedNodeVersion = !semver.satisfies(process.version, '>=18.18.0')
+    const unsupportedNodeVersion = !semver.satisfies(process.version, SUPPORTED_NODE_VERSIONS)
     if (unsupportedNodeVersion) {
         console.log(chalk.yellow(UNSUPPORTED_NODE_VERSION))
         return
