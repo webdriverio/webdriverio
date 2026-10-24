@@ -9,11 +9,16 @@ const tag = (title?: string) => title?.match(/^(T\d+)/)?.[1] ?? '?'
  * send events while other tests run.
  */
 describe('html reporter parallel', () => {
+    let late: Promise<void> | undefined
     beforeEach(function () {
         log(`HB:${tag(this.currentTest?.title)}`)
     })
-    afterEach(function () {
+    afterEach(async function () {
         log(`HA:${tag(this.currentTest?.title)}`)
+        // the late log of T6 comes after its test:end, but before the run ends
+        if (tag(this.currentTest?.title) === 'T6') {
+            await late
+        }
     })
 
     it('T1 logs after the other tests start', async () => {
@@ -55,7 +60,10 @@ describe('html reporter parallel', () => {
     it('T6 logs after its end', async () => {
         log('T6:start')
         await page('0080ff')
-        setTimeout(() => log('T6:late'), 300)
+        late = new Promise((resolve) => setTimeout(() => {
+            log('T6:late')
+            resolve()
+        }, 300))
         log('T6:end')
     })
     it('T7 opens a window', async () => {

@@ -556,9 +556,6 @@ describe('code review points', () => {
         dirs.push(dir)
         return dir
     }
-    const common = { cid: '0-0', specs: [], file: 'spec.js' }
-    const suite = (uid: string) => ({ ...common, type: 'suite:start', uid, title: uid, fullTitle: uid, parent: '' })
-    const test = (uid: string, contextId?: string) => ({ ...common, type: 'test:start', uid, title: uid, fullTitle: uid, parent: 'suite', ...(contextId ? { contextId } : {}) })
 
     afterAll(() => {
         process.removeAllListeners('test:log')

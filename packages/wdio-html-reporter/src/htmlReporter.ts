@@ -123,7 +123,6 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.connectScreenshotEvent(this.#onScreenshot)
         reportProxy.connectVideoCaptureEvent(this.#onVideo)
         this.reportGenerator = new ReportGenerator(this.options)
-        // the stats of a test do not keep its parallel-mode context: the events have it
         // the hook and test events have the context of a parallel-mode test (Mocha), else the calling code has it
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error
@@ -134,14 +133,6 @@ export default class HtmlReporter extends WDIOReporter {
             }
         })
         this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
-        this.on('test:start', ({ contextId, uid }: { contextId?: string, uid: string }) => {
-            if (contextId) {
-                this.#contextTests.set(contextId, uid)
-                //@ts-ignore
-                this.getTest(uid)?.events.push(...this.#earlyEvents.get(contextId) ?? [])
-                this.#earlyEvents.delete(contextId)
-            }
-        })
     }
 
     get isSynchronised() : boolean {
@@ -178,6 +169,21 @@ export default class HtmlReporter extends WDIOReporter {
         //@ts-ignore
         theTest.errorIndex = 0
         this._testUids.set(theTest.uid, theTest)
+        this.#takeEarlyEvents(theTest)
+    }
+
+    /**
+     * parallel mode: the test is the test of its context, and it takes the events
+     * that its context sent before (a before hook)
+     */
+    #takeEarlyEvents(test: TestStats) {
+        if (!test.contextId) {
+            return
+        }
+        this.#contextTests.set(test.contextId, test.uid)
+        //@ts-ignore
+        test.events.push(...this.#earlyEvents.get(test.contextId) ?? [])
+        this.#earlyEvents.delete(test.contextId)
     }
 
     onTestPass(theTest: TestStats) {
@@ -214,12 +220,11 @@ export default class HtmlReporter extends WDIOReporter {
         // parallel mode: a test that a before hook skips (`this.skip()`) never starts, it takes the events of its context
         if (test.contextId && !this._testUids.has(test.uid)) {
             //@ts-ignore
-            test.events = this.#earlyEvents.get(test.contextId) ?? []
+            test.events = []
             //@ts-ignore
             test.errorIndex = 0
             this._testUids.set(test.uid, test)
-            this.#contextTests.set(test.contextId, test.uid)
-            this.#earlyEvents.delete(test.contextId)
+            this.#takeEarlyEvents(test)
         }
         if (!this.#countScenarios) {
             this.metrics.skipped++
@@ -273,7 +278,12 @@ export default class HtmlReporter extends WDIOReporter {
             //@ts-ignore
             test.events.push(event)
         } else if (id) {
-            this.#earlyEvents.set(id, [...this.#earlyEvents.get(id) ?? [], event])
+            const early = this.#earlyEvents.get(id)
+            if (early) {
+                early.push(event)
+            } else {
+                this.#earlyEvents.set(id, [event])
+            }
         }
     }
 
