@@ -216,9 +216,9 @@ function interleave(scripts: Array<Array<() => void>>) {
     }
 }
 
-async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void | Promise<void>, parallelConfigured = mode === 'parallel', options?: Record<string, unknown>) {
+async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void | Promise<void>, parallelConfigured = mode === 'parallel', options?: Record<string, unknown>, framework = 'mocha') {
     const h = createHarness(mode, tests, options)
-    const config = { framework: 'mocha', mochaOpts: parallelConfigured ? { parallelMode: true } : {} }
+    const config = { framework, mochaOpts: parallelConfigured ? { parallelMode: true } : {} }
     h.emit('runner:start', {
         cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config,
         isMultiRemote: false, sessionId: 'session', instanceOptions: {},
@@ -282,6 +282,14 @@ afterEach(() => {
 })
 
 describe('Mocha parallel mode', () => {
+    // every form of the name that WebdriverIO loads (wdio-utils initializePlugin.ts)
+    it.each(['Mocha', '@wdio/mocha-framework'])('keeps the steps with their test for framework %s', async (framework) => {
+        const { results } = await play('parallel', [A1, B1], undefined, true, undefined, framework)
+
+        expect(stepNames(byName(results, A1.title).steps)).toEqual(['a1-step', 'a1-body'])
+        expect(stepNames(byName(results, B1.title).steps)).toEqual(['b1-step', 'b1-body'])
+    })
+
     describe('overlapping tests', () => {
         const NOT_STARTED: PlannedTest = { id: 'n1', title: 'never starts', suites: ['N'], outcome: 'hook-fail' }
         const UNFINISHED: PlannedTest = { id: 'x1', title: 'never ends', suites: ['X'], outcome: 'pass', unfinished: true }

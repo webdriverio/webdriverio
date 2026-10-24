@@ -162,6 +162,8 @@ export default class AllureReporter extends WDIOReporter {
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
     private _laneMode = false
+    /** the framework of the run in any form that WebdriverIO loads; `undefined` when not known */
+    private _framework?: ReturnType<typeof knownFramework>
     // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
@@ -677,10 +679,11 @@ export default class AllureReporter extends WDIOReporter {
         this._cid = runner.cid
         this._ensureState(runner.cid)
         this._config = runner.config
+        this._framework = knownFramework(runner.config?.framework)
         this._capabilities = runner.capabilities
         this._isMultiRemote = runner.isMultiRemote || false
         const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
-        this._laneMode = runner.config?.framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
+        this._laneMode = this._framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
         this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
@@ -961,10 +964,9 @@ export default class AllureReporter extends WDIOReporter {
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
         // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
         // framework; another one (a custom framework or adapter) keeps the rules below
-        const framework = knownFramework(this._config?.framework)
-        if (framework) {
+        if (this._framework) {
             const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts
-            return framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
+            return this._framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
         }
         if (kind === 'step') { return true }
         if (keyword) { return true }
@@ -1047,7 +1049,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         // a retried Cucumber scenario attempt keeps its tag, as in onSuiteRetry (its TestStats type is 'test')
-        if (knownFramework(this._config?.framework) === 'cucumber') {
+        if (this._framework === 'cucumber') {
             this._pushRuntimeMessage({
                 type: 'metadata',
                 data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
