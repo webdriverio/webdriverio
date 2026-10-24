@@ -420,6 +420,26 @@ You can also apply `maxInstances` within your capability objects using the `wdio
 
 </Option>
 
+### timeout
+
+<Option type="Number" default="0 (disabled)">
+
+Overall time budget in milliseconds for the testrunner, shared across setup, all spec files and retries, and teardown. Omit this option or set it to `0` to disable it. A positive value must be a finite integer no greater than `2147483647` and cannot be used with watch mode.
+
+The timer starts after configuration loading and validation, before services and `onPrepare`. When the deadline is reached, the run fails, starts graceful shutdown, and stops scheduling new workers and spec retries. WebdriverIO waits for normal worker shutdown, `onComplete` hooks, and resource cleanup, so the elapsed time can exceed this budget. Configuration loading is outside the budget; already running JavaScript and custom plugin work cannot be forcibly canceled.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    runner: 'local',
+    specs: ['./test/specs/**/*.e2e.ts'],
+    capabilities: [{ browserName: 'chrome' }],
+    framework: 'mocha',
+    timeout: 60_000 // start graceful shutdown after one minute
+}
+```
+
+</Option>
+
 ### maxInstancesPerCapability
 
 <Option type="Number" default="100">
