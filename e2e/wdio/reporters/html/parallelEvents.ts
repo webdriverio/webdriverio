@@ -26,7 +26,7 @@ export async function snap (tag: string) {
 }
 
 /**
- * `browser.saveScreenshot()` throws in parallel mode, so write the file
+ * write the file of the `snap()` capture, so its logged md5 is the md5 of this file
  */
 export async function logScreenshot (tag: string) {
     const file = path.join(process.env.HTML_SHOTS_DIR!, `${tag}-${crypto.randomUUID()}.png`)
