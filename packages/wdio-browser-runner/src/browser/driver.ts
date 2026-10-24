@@ -266,8 +266,18 @@ export default class ProxyDriver {
             throw new Error('Could not connect to browser')
         }
 
-        for (const commandName of value.customCommands) {
-            browser.addCommand(commandName, this.#getMockedCommand(commandName))
+        for (const { commandName, attachToElement } of value.customCommands) {
+            if (attachToElement) {
+                const getCommand = (scope: string) => this.#getMockedCommand(commandName, scope)
+                browser.addCommand(commandName, function (this: WebdriverIO.Element, ...args: unknown[]) {
+                    if (!this.elementId) {
+                        throw new Error(`Cannot execute custom command "${commandName}" without an element id`)
+                    }
+                    return getCommand(this.elementId)(...args)
+                }, { attachToElement: true })
+            } else {
+                browser.addCommand(commandName, this.#getMockedCommand(commandName))
+            }
         }
     }
 

@@ -58,3 +58,22 @@ test('keeps worker process events off the browser channel', () => {
     type NamespacedValue = Workers.SocketMessageValue[typeof MESSAGE_TYPES.customCommand]
     expectTypeOf<NamespacedValue['cid']>().toEqualTypeOf<string>()
 })
+
+test('preserves custom-command scope in browser state and worker events', () => {
+    const state = browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateResponse, {
+        customCommands: [
+            { commandName: 'sharedName', attachToElement: false },
+            { commandName: 'sharedName', attachToElement: true }
+        ]
+    })
+    expectTypeOf(state.value.customCommands[0].attachToElement).toEqualTypeOf<boolean>()
+    const workerEvent: Workers.CustomCommandEvent = { commandName: 'sharedName', cid: '0-0', attachToElement: true }
+    expectTypeOf(workerEvent.attachToElement).toEqualTypeOf<boolean | undefined>()
+    const legacyBrowserEvent: Workers.CustomCommandEvent = { commandName: 'browserOnly', cid: '0-0' }
+    expectTypeOf(legacyBrowserEvent.commandName).toEqualTypeOf<string>()
+
+    // @ts-expect-error browser state requires explicit command scope
+    browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateResponse, { customCommands: [{ commandName: 'missingScope' }] })
+    // @ts-expect-error scope is a boolean, not a string
+    browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateResponse, { customCommands: [{ commandName: 'wrongScope', attachToElement: 'true' }] })
+})

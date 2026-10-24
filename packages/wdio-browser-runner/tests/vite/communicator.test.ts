@@ -62,6 +62,40 @@ describe('ServerWorkerCommunicator', () => {
         })
     })
 
+    it('keeps same-name browser and element commands distinct and deduplicates each scope', async () => {
+        const server: any = { onBrowserEvent: vi.fn() }
+        const worker: any = { on: vi.fn(), postMessage: vi.fn() }
+        const communicator = new ServerWorkerCommunicator({} as any)
+        communicator.register(server, worker)
+        const onWorkerMessage = worker.on.mock.calls[0][1]
+        const onBrowserEvent = server.onBrowserEvent.mock.calls[0][0]
+        const client = { send: vi.fn() }
+
+        for (const attachToElement of [false, true, true]) {
+            await onWorkerMessage({
+                name: 'workerEvent',
+                args: { type: MESSAGE_TYPES.customCommand, value: { commandName: 'sharedName', cid: '0-0', attachToElement } }
+            })
+        }
+        onBrowserEvent({ type: MESSAGE_TYPES.initiateBrowserStateRequest, value: { cid: '0-0' } }, client)
+        expect(client.send).toHaveBeenCalledWith(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateResponse,
+            value: { customCommands: [
+                { commandName: 'sharedName', attachToElement: false },
+                { commandName: 'sharedName', attachToElement: true }
+            ] }
+        })
+        onBrowserEvent({ type: MESSAGE_TYPES.initiateBrowserStateRequest, value: { cid: '0-1' } }, client)
+        expect(client.send).toHaveBeenLastCalledWith(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateResponse, value: { customCommands: [] }
+        })
+        await onWorkerMessage({ name: 'sessionEnded', cid: '0-0' })
+        onBrowserEvent({ type: MESSAGE_TYPES.initiateBrowserStateRequest, value: { cid: '0-0' } }, client)
+        expect(client.send).toHaveBeenLastCalledWith(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateResponse, value: { customCommands: [] }
+        })
+    })
+
     it('routes browser channel messages by whether they expect a reply', async () => {
         const server: any = { onBrowserEvent: vi.fn() }
         const worker: any = { on: vi.fn(), postMessage: vi.fn() }
@@ -103,7 +137,7 @@ describe('ServerWorkerCommunicator', () => {
         }, client)
         expect(client.send).toHaveBeenLastCalledWith(WDIO_EVENT_NAME, {
             type: MESSAGE_TYPES.initiateBrowserStateResponse,
-            value: { customCommands: ['myCommand'] }
+            value: { customCommands: [{ commandName: 'myCommand', attachToElement: false }] }
         })
 
         onBrowserEvent({
