@@ -187,6 +187,14 @@ type EmitSupportCodeMessages = (options: {
     newId: IdGenerator.NewId
 }) => void
 
+/** Cucumber's listener for uncaught errors of one running step or hook */
+type UncaughtHandler = (error: unknown) => void
+
+interface IUncaughtExceptionManager {
+    registerHandler(handler: UncaughtHandler): void
+    unregisterHandler(handler: UncaughtHandler): void
+}
+
 // ============================================================
 // Load Cucumber internal modules via CJS require
 // ============================================================
@@ -199,6 +207,7 @@ let TestCaseRunner: { new (options: INewTestCaseRunnerOptions): TestCaseRunnerIn
 let PickleFilter: new (options: IPickleFilterOptions) => IPickleFilter
 let emitSupportCodeMessages: EmitSupportCodeMessages
 let orderPickles: <T>(items: T[], order: string, logger: { warn(message: string): void }) => void
+let UncaughtExceptionManager: IUncaughtExceptionManager
 
 try {
     ;({ default: PickleFilter } = require_('@cucumber/cucumber/lib/pickle_filter') as {
@@ -226,6 +235,8 @@ try {
     ;({ orderPickles } = require_('@cucumber/cucumber/lib/filter/order_pickles') as {
         orderPickles: typeof orderPickles
     })
+
+    UncaughtExceptionManager = require_('@cucumber/cucumber/lib/uncaught_exception_manager').default as IUncaughtExceptionManager
 
     TestCaseRunner = require_('@cucumber/cucumber/lib/runtime/test_case_runner').default as {
         new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance
@@ -815,6 +826,38 @@ function isFailedResult(
  * @param allocation  the window of the scenario; without it, the scenario runs in skip mode, as
  *                    Cucumber runs the scenarios after a failFast stop: nothing is executed
  */
+/**
+ * Cucumber adds one process listener per running step or hook, so in parallel mode every
+ * running step would get every uncaught error. Send an error to the step or hook of its own
+ * window only (no window: BeforeAll / AfterAll), as Mocha parallel mode does.
+ */
+function routeUncaughtErrors(parallelStore: AsyncLocalStorage<string>) {
+    const { registerHandler, unregisterHandler } = UncaughtExceptionManager
+    const owners = new Map<UncaughtHandler, string | undefined>()
+    let outside = 0
+    const onUncaught = (error: unknown) => {
+        const contextId = parallelStore.getStore()
+        const handlers = [...owners].filter(([, owner]) => owner === contextId)
+        if (handlers.length) {
+            handlers.forEach(([handler]) => handler(error))
+            return
+        }
+        // its scenario ended, or it comes from code outside a window: no step shows it
+        outside++
+        log.error(`[Parallel] uncaught error outside a running step or hook: ${(error as Error)?.stack ?? String(error)}`)
+    }
+    UncaughtExceptionManager.registerHandler = (handler) => { owners.set(handler, parallelStore.getStore()) }
+    UncaughtExceptionManager.unregisterHandler = (handler) => { owners.delete(handler) }
+    process.on('uncaughtException', onUncaught)
+    return {
+        outside: () => outside,
+        restore: () => {
+            process.removeListener('uncaughtException', onUncaught)
+            Object.assign(UncaughtExceptionManager, { registerHandler, unregisterHandler })
+        },
+    }
+}
+
 async function runScenario(
     { pickle, group, index, allocation }: { pickle: messages.Pickle; group: FeatureGroup; index: number; allocation?: ParallelContextAllocation },
     params: {
@@ -901,7 +944,18 @@ async function runScenario(
 // Main entry point — replaces runCucumber() for parallel mode
 // ============================================================
 
-export async function runParallelCucumber(params: {
+export async function runParallelCucumber(params: Parameters<typeof runParallel>[0]): Promise<number> {
+    const parallelStore = (params.browser as ParallelBrowser).__parallelContextStore
+    if (!parallelStore || !isParallelAvailable()) { return runParallel(params) }
+    const uncaught = routeUncaughtErrors(parallelStore)
+    try {
+        return await runParallel(params) + uncaught.outside()
+    } finally {
+        uncaught.restore()
+    }
+}
+
+async function runParallel(params: {
     browser: WebdriverIO.Browser
     reporter: EventEmitter
     eventEmitter: EventEmitter
