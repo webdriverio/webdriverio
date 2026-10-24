@@ -177,7 +177,7 @@ describe('newWindow', () => {
     })
 
     // Firefox opens a tab with no referenceContext in the focused window, which can be the new
-    // window of another parallel test (Mozilla bug 2084843)
+    // window of another parallel test (https://bugzilla.mozilla.org/show_bug.cgi?id=2084843)
     describe('in parallel mode', () => {
         const create = async (options: Parameters<WebdriverIO.Browser['newWindow']>[1]) => {
             const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'bidi' } })

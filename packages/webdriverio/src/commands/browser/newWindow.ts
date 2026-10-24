@@ -93,7 +93,7 @@ export async function newWindow (
         /**
          * Parallel mode: a tab opens in the window of its test. Firefox opens a tab with no
          * reference in the focused window, which can be the new window of another test,
-         * and then returns the id of that window (Mozilla bug 2084843)
+         * and then returns the id of that window (https://bugzilla.mozilla.org/show_bug.cgi?id=2084843)
          */
         const referenceContext = typeof reference === 'string'
             ? reference
