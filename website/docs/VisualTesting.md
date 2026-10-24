@@ -363,7 +363,7 @@ export const config = {
 
 For version 10 and up, this module has no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Pixelmatch](https://github.com/mapbox/pixelmatch) for perceptual image comparison and [fast-png](https://github.com/image-js/fast-png) for image encoding/decoding. Both are pure JavaScript with zero native dependencies.
 
-Version 11 needs WebdriverIO v10 and Node.js 22.19 or later, the same as WebdriverIO v10. Version 10 works with WebdriverIO v9 (9.29.1 or later) and v10.
+Version 11 needs WebdriverIO v10 and Node.js 22.19 or later. Version 10 works with WebdriverIO v9 (9.29.1 or later) and v10.
 
 ### Version 5 to 9 (legacy)
 

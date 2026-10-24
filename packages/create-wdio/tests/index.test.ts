@@ -6,6 +6,7 @@ import { Command } from 'commander'
 import { execSync } from 'node:child_process'
 import { execa } from 'execa'
 import { run, createWebdriverIO } from '../src/index.js'
+import { SUPPORTED_NODE_VERSIONS } from '../src/constants.js'
 import { runProgram } from '../src/utils.js'
 import type { ProgramOpts } from '../src/types.js'
 import { getInstallCommand, installPackages } from '../src/install.js'
@@ -75,7 +76,16 @@ test('does not run if Node.js version is too low', async () => {
     const op = vi.fn().mockResolvedValue({})
     await run(op)
     expect(op).toBeCalledTimes(0)
-    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v22.19.0 to continue.'))
+    expect(semver.satisfies).toBeCalledWith(process.version, SUPPORTED_NODE_VERSIONS)
+    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v22.23.4, v24.22.1, v26.12.1'))
+})
+
+test.each([
+    ['22.22.0', false], ['22.23.4', true], ['23.11.0', false], ['24.21.0', false],
+    ['24.22.1', true], ['25.9.0', false], ['26.12.0', false], ['26.12.1', true], ['27.0.0', true]
+])('supports Node.js %s: %s', async (version, supported) => {
+    const actual = await vi.importActual<{ default: typeof semver }>('semver')
+    expect(actual.default.satisfies(version, SUPPORTED_NODE_VERSIONS)).toBe(supported)
 })
 
 test('createWebdriverIO with Yarn', async () => {

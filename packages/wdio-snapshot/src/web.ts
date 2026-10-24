@@ -213,6 +213,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (SKIP_TAGS.has(el.tagName.toUpperCase()) || isHidden(el)) {
             return ''
         }
+        if (el.tagName === 'BR') {
+            return ' '
+        }
         if (skipControls && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) {
             return ''
         }
@@ -236,63 +239,143 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }).join(' ')
     }
 
-    function accessibleName (el: Element, role: string): string {
-        const labelledBy = el.getAttribute('aria-labelledby')
-        if (labelledBy) {
-            const text = labelledBy.split(/\s+/).map((id) => {
+    type NameSource = 'content' | 'attribute' | 'related'
+
+    interface AccessibleNameInfo {
+        name: string
+        raw: string
+        source: NameSource
+    }
+
+    function accessibleNameInfo (el: Element, role: string): AccessibleNameInfo {
+        const rawBy = el.getAttribute('aria-labelledby')
+        if (rawBy) {
+            const text = rawBy.split(/\s+/).map((id) => {
                 const ref = (el.getRootNode() as Document).getElementById?.(id) || document.getElementById(id)
                 return ref ? textContentOf(ref) : ''
             }).join(' ')
             if (collapse(text)) {
-                return collapse(text)
+                return { name: collapse(text), raw: text, source: 'related' }
             }
         }
-        const ariaLabel = collapse(el.getAttribute('aria-label'))
-        if (ariaLabel) {
-            return ariaLabel
+        const ariaLabel = el.getAttribute('aria-label')
+        if (ariaLabel && collapse(ariaLabel)) {
+            return { name: collapse(ariaLabel), raw: ariaLabel, source: 'attribute' }
         }
         const tag = el.tagName
         if (['INPUT', 'SELECT', 'TEXTAREA', 'METER', 'PROGRESS', 'OUTPUT'].includes(tag)) {
             const labels = (el as HTMLInputElement).labels
             if (labels && labels.length) {
-                const text = collapse([...labels].map((l) => textContentOf(l, true)).join(' '))
-                if (text) {
-                    return text
+                const text = [...labels].map((l) => textContentOf(l, true)).join(' ')
+                if (collapse(text)) {
+                    return { name: collapse(text), raw: text, source: 'related' }
                 }
             }
             const type = (el as HTMLInputElement).type
             if (tag === 'INPUT' && ['submit', 'reset', 'button'].includes(type)) {
-                return (el as HTMLInputElement).value || (type === 'submit' ? 'Submit' : type === 'reset' ? 'Reset' : '')
+                const val = (el as HTMLInputElement).value || (type === 'submit' ? 'Submit' : type === 'reset' ? 'Reset' : '')
+                return { name: collapse(val), raw: val, source: 'attribute' }
             }
         }
         if (tag === 'IMG' || tag === 'AREA' || (tag === 'INPUT' && (el as HTMLInputElement).type === 'image')) {
-            const alt = collapse(el.getAttribute('alt'))
-            if (alt) {
-                return alt
+            const alt = el.getAttribute('alt')
+            if (alt && collapse(alt)) {
+                return { name: collapse(alt), raw: alt, source: 'attribute' }
             }
         }
         if (tag === 'FIELDSET') {
             const legend = el.querySelector(':scope > legend')
             if (legend) {
-                return collapse(textContentOf(legend))
+                const text = textContentOf(legend)
+                if (collapse(text)) {
+                    return { name: collapse(text), raw: text, source: 'content' }
+                }
             }
         }
         if (tag === 'TABLE') {
             const caption = el.querySelector(':scope > caption')
             if (caption) {
-                return collapse(textContentOf(caption))
+                const text = textContentOf(caption)
+                if (collapse(text)) {
+                    return { name: collapse(text), raw: text, source: 'content' }
+                }
             }
         }
         if (tag === 'IFRAME') {
-            return collapse(el.getAttribute('title')) || collapse(el.getAttribute('src'))
-        }
-        if (NAME_FROM_CONTENT.has(role) || /^H[1-6]$/.test(tag)) {
-            const text = collapse(childNodesOf(el).map((c) => textContentOf(c)).join(''))
-            if (text) {
-                return text
+            const title = el.getAttribute('title')
+            if (title && collapse(title)) {
+                return { name: collapse(title), raw: title, source: 'attribute' }
+            }
+            const src = el.getAttribute('src')
+            if (src && collapse(src)) {
+                return { name: collapse(src), raw: src, source: 'attribute' }
             }
         }
-        return collapse(el.getAttribute('title')) || collapse(el.getAttribute('placeholder'))
+        if (NAME_FROM_CONTENT.has(role) || /^H[1-6]$/.test(tag)) {
+            const text = childNodesOf(el).map((c) => textContentOf(c)).join('')
+            if (collapse(text)) {
+                return { name: collapse(text), raw: text, source: 'content' }
+            }
+        }
+        const title = el.getAttribute('title')
+        if (title && collapse(title)) {
+            return { name: collapse(title), raw: title, source: 'attribute' }
+        }
+        const placeholder = el.getAttribute('placeholder')
+        if (placeholder && collapse(placeholder)) {
+            return { name: collapse(placeholder), raw: placeholder, source: 'attribute' }
+        }
+        return { name: '', raw: '', source: 'content' }
+    }
+
+    function accessibleName (el: Element, role: string): string {
+        return accessibleNameInfo(el, role).name
+    }
+
+    const SPECIAL_INPUT_TYPES = new Set(['date', 'month', 'time', 'datetime-local', 'week', 'color', 'file'])
+
+    function nameDrift (el: Element, info: AccessibleNameInfo): 'none' | 'accessibility' | 'all' {
+        if (!info.name) {
+            return 'none'
+        }
+        if (/[\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]/.test(info.raw)) {
+            return 'all'
+        }
+        const tag = el.tagName
+        if (tag === 'INPUT' && SPECIAL_INPUT_TYPES.has((el as HTMLInputElement).type)) {
+            return 'all'
+        }
+        if (info.source === 'attribute') {
+            if (info.raw !== collapse(info.raw)) {
+                return 'accessibility'
+            }
+        }
+        if (info.source === 'content') {
+            const inner = (el as HTMLElement).innerText
+            if (typeof inner === 'string' && collapse(inner) === info.name) {
+                if (inner !== collapse(inner)) {
+                    return 'accessibility'
+                }
+            } else if (info.raw !== collapse(info.raw)) {
+                const firstChild = el.firstElementChild
+                const lastChild = el.lastElementChild
+                if ((firstChild && /^\s/.test(info.raw)) || (lastChild && /\s$/.test(info.raw))) {
+                    return 'accessibility'
+                }
+            }
+            try {
+                if (!/jsdom/i.test(navigator.userAgent)) {
+                    const before = getComputedStyle(el, '::before')?.content
+                    const after = getComputedStyle(el, '::after')?.content
+                    if ((before && before !== 'none' && before !== '""') || (after && after !== 'none' && after !== '""')) {
+                        return 'accessibility'
+                    }
+                }
+            } catch {
+                // Ignore pseudo-element check on unsupported nodes
+            }
+        }
+        return 'none'
     }
 
     function states (el: Element, role: string): string[] {
@@ -566,16 +649,16 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return /\d{4,}/.test(id) || /[0-9a-f]{8,}/i.test(id) || /^(:r|ember|mui-|radix-)/.test(id)
     }
 
-    function cssPath (el: Element): string {
+    function cssPath (el: Element, anchorToBody = false): string {
         const parts: string[] = []
         let current: Element | null = el
         while (current && current.nodeType === 1) {
             const testAttr = TEST_ATTRS.find((a) => current!.hasAttribute(a))
-            if (current !== el && testAttr) {
+            if (!anchorToBody && current !== el && testAttr) {
                 parts.unshift(`[${testAttr}="${CSS.escape(current.getAttribute(testAttr)!)}"]`)
                 break
             }
-            if (current !== el && current.id && !looksGenerated(current.id)) {
+            if (!anchorToBody && current !== el && current.id && !looksGenerated(current.id)) {
                 parts.unshift(`#${CSS.escape(current.id)}`)
                 break
             }
@@ -587,7 +670,13 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             }
             const siblings = [...parent.children].filter((c) => c.tagName === current!.tagName)
             parts.unshift(siblings.length > 1 ? `${tag}:nth-of-type(${siblings.indexOf(current) + 1})` : tag)
-            if (parent.tagName === 'BODY' || parent.tagName === 'HTML') {
+            if (parent.tagName === 'BODY') {
+                if (anchorToBody) {
+                    parts.unshift('body')
+                }
+                break
+            }
+            if (parent.tagName === 'HTML') {
                 break
             }
             current = parent
@@ -737,11 +826,13 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 }
             }
         }
+        const info = accessibleNameInfo(el, role)
+        const drift = nameDrift(el, info)
         const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
-        if (name && selectable && !/[\n]/.test(name) && roleNameCount(role, name) === 1) {
+        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
             out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
-        if (name && !/[\n]/.test(name) && ariaNameCount(name) === 1) {
+        if (name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
             out.push({ kind: 'aria', selector: `aria/${name}` })
         }
         if (el.id && !looksGenerated(el.id) && unique(`#${CSS.escape(el.id)}`)) {
@@ -749,7 +840,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         const tag = el.tagName.toLowerCase()
         const text = shortText(el.textContent)
-        if ((role === 'button' || role === 'link') && text && text === name && tag !== 'input' && textCount(tag, text) === 1) {
+        if ((role === 'button' || role === 'link') && text && text === name && tag !== 'input' && drift !== 'all' && textCount(tag, text) === 1) {
             out.push({ kind: 'text', selector: `${tag}=${text}` })
         }
         const fieldName = el.getAttribute('name')
@@ -784,7 +875,15 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 }
             }
         }
-        out.push({ kind: 'css-path', selector: cssPath(el) })
+        const path = cssPath(el)
+        if (unique(path)) {
+            out.push({ kind: 'css-path', selector: path })
+        } else {
+            const anchored = cssPath(el, true)
+            if (unique(anchored)) {
+                out.push({ kind: 'css-path', selector: anchored })
+            }
+        }
         return out.filter((c, i) => out.findIndex((o) => o.selector === c.selector) === i)
     }
 
