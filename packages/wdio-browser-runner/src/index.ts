@@ -15,11 +15,11 @@ import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartially
 import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
-import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY } from './constants.js'
+import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY, DEBUG_TIMEOUT } from './constants.js'
 import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, configureBrowserInspector, hasInspectorOption } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -28,6 +28,7 @@ export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
     #config: WebdriverIO.Config
     #servers: Set<ViteServer> = new Set()
+    #debugPorts: Set<number> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
     #viteOptimizations: InlineConfig = {}
@@ -56,6 +57,13 @@ export default class BrowserRunner extends LocalRunner {
             this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
                 .map((r: 'string') => path.join(this.#config.rootDir || process.cwd(), r))
                 .map((r: 'string') => url.pathToFileURL(r).pathname)
+        }
+
+        if (hasInspectorOption(this.#options, this.#config)) {
+            this.#config.mochaOpts = {
+                ...this.#config.mochaOpts,
+                timeout: Math.max(Number(this.#config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+            }
         }
     }
 
@@ -113,7 +121,35 @@ export default class BrowserRunner extends LocalRunner {
             runArgs.args.baseUrl = this._config.baseUrl
         }
 
-        const worker = await super.run(runArgs)
+        let allocatedDebugPort: number | undefined
+        runArgs.caps = await configureBrowserInspector(
+            this.options,
+            this.#config,
+            runArgs.caps,
+            runArgs.execArgv,
+            this.#debugPorts,
+            (port) => {
+                allocatedDebugPort = port
+            }
+        )
+
+        let worker: WorkerInstance
+        try {
+            worker = await super.run(runArgs)
+        } catch (err) {
+            if (allocatedDebugPort !== undefined) {
+                this.#debugPorts.delete(allocatedDebugPort)
+            }
+            throw err
+        }
+
+        if (allocatedDebugPort !== undefined) {
+            const debugPort = allocatedDebugPort
+            worker.on('exit', () => {
+                this.#debugPorts.delete(debugPort)
+            })
+        }
+
         this.#communicator.register(server, worker)
         return worker
     }
@@ -125,6 +161,7 @@ export default class BrowserRunner extends LocalRunner {
      */
     async shutdown() {
         await super.shutdown()
+        this.#debugPorts.clear()
         await Promise.allSettled(Array.from(this.#servers).map((server) => server.close()))
         return this._generateCoverageReports()
     }

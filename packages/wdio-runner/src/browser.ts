@@ -27,6 +27,8 @@ const log = logger('@wdio/runner')
 const sep = '\n  - '
 const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
+const DEBUG_TIMEOUT = 24 * 60 * 60 * 1000
+const INSPECT_ARG_REGEXP = /^--(debug|inspect)(-brk)?(=|$)/
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 
@@ -56,6 +58,7 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
+    #isCheckingError = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
@@ -71,6 +74,18 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
+
+        if (this.#isInspecting()) {
+            this._config.mochaOpts = {
+                ...this._config.mochaOpts,
+                timeout: Math.max(Number(this._config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+            }
+        }
+    }
+
+    #isInspecting () {
+        return Boolean(this.#runnerOptions.inspect) ||
+            [...(this._config.execArgv || []), ...process.execArgv].some((arg) => INSPECT_ARG_REGEXP.test(arg))
     }
 
     /**
@@ -119,7 +134,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     async #runSpec (spec: string, retried = false): Promise<number> {
         this.#retryOutdatedOptimizeDep = false
-        const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
+        const configuredTimeout = Number(this._config.mochaOpts?.timeout) || DEFAULT_TIMEOUT
+        const timeout = this.#isInspecting() ? Math.max(configuredTimeout, DEBUG_TIMEOUT) : configuredTimeout
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
         /**
@@ -489,93 +505,101 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #checkForTestError () {
-        const testError = await browser.execute(function fetchExecutionState () {
-            let viteError
-            const viteErrorElem = document.querySelector('vite-error-overlay')
-            if (viteErrorElem && viteErrorElem.shadowRoot) {
-                const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
-                if (errorElements.length) {
-                    viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
+        if (this.#isCheckingError) {
+            return
+        }
+        this.#isCheckingError = true
+        try {
+            const testError = await browser.execute(function fetchExecutionState () {
+                let viteError
+                const viteErrorElem = document.querySelector('vite-error-overlay')
+                if (viteErrorElem && viteErrorElem.shadowRoot) {
+                    const errorElements = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                    if (errorElements.length) {
+                        viteError = [{ message: errorElements.map((elem) => elem.innerText).join('\n') }]
+                    }
                 }
-            }
-            const loadError = (
-                typeof window.__wdioErrors__ === 'undefined' &&
-                document.title !== 'WebdriverIO Browser Test' &&
-                !document.querySelector('mocha-framework')
-            )
-                ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
-                : null
-            const errors = viteError || window.__wdioErrors__ || loadError
-            return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
-        }).catch((err) => {
-            /**
-             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
-             */
-            if (err.message.includes('Cannot find context with specified id')) {
+                const loadError = (
+                    typeof window.__wdioErrors__ === 'undefined' &&
+                    document.title !== 'WebdriverIO Browser Test' &&
+                    !document.querySelector('mocha-framework')
+                )
+                    ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
+                    : null
+                const errors = viteError || window.__wdioErrors__ || loadError
+                return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
+            }).catch((err) => {
+                /**
+                 * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+                 */
+                if (err.message.includes('Cannot find context with specified id')) {
+                    return
+                }
+
+                throw err
+            })
+
+            if (!testError) {
                 return
             }
 
-            throw err
-        })
-
-        if (!testError) {
-            return
-        }
-
-        const { testsStartedAt: startedAtBeforeLogs, ...executionState } = testError
-        if ((executionState.errors && executionState.errors.length > 0) || executionState.hasViteError) {
-            this.#resolveTestStatePromise?.({
-                events: [],
-                failures: 1,
-                ...executionState
-            })
-        }
-
-        /**
-         * check for outdated optimize dep errors that occasionally happen in Vite
-         */
-        const logs = typeof browser.getLogs === 'function'
-            ? (await browser.getLogs('browser').catch(() => []))
-            : []
-        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
-        if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
-            log.info('Retry test run due to outdated optimize dep')
-            this.#retryOutdatedOptimizeDep = true
-            return browser.refresh()
-        }
-
-        /**
-         * Once Mocha runs the tests, an error in the browser log belongs to a test
-         * (a caught failed request, a `console.error`, an invalid attribute): Mocha
-         * reports the test result, so it must not end the spec. Only errors logged
-         * before the tests started (setup) end it.
-         *
-         * Mocha can start between the execution state read above and `getLogs`,
-         * so without a start time, read it again after the logs.
-         */
-        const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
-            ? await browser.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
-            : startedAtBeforeLogs
-        const setupLogs = typeof testsStartedAt === 'number'
-            ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
-            : severeLogs
-        if (setupLogs.length) {
-            this.#resolveTestStatePromise?.({
-                events: [],
-                failures: 1,
-                hasViteError: false,
-                /**
-                 * error messages often look like:
-                 * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
-                 */
-                errors: setupLogs.map((log) => {
-                    const [filename, message] = log.message!.split(' - ')
-                    return {
-                        filename: filename.startsWith('http') ? filename : undefined,
-                        message
-                    }
+            const { testsStartedAt: startedAtBeforeLogs, ...executionState } = testError
+            if ((executionState.errors && executionState.errors.length > 0) || executionState.hasViteError) {
+                this.#resolveTestStatePromise?.({
+                    events: [],
+                    failures: 1,
+                    ...executionState
                 })
-            })
+            }
+
+            /**
+             * check for outdated optimize dep errors that occasionally happen in Vite
+             */
+            const logs = typeof browser.getLogs === 'function'
+                ? (await browser.getLogs('browser').catch(() => []))
+                : []
+            const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
+            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+                log.info('Retry test run due to outdated optimize dep')
+                this.#retryOutdatedOptimizeDep = true
+                return browser.refresh()
+            }
+
+            /**
+             * Once Mocha runs the tests, an error in the browser log belongs to a test
+             * (a caught failed request, a `console.error`, an invalid attribute): Mocha
+             * reports the test result, so it must not end the spec. Only errors logged
+             * before the tests started (setup) end it.
+             *
+             * Mocha can start between the execution state read above and `getLogs`,
+             * so without a start time, read it again after the logs.
+             */
+            const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
+                ? await browser.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
+                : startedAtBeforeLogs
+            const setupLogs = typeof testsStartedAt === 'number'
+                ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
+                : severeLogs
+            if (setupLogs.length) {
+                this.#resolveTestStatePromise?.({
+                    events: [],
+                    failures: 1,
+                    hasViteError: false,
+                    /**
+                     * error messages often look like:
+                     * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+                     */
+                    errors: setupLogs.map((log) => {
+                        const [filename, message] = log.message!.split(' - ')
+                        return {
+                            filename: filename.startsWith('http') ? filename : undefined,
+                            message
+                        }
+                    })
+                })
+            }
+        } finally {
+            this.#isCheckingError = false
         }
     }
 

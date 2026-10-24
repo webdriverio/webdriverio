@@ -130,6 +130,37 @@ Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/b
 
 Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
+### Debugging Browser Runner Tests
+
+When running component or unit tests with the [`@wdio/browser-runner`](/docs/runner#browser-runner), your test and application code execute directly inside the browser served by Vite. To set breakpoints in your tests or components in VSCode, enable the `inspect` option in your browser runner configuration:
+
+```js title="wdio.conf.js"
+export const config = {
+    // ...
+    runner: ['browser', {
+        inspect: true // or pass a custom port, e.g. 9222
+    }],
+    // ...
+}
+```
+
+Then configure a browser attach target in `.vscode/launch.json` so VSCode connects to the browser's remote debugging port and resolves Vite source maps against your workspace:
+
+```json title=".vscode/launch.json"
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to WDIO Browser Runner",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
+```
+
 ## Dynamic Repl with Atom
 
 If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.
