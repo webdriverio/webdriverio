@@ -154,12 +154,10 @@ describe('getCookies', () => {
             const getAllCookies = vi.spyOn(browser, 'getAllCookies')
             getAllCookies.mockClear()
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
-            expect(storageGetCookies).toBeCalledWith({
-                partition: { type: 'context', context: 'ctx-1' }
-            })
             expect(getAllCookies).not.toBeCalled()
             getUrl.mockResolvedValue('https://webdriver.io')
-            expect(cookies).toEqual([{ name: 'cookie', value: 'hello world' }])
+            // WebDriver Classic: a page with no host has no associated cookies
+            expect(cookies).toEqual([])
         })
 
         // a sourceOrigin is a partition key, not a filter: Chrome reads it as a partitioned (CHIPS) jar
@@ -191,6 +189,44 @@ describe('getCookies', () => {
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies(undefined, 'https://other.example'))
             expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' } })
             expect(cookies.map((c) => c.name)).toEqual(['other'])
+        })
+
+        // WebDriver Classic "associated cookies" (RFC 6265 5.4): domain, path and secure match
+        const page = (url: string) => vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+            contexts: [{ context: 'ctx-1', url, userContext: 'uc-1', children: [] }]
+        } as any)
+        const cookie = (name: string, extra: Record<string, unknown>) => ({ name, value: { type: 'string', value: name }, path: '/', ...extra })
+
+        it('should keep only the cookies of the page path inside a parallel scope', async () => {
+            page('https://app.example.com/page')
+            storageGetCookies.mockResolvedValueOnce({ cookies: [
+                cookie('root', { domain: 'app.example.com' }),
+                cookie('exact', { domain: 'app.example.com', path: '/page' }),
+                cookie('deeper', { domain: 'app.example.com', path: '/page/sub' }),
+                cookie('prefix', { domain: 'app.example.com', path: '/pa' })
+            ] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(cookies.map((c) => c.name)).toEqual(['root', 'exact'])
+        })
+
+        it('should keep a secure cookie only on a secure page inside a parallel scope', async () => {
+            const jar = { cookies: [cookie('plain', { domain: 'app.example.com' }), cookie('secure', { domain: 'app.example.com', secure: true })] }
+            page('http://app.example.com/')
+            storageGetCookies.mockResolvedValueOnce(jar)
+            expect((await parallelStore.run('ctx-1', () => browser.getCookies())).map((c) => c.name)).toEqual(['plain'])
+            page('http://localhost:8080/')
+            storageGetCookies.mockResolvedValueOnce({ cookies: jar.cookies.map((c) => ({ ...c, domain: 'localhost' })) })
+            expect((await parallelStore.run('ctx-1', () => browser.getCookies())).map((c) => c.name)).toEqual(['plain', 'secure'])
+        })
+
+        it('should match a host-only cookie only on its own host inside a parallel scope', async () => {
+            page('https://app.example.com/')
+            storageGetCookies.mockResolvedValueOnce({ cookies: [
+                cookie('parentHostOnly', { domain: 'example.com' }),
+                cookie('parentDomain', { domain: '.example.com' })
+            ] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(cookies.map((c) => c.name)).toEqual(['parentDomain'])
         })
 
         it('should keep all cookies of the jar for a null sourceOrigin inside a parallel scope', async () => {

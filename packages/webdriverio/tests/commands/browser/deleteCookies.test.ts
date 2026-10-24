@@ -142,7 +142,7 @@ describe('deleteCookies', () => {
             storageGetCookies.mockResolvedValueOnce({
                 cookies: [
                     { name: 'page', domain: 'app.example.com', path: '/' },
-                    { name: 'parent', domain: '.example.com', path: '/a' },
+                    { name: 'parent', domain: '.example.com', path: '/' },
                     { name: 'other', domain: 'other.example', path: '/' }
                 ]
             })
@@ -152,18 +152,34 @@ describe('deleteCookies', () => {
             expect(storageGetCookies).toBeCalledWith({ partition })
             expect(storageDeleteCookies.mock.calls).toEqual([
                 [{ filter: { name: 'page', domain: 'app.example.com', path: '/' }, partition }],
-                [{ filter: { name: 'parent', domain: '.example.com', path: '/a' }, partition }]
+                [{ filter: { name: 'parent', domain: '.example.com', path: '/' }, partition }]
             ])
         })
 
-        it('should fall back to the context partition without a usable origin', async () => {
+        it('should delete only the cookies of the page path and of a secure page inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'http://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            storageGetCookies.mockResolvedValueOnce({
+                cookies: [
+                    { name: 'root', domain: 'app.example.com', path: '/' },
+                    { name: 'deeper', domain: 'app.example.com', path: '/page/sub' },
+                    { name: 'secure', domain: 'app.example.com', path: '/', secure: true }
+                ]
+            })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies())
+            expect(storageDeleteCookies.mock.calls).toEqual([
+                [{ filter: { name: 'root', domain: 'app.example.com', path: '/' }, partition: { type: 'context', context: 'ctx-1' } }]
+            ])
+        })
+
+        // WebDriver Classic: a page with no host has no associated cookies; the jar is shared with other tests
+        it('should delete no cookie of the jar on a page with no host inside a parallel scope', async () => {
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'about:blank', userContext: 'uc-1', children: [] }]
             } as any)
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
-            expect(storageDeleteCookies).toBeCalledWith({
-                partition: { type: 'context', context: 'ctx-1' }
-            })
+            expect(storageDeleteCookies).not.toBeCalled()
         })
 
         it('should delete all cookies', async () => {
