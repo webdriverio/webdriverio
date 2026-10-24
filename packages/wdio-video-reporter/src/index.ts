@@ -76,10 +76,6 @@ export default class VideoReporter extends WdioReporter {
     #suites = new Map<string, { title: string, parentUid?: string | null }>()
     #takenNames = new Set<string>()
     /**
-     * Cucumber in parallel mode sends `test:end` after `test:pass` or `test:fail`
-     */
-    #endedTests = new Set<string>()
-    /**
      * parallel mode: the last frame of each test window, until the window closes
      */
     #lastFramesOfWindow = new Map<string, Promise<unknown>>()
@@ -533,9 +529,6 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         const recording = this.#ownRecording(key)
-        if (suite.uid) {
-            this.#endedTests.delete(suite.uid)
-        }
         /**
          * `@wdio/mocha-framework` 10.1.0 and older report a test as started again when its beforeEach hook
          * failed (mochajs/mocha#6442): keep the recording of the first start, with the frames of the hook
@@ -585,13 +578,6 @@ export default class VideoReporter extends WdioReporter {
         if (!this.#record) {
             return
         }
-        if (test.uid) {
-            if (this.#endedTests.has(test.uid)) {
-                return
-            }
-            this.#endedTests.add(test.uid)
-        }
-
         const key = this.#keyOf(test.contextId)
         const recording = this.#recordings.get(key)
         this.#clearInterval(recording)

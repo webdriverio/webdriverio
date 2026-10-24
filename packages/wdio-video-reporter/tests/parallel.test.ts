@@ -377,7 +377,7 @@ describe('Cucumber end events in parallel mode', () => {
         vi.mocked(spawn).mockClear()
     })
 
-    it('renders a scenario one time when Cucumber sends test:pass and test:end', async () => {
+    it('renders a scenario one time, at its test:end', async () => {
         const reporter = await cucumberReporter(true)
         reporter.onTestStart(test('s1', 'ctx-a', { title: 'scenario' }))
         passAndEnd(reporter, 's1')
@@ -386,7 +386,7 @@ describe('Cucumber end events in parallel mode', () => {
         expect(spawn).toBeCalledTimes(1)
     })
 
-    it('adds one end frame for a step that gets test:pass and test:end', async () => {
+    it('adds one end frame for a step, at its test:end', async () => {
         const reporter = await cucumberReporter()
         reporter.onSuiteStart({ uid: 's1', title: 'scenario', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
         reporter.onTestStart(test('step-1', 'ctx-a', { parentUid: 's1' }))
