@@ -324,6 +324,24 @@ describe('Failed tests', () => {
         expect(browserParameter!.value).toEqual('default')
     })
 
+    it('ends a retried Mocha attempt as finished, with no "retried" tag (only Cucumber scenarios get it)', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestRetry(testFailed())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const attempt = results.find((r: { status: string }) => r.status === Status.FAILED)
+
+        expect(attempt.stage).toEqual(Stage.FINISHED)
+        expect(attempt.labels.filter((l: Label) => l.name === LabelName.TAG)).toEqual([])
+    })
+
     it('should detect failed test case without start event', async () => {
         const reporter = new AllureReporter({ outputDir })
 
