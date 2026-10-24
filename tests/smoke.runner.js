@@ -98,6 +98,51 @@ const mochaTestrunner = async () => {
     assert.strictEqual(passed, 4)
 }
 
+const specHookCounts = async () => {
+    const artifactDir = path.resolve(__dirname, '../.agents/verify-artifacts/spec-hook-counts')
+    await fs.mkdir(artifactDir, { recursive: true })
+    const outputDir = await fs.mkdtemp(path.join(artifactDir, 'run-'))
+    const logFile = path.join(outputDir, 'spec.log')
+    const failed = await launch('specHookCounts', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'spec-hook-counts.js')],
+        reporters: [['spec', { stdout: false, logFile, color: false }]],
+    }).then(() => false, () => true)
+    assert.equal(failed, true, 'The fixture must fail on its test and teardown hooks')
+    const report = await fs.readFile(logFile, 'utf8')
+    assert.match(report, /1 passing/)
+    assert.match(report, /2 failing\s*\n/)
+    assert.match(report, /4 failing hooks/)
+    assert.doesNotMatch(report, /6 failing/)
+    assert.match(report, /teardown failed/)
+    assert.match(report, /second teardown failed/)
+    assert.match(report, /setup failed/)
+    assert.match(report, /root teardown failed/)
+    assert.doesNotMatch(report, /test must not run/)
+    assert.match(report, /Test skipped due to failure in hook/)
+    console.log('Spec summary: 1 passing test, 2 failing tests (including a setup-blocked test), 4 failing hooks; all hook errors preserved')
+}
+
+const jasmineSpecHookCounts = async () => {
+    const artifactDir = path.resolve(__dirname, '../.agents/verify-artifacts/jasmine-spec-hook-counts')
+    await fs.mkdir(artifactDir, { recursive: true })
+    const outputDir = await fs.mkdtemp(path.join(artifactDir, 'run-'))
+    const logFile = path.join(outputDir, 'spec.log')
+    const failed = await launch('jasmineSpecHookCounts', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'spec-hook-counts.js')],
+        reporters: [['spec', { stdout: false, logFile, color: false }]],
+        framework: 'jasmine',
+    }).then(() => false, () => true)
+    assert.equal(failed, true, 'The fixture must fail on its assertion')
+    const report = await fs.readFile(logFile, 'utf8')
+    assert.match(report, /1 passing/)
+    assert.match(report, /1 failing hook/)
+    assert.match(report, /1 failing\s*\n/)
+    assert.doesNotMatch(report, /2 failing/)
+    assert.match(report, /"after all" hook/)
+    assert.match(report, /Error: Jasmine root teardown failed/)
+    console.log('Jasmine spec summary: 1 passing test, 1 failing test, 1 failing root hook')
+}
+
 /**
  * Mocha wdio testrunner tests with asynchronous execution, also checks
  * if `spec` CLI arguments are relative to cwd
@@ -1766,6 +1811,8 @@ const jasmineAfterHookArgsValidation = async () => {
         parallelMultiRemote,
         wdioHooks,
         cjsTestrunner,
+        specHookCounts,
+        jasmineSpecHookCounts,
         sharedStoreServiceTest,
         mochaSpecGrouping,
         cucumberTestrunner,
