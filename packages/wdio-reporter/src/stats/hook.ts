@@ -21,6 +21,11 @@ export interface Hook {
     contextId?: string
     /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
     retried?: boolean
+    /**
+     * @experimental the uid of the test that failed with the error of this hook: the framework counts the
+     * error one time, as the failure of that test (Vitest `beforeEach` / `afterEach`)
+     */
+    failedTestUid?: string
 }
 
 export default class HookStats extends RunnableStats {
@@ -41,6 +46,8 @@ export default class HookStats extends RunnableStats {
     declare parentUid?: string | null
     /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
     declare retried?: boolean
+    /** @experimental the uid of the test that failed with the error of this hook; do not count the hook as another failure */
+    declare failedTestUid?: string
 
     constructor (runner: Hook) {
         super('hook')
@@ -53,6 +60,9 @@ export default class HookStats extends RunnableStats {
         this.keepParallelFields(runner)
         if (runner.retried !== undefined) {
             this.retried = runner.retried
+        }
+        if (runner.failedTestUid !== undefined) {
+            this.failedTestUid = runner.failedTestUid
         }
     }
 

@@ -150,7 +150,7 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
-With Vitest `retry`, the hooks of an attempt that Vitest runs again have `hook.retried === true`. The error of that attempt is on its `test:retry` (`onTestRetry`), so do not count these hooks as failures.
+Some frameworks count the error of a failed hook one time, as the failure of a test. Vitest does this for `beforeEach` and `afterEach`: the test fails with the error of the hook. Such a hook has `hook.failedTestUid`, the uid of that test, and the test has the error too (in `test.errors` when it has more than one). Show the hook as failed, but do not count it as one more failure. The hooks of an attempt that Vitest runs again (`retry`) also have `hook.retried === true`; the error of that attempt is on its `test:retry` (`onTestRetry`). `failedTestUid` and `retried` are experimental.
 
 The `afterEach` and `after` hooks of a parallel test run after its `test:end`. To know when a context is done, use `onContextEnd(payload)`. It is called after the last hook of the test (with Cucumber: after the `After` hooks of the last attempt of the scenario), and the context sends no more events after it. The payload has `cid`, `specs`, `uid` (the last test of the context; for a Cucumber scenario with no step, the scenario) and `contextId`. Close or write what your reporter keeps for that context there.
 

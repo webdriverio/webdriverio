@@ -51,9 +51,9 @@ export default class JsonReporter extends WDIOReporter {
                     hooks: mapHooks(suite.hooks)
                 }
 
-                // the error of a retried attempt (also of its hooks) is on its `test:retry`
+                // the error of a retried attempt is on its `test:retry`, and the error of a `failedTestUid` hook is on that test
                 resultSet.state.failed += suite.hooks.filter(
-                    (hook) => hook.error && !hook.retried).length
+                    (hook) => hook.error && !hook.retried && !hook.failedTestUid).length
                 resultSet.state.passed += testSuite.tests.filter(
                     (test) => test.state === 'passed').length
                 resultSet.state.failed += suite.tests.filter(

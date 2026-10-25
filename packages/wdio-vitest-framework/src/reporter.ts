@@ -5,7 +5,7 @@ import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
 import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
 
-import { ATTEMPT_EVENT, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
@@ -40,6 +40,18 @@ type ModuleRun = {
 }
 
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
+
+// Vitest gives the errors of a failed beforeEach / afterEach to the test, so the test gets all errors of its attempt
+const withHookErrors = (error: ReturnType<typeof toErrorPayload>, marker?: AttemptMarker) => {
+    const errors = [error]
+    for (const kind of ATTEMPT_HOOK_KINDS) {
+        const hookError = marker?.hooks?.[kind]?.state === 'fail' ? marker.hooks[kind].error : undefined
+        if (hookError && !errors.some(({ message, stack }) => message === hookError.message && stack === hookError.stack)) {
+            errors.push(toErrorPayload(hookError))
+        }
+    }
+    return errors.length > 1 ? { error, errors } : { error }
+}
 const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
 const HOOK_TITLES: Record<AttemptHookKind, string> = { beforeEach: 'before each', afterEach: 'after each' }
@@ -139,7 +151,7 @@ export class WdioBridgeReporter implements Reporter {
                 const times = marker ? { start: marker.start, end: marker.end } : {}
                 this.#emit(run, 'test:retry', {
                     ...retryBase, ...times, duration: marker ? marker.end - marker.start : 0, pending: false,
-                    error: toErrorPayload(marker?.error ?? { message: 'test failed' })
+                    ...withHookErrors(toErrorPayload(marker?.error ?? { message: 'test failed' }), marker)
                 })
                 this.#emitHook(run, retryBase, 'afterEach', marker, true)
             })
@@ -158,7 +170,7 @@ export class WdioBridgeReporter implements Reporter {
             if (result.state === 'failed') {
                 run.failedTests++
                 const error = toErrorPayload(attempts[finalAttempt].marker?.error ?? result.errors[result.errors.length - 1])
-                this.#emit(run, 'test:fail', { ...last, ...times, duration, error })
+                this.#emit(run, 'test:fail', { ...last, ...times, duration, ...withHookErrors(error, attempts[finalAttempt].marker) })
                 this.#emit(run, 'test:end', { ...last, duration, passed: false, error })
             } else if (result.state === 'passed') {
                 this.#emit(run, 'test:pass', { ...last, ...times, duration, passed: true })
@@ -287,7 +299,9 @@ export class WdioBridgeReporter implements Reporter {
         const base = {
             uid: `${test.uid}-${kind}`, title, fullTitle: join(testParent, title), parent: test.parent, parentUid: test.parentUid,
             ...(test.contextId !== undefined && { contextId: test.contextId }),
-            ...(retried && { retried })
+            ...(retried && { retried }),
+            // the test (attempt) failed with this error: reporters show the hook, but do not count it again
+            ...(outcome.state === 'fail' && { failedTestUid: test.uid })
         }
         const error = outcome.state === 'fail' ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
         this.#emit(run, 'hook:start', { ...base, type: 'hook:start', cid: run.cid })

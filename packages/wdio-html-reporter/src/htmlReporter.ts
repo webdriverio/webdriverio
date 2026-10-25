@@ -128,7 +128,7 @@ export default class HtmlReporter extends WDIOReporter {
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid]?.error && !this.hooks[hook.uid].retried && !this.#countScenarios) {
+            if (this.hooks[hook.uid]?.error && !this.hooks[hook.uid].retried && !this.hooks[hook.uid].failedTestUid && !this.#countScenarios) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
