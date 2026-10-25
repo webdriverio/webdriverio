@@ -185,9 +185,9 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test and its `afterEach()` and `after()` hooks end. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
+`@wdio/allure-reporter` supports parallel mode with Mocha and Cucumber. With Mocha, it writes a test's result when the test and its `afterEach()` and `after()` hooks end. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, each scenario keeps its own result, steps and attachments.
 
-`@wdio/spec-reporter` doesn't support parallel mode yet: a Mocha `describe` block that comes after another one, or a Cucumber scenario that starts while another one runs, is shown nested under it, and with Cucumber `retry` the passing count can be wrong. The results of the tests and the exit code are correct.
+`@wdio/spec-reporter` supports parallel mode: each Mocha `describe` block and each Cucumber scenario is shown under its own parent, also when tests run at the same time.
 
 `@wdio/cucumberjs-json-reporter` supports parallel mode: each scenario keeps its own steps, hooks, step lines and attachments. An attachment from code that runs outside a scenario, such as the WebdriverIO `after` hook, goes to the scenario that started last. A failed `BeforeAll` or `AfterAll` hook is not in the JSON, because it has no scenario to attach to.
 
