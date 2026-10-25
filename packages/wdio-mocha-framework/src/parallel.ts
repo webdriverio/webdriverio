@@ -354,9 +354,9 @@ function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTes
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
     const native = nativeHookTitle(kind, hook, test)
     const declaringSuite = hook.parent?.title
-    // an all-hook belongs to its declaring suite, an each-hook to the suite of its test
+    // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test (G1)
     const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
-    const ownSuite = (kind === 'before all' || kind === 'after all') && (hook.parent?.root || declaringIndex !== undefined)
+    const ownSuite = (kind === 'before all' || kind === 'after all') && declaringIndex !== undefined
     return {
         type, cid, specs, uid,
         title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
