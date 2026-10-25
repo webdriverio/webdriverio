@@ -44,6 +44,10 @@ reporters: [
 ],
 ```
 
+## Retries
+
+`state` counts only the last attempt of a retried test (Mocha `retries`, Cucumber `retry` with `scenarioLevelReporter`, Vitest `retry`). The earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`, so they are in no count. A hook has `retried: true` when it belongs to such an attempt, and `failedTestUid` when its error is the failure of that test (Vitest `beforeEach` / `afterEach`); these hooks do not count as failures either.
+
 ## Result Files
 
 With WDIO v5 upwards, reporting has moved from a centralized process to one that is handled by each of the "sessions" spun up for parallel test execution. This change helped reduce the amount of chatter during WDIO test execution and thus improved performance. The downside is it is no longer possible to get a single report for all test execution.

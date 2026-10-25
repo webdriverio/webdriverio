@@ -39,7 +39,7 @@ export interface Test {
     end?: Date
     error?: Error
     /** a failed attempt that the framework ran again: only the last attempt counts */
-    retried?: true
+    retried?: boolean
 }
 
 export interface Hook {

@@ -1200,8 +1200,6 @@ export default class AllureReporter extends WDIOReporter {
         if (disableMochaHooks) { return }
 
         if (!hook.parent && !this._isGlobalHook(hook)) { return }
-        // its error is on its test (the `test:retry` of the attempt, or `failedTestUid`), which ended before this hook (Vitest afterEach)
-        if ((hook.retried || hook.failedTestUid) && !this._hasPendingTest) { return }
 
         const isCucumber = this._isCucumberHook(hook)
         const hookType = this._deriveHookType(hook)
@@ -1223,9 +1221,22 @@ export default class AllureReporter extends WDIOReporter {
         const { disableMochaHooks } = this._options
         if (!hook.parent && !this._isGlobalHook(hook)) { return }
         if (disableMochaHooks && !hook.error) { return }
-        if ((hook.retried || hook.failedTestUid) && !this._hasPendingTest) { return }
         const hadPendingTest = this._hasPendingTest
         const hadPendingHook = this._hasPendingHook
+
+        // its error is on its test (the `test:retry` of the attempt, or `failedTestUid`), which ended before this hook
+        // (Vitest afterEach): the hook stays a fixture of that test, with no extra result for it
+        if ((hook.retried || hook.failedTestUid) && !hadPendingTest) {
+            if (hadPendingHook) {
+                this._endHook({
+                    status: hook.error ? AllureStatusEnum.BROKEN : AllureStatusEnum.PASSED,
+                    statusDetails: hook.error && getMessageAndTraceFromError(hook.error),
+                    stop: AllureReporter.getTimeOrNow(hook.end),
+                    duration: hook.duration,
+                })
+            }
+            return
+        }
 
         const isCucumber = this._isCucumberHook(hook)
 

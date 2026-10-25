@@ -24,6 +24,6 @@ export function mapTests (tests: TestStats[], isRetried: (test: TestStats) => bo
         duration: test.duration,
         state: test.state,
         error: test.error,
-        ...(isRetried(test) && { retried: true as const })
+        ...(isRetried(test) && { retried: true })
     }))
 }
