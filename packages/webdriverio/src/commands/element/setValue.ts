@@ -70,6 +70,9 @@ export async function setValue (
             setter.call(elem, newValue)
             elem.dispatchEvent(new Event('input', { bubbles: true }))
             elem.dispatchEvent(new Event('change', { bubbles: true }))
+            if (newValue !== '' && elem.value === '') {
+                throw new Error(`Failed to set value '${newValue}' on <input type="${elem.type}">: value was rejected by the browser`)
+            }
             return true
         }, this as unknown as HTMLInputElement, value.toString())
         if (done) {
