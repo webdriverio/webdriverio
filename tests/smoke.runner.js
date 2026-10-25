@@ -532,7 +532,9 @@ const cucumberPendingTest = async () => {
             ],
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
-                scenarioLevelReporter: true
+                scenarioLevelReporter: true,
+                // a pending step fails the run with the default `strict: true`; this checks how it is reported
+                strict: false
             }
         }
     )
