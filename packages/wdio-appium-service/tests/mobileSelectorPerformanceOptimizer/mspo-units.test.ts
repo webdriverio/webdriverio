@@ -32,6 +32,20 @@ describe('MobileSelectorPerformanceReporter owner of a command (K19)', () => {
         expect(names('ctx-b')).toEqual({ testFile: 'specs/b.spec.ts', suiteName: 'other', testName: 'test b' })
     })
 
+    // M11: the resolver is module-global, so the reporter clears it at its end
+    test('clears its resolver at runner:end: the names that the events set last come back', () => {
+        const reporter = newReporter()
+        current = undefined
+        reporter.emit('runner:start', { cid: '0-0', specs: ['/specs/a.spec.ts'], capabilities: {}, config: {}, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        reporter.emit('suite:start', suite('outer', null, '/specs/a.spec.ts'))
+        reporter.emit('test:start', testOf('test a', 'outer', { contextId: 'ctx-a' }))
+        reporter.emit('test:start', testOf('test b', 'outer', { contextId: 'ctx-b' }))
+        expect(names('ctx-a').testName).toBe('test a')
+        reporter.emit('runner:end', { cid: '0-0', failures: 0, retries: 0 })
+
+        expect(names('ctx-a').testName).toBe('test b')
+    })
+
     test('keeps the names of the last started test and suite in a sequential run (no change)', () => {
         const reporter = newReporter()
         current = undefined
