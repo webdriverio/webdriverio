@@ -192,7 +192,7 @@ A `ReporterUnit` has these fields:
 | `contextId` | The browsing context of a parallel unit. `undefined` in a sequential run. |
 | `stats` | The scenario (Cucumber step level) or the test. `undefined` before it starts, for example in Mocha `before all` hooks. |
 | `test` | The test or step that started last in the unit. |
-| `attempt` | `0` for the first attempt. It changes at the start of the next attempt. |
+| `attempt` | `0` for the first attempt. It changes at the start of the next attempt: at the next `test:start`, or at `suite:retry` for a Cucumber scenario at step level. |
 | `ended` | `true` from `onUnitEnd` on. |
 
 The reporter calls these methods. In them, `getContextUnit()`, `unitState()` and `attemptState()` use the unit of the event:
@@ -248,9 +248,9 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 
 - `hook.hookKind`: `'beforeAll'`, `'beforeEach'`, `'afterEach'`, `'afterAll'`, `'beforeStep'` or `'afterStep'`.
 - `hook.hookSuiteUid`: the uid of the suite that declares a `beforeAll` / `afterAll` hook.
-- `this.hookOwner(hook)`: the owner of a hook. This is its unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`).
+- `this.hookOwner(hook)`: the owner of a hook (`ReporterUnit | SuiteStats | undefined`). This is its unit, or `undefined` when the hook has no unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`).
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and of a hook of a parallel context that runs before its test. The array exists after the first command.
-- `hook.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
+- `hookStats.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
 
 :::warning Experimental
 
