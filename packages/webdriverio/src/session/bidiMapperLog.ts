@@ -7,6 +7,20 @@ const log = logger('webdriverio:BidiMapperLogManager')
 const MAPPER_TITLE = 'BiDi-CDP Mapper'
 
 /**
+ * Chrome lists the Mapper as `other` (chrome-headless-shell: `page`), and also
+ * as a `tab` that runs no script
+ */
+const MAPPER_TYPES = ['other', 'page']
+
+/**
+ * before, the Mapper is a page with a viewport and its log does not slow down
+ * the commands (and Chrome 132 has no `goog:cdp`)
+ */
+const FIRST_SLOW_VERSION = 137
+
+export const MAPPER_LOG_TIMEOUT = 5000
+
+/**
  * Runs in the page of the BiDi Mapper. Without `#logs`, the Mapper does not
  * write the BiDi messages into its page; nothing else reads that element.
  */
@@ -18,17 +32,9 @@ interface TargetInfo {
     title: string
 }
 
-/**
- * only a driver on this machine: a grid, a cloud service or a proxy can block
- * the ChromeDriver CDP endpoint or never answer it
- */
-const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]']
-
-/**
- * drivers whose CDP endpoint failed: each failed request is retried, so do not
- * use that endpoint again in this process
- */
-const failedEndpoints = new Set<string>()
+interface CdpBidiHandler {
+    send (command: { method: 'goog:cdp.sendCommand', params: { method: string, params: object } }): Promise<{ result?: { result?: unknown } }>
+}
 
 export function getBidiMapperLogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, BidiMapperLogManager)
@@ -47,19 +53,19 @@ export class BidiMapperLogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, BidiMapperLogManager.name)
 
-        const { hostname = '', port } = browser.options
-        const endpoint = `${hostname}:${port}`
-        if (
-            !this.isEnabled() || !browser.isChromium || browser.isMobile ||
-            !LOCAL_HOSTS.includes(hostname) || failedEndpoints.has(endpoint)
-        ) {
+        // NaN for an unknown version, which does not skip
+        const majorVersion = parseInt(browser.capabilities.browserVersion ?? '', 10)
+        if (!this.isEnabled() || !browser.isChromium || browser.isMobile || majorVersion < FIRST_SLOW_VERSION) {
             this.#initialize = Promise.resolve(true)
             return
         }
 
-        this.#initialize = removeMapperLog(browser).then(() => true, (err: Error) => {
-            failedEndpoints.add(endpoint)
-            log.debug(`Could not remove the log of the BiDi Mapper: ${err.message}`)
+        this.#initialize = withTimeout(removeMapperLog(browser)).then(() => true, (err: Error) => {
+            log.warn(
+                `Could not remove the log of the ChromeDriver BiDi Mapper (${err.message}), so large ` +
+                'WebDriver BiDi messages (e.g. screenshots) can make the next commands slower: ' +
+                'https://issues.chromium.org/issues/577213792'
+            )
             return false
         })
     }
@@ -69,26 +75,42 @@ export class BidiMapperLogManager extends SessionManager {
     }
 }
 
+/**
+ * the race also handles a late rejection of `promise`
+ */
+function withTimeout(promise: Promise<void>) {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`no answer after ${MAPPER_LOG_TIMEOUT}ms`)), MAPPER_LOG_TIMEOUT)
+    })
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 async function removeMapperLog(browser: WebdriverIO.Browser) {
-    // hidden targets are listed only with an explicit filter
-    const { targetInfos } = await browser.sendCommandAndGetResult('Target.getTargets', { filter: [{}] }) as { targetInfos: TargetInfo[] }
     /**
-     * ChromeDriver never answers a non-flat attach to a `page` target, and the
-     * session then hangs: chrome-headless-shell, whose Mapper is a `page`, keeps its log
+     * CDP through the BiDi connection (chromium-bidi `goog:cdp.sendCommand`)
+     * also reaches the browser through a grid or a cloud service
      */
-    for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && type === 'other')) {
+    const handler = (browser as unknown as { _bidiHandler: CdpBidiHandler })._bidiHandler
+    const cdp = async <T>(method: string, params: object) => (
+        await handler.send({ method: 'goog:cdp.sendCommand', params: { method, params } })
+    ).result?.result as T
+
+    // hidden targets are listed only with an explicit filter
+    const { targetInfos } = await cdp<{ targetInfos: TargetInfo[] }>('Target.getTargets', { filter: [{}] })
+    for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && MAPPER_TYPES.includes(type))) {
         /**
-         * the ChromeDriver endpoint takes no CDP session id, so only the non-flat
-         * mode (deprecated, https://crbug.com/991325) can reach another target
+         * the Mapper detaches the flat sessions of its own target, so only the
+         * non-flat mode (deprecated, https://crbug.com/991325) can reach it
          */
-        const { sessionId } = await browser.sendCommandAndGetResult('Target.attachToTarget', { targetId, flatten: false }) as { sessionId: string }
+        const { sessionId } = await cdp<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: false })
         try {
-            await browser.sendCommandAndGetResult('Target.sendMessageToTarget', {
+            await cdp('Target.sendMessageToTarget', {
                 sessionId,
                 message: JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: REMOVE_MAPPER_LOG } })
             })
         } finally {
-            await browser.sendCommandAndGetResult('Target.detachFromTarget', { sessionId })
+            await cdp('Target.detachFromTarget', { sessionId })
         }
     }
 }
