@@ -763,3 +763,174 @@ describe('units: Vitest bridge (recorded streams)', () => {
         expect(Object.values(r.tests).every((t) => r.unitOf(t)?.ended)).toBe(true)
     })
 })
+
+describe('units: hook owner (hookKind, hookSuiteUid)', () => {
+    // m04: an inner `before` after an outer test; with `kind`, the adapter sends hookKind and hookSuiteUid
+    const m04 = (kind: boolean, suiteUid = true): Events => {
+        const all = (hookKind: string, uid: string) => kind ? { hookKind, ...(suiteUid ? { hookSuiteUid: uid } : {}) } : {}
+        return [
+            ['suite:start', suiteEv('s1', 'outer')],
+            ['test:start', testEv('t1', 'o1')],
+            ['test:pass', testEv('t1', 'o1')],
+            ['test:end', testEv('t1', 'o1')],
+            ['suite:start', suiteEv('s2', 'inner')],
+            ['hook:start', hookEv('h1', '"before all" hook for inner', all('beforeAll', 's2'))],
+            ['hook:end', hookEv('h1', '"before all" hook for inner', all('beforeAll', 's2'))],
+            ['test:start', testEv('t2', 'i1')],
+            ['test:pass', testEv('t2', 'i1')],
+            ['test:end', testEv('t2', 'i1')],
+            ['hook:start', hookEv('h2', '"after all" hook for inner', all('afterAll', 's2'))],
+            ['hook:end', hookEv('h2', '"after all" hook for inner', all('afterAll', 's2'))],
+            ['suite:end', suiteEv('s2', 'inner')],
+            ['hook:start', hookEv('h3', '"after all" hook for outer', all('afterAll', 's1'))],
+            ['hook:end', hookEv('h3', '"after all" hook for outer', all('afterAll', 's1'))],
+            ['suite:end', suiteEv('s1', 'outer')],
+        ]
+    }
+    const hookLines = (r: Recorder) => r.log.filter((l) => l.startsWith('hook:'))
+
+    it('contextless beforeAll of a nested describe has no unit and its suite as owner', () => {
+        const r = new Recorder()
+        play(r, m04(true))
+        expect(r.log).toContain('hook:start "before all" hook for inner -> none')
+        expect(r.log).toContain('hook:end "before all" hook for inner -> none')
+        expect(r.unitOf(r.hooks.h1)).toBeUndefined()
+        expect(r.hookOwner(r.hooks.h1)).toBe(r.suites.s2)
+        // no hookSuiteUid: the suite that the base inserted the hook in
+        const noUid = new Recorder()
+        play(noUid, m04(true, false))
+        expect(noUid.hookOwner(noUid.hooks.h1)).toBe(noUid.suites.s2)
+        expect(noUid.unitOf(noUid.hooks.h1)).toBeUndefined()
+    })
+
+    it('afterAll owner is its suite, not the last test', () => {
+        const r = new Recorder()
+        play(r, m04(true))
+        expect(hookLines(r).filter((l) => l.includes('after all'))).toEqual([
+            'hook:start "after all" hook for inner -> none',
+            'hook:end "after all" hook for inner -> none',
+            'hook:start "after all" hook for outer -> none',
+            'hook:end "after all" hook for outer -> none',
+        ])
+        expect(r.hookOwner(r.hooks.h2)).toBe(r.suites.s2)
+        expect(r.hookOwner(r.hooks.h3)).toBe(r.suites.s1)
+        // an unknown hookSuiteUid falls back to the suite of the hook
+        r.emit('suite:start', { type: 'suite:start', ...suiteEv('s3', 'last') })
+        r.emit('hook:start', { type: 'hook:start', ...hookEv('h4', '"after all" hook for last', { hookKind: 'afterAll', hookSuiteUid: 'nope' }) })
+        expect(r.hookOwner(r.hooks.h4)).toBe(r.suites.s3)
+    })
+
+    it('a contextless all-hook under the root suite has no owner', () => {
+        const r = new Recorder()
+        play(r, [['hook:start', hookEv('h0', '"before all" hook in "{root}"', { hookKind: 'beforeAll' })]])
+        expect(r.hookOwner(r.hooks.h0)).toBeUndefined()
+        expect(r.unitOf(r.hooks.h0)).toBeUndefined()
+    })
+
+    it('all-hook with contextId belongs to the context unit', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A', { parentUid: null })],
+            ['hook:start', hookEv('h1', '"before all" hook', { contextId: 'A', parentUid: 's1', hookKind: 'beforeAll', hookSuiteUid: 's1' })],
+            ['hook:end', hookEv('h1', '"before all" hook', { contextId: 'A', parentUid: 's1', hookKind: 'beforeAll', hookSuiteUid: 's1' })],
+            ['test:start', testEv('t1', 'a1', { contextId: 'A', parentUid: 's1' })],
+        ])
+        expect(hookLines(r)).toEqual(['hook:start "before all" hook -> A:-#0', 'hook:end "before all" hook -> A:-#0'])
+        expect(r.hookOwner(r.hooks.h1)).toBe(r.getContextUnit('A'))
+        expect(r.unitOf(r.hooks.h1)).toBe(r.getContextUnit('A'))
+    })
+
+    it('each-hooks and step hooks with hookKind keep the current unit, and their commands go to its test', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['hook:start', hookEv('h1', '"before each" hook', { hookKind: 'beforeEach' })],
+            ['hook:end', hookEv('h1', '"before each" hook', { hookKind: 'beforeEach' })],
+            ['hook:start', hookEv('h2', 'before step', { hookKind: 'beforeStep' })],
+            ['hook:end', hookEv('h2', 'before step', { hookKind: 'beforeStep' })],
+            ['test:pass', testEv('t1', 'a1')],
+            ['test:end', testEv('t1', 'a1')],
+            ['hook:start', hookEv('h3', '"after each" hook', { hookKind: 'afterEach' })],
+        ])
+        r.emit('client:beforeCommand', { sessionId: 's', method: 'POST', endpoint: '/screenshot', body: {} })
+        expect(hookLines(r)).toEqual([
+            'hook:start "before each" hook -> seq:a1#0',
+            'hook:end "before each" hook -> seq:a1#0',
+            'hook:start before step -> seq:a1#0',
+            'hook:end before step -> seq:a1#0',
+            'hook:start "after each" hook -> seq:a1#0',
+        ])
+        expect(r.hookOwner(r.hooks.h3)).toBe(r.unitOf(r.tests.t1))
+        expect(r.tests.t1.output).toHaveLength(1)
+        expect(r.getContextTest()).toBe(r.tests.t1)
+    })
+
+    const afterAll = (kind: boolean): Events => [
+        ['suite:start', suiteEv('s1', 'A')],
+        ['test:start', testEv('t1', 'a1')],
+        ['test:pass', testEv('t1', 'a1')],
+        ['test:end', testEv('t1', 'a1')],
+        ['hook:start', hookEv('h1', '"after all" hook', kind ? { hookKind: 'afterAll', hookSuiteUid: 's1' } : {})],
+    ]
+    const command = (r: Recorder) => r.emit('client:beforeCommand', { sessionId: 's', method: 'GET', endpoint: '/url', body: {} })
+
+    it('commands between hook:start and hook:end of a contextless all-hook get no test', () => {
+        const r = new Recorder()
+        const resolved: { id?: string } = {}
+        r.setContextIdResolver(() => resolved.id)
+        play(r, afterAll(true))
+        command(r)
+        expect(r.log.at(-1)).toBe('command -> none')
+        expect(r.tests.t1.output).toHaveLength(0)
+        expect(r.getContextTest()).toBeUndefined()
+        expect(r.getContextUnit()).toBeUndefined()
+        expect(r.unitState('k', () => 1)).toBeUndefined()
+        // a call in a parallel context keeps its context
+        resolved.id = 'X'
+        expect(r.getContextId()).toBe('X')
+        resolved.id = undefined
+        r.emit('hook:end', { type: 'hook:end', ...hookEv('h1', '"after all" hook', { hookKind: 'afterAll', hookSuiteUid: 's1' }) })
+        // after hook:end: today's behavior
+        expect(r.getContextTest()).toBe(r.tests.t1)
+        command(r)
+        expect(r.tests.t1.output).toHaveLength(1)
+    })
+
+    it('no hookKind keeps today\'s owner', () => {
+        const r = new Recorder()
+        play(r, m04(false))
+        expect(hookLines(r)).toEqual([
+            'hook:start "before all" hook for inner -> seq:o1#0',
+            'hook:end "before all" hook for inner -> seq:o1#0',
+            'hook:start "after all" hook for inner -> seq:i1#0',
+            'hook:end "after all" hook for inner -> seq:i1#0',
+            'hook:start "after all" hook for outer -> seq:i1#0',
+            'hook:end "after all" hook for outer -> seq:i1#0',
+        ])
+        expect(r.hookOwner(r.hooks.h1)).toBe(r.unitOf(r.tests.t1))
+        expect(r.hookOwner(r.hooks.h3)).toBe(r.unitOf(r.tests.t2))
+        expect('hookKind' in r.hooks.h1).toBe(false)
+        // calls in the hook: the last test, as today
+        const c = new Recorder()
+        play(c, afterAll(false))
+        command(c)
+        expect(c.log.at(-1)).toBe('command -> seq:a1#0')
+        expect(c.tests.t1.output).toHaveLength(1)
+        expect(c.getContextTest()).toBe(c.tests.t1)
+        // no hook before the first test: no owner
+        const first = new Recorder()
+        play(first, [['suite:start', suiteEv('s1', 'A')], ['hook:start', hookEv('h0', '"before all" hook')]])
+        expect(first.hookOwner(first.hooks.h0)).toBeUndefined()
+    })
+
+    it('hook:end gives hookKind and hookSuiteUid when only the end knows them', () => {
+        const r = new Recorder()
+        play(r, afterAll(false))
+        r.emit('hook:end', { type: 'hook:end', ...hookEv('h1', '"after all" hook', { hookKind: 'afterAll', hookSuiteUid: 's1' }) })
+        expect(r.hooks.h1).toMatchObject({ hookKind: 'afterAll', hookSuiteUid: 's1' })
+        expect(r.hookOwner(r.hooks.h1)).toBe(r.suites.s1)
+        expect(r.unitOf(r.hooks.h1)).toBeUndefined()
+        expect(r.log.at(-1)).toBe('hook:end "after all" hook -> none')
+    })
+})
