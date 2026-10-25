@@ -1431,3 +1431,38 @@ describe('CR2: the open hooks of a sequential unit', () => {
         }
     })
 })
+
+describe('CR1: a contextless beforeEach before its test:start', () => {
+    class HookProbe extends Recorder {
+        seen: string[] = []
+        onHookStart (h: HookStats) {
+            super.onHookStart(h)
+            const owner = this.hookOwner(h)
+            this.seen.push(`${h.title} unitOf=${name(this.unitOf(h))} owner=${owner instanceof SuiteStats ? owner.title : name(owner)} context=${name(this.getContextUnit())} state=${this.unitState('k', (u) => u.stats?.title) ?? 'undefined'}`)
+        }
+    }
+    const each = (uid: string, kind: string, test: string, extra: Record<string, unknown> = {}) => hookEv(uid, `${kind} ${test}`, { hookKind: kind, ...extra })
+    const run = (t: string, kind = 'beforeEach', extra: Record<string, unknown> = {}): Events => [['hook:start', each(`b${t}`, kind, t, extra)], ['hook:end', each(`b${t}`, kind, t, extra)],
+        ['test:start', testEv(t, t)], ['test:pass', testEv(t, t)], ['test:end', testEv(t, t)]]
+
+    it('gets no unit, not the ended unit of the test before it', () => {
+        const r = new HookProbe()
+        play(r, [['suite:start', suiteEv('s', 'S')], ...run('t1'), ...run('t2'), ['suite:end', suiteEv('s', 'S')]])
+        expect(r.seen).toEqual([
+            'beforeEach t1 unitOf=none owner=none context=none state=undefined',
+            'beforeEach t2 unitOf=none owner=none context=none state=undefined',
+        ])
+        expect(r.log).toContain('hook:end beforeEach t2 -> none')
+    })
+
+    it('an afterEach and a hook with no hookKind keep the ended unit of the test before them', () => {
+        const r = new HookProbe()
+        play(r, [['suite:start', suiteEv('s', 'S')], ...run('t1'), ['hook:start', each('at1', 'afterEach', 't1')], ['hook:end', each('at1', 'afterEach', 't1')],
+            ['hook:start', hookEv('h', 'no kind')]])
+        expect(r.seen).toEqual([
+            'beforeEach t1 unitOf=none owner=none context=none state=undefined',
+            'afterEach t1 unitOf=seq:t1#0 owner=seq:t1#0 context=seq:t1#0 state=t1',
+            'no kind unitOf=seq:t1#0 owner=seq:t1#0 context=seq:t1#0 state=t1',
+        ])
+    })
+})
