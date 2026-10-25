@@ -44,7 +44,7 @@ export default class WDIOReporter extends EventEmitter {
     #contextIdResolver?: () => string | undefined
     #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
     #processListeners: [string, (...args: unknown[]) => void][] = []
-    // the last unit of each context stays until runner:end, for late events after context:end
+    // the last unit of each context stays for the life of the reporter, for late events after context:end
     #units = new Map<string, Unit>()
     // the unit with no context: a sequential run, or Cucumber failFast skip scenarios
     #seqUnit?: Unit
@@ -578,8 +578,8 @@ export default class WDIOReporter extends EventEmitter {
 
     /**
      * The unit of the caller: in an `on*` hook the unit of the event, else the unit of the caller's parallel-mode
-     * context, else the sequential unit (also after its end). With `contextId`: the last unit of that context, until
-     * `runner:end`. After the first parallel context, code outside every context gets `undefined`. Runner and suite
+     * context, else the sequential unit (also after its end). With `contextId`: the last unit of that context, for the
+     * life of the reporter (also after `runner:end`). After the first parallel context, code outside every context gets `undefined`. Runner and suite
      * events (except a Cucumber scenario) and a `beforeAll` / `afterAll` with `hookKind` and no context have no unit.
      * @experimental the name and the result may change
      */

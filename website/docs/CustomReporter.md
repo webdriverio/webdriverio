@@ -203,7 +203,7 @@ The reporter calls these methods. In them, `getContextUnit()`, `unitState()` and
 
 Use these methods to find the unit and to keep state for it:
 
-- `this.getContextUnit(contextId?)`: the unit of the caller. In an `on*` method, this is the unit of the event. Else it is the unit of the parallel context of the caller, or the sequential unit. With `contextId`, it is the last unit of that context. It returns `undefined` for runner events, suite events (except a Cucumber scenario), a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and for code outside every context after the first parallel context.
+- `this.getContextUnit(contextId?)`: the unit of the caller. In an `on*` method, this is the unit of the event. Else it is the unit of the parallel context of the caller, or the sequential unit. With `contextId`, it is the last unit of that context. The units and their state stay for the life of the reporter, also after `runner:end`. It returns `undefined` for runner events, suite events (except a Cucumber scenario), a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and for code outside every context after the first parallel context.
 - `this.unitOf(stats)`: the unit of a suite, hook or test stats.
 - `this.unitState(key, init, contextId?)`: state of your reporter for the unit. `init(unit)` runs at the first call, and the same value comes back after that. It returns `undefined` when there is no unit.
 - `this.attemptState(key, init, contextId?)`: as `unitState`, but new for each attempt of the unit.

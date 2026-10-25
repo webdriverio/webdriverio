@@ -621,7 +621,7 @@ describe('units: parallel latch and late events', () => {
 })
 
 describe('unit state', () => {
-    it('unitState survives context:end until runner:end', () => {
+    it('unitState survives context:end, and runner:end: the units stay for the life of the reporter', () => {
         const r = new Recorder()
         play(r, [['test:start', testEv('t1', 'x', { contextId: 'A' })]])
         const state = r.unitState('k', () => ({ n: 0 }), 'A')!
