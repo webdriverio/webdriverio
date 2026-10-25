@@ -59,12 +59,16 @@ export const config: WebdriverIO.Config = {
         const masterJson = path.join(htmlDir, 'master-report.json')
         const master = fs.existsSync(masterJson) ? JSON.parse(fs.readFileSync(masterJson, 'utf-8')) : undefined
         const metrics = master?.metrics
-        check(metrics?.passed === 3 && metrics?.failed === 0, `metrics: ${JSON.stringify(metrics)}`)
+        check(metrics?.passed === 3 && metrics?.failed === 0 && metrics?.skipped === 1, `metrics: ${JSON.stringify(metrics)}`)
+        type ReportSuite = { tests: { title: string, events?: { type: string, value: unknown }[] }[], suites?: ReportSuite[] }
+        const testsOf = (suite: ReportSuite): ReportSuite['tests'] => [...suite.tests, ...(suite.suites ?? []).flatMap(testsOf)]
         const logsOf = (title: string) => (master?.suites ?? [])
-            .flatMap((suite: { tests: { title: string, events?: { type: string, value: unknown }[] }[] }) => suite.tests)
+            .flatMap(testsOf)
             .find((test: { title: string }) => test.title === title)?.events?.filter((event: { type: string }) => event.type === 'log').map((event: { value: unknown }) => event.value)
         const hookTest = logsOf('runs after a before all hook')
         check(hookTest?.[0] === 'Before all of the hooks suite', `the before all log is not in the first test of its suite: ${JSON.stringify(hookTest)}`)
+        const skippedTest = logsOf('is skipped by the before all hook of its parent')
+        check(skippedTest?.[0] === 'Before all of the skipped suite', `the log of a before all hook that skips its suite is not in the skipped test: ${JSON.stringify(skippedTest)}`)
 
         if (errors.length) {
             console.error(`HTML reporter e2e check failed:\n  - ${errors.join('\n  - ')}`)

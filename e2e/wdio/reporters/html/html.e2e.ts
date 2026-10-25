@@ -31,3 +31,17 @@ describe('html reporter hooks', () => {
         reportEvents.logMessage('First test of the hooks suite')
     })
 })
+
+describe('html reporter skipped suite', () => {
+    // `this.skip()` in a before all hook whose only test is in a nested suite: the log goes to that skipped test
+    before(function () {
+        reportEvents.logMessage('Before all of the skipped suite')
+        this.skip()
+    })
+
+    describe('nested', () => {
+        it('is skipped by the before all hook of its parent', () => {
+            reportEvents.logMessage('Never logged')
+        })
+    })
+})
