@@ -48,6 +48,13 @@ describe('TestStats', () => {
         expect(Object.keys(stat)).not.toContain('parentUid')
     })
 
+    it('completes at a given end instead of now', () => {
+        stat.complete(new Date(100))
+
+        expect(stat.end!.getTime()).toBe(100)
+        expect(stat.duration).toBe(100 - stat.start.getTime())
+    })
+
     it('defines a start date', () => {
         expect(stat.type).toBe('test')
         expect(stat.start instanceof Date).toBe(true)

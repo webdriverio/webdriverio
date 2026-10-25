@@ -804,6 +804,9 @@ importers:
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.5
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../wdio-reporter
@@ -1849,6 +1852,10 @@ importers:
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
+    devDependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../wdio-allure-reporter
 
   packages/wdio-webdriver-mock-service:
     dependencies:

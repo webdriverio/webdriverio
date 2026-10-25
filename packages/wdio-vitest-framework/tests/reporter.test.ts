@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
 
@@ -11,6 +14,7 @@ const instances = vi.hoisted(() => [] as {
     config: { reporters?: unknown[] }
     emitted: [string, Record<string, any>][]
     listener?: (message: unknown) => void
+    resolver?: () => string | undefined
     waitForSync: ReturnType<typeof vi.fn>
     initReporters: ReturnType<typeof vi.fn>
 }[])
@@ -30,6 +34,10 @@ vi.mock('@wdio/runner', () => ({
         onMessage(listener: (message: unknown) => void) {
             this.listener = listener
         }
+        resolver?: () => string | undefined
+        setContextIdResolver(resolver: () => string | undefined) {
+            this.resolver = resolver
+        }
     }
 }))
 
@@ -40,27 +48,39 @@ type Result = { state: 'passed' | 'failed' | 'skipped', errors?: { name?: string
 const passed: Result = { state: 'passed' }
 
 let nextId = 0
-const makeModule = (overrides: Record<string, unknown> = {}) => ({
-    type: 'module' as const,
-    id: 'chrome-0:/repo/a.spec.ts',
-    moduleId: '/repo/a.spec.ts',
-    relativeModuleId: 'a.spec.ts',
-    project: { config: { provide: { wdioCapabilities: requestedCaps } } },
-    meta: () => ({ wdio: { sessionId: 'sess-1', capabilities: sessionCaps } }),
-    state: () => 'passed',
-    errors: () => [] as { name?: string, message: string }[],
-    ...overrides
-}) as any
+const makeModule = (overrides: Record<string, unknown> = {}) => {
+    const tests: any[] = []
+    return {
+        tests,
+        children: { allTests: () => tests },
+        type: 'module' as const,
+        id: 'chrome-0:/repo/a.spec.ts',
+        moduleId: '/repo/a.spec.ts',
+        relativeModuleId: 'a.spec.ts',
+        project: { config: { provide: { wdioCapabilities: requestedCaps } } },
+        meta: () => ({ wdio: { sessionId: 'sess-1', capabilities: sessionCaps } }),
+        state: () => 'passed',
+        errors: () => [] as { name?: string, message: string }[],
+        ...overrides
+    } as any
+}
+const withRegistered = (module: any, test: any) => {
+    module.tests?.push(test)
+    return test
+}
 const makeSuite = (module: any, parent: any, name: string) => ({ type: 'suite' as const, id: `suite-${nextId++}`, name, module, parent }) as any
-const makeTest = (module: any, parent: any, name: string, result: Result, duration?: number) => ({
+const makeTest = (module: any, parent: any, name: string, result: Result, duration?: number, extra: Record<string, unknown> = {}) => withRegistered(module, {
     type: 'test' as const,
     id: `test-${nextId++}`,
     name,
     module,
     parent,
     result: () => result,
-    diagnostic: () => duration === undefined ? undefined : { duration }
-}) as any
+    diagnostic: () => duration === undefined ? undefined : { duration },
+    meta: () => ({}),
+    options: { concurrent: false },
+    ...extra
+})
 
 const config = { reporters: ['junit'] } as WebdriverIO.Config
 
@@ -141,6 +161,17 @@ describe('WdioBridgeReporter', () => {
         expect(emitted[4][1]).toMatchObject({ duration: 12, passed: true })
         expect(emitted[5][1]).toMatchObject({ uid: 'suite-0-0-0', title: 'login' })
         expect(emitted[6][1]).toEqual({ specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', failures: 0, retries: 0 })
+    })
+
+    it('takes the test times from the Vitest diagnostic instead of the event receipt time', async () => {
+        const module = makeModule()
+        const timed = makeTest(module, module, 'b', passed, 40, { diagnostic: () => ({ duration: 40, startTime: 1_000 }) })
+        const failing = makeTest(module, module, 'c', { state: 'failed', errors: [{ message: 'boom' }] } as Result, 3, { diagnostic: () => ({ duration: 3, startTime: 2_000 }) })
+        await runTests(module, timed, failing)
+
+        const emitted = emittedOf()
+        expect(emitted.find(([name]) => name === 'test:pass')![1]).toMatchObject({ start: 1_000, end: 1_040, duration: 40 })
+        expect(emitted.find(([name]) => name === 'test:fail')![1]).toMatchObject({ start: 2_000, end: 2_003 })
     })
 
     it('emits test:start when the test becomes ready, before its result exists', async () => {
@@ -700,6 +731,171 @@ describe('WdioBridgeReporter', () => {
 
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
         expect(errors).toHaveLength(1)
+    })
+
+    describe('relayed runtime calls', () => {
+        const runtimeMeta = (...entries: { event: string, payload: unknown, retry: number }[]) => ({ 'wdio:runtime': entries })
+
+        it('replays the calls between test:start and test:pass', async () => {
+            const module = makeModule()
+            const meta = runtimeMeta(
+                { event: 'allure:runtimeMessage', payload: { type: 'step_start' }, retry: 0 },
+                { event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 }
+            )
+            reporter.onTestModuleStart(module)
+            const test = makeTest(module, module, 'replayed', passed, 1, { meta: () => meta })
+            await reporter.onTestCaseReady(test)
+            await reporter.onTestCaseResult(test)
+
+            const emitted = emittedOf()
+            const start = emitted.findIndex(([name]) => name === 'test:start')
+            expect(emitted.slice(start, start + 5).map(([name]) => name)).toEqual(['test:start', 'allure:runtimeMessage', 'junit:addProperty', 'test:pass', 'test:end'])
+            expect(emitted[start + 1][1]).toEqual({ type: 'step_start' })
+            expect(emitted[start + 2][1]).toEqual({ name: 'k', value: 'v' })
+        })
+
+        it('replays only the last retry attempt', async () => {
+            const module = makeModule()
+            const test = makeTest(module, module, 't', passed, 1, {
+                diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                meta: () => runtimeMeta(
+                    { event: 'junit:addProperty', payload: { name: 'first', value: '1' }, retry: 0 },
+                    { event: 'junit:addProperty', payload: { name: 'last', value: '2' }, retry: 1 }
+                )
+            })
+            await runTests(module, test)
+
+            expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload)).toEqual([{ name: 'last', value: '2' }])
+        })
+
+        describe('pending attachment files', () => {
+            let dir: string
+            beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-pending-')) })
+            afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }) })
+
+            const pending = (name: string, retry: number) => {
+                const pendingFile = path.join(dir, `.wdio-attachment-${name}.tmp`)
+                fs.writeFileSync(pendingFile, name)
+                return { event: 'allure:runtimeMessage', payload: { type: 'attachment_path', data: { path: pendingFile } }, retry, pendingFile }
+            }
+
+            it('removes the files of attempts that are not replayed and keeps the replayed ones', async () => {
+                const module = makeModule()
+                const [first, last] = [pending('first', 0), pending('last', 1)]
+                const test = makeTest(module, module, 't', passed, 1, {
+                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                    meta: () => runtimeMeta(first, last)
+                })
+                await runTests(module, test)
+
+                expect(fs.existsSync(first.pendingFile)).toBe(false)
+                expect(fs.existsSync(last.pendingFile)).toBe(true)
+                expect(emittedOf().filter(([name]) => name === 'allure:runtimeMessage').map(([, payload]) => payload)).toEqual([last.payload])
+            })
+
+            it('removes the files of tests that are closed without a result', async () => {
+                const module = makeModule({ state: () => 'failed' })
+                const [a, b] = [pending('a', 0), pending('b', 1)]
+                const test = makeTest(module, module, 't', passed, 1, { meta: () => runtimeMeta(a, b) })
+                reporter.onTestModuleStart(module)
+                await reporter.onTestCaseReady(test)
+                await reporter.onTestModuleEnd(module)
+
+                expect(fs.existsSync(a.pendingFile)).toBe(false)
+                expect(fs.existsSync(b.pendingFile)).toBe(false)
+                expect(names(emittedOf())).not.toContain('allure:runtimeMessage')
+            })
+
+            it('does not fail when a file is already gone', async () => {
+                const module = makeModule()
+                const gone = { ...pending('gone', 0), pendingFile: path.join(dir, 'missing.tmp') }
+                const test = makeTest(module, module, 't', passed, 1, {
+                    diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                    meta: () => runtimeMeta(gone)
+                })
+                await runTests(module, test)
+
+                expect(errors).toEqual([])
+            })
+        })
+
+        it('replays nothing when the final attempt made no relayed calls', async () => {
+            const module = makeModule()
+            const test = makeTest(module, module, 't', passed, 1, {
+                diagnostic: () => ({ duration: 1, retryCount: 1 }),
+                meta: () => runtimeMeta({ event: 'junit:addProperty', payload: { name: 'first', value: '1' }, retry: 0 })
+            })
+            await runTests(module, test)
+
+            expect(names(emittedOf())).not.toContain('junit:addProperty')
+        })
+
+        it('replays nothing without relayed calls', async () => {
+            const module = makeModule()
+            await runTests(module, makeTest(module, module, 't', passed))
+
+            expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end'])
+        })
+
+        it('tags concurrent tests with a contextId and resolves it while replaying', async () => {
+            const module = makeModule()
+            const seen: (string | undefined)[] = []
+            const test = makeTest(module, module, 't', passed, 1, {
+                options: { concurrent: true },
+                meta: () => runtimeMeta({ event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 })
+            })
+            reporter.onTestModuleStart(module)
+            await reporter.onTestCaseReady(test)
+            const instance = instances[0] as any
+            const resolver = instance.resolver as () => string | undefined
+            instance.emit = (event: string) => { seen.push(resolver()); instance.emitted.push([event, {}]) }
+            await reporter.onTestCaseResult(test)
+
+            expect(seen.length).toBeGreaterThan(0)
+            expect(seen.every((id) => id === test.id)).toBe(true)
+            expect(resolver()).toBeUndefined()
+        })
+
+        it('adds the contextId to the concurrent test payloads', async () => {
+            const module = makeModule()
+            const concurrent = makeTest(module, module, 'c', passed, 1, { options: { concurrent: true } })
+            await runTests(module, concurrent)
+
+            const byTitle = (title: string) => emittedOf().filter(([name, payload]) => name.startsWith('test:') && payload.title === title).map(([, payload]) => payload.contextId)
+            expect(byTitle('c')).toEqual([concurrent.id, concurrent.id, concurrent.id])
+        })
+
+        it('tags every test of a module that has a concurrent test', async () => {
+            const module = makeModule()
+            const sequential = makeTest(module, module, 's', passed, 1)
+            const concurrent = makeTest(module, module, 'c', passed, 1, { options: { concurrent: true } })
+            await runTests(module, sequential, concurrent)
+
+            const byTitle = (title: string) => emittedOf().filter(([name, payload]) => name.startsWith('test:') && payload.title === title).map(([, payload]) => payload.contextId)
+            expect(byTitle('s')).toEqual([sequential.id, sequential.id, sequential.id])
+            expect(byTitle('c')).toEqual([concurrent.id, concurrent.id, concurrent.id])
+        })
+
+        it('resolves the contextId while closing an unfinished concurrent test', async () => {
+            const module = makeModule({ state: () => 'failed', errors: () => [] })
+            const test = makeTest(module, module, 'stuck', passed, 1, { options: { concurrent: true } })
+            reporter.onTestModuleStart(module)
+            await reporter.onTestCaseReady(test)
+            const instance = instances[0] as any
+            const resolver = instance.resolver as () => string | undefined
+            const seen: [string, string | undefined][] = []
+            instance.emit = (event: string) => { seen.push([event, resolver()]); instance.emitted.push([event, {}]) }
+            await reporter.onTestModuleEnd(module)
+
+            expect(seen.filter(([event]) => event.startsWith('test:'))).toEqual([['test:fail', test.id], ['test:end', test.id]])
+        })
+
+        it('leaves a purely sequential module untagged', async () => {
+            const module = makeModule()
+            await runTests(module, makeTest(module, module, 's', passed, 1))
+
+            expect(emittedOf().filter(([name]) => name.startsWith('test:')).every(([, payload]) => payload.contextId === undefined)).toBe(true)
+        })
     })
 
     it('logs and counts module work that rejects in onTestRunEnd', async () => {

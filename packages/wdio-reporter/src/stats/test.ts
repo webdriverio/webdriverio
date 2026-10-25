@@ -29,6 +29,10 @@ export interface Test {
     argument?: string | Argument
     state?: string
     contextId?: string
+    /** Epoch ms of the real test start; applied only together with `end`, for frameworks that report after the fact */
+    start?: number
+    /** Epoch ms of the completion, used instead of the receipt time when set */
+    end?: number
     /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
     parentUid?: string | null
 }
@@ -97,8 +101,13 @@ export default class TestStats extends RunnableStats {
         this.state = 'pending'
     }
 
-    pass() {
-        this.complete()
+    complete(end = new Date()) {
+        this.end = end
+        this._duration = end.getTime() - this.start.getTime()
+    }
+
+    pass(end?: Date) {
+        this.complete(end)
         this.state = 'passed'
     }
 
@@ -107,8 +116,8 @@ export default class TestStats extends RunnableStats {
         this.state = 'skipped'
     }
 
-    fail(errors?: Error[]) {
-        this.complete()
+    fail(errors?: Error[], end?: Date) {
+        this.complete(end)
         this.state = 'failed'
 
         /**

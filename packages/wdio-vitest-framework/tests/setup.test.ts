@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const hooks = vi.hoisted(() => ({ aroundEach: undefined as unknown as (runTest: () => Promise<void>, context: unknown) => Promise<void> }))
@@ -15,13 +18,17 @@ const parser = vi.hoisted(() => ({ args: [] as unknown[] }))
 const callbacks = vi.hoisted(() => ({ beforeAll: undefined as unknown as (...args: unknown[]) => Promise<void>, afterAll: undefined as unknown as (...args: unknown[]) => Promise<void> }))
 const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
+const attachmentDir = vi.hoisted(() => ({ value: null as string | null }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
+const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn() }))
+
+vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: vi.fn() }) }))
 
 vi.mock('vitest', () => ({
     aroundEach: vi.fn((fn) => { hooks.aroundEach = fn }),
     beforeAll: vi.fn((fn) => { callbacks.beforeAll = fn }),
     afterAll: vi.fn((fn) => { callbacks.afterAll = fn }),
-    inject: vi.fn((key: string) => key === 'wdioConfigFile' ? configFile : key === 'wdioArgs' ? args.value : key === 'wdioProjectIndex' ? 2 : injected.caps)
+    inject: vi.fn((key: string) => key === 'wdioAllureAttachmentDir' ? attachmentDir.value : key === 'wdioConfigFile' ? configFile : key === 'wdioArgs' ? args.value : key === 'wdioProjectIndex' ? 2 : injected.caps)
 }))
 vi.mock('@wdio/utils', () => utils)
 vi.mock('@wdio/config/node', () => ({
@@ -56,9 +63,10 @@ vi.mock('webdriverio', () => ({
     remote: vi.fn(async () => browser)
 }))
 
-const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result } })
+const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result, meta: {} as Record<string, unknown> } })
 const testTask = (state: string) => ({ type: 'test', result: { state } })
 const file = (tasks: object[] = [], errors?: Error[]) => ({ tasks, result: { state: errors ? 'fail' : 'pass', errors } })
+const RELAYED_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty']
 const afterTestResult = () => utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterTest')![2][2]
 
 describe('setup', () => {
@@ -67,12 +75,14 @@ describe('setup', () => {
 
     // every beforeAll in this file registers handlers that only afterAll removes
     afterEach(() => {
+        RELAYED_EVENTS.forEach((event) => process.removeAllListeners(event))
         signalListenersBefore.forEach(([signal, before]) => process.listeners(signal).filter((listener) => !before.includes(listener)).forEach((listener) => process.off(signal, listener)))
     })
 
     beforeEach(async () => {
         signalListenersBefore = (['SIGINT', 'SIGTERM'] as const).map((signal) => [signal, process.listeners(signal)])
         vi.clearAllMocks()
+        delete (globalThis as Record<symbol, unknown>)[Symbol.for('@wdio/vitest-framework:relay')]
         added.services = []
         soft.options = undefined
         soft.instances = []
@@ -156,6 +166,178 @@ describe('setup', () => {
         const { remote } = await import('webdriverio')
         expect(vi.mocked(remote).mock.calls[0][0]).toMatchObject({
             capabilities: { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ platformName: 'linux' }, {}] }
+        })
+    })
+
+    describe('reporter runtime relay', () => {
+        const runInTest = async (body: () => void, overrides: { concurrent?: boolean, result?: object } = {}) => {
+            const context = task(overrides.concurrent ?? false, overrides.result)
+            await hooks.aroundEach(vi.fn(async () => { body() }), context)
+            return context.task.meta['wdio:runtime']
+        }
+
+        it('adds no listeners when the module is evaluated again in the same process', async () => {
+            const counts = () => RELAYED_EVENTS.map((event) => process.listenerCount(event))
+            const before = counts()
+            vi.resetModules()
+            await import('../src/setup.js')
+            await callbacks.beforeAll({}, { file: fileTask })
+
+            expect(before).toEqual([1, 1, 1, 1])
+            expect(counts()).toEqual(before)
+            const meta = await runInTest(() => { process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never) })
+            expect(meta).toHaveLength(1)
+        })
+
+        it('stores junit properties and allure runtime messages in the task meta', async () => {
+            const message = { type: 'metadata', data: { labels: [] } }
+            const meta = await runInTest(() => {
+                process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+                process.emit('allure:runtimeMessage' as never, message as never)
+            })
+            expect(meta).toEqual([
+                { event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 },
+                { event: 'allure:runtimeMessage', payload: message, retry: 0 }
+            ])
+        })
+
+        it('converts allure:startStep and a status string allure:endStep into timestamped runtime messages', async () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                const meta = await runInTest(() => {
+                    process.emit('allure:startStep' as never, 'step' as never)
+                    vi.setSystemTime(2000)
+                    process.emit('allure:endStep' as never, 'passed' as never)
+                })
+                expect(meta).toEqual([
+                    { event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: 'step', start: 1000 } }, retry: 0 },
+                    { event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { status: 'passed', stop: 2000 } }, retry: 0 }
+                ])
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('keeps status details of an object allure:endStep', async () => {
+            const meta = await runInTest(() => {
+                process.emit('allure:endStep' as never, { status: 'failed', statusDetails: { message: 'boom' } } as never)
+            }) as { payload: { data: object } }[]
+            expect(meta[0].payload.data).toMatchObject({ status: 'failed', statusDetails: { message: 'boom' }, stop: expect.any(Number) })
+        })
+
+        it('tags entries with the current retry attempt', async () => {
+            const meta = await runInTest(() => {
+                process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            }, { result: { retryCount: 2 } }) as { retry: number }[]
+            expect(meta[0].retry).toBe(2)
+        })
+
+        it('isolates concurrent tests', async () => {
+            const first = task(true)
+            const second = task(true)
+            const run = (context: ReturnType<typeof task>, name: string) => hooks.aroundEach(vi.fn(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 5))
+                process.emit('junit:addProperty' as never, { name, value: name } as never)
+            }), context)
+            await Promise.all([run(first, 'a'), run(second, 'b')])
+            expect(first.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'a', value: 'a' } })])
+            expect(second.task.meta['wdio:runtime']).toEqual([expect.objectContaining({ payload: { name: 'b', value: 'b' } })])
+        })
+
+        it('drops calls made outside a test', () => {
+            expect(() => process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)).not.toThrow()
+        })
+
+        it('does not leak a finished test into later calls', async () => {
+            const context = task(false)
+            await hooks.aroundEach(vi.fn(async () => {}), context)
+            process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            expect(context.task.meta).toEqual({})
+        })
+        describe('Allure attachments', () => {
+            const content = Buffer.from([1, 2, 3, 250]).toString('base64')
+            const attachment = (wrapInStep = true) => ({ type: 'attachment_content', data: { name: 'shot', content, encoding: 'base64', contentType: 'image/png', fileExtension: '.png', wrapInStep, timestamp: 7 } })
+            let resultsDir: string
+
+            const configure = async (dir: string | null) => {
+                attachmentDir.value = dir
+                await callbacks.beforeAll({}, { file: fileTask })
+            }
+            const send = (message: unknown) => runInTest(() => { process.emit('allure:runtimeMessage' as never, message as never) }) as Promise<{ payload: any }[]>
+            const pendingFiles = (dir = resultsDir) => fs.existsSync(dir) ? fs.readdirSync(dir) : []
+
+            beforeEach(() => {
+                resultsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-allure-'))
+            })
+            afterEach(() => {
+                fs.rmSync(resultsDir, { recursive: true, force: true })
+            })
+
+            it('writes the bytes into the injected results folder and relays only an attachment_path message', async () => {
+                await configure(resultsDir)
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual({ type: 'attachment_path', data: { name: 'shot', contentType: 'image/png', fileExtension: '.png', wrapInStep: true, timestamp: 7, path: expect.stringContaining(resultsDir) } })
+                expect(fs.readFileSync(entry.payload.data.path).equals(Buffer.from(content, 'base64'))).toBe(true)
+                expect(JSON.stringify(entry.payload)).not.toContain(content)
+                expect((entry as { pendingFile?: string }).pendingFile).toBe(entry.payload.data.path)
+            })
+
+            it('ignores the worker-side reporter list, the launcher decides', async () => {
+                mockConfig.value = { ...mockConfig.value, reporters: [['allure', { outputDir: resultsDir }]] }
+                await configure(null)
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+                expect(pendingFiles()).toEqual([])
+            })
+
+            it('offloads the global variant and leaves other messages inline', async () => {
+                await configure(resultsDir)
+                const step = { type: 'step_start', data: { name: 's', start: 1 } }
+                const entries = await send({ ...attachment(), type: 'global_attachment_content' })
+                expect(entries[0].payload.type).toBe('global_attachment_path')
+                expect((await send(step))[0].payload).toEqual(step)
+            })
+
+            it('keeps the content inline without a warning when no folder is injected', async () => {
+                await configure(null)
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+                expect(entry).not.toHaveProperty('pendingFile')
+                expect(logs.warn).not.toHaveBeenCalled()
+                expect(pendingFiles()).toEqual([])
+            })
+
+            it('keeps the content inline and warns once when the file cannot be written', async () => {
+                const blocker = path.join(resultsDir, 'file')
+                fs.writeFileSync(blocker, '')
+                await configure(path.join(blocker, 'results'))
+                const first = await send(attachment())
+                const second = await send(attachment())
+                expect(first[0].payload).toEqual(attachment())
+                expect(second[0].payload).toEqual(attachment())
+                expect(logs.warn).toHaveBeenCalledTimes(1)
+            })
+
+            it('keeps the content inline and warns once when the worker module cannot be loaded', async () => {
+                vi.doMock('@wdio/allure-reporter/worker', () => { throw new Error('cannot load') })
+                try {
+                    await configure(resultsDir)
+                } finally {
+                    vi.doUnmock('@wdio/allure-reporter/worker')
+                }
+                expect(logs.warn).toHaveBeenCalledTimes(1)
+                expect(logs.warn.mock.calls[0][0]).toContain('Could not load @wdio/allure-reporter/worker')
+                const [entry] = await send(attachment())
+                expect(entry.payload).toEqual(attachment())
+            })
+        })
+
+        it('warns once when a reporter API is called outside a test', () => {
+            process.emit('allure:runtimeMessage' as never, { type: 'step_start', data: { name: 's', start: 1 } } as never)
+            process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never)
+            expect(logs.warn).toHaveBeenCalledTimes(1)
+            expect(logs.warn.mock.calls[0][0]).toContain('Dropped allure:runtimeMessage')
         })
     })
 
