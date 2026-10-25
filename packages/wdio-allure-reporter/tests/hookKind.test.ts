@@ -129,6 +129,23 @@ describe('fixture scope from the hook kind (K31)', () => {
         expect(containers.flatMap((c) => c.afters)).toEqual([])
     })
 
+    // main 1e0534c46 gives the same fixtures: its gate `!hook.parent && !_isGlobalHook(hook)` never returns
+    it.each([['jasmine', null], ['mocha', '']])('keeps the fixtures of main for a %s hook with no parent and no hook kind in an open suite', async (framework, parent) => {
+        const run = createRun(framework)
+        const emit = (type: string, payload: Record<string, unknown>) => run.reporter.emit(type, { type, cid: CID, specs: [SPEC], file: SPEC, ...payload })
+        run.start()
+        run.suite('S', () => {
+            emit('hook:start', { uid: 'h1', title: '"before all" hook', parent })
+            emit('hook:end', { uid: 'h1', title: '"before all" hook', parent, state: 'pass' })
+            run.test('t1')
+            emit('hook:start', { uid: 'h2', title: '"after all" hook', parent })
+            emit('hook:end', { uid: 'h2', title: '"after all" hook', parent, state: 'pass' })
+        })
+        const { results, containers } = await run.end()
+
+        expect(fixturesOf(containers, byName(results, 't1'))).toEqual(['after "after all" hook', 'before "before all" hook'])
+    })
+
     it('keeps an afterEach that runs after a failed afterEach under its test', async () => {
         const run = createRun()
         run.start()
