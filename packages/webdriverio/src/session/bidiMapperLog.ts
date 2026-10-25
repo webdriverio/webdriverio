@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
+import { environment } from '../environment.js'
 
 const log = logger('webdriverio:BidiMapperLogManager')
 
@@ -56,6 +57,12 @@ export class BidiMapperLogManager extends SessionManager {
         // NaN for an unknown version, which does not skip
         const majorVersion = parseInt(browser.capabilities.browserVersion ?? '', 10)
         if (!this.isEnabled() || !browser.isChromium || browser.isMobile || majorVersion < FIRST_SLOW_VERSION) {
+            this.#initialize = Promise.resolve(true)
+            return
+        }
+        // the switch to turn off the fix when it causes a problem
+        if (['1', 'true'].includes(environment.value.variables.WDIO_KEEP_BIDI_MAPPER_LOG ?? '')) {
+            log.info('WDIO_KEEP_BIDI_MAPPER_LOG is set: keep the log of the ChromeDriver BiDi Mapper')
             this.#initialize = Promise.resolve(true)
             return
         }

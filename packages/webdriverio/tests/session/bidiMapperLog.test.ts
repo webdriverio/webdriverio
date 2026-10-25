@@ -57,6 +57,7 @@ describe('BidiMapperLogManager', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
         vi.mocked(log.debug).mockClear()
+        vi.mocked(log.info).mockClear()
         browser = {
             isChromium: true,
             isMobile: false,
@@ -141,6 +142,25 @@ describe('BidiMapperLogManager', () => {
         delete browser.capabilities.browserVersion
         expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
         expect(cdpMethods().filter((method: string) => method === 'Target.sendMessageToTarget')).toHaveLength(2)
+    })
+
+    it('keeps the log when WDIO_KEEP_BIDI_MAPPER_LOG is set', async () => {
+        try {
+            for (const value of ['1', 'true']) {
+                process.env.WDIO_KEEP_BIDI_MAPPER_LOG = value
+                expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+            }
+            expect(browser._bidiHandler.send).not.toBeCalled()
+            expect(log.info).toBeCalledWith(expect.stringContaining('WDIO_KEEP_BIDI_MAPPER_LOG'))
+
+            for (const value of ['0', 'false', '']) {
+                process.env.WDIO_KEEP_BIDI_MAPPER_LOG = value
+                expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+            }
+            expect(cdpMethods().filter((method: string) => method === 'Target.sendMessageToTarget')).toHaveLength(3)
+        } finally {
+            delete process.env.WDIO_KEEP_BIDI_MAPPER_LOG
+        }
     })
 
     it('does nothing in a mobile session', async () => {
