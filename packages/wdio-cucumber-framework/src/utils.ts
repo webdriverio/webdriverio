@@ -80,7 +80,7 @@ const HOOK_KINDS: Record<string, HookKind> = {
 /**
  * The hook kind of a Cucumber hook message; `undefined` when the Cucumber version sends no `type`
  */
-export function hookKindOf(hook?: { type?: string }) {
+export function hookKindOf(hook?: { type?: string }): HookKind | undefined {
     return hook?.type ? HOOK_KINDS[hook.type] : undefined
 }
 

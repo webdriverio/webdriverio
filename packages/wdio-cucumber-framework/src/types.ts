@@ -354,4 +354,4 @@ export interface Payload {
 }
 
 /** The kind of a hook, as `@wdio/reporter` reads it */
-export type HookKind = 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll' | 'beforeStep' | 'afterStep'
+export type HookKind = Frameworks.HookKind

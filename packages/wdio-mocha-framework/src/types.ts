@@ -1,3 +1,5 @@
+import type { Frameworks } from '@wdio/types'
+
 export { default } from 'mocha'
 
 export interface MochaOpts {
@@ -136,7 +138,7 @@ export interface FormattedMessage {
     context?: unknown
     body?: string
     /** the kind of a hook event, as `@wdio/reporter` reads it. @experimental */
-    hookKind?: 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll'
+    hookKind?: Extract<Frameworks.HookKind, 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll'>
     /** the uid of the suite that declares an all-hook. @experimental */
     hookSuiteUid?: string
 }

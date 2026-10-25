@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** The kind of a hook, as a framework sends it in its hook events. @experimental */
+export type HookKind = 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll' | 'beforeStep' | 'afterStep'
+
 export interface Suite {
     type: string
     title: string
