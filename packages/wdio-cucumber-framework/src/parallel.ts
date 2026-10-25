@@ -472,6 +472,8 @@ interface ScenarioTranslator {
     abort: (error: Error) => void
     /** uid of the last test of the scenario (step, or the scenario at scenario level), for `context:end` */
     lastTestUid: () => string
+    /** status of the last attempt under the options (see `getScenarioResult`); `undefined` with no steps */
+    finalStatus: () => messages.TestStepResultStatus | undefined
 }
 
 function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTranslator {
@@ -740,7 +742,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
         reporter.emit('suite:end', formatMessage({ payload }))
     }
-    return { abort, lastTestUid: () => lastTestUid }
+    // the result of the last attempt under the options (see `getScenarioResult`), as a sequential run names it
+    return { abort, lastTestUid: () => lastTestUid, finalStatus: () => getScenarioResult(stepResults, cucumberOpts)?.status }
 }
 
 // ============================================================
@@ -766,8 +769,9 @@ function isFailedResult(
 ): boolean {
     if (r.status === 'rejected') { return true }
     if (cucumberOpts.dryRun) { return false }
-    const { status } = r.value
-    return status === 'FAILED' || status === 'AMBIGUOUS' ||
+    const { status, strictPendingLabel } = r.value
+    // a pending step or hook under strict also after an ignored undefined step, which Cucumber orders worse
+    return status === 'FAILED' || status === 'AMBIGUOUS' || Boolean(strictPendingLabel) ||
         (status === 'UNDEFINED' && !cucumberOpts.ignoreUndefinedDefinitions) ||
         (status === 'PENDING' && cucumberOpts.strict)
 }
@@ -889,7 +893,7 @@ async function runScenario(
         }
         const duration = Date.now() - testStart
 
-        const strictPendingLabel = cucumberOpts.strict && status === 'PENDING'
+        const strictPendingLabel = cucumberOpts.strict && translator.finalStatus() === 'PENDING'
             ? scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle)
             : undefined
         return { status, name: pickle.name, duration, ...(strictPendingLabel ? { strictPendingLabel } : {}) }

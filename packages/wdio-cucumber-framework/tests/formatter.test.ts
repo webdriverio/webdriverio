@@ -562,6 +562,20 @@ describe('CucumberFormatter', () => {
             expect(formatter['failedCount']).toBe(1)
         })
 
+        it('names a scenario whose pending After hook comes after an ignored undefined step', () => {
+            const warn = vi.spyOn(logger('CucumberFormatter'), 'warn').mockClear()
+            const { eventBroadcaster, formatter } = stepLevelFormatter({ _strict: true, _ignoreUndefinedDefinitions: true })
+            stepEvents(eventBroadcaster, { status: 'UNDEFINED' })
+            const hook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(hook, { testStepId: '27' })
+            Object.assign(hook.testStepResult, { status: 'PENDING' })
+            eventBroadcaster.emit('envelope', { testStepFinished: hook })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(formatter['failedCount']).toBe(1)
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('1 scenario has a pending step or hook: "Get size of an element"'))
+        })
+
         it.each([true, false])('names the pending scenarios in a warning at the end of the run, only with strict (%s)', (strict) => {
             const warn = vi.spyOn(logger('CucumberFormatter'), 'warn').mockClear()
             const { eventBroadcaster } = stepLevelFormatter({ _strict: strict })

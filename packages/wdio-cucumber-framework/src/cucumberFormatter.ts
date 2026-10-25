@@ -27,7 +27,6 @@ import type {
     Hook,
     StepDefinition
 } from '@cucumber/messages'
-import { getWorstTestStepResult } from '@cucumber/messages'
 
 import {
     addKeywordToStep,
@@ -606,7 +605,7 @@ export default class CucumberFormatter extends Formatter {
         const uri = doc?.uri
         const feature = doc?.feature
         this.updateCurrentPickle({ uri, feature, scenario })
-        if (!retried && this.strict && results.length && getWorstTestStepResult(results).status === Status.PENDING) {
+        if (!retried && this.strict && finalResult?.status === Status.PENDING) {
             this._strictPendingScenarios.push(scenarioLabel(uri ?? scenario.uri, feature, scenario))
         }
 

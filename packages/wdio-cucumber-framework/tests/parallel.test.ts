@@ -1782,6 +1782,21 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(result).toBe(strict ? 1 : 0)
     })
 
+    // as a sequential run, which counts each result that fails under the options
+    test('strict + ignoreUndefinedDefinitions: a pending After hook after an ignored undefined step fails the run and is named', async () => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary(),
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => 'pending', id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn').mockClear()
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: ['has no definition'] }])],
+            defaultCucumberOpts({ scenarioLevelReporter: false, strict: true, ignoreUndefinedDefinitions: true }), supportCodeLibrary as never)
+
+        expect(result).toBe(1)
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('1 scenario has a pending step or hook: "s1"'))
+    })
+
     test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
         const browser = mockBrowser({ contexts: ['ctx-a'] })
         await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [] }])], defaultCucumberOpts({ scenarioLevelReporter: false }))
