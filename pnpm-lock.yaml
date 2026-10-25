@@ -680,8 +680,8 @@ importers:
         specifier: ^14.2.3
         version: 14.2.4(@types/node@22.20.5)
       normalize-package-data:
-        specifier: ^8.0.0
-        version: 8.0.0
+        specifier: ^9.0.0
+        version: 9.0.0
       read-package-up:
         specifier: ^12.0.0
         version: 12.0.0
@@ -12033,6 +12033,10 @@ packages:
   normalize-package-data@8.0.0:
     resolution: {integrity: sha512-RWk+PI433eESQ7ounYxIp67CYuVsS1uYSonX3kA6ps/3LWfjVQa/ptEg6Y3T6uAMq1mWpX9PQ+qx+QaHpsc7gQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
+
+  normalize-package-data@9.0.0:
+    resolution: {integrity: sha512-la34cHOCAT6itNOYCvPi40XP8r0y6OHuNkooOfnfFUHdgy5MBw665qq5xsuS02AEC7WPQvhwvb7E9PI1gipplw==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -27221,6 +27225,12 @@ snapshots:
   normalize-package-data@8.0.0:
     dependencies:
       hosted-git-info: 9.0.2
+      semver: 7.8.5
+      validate-npm-package-license: 3.0.4
+
+  normalize-package-data@9.0.0:
+    dependencies:
+      hosted-git-info: 10.1.1
       semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
