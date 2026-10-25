@@ -56,6 +56,7 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
+    "minimatch": "^10.2.6",
     "read-package-up": "^12.0.0",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",
