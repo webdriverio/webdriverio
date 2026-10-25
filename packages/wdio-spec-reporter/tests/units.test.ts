@@ -5,7 +5,7 @@ import SpecReporter from '../src/index.js'
 // the real base reporter: its tree, units and hook owners, from the events that the frameworks send
 const newReporter = (options: Record<string, unknown> = {}) => new SpecReporter({
     color: false, showPreface: false, writeStream: { write: vi.fn() }, ...options
-})
+} as ConstructorParameters<typeof SpecReporter>[0])
 // one item for each printed line (a console log item has its own line breaks)
 const display = (reporter: SpecReporter) => reporter.getResultDisplay('').join('\n').split('\n')
 

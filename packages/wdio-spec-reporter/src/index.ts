@@ -16,13 +16,14 @@ interface CapabilitiesWithSessionId extends WebdriverIO.Capabilities {
 
 export default class SpecReporter extends WDIOReporter {
     private _suiteUids = new Set()
-    private _indents = 0
     private _suiteIndents: Record<string, number> = {}
     private _orderedSuites: SuiteStats[] = []
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs = new Map<string, string>()
-    private _pendingReasons: string[] = []
+    /** the console logs of a `beforeAll` / `afterAll` with no context (K28), by hook: Jasmine hook uids repeat */
+    private _hookLogs = new Map<HookStats, string>()
+    private _openAllHooks: HookStats[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
@@ -73,8 +74,12 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    const test = this.getContextTest()
-                    if (test && !test.end) {
+                    // as the commands: the innermost open beforeAll / afterAll with no context, else the test
+                    const hook = this.getContextId() ? undefined : this._openAllHooks.at(-1)
+                    const test = hook ? undefined : this.getContextTest()
+                    if (hook) {
+                        this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
+                    } else if (test && !test.end) {
                         this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
                     }
                 }
@@ -101,16 +106,12 @@ export default class SpecReporter extends WDIOReporter {
         this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
-        if (suite.type === 'feature') {
-            this._indents = 0
-            this._suiteIndents[suite.uid] = this._indents
-        } else {
-            this._suiteIndents[suite.uid] = ++this._indents
-        }
+        // the place of the suite in the tree, below its feature, not the suites that started before it (R1)
+        const path = this.pathOf(suite)
+        this._suiteIndents[suite.uid] = suite.type === 'feature' ? 0 : path.length - path.findLastIndex((parent) => parent.type === 'feature')
     }
 
     onSuiteEnd (suite?: SuiteStats) {
-        this._indents--
         this._attemptCounts.delete(this._suiteKey(suite?.uid))
     }
 
@@ -136,7 +137,14 @@ export default class SpecReporter extends WDIOReporter {
         this._attemptCounts.set(key, counts)
     }
 
+    onHookStart (hook: HookStats) {
+        if (!hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')) {
+            this._openAllHooks.push(hook)
+        }
+    }
+
     onHookEnd (hook: HookStats) {
+        this._openAllHooks = this._openAllHooks.filter((open) => open !== hook)
         this.printCurrentStats(hook)
         if (hookCountsAsFailure(hook)) {
             this._count('failed', hook)
@@ -170,13 +178,11 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason as string)
         this._count('skipped', testStat)
     }
 
     onTestPending(testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason as string)
         this._count('pending', testStat)
     }
 
@@ -380,7 +386,7 @@ export default class SpecReporter extends WDIOReporter {
                 }
                 return accumulator
             }, [] as (HookStats | TestStats)[]).filter((item) => Object.keys(item).length > 0).filter((item) => {
-                return item.type === 'test' || Boolean(item.error)
+                return item.type === 'test' || Boolean(item.error) || Boolean(this._hookLogs.get(item as HookStats))
             })
         ]
     }
@@ -438,7 +444,8 @@ export default class SpecReporter extends WDIOReporter {
                     ? this._chalk.yellow(`(${test.retries}x retries)`)
                     : ''
                 const testTitle = `${test.title} ${testRetryAnnotation}`
-                const state = test.state as State
+                // a hook shown for its console logs has no state when it passed
+                const state = (test.state ?? (test.type === 'hook' && !test.error ? State.PASSED : undefined)) as State
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
@@ -464,8 +471,8 @@ export default class SpecReporter extends WDIOReporter {
                     }
                 }
 
-                // print pending reasons
-                const pendingItem = this._pendingReasons.shift()
+                // print the pending reason of this test (R3)
+                const pendingItem = (test as TestStats).pendingReason
                 if (pendingItem) {
                     output.push('')
                     output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
@@ -473,7 +480,7 @@ export default class SpecReporter extends WDIOReporter {
                 }
 
                 // print console output
-                const logItem = this._consoleLogs.get(test.uid)
+                const logItem = test.type === 'hook' ? this._hookLogs.get(test as HookStats) : this._consoleLogs.get(test.uid)
                 if (logItem) {
                     output.push('')
                     output.push(testIndent.repeat(2) + '.........Console Logs.........')
@@ -585,7 +592,18 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         this._orderedSuites = []
-        for (const uid of this._suiteUids) {
+        // the order of the tree, first place of each uid: in parallel mode suites (Cucumber: features) start first (R1)
+        const treeUids = new Set<unknown>()
+        const walk = (parent: SuiteStats) => (parent.suites ?? []).forEach((child) => {
+            if (this._suiteUids.has(child.uid)) {
+                treeUids.add(child.uid)
+            }
+            walk(child)
+        })
+        if (this.currentSuites[0]) {
+            walk(this.currentSuites[0])
+        }
+        for (const uid of new Set([...treeUids, ...this._suiteUids])) {
             for (const [suiteUid, suite] of Object.entries(this.suites)) {
                 if (suiteUid !== uid) {
                     continue
@@ -609,8 +627,12 @@ export default class SpecReporter extends WDIOReporter {
             }
             // a hook that the framework skipped is not shown
             const shown = (hook: HookStats) => hook.state && hook.state !== 'skipped'
-            const beforeAllHooks = rootSuite.hooks.filter((hook) => shown(hook) && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
-            const afterAllHooks = rootSuite.hooks.filter((hook) => shown(hook) && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            // a failed root hook, or a root beforeAll / afterAll with console logs (K28)
+            const rootHooks = (kind: 'before' | 'after') => rootSuite.hooks.filter((hook) => this._hookLogs.get(hook)
+                ? hook.hookKind === `${kind}All`
+                : shown(hook) && hook.title.startsWith(`"${kind}`) && hook.title.endsWith('"{root}"'))
+            const beforeAllHooks = rootHooks('before')
+            const afterAllHooks = rootHooks('after')
             this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
                 hooks: beforeAllHooks,
                 hooksAndTests: beforeAllHooks
