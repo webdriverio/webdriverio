@@ -41,7 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     #contextIdResolver?: () => string | undefined
     #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
     #processListeners: [string, (...args: unknown[]) => void][] = []
-    // parallel units stay until runner:end, for late events after context:end
+    // the last unit of each context stays until runner:end, for late events after context:end
     #units = new Map<string, Unit>()
     // the unit with no context: a sequential run, or Cucumber failFast skip scenarios
     #seqUnit?: Unit
@@ -483,8 +483,9 @@ export default class WDIOReporter extends EventEmitter {
 
     /**
      * The unit of the caller: in an `on*` hook the unit of the event, else the unit of the caller's parallel-mode
-     * context, else the sequential unit (also after its end). With `contextId`: the unit of that context, until
-     * `runner:end`. After the first parallel context, code outside every context gets `undefined`.
+     * context, else the sequential unit (also after its end). With `contextId`: the last unit of that context, until
+     * `runner:end`. After the first parallel context, code outside every context gets `undefined`. Runner and suite
+     * events (except a Cucumber scenario) have no unit.
      * @experimental the name and the result may change
      */
     getContextUnit(contextId?: string): ReporterUnit | undefined {
@@ -582,8 +583,10 @@ export default class WDIOReporter extends EventEmitter {
 
     #unitForTestStart(stat: TestStats, contextId: string | undefined): Unit {
         const seq = this.#seqUnit
+        const known = contextId ? this.#units.get(contextId) : undefined
+        // a test:start in a context that ended is a new unit (Vitest bail reports each test again)
         const unit = contextId
-            ? this.#contextUnit(contextId, stat)
+            ? known && !known.ended ? known : this.#openUnit(contextId, stat)
             : seq && seq.takesTest(stat) ? seq : this.#openUnit(undefined, stat)
         if (!unit.isScenario) {
             if (unit.retriedTest) {
@@ -679,7 +682,7 @@ export default class WDIOReporter extends EventEmitter {
      */
     onContextEnd(_payload: ContextEnd) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
-    /** A unit starts: at the first event of a parallel context, or at a sequential test or scenario. @experimental */
+    /** A unit starts: at the first event of a parallel context (a `test:start` in an ended context starts a new one), or at a sequential test or scenario. @experimental */
     onUnitStart(_unit: ReporterUnit) { }
     /** An attempt of a unit failed and runs again (`test:retry`, `suite:retry`), before the base clears its stats. @experimental */
     onUnitRetry(_unit: ReporterUnit) { }
