@@ -125,3 +125,26 @@ describe('Vitest: a failed afterEach that is the failure of its test', () => {
     }
 })
 
+// onHookStart skips this hook, so onHookEnd must skip it too, also when another hook is open
+it('does not close another open hook with a hook that its test owns', async () => {
+    const outputDir = temporaryDirectory()
+    const reporter = new AllureReporter({ outputDir, writeStream: { write: () => true } } as any)
+    const base = { cid: CID, specs: [SPEC], file: SPEC, parent: 'retry', parentUid: 'suite-0-0-0' }
+    const owned = { ...base, uid: 'test-0-0-0-afterEach', title: '"after each" hook for "t"', fullTitle: 'retry "after each" hook for "t"', failedTestUid: 'test-0-0-0' }
+    const other = { ...base, uid: 'hook-other', title: '"after all" hook for retry', fullTitle: 'retry "after all" hook' }
+    reporter.emit('runner:start', {
+        cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'vitest' },
+        isMultiRemote: false, sessionId: 'session', instanceOptions: {}, retry: 0
+    })
+    reporter.emit('suite:start', { cid: CID, specs: [SPEC], file: SPEC, uid: 'suite-0-0-0', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null })
+    reporter.emit('hook:start', { type: 'hook:start', ...other })
+    reporter.emit('hook:start', { type: 'hook:start', ...owned })
+    reporter.emit('hook:end', { type: 'hook:end', ...owned, state: 'fail', error })
+    reporter.emit('hook:end', { type: 'hook:end', ...other, state: 'pass' })
+    reporter.emit('suite:end', { cid: CID, specs: [SPEC], file: SPEC, uid: 'suite-0-0-0', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null })
+    reporter.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
+    await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+    const results = getResults(outputDir).results as { name: string, status: string }[]
+    expect(results.map(({ name, status }) => `${name}=${status}`)).toEqual([])
+})
+

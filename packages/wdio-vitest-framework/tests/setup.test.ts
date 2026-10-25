@@ -348,6 +348,12 @@ describe('setup', () => {
                 })
             })
 
+            // ctx.skip() in a beforeEach stops the hook, so Vitest leaves it in the 'run' state with no error
+            it('records a beforeEach that skipped the test as passed, not failed', async () => {
+                const payload = await attemptWith({}, { state: 'skip', hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [] })
+                expect(payload.hooks).toEqual({ beforeEach: { state: 'pass' }, afterEach: { state: 'pass' } })
+            })
+
             it('adds no hooks field when the test has no hooks', async () => {
                 expect(await attemptWith({}, {})).not.toHaveProperty('hooks')
             })
