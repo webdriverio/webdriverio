@@ -198,4 +198,17 @@ describe('parameters of a failed root before all (U1)', () => {
             expect(fixturesOf(containers, result), result.name).toContain(`before ${ROOT_BEFORE}`)
         }
     })
+
+    it('give the result of a failed root after all the browser parameter, as on main', async () => {
+        const run = createRun()
+        run.start()
+        run.suite('A', () => run.test('t1'))
+        run.hook('afterAll', new Error('root after fails'))
+        const { results } = await run.end()
+
+        expect(results.map((r) => [r.name, r.status, params(r)]).sort()).toEqual([
+            [ROOT_AFTER, 'broken', ['browser=chrome']],
+            ['t1', 'passed', ['browser=chrome']],
+        ])
+    })
 })
