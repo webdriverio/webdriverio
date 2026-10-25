@@ -777,6 +777,55 @@ describe('WDIOReporter Listeners', () => {
         })
     })
 
+    // Cucumber at step level: suite:retry starts the next attempt of a scenario and clears its steps
+    describe('suite:retry removes the counts of the attempt that it clears', () => {
+        const step = (uid: string, result: 'pass' | 'fail' | 'retry' | 'skip' | 'pending', contextId?: string) => {
+            const payload = { uid, title: uid, parentUid: contextId ? `S-${contextId}` : undefined, contextId }
+            reporter.emit('test:start', payload)
+            reporter.emit(`test:${result}`, { ...payload, ...(result === 'pending' ? { state: 'pending' } : {}) })
+            reporter.emit('test:end', payload)
+        }
+        const scenario = (uid: string, event: 'suite:start' | 'suite:retry', contextId?: string) =>
+            reporter.emit(event, { uid, title: uid, parentUid: contextId ? 'F' : undefined, contextId })
+
+        beforeEach(() => {
+            reporter.emit('suite:start', { uid: 'F', title: 'feature' })
+        })
+
+        it('keeps only the steps of the last attempt', () => {
+            scenario('S', 'suite:start')
+            step('s1', 'pass')
+            step('s2', 'retry')
+            step('s3', 'skip')
+            scenario('S', 'suite:retry')
+            step('s1', 'pass')
+            step('s2', 'pass')
+            step('s3', 'pass')
+            expect(reporter.counts).toMatchObject({ tests: 3, passes: 3, failures: 0, skipping: 0, pending: 0 })
+        })
+
+        it('removes a failure of an attempt that an After hook made Cucumber retry', () => {
+            scenario('S', 'suite:start')
+            step('s1', 'pass')
+            step('s2', 'fail')
+            step('s3', 'pending')
+            scenario('S', 'suite:retry')
+            step('s1', 'pass')
+            expect(reporter.counts).toMatchObject({ tests: 1, passes: 1, failures: 0, skipping: 0, pending: 0 })
+        })
+
+        it('keeps the counts of the scenario of another window', () => {
+            scenario('S-a', 'suite:start', 'a')
+            scenario('S-b', 'suite:start', 'b')
+            step('a1', 'retry', 'a')
+            step('b1', 'fail', 'b')
+            step('b2', 'skip', 'b')
+            scenario('S-a', 'suite:retry', 'a')
+            step('a1', 'pass', 'a')
+            expect(reporter.counts).toMatchObject({ tests: 3, passes: 1, failures: 1, skipping: 1 })
+        })
+    })
+
     describe('handling test:end', () => {
 
         const emitEvents = () => {

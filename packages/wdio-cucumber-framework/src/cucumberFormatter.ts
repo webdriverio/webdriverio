@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { getFeatureStack, getStepResult, withAmbiguousMessage } from './utils.js'
+import { getFeatureStack, getStepResult, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -68,11 +68,18 @@ export default class CucumberFormatter extends Formatter {
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
+    private strict: boolean
+    private retry: number
+    private retryTagFilter: string
     private rootDir?: string
 
     private failedCount = 0
     /** `failedCount` when the attempt started: a retried attempt does not count */
     private _failedCountAtAttemptStart = 0
+    /** the retries that Cucumber gives the scenario that runs (`retry`, `retryTagFilter`) */
+    private _retries = 0
+    /** the scenarios that make the run fail with `strict` because their worst result is pending */
+    private _strictPendingScenarios: string[] = []
 
     private _featureStart?: Date
     private _scenarioStart?: Date
@@ -135,6 +142,9 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+        this.strict = options.parsedArgvOptions._strict ?? false
+        this.retry = options.parsedArgvOptions._retry ?? 0
+        this.retryTagFilter = options.parsedArgvOptions._retryTagFilter ?? ''
         this.rootDir = options.parsedArgvOptions._rootDir
     }
 
@@ -206,7 +216,8 @@ export default class CucumberFormatter extends Formatter {
             error.stack = result.message
         }
 
-        if (result.status === Status.FAILED) {
+        const strictPending = result.status === Status.PENDING && this.strict
+        if (result.status === Status.FAILED || strictPending) {
             this.failedCount++
         }
 
@@ -241,12 +252,15 @@ export default class CucumberFormatter extends Formatter {
                 isStep: Boolean(step),
                 ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
                 failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+                strict: this.strict,
                 featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
         )
         if (failed) {
             this.failedCount++
         }
+        // Cucumber retries an attempt with a FAILED result: the step ends as a retry, the scenario starts again
+        const stepRetried = Boolean(step) && result.status === Status.FAILED && (this._currentTestCase?.attempt ?? 0) < this._retries
 
         const common = {
             title: title,
@@ -280,8 +294,8 @@ export default class CucumberFormatter extends Formatter {
         if (titleSuffix) {
             payload.title += titleSuffix
         }
-        this.emit(retried ? 'test:retry' : 'test:' + state, payload)
-        // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried attempt has none)
+        this.emit(retried || stepRetried ? 'test:retry' : 'test:' + state, payload)
+        // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried scenario attempt has none)
         if (!retried) {
             this.emit('test:end', payload)
         }
@@ -336,6 +350,7 @@ export default class CucumberFormatter extends Formatter {
 
     onTestCaseStarted(testcase: TestCaseStarted) {
         this._currentTestCase = testcase
+        this._retries = 0
 
         const tc = this._testCases.find((tc) => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(
@@ -344,6 +359,10 @@ export default class CucumberFormatter extends Formatter {
         /* istanbul ignore if */
         if (!scenario) {
             return
+        }
+        // as Cucumber (test_case_runner.js): an attempt is retried while `attempt < retries`
+        if (this.retry) {
+            this._retries = retriesForPickle(scenario, { retry: this.retry, retryTagFilter: this.retryTagFilter }) ?? 0
         }
 
         const doc = this._gherkinDocEvents.find(
@@ -577,6 +596,7 @@ export default class CucumberFormatter extends Formatter {
         const finalResult = getScenarioResult(results, {
             ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
             failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+            strict: this.strict,
         })
 
         const doc = this._gherkinDocEvents.find(
@@ -585,6 +605,9 @@ export default class CucumberFormatter extends Formatter {
         const uri = doc?.uri
         const feature = doc?.feature
         this.updateCurrentPickle({ uri, feature, scenario })
+        if (!retried && this.strict && finalResult?.status === Status.PENDING) {
+            this._strictPendingScenarios.push(scenarioLabel(uri ?? scenario.uri, feature, scenario))
+        }
 
         const payload = {
             uid: scenario.id,
@@ -612,6 +635,9 @@ export default class CucumberFormatter extends Formatter {
         delete this._currentTestCase
 
         this.eventEmitter.emit('getFailedCount', this.failedCount)
+        if (this._strictPendingScenarios.length) {
+            log.warn(strictPendingWarning(this._strictPendingScenarios))
+        }
 
         if (this.usesSpecGrouping()) {
             const payload = {

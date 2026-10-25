@@ -424,11 +424,17 @@ export class CucumberAdapter {
             }
 
             const runConfiguration = await this._loadRunConfiguration(environment)
+            const { runtime, formats } = runConfiguration
 
             const { success } = await runCucumber(
                 {
                     ...runConfiguration,
                     support: supportCodeLibrary || runConfiguration.support,
+                    // the values that Cucumber runs with (profiles, file): a retried attempt, a pending step under strict
+                    formats: {
+                        ...formats,
+                        options: { ...formats.options, _retry: runtime.retry, _retryTagFilter: runtime.retryTagFilter, _strict: runtime.strict },
+                    },
                 },
                 environment
             )

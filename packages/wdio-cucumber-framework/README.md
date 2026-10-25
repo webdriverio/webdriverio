@@ -90,7 +90,7 @@ Example: `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
 
 <Option type="Boolean" default="false">
 
-Fail the run on a pending step. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
+Fail the run on a pending step. As in Cucumber, the reporters still show the step as pending, and the worker logs a warning that names the scenarios with a pending step or hook. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
 
 </Option>
 

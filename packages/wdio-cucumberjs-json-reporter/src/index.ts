@@ -354,6 +354,16 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     }
 
     /**
+     * The failed step of an attempt that Cucumber retries (`onSuiteRetry` then clears the steps of the attempt)
+     */
+    public onTestRetry(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
+        this.updateStepStatus(payload)
+    }
+
+    /**
      * The skippe step
      */
     public onTestSkip(payload: TestStats): void {

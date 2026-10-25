@@ -54,6 +54,8 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    scenarioLabel,
+    strictPendingWarning,
     withAmbiguousMessage,
 } from './utils.js'
 
@@ -435,6 +437,8 @@ interface ScenarioTranslatorParams {
     /** `undefined` for a scenario that runs in skip mode after a failFast stop, with no window */
     contextId: string | undefined
     supportCode: SupportCodeMessages
+    /** the retries that Cucumber gives the scenario (`retry`, `retryTagFilter`) */
+    retries: number
 }
 
 interface SupportCodeMessages {
@@ -468,13 +472,15 @@ interface ScenarioTranslator {
     abort: (error: Error) => void
     /** uid of the last test of the scenario (step, or the scenario at scenario level), for `context:end` */
     lastTestUid: () => string
+    /** status of the last attempt under the options (see `getScenarioResult`); `undefined` with no steps */
+    finalStatus: () => messages.TestStepResultStatus | undefined
 }
 
 function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTranslator {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
         gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
-        scenarioIndex, contextId, supportCode,
+        scenarioIndex, contextId, supportCode, retries,
     } = params
 
     const uri = gherkinDocument.uri || ''
@@ -485,6 +491,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
     let testStart: Date | undefined
     let stepStart: Date | undefined
     let stepResults: messages.TestStepResult[] = []
+    let attempt = 0
     let scenarioOpen = false
     let openStep: Record<string, unknown> | undefined
     // a scenario with no steps has no test: its window ends with the uid of the scenario
@@ -543,7 +550,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
         // the event stream balanced (the final attempt closes with `suite:end`).
-        const isRetry = typeof started.attempt === 'number' && started.attempt > 0
+        attempt = started.attempt ?? 0
+        const isRetry = attempt > 0
         reporter.emit(
             scenarioLevel ? 'test:start' : (isRetry ? 'suite:retry' : 'suite:start'),
             formatMessage({
@@ -616,10 +624,13 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                 isStep: true,
                 ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
                 failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+                strict: cucumberOpts.strict,
                 featureStack: () => getFeatureStack(uri, feature, pickle, step),
             }
         )
         const passed = ['pass', 'skip'].includes(state)
+        // Cucumber retries an attempt with a FAILED result (test_case_runner.js): the step ends as a retry
+        const retried = result.status === 'FAILED' && attempt < retries
 
         const payload = {
             ...buildStepPayload(uri, feature, pickle, step as ReporterStep, {
@@ -634,7 +645,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             parentUid: scenarioUID,
         }
         payload.title += titleSuffix
-        reporter.emit(`test:${state}`, formatMessage({ payload }))
+        reporter.emit(`test:${retried ? 'retry' : state}`, formatMessage({ payload }))
         // as in a sequential run: the result, then the end of the step (also in an attempt that is retried)
         reporter.emit('test:end', formatMessage({ payload }))
         openStep = undefined
@@ -651,6 +662,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         isStep: false,
         ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
         failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+        strict: cucumberOpts.strict,
         featureStack: () => getFeatureStack(uri, feature, pickle),
     })
 
@@ -730,14 +742,19 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
         reporter.emit('suite:end', formatMessage({ payload }))
     }
-    return { abort, lastTestUid: () => lastTestUid }
+    // the result of the last attempt under the options (see `getScenarioResult`), as a sequential run names it
+    return { abort, lastTestUid: () => lastTestUid, finalStatus: () => getScenarioResult(stepResults, cucumberOpts)?.status }
 }
 
 // ============================================================
 // Scenario execution
 // ============================================================
 
-type ScenarioResult = { status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number }
+type ScenarioResult = {
+    status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number
+    /** only for a pending scenario under `strict`: its name in the warning (see `scenarioLabel`) */
+    strictPendingLabel?: string
+}
 
 /**
  * Mirrors Cucumber's shouldCauseFailure (runtime/helpers.js) plus WDIO's
@@ -752,8 +769,9 @@ function isFailedResult(
 ): boolean {
     if (r.status === 'rejected') { return true }
     if (cucumberOpts.dryRun) { return false }
-    const { status } = r.value
-    return status === 'FAILED' || status === 'AMBIGUOUS' ||
+    const { status, strictPendingLabel } = r.value
+    // a pending step or hook under strict also after an ignored undefined step, which Cucumber orders worse
+    return status === 'FAILED' || status === 'AMBIGUOUS' || Boolean(strictPendingLabel) ||
         (status === 'UNDEFINED' && !cucumberOpts.ignoreUndefinedDefinitions) ||
         (status === 'PENDING' && cucumberOpts.strict)
 }
@@ -824,6 +842,9 @@ async function runScenario(
 
     const execute = async () => {
         const scenarioBroadcaster = new EventEmitter()
+        const skip = runtimeOptions.dryRun || !allocation
+        // Cucumber gives a skipped scenario no retry (test_case_runner.js)
+        const retries = skip ? 0 : retriesForPickle(pickle, runtimeOptions)
 
         const translator = wireScenarioTranslator({
             broadcaster: scenarioBroadcaster,
@@ -839,6 +860,7 @@ async function runScenario(
             scenarioIndex: index,
             contextId,
             supportCode,
+            retries,
         })
 
         // skip: dryRun mirrors Cucumber's Runtime (runtime/index.js)
@@ -848,8 +870,8 @@ async function runScenario(
             newId: IdGenerator.uuid(),
             pickle,
             testCase,
-            retries: retriesForPickle(pickle, runtimeOptions),
-            skip: runtimeOptions.dryRun || !allocation,
+            retries,
+            skip,
             filterStackTraces: true,
             supportCodeLibrary,
             worldParameters: runtimeOptions.worldParameters,
@@ -871,7 +893,10 @@ async function runScenario(
         }
         const duration = Date.now() - testStart
 
-        return { status, name: pickle.name, duration }
+        const strictPendingLabel = cucumberOpts.strict && translator.finalStatus() === 'PENDING'
+            ? scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle)
+            : undefined
+        return { status, name: pickle.name, duration, ...(strictPendingLabel ? { strictPendingLabel } : {}) }
     }
     return contextId ? parallelStore.run(contextId, execute) : execute()
 }
@@ -1157,6 +1182,10 @@ async function runParallel(params: {
         }
     }
     const hookFailures = Number(!beforeAllOk) + Number(!afterAllOk)
+    const strictPending = allResults.flatMap((r) => r.status === 'fulfilled' && r.value.strictPendingLabel ? [r.value.strictPendingLabel] : [])
+    if (strictPending.length) {
+        log.warn(strictPendingWarning(strictPending))
+    }
 
     log.info(
         `[Parallel] ${allPickles.length} scenarios: ${passed} passed, ${failed} failed, ${skipped} skipped in ${totalDuration}ms`
