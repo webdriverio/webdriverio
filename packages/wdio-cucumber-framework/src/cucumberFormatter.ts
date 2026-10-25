@@ -658,6 +658,8 @@ export default class CucumberFormatter extends Formatter {
         if (result.status !== Status.FAILED) {
             return
         }
+        // the exit code of a run with `ignoreUndefinedDefinitions` (index.ts)
+        this.failedCount++
         const hook = this._hookEvent.find(({ id }) => id === this._testRunHooks.get(testRunHookStartedId))
         // grouped specs start a feature at its first scenario: a failed BeforeAll comes before any
         if (this.usesSpecGrouping() && !this._currentDoc.uri) {

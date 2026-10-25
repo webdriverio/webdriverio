@@ -44,6 +44,15 @@ const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
 
+/**
+ * Cucumber writes its warnings (for example about `requireModule`) for its own CLI: WebdriverIO loads the
+ * support code itself, so they would be wrong in every worker
+ */
+const discardedOutput = (cwd: string): IRunEnvironment => {
+    const discarded = new Writable({ write(_chunk, _encoding, callback) { callback() } })
+    return { cwd, stderr: discarded, stdout: discarded }
+}
+
 // the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
 const CUCUMBER_VALUES = [
     'backtrace', 'dryRun', 'failFast', 'forceExit', 'import', 'language', 'name', 'order',
@@ -234,19 +243,29 @@ export class CucumberAdapter {
         this._cucumberOpts.requireModule = [...profileModules, ...userModules] as string[]
     }
 
-    async init() {
-        if (this._generateSkipTags) {
-            // wrap the user expression so an `or` in it can't escape the generated `and` conditions
-            const userTags = this._cucumberOpts.tags ? [`(${this._cucumberOpts.tags})`] : []
-            this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
-        }
-
+    /**
+     * the values that Cucumber runs with (cucumberOpts, profiles, config file), and the Gherkin parser of its language
+     */
+    private async _resolveCucumberValues() {
         const { useConfiguration } = await loadConfiguration(
             { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
-            { cwd: this._cwd }
+            discardedOutput(this._cwd)
         )
         this._useCucumberValues(useConfiguration)
         this._createGherkinParser()
+    }
+
+    async init() {
+        // first: the skip tags parse the feature files in the language of the profile
+        await this._resolveCucumberValues()
+        if (this._generateSkipTags) {
+            // wrap the user expression so an `or` in it can't escape the generated `and` conditions
+            const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
+            this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
+            if (this._generatedTags) {
+                await this._resolveCucumberValues()
+            }
+        }
 
         // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
         if (this._cucumberOpts.order === 'random') {
@@ -390,7 +409,7 @@ export class CucumberAdapter {
         // its line numbers in `specs` for Cucumber's line filter
         const featurePaths = [...new Set(this._specs.map((spec) => spec.replace(/(:\d+)+$/, '')))]
         const gherkinDocuments = this.getGherkinDocuments([featurePaths])
-        const { sources, runtime } = await this._loadRunConfiguration({ cwd: this._cwd })
+        const { sources, runtime } = await this._loadRunConfiguration(discardedOutput(this._cwd))
 
         try {
             return await runParallelCucumber({

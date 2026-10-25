@@ -522,9 +522,10 @@ describe('CucumberFormatter', () => {
     })
 
     describe('failed BeforeAll / AfterAll (K22)', () => {
+        let lastFormatter: CucumberFormatter
         const formatterFor = () => {
             const eventBroadcaster = new EventEmitter()
-            new CucumberFormatter({
+            lastFormatter = new CucumberFormatter({
                 eventBroadcaster,
                 parsedArgvOptions: { _reporter: wdioReporter, _cid: cid, _specs: specs, _eventEmitter: new EventEmitter(), _scenarioLevelReporter: false, _tagsInTitle: false, _ignoreUndefinedDefinitions: false, _failAmbiguousDefinitions: true, _rootDir: '/some/path/to' },
             } as any)
@@ -550,6 +551,15 @@ describe('CucumberFormatter', () => {
             const hook = payloadOf('hook:end')
             expect(hook).toMatchObject({ type: 'hook', title: 'BeforeAll (steps.ts:23)', state: 'failed', parentUid: payloadOf('suite:start').uid })
             expect(hook.error.message).toBe('BeforeAll fails')
+        })
+
+        // the exit code of a sequential run with ignoreUndefinedDefinitions comes from failedCount
+        it('counts a failed BeforeAll as a failure of the run', () => {
+            const eventBroadcaster = formatterFor()
+            eventBroadcaster.emit('envelope', { gherkinDocument })
+            eventBroadcaster.emit('envelope', { testRunStarted })
+            runHook(eventBroadcaster, 'BEFORE_TEST_RUN', 'FAILED')
+            expect(lastFormatter['failedCount']).toBe(1)
         })
 
         it('sends a failed AfterAll before the end of the feature', () => {

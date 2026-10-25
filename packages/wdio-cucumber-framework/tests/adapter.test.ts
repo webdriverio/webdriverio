@@ -422,6 +422,25 @@ describe('CucumberAdapter', () => {
             expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
         })
 
+        // the skip tags parse the feature files: with the language of the profile
+        it('generates the skip tags with the language of a profile', async () => {
+            const danish = 'packages/wdio-cucumber-framework/tests/fixtures/test_danish.feature'
+            const { adapter } = await resolve({ profiles: ['danish'], file }, [danish], { browserName: 'chrome' }, true)
+            expect(adapter.hasTests()).toBe(true)
+            expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+        })
+
+        // WebdriverIO loads the support code itself: Cucumber's warnings about it are wrong for the user
+        it('does not let Cucumber write to stderr when it resolves the configuration', async () => {
+            const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+            try {
+                await CucumberAdapter.init!('0-0', { cucumberOpts: { requireModule: ['moduleA'] } }, [feature], {}, {}, {}, false)
+                expect(write.mock.calls.map(([chunk]) => String(chunk)).join('')).not.toContain('require-module')
+            } finally {
+                write.mockRestore()
+            }
+        })
+
         it('lets cucumberOpts win over the profile', async () => {
             const { configuration } = await resolve({ profiles: ['everything'], file, retry: 1, strict: true })
             expect(configuration.runtime).toMatchObject({ retry: 1, strict: true })
