@@ -1,13 +1,14 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, initializePlugin } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
+import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 import type { CustomStubCommand } from '../src/types.js'
@@ -294,6 +295,28 @@ describe('wdio-runner', () => {
             }))
         })
 
+        it('should hand the browser to the framework before running it', async () => {
+            const calls: string[] = []
+            const stubBrowser = { capabilities: {}, options: {} }
+            const framework: any = {
+                init: () => framework,
+                hasTests: () => true,
+                setBrowser: vi.fn(() => calls.push('setBrowser')),
+                run: vi.fn(async () => { calls.push('run'); return 0 })
+            }
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: framework } as any)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue({
+                framework: 'testNoFailures', reporters: [], beforeSession: [], runner: 'local'
+            } as any)
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            runner['_initSession'] = vi.fn().mockReturnValue(stubBrowser)
+            await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
+
+            expect(framework.setBrowser).toBeCalledWith(stubBrowser)
+            expect(calls).toEqual(['setBrowser', 'run'])
+        })
+
         it('should return failures count', async () => {
             const runner = new WDIORunner()
             const config: any = {
@@ -363,6 +386,29 @@ describe('wdio-runner', () => {
             endSession.mockClear()
             expect(await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
             expect(endSession).toBeCalledTimes(1)
+        })
+
+        it.each([
+            [undefined, true],
+            [true, true],
+            [false, false]
+        ])('should pass autoAssertOnTestEnd=%s to the soft assertion service as %s', async (value, expected) => {
+            vi.mocked(SoftAssertionService).mockClear()
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                autoAssertOnTestEnd: value
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
+            runner['_startSession'] = vi.fn().mockReturnValue({ })
+            runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
+            await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
+
+            expect(SoftAssertionService).toBeCalledWith({ autoAssertOnTestEnd: expected })
         })
 
         it('should attach snapshot service to service list', async () => {
@@ -581,6 +627,29 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
                 { bar: 'foo', sessionId: 'fakeid' })
+        })
+
+        it('should forward the parallel context id from the async store', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const [, beforeListener] = vi.mocked(browser!.on).mock.calls[0] as any
+            const [, afterListener] = vi.mocked(browser!.on).mock.calls[1] as any
+
+            store.run('ctx-1', () => beforeListener({ foo: 'bar' }))
+            store.run('ctx-2', () => afterListener({ bar: 'foo' }))
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterCommand', { bar: 'foo', sessionId: 'fakeid', contextId: 'ctx-2' })
+
+            reporter.emit.mockClear()
+            beforeListener({ foo: 'bar' })
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
         it('should return null if initiating session fails', async () => {

@@ -1,7 +1,7 @@
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
-import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types.js'
+import type { FormattedMessage, FrameworkMessage, MochaError, MochaOpts } from './types.js'
 
 /**
 * Extracts the mocha UI type following this convention:
@@ -25,6 +25,46 @@ interface Payload {
     state?: string
     pending?: boolean
     ctx?: Mocha.Context
+}
+
+export interface TitledNode {
+    title?: string
+    parent?: TitledNode | null
+}
+
+export function dottedFullTitle(title: string, parent?: TitledNode | null) {
+    let fullTitle = title
+    while (parent && parent.title) {
+        fullTitle = parent.title + '.' + fullTitle
+        parent = parent.parent
+    }
+    return fullTitle
+}
+
+/**
+ * The error of a reporter message, also used by parallel mode
+ */
+export function formatError (err: MochaError, testName: string): MochaError {
+    /**
+     * replace "Ensure the done() callback is being called in this test." with a more meaningful message
+     */
+    if (err.message && err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+        const replacement = (
+            `The execution in the test "${testName}" took too long. Try to reduce the run time or ` +
+            'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
+        )
+        err.message = err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+        err.stack = err.stack?.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+    }
+
+    return {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        type: err.type || err.name,
+        expected: err.expected,
+        actual: err.actual
+    }
 }
 
 export function formatMessage (params: FrameworkMessage) {
@@ -53,27 +93,8 @@ export function formatMessage (params: FrameworkMessage) {
              */
             message.type = 'hook:end'
         } else {
-            /**
-             * replace "Ensure the done() callback is being called in this test." with a more meaningful message
-             */
-            if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
-                const testName = (payload?.parent?.title ? `${payload.parent.title} ${payload.title}` : payload?.title) || 'unknown test'
-                const replacement = (
-                    `The execution in the test "${testName}" took too long. Try to reduce the run time or ` +
-                    'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
-                )
-                params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-                params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-            }
-
-            message.error = {
-                name: params.err.name,
-                message: params.err.message,
-                stack: params.err.stack,
-                type: params.err.type || params.err.name,
-                expected: params.err.expected,
-                actual: params.err.actual
-            }
+            const testName = (payload?.parent?.title ? `${payload.parent.title} ${payload.title}` : payload?.title) || 'unknown test'
+            message.error = formatError(params.err, testName)
 
             /**
              * hook failures are emitted as "test:fail"
@@ -88,16 +109,7 @@ export function formatMessage (params: FrameworkMessage) {
         message.title = payload.title
         message.parent = payload.parent ? payload.parent.title : undefined
 
-        let fullTitle = message.title
-        if (payload.parent) {
-            let parent = payload.parent
-            while (parent && parent.title) {
-                fullTitle = parent.title + '.' + fullTitle
-                parent = parent.parent as Payload
-            }
-        }
-
-        message.fullTitle = fullTitle
+        message.fullTitle = dottedFullTitle(message.title, payload.parent)
         message.pending = payload.pending || false
         message.file = payload.file
         message.duration = payload.duration

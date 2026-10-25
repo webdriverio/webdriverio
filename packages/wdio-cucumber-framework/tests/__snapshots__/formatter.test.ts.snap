@@ -54,8 +54,8 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       "cid": "0-1",
       "description": "",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "my-feature.feature:3:1: Get size of an element",
-      "parent": "my-feature.feature:3:1",
+      "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
+      "parent": "features/my-feature.feature:3:1",
       "rule": "rule name",
       "specs": [
         "/foobar.js",
@@ -124,7 +124,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:3:1",
+      "uid": "features/my-feature.feature:3:1",
     },
   ],
 ]
@@ -161,7 +161,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:3:1",
+      "uid": "features/my-feature.feature:3:1",
     },
   ],
 ]
@@ -233,6 +233,70 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > step f
       "uid": "12",
     },
   ],
+  [
+    "test:end",
+    {
+      "argument": {
+        "rows": [
+          {
+            "cells": [
+              "Item",
+              "Amount",
+            ],
+          },
+          {
+            "cells": [
+              "Milk",
+              "2",
+            ],
+          },
+          {
+            "cells": [
+              "Butter",
+              "1",
+            ],
+          },
+        ],
+      },
+      "cid": "0-1",
+      "error": [Error],
+      "featureName": "Example feature",
+      "file": "/some/path/to/features/my-feature.feature",
+      "fullTitle": "0: Then should the element '.header-logged-out a' be 32px wide and 35px high",
+      "parent": "0",
+      "passed": false,
+      "scenarioName": "Get size of an element",
+      "specs": [
+        "/foobar.js",
+      ],
+      "state": "fail",
+      "tags": [
+        {
+          "astNodeId": "9",
+          "name": "@feature-tag1",
+        },
+        {
+          "astNodeId": "10",
+          "name": "@feature-tag2",
+        },
+        {
+          "astNodeId": "5",
+          "name": "@skip(browserName='chrome';platformName='windows')",
+        },
+        {
+          "astNodeId": "6",
+          "name": "@scenario-tag1",
+        },
+        {
+          "astNodeId": "7",
+          "name": "@scenario-tag2",
+        },
+      ],
+      "title": "Then should the element '.header-logged-out a' be 32px wide and 35px high",
+      "type": "step",
+      "uid": "12",
+    },
+  ],
 ]
 `;
 
@@ -240,6 +304,70 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > step f
 [
   [
     "test:pass",
+    {
+      "argument": {
+        "rows": [
+          {
+            "cells": [
+              "Item",
+              "Amount",
+            ],
+          },
+          {
+            "cells": [
+              "Milk",
+              "2",
+            ],
+          },
+          {
+            "cells": [
+              "Butter",
+              "1",
+            ],
+          },
+        ],
+      },
+      "cid": "0-1",
+      "error": undefined,
+      "featureName": "Example feature",
+      "file": "/some/path/to/features/my-feature.feature",
+      "fullTitle": "0: Then should the element '.header-logged-out a' be 32px wide and 35px high",
+      "parent": "0",
+      "passed": true,
+      "scenarioName": "Get size of an element",
+      "specs": [
+        "/foobar.js",
+      ],
+      "state": "pass",
+      "tags": [
+        {
+          "astNodeId": "9",
+          "name": "@feature-tag1",
+        },
+        {
+          "astNodeId": "10",
+          "name": "@feature-tag2",
+        },
+        {
+          "astNodeId": "5",
+          "name": "@skip(browserName='chrome';platformName='windows')",
+        },
+        {
+          "astNodeId": "6",
+          "name": "@scenario-tag1",
+        },
+        {
+          "astNodeId": "7",
+          "name": "@scenario-tag2",
+        },
+      ],
+      "title": "Then should the element '.header-logged-out a' be 32px wide and 35px high",
+      "type": "step",
+      "uid": "12",
+    },
+  ],
+  [
+    "test:end",
     {
       "argument": {
         "rows": [
@@ -379,8 +507,8 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "cid": "0-1",
       "description": "",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "my-feature.feature:3:1: Get size of an element",
-      "parent": "my-feature.feature:3:1",
+      "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
+      "parent": "features/my-feature.feature:3:1",
       "rule": "rule name",
       "specs": [
         "/foobar.js",
@@ -423,8 +551,48 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "cid": "0-1",
       "error": undefined,
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "my-feature.feature:3:1: Get size of an element",
-      "parent": "my-feature.feature:3:1",
+      "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
+      "parent": "features/my-feature.feature:3:1",
+      "passed": true,
+      "specs": [
+        "/foobar.js",
+      ],
+      "state": "pass",
+      "tags": [
+        {
+          "astNodeId": "9",
+          "name": "@feature-tag1",
+        },
+        {
+          "astNodeId": "10",
+          "name": "@feature-tag2",
+        },
+        {
+          "astNodeId": "5",
+          "name": "@skip(browserName='chrome';platformName='windows')",
+        },
+        {
+          "astNodeId": "6",
+          "name": "@scenario-tag1",
+        },
+        {
+          "astNodeId": "7",
+          "name": "@scenario-tag2",
+        },
+      ],
+      "title": "Get size of an element",
+      "type": "scenario",
+      "uid": "0",
+    },
+  ],
+  [
+    "test:end",
+    {
+      "cid": "0-1",
+      "error": undefined,
+      "file": "/some/path/to/features/my-feature.feature",
+      "fullTitle": "features/my-feature.feature:3:1: Get size of an element",
+      "parent": "features/my-feature.feature:3:1",
       "passed": true,
       "specs": [
         "/foobar.js",
@@ -494,7 +662,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:3:1",
+      "uid": "features/my-feature.feature:3:1",
     },
   ],
 ]
@@ -531,7 +699,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:3:1",
+      "uid": "features/my-feature.feature:3:1",
     },
   ],
 ]
@@ -571,7 +739,7 @@ exports[`CucumberFormatter > tags in title > should add tags on handleBeforeFeat
       ],
       "title": "@feature-tag1, @feature-tag2: Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:3:1",
+      "uid": "features/my-feature.feature:3:1",
     },
   ],
 ]

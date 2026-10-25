@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import webdriverMonad from '../src/monad.js'
+import webdriverMonad, { shareCommands } from '../src/monad.js'
 import logger from '@wdio/logger'
 const log = logger('webdriver')
 
@@ -26,6 +26,22 @@ function createElement(elementOverrides: PropertyDescriptor, command: Function) 
 }
 
 describe('monad', () => {
+    it('does not pass event handler functions through the command wrapper', () => {
+        const commandWrapper = vi.fn().mockImplementation((_name, fn) => fn)
+        const noop = () => {}
+        const events = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners']
+        webdriverMonad({}, (client: any) => client, {
+            ...prototype,
+            ...Object.fromEntries(events.map((name) => [name, { value: noop }]))
+        })(sessionId, commandWrapper)
+
+        const wrapped = commandWrapper.mock.calls.map(([name]) => name)
+        expect(wrapped).toContain('someFunc')
+        for (const name of events) {
+            expect(wrapped, name).not.toContain(name)
+        }
+    })
+
     it('should be able to initialize client with prototype with commands', () => {
         const modifier = vi.fn()
         const monad = webdriverMonad({ baseUrl: 'option' }, (client: any) => {
@@ -422,6 +438,17 @@ describe('monad', () => {
         })
     })
 
+    it('does not wrap an element-scoped emit so a throwing listener throws at the emit site', () => {
+        const browserEmit = vi.fn(() => { throw new Error('listener failed') })
+        const wrapper = vi.fn((_name: string, fn: Function) => async (...args: unknown[]) => fn(...args))
+        const element = webdriverMonad({}, (client: any) => client, {
+            ...prototype,
+            emit: { value: browserEmit }
+        })(sessionId, wrapper)
+        expect(() => element.emit('command', { command: 'foo' })).toThrow('listener failed')
+        expect(wrapper).not.toHaveBeenCalledWith('emit', expect.anything(), expect.anything())
+    })
+
     it('should allow empty prototype object', () => {
         const monad = webdriverMonad({}, (client: any) => client)
         const client = monad(sessionId)
@@ -605,6 +632,150 @@ describe('monad', () => {
             await browser.myElementCommand()
             expect(log.info).toHaveBeenCalledWith('COMMAND', 'myElementCommand()')
             expect(log.info).toHaveBeenCalledWith('RESULT', 'WebdriverIO.Browser')
+        })
+    })
+
+    it('puts a command on a given prototype as an assignment does', () => {
+        class Driver {
+            method () { return 'class method' }
+        }
+        const client = webdriverMonad({}, (c: any) => c, prototype)(sessionId)
+        client.addCommand('method', () => 'added', { proto: Driver.prototype })
+        const descriptor = Object.getOwnPropertyDescriptor(Driver.prototype, 'method')
+        expect(descriptor?.enumerable).toBe(false)
+        expect(descriptor?.value).not.toBe(undefined)
+        expect(Object.keys(Driver.prototype)).toEqual([])
+    })
+
+    /**
+     * the clients of one list share their wrapped commands (#16086)
+     */
+    describe('shareCommands', () => {
+        const listOf = (count: number, properties: Record<string, PropertyDescriptor>) => {
+            const commandWrapper = vi.fn((name: string, fn: Function) => function (this: unknown, ...args: unknown[]) { return fn.apply(this, args) })
+            const shared = shareCommands({ baseUrl: 'option' }, { scope: { value: 'element' }, ...properties }, commandWrapper)
+            const clients = Array.from({ length: count }, (_, i) => webdriverMonad({ baseUrl: 'option' }, (client: any) => {
+                client.index = i
+                return client
+            }, shared as never)(sessionId, commandWrapper))
+            return { clients, commandWrapper }
+        }
+
+        it('wraps each command once for all clients, which share it', () => {
+            const { clients, commandWrapper } = listOf(3, { someFunc: { value: () => 'some' }, otherFunc: { value: () => 'other' } })
+            expect(commandWrapper.mock.calls.map(([name]) => name)).toEqual(['someFunc', 'otherFunc'])
+            expect(clients[0].someFunc).toBe(clients[2].someFunc)
+            expect(clients[1].someFunc()).toBe('some')
+            expect(Object.prototype.hasOwnProperty.call(clients[0], 'someFunc')).toBe(false)
+        })
+
+        it('keeps the scope, the options, the command list and the own values of each client', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            expect(clients[0].constructor.name).toBe('Element')
+            expect(clients[1].options).toEqual({ baseUrl: 'option' })
+            expect(clients[1].commandList).toEqual(['someFunc'])
+            expect(Object.keys(clients[1].__propertiesObject__)).toContain('someFunc')
+            expect(clients.map((client) => [client.index, client.sessionId])).toEqual([[0, sessionId], [1, sessionId]])
+        })
+
+        it('runs the element overrides once, for every client', () => {
+            const override = vi.fn(function (this: any, orig: Function) { return `over:${orig()}` })
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' }, __elementOverrides__: { value: { someFunc: override } } })
+            expect(clients[0].someFunc()).toBe('over:some')
+            expect(clients[1].someFunc()).toBe('over:some')
+            expect(override.mock.contexts).toEqual([clients[0], clients[1]])
+        })
+
+        it('keeps an emit of the map before the events of the client', () => {
+            const emit = vi.fn()
+            const { clients } = listOf(2, { emit: { value: emit } })
+            clients[1].emit('command', { command: 'x' })
+            expect(emit).toHaveBeenCalledWith('command', { command: 'x' })
+            expect(Object.prototype.hasOwnProperty.call(clients[1], 'emit')).toBe(true)
+        })
+
+        it('gives each client its own __propertiesObject__, with its own element overrides', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            const first = clients[0].__propertiesObject__
+            expect(clients[0].__propertiesObject__).toBe(first)
+            expect(clients[1].__propertiesObject__).not.toBe(first)
+            expect(Object.keys(first)).toContain('someFunc')
+            first.added = { value: 1 }
+            expect(clients[1].__propertiesObject__.added).toBeUndefined()
+            expect(first.__elementOverrides__.value).not.toBe(clients[1].__propertiesObject__.__elementOverrides__.value)
+        })
+
+        it('keeps all event functions of the map before the events of the client', () => {
+            const events = Object.fromEntries(['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners'].map((name) => [name, { value: vi.fn() }]))
+            const { clients } = listOf(2, events)
+            for (const name of Object.keys(events)) {
+                clients[1][name]('custom', 1)
+                expect(events[name].value).toHaveBeenCalledWith('custom', 1)
+            }
+        })
+
+        it('gives each client its own events', () => {
+            const { clients } = listOf(2, {})
+            const onFirst = vi.fn()
+            clients[0].on('custom', onFirst)
+            clients[1].emit('custom', 1)
+            expect(onFirst).not.toHaveBeenCalled()
+            clients[0].emit('custom', 2)
+            expect(onFirst).toHaveBeenCalledWith(2)
+        })
+
+        it('adds a command to one client only', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            clients[0].addCommand('newFunc', () => 'new')
+            expect(clients[0].newFunc()).toBe('new')
+            expect(clients[1].newFunc).toBeUndefined()
+        })
+
+        it('keeps the command of the list when a client adds a command with its name, as a client with its own commands does', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            clients[0].addCommand('someFunc', () => 'added')
+            expect(clients[0].someFunc()).toBe('some')
+            const single = webdriverMonad({}, (client: any) => client, { scope: { value: 'element' }, someFunc: { value: () => 'some' } })(sessionId)
+            single.addCommand('someFunc', () => 'added')
+            expect(single.someFunc()).toBe('some')
+        })
+
+        it('adds a command with the name of an object method to the client, as a client with its own commands does', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            clients[0].addCommand('toString', () => 'mine')
+            expect(clients[0].toString()).toBe('mine')
+            expect(clients[1].toString()).not.toBe('mine')
+        })
+
+        it('lets a command that a client adds replace an overwrite of that client, as a client with its own commands does', () => {
+            const make = () => listOf(1, { someFunc: { value: () => 'some' } }).clients[0]
+            const single = () => webdriverMonad({}, (client: any) => client, { scope: { value: 'element' }, someFunc: { value: () => 'some' } })(sessionId, (name: string, fn: Function) => fn)
+            for (const client of [make(), single()]) {
+                client.overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)
+                client.addCommand('someFunc', () => 'added')
+                expect(client.someFunc()).toBe('added')
+            }
+        })
+
+        it('gives each client the options and the command wrapper of the list', () => {
+            const listWrapper = vi.fn((name: string, fn: Function) => fn)
+            const otherWrapper = vi.fn((name: string, fn: Function) => fn)
+            const modifier = vi.fn((client: any) => client)
+            const shared = shareCommands({ baseUrl: 'list' }, { scope: { value: 'element' }, someFunc: { value: () => 'some' } }, listWrapper)
+            const client = webdriverMonad({ baseUrl: 'other' }, modifier, shared as never)(sessionId, otherWrapper)
+            client.addCommand('added', () => 'added')
+            client.overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)
+            expect(otherWrapper).not.toHaveBeenCalled()
+            expect(listWrapper.mock.calls.map(([name]) => name)).toEqual(['someFunc', 'added', 'someFunc'])
+            expect(client.options).toEqual({ baseUrl: 'list' })
+            expect(modifier.mock.calls[0][1]).toEqual({ baseUrl: 'list' })
+        })
+
+        it('overwrites a command of one client only', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            clients[0].overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)
+            expect(clients[0].someFunc()).toBe('over:some')
+            expect(clients[1].someFunc()).toBe('some')
         })
     })
 })

@@ -1,4 +1,4 @@
-import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest'
+import { describe, it, beforeAll, beforeEach, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 import logger from '@wdio/logger'
 
@@ -6,6 +6,9 @@ import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
+import { elementErrorHandler } from '../src/middlewares.js'
+import { unwrapCommand, wrapCommand } from '@wdio/utils'
+import { ELEMENT_KEY } from 'webdriver'
 import { markWaited, recordNotFound } from '../src/utils/elementNotFound.js'
 import { ELEMENT_NOT_FOUND_AGAIN } from '../src/utils/errorCodes.js'
 
@@ -39,6 +42,14 @@ vi.mock('../src/commands/element/waitForEnabled', () => ({
 const { warn } = logger('foobar')
 
 describe('middleware', () => {
+    // an element command copied to the browser must never unwrap to the middleware, which would run twice
+    it('gives an element wrapper without the mark of wrapCommand', () => {
+        for (const name of ['getText', '$$']) {
+            const handler = elementErrorHandler(wrapCommand)(name, () => {})
+            expect(unwrapCommand(handler)).toBe(handler)
+        }
+    })
+
     let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
@@ -83,11 +94,12 @@ describe('middleware', () => {
         vi.mocked(fetch).retryCnt = 0
     })
 
-    it('should refetch an element after a BiDi no such node error', async () => {
+    it.each([
+        ['Firefox', 'no such node - The node with the reference stale-element-123 is not known'],
+        ['Chrome', 'no such node - SharedId "f.1.d.2.e.457" was not found.']
+    ])('should refetch an element after a BiDi no such node error (%s)', async (_browser, message) => {
         const isAfterNavigationDisplayed = vi.fn()
-            .mockRejectedValueOnce(new Error(
-                'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
-            ))
+            .mockRejectedValueOnce(new Error(`WebDriver Bidi command "script.callFunction" failed with error: ${message}`))
             .mockResolvedValueOnce(false)
         browser.addCommand('isAfterNavigationDisplayed', isAfterNavigationDisplayed, { attachToElement: true })
         const elem = await browser.$('#foo')
@@ -452,6 +464,267 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
+        })
+    })
+
+    /**
+     * a command that gets the element id as an argument runs again with the id of the element
+     * that was found again, not with the stale one
+     */
+    describe('the retry of a command after a stale element', () => {
+        const OLD_ID = 'some-elem-123'
+        const NEW_ID = 'new-elem-456'
+        const staleError = () => Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
+        const real = vi.mocked(refetchElement).getMockImplementation()!
+        /**
+         * the element id and the text of each `elementSendKeys` request
+         */
+        const sentKeys = () => vi.mocked(fetch).mock.calls
+            .filter(([uri]) => /\/element\/[^/]+\/value$/.test(String(uri)))
+            .map(([uri, opts]) => `${String(uri).split('/').at(-2)} ← ${JSON.parse((opts as RequestInit).body as string).text}`)
+        let classicBrowser: WebdriverIO.Browser
+
+        beforeAll(async () => {
+            classicBrowser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                waitforInterval: 20,
+                waitforTimeout: 100
+            })
+        })
+
+        beforeEach(async () => {
+            const refetched = await classicBrowser.$('#foo')
+            refetched.elementId = NEW_ID
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockResolvedValue(refetched)
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/property/type$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${NEW_ID}/property/type$`), { value: 'date' })
+        })
+
+        afterEach(() => {
+            vi.mocked(refetchElement).mockImplementation(real)
+            vi.mocked(fetch).resetCustomResponses()
+        })
+
+        it('sends the new element id to a protocol command', async () => {
+            const elem = await classicBrowser.$('#foo')
+            expect(elem.elementId).toBe(OLD_ID)
+
+            expect(await elem.getElementProperty(elem.elementId, 'type')).toBe('date')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('looks for the element once when a command passes the element id to an inner command', async () => {
+            classicBrowser.addCommand('readType', function (this: WebdriverIO.Element) {
+                return this.getElementProperty(this.elementId, 'type')
+            }, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.readType()).toBe('date')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('replaces only the element id argument of a protocol command', async () => {
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/value$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.elementSendKeys(elem.elementId, OLD_ID)
+            expect(sentKeys()).toEqual([`${OLD_ID} ← ${OLD_ID}`, `${NEW_ID} ← ${OLD_ID}`])
+        })
+
+        it('keeps the text of addValue that is the same as the stale element id', async () => {
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/value$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.addValue(elem.elementId)
+            expect(sentKeys()).toEqual([`${OLD_ID} ← ${OLD_ID}`, `${NEW_ID} ← ${OLD_ID}`])
+        })
+
+        /**
+         * `selectByVisibleText` clicks an `<option>` through the `<select>`: the retry on the
+         * select keeps the id of the option
+         */
+        it('keeps the id of another element in the retry of a protocol command', async () => {
+            const OTHER_ID = 'other-elem-789'
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OTHER_ID}/click$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            const error = await elem.elementClick(OTHER_ID).then(() => null, (e: Error) => e)
+            const clicks = vi.mocked(fetch).mock.calls
+                .filter(([uri]) => String(uri).endsWith('/click'))
+                .map(([uri]) => String(uri).split('/').at(-2))
+            expect(clicks).toEqual([OTHER_ID, OTHER_ID])
+            expect(error?.name).toBe('stale element reference')
+        })
+
+        /**
+         * Geckodriver: the name of the error says stale, its message has none of the known texts
+         */
+        it('throws the stale error of the retry when only its name says stale', async () => {
+            const original = staleError()
+            const retryError = Object.assign(
+                new Error('The element with the reference abc is stale; either its node document is not the active document, or it is no longer connected to the DOM'),
+                { name: 'stale element reference' }
+            )
+            classicBrowser.addCommand('staleAgainByName', vi.fn().mockRejectedValueOnce(original).mockRejectedValueOnce(retryError), { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleAgainByName().then(() => null, (e: Error) => e)
+            expect(error).toBe(retryError)
+        })
+
+        it('keeps the arguments of a command that is not a protocol command', async () => {
+            const command = vi.fn().mockRejectedValueOnce(staleError()).mockResolvedValueOnce('done')
+            classicBrowser.addCommand('staleWithIds', command, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.staleWithIds(elem.elementId, 'other-elem-789')).toBe('done')
+            expect(command.mock.calls).toEqual([
+                [OLD_ID, 'other-elem-789'],
+                [OLD_ID, 'other-elem-789']
+            ])
+        })
+
+        it('sends the new element id after the wait for a clickable element found it again', async () => {
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/click$`),
+                { value: { error: 'element not interactable', message: 'element not interactable' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.spyOn(elem, 'waitForClickable').mockImplementation(async () => {
+                elem.elementId = NEW_ID
+                return true
+            })
+            vi.mocked(fetch).mockClear()
+
+            await elem.elementClick(elem.elementId)
+            const clicks = vi.mocked(fetch).mock.calls
+                .filter(([uri]) => String(uri).endsWith('/click'))
+                .map(([uri]) => String(uri).split('/').at(-2))
+            expect(clicks).toEqual([OLD_ID, NEW_ID])
+        })
+
+        it('gives the element the new id after the wait for a clickable element found it again', async () => {
+            /**
+             * its own browser: the overwrite of `waitForClickable` stays on the browser
+             */
+            const ownBrowser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                waitforInterval: 20,
+                waitforTimeout: 100
+            })
+            const newParent = await ownBrowser.$('#new-parent')
+            ownBrowser.overwriteCommand('waitForClickable', async function (this: WebdriverIO.Element) {
+                this.elementId = NEW_ID
+                this.parent = newParent
+                return true
+            }, { attachToElement: true })
+            const command = vi.fn(function (this: WebdriverIO.Element) {
+                if (command.mock.calls.length === 1) {
+                    throw Object.assign(new Error('element not interactable'), { name: 'element not interactable' })
+                }
+                return this.elementId
+            })
+            ownBrowser.addCommand('readIdWhenClickable', command, { attachToElement: true })
+            const elem = await ownBrowser.$('#foo')
+            /**
+             * not found yet: the implicit wait finds the element with a new object
+             */
+            elem.elementId = undefined as unknown as string
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.readIdWhenClickable()).toBe(NEW_ID)
+            expect(elem.elementId).toBe(NEW_ID)
+            expect(elem.parent).toBe(newParent)
+        })
+
+        it('sets the value of a date input that the page rendered again directly', async () => {
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            vi.mocked(fetch).mockClear()
+            const elem = await classicBrowser.$('#foo')
+
+            await elem.setValue('2026-10-17')
+            const calls = vi.mocked(fetch).mock.calls
+            const scripts = calls
+                .filter(([uri]) => String(uri).endsWith('/execute/sync'))
+                .map(([, opts]) => JSON.parse((opts as RequestInit).body as string))
+            expect(scripts).toHaveLength(1)
+            expect(scripts[0].script).toContain('setInputValue')
+            expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
+            expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
+        })
+
+        /**
+         * the page renders the input again after the clear, and again during the retry of the
+         * value lookup: `setValue` runs again and clears the input that was found again, else the
+         * value would be typed after its text ("oldnew")
+         */
+        it('clears and types again when the value lookup after the clear gets a stale element', async () => {
+            const MID_ID = 'mid-elem-789'
+            const stale = { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            vi.mocked(fetch).resetCustomResponses()
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/(${OLD_ID}|${NEW_ID})/property/type$`), { value: 'text' })
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${OLD_ID}/property/value$`), stale)
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${MID_ID}/(property/value|value|clear)$`), stale)
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${NEW_ID}/property/value$`), { value: '' })
+            const mid = await classicBrowser.$('#foo')
+            mid.elementId = MID_ID
+            vi.mocked(refetchElement).mockResolvedValueOnce(mid)
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.setValue('abc')
+            const steps = vi.mocked(fetch).mock.calls
+                .map(([uri]) => String(uri).match(/\/element\/([^/]+)\/(clear|value)$/))
+                .filter((match) => match !== null)
+                .map((match) => `${match[2]} ${match[1]}`)
+            expect(steps).toEqual([`clear ${OLD_ID}`, `clear ${NEW_ID}`, `value ${NEW_ID}`])
+            expect(sentKeys()).toEqual([`${NEW_ID} ← abc`])
+        })
+
+        it('sets a date input directly when the page renders it again during the retry of its type lookup', async () => {
+            const MID_ID = 'mid-elem-789'
+            const mid = await classicBrowser.$('#foo')
+            mid.elementId = MID_ID
+            vi.mocked(refetchElement).mockResolvedValueOnce(mid)
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${MID_ID}/property/type$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.setValue('2026-10-17')
+            const calls = vi.mocked(fetch).mock.calls
+            const scripts = calls
+                .filter(([uri]) => String(uri).endsWith('/execute/sync'))
+                .map(([, opts]) => JSON.parse((opts as RequestInit).body as string))
+            expect(scripts).toHaveLength(1)
+            expect(scripts[0].script).toContain('setInputValue')
+            expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
+            expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
         })
     })
 })

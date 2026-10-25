@@ -28,6 +28,9 @@ export interface Test {
     retries?: number
     argument?: string | Argument
     state?: string
+    contextId?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
 }
 
 interface Output {
@@ -67,6 +70,11 @@ export default class TestStats extends RunnableStats {
     errors?: Error[]
     error?: Error
     body?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the browsing context of a parallel test */
+    declare contextId?: string
+    /** the uid of the suite of the test (`null` for a top-level test) */
+    declare parentUid?: string | null
 
     constructor(test: Test) {
         super('test')
@@ -80,6 +88,7 @@ export default class TestStats extends RunnableStats {
         this.parent = test.parent
         // Mocha only
         this.body = test.body
+        this.keepParallelFields(test)
 
         /**
          * initial test state is pending

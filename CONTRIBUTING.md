@@ -118,7 +118,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the Node.js version in `.nvmrc`. WebdriverIO v10 requires Node.js 22.19.0 or later (22, 24, and 26). We recommend [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the Node.js version in `.nvmrc`. WebdriverIO v10 requires Node.js 22.23.4, 24.22.1 or 26.12.1, or a later release of these lines. We recommend [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Install Chrome, Firefox and Edge (required for running the e2e tests)
 
@@ -311,6 +311,45 @@ pnpm run test:smoke mochaTestrunner
 Every of these test suites are functions that trigger the wdio testrunner programmatically using the [`launch`](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/launch.js) helper method. All you need to pass in is a path to your config file and with what you want to overwrite the config. Most of the smoke test use a [common config file](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/config.js) and overwrite properties specific for their use case.
 
 If you test custom WebDriver commands, you can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
+
+#### Mobile e2e Tests (local only)
+
+CI has no iOS or Android job. The suite in [`e2e/wdio/mobile`](https://github.com/webdriverio/webdriverio/tree/main/e2e/wdio/mobile) runs the browser of a mobile device with Appium: iOS Safari on a Simulator, and Chrome on an Android emulator. Run it when you change how WebdriverIO talks to Appium, for example `execute`, the session start, or the mobile commands.
+
+You need Appium 3 and a build of this repository. `@wdio/appium-service` starts Appium, and Appium starts the Simulator or the emulator.
+
+```sh
+npm install --global appium@3
+pnpm run build
+```
+
+**iOS** needs macOS and Xcode with an iOS runtime. The first run builds WebDriverAgent and can take several minutes.
+
+```sh
+appium driver install xcuitest
+pnpm run test:ios:local
+```
+
+| Variable | Default | Use |
+|---|---|---|
+| `IOS_DEVICE_NAME` | `iPhone 17` | Simulator name |
+| `IOS_PLATFORM_VERSION` | (any) | iOS version, for example `27.0` |
+| `IOS_UDID` | (any) | A specific Simulator |
+| `PREBUILT_WDA_PATH` | (none) | A prebuilt `WebDriverAgentRunner-Runner.app`, to skip the build |
+
+**Android** needs the Android SDK (`ANDROID_HOME`) and an emulator (AVD) with Chrome, for example a Google Play image. Appium downloads a Chromedriver for the Chrome version of the emulator.
+
+```sh
+appium driver install uiautomator2
+ANDROID_AVD=<name of your AVD> pnpm run test:android:local
+```
+
+| Variable | Default | Use |
+|---|---|---|
+| `ANDROID_AVD` | (none) | The AVD that Appium starts when no device is connected |
+| `ANDROID_UDID` | (any) | A specific device, for example `emulator-5554` |
+
+For both, `APPIUM_COMMAND` (default `appium`) selects another Appium binary. The logs, also the Appium log (`wdio-appium.log`), are in `e2e/wdio/mobile/logs/`.
 
 #### Testing Type Definitions
 

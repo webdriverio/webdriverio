@@ -40,7 +40,6 @@ class JunitReporter extends WDIOReporter {
     private _activeFeature?: any
     private _activeFeatureName?: any
     private _testToAdditionalInformation: { [keys: string]: JunitReporterAdditionalInformation }
-    private _currentTest?: TestStats
     private _originalStdoutWrite: Function
     private _addWorkerLogs: boolean
     private _isWindows: boolean
@@ -67,8 +66,6 @@ class JunitReporter extends WDIOReporter {
     }
 
     onTestStart(test: TestStats) {
-        // Reset stdout when a test starts
-        this._currentTest = test
         this._testToAdditionalInformation[test.uid] = {
             workerConsoleLog: '',
             properties: {},
@@ -82,16 +79,18 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _addPropertyToCurrentTest(dataObj: { name: string, value: string }) {
-        if (this._currentTest?.uid) {
-            this._testToAdditionalInformation[this._currentTest.uid].properties[dataObj.name] = dataObj.value
+        const uid = this.getContextTest()?.uid
+        const info = uid ? this._testToAdditionalInformation[uid] : undefined
+        if (info) {
+            info.properties[dataObj.name] = dataObj.value
         }
     }
 
     private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
-        if (this._currentTest?.uid) {
-            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog = (this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog ?? '') + chunk
-            }
+        const uid = this.getContextTest()?.uid
+        const info = uid ? this._testToAdditionalInformation[uid] : undefined
+        if (info && typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+            info.workerConsoleLog = (info.workerConsoleLog ?? '') + chunk
         }
         return this._originalStdoutWrite(chunk, encoding, callback)
     }

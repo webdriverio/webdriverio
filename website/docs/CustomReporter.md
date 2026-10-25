@@ -81,12 +81,15 @@ export default class CustomReporter extends WDIOReporter {
     onTestFail() {}
     onTestSkip() {}
     onTestEnd() {}
+    onContextEnd() {} // experimental, see "Reporters and parallel tests"
     onSuiteEnd() {}
     onRunnerEnd() {}
 }
 ```
 
 The method names are pretty self explanatory.
+
+After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the steps of the failed attempt end with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt. Finish your work for a test in `onTestEnd`, not in the result methods.
 
 To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 
@@ -120,6 +123,40 @@ const launcher = new Launcher('/path/to/config.file.js', {
     reporters: ['dot', CustomReporter]
 })
 ```
+
+## Reporters and parallel tests
+
+With [parallel tests in a spec file](./ParallelTests.md), the tests of one spec file overlap: `onTestStart` of one test can come before `onTestEnd` of another, and commands of different tests interleave. `WDIOReporter` handles this for you. In parallel mode the framework events carry two extra fields:
+
+- `parentUid` on `suite:start`, `hook:start` and `test:start`: the uid of the owning suite (`null` for a top-level suite). The reporter adds the suite, hook or test to that suite, not to the suite that started last.
+- `contextId` on test and command events: the browsing context of the test. The reporter adds command output to the test that ran in that context.
+
+The test, hook and suite stats keep these fields when the event has them: in `onTestEnd(test)`, `test.contextId` is the browsing context of the test and `test.parentUid` the uid of its suite. Without parallel mode, the stats have no such properties.
+
+The `suites`, `tests` and `hooks` trees of the reporter are therefore correct. If your reporter keeps its own state, key it by the `uid` of the test or suite instead of tracking a single current test.
+
+Output that comes without an event, such as console output or a custom `process.emit` event, has no `uid`. Call `this.getContextTest()` to get the test whose browsing context wrote it. In parallel mode it returns the test that started last in that context, also after its `test:end`, when its `afterEach` and `after` hooks run, and `undefined` when no test started in that context or after its `context:end`; without parallel mode it returns the test that started last. `before()` hooks of a parallel test run before its `test:start`, so no test owns the context yet; `this.getContextId()` returns the raw context id, which stays the same for the whole test.
+
+```js
+import WDIOReporter from '@wdio/reporter'
+
+export default class CustomReporter extends WDIOReporter {
+    onTestStart(test) {
+        this.write(`start ${test.uid} ${test.title}\n`)
+    }
+    onTestEnd(test) {
+        this.write(`end   ${test.uid} ${test.state}\n`)
+    }
+}
+```
+
+The `afterEach` and `after` hooks of a parallel test run after its `test:end`. To know when a context is done, use `onContextEnd(payload)`. It is called after the last hook of the test (with Cucumber: after the `After` hooks of the last attempt of the scenario), and the context sends no more events after it. The payload has `cid`, `specs`, `uid` (the last test of the context; for a Cucumber scenario with no step, the scenario) and `contextId`. Close or write what your reporter keeps for that context there.
+
+:::warning Experimental
+
+`context:end` and `onContextEnd` are experimental: only Mocha and Cucumber `parallelMode` send them for now, and the name and the payload can change.
+
+:::
 
 ## Wait Until `isSynchronised`
 

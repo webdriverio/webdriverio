@@ -19,13 +19,16 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
+import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
+import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { waitedFor } from './elementNotFound.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -242,7 +245,7 @@ function fetchElementByJSFunction(
      * its own context; `execute` passes the element as first argument.
      */
     const browser = getBrowserObject(scope)
-    if (browser.isBidi && heldBrowsingContext(scope)) {
+    if (browser.isBidi && (heldBrowsingContext(scope) || isParallelContextActive())) {
         /**
          * Classic serializes a `NodeList` (e.g. from `querySelectorAll`) as a
          * list of elements; make that an array here so BiDi does the same.
@@ -276,8 +279,28 @@ export function isStaleElementError(err: Error) {
         err.message.includes('stale element not found in the current frame') ||
         // BIDI
         err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
+        err.message.includes('no such node - The node with the reference') ||
+        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
+        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
+        /no such node - SharedId ".*" was not found/.test(err.message)
     )
+}
+
+/**
+ * A stale element error that the element middleware handles: it finds the element again and
+ * runs the command again. The "element wasn't found" error of a wait (an element that was not
+ * found again, or never found) is not one, also when its message has that text (a selector like
+ * `[data-error="stale element reference"]`).
+ */
+export function isStaleElementToFindAgain(err: unknown): err is Error {
+    /**
+     * also an error of another realm, which is not an `Error` instance
+     */
+    if (!err || typeof err !== 'object' || waitedFor(err)) {
+        return false
+    }
+    const { name, message } = err as Partial<Error>
+    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
 }
 
 /**
@@ -558,7 +581,7 @@ async function findInFrameByScript (
     if (using === 'role') {
         const { role, name } = JSON.parse(value) as RoleSelector
         const roleParams: remote.ScriptCallFunctionParameters = {
-            functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
+            functionDeclaration: createBidiFunctionDeclaration(withKnownElement(findByRole as unknown as Function, 3)),
             awaitPromise: true,
             arguments: [
                 LocalValue.getArgument(role),
@@ -582,7 +605,7 @@ async function findInFrameByScript (
         ? { using: 'xpath', value: getAriaXPathSelector(value) }
         : { using, value }
     const params: remote.ScriptCallFunctionParameters = {
-        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        functionDeclaration: createBidiFunctionDeclaration(withKnownElement(query as unknown as Function, 3)),
         awaitPromise: true,
         arguments: [
             LocalValue.getArgument(resolved.using),
@@ -625,7 +648,8 @@ type BidiStartNode = { sharedId: string }
 /**
  * Retry an `aria/` lookup with the XPath heuristic, searching the same
  * shadow-root start nodes as the primary BiDi query. Classic XPath is
- * used when BiDi rejects the relative expression or finds nothing.
+ * used when BiDi rejects the relative expression or finds nothing, except in
+ * a parallel scope where classic would search the session's main window.
  */
 async function findAriaElementViaXPathFallback(
     ctx: WebdriverIO.Browser | WebdriverIO.Element,
@@ -637,7 +661,8 @@ async function findAriaElementViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -654,8 +679,14 @@ async function findAriaElementViaXPathFallback(
                 return nodes[0]
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return undefined
     }
     return findElementViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -670,7 +701,8 @@ async function findAriaElementsViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -687,8 +719,14 @@ async function findAriaElementsViaXPathFallback(
                 return nodes
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return []
     }
     return findElementsViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -760,6 +798,10 @@ export async function findDeepElement(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            const [first] = await locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+            return first
+        }
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -917,6 +959,9 @@ export async function findDeepElement(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
+        if (isParallelContextActive()) {
+            throw err
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -959,6 +1004,9 @@ export async function findDeepElements(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            return locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+        }
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -1101,6 +1149,9 @@ export async function findDeepElements(
          */
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
+        }
+        if (isParallelContextActive()) {
+            throw err
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
@@ -1343,7 +1394,9 @@ export function verifyArgsAndStripIfElement(args: unknown) {
  * getElementRect
  */
 export async function getElementRect(scope: WebdriverIO.Element) {
-    const rect = await scope.getElementRect(scope.elementId)
+    const rect = isBidiCommandsEnabled(getBrowserObject(scope) as WebdriverIO.Browser)
+        ? await bidiGetRect(scope)
+        : await scope.getElementRect(scope.elementId)
 
     const defaults = { x: 0, y: 0, width: 0, height: 0 }
 

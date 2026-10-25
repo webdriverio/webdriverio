@@ -8,7 +8,7 @@ import {
     afterEach,
 } from 'vitest'
 import { EventEmitter } from 'node:events'
-import type { TestStepFinished, TestStepStarted } from '@cucumber/messages'
+import type { StepDefinition, TestStepFinished, TestStepStarted } from '@cucumber/messages'
 import { TestStepResultStatus } from '@cucumber/messages'
 import path from 'node:path'
 
@@ -26,7 +26,9 @@ import {
     testRunFinished,
 } from './fixtures/envelopes.js'
 
-vi.mock('@cucumber/messages', () => ({
+vi.mock('@cucumber/messages', async (importOriginal) => ({
+    // the real rule for the result of a scenario
+    getWorstTestStepResult: (await importOriginal<{ getWorstTestStepResult: unknown }>()).getWorstTestStepResult,
     IdGenerator: { incrementing: vi.fn() },
     TestStepResultStatus: {
         UNKNOWN: 'UNKNOWN',
@@ -87,6 +89,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -141,6 +144,17 @@ describe('CucumberFormatter', () => {
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
+            it.each([
+                [TestStepResultStatus.PASSED, 'test:pass'],
+                [TestStepResultStatus.FAILED, 'test:fail'],
+            ])('ends a %s step with test:end after its result, as Mocha and Jasmine', (status, result) => {
+                const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                step.testStepResult = { ...step.testStepResult, status }
+                eventBroadcaster.emit('envelope', { testStepFinished: step })
+                const events = wdioReporter.emit.mock.calls.map(([event, payload]: [string, { uid: string }]) => [event, payload.uid])
+                expect(events).toEqual([[result, events[0][1]], ['test:end', events[0][1]]])
+            })
+
             it('passed step', () => {
                 const passingStep: TestStepFinished = JSON.parse(
                     JSON.stringify(testStepFinished)
@@ -148,7 +162,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: passingStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
@@ -163,7 +178,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: failedStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
@@ -207,7 +223,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', {
                 testStepFinished: hookFinished,
             })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -226,11 +243,12 @@ describe('CucumberFormatter', () => {
 
     describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
         let eventBroadcaster: EventEmitter
+        let formatter: CucumberFormatter
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
-            new CucumberFormatter({
+            formatter = new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
@@ -241,6 +259,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -278,7 +297,8 @@ describe('CucumberFormatter', () => {
             wdioReporter.emit.mockClear()
 
             eventBroadcaster.emit('envelope', { testCaseFinished })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -321,6 +341,67 @@ describe('CucumberFormatter', () => {
             return { started, finished: wdioReporter.emit.mock.calls[0] }
         }
 
+        /** attempt 0 fails and Cucumber retries it, attempt 1 passes (or fails too) */
+        function retryScenarioOnce (lastAttemptFails = false) {
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            const lastStep: TestStepFinished = { ...JSON.parse(JSON.stringify(lastAttemptFails ? failing : testStepFinished)), testCaseStartedId: '29' }
+            eventBroadcaster.emit('envelope', { testStepFinished: lastStep })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+            return wdioReporter.emit.mock.calls.filter(([event]: [string]) => event.startsWith('test:'))
+        }
+
+        it('ends a retried scenario attempt with test:retry, as Mocha does', () => {
+            const events = retryScenarioOnce()
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'])
+            const [[, firstStart], [, retry], [, secondStart]] = events
+            expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', title: firstStart.title, parent: firstStart.parent })
+            expect(retry.error.message).toContain('first try fails')
+            // the reporter counts the retries of the uid from test:retry
+            expect(secondStart.uid).toBe(firstStart.uid)
+        })
+
+        it('counts a scenario that fails on every attempt one time', () => {
+            const events = retryScenarioOnce(true)
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:fail', 'test:end'])
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it('does not count a scenario that passes on retry as failed', () => {
+            retryScenarioOnce()
+            expect(formatter['failedCount']).toBe(0)
+        })
+
+        // Cucumber retries only a FAILED attempt: a pending step and a failing After hook
+        it('gives test:retry the error that made Cucumber retry the attempt', () => {
+            const pending: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(pending.testStepResult, { status: 'PENDING' })
+            const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: pending })
+            eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            const [[event, payload]] = wdioReporter.emit.mock.calls
+            expect(event).toBe('test:retry')
+            expect(payload).toMatchObject({ state: 'fail', passed: false })
+            expect(payload.error.message).toContain('After hook fails')
+        })
+
         it('keeps the scenario title of a pending scenario', () => {
             const { started, finished: [event, payload] } = finishScenarioWith('PENDING')
             expect(event).toBe('test:pending')
@@ -354,6 +435,7 @@ describe('CucumberFormatter', () => {
                 _tagsInTitle: false,
                 _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
                 _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
             },
         } as any)
 
@@ -371,6 +453,112 @@ describe('CucumberFormatter', () => {
         eventBroadcaster.emit('envelope', { testRunFinished })
         return counts
     }
+
+    describe('counts only the failures of the last attempt of a retried scenario', () => {
+        it.each([false, true])('scenario level: %s', (scenarioLevelReporter) => {
+            const eventBroadcaster = new EventEmitter()
+            const formatter = new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testStepFinished: { ...JSON.parse(JSON.stringify(testStepFinished)), testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+
+            expect(formatter['failedCount']).toBe(0)
+        })
+    })
+
+    it('ends a scenario-level scenario with an undefined step as failed, also when an ambiguous step follows (default options)', () => {
+        const eventBroadcaster = new EventEmitter()
+        new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: false,
+                _failAmbiguousDefinitions: false,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const ambiguousStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(ambiguousStep.testStepResult, { status: 'AMBIGUOUS', message: 'Multiple step definitions match:' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('has undefined steps')
+    })
+
+    it('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', () => {
+        const eventBroadcaster = new EventEmitter()
+        const formatter = new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: true,
+                _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('After hook fails')
+        expect(formatter['failedCount']).toBe(1)
+    })
 
     describe('provides a fail counter', () => {
         it('should increment failed counter on `failed` status', () => {
@@ -402,6 +590,203 @@ describe('CucumberFormatter', () => {
         })
     })
 
+    describe('ambiguous steps', () => {
+        const definitions = [
+            { id: '16', pattern: { source: 'I do something', type: 'CUCUMBER_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 3 } } },
+            { id: '99', pattern: { source: '^I do', type: 'REGULAR_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 7 } } }
+        ] as StepDefinition[]
+        const DEFINITIONS_TEXT = 'Multiple step definitions match:\n  I do something - features/steps.js:3\n  /^I do/ - features/steps.js:7'
+        // the text before the location lines of the feature file
+        const stackText = (stack: string) => stack.split('\n\tat ')[0]
+
+        function reportAmbiguity (scenarioLevelReporter: boolean, message?: string, failAmbiguousDefinitions = true, stepDefinitions: StepDefinition[] = []) {
+            const eventBroadcaster = new EventEmitter()
+            const events = new EventEmitter()
+            const counts: number[] = []
+            events.on('getFailedCount', (count) => counts.push(count))
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: events,
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: failAmbiguousDefinitions,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            for (const stepDefinition of stepDefinitions) {
+                eventBroadcaster.emit('envelope', { stepDefinition })
+            }
+            eventBroadcaster.emit('envelope', {
+                testCase: {
+                    ...testCase,
+                    testSteps: testCase.testSteps.map((step) => step.id === '26' ? { ...step, stepDefinitionIds: ['16', '99'] } : step)
+                }
+            })
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: {
+                    ...testStepFinished,
+                    testStepResult: { status: TestStepResultStatus.AMBIGUOUS, duration: { seconds: 0, nanos: 0 }, message }
+                }
+            })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            return {
+                payload: wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')?.[1],
+                skipPayload: wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:skip')?.[1],
+                counts
+            }
+        }
+
+        it.each([false, true])('explains a missing Cucumber diagnostic (scenario level: %s)', (scenarioLevelReporter) => {
+            const { payload, counts } = reportAmbiguity(scenarioLevelReporter)
+            expect(payload.error.message).toContain(scenarioLevelReporter ? 'Scenario "Get size of an element" contains a step matching' : 'Step "should the element')
+            expect(payload.error.message).toContain('multiple step definitions')
+            expect(payload.error.message).toContain('overlapping expressions')
+            expect(payload.error.stack).toContain(payload.error.message)
+            expect(counts).toEqual([1])
+        })
+
+        it('also explains an empty Cucumber diagnostic', () => {
+            expect(reportAmbiguity(false, '').payload.error.message).toContain('multiple step definitions')
+        })
+
+        it('preserves a provided Cucumber diagnostic and stack', () => {
+            const message = 'Multiple step definitions match:\n  first.js:2\n  second.js:3'
+            const { payload } = reportAmbiguity(false, message)
+            expect(payload.error.message).toBe(message.split('\n')[0])
+            expect(stackText(payload.error.stack)).toBe(message)
+        })
+
+        it('preserves the skipped-step policy when failAmbiguousDefinitions is false', () => {
+            const { payload, counts } = reportAmbiguity(false, undefined, false)
+            expect(payload).toBeUndefined()
+            expect(wdioReporter.emit).toHaveBeenCalledWith('test:skip', expect.objectContaining({ state: 'skip', error: undefined }))
+            expect(counts).toEqual([0])
+        })
+
+        it('lists the matching definitions in the error (failAmbiguousDefinitions)', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, definitions)
+            expect(payload.error.message).toBe('Multiple step definitions match:')
+            expect(stackText(payload.error.stack)).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('gives the location of the step in the feature file', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, definitions)
+            expect(payload.error.stack).toBe(`${DEFINITIONS_TEXT}\n` +
+                // an absolute uri stays as it is, also on Windows
+                `\tat Feature(${gherkinDocument.uri}):1:1\n` +
+                '\tat Scenario(Get size of an element):12:3\n' +
+                '\tat Step(should the element \'.header-logged-out a\' be 32px wide and 35px high):14:5\n')
+        })
+
+        it('lists the matching definitions on a skipped ambiguous step', () => {
+            const { payload, skipPayload } = reportAmbiguity(false, undefined, false, definitions)
+            expect(payload).toBeUndefined()
+            expect(skipPayload.error.message).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('gives the definitions as the reason of a skipped ambiguous step', () => {
+            const { skipPayload } = reportAmbiguity(false, undefined, false, definitions)
+            expect(skipPayload.pendingReason).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('gives the definitions as the reason of a skipped scenario-level test', () => {
+            const { skipPayload } = reportAmbiguity(true, undefined, false, definitions)
+            expect(skipPayload.type).toBe('scenario')
+            expect(skipPayload.pendingReason).toBe(DEFINITIONS_TEXT)
+        })
+
+        it('keeps a message that Cucumber sends', () => {
+            const { payload } = reportAmbiguity(false, 'from cucumber', true, definitions)
+            expect(payload.error.message).toBe('from cucumber')
+            expect(stackText(payload.error.stack)).toBe('from cucumber')
+        })
+
+        it('skips a definition id without a stepDefinition message', () => {
+            const { payload } = reportAmbiguity(false, undefined, true, [definitions[1]])
+            expect(stackText(payload.error.stack)).toBe('Multiple step definitions match:\n  /^I do/ - features/steps.js:7')
+        })
+
+        it('gives the location of an undefined step in a rule', () => {
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: false,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: { ...testStepFinished, testStepResult: { status: TestStepResultStatus.UNDEFINED, duration: { seconds: 0, nanos: 0 } } }
+            })
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')!
+            expect(payload.error.stack).toContain('\tat Scenario(Get size of an element):12:3\n')
+        })
+
+        it('gives the location of a step from a background', () => {
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: false,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            // the pickle step '12' comes from the background step '4'
+            const feature = {
+                ...gherkinDocument.feature!,
+                children: [
+                    { background: { id: '30', keyword: 'Background', name: '', description: '', location: { line: 3, column: 3 }, steps: [
+                        { id: '4', keyword: 'Given ', keywordType: 'Context', text: 'a background step', location: { line: 4, column: 5 } }
+                    ] } },
+                    { scenario: { id: '8', keyword: 'Scenario', name: 'Get size of an element', description: '', location: { line: 6, column: 3 }, tags: [], steps: [], examples: [] } }
+                ]
+            }
+            eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, feature } })
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: { ...testStepFinished, testStepResult: { status: TestStepResultStatus.AMBIGUOUS, duration: { seconds: 0, nanos: 0 } } }
+            })
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:fail')!
+            expect(payload.error.stack).toContain('\tat Scenario(Get size of an element):6:3\n\tat Step(a background step):4:5\n')
+        })
+
+        it('lists the definitions for a scenario-level test', () => {
+            const { payload } = reportAmbiguity(true, undefined, true, definitions)
+            expect(payload.type).toBe('scenario')
+            expect(stackText(payload.error.stack)).toBe(DEFINITIONS_TEXT)
+        })
+    })
+
     describe('tags in title', () => {
         let eventBroadcaster: EventEmitter
 
@@ -418,6 +803,7 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: true,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: false,
+                    _rootDir: '/some/path/to',
                 },
             } as any)
         })
@@ -443,11 +829,17 @@ describe('CucumberFormatter', () => {
             vi.useRealTimers()
         })
 
+        const root = path.resolve('/project')
+
         /**
          * 2 feature files in one worker, and their scenarios in the order a1, b1, a2,
          * each scenario takes 10 ms
          */
-        function runGroupedFeatures (scenarioLevelReporter: boolean) {
+        function runGroupedFeatures (
+            scenarioLevelReporter: boolean,
+            files = { a: path.join('features', 'a.feature'), b: path.join('features', 'b.feature') },
+            order = ['a1', 'b1', 'a2']
+        ) {
             vi.useFakeTimers({ toFake: ['Date'] })
             vi.setSystemTime(0)
             wdioReporter.emit.mockClear()
@@ -463,19 +855,21 @@ describe('CucumberFormatter', () => {
                     _tagsInTitle: false,
                     _ignoreUndefinedDefinitions: false,
                     _failAmbiguousDefinitions: true,
+                    _rootDir: root,
                 },
             } as any)
-            const doc = (name: string) => ({ ...gherkinDocument, uri: `/features/${name}.feature`, feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
+            const uri = (name: 'a' | 'b') => path.join(root, files[name])
+            const doc = (name: 'a' | 'b') => ({ ...gherkinDocument, uri: uri(name), feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
             const scenario = (name: string, uri: string) => ({ ...pickle, id: `pickle-${name}`, name, uri })
             for (const gherkin of [doc('a'), doc('b')]) {
                 eventBroadcaster.emit('envelope', { gherkinDocument: gherkin })
             }
             eventBroadcaster.emit('envelope', { testRunStarted })
-            for (const [name, uri] of [['a1', '/features/a.feature'], ['b1', '/features/b.feature'], ['a2', '/features/a.feature']]) {
-                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri) })
+            for (const name of order) {
+                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri(name[0] as 'a' | 'b')) })
                 eventBroadcaster.emit('envelope', { testCase: { ...testCase, id: `case-${name}`, pickleId: `pickle-${name}` } })
             }
-            for (const name of ['a1', 'b1', 'a2']) {
+            for (const name of order) {
                 eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, testCaseId: `case-${name}` } })
                 vi.advanceTimersByTime(10)
                 if (scenarioLevelReporter) {
@@ -487,25 +881,25 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testRunFinished })
             return wdioReporter.emit.mock.calls
                 .filter(([event]: [string]) => /^(suite|test):(start|end|pass)$/.test(event))
-                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, duration: payload.duration }))
+                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, fullTitle: payload.fullTitle, duration: payload.duration }))
         }
 
-        it('starts a feature again when the run comes back to it, with its own uid', () => {
+        it('starts a feature again when the run comes back to it, with its own uid, and the feature uid as the parent of its scenarios', () => {
             const events = runGroupedFeatures(false)
-            const a = 'a.feature:3:1'
-            const b = 'b.feature:3:1'
-            expect(events.map(({ event, type, uid, parent }) => [event, type, type === 'feature' ? uid : parent])).toEqual([
+            const a = 'features/a.feature:3:1'
+            const b = 'features/b.feature:3:1'
+            expect(events.map(({ event, type, uid, parent, fullTitle }) => type === 'feature' ? [event, type, uid] : [event, type, parent, fullTitle])).toEqual([
                 ['suite:start', 'feature', a],
-                ['suite:start', 'scenario', a],
-                ['suite:end', 'scenario', a],
+                ['suite:start', 'scenario', a, `${a}: a1`],
+                ['suite:end', 'scenario', a, `${a}: a1`],
                 ['suite:end', 'feature', a],
                 ['suite:start', 'feature', b],
-                ['suite:start', 'scenario', b],
-                ['suite:end', 'scenario', b],
+                ['suite:start', 'scenario', b, `${b}: b1`],
+                ['suite:end', 'scenario', b, `${b}: b1`],
                 ['suite:end', 'feature', b],
                 ['suite:start', 'feature', `${a}#2`],
-                ['suite:start', 'scenario', `${a}#2`],
-                ['suite:end', 'scenario', `${a}#2`],
+                ['suite:start', 'scenario', a, `${a}: a2`],
+                ['suite:end', 'scenario', a, `${a}: a2`],
                 ['suite:end', 'feature', `${a}#2`],
             ])
         })
@@ -515,15 +909,39 @@ describe('CucumberFormatter', () => {
             expect(featureEnds.map(({ duration }) => duration)).toEqual([10, 10, 10])
         })
 
-        it('uses the uid of the part as the parent of the scenario tests (scenarioLevelReporter)', () => {
+        /**
+         * the `fullTitle` of a scenario test gives its Allure `historyId`: it must not
+         * depend on the random order that splits the feature into parts
+         */
+        it('uses the feature uid, not the uid of the part, as the parent of the scenario tests (scenarioLevelReporter)', () => {
             const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
-            expect(tests.map(({ event, title, parent }) => [event, title, parent])).toEqual([
-                ['test:start', 'a1', 'a.feature:3:1'],
-                ['test:pass', 'a1', 'a.feature:3:1'],
-                ['test:start', 'b1', 'b.feature:3:1'],
-                ['test:pass', 'b1', 'b.feature:3:1'],
-                ['test:start', 'a2', 'a.feature:3:1#2'],
-                ['test:pass', 'a2', 'a.feature:3:1#2'],
+            expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
+                ['test:start', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:pass', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:end', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:start', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:pass', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:end', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:start', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+                ['test:pass', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+                ['test:end', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+            ])
+        })
+
+        it('grouped feature files with the same name keep their own suites', () => {
+            const files = { a: path.join('features', 'admin', 'login.feature'), b: path.join('features', 'user', 'login.feature') }
+            const events = runGroupedFeatures(false, files, ['a1', 'b1'])
+            const admin = 'features/admin/login.feature:3:1'
+            const user = 'features/user/login.feature:3:1'
+            expect(events.map(({ event, type, uid, parent }) => type === 'feature' ? [event, type, uid] : [event, type, parent])).toEqual([
+                ['suite:start', 'feature', admin],
+                ['suite:start', 'scenario', admin],
+                ['suite:end', 'scenario', admin],
+                ['suite:end', 'feature', admin],
+                ['suite:start', 'feature', user],
+                ['suite:start', 'scenario', user],
+                ['suite:end', 'scenario', user],
+                ['suite:end', 'feature', user],
             ])
         })
     })

@@ -159,11 +159,21 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * run checks for errors here to avoid breakage in communication with the browser
          */
+        let settled = false
         const errorInterval = setInterval(
-            this.#checkForTestError.bind(this),
+            /**
+             * `clearInterval` does not stop a check that is still waiting for the browser:
+             * its command can fail when the session ends, and its result no longer matters
+             */
+            () => this.#checkForTestError().catch((err) => {
+                if (!settled) {
+                    throw err
+                }
+            }),
             ERROR_CHECK_INTERVAL)
 
         const state: TestState = await testStatePromise
+        settled = true
         clearTimeout(testTimeout)
         clearInterval(errorInterval)
 

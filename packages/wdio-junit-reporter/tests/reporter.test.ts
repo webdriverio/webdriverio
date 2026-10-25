@@ -62,6 +62,11 @@ describe('wdio-junit-reporter', () => {
         reporter = new WDIOJunitReporter({ stdout: true })
     })
 
+    function startTest (test: TestStats) {
+        vi.spyOn(reporter, 'getContextTest').mockReturnValue(test)
+        reporter.onTestStart(test)
+    }
+
     it('should write to output stream on runnerEnd', () => {
         reporter.suites = suiteEmpty as any
         reporter.write = vi.fn()
@@ -555,11 +560,11 @@ describe('wdio-junit-reporter', () => {
             reporter.onSuiteStart(suite)
             const test1 = suite.tests[0]
             const test2 = suite.tests[1]
-            reporter.onTestStart(test1)
+            startTest(test1)
             process.stdout.write('0 - line 0')
             process.stdout.write('0 - line 1')
             reporter.onTestPass(test1)
-            reporter.onTestStart(test2)
+            startTest(test2)
             process.stdout.write('1 - line 0')
             process.stdout.write('1 - line 1')
             reporter.onTestPass(suite.tests[0])
@@ -573,6 +578,64 @@ describe('wdio-junit-reporter', () => {
         }
     })
 
+    it('attributes properties and worker logs to the test owning the context, not the last started one', () => {
+        const originalWrite = process.stdout.write
+        try {
+            reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+            const suite = Object.values(suitesLog)[0] as SuiteStats
+            const [testA, testB] = suite.tests
+            reporter.onTestStart(testA)
+            reporter.onTestStart(testB)
+            const contextTest = vi.spyOn(reporter, 'getContextTest')
+
+            contextTest.mockReturnValue(testA)
+            process.emit('junit:addProperty' as any, { name: 'a-prop', value: 'a-value' } as any)
+            process.stdout.write('a-log')
+
+            contextTest.mockReturnValue(testB)
+            process.emit('junit:addProperty' as any, { name: 'b-prop', value: 'b-value' } as any)
+            process.stdout.write('b-log')
+
+            contextTest.mockReturnValue(undefined)
+            process.emit('junit:addProperty' as any, { name: 'orphan-prop', value: 'x' } as any)
+            process.stdout.write('orphan-log')
+
+            const infoA = reporter['_testToAdditionalInformation'][testA.uid]
+            const infoB = reporter['_testToAdditionalInformation'][testB.uid]
+            expect(infoA.properties).toEqual({ 'a-prop': 'a-value' })
+            expect(infoB.properties).toEqual({ 'b-prop': 'b-value' })
+            expect(infoA.workerConsoleLog).toBe('a-log')
+            expect(infoB.workerConsoleLog).toBe('b-log')
+
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
+            expect(output).toContain('a-prop')
+            expect(output).toContain('b-prop')
+            expect(output).not.toContain('orphan')
+        } finally {
+            process.stdout.write = originalWrite
+        }
+    })
+
+    it('skips attribution for a context test that never started, e.g. a skipped test', () => {
+        const originalWrite = process.stdout.write
+        try {
+            reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+            const passThrough = vi.fn()
+            reporter['_originalStdoutWrite'] = passThrough
+            const skipped = (Object.values(suitesLog)[0] as SuiteStats).tests[0]
+            vi.spyOn(reporter, 'getContextTest').mockReturnValue(skipped)
+
+            expect(() => addProperty('skipped-prop', 'x')).not.toThrow()
+            expect(() => process.stdout.write('skipped-log')).not.toThrow()
+
+            expect(passThrough).toHaveBeenCalledWith('skipped-log', undefined, undefined)
+            expect(reporter['_testToAdditionalInformation'][skipped.uid]).toBeUndefined()
+        } finally {
+            process.stdout.write = originalWrite
+        }
+    })
+
     it('addProperty adds a property to currently running testcase', () => {
         reporter = new WDIOJunitReporter({ stdout: true })
         reporter.suites = suitesLog as any
@@ -580,10 +643,10 @@ describe('wdio-junit-reporter', () => {
         reporter.onSuiteStart(suite)
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
-        reporter.onTestStart(test1)
+        startTest(test1)
         addProperty('0-prop1', '0-value')
         reporter.onTestPass(test1)
-        reporter.onTestStart(test2)
+        startTest(test2)
         addProperty('1-prop1', '1-value')
         reporter.onTestPass(suite.tests[0])
         const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
@@ -605,16 +668,16 @@ describe('wdio-junit-reporter', () => {
         const step3 = scenarioSuite.tests[2]
 
         // Simulate adding properties to each step during test execution
-        reporter.onTestStart(step1)
+        startTest(step1)
         addProperty('step1-prop', 'step1-value')
         addProperty('common-prop', 'common-value-1')
         reporter.onTestPass(step1)
 
-        reporter.onTestStart(step2)
+        startTest(step2)
         addProperty('step2-prop', 'step2-value')
         reporter.onTestPass(step2)
 
-        reporter.onTestStart(step3)
+        startTest(step3)
         addProperty('step3-prop', 'step3-value')
         addProperty('common-prop', 'common-value-3')
         reporter.onTestPass(step3)
@@ -651,7 +714,7 @@ describe('wdio-junit-reporter', () => {
 
         // Add a property to a valid step
         const validStep = scenarioSuite.tests[0]
-        reporter.onTestStart(validStep)
+        startTest(validStep)
         addProperty('valid-prop', 'valid-value')
         reporter.onTestPass(validStep)
 

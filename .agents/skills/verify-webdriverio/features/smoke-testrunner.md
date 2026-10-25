@@ -28,6 +28,7 @@ Preconditions:
 
 - **List names.** Run `pnpm run test:smoke:list`. Exit 0 and stdout includes `standaloneTest`. This does not launch WebdriverIO.
 - **Mocha session.** Run `pnpm run test:smoke mochaTestrunner`. Exit 0, stdout contains `All smoke tests passed!`, and the suite assertion requires `passed` 4 and `skippedSpecs` 1. On Windows the suite returns before those counts; do not treat that early return as the count check.
+- **Ambiguous Cucumber step.** Run `pnpm run test:smoke cucumberFailAmbiguousDefinitions`. Exit 0 and `All smoke tests passed!` mean the child run failed as expected and its spec report lists the matching step definitions of the ambiguous step.
 - **Standalone client.** Run `pnpm run test:smoke standaloneTest`. Exit 0 and stdout contains `All smoke tests passed!`. The spec expects the mock title `Mock Page Title`.
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.

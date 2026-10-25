@@ -8,7 +8,7 @@ Trace-mode artifacts — the trace zip and each test's per-test screenshot and v
 
 When an Allure reporter is present, trace-mode artifacts attach to the Allure report automatically — no extra wiring:
 
-- **`traceGranularity: 'test'`** — each test's `trace.zip` (`application/zip`, a download that opens in `show-trace`), `screenshot` (`image/png`, inline) and `video` (`video/webm`, inline) attach to that test's card. This is the granularity to use for a per-test Allure report.
+- **`traceGranularity: 'test'`** — each test's `trace.zip` (`application/zip`, a download that opens in `show-trace`), `screenshot` (`image/png`, inline) and `video` (`video/webm`, inline) attach to that test's card. This is the granularity to use for a per-test Allure report. Encoding the per-test `video` needs `ffmpeg` on `PATH`.
 - **`traceGranularity: 'session'` / `'spec'`** — a session/spec-spanning trace is written to disk and enumerated in the [artifacts manifest](/docs/devtools/wdio/trace-mode#artifacts-manifest--emitartifactsmanifest), but **not** attached to individual test cards: a session/spec trace is only finalized after all its tests have run, by which point their Allure cards are closed and there is no open test to attach to. To surface it anyway, post-process the manifest in your own `onComplete` hook.
 
 Per-adapter support:

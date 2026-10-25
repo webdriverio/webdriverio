@@ -61,7 +61,7 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. To run the tests of one spec file at the same time, use [`parallelMode`](#parallelmode). Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
 
 ```sh
 wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
@@ -180,6 +180,22 @@ Test filter given regular expression. Mocha 12 accepts modern RegExp flags in th
 <Option type="boolean" default="false">
 
 Invert test filter matches.
+
+</Option>
+
+#### maxParallelContexts
+
+<Option type="number" default="os.cpus().length">
+
+Number of tests that run at the same time when [`parallelMode`](#parallelmode) is set. See [Parallel Tests in a Spec File](./ParallelTests.md#options).
+
+</Option>
+
+#### parallelMode
+
+<Option type="'contexts' | 'userContexts'" default="undefined">
+
+Run the tests of a spec file at the same time, each in its own WebDriver BiDi browsing context. `'contexts'` shares cookies and storage between tests, `'userContexts'` isolates them. Requires the `'wdio:experimentalBiDiCommands': true` capability. `bail` and `retries` are not supported in this mode. See [Parallel Tests in a Spec File](./ParallelTests.md).
 
 </Option>
 
@@ -399,7 +415,7 @@ This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that
 
 #### backtrace
 
-<Option type="Boolean" default="true">
+<Option type="Boolean" default="false">
 
 Show full backtrace for errors.
 
@@ -480,7 +496,7 @@ cucumberOpts: {
 
 <Option type="boolean" default="false">
 
-Fail if there are any undefined or pending steps.
+Fail the run on a pending step. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
 
 </Option>
 
@@ -488,14 +504,14 @@ Fail if there are any undefined or pending steps.
 
 <Option type="String" default="">
 
-Only execute the features or scenarios with tags matching the expression.
+Only execute the features or scenarios with tags matching the expression. A feature file with no matching scenario is reported as skipped and starts no browser session.
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 </Option>
 
 #### timeout
 
-<Option type="Number" default="30000">
+<Option type="Number" default="60000">
 
 Timeout in milliseconds for step definitions.
 
@@ -511,9 +527,9 @@ Specify the number of times to retry failing test cases.
 
 #### retryTagFilter
 
-<Option type="RegExp">
+<Option type="String">
 
-Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+Only retry the scenarios with tags matching the tag expression. Requires [`retry`](#retry).
 
 </Option>
 
@@ -529,7 +545,7 @@ Default language for your feature files
 
 <Option type="String" default="defined">
 
-Run tests in defined / random order
+Run the scenarios in the order of the feature files (`'defined'`) or in a random order (`'random'`). With `'random:<seed>'`, for example `'random:42'`, a random order is the same in each run. With `'random'`, the log shows the seed of the run (`Random order using seed: 42`).
 
 </Option>
 
@@ -538,7 +554,7 @@ Run tests in defined / random order
 <Option type="string[]">
 
 Name and output file path of formatter to use.
-WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
+WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file. Formatters don't run with [`parallelMode`](#parallelmode-1).
 
 </Option>
 
@@ -563,7 +579,7 @@ Add cucumber tags to feature or scenario name
 
 <Option type="Boolean" default="false">
 
-Treat undefined definitions as warnings.
+Report an undefined step as pending, with ` (undefined step)` at the end of its title, and do not fail the run for it.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
@@ -572,19 +588,70 @@ Treat undefined definitions as warnings.
 
 <Option type="Boolean" default="false">
 
-Treat ambiguous definitions as errors.
+Report an ambiguous step (a step that matches more than one step definition) as failed, with the list of the matching step definitions. With `false`, the step is reported as skipped, with the list as its reason. In both cases, the run fails. Exception: without `parallelMode`, the run passes with `ignoreUndefinedDefinitions: true` and `failAmbiguousDefinitions: false`.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-#### profile
+#### profiles
 
 <Option type="string[]" default="[]">
 
-Specify the profile to use.
+The profiles of the Cucumber configuration file to use.
 
 </Option>
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
+
+#### file
+
+<Option type="string | false" default="undefined">
+
+Path of the Cucumber configuration file to load, or `false` to load none. Without it, Cucumber looks for its default configuration files.
+
+</Option>
+
+#### dryRun
+
+<Option type="Boolean" default="false">
+
+Run no step and no hook: Cucumber only matches each step with its step definitions, so undefined and ambiguous steps are still reported. The run does not fail.
+
+</Option>
+
+#### worldParameters
+
+<Option type="object" default="{}">
+
+Parameters for your World, as `this.parameters`.
+
+</Option>
+
+#### scenarioLevelReporter
+
+<Option type="Boolean" default="false">
+
+Report each scenario as one test. Its steps and hooks are not reported.
+
+</Option>
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### parallelMode
+
+<Option type="'contexts' | 'userContexts'" default="undefined">
+
+Run the scenarios of a feature file at the same time, each in its own WebDriver BiDi browsing context. `'contexts'` shares cookies and storage between scenarios, `'userContexts'` isolates them. Requires the `'wdio:experimentalBiDiCommands': true` capability. See [Parallel Tests in a Spec File](./ParallelTests.md).
+
+</Option>
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### maxParallelContexts
+
+<Option type="number" default="os.cpus().length">
+
+Number of scenarios that run at the same time when [`parallelMode`](#parallelmode-1) is set. See [Parallel Tests in a Spec File](./ParallelTests.md#options).
+
+</Option>
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 ### Skipping tests in cucumber
 

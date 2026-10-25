@@ -14,6 +14,8 @@ import type { Services } from '@wdio/types'
 import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import type { ParallelMode } from './parallel.js'
+import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
@@ -26,6 +28,13 @@ interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     mochaOpts: MochaOptsImport
 }
 
+/** The reporter fields of a root-suite hook in a sequential run (Mocha's setHookTitle) */
+function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
+    const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
+    const title = test ? `"${kind}" hook for "${test.title}"` : `"${kind}" hook in "{root}"`
+    return { title, fullTitle: title, parent: '' }
+}
+
 /**
  * Mocha runner
  */
@@ -36,10 +45,13 @@ class MochaAdapter {
 
     private _level = 0
     private _hasTests = true
+    private _browser?: WebdriverIO.Browser
     private _suiteIds: string[] = ['0']
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
+    /** Mocha test and its uid between its test:start and its test:end */
+    private _openTest?: { payload: Record<string, unknown>, uid: string }
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -117,6 +129,10 @@ class MochaAdapter {
         }
     }
 
+    setBrowser (browser: WebdriverIO.Browser) {
+        this._browser = browser
+    }
+
     hasTests () {
         return this._hasTests
     }
@@ -124,10 +140,114 @@ class MochaAdapter {
     async run () {
         const mocha = this._mocha!
 
-        let runtimeError
-        const result = await new Promise((resolve) => {
+        const parallelMode = this._config.mochaOpts?.parallelMode
+        if (parallelMode === 'contexts' || parallelMode === 'userContexts') {
+            return this._runParallelMode(mocha, parallelMode)
+        }
+
+        return this._runSequential(mocha)
+    }
+
+    private async _runParallelMode(mocha: Mocha, mode: ParallelMode) {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
+        if (!browser) {
+            throw new Error(
+                'Parallel mode requires a browser instance. ' +
+                'Ensure WebDriver session is initialized before tests run.'
+            )
+        }
+
+        if (!browser.isBidi) {
+            log.warn(
+                `parallelMode: "${mode}" is set but the browser session does not support ` +
+                'WebDriver Bidi. This may be because "wdio:enforceWebDriverClassic" is enabled ' +
+                'or the browser does not support Bidi. Falling back to sequential execution.'
+            )
+            return this._runSequential(mocha)
+        }
+
+        if (browser.__bidiCommandsEnabled !== true) {
+            log.warn(
+                `parallelMode: "${mode}" requires 'wdio:experimentalBiDiCommands': true ` +
+                'to be set in capabilities. Without it, element commands use classic protocol ' +
+                'which cannot target Bidi-created browsing contexts. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(mocha)
+        }
+
+        if (this._config.mochaOpts.bail) {
+            throw new Error(`bail is not supported in parallel mode (parallelMode: "${mode}")`)
+        }
+        if (this._config.mochaOpts.retries) {
+            throw new Error(`retries is not supported in parallel mode (parallelMode: "${mode}")`)
+        }
+
+        // mocha.run() applies .only() via rootSuite.filterOnly(); the parallel
+        // path never calls mocha.run(), so filter before collecting tests.
+        const mochaSuite = mocha.suite as unknown as { hasOnly?: () => boolean; filterOnly?: () => void }
+        if (mochaSuite.hasOnly?.()) {
+            mochaSuite.filterOnly?.()
+        }
+
+        // Config hooks are surfaced as paired hook:start/hook:end events like
+        // sequential mode's root-suite hooks (wrapHook): prepareMessage payloads
+        // with Mocha's root hook title. They run against the session-global context (no tab).
+        const rootTests = (mocha.suite as unknown as { tests?: { title: string }[] }).tests
+        const beforeSuiteMsg = this.prepareMessage('beforeSuite')
+        const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
+        const beforeSuiteUid = this.getSyncEventIdStart('hook')
+        this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        try {
+            await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
+            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        } catch (err) {
+            log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        }
+
+        let failures: number
+        let runtimeError: Error | undefined
+        try {
+            failures = await runParallelTests(
+                mocha.suite, browser, this._reporter, this._cid, this._specs,
+                this._config.mochaOpts.maxParallelContexts,
+                {
+                    // the Mocha constructor already compiled grep/fgrep into
+                    // options.grep (fgrep wins when both are set)
+                    grep: mocha.options?.grep as RegExp | undefined,
+                    invert: mocha.options?.invert,
+                    timeout: this._config.mochaOpts.timeout,
+                    mode,
+                    failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
+                    allowUncaught: this._config.mochaOpts.allowUncaught
+                }
+            )
+        } catch (err) {
+            runtimeError = err as Error
+            failures = 1
+        }
+
+        const afterSuiteMsg = this.prepareMessage('afterSuite')
+        const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
+        const afterSuiteStartUid = this.getSyncEventIdStart('hook')
+        this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+        try {
+            await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+        } catch (err) {
+            log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+        }
+
+        return this._finalize(failures, runtimeError)
+    }
+
+    private async _runSequential(mocha: Mocha) {
+        let runtimeError: Error | undefined
+        const result = await new Promise<number>((resolve) => {
             try {
-                this._runner = mocha.run(resolve)
+                this._runner = mocha.run(resolve as (failures: number) => void)
             } catch (err) {
                 runtimeError = err as Error
                 return resolve(1)
@@ -139,15 +259,19 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || this._specLoadError || result, this._capabilities, this._specs])
+        return this._finalize(result, runtimeError)
+    }
 
-        /**
-         * in case the spec has a runtime error throw after the wdio hook
-         */
-        if (runtimeError || this._specLoadError) {
-            throw runtimeError || this._specLoadError
+    /**
+     * Shared teardown: emit 'after' hook, then conditionally throw stored errors.
+     */
+    private async _finalize(result: number, error?: Error) {
+        await executeHooksWithArgs('after', this._config.after as Function, [
+            error || this._specLoadError || result, this._capabilities, this._specs
+        ])
+        if (error || this._specLoadError) {
+            throw error || this._specLoadError
         }
-
         return result
     }
 
@@ -170,10 +294,11 @@ class MochaAdapter {
         switch (hookName) {
         case 'beforeSuite':
             this._suiteStartDate = Date.now()
-            params.payload = this._runner?.suite.suites[0]
+            // _runner is only set in sequential mode; parallel mode has mocha
+            params.payload = this._runner?.suite.suites[0] || this._mocha?.suite?.suites?.[0]
             break
         case 'afterSuite':
-            params.payload = this._runner?.suite.suites[0]
+            params.payload = this._runner?.suite.suites[0] || this._mocha?.suite?.suites?.[0]
             if (params.payload) {
                 (params.payload as { duration: number }).duration = (
                     (params.payload as { duration: number }).duration ||
@@ -199,11 +324,28 @@ class MochaAdapter {
             return
         }
 
+        /**
+         * Mocha 11.8+ sends a second 'test' event for the open test when a `beforeEach`
+         * hook fails with `failHookAffectedTests` (mochajs/mocha#6442), so ignore it.
+         * TODO: remove when the `mocha` version range of this package includes the fix of
+         * https://github.com/mochajs/mocha/issues/6442
+         */
+        const isOpenTest = payload === this._openTest?.payload
+        if (event === 'test:start' && isOpenTest) {
+            return
+        }
+
         const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
-        message.uid = this.getUID(message)
+        // this.skip() at runtime ends the test that started; it.skip has no test:start
+        message.uid = event === 'test:pending' && isOpenTest ? this._openTest!.uid : this.getUID(message)
+        if (event === 'test:start') {
+            this._openTest = { payload, uid: message.uid }
+        } else if (event === 'test:end') {
+            this._openTest = undefined
+        }
 
         this._reporter.emit(message.type, message)
     }
@@ -256,7 +398,7 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (['test:start', 'test:pending'].includes(message.type)) {
+        if (message.type === 'test:start' || message.type === 'test:pending') {
             return this.getSyncEventIdStart('test')
         }
         if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {

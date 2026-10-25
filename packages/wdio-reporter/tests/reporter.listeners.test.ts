@@ -91,6 +91,31 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests['step-3'].output.map((entry) => entry.type)).toEqual(['command', 'result'])
         })
 
+        it('keeps the context and the parent of a started parallel test that ends as pending', () => {
+            // Cucumber parallel scenarioLevelReporter: the pending payload has no contextId
+            reporter.emit('test:start', { ...stat, uid: 'scenario-1', contextId: 'ctx-1', parentUid: 'feature-1' })
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-1', state: 'pending' })
+            expect(reporter.tests['scenario-1'].contextId).toBe('ctx-1')
+            expect(reporter.tests['scenario-1'].parentUid).toBe('feature-1')
+        })
+
+        it('gives a parallel test that ends as pending the retries of its context', () => {
+            // Cucumber parallel retry: a failed attempt, then a new attempt that ends as pending
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:retry', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            // the pending payload has no contextId
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-2', state: 'pending' })
+            expect(reporter.tests['scenario-2'].retries).toBe(1)
+        })
+
+        it('adds no context or parent property to a sequential test that ends as pending', () => {
+            reporter.emit('test:start', { ...stat, uid: 'step-4' })
+            reporter.emit('test:pending', { ...stat, uid: 'step-4', state: 'pending' })
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('contextId')
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('parentUid')
+        })
+
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
             vi.useFakeTimers({ toFake: ['Date'] })
             try {
@@ -282,6 +307,32 @@ describe('WDIOReporter Listeners', () => {
 
             expect(reporter.currentSuites[0].suites.length).toBe(1)
             expect(reporter.currentSuites[0].suites[0].title).toBe(suiteStartEvent.title)
+        })
+
+        it('should keep concurrent child suites under their parent when ended out of order', () => {
+            reporter.emit('runner:start', runnerStartEvent)
+            reporter.emit('suite:start', { uid: 'feature', title: 'feature' } as Suite)
+            reporter.emit('suite:start', { uid: 's1', title: 's1', parentUid: 'feature' } as Suite)
+            reporter.emit('suite:start', { uid: 's2', title: 's2', parentUid: 'feature' } as Suite)
+
+            const feature = reporter.currentSuites[1]
+            expect(feature.suites.map((s) => s.uid)).toEqual(['s1', 's2'])
+            expect(reporter.currentSuites.map((s) => s.uid)).toEqual([reporter.currentSuites[0].uid, 'feature', 's1', 's2'])
+
+            reporter.emit('suite:end', { uid: 's1', title: 's1' } as Suite)
+            expect(reporter.currentSuites.map((s) => s.uid)).toEqual([reporter.currentSuites[0].uid, 'feature', 's2'])
+            reporter.emit('suite:end', { uid: 's2', title: 's2' } as Suite)
+            expect(reporter.currentSuites.map((s) => s.uid)).toEqual([reporter.currentSuites[0].uid, 'feature'])
+            expect(feature.suites[0].suites).toHaveLength(0)
+        })
+
+        it('should attach top-level suites with a null parentUid to the root instead of nesting them', () => {
+            reporter.emit('runner:start', runnerStartEvent)
+            reporter.emit('suite:start', { uid: 'a', title: 'a', parentUid: null } as Suite)
+            reporter.emit('suite:start', { uid: 'b', title: 'b', parentUid: null } as Suite)
+
+            expect(reporter.currentSuites[0].suites.map((s) => s.uid)).toEqual(['a', 'b'])
+            expect(reporter.suites.a.suites).toHaveLength(0)
         })
 
         it('should add the suite to the stack of current suites', () => {
@@ -687,6 +738,20 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests[testEndEvent.uid].retries).toBe(1)
         })
 
+        // a retried attempt has no test:end, so the counter goes on; the final test:end resets it
+        it('counts the retries of a test that keeps its uid, and resets them at test:end', () => {
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:retry', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            expect(reporter.tests.S.retries).toBe(1)
+            reporter.emit('test:pass', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:end', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'T', title: 'next' })
+            expect(reporter.tests.T.retries).toBe(0)
+            reporter.emit('test:pending', { uid: 'U', title: 'pending' })
+            expect(reporter.tests.U.retries).toBe(0)
+        })
+
         it('should increment the test and passes counts only after test retry', () => {
             emitEventsFirstTry()
             expect(reporter.counts.tests).toBe(0)
@@ -750,6 +815,245 @@ describe('WDIOReporter Listeners', () => {
             reporter.onTestEnd = vi.fn()
             emitEvents()
             expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
+        })
+    })
+
+    describe('parallel contexts', () => {
+        const base = { cid: '0-0', specs: [], parent: 'p', pending: false, fullTitle: 'p t' }
+        const start = (uid: string, contextId?: string) => reporter.emit('test:start', { ...base, uid, title: uid, contextId })
+        const command = (type: 'client:beforeCommand' | 'client:afterCommand', command: string, contextId?: string) =>
+            reporter.emit(type, { sessionId: 's', command, contextId })
+
+        beforeEach(() => {
+            reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+            reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        })
+
+        it('routes interleaved command output to the test owning the context', () => {
+            start('A', 'ctx-a')
+            start('B', 'ctx-b')
+            command('client:beforeCommand', 'a1', 'ctx-a')
+            command('client:beforeCommand', 'b1', 'ctx-b')
+            command('client:afterCommand', 'a1', 'ctx-a')
+            command('client:afterCommand', 'b1', 'ctx-b')
+            reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+            reporter.emit('test:end', { uid: 'B' })
+
+            expect(reporter.tests.A.output.map((o: any) => [o.command, o.type])).toEqual([['a1', 'command'], ['a1', 'result']])
+            expect(reporter.tests.B.output.map((o: any) => [o.command, o.type])).toEqual([['b1', 'command'], ['b1', 'result']])
+        })
+
+        it('routes the commands of an ended context to its last test, as a sequential run routes them to the current test', () => {
+            start('A', 'ctx-a')
+            start('B', 'ctx-b')
+            reporter.emit('test:end', { uid: 'A' })
+            // afterEach and after hooks run after test:end
+            command('client:beforeCommand', 'teardown', 'ctx-a')
+            command('client:afterCommand', 'teardown', 'ctx-a')
+            expect(reporter.tests.A.output.map((o: any) => [o.command, o.type])).toEqual([['teardown', 'command'], ['teardown', 'result']])
+            expect(reporter.tests.B.output).toHaveLength(0)
+        })
+
+        it('routes the commands of a context to the test that started last in it', () => {
+            start('S1', 'ctx-a')
+            reporter.emit('test:end', { uid: 'S1', contextId: 'ctx-a' })
+            start('S2', 'ctx-a')
+            command('client:beforeCommand', 'step 2', 'ctx-a')
+            expect(reporter.tests.S1.output).toHaveLength(0)
+            expect(reporter.tests.S2.output).toHaveLength(1)
+        })
+
+        it('does not attribute commands from an unstarted context to the last ended test', () => {
+            start('A', 'ctx-a')
+            reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+            command('client:beforeCommand', 'hook', 'ctx-b')
+            command('client:afterCommand', 'hook', 'ctx-b')
+            expect(reporter.tests.A.output).toHaveLength(0)
+        })
+
+        it('drops commands without contextId while a context-tracked test is active', () => {
+            start('A', 'ctx-a')
+            start('B', 'ctx-b')
+            command('client:beforeCommand', 'cleanup')
+            command('client:afterCommand', 'cleanup')
+            expect(reporter.tests.A.output).toHaveLength(0)
+            expect(reporter.tests.B.output).toHaveLength(0)
+        })
+
+        it('skips the current test when test:skip carries an unknown uid', () => {
+            start('A', 'ctx-a')
+            expect(() => reporter.emit('test:skip', { uid: 'step-uid', pendingReason: 'why' })).not.toThrow()
+            expect(reporter.tests.A.state).toBe('skipped')
+            expect(reporter.tests.A.pendingReason).toBe('why')
+        })
+
+        it('ignores test:skip with an unknown uid when no test started', () => {
+            expect(() => reporter.emit('test:skip', { uid: 'step-uid' })).not.toThrow()
+        })
+
+        it('does not leave a retry entry behind after test:end', () => {
+            start('A', 'ctx-a')
+            reporter.emit('test:retry', { uid: 'A' })
+            const set = vi.spyOn(Map.prototype, 'set')
+            reporter.emit('test:end', { uid: 'A' })
+            const zeroed = set.mock.calls.some(([key, value]) => key === 'ctx-a' && value === 0)
+            set.mockRestore()
+            expect(zeroed).toBe(false)
+            start('A2', 'ctx-a')
+            expect(reporter.tests.A2.retries).toBe(0)
+        })
+
+        it('routes pending tests by context', () => {
+            reporter.emit('test:pending', { ...base, uid: 'P', title: 'P', contextId: 'ctx-p' })
+            start('B', 'ctx-b')
+            command('client:beforeCommand', 'p1', 'ctx-p')
+            expect(reporter.tests.P.output).toHaveLength(1)
+            expect(reporter.tests.B.output).toHaveLength(0)
+        })
+
+        describe('getContextTest', () => {
+            it('resolves the test owning the resolver context', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+                reporter.setContextIdResolver(() => 'ctx-b')
+                expect(reporter.getContextTest()).toBe(reporter.tests.B)
+            })
+
+            it('returns the last test of an ended context, for output of its afterEach and after hooks', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns undefined for a context after its context:end', () => {
+                const onContextEnd = vi.spyOn(reporter, 'onContextEnd')
+                start('A', 'ctx-a')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                const payload = { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' }
+                reporter.emit('context:end', payload)
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(onContextEnd).toHaveBeenCalledWith(payload)
+            })
+
+            it('returns undefined after context:end for a test that never ended', () => {
+                // failHookAffectedTests: false: a failed beforeEach sends no result and no test:end
+                start('A', 'ctx-a')
+                reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(reporter.tests.A.state).toBe('pending')
+            })
+
+            it('returns the pending test after its test:end when the pending payload has no contextId', () => {
+                // Cucumber scenario level: only test:start and test:end have the contextId
+                start('A', 'ctx-a')
+                reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', state: 'pending' })
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns the current test without a resolver for a sequential test', () => {
+                start('A')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns undefined without a resolver while parallel tests are tracked', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                expect(reporter.getContextTest()).toBeUndefined()
+            })
+        })
+
+        describe('getContextId', () => {
+            it('returns the resolver context, also before a test of that context starts', () => {
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextId()).toBe('ctx-a')
+                expect(reporter.getContextTest()).toBeUndefined()
+            })
+
+            it('returns undefined without a resolver', () => {
+                start('A')
+                expect(reporter.getContextId()).toBeUndefined()
+            })
+        })
+
+        it('keeps serial behavior without contextId', () => {
+            start('A')
+            command('client:beforeCommand', 'a1')
+            start('B')
+            command('client:beforeCommand', 'b1')
+            expect(reporter.tests.A.output).toHaveLength(1)
+            expect(reporter.tests.B.output).toHaveLength(1)
+        })
+
+        it('skips the test identified by the event uid', () => {
+            start('A', 'ctx-a')
+            start('B', 'ctx-b')
+            reporter.emit('test:skip', { uid: 'A', pendingReason: 'why' })
+            expect(reporter.tests.A.state).toBe('skipped')
+            expect(reporter.tests.A.pendingReason).toBe('why')
+            expect(reporter.tests.B.state).toBe('pending')
+        })
+
+        it('tracks retries per context', () => {
+            start('A', 'ctx-a')
+            start('B', 'ctx-b')
+            reporter.emit('test:retry', { uid: 'A' })
+            reporter.emit('test:end', { uid: 'B' })
+            start('A2', 'ctx-a')
+            start('B2', 'ctx-b')
+            expect(reporter.tests.A2.retries).toBe(1)
+            expect(reporter.tests.B2.retries).toBe(0)
+        })
+    })
+
+    describe('parentUid suite resolution', () => {
+        const base = { cid: '0-0', specs: [], parent: 'p', pending: false, fullTitle: 'p t' }
+
+        beforeEach(() => {
+            reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+            reporter.emit('suite:start', { uid: 'suite-a', title: 'a' })
+            reporter.emit('suite:start', { uid: 'suite-b', title: 'b' })
+        })
+
+        it('attaches tests, pending tests and hooks to the suite named by parentUid', () => {
+            reporter.emit('test:start', { ...base, uid: 't1', title: 't1', parentUid: 'suite-a' })
+            reporter.emit('test:pending', { ...base, uid: 't2', title: 't2', parentUid: 'suite-a', state: 'pending' })
+            reporter.emit('hook:start', { uid: 'h1', title: 'h1', parent: 'p', cid: '0-0', parentUid: 'suite-a' })
+
+            expect(reporter.suites['suite-a'].tests.map(t => t.uid)).toEqual(['t1', 't2'])
+            expect(reporter.suites['suite-a'].hooks.map(h => h.uid)).toEqual(['h1'])
+            expect(reporter.suites['suite-b'].tests).toHaveLength(0)
+            expect(reporter.suites['suite-b'].hooks).toHaveLength(0)
+        })
+
+        it('falls back to the innermost current suite without parentUid', () => {
+            reporter.emit('test:start', { ...base, uid: 't1', title: 't1' })
+            reporter.emit('test:start', { ...base, uid: 't2', title: 't2', parentUid: 'unknown' })
+
+            expect(reporter.suites['suite-a'].tests).toHaveLength(0)
+            expect(reporter.suites['suite-b'].tests.map(t => t.uid)).toEqual(['t1', 't2'])
+        })
+
+        it('replaces a started test that ends pending after another test started', () => {
+            reporter.emit('test:start', { ...base, uid: 'A', title: 'A', parentUid: 'suite-a' })
+            reporter.emit('test:start', { ...base, uid: 'B', title: 'B', parentUid: 'suite-a' })
+            reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', parentUid: 'suite-a', state: 'pending' })
+
+            const suite = reporter.suites['suite-a']
+            expect(suite.tests.map(t => t.uid)).toEqual(['A', 'B'])
+            expect(suite.hooksAndTests.map(t => t.uid)).toEqual(['A', 'B'])
+            expect(suite.tests[0]).toBe(reporter.tests.A)
+            expect(suite.tests[0].end).toBeDefined()
         })
     })
 })

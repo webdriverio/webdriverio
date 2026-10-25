@@ -37,9 +37,12 @@ minimumReleaseAgeExclude:
   - safaridriver@3.0.0
 
 # security fixes for transitive dependencies (GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f, GHSA-pqg4-j6r4-53mv)
+# undici 7 below 7.30.1 (GHSA-qrxm-fqhp-jwvm, GHSA-2m5v-pch6-74hx and others): nx pins 7.29.0, and pnpm keeps 7.30.0 for @electron/get
 overrides:
   handlebars: 4.7.10
   shell-quote: 1.12.0
+  nx>undici: 7.30.1
+  '@electron/get>undici': ^7.30.1
 
 # recast's declared @babel/parser range cannot parse the pipeline operator
 packageExtensions:

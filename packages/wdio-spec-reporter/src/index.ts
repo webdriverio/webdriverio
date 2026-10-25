@@ -19,10 +19,9 @@ export default class SpecReporter extends WDIOReporter {
     private _indents = 0
     private _suiteIndents: Record<string, number> = {}
     private _orderedSuites: SuiteStats[] = []
-    private _consoleOutput = ''
     private _suiteIndent = ''
     private _preface = ''
-    private _consoleLogs: string[] = []
+    private _consoleLogs = new Map<string, string>()
     private _pendingReasons: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
@@ -74,7 +73,10 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    this._consoleOutput += chunk
+                    const test = this.getContextTest()
+                    if (test && !test.end) {
+                        this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
+                    }
                 }
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
@@ -128,13 +130,12 @@ export default class SpecReporter extends WDIOReporter {
         }
     }
 
-    onTestStart () {
-        this._consoleOutput = ''
+    onTestStart (testStat: TestStats) {
+        this._consoleLogs.delete(testStat.uid)
     }
 
     onTestPass (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
         this._passedTests.add(testStat)
         if (!this._isSuiteRetry) {
@@ -144,7 +145,6 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestFail (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._consoleLogs.push(this._consoleOutput)
 
         if (this._passedTests.delete(testStat)) {
             this._stateCounts.passed--
@@ -159,14 +159,12 @@ export default class SpecReporter extends WDIOReporter {
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
 
     onTestPending(testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.pending++
     }
 
@@ -347,7 +345,12 @@ export default class SpecReporter extends WDIOReporter {
              */
             ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
                 if (currentItem instanceof TestStats) {
-                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    // a Cucumber scenario keeps its uid on a retry (Mocha does not): tests of the same title
+                    // (Scenario Outline rows, also interleaved in parallel mode) each keep their row
+                    const sameUid = accumulator.findLastIndex((test) => test instanceof TestStats && test.uid === currentItem.uid)
+                    const existingTestIndex = sameUid !== -1
+                        ? sameUid
+                        : accumulator.findLastIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
                     if (existingTestIndex === -1) {
                         accumulator.push(currentItem)
                     } else {
@@ -458,7 +461,7 @@ export default class SpecReporter extends WDIOReporter {
                 }
 
                 // print console output
-                const logItem = this._consoleLogs.shift()
+                const logItem = this._consoleLogs.get(test.uid)
                 if (logItem) {
                     output.push('')
                     output.push(testIndent.repeat(2) + '.........Console Logs.........')

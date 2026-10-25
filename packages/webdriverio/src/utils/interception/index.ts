@@ -179,6 +179,13 @@ export default class WebDriverInterception {
     #warnedAboutEarlyAnswer = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
+    #contexts?: string[]
+    /**
+     * Iframes below an owned context. Their non-blocked events carry the iframe's
+     * id, so ownership can't be read off `#contexts` alone.
+     */
+    #descendantContexts = new Set<string>()
+    #onContextCreated?: (params: { context: string, parent?: string | null }) => void
 
     #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
@@ -208,6 +215,7 @@ export default class WebDriverInterception {
         this.#mockId = mockId
         this.#filterOptions = filterOptions
         this.#browser = browser
+        this.#contexts = contexts
         this.#isCollectingNetworkData = isCollectingNetworkData
 
         /**
@@ -224,11 +232,19 @@ export default class WebDriverInterception {
          */
         if (contexts?.length) {
             this.#onContextDestroyed = ({ context }) => {
+                this.#descendantContexts.delete(context)
                 if (contexts.includes(context)) {
                     this.restore().catch(() => { /* the intercept may already be gone */ })
                 }
             }
             browser.on('browsingContext.contextDestroyed', this.#onContextDestroyed)
+
+            this.#onContextCreated = ({ context, parent }) => {
+                if (parent && this.#isOwnedContext(parent)) {
+                    this.#descendantContexts.add(context)
+                }
+            }
+            browser.on('browsingContext.contextCreated', this.#onContextCreated)
         }
     }
 
@@ -246,7 +262,8 @@ export default class WebDriverInterception {
                 events: [
                     'network.beforeRequestSent',
                     'network.responseStarted',
-                    'network.responseCompleted'
+                    'network.responseCompleted',
+                    'browsingContext.contextCreated'
                 ]
             })
             try {
@@ -282,7 +299,28 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
+        const mock = new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
+        await mock.#seedDescendantContexts()
+        return mock
+    }
+
+    /**
+     * `contextCreated` only reports iframes created after the mock, so iframes
+     * already below a held context are read from the tree.
+     */
+    async #seedDescendantContexts() {
+        for (const root of this.#contexts ?? []) {
+            try {
+                const { contexts } = await this.#browser.browsingContextGetTree({ root })
+                const pending = contexts.flatMap(({ children }) => children ?? [])
+                for (let info = pending.pop(); info; info = pending.pop()) {
+                    this.#descendantContexts.add(info.context)
+                    pending.push(...(info.children ?? []))
+                }
+            } catch (err: unknown) {
+                log.warn(`Mock may miss requests of iframes that already exist: failed to read the context tree of ${root}: ${(err as Error).message}`)
+            }
+        }
     }
 
     #emit(event: string, args: unknown) {
@@ -347,6 +385,9 @@ export default class WebDriverInterception {
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+        if (!this.#isOwnEvent(request)) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, continue it to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -541,6 +582,9 @@ export default class WebDriverInterception {
     }
 
     #handleResponseStarted(request: Response) {
+        if (!this.#isOwnEvent(request)) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, provide response to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -677,6 +721,9 @@ export default class WebDriverInterception {
     }
 
     async #handleResponseCompleted(response: Response) {
+        if (!this.#isOwnEvent(response)) {
+            return
+        }
         if (this.#restored) {
             return
         }
@@ -866,6 +913,26 @@ export default class WebDriverInterception {
         }
     }
 
+    #isOwnedContext(context: string) {
+        return !!this.#contexts?.includes(context) || this.#descendantContexts.has(context)
+    }
+
+    /**
+     * A blocked request belongs to the mock whose intercept paused it, whatever
+     * context (e.g. an iframe) it came from; the intercept is already scoped to
+     * the held contexts. Observed requests are matched on the context tree, or
+     * on a call this mock already recorded, as the tree can lag behind events.
+     */
+    #isOwnEvent(event: { context: string | null, isBlocked?: boolean, intercepts?: string[], request: { request: string } }) {
+        if (!this.#contexts?.length) {
+            return true
+        }
+        if (event.isBlocked) {
+            return !!event.intercepts?.includes(this.#mockId)
+        }
+        return (event.context !== null && this.#isOwnedContext(event.context)) || !!this.#getCall(event.request.request)
+    }
+
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
@@ -998,6 +1065,10 @@ export default class WebDriverInterception {
         if (this.#onContextDestroyed) {
             this.#browser.off('browsingContext.contextDestroyed', this.#onContextDestroyed)
             this.#onContextDestroyed = undefined
+        }
+        if (this.#onContextCreated) {
+            this.#browser.off('browsingContext.contextCreated', this.#onContextCreated)
+            this.#onContextCreated = undefined
         }
         this.reset()
         this.#respondOverwrites = []
