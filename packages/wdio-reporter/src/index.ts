@@ -244,7 +244,9 @@ export default class WDIOReporter extends EventEmitter {
             if (allHook) {
                 this.#openAllHooks.add(hookStats)
             }
-            const unit = hook.contextId ? this.#contextUnit(hook.contextId) : allHook ? undefined : this.#fallbackUnit()
+            const fallback = hook.contextId || allHook ? undefined : this.#fallbackUnit()
+            // a contextless beforeEach before its test:start is not a hook of the ended test before it
+            const unit = hook.contextId ? this.#contextUnit(hook.contextId) : fallback?.ended && hookStats.hookKind === 'beforeEach' ? undefined : fallback
             if (unit) {
                 this.#unitOfStats.set(hookStats, unit)
             }
