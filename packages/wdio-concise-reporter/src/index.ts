@@ -1,4 +1,4 @@
-import { getBrowserName, type SuiteStats, type RunnerStats } from '@wdio/reporter'
+import { getBrowserName, hookCountsAsFailure, type HookStats, type SuiteStats, type RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
@@ -25,6 +25,17 @@ export default class ConciseReporter extends WDIOReporter {
 
     onTestFail () {
         this._stateCounts.failed++
+    }
+
+    // a failed Cucumber BeforeAll / AfterAll fails no test (K26)
+    onHookEnd (hook: HookStats) {
+        if (this.#isFailedFeatureHook(hook)) {
+            this._stateCounts.failed++
+        }
+    }
+
+    #isFailedFeatureHook (hook: HookStats) {
+        return hookCountsAsFailure(hook) && this.parentOf(hook)?.type === 'feature'
     }
 
     onRunnerEnd (runner: RunnerStats): void {
@@ -67,8 +78,9 @@ export default class ConciseReporter extends WDIOReporter {
     getFailureDisplay () {
         const output: string[] = []
 
-        this.getOrderedSuites().map(suite => suite.tests.map(test => {
-            if (test.state === 'failed') {
+        this.getOrderedSuites().map(suite => [...suite.tests, ...(suite.hooks ?? []).filter((hook) => this.#isFailedFeatureHook(hook))].map(test => {
+            // the last attempt of a retried test decides (K27)
+            if (test.state === 'failed' && !test.retried) {
                 output.push(
                     `  Fail : ${chalk.red(test.title)}`,
                     // @ts-ignore
