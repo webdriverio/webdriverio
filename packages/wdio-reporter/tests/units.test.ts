@@ -633,6 +633,22 @@ describe('unit state', () => {
         expect(r.unitState('k', () => ({ n: 0 }), 'A')).toEqual({ n: 1 })
     })
 
+    it('M2: onRunnerStart and onRunnerEnd get no unit and no state, also in the resolver context of a unit', () => {
+        const seen: string[] = []
+        class RunnerRecorder extends Recorder {
+            onRunnerStart () { seen.push(`start ${name(this.getContextUnit())} ${this.unitState('k', () => 1) ?? '-'}`) }
+            onRunnerEnd () { seen.push(`end ${name(this.getContextUnit())} ${this.unitState('k', () => 1) ?? '-'}`) }
+        }
+        const sequential = new RunnerRecorder()
+        play(sequential, [['test:start', testEv('t1', 'x')], ['test:end', testEv('t1', 'x')]])
+        end(sequential)
+        const parallel = new RunnerRecorder()
+        parallel.setContextIdResolver(() => 'A')
+        play(parallel, [['test:start', testEv('t1', 'x', { contextId: 'A' })]])
+        end(parallel)
+        expect(seen).toEqual(['start none -', 'end none -', 'start none -', 'end none -'])
+    })
+
     it('attemptState is new after a retry, from the next test:start of the unit; unitState spans all attempts', () => {
         const r = new Recorder()
         const resolved: { id?: string } = { id: 'A' }
