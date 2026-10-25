@@ -159,7 +159,7 @@ export default class WDIOReporter extends EventEmitter {
             rootSuite.cid = runner.cid
             this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
-            this.onRunnerStart(this.runnerStat)
+            this.#call(undefined, () => this.onRunnerStart(this.runnerStat!))
         })
 
         this.on('suite:start', (params: Suite) => {
@@ -483,7 +483,7 @@ export default class WDIOReporter extends EventEmitter {
                     this.runnerStat.retries = runner.retries
                     this.runnerStat.error = runner.error
                     this.runnerStat.complete()
-                    this.onRunnerEnd(this.runnerStat)
+                    this.#call(undefined, () => this.onRunnerEnd(this.runnerStat!))
                 }
             } finally {
                 this.#removeProcessListeners()
