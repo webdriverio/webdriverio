@@ -21,6 +21,15 @@ export function setContextNamesResolver(resolver?: () => ContextNames | undefine
     contextNames = resolver
 }
 
+/**
+ * Clear the resolver, only when it is still this one (a later reporter keeps its own)
+ */
+export function clearContextNamesResolver(resolver: () => ContextNames | undefined): void {
+    if (contextNames === resolver) {
+        contextNames = undefined
+    }
+}
+
 function namesOf<K extends keyof ContextNames>(key: K, fallback: ContextNames[K]): ContextNames[K] {
     const names = contextNames?.()
     return names ? names[key] : fallback

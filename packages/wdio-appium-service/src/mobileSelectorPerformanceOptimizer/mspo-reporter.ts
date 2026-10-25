@@ -1,5 +1,6 @@
 import WDIOReporter, { type SuiteStats, type TestStats } from '@wdio/reporter'
 import {
+    clearContextNamesResolver,
     setContextNamesResolver,
     setCurrentSuiteName,
     setCurrentTestFile,
@@ -13,16 +14,17 @@ interface MobileSelectorPerformanceReporterOptions extends Record<string, unknow
 
 export default class MobileSelectorPerformanceReporter extends WDIOReporter {
     private _reportDirectory?: string
+    readonly #resolver = () => this.getContextNames()
 
     constructor(options: MobileSelectorPerformanceReporterOptions) {
         super({ ...options, stdout: true })
         this._reportDirectory = options.reportDirectory
-        setContextNamesResolver(() => this.getContextNames())
+        setContextNamesResolver(this.#resolver)
     }
 
     // the resolver is module-global: it must not outlive this reporter
     onRunnerEnd(): void {
-        setContextNamesResolver(undefined)
+        clearContextNamesResolver(this.#resolver)
     }
 
     /**
