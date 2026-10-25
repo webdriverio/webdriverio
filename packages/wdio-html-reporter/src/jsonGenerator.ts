@@ -6,6 +6,9 @@ import fs from 'node:fs'
 import { writeFile } from './files.js'
 import { withExtension } from './fileNames.js'
 
+// experimental hook fields of the base that the report does not use: the JSON keeps the hook keys of today
+const BASE_ONLY_HOOK_KEYS = new Set(['hookKind', 'hookSuiteUid', 'output'])
+
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
 
@@ -49,7 +52,9 @@ class JsonGenerator {
                          * `hooksAndTests` is a second copy of the tests and hooks of a
                          * suite, which the report does not use
                          */
-                        const stringified = JSON.stringify(reportData, (key, value) => key === 'hooksAndTests' ? undefined : value)
+                        const stringified = JSON.stringify(reportData, function (this: { type?: unknown }, key, value) {
+                            return key === 'hooksAndTests' || (this.type === 'hook' && BASE_ONLY_HOOK_KEYS.has(key)) ? undefined : value
+                        })
                         JsonGenerator.writeJson(jsonFile, stringified)
                     } catch (error) {
                         JsonGenerator.LOG.error('Json write failed: ' + error)
