@@ -30,7 +30,7 @@ interface JunitReporterAdditionalInformation {
 
 // as the base: a `beforeAll` / `afterAll` with no context belongs to its suite
 const isContextlessAllHook = (hook: HookStats) => !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
-// the hooks of a parallel unit before its test
+// the hooks of a unit before its test
 const HOOKS_BEFORE_TEST = Symbol('junit hooks before test')
 
 /**
@@ -101,7 +101,8 @@ class JunitReporter extends WDIOReporter {
 
     onHookStart(hook: HookStats) {
         const unit = this.getContextUnit()
-        if (unit?.contextId && !unit.test) {
+        // a parallel unit, or a sequential scenario before its first step (U4)
+        if (unit && !unit.test) {
             this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])!.push(hook)
         }
         const parent = this.parentOf(hook)
