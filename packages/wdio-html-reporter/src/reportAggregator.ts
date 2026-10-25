@@ -133,6 +133,9 @@ class ReportAggregator {
             `${report.info?.cid} (${(report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')})`
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const workerReports: any[] = []
+        // each run starts its cids at 0-0: the results of 2 CI jobs are in 2 folders
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const workerOfRun = new Map<any, string>()
         for (const filename of files) {
             try {
                 const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
@@ -142,29 +145,30 @@ class ReportAggregator {
                     continue
                 }
                 workerReports.push(report)
+                workerOfRun.set(report, JSON.stringify([path.dirname(path.resolve(filename)), report.info?.cid]))
             } catch (ex) {
                 inputFailed = true
                 console.error(`Cannot read the report file ${filename}: ${ex}`)
             }
         }
         /**
-         * `specFileRetries` runs a spec file again with the same cid: the attempt that started
-         * last is the result (also when old files of an earlier run are in the folder)
+         * `specFileRetries` runs a spec file again with the same cid in the same folder: the
+         * attempt that started last is the result (also when old files of an earlier run are there)
          */
         const startOf = (report: { info?: { start?: string } }) => dayjs.utc(report.info?.start).valueOf() || 0
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lastAttempts = new Map<string, any>()
         for (const report of workerReports) {
-            const last = lastAttempts.get(report.info?.cid)
+            const last = lastAttempts.get(workerOfRun.get(report)!)
             if (!last || startOf(report) > startOf(last) || (startOf(report) === startOf(last) && (report.info?.retry ?? 0) > (last.info?.retry ?? 0))) {
-                lastAttempts.set(report.info?.cid, report)
+                lastAttempts.set(workerOfRun.get(report)!, report)
             }
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const retried = new Set<any>()
         for (const report of workerReports) {
             try {
-                const isLastAttempt = lastAttempts.get(report.info?.cid) === report
+                const isLastAttempt = lastAttempts.get(workerOfRun.get(report)!) === report
                 if (report.incomplete) {
                     if (isLastAttempt) {
                         incomplete.push(workerOf(report))
@@ -209,8 +213,8 @@ class ReportAggregator {
         for (let j = 0; j < this.reports.length; j++) {
             try {
                 const report = this.reports[j]
-                const attempt = (attempts.get(report.info.cid) ?? 0) + 1
-                attempts.set(report.info.cid, attempt)
+                const attempt = (attempts.get(workerOfRun.get(report)!) ?? 0) + 1
+                attempts.set(workerOfRun.get(report)!, attempt)
                 if (!retried.has(report)) {
                     metrics.passed += report.metrics.passed
                     metrics.failed += report.metrics.failed

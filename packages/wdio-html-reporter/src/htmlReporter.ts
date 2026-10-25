@@ -358,8 +358,8 @@ export default class HtmlReporter extends WDIOReporter {
     /**
      * sequential mode: no test of the suite started (a failed before hook with
      * `failHookAffectedTests: false`, `this.skip()`): its events go to the first test that it
-     * skipped, else wait for the next test of its parent suite; a top-level suite gives them
-     * to the test before, else to nothing (not to the next suite)
+     * skipped, else to the test before, else to nothing (not to a test of the next suite).
+     * The events of its parent suite still wait for the parent's next test
      */
     #endWaiting(suite: SuiteStats) {
         if (this.#contextTests.size) {
@@ -372,11 +372,9 @@ export default class HtmlReporter extends WDIOReporter {
             return
         }
         this.#waitingSuites.pop()
-        const parent = this.#waitingSuites.at(-1)
-        const test = waiting.firstSkipped ? this.getTest(waiting.firstSkipped) : parent?.uid ? undefined : this.getTest(this._currentTestUid)
+        const test = this.getTest(waiting.firstSkipped ?? this._currentTestUid)
         //@ts-ignore
-        const events: ReportEvent[] | undefined = test ? test.events : parent?.uid ? parent.events : undefined
-        events?.push(...waiting.events)
+        test?.events.push(...waiting.events)
     }
 
     onHookStart(hook: HookStats) {
