@@ -1045,6 +1045,49 @@ describe('WdioBridgeReporter', () => {
                     expect(hooks.every((name, index) => name === (index % 2 === 0 ? 'hook:start' : 'hook:end'))).toBe(true)
                 })
 
+                describe('a failed hook is the failure of its test', () => {
+                    const once = (final: Result, entries: object[]) => build(final, entries, { diagnostic: () => ({ duration: 5, retryCount: 0 }) })
+                    const payloadOf = (name: string, uid: string) => emittedOf().find(([event, payload]) => event === name && payload.uid === uid)![1]
+
+                    // Vitest counts the error of a failed beforeEach / afterEach one time, as the failure of the test
+                    it('names the test on a failed afterEach of the final attempt', async () => {
+                        const { module, test } = once({ state: 'failed', errors: [{ message: 'ae' }] }, [
+                            withHooks(0, 'failed', { beforeEach: hookOf('pass'), afterEach: hookOf('fail', { message: 'ae', stack: 's' }) }, { message: 'ae', stack: 's' })
+                        ])
+                        await runTests(module, test)
+
+                        expect(payloadOf('hook:start', 'test-0-0-0-afterEach').failedTestUid).toBe('test-0-0-0')
+                        expect(payloadOf('hook:end', 'test-0-0-0-afterEach').failedTestUid).toBe('test-0-0-0')
+                        expect(payloadOf('hook:end', 'test-0-0-0-beforeEach')).not.toHaveProperty('failedTestUid')
+                        expect(payloadOf('test:fail', 'test-0-0-0')).not.toHaveProperty('errors')
+                    })
+
+                    it('names the attempt on the failed hooks of a retried attempt', async () => {
+                        const { module, test } = build(passed, [
+                            withHooks(0, 'failed', { beforeEach: hookOf('fail', { message: 'be' }) }, { message: 'be' }),
+                            withHooks(1, 'failed', { afterEach: hookOf('fail', { message: 'ae' }) }, { message: 'ae' }),
+                            withHooks(2, 'passed', bothHooks)
+                        ])
+                        await runTests(module, test)
+
+                        expect(payloadOf('hook:end', 'test-0-0-0-beforeEach').failedTestUid).toBe('test-0-0-0')
+                        expect(payloadOf('hook:end', 'test-0-0-0-retry-1-afterEach').failedTestUid).toBe('test-0-0-0-retry-1')
+                        expect(payloadOf('hook:end', 'test-0-0-0-retry-2-afterEach')).not.toHaveProperty('failedTestUid')
+                    })
+
+                    it('gives the test the errors of the body and of the afterEach', async () => {
+                        const { module, test } = once({ state: 'failed', errors: [{ message: 'body' }, { message: 'ae' }] }, [
+                            withHooks(0, 'failed', { afterEach: hookOf('fail', { message: 'ae', stack: 's2' }) }, { message: 'body', stack: 's1' })
+                        ])
+                        await runTests(module, test)
+
+                        const fail = payloadOf('test:fail', 'test-0-0-0')
+                        expect(fail.error).toEqual({ name: 'Error', message: 'body', stack: 's1' })
+                        expect(fail.errors).toEqual([{ name: 'Error', message: 'body', stack: 's1' }, { name: 'Error', message: 'ae', stack: 's2' }])
+                        expect(payloadOf('hook:end', 'test-0-0-0-afterEach').failedTestUid).toBe('test-0-0-0')
+                    })
+                })
+
                 it('tags hooks with the contextId and closes the context after the last afterEach', async () => {
                     const { module, test } = build(passed, [withHooks(0, 'failed', bothHooks), withHooks(1, 'failed', bothHooks), withHooks(2, 'passed', bothHooks)], { options: { concurrent: true } })
                     await runTests(module, test)

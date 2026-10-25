@@ -120,6 +120,17 @@ describe('JSONReporter', () => {
             ])).toEqual({ passed: 1, failed: 0, skipped: 0 })
         })
 
+        // Vitest fails the test with the error of its afterEach, then sends the hook with failedTestUid
+        it('does not count a failed Vitest afterEach that is the failure of its test', () => {
+            expect(run([
+                ['test:start', test('t1')],
+                ['test:fail', { ...test('t1'), error }],
+                ['test:end', test('t1')],
+                ['hook:start', { ...hook('t1-afterEach', 'after each'), failedTestUid: 't1' }],
+                ['hook:end', { ...hook('t1-afterEach', 'after each'), failedTestUid: 't1', state: 'fail', error }],
+            ])).toEqual({ passed: 0, failed: 1, skipped: 0 })
+        })
+
         // Mocha `retries`: the next attempt starts with the same uid
         it('does not count a failed attempt that is retried', () => {
             expect(run([
@@ -131,7 +142,7 @@ describe('JSONReporter', () => {
             ])).toEqual({ passed: 1, failed: 0, skipped: 0 })
         })
 
-        it('counts the failure of the last attempt', () => {
+        it('counts only the failure of the last attempt', () => {
             expect(run([
                 ['test:start', test('t1')],
                 ['test:retry', { ...test('t1'), error }],
@@ -140,9 +151,9 @@ describe('JSONReporter', () => {
                 ['test:start', { ...test('t1-retry-1'), retries: 1 }],
                 ['test:fail', { ...test('t1-retry-1'), error }],
                 ['test:end', test('t1-retry-1')],
-                ['hook:start', hook('t1-retry-1-afterEach', 'after each')],
-                ['hook:end', { ...hook('t1-retry-1-afterEach', 'after each'), state: 'fail', error }],
-            ])).toEqual({ passed: 0, failed: 2, skipped: 0 })
+                ['hook:start', { ...hook('t1-retry-1-afterEach', 'after each'), failedTestUid: 't1-retry-1' }],
+                ['hook:end', { ...hook('t1-retry-1-afterEach', 'after each'), failedTestUid: 't1-retry-1', state: 'fail', error }],
+            ])).toEqual({ passed: 0, failed: 1, skipped: 0 })
         })
     })
 })

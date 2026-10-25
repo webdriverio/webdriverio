@@ -85,6 +85,13 @@ describe('wdio-junit-reporter', () => {
         expect(tests.map(({ title }) => title)).toEqual(['"before each" hook for "b"'])
     })
 
+    it('does not add a failed hook whose error is the failure of a test', () => {
+        const hook = (title: string, failedTestUid?: string) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(failedTestUid && { failedTestUid }) })
+        const suite = { tests: [], hooks: [hook('"after each" hook for "a"', 'test-a'), hook('"after each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"after each" hook for "b"'])
+    })
+
     it('should prepare name', () => {
         expect(reporter['_prepareName']()).toMatchSnapshot()
         expect(reporter['_prepareName']('Chrome something_odd.foobar')).toMatchSnapshot()

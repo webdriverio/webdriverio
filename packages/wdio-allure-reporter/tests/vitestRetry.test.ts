@@ -83,3 +83,45 @@ describe('Vitest retry: the failed hook of a retried attempt', () => {
         })
     }
 })
+
+describe('Vitest: a failed afterEach that is the failure of its test', () => {
+    for (const mode of ['sequential', 'concurrent'] as const) {
+        it(`${mode}: one result for the test, no extra result for the hook`, async () => {
+            const outputDir = temporaryDirectory()
+            const reporter = new AllureReporter({ outputDir, writeStream: { write: () => true } } as any)
+            let current: string | undefined
+            reporter.setContextIdResolver(() => current)
+            const contextId = mode === 'concurrent' ? 'vitest-test-1' : undefined
+            const base = { cid: CID, specs: [SPEC], file: SPEC, parent: 'retry', parentUid: 'suite-0-0-0', ...(contextId && { contextId }) }
+            const test = { ...base, uid: 'test-0-0-0', title: 'fails in afterEach', fullTitle: 'retry fails in afterEach' }
+            const hook = { ...base, uid: 'test-0-0-0-afterEach', title: '"after each" hook for "fails in afterEach"', fullTitle: 'retry "after each" hook for "fails in afterEach"', failedTestUid: 'test-0-0-0' }
+            const emit = (event: string, payload: Record<string, unknown>) => {
+                current = contextId
+                try {
+                    reporter.emit(event, { type: event, ...payload })
+                } finally {
+                    current = undefined
+                }
+            }
+            reporter.emit('runner:start', {
+                cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'vitest' },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {}, retry: 0
+            })
+            reporter.emit('suite:start', { cid: CID, specs: [SPEC], file: SPEC, uid: 'suite-0-0-0', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null })
+            emit('test:start', test)
+            emit('test:fail', { ...test, error })
+            emit('test:end', test)
+            emit('hook:start', hook)
+            emit('hook:end', { ...hook, state: 'fail', error })
+            if (contextId) {
+                reporter.emit('context:end', { type: 'context:end', cid: CID, uid: test.uid, contextId })
+            }
+            reporter.emit('suite:end', { cid: CID, specs: [SPEC], file: SPEC, uid: 'suite-0-0-0', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null })
+            reporter.emit('runner:end', { cid: CID, failures: 1, retries: 0 })
+            await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+            const results = getResults(outputDir).results as { name: string, status: string }[]
+            expect(results.map(({ name, status }) => `${name}=${status}`)).toEqual(['fails in afterEach=broken'])
+        })
+    }
+})
+

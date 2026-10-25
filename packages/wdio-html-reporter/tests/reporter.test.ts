@@ -556,6 +556,18 @@ describe('failed hooks', () => {
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
     })
 
+    // Vitest fails the test with the afterEach error, then sends the hook with failedTestUid
+    it('does not count a failed Vitest afterEach that is the failure of its test', () => {
+        const reporter = start()
+        const test = { type: 'test:start', title: 't', fullTitle: 't', uid: 't1', cid: '0-0', parent: SUITES[0].title }
+        reporter.emit('test:start', test)
+        reporter.emit('test:fail', { ...test, error: { message: 'afterEach fails' } })
+        reporter.emit('test:end', test)
+        failHook(reporter, { uid: 't1-afterEach', title: '"after each" hook for "t"', state: 'fail', failedTestUid: 't1', error: { name: 'Error', message: 'afterEach fails' } })
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 1 })
+    })
+
     it('does not count a failed afterEach hook of a retried Vitest attempt', () => {
         const reporter = start()
         retryVitestTest(reporter, 'afterEach')
