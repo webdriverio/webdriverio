@@ -9,8 +9,6 @@ import type {
 import WDIOReporter, { knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
-
-type ReportEvent = InternalReportEvent | { type: string, value: unknown }
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
@@ -20,6 +18,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import util from 'node:util'
 import logger from '@wdio/logger'
+
+type ReportEvent = InternalReportEvent | { type: string, value: unknown }
 
 const reportProxy = new ReportEvents()
 const TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -98,6 +98,7 @@ export default class HtmlReporter extends WDIOReporter {
     #earlyEvents = new Map<string, ReportEvent[]>()
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
+    #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
     #onMessage = this.saveMessage.bind(this)
@@ -271,6 +272,13 @@ export default class HtmlReporter extends WDIOReporter {
      */
     #addEvent(event: ReportEvent, { contextId, moveErrors = true }: { contextId?: string, moveErrors?: boolean } = {}) {
         const id = contextId ?? this.getContextId()
+        if (!id && this.#contextTests.size && !this.#noContextWarned) {
+            this.#noContextWarned = true
+            const message = 'An event with no parallel-mode test context (for example from a `browser.on()` callback ' +
+                'or an `AfterAll` hook) goes to the test that started last.'
+            this.LOG.warn(message)
+            console.warn(`[@wdio/html-reporter] ${message}`)
+        }
         const uid = id ? this.#contextTests.get(id) : this._currentTestUid
         const test = uid ? this.getTest(uid) : undefined
         if (test) {

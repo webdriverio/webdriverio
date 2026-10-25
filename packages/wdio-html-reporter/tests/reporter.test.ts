@@ -817,6 +817,23 @@ describe('parallel mode', () => {
         expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }, { type: 'log', value: 'after hook of b' }])
     })
 
+    it('warns one time for events with no test context while parallel tests run', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            const reporter = start()
+            startTest(reporter, 'a', 'context-a')
+            startTest(reporter, 'b', 'context-b')
+            // a `browser.on()` callback runs outside the context of its test
+            new ReportEvents().logMessage('from a callback')
+            new ReportEvents().logMessage('from a callback again')
+            expect(eventsOf(reporter, 'b')).toHaveLength(2)
+            const warnings = warn.mock.calls.filter(([message]) => String(message).startsWith('[@wdio/html-reporter] An event with no parallel-mode test context'))
+            expect(warnings).toHaveLength(1)
+        } finally {
+            warn.mockRestore()
+        }
+    })
+
     it('adds the events of a Before hook of a Cucumber retry to the first step of the retry', () => {
         const reporter = start()
         const scenario = { type: 'suite:start', title: 's', fullTitle: 's', uid: 's', cid: '0-0', parent: '', contextId: 'context-a' }
