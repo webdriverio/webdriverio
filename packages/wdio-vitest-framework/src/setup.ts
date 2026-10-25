@@ -13,12 +13,15 @@ import { SESSION_META_KEY, type SessionMeta } from './types.js'
 // the browser runs these itself; every other WDIO hook is run by this module
 const BROWSER_HOOK_KEYS = ['beforeCommand', 'afterCommand', 'onReload']
 const RUNNER_HOOK_KEYS = SUPPORTED_HOOKS.filter((key) => !BROWSER_HOOK_KEYS.includes(key))
-const CONNECTION_KEYS = ['protocol', 'hostname', 'port', 'path', 'user', 'key'] as const
+// the connection options webdriver moves out of the capabilities
+const CONNECTION_KEYS = ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as const
 const EXIT_SIGNALS = ['SIGINT', 'SIGTERM'] as const
 const SIGNAL_TEARDOWN_TIMEOUT_MS = 10_000
 
 type ParallelBrowser = WebdriverIO.Browser & ParallelContextBrowser & {
     [PARALLEL_CONTEXT_STORE_KEY]?: AsyncLocalStorage<string>
+    /** Set by webdriverio from the `wdio:experimentalBiDiCommands` capability */
+    __bidiCommandsEnabled?: boolean
 }
 
 let config: WebdriverIO.Config
@@ -142,6 +145,10 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
     if (!instance?.isBidi) {
         throw new Error('test.concurrent with vitestOpts.parallelMode needs a WebDriver Bidi session. Set `webSocketUrl: true` and do not enforce classic WebDriver.')
+    }
+    // without it, commands such as getTitle and element commands use classic WebDriver, which cannot target the test's window
+    if (instance.__bidiCommandsEnabled !== true) {
+        throw new Error("test.concurrent with vitestOpts.parallelMode needs the 'wdio:experimentalBiDiCommands': true capability, so commands run in the window of their test")
     }
     if (!instance[PARALLEL_CONTEXT_STORE_KEY]) {
         throw new Error(`browser.${PARALLEL_CONTEXT_STORE_KEY} is missing: test.concurrent needs a webdriverio version with parallel context support`)

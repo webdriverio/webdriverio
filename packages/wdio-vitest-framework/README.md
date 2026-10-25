@@ -17,7 +17,7 @@ npm install @wdio/vitest-framework --save-dev
 export const config: WebdriverIO.Config = {
     framework: 'vitest',
     specs: ['./test/**/*.spec.ts'],
-    capabilities: [{ browserName: 'chrome', webSocketUrl: true }],
+    capabilities: [{ browserName: 'chrome', webSocketUrl: true, 'wdio:experimentalBiDiCommands': true }],
     vitestOpts: {
         parallelMode: 'contexts'
     }
@@ -28,9 +28,11 @@ export const config: WebdriverIO.Config = {
 npx wdio run wdio.conf.ts
 ```
 
-Vitest globals are enabled, so specs need no imports. `browser`, `driver`, `$`, `$$` and `expect` are globals as well. `expect` is the `expect-webdriverio` assertion library, which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults.
+Vitest globals are enabled at runtime; import `describe`, `test` and the hooks from `vitest` so TypeScript knows their types, but never `expect`. `browser`, `driver`, `$`, `$$` and `expect` are globals as well. `expect` is the `expect-webdriverio` assertion library, which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults.
 
 ```ts
+import { describe, test } from 'vitest'
+
 describe('login', () => {
     test('shows the form', async () => {
         await browser.url('/login')
@@ -51,7 +53,7 @@ Type: `'contexts' | 'userContexts'`
 
 Default: `undefined`
 
-Runs `test.concurrent` tests at the same time, each in its own browser window (browsing context). Requires a WebDriver Bidi session.
+Runs `test.concurrent` tests at the same time, each in its own browser window (browsing context). Requires a WebDriver Bidi session and the `'wdio:experimentalBiDiCommands': true` capability, without which commands use classic WebDriver and cannot target the test's window. The capability changes how element commands are implemented in every test of the session.
 
 - `'contexts'`: windows share the default user context, so cookies, localStorage and service workers are shared across concurrent tests.
 - `'userContexts'`: each test gets its own user context, so storage is isolated per test. `browser.mock()` remains session-wide.
@@ -83,6 +85,8 @@ File reporters from `wdio.conf` such as `junit`, `allure` or `json` receive the 
 ## Concurrent tests
 
 ```ts
+import { describe, test } from 'vitest'
+
 describe('checkout', () => {
     test.concurrent('guest', async () => {
         await browser.url('/checkout')

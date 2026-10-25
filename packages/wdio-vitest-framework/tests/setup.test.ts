@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const hooks = vi.hoisted(() => ({ aroundEach: undefined as unknown as (runTest: () => Promise<void>, context: unknown) => Promise<void> }))
 const store = vi.hoisted(() => ({ run: vi.fn(async (_id: string, fn: () => Promise<void>) => fn()) }))
-const browser = vi.hoisted(() => ({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' }, isBidi: true, __parallelContextStore: undefined as unknown, deleteSession: vi.fn() }))
+const browser = vi.hoisted(() => ({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' }, isBidi: true, __bidiCommandsEnabled: true, __parallelContextStore: undefined as unknown, deleteSession: vi.fn() }))
 const utils = vi.hoisted(() => ({
     allocateContext: vi.fn(async () => ({ context: 'ctx-1' })),
     cleanupAllocation: vi.fn(async () => {}),
@@ -83,6 +83,7 @@ describe('setup', () => {
         injected.caps = { browserName: 'chrome', hostname: 'grid' }
         mockConfig.value = { waitforTimeout: 1000, waitforInterval: 100, vitestOpts: { parallelMode: 'contexts' }, before: [vi.fn()], capabilities: [] }
         browser.isBidi = true
+        browser.__bidiCommandsEnabled = true
         browser.__parallelContextStore = store
         vi.resetModules()
         await import('../src/setup.js')
@@ -134,6 +135,18 @@ describe('setup', () => {
             capabilities: { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ platformName: 'linux' }] }
         })
         expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('before', mockConfig.value.before, [{ browserName: 'chrome', hostname: 'grid' }, ['/repo/a.spec.ts'], browser])
+    })
+
+    it('moves queryParams out of the capabilities into the connection options', async () => {
+        injected.caps = { browserName: 'chrome', 'sauce:options': { build: 'b1' }, queryParams: { token: 'abc' } }
+        vi.clearAllMocks()
+        await callbacks.beforeAll({}, { file: fileTask })
+        const { remote } = await import('webdriverio')
+        expect(vi.mocked(remote).mock.calls[0][0]).toMatchObject({
+            queryParams: { token: 'abc' },
+            capabilities: { browserName: 'chrome', 'sauce:options': { build: 'b1' } }
+        })
+        expect(vi.mocked(remote).mock.calls[0][0].capabilities).not.toHaveProperty('queryParams')
     })
 
     it('strips connection keys from every firstMatch entry', async () => {
@@ -389,6 +402,12 @@ describe('setup', () => {
     it('throws when the session is not Bidi', async () => {
         browser.isBidi = false
         await expect(hooks.aroundEach(vi.fn(), task(true))).rejects.toThrow('needs a WebDriver Bidi session')
+    })
+
+    it('throws when the BiDi commands are not enabled', async () => {
+        browser.__bidiCommandsEnabled = false
+        await expect(hooks.aroundEach(vi.fn(), task(true))).rejects.toThrow("needs the 'wdio:experimentalBiDiCommands': true capability")
+        expect(utils.allocateContext).not.toHaveBeenCalled()
     })
 
     it('throws when the parallel context store is missing', async () => {

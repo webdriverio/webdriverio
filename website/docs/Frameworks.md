@@ -738,7 +738,7 @@ export const config: WebdriverIO.Config = {
     framework: 'vitest',
     specs: ['./test/specs/**/*.spec.ts'],
     baseUrl: 'https://the-internet.herokuapp.com',
-    capabilities: [{ browserName: 'chrome', webSocketUrl: true }],
+    capabilities: [{ browserName: 'chrome', webSocketUrl: true, 'wdio:experimentalBiDiCommands': true }],
     vitestOpts: {
         parallelMode: 'userContexts'
     }
@@ -751,9 +751,11 @@ Run it like any other WDIO project:
 npx wdio run wdio.conf.ts
 ```
 
-Vitest globals are enabled, so specs need no imports at runtime. `browser`, `driver`, `$`, `$$` and `expect` are globals as well:
+Vitest globals are enabled at runtime, and `browser`, `driver`, `$`, `$$` and `expect` are globals as well. Import `describe`, `test` and the hooks from `vitest`, so TypeScript knows their types:
 
 ```ts title="test/specs/login.spec.ts"
+import { describe, test } from 'vitest'
+
 describe('login page', () => {
     test('shows the form', async () => {
         await browser.url('/login')
@@ -762,7 +764,7 @@ describe('login page', () => {
 })
 ```
 
-The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults. Never `import { expect } from 'vitest'`. That `expect` has no WebdriverIO matchers such as `toBeDisplayed`. Importing `describe`, `test` and the hooks from `vitest` is fine.
+The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults. Never `import { expect } from 'vitest'`. That `expect` has no WebdriverIO matchers such as `toBeDisplayed`.
 
 For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed, see [TypeScript Setup](/docs/typescript):
 
@@ -785,9 +787,11 @@ For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed
 
 ### Concurrent tests
 
-`test.concurrent` runs the tests of one spec file at the same time, each in its own browser window (browsing context). Every command in the test, including the ones in your page objects and fixtures, targets that window. The window is closed when the test ends, also when it fails. This needs [`parallelMode`](#parallelmode-2) and a WebDriver BiDi session (`webSocketUrl: true`):
+`test.concurrent` runs the tests of one spec file at the same time, each in its own browser window (browsing context). Every command in the test, including the ones in your page objects and fixtures, targets that window. The window is closed when the test ends, also when it fails. This needs [`parallelMode`](#parallelmode-2), a WebDriver BiDi session (`webSocketUrl: true`) and the `'wdio:experimentalBiDiCommands': true` capability. Without that capability, commands use classic WebDriver and cannot target the test's window. It changes how element commands are implemented in every test of the session, see [Behavior changes of the BiDi element commands](./ParallelTests.md#behavior-changes-of-the-bidi-element-commands).
 
 ```ts title="test/specs/checkout.spec.ts"
+import { describe, test } from 'vitest'
+
 describe('checkout', () => {
     test.concurrent('guest', async () => {
         await browser.url('/checkout')
@@ -807,13 +811,19 @@ Without `parallelMode`, `test.concurrent` fails with:
 test.concurrent needs vitestOpts.parallelMode ('contexts' | 'userContexts'): concurrent tests would share one window
 ```
 
+Without the capability, it fails with:
+
+```
+test.concurrent with vitestOpts.parallelMode needs the 'wdio:experimentalBiDiCommands': true capability, so commands run in the window of their test
+```
+
 ### Vitest Options
 
 Set them in `vitestOpts` in your `wdio.conf.ts`.
 
 #### parallelMode
 
-Runs `test.concurrent` tests at the same time, each in its own browsing context. Requires a WebDriver BiDi session.
+Runs `test.concurrent` tests at the same time, each in its own browsing context. Requires a WebDriver BiDi session and the `'wdio:experimentalBiDiCommands': true` capability.
 
 - `'contexts'`: windows share the default user context, so cookies, `localStorage` and service workers are shared across concurrent tests.
 - `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies. `browser.mock()` remains session-wide in both modes.
