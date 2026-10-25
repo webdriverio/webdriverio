@@ -75,7 +75,7 @@ export default class TestStats extends RunnableStats {
     error?: Error
     body?: string
     // `declare`: no own property when the payload has no value, so these stats stay the same
-    /** the browsing context of a parallel test */
+    /** the browsing context of a parallel test (Vitest: the id of the test) */
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null

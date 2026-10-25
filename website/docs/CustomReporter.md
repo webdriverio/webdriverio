@@ -129,7 +129,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 With [parallel tests in a spec file](./ParallelTests.md), the tests of one spec file overlap: `onTestStart` of one test can come before `onTestEnd` of another, and commands of different tests interleave. `WDIOReporter` handles this for you. In parallel mode the framework events carry two extra fields:
 
 - `parentUid` on `suite:start`, `hook:start` and `test:start`: the uid of the owning suite (`null` for a top-level suite). The reporter adds the suite, hook or test to that suite, not to the suite that started last.
-- `contextId` on test and command events: the browsing context of the test. The reporter adds command output to the test that ran in that context.
+- `contextId` on test and command events: the browsing context of the test. The reporter adds command output to the test that ran in that context. With Vitest, all tests of a spec file that has a concurrent test (`test.concurrent`, `describe.concurrent`) have a `contextId`: the id of the Vitest test, not a browsing context.
 
 The test, hook and suite stats keep these fields when the event has them: in `onTestEnd(test)`, `test.contextId` is the browsing context of the test and `test.parentUid` the uid of its suite. Without parallel mode, the stats have no such properties.
 
@@ -150,11 +150,13 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
+With Vitest `retry`, the hooks of an attempt that Vitest runs again have `hook.retried === true`. The error of that attempt is on its `test:retry` (`onTestRetry`), so do not count these hooks as failures.
+
 The `afterEach` and `after` hooks of a parallel test run after its `test:end`. To know when a context is done, use `onContextEnd(payload)`. It is called after the last hook of the test (with Cucumber: after the `After` hooks of the last attempt of the scenario), and the context sends no more events after it. The payload has `cid`, `specs`, `uid` (the last test of the context; for a Cucumber scenario with no step, the scenario) and `contextId`. Close or write what your reporter keeps for that context there.
 
 :::warning Experimental
 
-`context:end` and `onContextEnd` are experimental: only Mocha and Cucumber `parallelMode` send them for now, and the name and the payload can change.
+`context:end` and `onContextEnd` are experimental: only Mocha and Cucumber `parallelMode` and Vitest concurrent tests send them for now, and the name and the payload can change.
 
 :::
 
