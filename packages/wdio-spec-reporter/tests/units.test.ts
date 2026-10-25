@@ -447,4 +447,17 @@ describe('spec reporter Cucumber hooks with no name', () => {
         expect(lines.filter((line) => /[✓✖]/.test(line))).toEqual(['   ✓ Before hook', '   ✓ step', '   ✖ After hook'])
         expect(lines).toContain('         LOG before')
     })
+
+    it('names an unnamed failed After in the failure list as in its line', () => {
+        const reporter = newReporter({})
+        reporter.emit('suite:start', suite('F', 'feature'))
+        reporter.emit('suite:start', { ...suite('S', 'scenario'), parent: 'F' })
+        runTest(reporter, 'step', 'test:pass', { parent: 'S' })
+        reporter.emit('hook:start', hook('a1', '', { parent: 'S', hookKind: 'afterEach' }))
+        reporter.emit('hook:end', hook('a1', '', { parent: 'S', hookKind: 'afterEach', error: { message: 'after fails' } }))
+        reporter.emit('suite:end', suite('S', 'scenario'))
+        reporter.emit('suite:end', suite('F', 'feature'))
+
+        expect(reporter.getFailureDisplay()).toContain('1) S After hook')
+    })
 })
