@@ -5,6 +5,7 @@ import path from 'node:path'
 import { logMock } from '../../../__mocks__/@wdio/logger.js'
 
 import { collectTests, parseTimeoutString, runParallelTests } from '../src/parallel.js'
+import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -1886,5 +1887,84 @@ describe('runParallelTests — uncaught errors', () => {
         await run()
         expect(process.listenerCount('uncaughtException')).toBe(before)
         expect(process.listenerCount('unhandledRejection')).toBe(rejectionListeners)
+    })
+})
+
+// ===========================================================================
+// TESTS: runParallelTests — hookKind, hookSuiteUid and the declaring suite (K30)
+// ===========================================================================
+
+describe('runParallelTests — hookKind and hookSuiteUid', () => {
+    /** real Mocha suites and hooks: a hook knows its declaring suite */
+    function tree() {
+        const root = new Mocha().suite
+        root.beforeAll('root setup', () => {})
+        const outer = Mocha.Suite.create(root, 'outer')
+        outer.beforeAll(() => {})
+        outer.beforeEach(() => {})
+        outer.afterEach(() => {})
+        outer.afterAll(() => {})
+        const inner = Mocha.Suite.create(outer, 'inner')
+        inner.beforeAll(() => {})
+        inner.afterAll(() => {})
+        inner.addTest(new Mocha.Test('t1', () => {}))
+        return root
+    }
+
+    async function run(root: Suite) {
+        const reporter = new EventEmitter()
+        const emitted: { event: string, payload: any }[] = []
+        for (const ev of ['suite:start', 'hook:start', 'hook:end']) {
+            reporter.on(ev, (payload) => emitted.push({ event: ev, payload }))
+        }
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+        const uidOf = (title: string) => emitted.find((e) => e.event === 'suite:start' && e.payload.title === title)!.payload.uid
+        return { emitted, uidOf }
+    }
+
+    beforeEach(() => {
+        logMock.debug.mockClear()
+    })
+
+    test('every hook type has its kind; an all-hook has its declaring suite as parent, parentUid and hookSuiteUid', async () => {
+        const { emitted, uidOf } = await run(tree())
+        const starts = emitted.filter((e) => e.event === 'hook:start').map(({ payload: p }) => [p.title, p.hookKind, p.parent, p.parentUid, p.hookSuiteUid, p.contextId])
+        expect(starts).toEqual([
+            // a root hook belongs to the root suite, which has no suite event
+            ['"before all" hook: root setup in "{root}"', 'beforeAll', '', null, undefined, 'ctx-a'],
+            ['"before all" hook for outer', 'beforeAll', 'outer', uidOf('outer'), uidOf('outer'), 'ctx-a'],
+            ['"before all" hook for inner', 'beforeAll', 'inner', uidOf('inner'), uidOf('inner'), 'ctx-a'],
+            // each-hooks keep the suite of their test
+            ['"before each" hook for outer', 'beforeEach', 'inner', uidOf('inner'), undefined, 'ctx-a'],
+            ['"after each" hook for outer', 'afterEach', 'inner', uidOf('inner'), undefined, 'ctx-a'],
+            ['"after all" hook for inner', 'afterAll', 'inner', uidOf('inner'), uidOf('inner'), 'ctx-a'],
+            ['"after all" hook for outer', 'afterAll', 'outer', uidOf('outer'), uidOf('outer'), 'ctx-a']
+        ])
+        expect(logMock.debug).not.toHaveBeenCalled()
+    })
+
+    test('hook:end has the uid, kind and suite of its hook:start, also for a failing hook', async () => {
+        const root = tree()
+        root.suites[0].afterEach(() => { throw new Error('boom') })
+        const { emitted } = await run(root)
+        const hooks = emitted.filter((e) => e.event.startsWith('hook:'))
+        expect(hooks.length).toBe(16)
+        for (let i = 0; i < hooks.length; i += 2) {
+            const [start, end] = [hooks[i].payload, hooks[i + 1].payload]
+            expect([hooks[i].event, hooks[i + 1].event]).toEqual(['hook:start', 'hook:end'])
+            for (const key of ['uid', 'hookKind', 'hookSuiteUid', 'parent', 'parentUid']) {
+                expect(end[key]).toBe(start[key])
+            }
+        }
+        expect(hooks.find((h) => h.event === 'hook:end' && h.payload.error)!.payload.hookKind).toBe('afterEach')
+    })
+
+    test('a title that disagrees with the hook list is logged, and the hook list gives the kind', async () => {
+        const root = tree()
+        const hook = (root.suites[0] as unknown as { _beforeAll: { title: string }[] })._beforeAll[0]
+        hook.title = '"before each" hook'
+        const { emitted } = await run(root)
+        expect(emitted.find((e) => e.event === 'hook:start' && e.payload.title === '"before all" hook for outer')!.payload.hookKind).toBe('beforeAll')
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('"before each" hook'))
     })
 })

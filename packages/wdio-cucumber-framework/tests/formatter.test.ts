@@ -490,6 +490,37 @@ describe('CucumberFormatter', () => {
         return wdioReporter.emit.mock.calls
     }
 
+    describe('step level: hookKind from the Cucumber hook type', () => {
+        const hookCalls = (eventBroadcaster: EventEmitter, testStepId: string) =>
+            stepEvents(eventBroadcaster, { status: 'PASSED' }, 0, testStepId).filter(([name]: [string]) => name.startsWith('hook:'))
+
+        it.each([
+            ['BEFORE_TEST_CASE', 'beforeEach'],
+            ['AFTER_TEST_CASE', 'afterEach'],
+            ['BEFORE_TEST_STEP', 'beforeStep'],
+            ['AFTER_TEST_STEP', 'afterStep'],
+            ['BEFORE_TEST_RUN', 'beforeAll'],
+            ['AFTER_TEST_RUN', 'afterAll'],
+        ])('a %s hook is a %s hook on hook:start and hook:end', (type, kind) => {
+            const { eventBroadcaster } = stepLevelFormatter()
+            eventBroadcaster.emit('envelope', { hook: { id: '21', name: 'my hook', type } })
+            const calls = hookCalls(eventBroadcaster, '24')
+            expect(calls.map(([name, payload]: [string, Record<string, unknown>]) => [name, payload.uid, payload.hookKind])).toEqual([
+                ['hook:start', '24', kind], ['hook:end', '24', kind]
+            ])
+        })
+
+        it('sends no hookKind for a hook with no type (older Cucumber versions)', () => {
+            const { eventBroadcaster } = stepLevelFormatter()
+            eventBroadcaster.emit('envelope', { hook: { id: '19', name: 'my hook' } })
+            const calls = hookCalls(eventBroadcaster, '27')
+            expect(calls.map(([name]: [string]) => name)).toEqual(['hook:start', 'hook:end'])
+            for (const [, payload] of calls) {
+                expect(payload).not.toHaveProperty('hookKind')
+            }
+        })
+    })
+
     describe('step level: a step that fails in an attempt that Cucumber retries', () => {
         const failed = { status: 'FAILED', message: 'first try fails' }
         const names = (calls: [string, unknown][]) => calls.map(([event]) => event).filter((event) => event.startsWith('test:'))

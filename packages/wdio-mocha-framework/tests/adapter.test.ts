@@ -236,6 +236,37 @@ describe('parallel mode config hooks', () => {
         expect(runParallelTests).toBeCalledTimes(1)
     })
 
+    test('sends the kind of the beforeSuite / afterSuite root hooks, and the uid of the hook:start on a failing hook:end', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        vi.mocked(executeHooksWithArgs).mockImplementation(async (hookName: string) => {
+            if (hookName === 'beforeSuite' || hookName === 'afterSuite') {
+                throw new Error(`${hookName} boom`)
+            }
+            return []
+        })
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+            vi.mocked(executeHooksWithArgs).mockReset()
+        }
+
+        const hooks = wdioReporter.emit.mock.calls.filter((c) => c[0].startsWith('hook:')).map(([event, p]) => [event, p.uid, p.hookKind, p.state])
+        expect(hooks).toEqual([
+            ['hook:start', 'hook-0-0', 'beforeAll', undefined],
+            ['hook:end', 'hook-0-0', 'beforeAll', 'fail'],
+            ['hook:start', 'hook-0-1', 'afterAll', undefined],
+            ['hook:end', 'hook-0-1', 'afterAll', 'fail']
+        ])
+        // the root suite has no suite event
+        expect(wdioReporter.emit.mock.calls.some(([, p]) => 'hookSuiteUid' in p)).toBe(false)
+    })
+
     test('titles beforeSuite/afterSuite with the first and the last test of the root suite, as Mocha does', async () => {
         // @ts-ignore params not needed for test scenario
         const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })

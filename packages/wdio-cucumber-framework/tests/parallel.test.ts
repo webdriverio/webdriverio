@@ -1797,6 +1797,24 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('1 scenario has a pending step or hook: "s1"'))
     })
 
+    test('step-level Before and After hooks send the kind of their Cucumber hook type on hook:start and hook:end', async () => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+            beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => {}, id: 'hook-b', line: 2, uri: '/test/hooks.ts', order: 0, options: {} })],
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => { throw new Error('After hook fails') }, id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts({ scenarioLevelReporter: false }), supportCodeLibrary as never)
+
+        const hooks = events.filter((e) => e.event.startsWith('hook:')).map(({ event, payload }) => [event, payload.uid, payload.hookKind, 'hookSuiteUid' in payload])
+        expect(hooks.map(([event, , kind, hasSuite]) => [event, kind, hasSuite])).toEqual([
+            ['hook:start', 'beforeEach', false], ['hook:end', 'beforeEach', false],
+            ['hook:start', 'afterEach', false], ['hook:end', 'afterEach', false]
+        ])
+        expect(hooks[1][1]).toBe(hooks[0][1])
+        expect(hooks[3][1]).toBe(hooks[2][1])
+    })
+
     test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
         const browser = mockBrowser({ contexts: ['ctx-a'] })
         await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: [] }])], defaultCucumberOpts({ scenarioLevelReporter: false }))
