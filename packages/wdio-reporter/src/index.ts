@@ -36,6 +36,7 @@ export default class WDIOReporter extends EventEmitter {
     isContentPresent = false
     specs: string[] = []
     currentSpec?: string
+    #parentOf = new WeakMap<object, SuiteStats>()
     #contextIdResolver?: () => string | undefined
     #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
     #processListeners: [string, (...args: unknown[]) => void][] = []
@@ -134,6 +135,7 @@ export default class WDIOReporter extends EventEmitter {
             const suite = new SuiteStats(params)
             const currentSuite = this.#owningSuite(params.parentUid)
             currentSuite.suites.push(suite)
+            this.#parentOf.set(suite, currentSuite)
             this.currentSuites.push(suite)
             this.suites[suite.uid] = suite
             this.onSuiteStart(suite)
@@ -161,6 +163,7 @@ export default class WDIOReporter extends EventEmitter {
             const hookStats = new HookStats(hook)
             const currentSuite = this.#owningSuite(hook.parentUid)
             currentSuite.hooks.push(hookStats)
+            this.#parentOf.set(hookStats, currentSuite)
             currentSuite.hooksAndTests.push(hookStats)
             this.hooks[hook.uid!] = hookStats
             this.onHookStart(hookStats)
@@ -186,6 +189,7 @@ export default class WDIOReporter extends EventEmitter {
             trackContext(test, currentTest)
             const currentSuite = this.#owningSuite(test.parentUid)
             currentSuite.tests.push(currentTest)
+            this.#parentOf.set(currentTest, currentSuite)
             currentSuite.hooksAndTests.push(currentTest)
             this.tests[test.uid] = currentTest
             this.onTestStart(currentTest)
@@ -276,6 +280,7 @@ export default class WDIOReporter extends EventEmitter {
                 currentSuite.hooksAndTests[hooksAndTestsIndex] = currentTest
             }
 
+            this.#parentOf.set(currentTest, currentSuite)
             this.tests[currentTest.uid] = currentTest
             trackContext(test, currentTest)
             if (test.state === 'pending') {
@@ -408,6 +413,26 @@ export default class WDIOReporter extends EventEmitter {
     #removeProcessListeners() {
         this.#processListeners.forEach(([event, handler]) => process.off(event, handler))
         this.#processListeners = []
+    }
+
+    /** The suite of these stats as the base inserted them, `undefined` under the root suite. @experimental */
+    parentOf(stats: SuiteStats | HookStats | TestStats): SuiteStats | undefined {
+        const parent = this.#parentOf.get(stats)
+        return parent === this.currentSuites[0] ? undefined : parent
+    }
+
+    /** The suites above these stats, outermost first, without the root suite. @experimental */
+    pathOf(stats: SuiteStats | HookStats | TestStats): SuiteStats[] {
+        const path: SuiteStats[] = []
+        for (let suite = this.parentOf(stats); suite; suite = this.parentOf(suite)) {
+            path.unshift(suite)
+        }
+        return path
+    }
+
+    /** The number of suites above these stats, without the root suite. @experimental */
+    depthOf(stats: SuiteStats | HookStats | TestStats): number {
+        return this.pathOf(stats).length
     }
 
     #owningSuite(parentUid?: string | null) {

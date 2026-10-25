@@ -70,6 +70,18 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
+    parentOf (_stats: unknown): SuiteStats | undefined {
+        return undefined
+    }
+
+    pathOf (_stats: unknown): SuiteStats[] {
+        return []
+    }
+
+    depthOf (_stats: unknown): number {
+        return 0
+    }
+
     /* istanbul ignore next */
     onRunnerStart () {}
     /* istanbul ignore next */
