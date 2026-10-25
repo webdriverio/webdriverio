@@ -20,6 +20,11 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
         setContextNamesResolver(() => this.getContextNames())
     }
 
+    // the resolver is module-global: it must not outlive this reporter
+    onRunnerEnd(): void {
+        setContextNamesResolver(undefined)
+    }
+
     /**
      * Parallel mode: the names of the test of the caller's context and of its suite, as tests overlap (K19).
      * Sequential: `undefined`, the names of the last events stay
