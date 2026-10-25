@@ -204,11 +204,19 @@ In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROX
 
 In v9, a testrunner worker on Windows gave Chrome the profile folder `wdio-chrome-<worker id>-<time>` in `outputDir` (or the temporary folder) when your capabilities set no `--user-data-dir`. The folder stayed on disk after the run, and two sessions of one worker, for example the instances of a multi-remote worker, could get the same folder.
 
-In v10, WebdriverIO adds no profile folder. ChromeDriver gives each session its own temporary profile in the system temporary folder, also after `reloadSession()`, as on Linux and macOS. To keep a profile, for example its `Crashpad` crash dumps, set your own `--user-data-dir`. WebdriverIO never changes or deletes it.
+In v10, WebdriverIO adds no profile folder. ChromeDriver gives each session its own temporary profile in the system temporary folder, also after `reloadSession()`, as on Linux and macOS. To keep a profile, for example its `Crashpad` crash dumps, set your own `--user-data-dir`. WebdriverIO never changes or deletes it. Give each session its own folder: the capabilities in the config file are read once by the launcher, so set the folder in `beforeSession`, which runs in each worker:
 
 ```js
-'goog:chromeOptions': {
-    args: [`--user-data-dir=${path.join(os.tmpdir(), `my-profile-${process.env.WDIO_WORKER_ID}`)}`]
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+export const config = {
+    // ...
+    beforeSession (config, capabilities) {
+        const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
+        chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
+    }
 }
 ```
 
