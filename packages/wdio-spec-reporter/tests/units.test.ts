@@ -421,3 +421,30 @@ describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
         expect(display(reporter)).toEqual(['» spec.js', 'A', '   ✓ a1', ''])
     })
 })
+
+// U4: a sequential Cucumber Before owns its logs; a hook with no name gets the name that JUnit gives it
+describe('spec reporter Cucumber hooks with no name', () => {
+    const originalWrite = process.stdout.write
+    afterEach(() => {
+        process.stdout.write = originalWrite
+    })
+
+    it('prints "Before hook" and its logs for an unnamed Before, "After hook" for an unnamed failed After', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        reporter['_originalStdoutWrite'] = vi.fn()
+        reporter.emit('suite:start', suite('F', 'feature'))
+        reporter.emit('suite:start', { ...suite('S', 'scenario'), parent: 'F' })
+        reporter.emit('hook:start', hook('b1', '', { parent: 'S', hookKind: 'beforeEach' }))
+        process.stdout.write('LOG before\n')
+        reporter.emit('hook:end', hook('b1', '', { parent: 'S', hookKind: 'beforeEach' }))
+        runTest(reporter, 'step', 'test:pass', { parent: 'S' })
+        reporter.emit('hook:start', hook('a1', '', { parent: 'S', hookKind: 'afterEach' }))
+        reporter.emit('hook:end', hook('a1', '', { parent: 'S', hookKind: 'afterEach', error: { message: 'after fails' } }))
+        reporter.emit('suite:end', suite('S', 'scenario'))
+        reporter.emit('suite:end', suite('F', 'feature'))
+
+        const lines = display(reporter)
+        expect(lines.filter((line) => /[✓✖]/.test(line))).toEqual(['   ✓ Before hook', '   ✓ step', '   ✖ After hook'])
+        expect(lines).toContain('         LOG before')
+    })
+})
