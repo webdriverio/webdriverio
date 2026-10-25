@@ -501,6 +501,15 @@ describe('ReportAggregator', () => {
         expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
     })
 
+    it('counts the reports of 2 CI jobs in 2 folders, which both have the cid 0-0', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(path.join(outputDir, 'job-1'), 1, { specFileRetries: 0 })
+        await runAttempt(path.join(outputDir, 'job-2'), 1, { specFileRetries: 0, start: '2021-06-11T16:25:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 2, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
+    })
+
     it('counts the new run, not the retry files of an earlier run in the same folder', async () => {
         const outputDir = path.join(tempDir(), 'out')
         await runAttempt(outputDir, 2, { passed: false })

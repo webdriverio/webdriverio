@@ -1315,6 +1315,33 @@ describe('sequential mode: events of a before hook', () => {
         expect(logsOf(reporter, 'A1')).toEqual(['root before all'])
     })
 
+    it('gives the log of a nested suite with no test to the test before, not to a test of the next suite', () => {
+        const reporter = start()
+        suite(reporter, 'P')
+        runTest(reporter, 'P1', 'P')
+        endSuite(reporter, 'P')
+        suite(reporter, 'A')
+        // `failHookAffectedTests: false`: the before all hook of B fails and no test of B is reported
+        suite(reporter, 'B', 'A')
+        hook(reporter, '"before all" hook for B', 'B', () => log('before all of B'))
+        endSuite(reporter, 'B')
+        suite(reporter, 'C', 'A')
+        runTest(reporter, 'C1', 'C')
+        expect(logsOf(reporter, 'P1')).toEqual(['before all of B'])
+        expect(logsOf(reporter, 'C1')).toEqual([])
+    })
+
+    it('does not give the Before log of a Cucumber scenario with no step to the next scenario', () => {
+        const reporter = start()
+        suite(reporter, 'feature')
+        suite(reporter, 'S1', 'feature')
+        hook(reporter, '', 'S1', () => log('Before of S1'))
+        endSuite(reporter, 'S1')
+        suite(reporter, 'S2', 'feature')
+        runTest(reporter, 'S2 step 1', 'S2')
+        expect(logsOf(reporter, 'S2 step 1')).toEqual([])
+    })
+
     it('adds the log of a suite with no test to the test before, as before', () => {
         const reporter = start()
         suite(reporter, 'A')
