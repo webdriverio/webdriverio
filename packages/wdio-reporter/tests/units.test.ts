@@ -387,6 +387,24 @@ describe('units: Cucumber', () => {
         expect(r.counts).toMatchObject({ tests: 0, passes: 0, failures: 0 })
     })
 
+    it('I1: onSuiteRetry sees the new retry count, as on main, with the failed attempt', () => {
+        const retries: string[] = []
+        class CountRecorder extends Recorder {
+            onSuiteRetry (s: SuiteStats) { retries.push(`${s.title} retries=${s.retries} tests=${s.tests.length}`) }
+        }
+        const r = new CountRecorder()
+        play(r, [
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
+            ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f' })],
+            ...steps('sc1', undefined, 'test:retry'),
+            ['suite:retry', suiteEv('sc1', 'S1', { type: 'scenario' })],
+            ...steps('sc1', undefined, 'test:retry'),
+            ['suite:retry', suiteEv('sc1', 'S1', { type: 'scenario' })],
+        ])
+        expect(retries).toEqual(['S1 retries=1 tests=2', 'S1 retries=2 tests=2'])
+        expect(r.suites.sc1).toMatchObject({ tests: [], retries: 2 })
+    })
+
     it('K12 parallel: onSuiteRetry sees only the failed attempt of its scenario, with interleaved payloads', () => {
         const r = new RetryRecorder()
         // the parallel adapter gives the hooks the uid of their scenario
