@@ -1281,6 +1281,40 @@ describe('sequential mode: events of a before hook', () => {
         expect(logsOf(reporter, 'C1')).toEqual(['before all of A'])
     })
 
+    it('keeps the log of a nested before hook that skips its suite with that suite, and the parent log for the next test', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        suite(reporter, 'B', 'A')
+        hook(reporter, '"before all" hook for B', 'B', () => log('before all of B'))
+        // `this.skip()` in the before all hook of B
+        reporter.emit('test:pending', { ...test('B1', 'B'), type: 'test:pending' })
+        endSuite(reporter, 'B')
+        suite(reporter, 'C', 'A')
+        runTest(reporter, 'C1', 'C')
+        expect(logsOf(reporter, 'B1')).toEqual(['before all of B'])
+        expect(logsOf(reporter, 'C1')).toEqual(['before all of A'])
+    })
+
+    it('adds the logs of the before all hooks of all parent suites to the first test, the outer one first', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        suite(reporter, 'B', 'A')
+        hook(reporter, '"before all" hook for B', 'B', () => log('before all of B'))
+        suite(reporter, 'C', 'B')
+        runTest(reporter, 'C1', 'C', () => log('C1'))
+        expect(logsOf(reporter, 'C1')).toEqual(['before all of A', 'before all of B', 'C1'])
+    })
+
+    it('adds a log from before the first suite (a root hook) to the first test', () => {
+        const reporter = start()
+        log('root before all')
+        suite(reporter, 'A')
+        runTest(reporter, 'A1', 'A')
+        expect(logsOf(reporter, 'A1')).toEqual(['root before all'])
+    })
+
     it('adds the log of a suite with no test to the test before, as before', () => {
         const reporter = start()
         suite(reporter, 'A')
