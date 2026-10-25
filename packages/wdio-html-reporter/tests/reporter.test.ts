@@ -677,7 +677,9 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         process.removeAllListeners('test:video-capture')
         const html = fs.readFileSync(path.join(dir, 'report-0-0.html'), 'utf-8')
         const classOf = (title: string) => html.slice(0, html.indexOf(`&nbsp;</span>${title}`)).match(/suite-(pass|fail|pending|unknown)/g)?.pop()
-        return { reporter, classOf, json: JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')) }
+        // the class of each entry with this title, in report order
+        const classesOf = (title: string) => html.split(`&nbsp;</span>${title}`).slice(0, -1).map((before) => before.match(/suite-(pass|fail|pending|unknown)/g)?.pop())
+        return { reporter, classOf, classesOf, json: JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')) }
     }
 
     // K24: Mocha `retries`, a failed attempt ends with test:retry and the next attempt has a new uid
@@ -711,25 +713,35 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         expect(classOf('hook suite')).toBe('suite-pass')
     })
 
-    // K12: Cucumber `retry` (step level) sends suite:retry in place of the suite:start of the next attempt
-    it('keeps the failed attempt of a retried Cucumber scenario as its own entry, with its own times', async () => {
+    // K12: Cucumber `retry` (step level) ends the failed step with test:retry, then sends suite:retry in place of the suite:start of the next attempt
+    it.each([
+        ['', []],
+        [' and skipped steps after the failed step', ['skipped']]
+    ])('keeps the failed attempt of a retried Cucumber scenario as its own failed entry, with its own times%s', async (_name, after) => {
         vi.useFakeTimers({ toFake: ['Date'] })
         const at = (time: string) => vi.setSystemTime(new Date(`2026-10-25T10:00:${time}.000Z`))
         try {
-            const { json, reporter } = await run('k12-retry', (reporter) => {
+            const { json, reporter, classesOf } = await run(`k12-retry-${after.length}`, (reporter) => {
                 at('00')
                 reporter.emit('suite:start', suite('F', 'feature'))
                 reporter.emit('suite:start', suite('S', 'scenario', 'F'))
                 reporter.emit('test:start', test('step', 'a step', 'S'))
                 at('02')
-                reporter.emit('test:fail', { ...test('step', 'a step', 'S'), error: { message: 'first attempt' } })
+                reporter.emit('test:retry', { ...test('step', 'a step', 'S'), error: { message: 'first attempt' } })
                 reporter.emit('test:end', test('step', 'a step', 'S'))
+                if (after.length) {
+                    reporter.emit('test:start', test('step-2', 'next step', 'S'))
+                    reporter.emit('test:skip', test('step-2', 'next step', 'S'))
+                    reporter.emit('test:end', test('step-2', 'next step', 'S'))
+                }
                 at('03')
                 reporter.emit('suite:retry', suite('S', 'scenario', 'F'))
-                reporter.emit('test:start', test('step', 'a step', 'S'))
-                at('07')
-                reporter.emit('test:pass', test('step', 'a step', 'S'))
-                reporter.emit('test:end', test('step', 'a step', 'S'))
+                for (const [uid, title] of [['step', 'a step'], ...(after.length ? [['step-2', 'next step']] : [])]) {
+                    reporter.emit('test:start', test(uid, title, 'S'))
+                    at('07')
+                    reporter.emit('test:pass', test(uid, title, 'S'))
+                    reporter.emit('test:end', test(uid, title, 'S'))
+                }
                 reporter.emit('suite:end', suite('S', 'scenario', 'F'))
                 reporter.emit('suite:end', suite('F', 'feature'))
             }, cucumber)
@@ -738,9 +750,11 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
                 title: entry.title, start: entry.start, end: entry.end, duration: entry._duration, states: entry.tests.map((step) => step.state)
             }))
             expect(attempts).toEqual([
-                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed'] },
-                { title: 'S', start: '2026-10-25T10:00:03.000Z', end: '2026-10-25T10:00:07.000Z', duration: 4000, states: ['passed'] }
+                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
+                { title: 'S', start: '2026-10-25T10:00:03.000Z', end: '2026-10-25T10:00:07.000Z', duration: 4000, states: ['passed', ...after.map(() => 'passed')] }
             ])
+            // the failed attempt shows as failed, the scenario as its last attempt
+            expect(classesOf('S')).toEqual(['suite-fail', 'suite-pass'])
             // the scenario counts one time, as its last attempt
             expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
         } finally {
