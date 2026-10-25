@@ -26,6 +26,8 @@ import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmen
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
 const log = logger('@wdio/cucumberjs-json-reporter')
+/** the key of the scenario state of this reporter in a parallel unit of `@wdio/reporter` */
+const UNIT_STATE = Symbol('cucumberjs-json')
 
 /**
  * `true` for a string that is valid JSON text, for example `'{"a":1}'`
@@ -67,18 +69,20 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * (grouped specs in a random order) gets another uid
      */
     #featuresByFile = new Map<string, { feature: Feature, lines?: FeatureLines }>()
-    /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
-    #pendingEmbeddings: Embedding[] = []
-    /** the scenario that was running when the waiting attachments came (none: before the first scenario) */
-    #pendingEmbeddingsScenario?: Scenario
+    /**
+     * attachments sent while their scenario has no step yet (for example in a `Before` hook with
+     * `disableHooks`), by scenario; `undefined`: before the first scenario
+     */
+    #pendingEmbeddings = new Map<Scenario | undefined, Embedding[]>()
     /**
      * `cucumberOpts.scenarioLevelReporter`: the framework reports no steps, and the
      * CucumberJS JSON format needs them, so make no report
      */
     #noSteps = false
-    /** scenarios that started and did not end: more than one only in `cucumberOpts.parallelMode` */
-    #runningScenarios = 0
-    #parallelWarned = false
+    // a failed Cucumber BeforeAll / AfterAll is a hook of the feature: it has no scenario, and no place in Cucumber's JSON
+    #featureUids = new Set<string>()
+    /** a scenario ran in a parallel unit (`cucumberOpts.parallelMode`) */
+    #parallelSeen = false
     /** `true` when the user set the `language` option: `cucumberOpts.language` replaces it */
     #languageOption: boolean
     /** the Cucumber status of the hook that ends (for example `SKIPPED`): the HookStats keep only failures */
@@ -137,7 +141,20 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * header), else the `language` option
      */
     get #language () {
-        return this.#featureLines?.language ?? this.options.language!
+        return this.#lines?.language ?? this.options.language!
+    }
+
+    /** the scenario and feature lines of the unit in `cucumberOpts.parallelMode`; `undefined` in a sequential run */
+    #parallelUnit () {
+        return this.getContextUnit()?.contextId
+            ? this.unitState(UNIT_STATE, () => ({} as { scenario?: Scenario, lines?: FeatureLines }))
+            : undefined
+    }
+
+    /** the lines of the feature file of the current scenario */
+    get #lines () {
+        const unit = this.#parallelUnit()
+        return unit?.scenario ? unit.lines : this.#featureLines
     }
 
     /**
@@ -216,6 +233,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
          * a suite without parent is a feature: a worker can run several feature
          * files (grouped specs), so start a new feature each time
          */
+        if (!payload.parent) {
+            this.#featureUids.add(payload.uid)
+        }
         const known = payload.file ? this.#featuresByFile.get(payload.file) : undefined
         if (known) {
             /**
@@ -243,32 +263,15 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
 
         if (typeof this.report.feature.elements !== 'undefined' && payload.parent) {
-            this.#warnParallelScenarios()
-            this.#runningScenarios++
-            this.report.feature.elements.push(this.getScenarioDataObject(payload, this.report.feature.id!))
+            const scenario = this.getScenarioDataObject(payload, this.report.feature.id!)
+            this.report.feature.elements.push(scenario)
+            const unit = this.#parallelUnit()
+            if (unit) {
+                unit.scenario = scenario
+                unit.lines = this.#featureLines
+                this.#parallelSeen = true
+            }
         }
-    }
-
-    public onSuiteEnd(payload: SuiteStats): void {
-        if (payload.parent && this.#runningScenarios > 0) {
-            this.#runningScenarios--
-        }
-    }
-
-    /**
-     * The reporter adds each event to the last scenario: with scenarios that run at the
-     * same time (`cucumberOpts.parallelMode`), steps and attachments can go into the
-     * wrong scenario
-     */
-    #warnParallelScenarios() {
-        if (this.#runningScenarios === 0 || this.#parallelWarned) {
-            return
-        }
-        this.#parallelWarned = true
-        const message = 'Scenarios run at the same time ("cucumberOpts.parallelMode"), which the CucumberJS JSON ' +
-            'report does not support yet: steps and attachments can be in the wrong scenario.'
-        log.warn(message)
-        console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
     }
 
     /**
@@ -276,7 +279,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * the last try of a scenario, so start its steps again
      */
     public onSuiteRetry(payload: SuiteStats): void {
-        const scenario = this.report.feature?.elements?.at(-1)
+        const scenario = this.getCurrentScenario()
         if (!scenario || scenario.name !== scenarioNameOf(payload.title, payload.tags)) {
             return
         }
@@ -293,7 +296,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             return
         }
         // There is always a scenario, take the last one
-        if (this.options.disableHooks) {
+        if (this.options.disableHooks || this.#isFeatureHook(payload)) {
             return
         }
         const currentSteps = this.getCurrentScenario().steps
@@ -311,7 +314,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (this.#noSteps) {
             return
         }
-        if (this.options.disableHooks) {
+        if (this.options.disableHooks || this.#isFeatureHook(payload)) {
             return
         }
         // Cucumber skips the hooks after a failed hook, and a hook can return 'skipped' or 'pending'
@@ -321,6 +324,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
 
         return this.updateStepStatus(payload)
+    }
+
+    /** a hook of the feature (Cucumber `BeforeAll` / `AfterAll`), not of a scenario */
+    #isFeatureHook (hook: HookStats) {
+        return this.#featureUids.has(hook.parent)
     }
 
     /**
@@ -390,7 +398,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public onRunnerEnd(): void {
         process.off(events.attachment as 'message', this.#onAttachment)
         // the last scenario of the worker ended with no step
-        this.#dropPendingEmbeddingsOfOtherScenario()
+        for (const scenario of [...this.#pendingEmbeddings.keys()]) {
+            this.#dropPendingEmbeddings(scenario)
+        }
         if (!this.report.feature) {
             return
         }
@@ -538,6 +548,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Get the current scenario
      */
     public getCurrentScenario(): Scenario {
+        const own = this.#parallelUnit()?.scenario
+        if (own) {
+            return own
+        }
         // no feature yet, for example for an attachment from the WebdriverIO `before` hook
         const elements = this.report.feature?.elements ?? []
         return elements[elements.length - 1]
@@ -574,12 +588,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const scenario = this.getCurrentScenario()
         const step = this.getStepDataObject(test)
         const scenarioLines = this.#scenarioLines.get(scenario)
-        if (!step.hidden && scenarioLines && this.#featureLines) {
-            const retaken = retakeScenarioLines(this.#featureLines, scenarioLines.taken, scenario.name ?? '', step.name ?? '', scenarioLines)
+        const featureLines = this.#lines
+        if (!step.hidden && scenarioLines && featureLines) {
+            const retaken = retakeScenarioLines(featureLines, scenarioLines.taken, scenario.name ?? '', step.name ?? '', scenarioLines)
             if (retaken) {
                 scenarioLines.taken = retaken
                 scenario.line = retaken.line
-                scenario.tags = tagLinesOf(this.#featureLines, retaken, scenarioLines.tags)
+                scenario.tags = tagLinesOf(featureLines, retaken, scenarioLines.tags)
                 scenario.keyword = retaken.scenario.keyword
                 // the steps before this one have the lines of the other scenario
                 scenarioLines.usedLines.clear()
@@ -592,9 +607,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             this.#setStepLines(step, scenarioLines.taken.scenario, scenarioLines.usedLines)
         }
         this.#dropPendingEmbeddingsOfOtherScenario(scenario)
-        if (this.#pendingEmbeddings.length) {
-            step.embeddings = this.#pendingEmbeddings
-            this.#pendingEmbeddings = []
+        // the waiting attachments of this scenario, and those from before the first scenario
+        const waiting = this.#takePendingEmbeddings(scenario)
+        if (waiting.length) {
+            step.embeddings = waiting
         }
         scenario.steps!.push(step)
     }
@@ -624,11 +640,33 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * format has attachments only on steps. Do not move them to another scenario.
      */
     #dropPendingEmbeddingsOfOtherScenario(scenario?: Scenario) {
-        const owner = this.#pendingEmbeddingsScenario
-        if (owner && owner !== scenario && this.#pendingEmbeddings.length) {
-            log.warn(`${this.#pendingEmbeddings.length} attachment(s) of the scenario "${owner.name}" not in the report: the scenario has no step`)
-            this.#pendingEmbeddings = []
+        // in parallel mode the other scenarios still run: theirs wait until the runner ends
+        if (this.#parallelSeen) {
+            return
         }
+        for (const owner of [...this.#pendingEmbeddings.keys()]) {
+            if (owner !== scenario) {
+                this.#dropPendingEmbeddings(owner)
+            }
+        }
+    }
+
+    #dropPendingEmbeddings(scenario?: Scenario) {
+        const waiting = this.#pendingEmbeddings.get(scenario)
+        if (scenario && waiting?.length) {
+            log.warn(`${waiting.length} attachment(s) of the scenario "${scenario.name}" not in the report: the scenario has no step`)
+            this.#pendingEmbeddings.delete(scenario)
+        }
+    }
+
+    /** the waiting attachments of the scenario, after those from before the first scenario */
+    #takePendingEmbeddings(scenario?: Scenario) {
+        const waiting = [...(this.#pendingEmbeddings.get(undefined) ?? []), ...(scenario ? this.#pendingEmbeddings.get(scenario) ?? [] : [])]
+        this.#pendingEmbeddings.delete(undefined)
+        if (scenario) {
+            this.#pendingEmbeddings.delete(scenario)
+        }
+        return waiting
     }
 
     /**
@@ -657,9 +695,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
 
         // no feature or no step yet: keep the attachment for the next step
         if (!currentStep) {
-            this.#dropPendingEmbeddingsOfOtherScenario(this.getCurrentScenario())
-            this.#pendingEmbeddingsScenario = this.getCurrentScenario()
-            this.#pendingEmbeddings.push(embeddings)
+            const scenario = this.getCurrentScenario()
+            this.#dropPendingEmbeddingsOfOtherScenario(scenario)
+            this.#pendingEmbeddings.set(scenario, [...this.#takePendingEmbeddings(scenario), embeddings])
             return
         }
 
