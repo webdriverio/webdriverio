@@ -8,6 +8,7 @@ import SuiteStats from '../src/stats/suite.js'
 import type HookStats from '../src/stats/hook.js'
 import type TestStats from '../src/stats/test.js'
 import type { ReporterUnit } from '../src/types.js'
+import { Unit } from '../src/units.js'
 
 const suite = (uid: string, title: string, parentUid?: string) => ({
     type: 'suite', uid, title, fullTitle: title, cid: '0-0', file: '/a.spec.js', ...(parentUid ? { parent: 'p', parentUid } : {})
@@ -1400,5 +1401,33 @@ describe('getContextTest() returns what it returned before the unit API', () => 
         contextId = 'c1'
         expect(r.getContextTest()).toBe(r.tests.st2)
         expect(r.getContextOwner()).toBe(r.tests.st2)
+    })
+})
+
+describe('CR2: the open hooks of a sequential unit', () => {
+    // the maps keyed by a unit that the reporter writes to
+    const unitMaps = (spy: { mock: { contexts: unknown[], calls: unknown[][] } }) => new Set(spy.mock.contexts.filter((_, i) => spy.mock.calls[i][0] instanceof Unit) as Map<Unit, unknown>[])
+    const each = (uid: string, kind: string, test: string) => hookEv(uid, `"${kind === 'beforeEach' ? 'before' : 'after'} each" hook for "${test}"`, { hookKind: kind })
+    const tests = ['t1', 't2', 't3']
+
+    it.each([
+        ['Mocha', (t: string): Events => [['test:start', testEv(t, t)], ['hook:start', each(`b${t}`, 'beforeEach', t)], ['hook:end', each(`b${t}`, 'beforeEach', t)],
+            ['test:pass', testEv(t, t)], ['test:end', testEv(t, t)], ['hook:start', each(`a${t}`, 'afterEach', t)], ['hook:end', each(`a${t}`, 'afterEach', t)]]],
+        ['Cucumber', (t: string): Events => [['suite:start', suiteEv(`sc${t}`, `sc${t}`, { type: 'scenario' })], ['hook:start', each(`b${t}`, 'beforeEach', t)], ['hook:end', each(`b${t}`, 'beforeEach', t)],
+            ['test:start', testEv(t, t)], ['test:pass', testEv(t, t)], ['test:end', testEv(t, t)], ['hook:start', each(`a${t}`, 'afterEach', t)], ['hook:end', each(`a${t}`, 'afterEach', t)],
+            ['suite:end', suiteEv(`sc${t}`, `sc${t}`, { type: 'scenario' })]]],
+    ])('%s order: no entry stays for an ended unit or an empty list', (_, perTest) => {
+        const spy = vi.spyOn(Map.prototype, 'set')
+        try {
+            const r = new Recorder()
+            play(r, [['suite:start', suiteEv('s', 'S')], ...tests.flatMap(perTest), ['suite:end', suiteEv('s', 'S')]])
+            const maps = unitMaps(spy)
+            expect(maps.size).toBe(1)
+            expect([...maps].map((m) => m.size)).toEqual([0])
+            end(r)
+            expect([...maps].map((m) => m.size)).toEqual([0])
+        } finally {
+            spy.mockRestore()
+        }
     })
 })
