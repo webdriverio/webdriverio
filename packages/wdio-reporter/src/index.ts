@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent, hookCountsAsFailure, knownFramework, transformCommandScript } from './utils.js'
+import { getErrorsFromEvent, hookCountsAsFailure, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -15,9 +15,6 @@ import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag,
 import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
-
-// a `beforeAll` / `afterAll` with no context belongs to its suite; no hookKind keeps the owner of today
-const isContextlessAllHook = (hook: HookStats) => !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -615,6 +612,11 @@ export default class WDIOReporter extends EventEmitter {
         return this.#unitOfStats.get(hook)
     }
 
+    /** A hook of a Cucumber feature (`BeforeAll` / `AfterAll`): its suite is a `feature`. @experimental */
+    isFeatureHook(hook: HookStats): boolean {
+        return this.parentOf(hook)?.type === 'feature'
+    }
+
     /** The unit that these stats belong to. @experimental */
     unitOf(stats: SuiteStats | HookStats | TestStats): ReporterUnit | undefined {
         return this.#unitOfStats.get(stats)
@@ -835,5 +837,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
 }

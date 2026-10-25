@@ -137,7 +137,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
             const stats = this.hooks[hook.uid]
             // a failed Cucumber BeforeAll / AfterAll fails no scenario (K26)
-            if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.parentOf(stats)?.type === 'feature')) {
+            if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.isFeatureHook(stats))) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }

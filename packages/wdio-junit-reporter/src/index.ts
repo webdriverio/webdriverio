@@ -4,7 +4,7 @@ import url from 'node:url'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -28,8 +28,6 @@ interface JunitReporterAdditionalInformation {
     hooks?: HookStats[]
 }
 
-// as the base: a `beforeAll` / `afterAll` with no context belongs to its suite
-const isContextlessAllHook = (hook: HookStats) => !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
 // the hooks of a unit before its test
 const HOOKS_BEFORE_TEST = Symbol('junit hooks before test')
 
@@ -106,7 +104,7 @@ class JunitReporter extends WDIOReporter {
             this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])!.push(hook)
         }
         const parent = this.parentOf(hook)
-        if (parent?.type === 'feature' && (parent.suites.length || parent.tests.length)) {
+        if (parent && this.isFeatureHook(hook) && (parent.suites.length || parent.tests.length)) {
             this._afterScenarioHooks.add(hook)
         }
     }

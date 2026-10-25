@@ -249,12 +249,14 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `hook.hookKind`: `'beforeAll'`, `'beforeEach'`, `'afterEach'`, `'afterAll'`, `'beforeStep'` or `'afterStep'`.
 - `hook.hookSuiteUid`: the uid of the suite that declares a `beforeAll` / `afterAll` hook.
 - `this.hookOwner(hook)`: the owner of a hook (`ReporterUnit | SuiteStats | undefined`). This is its unit, or `undefined` when the hook has no unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`). When that hook is a hook of the root suite (for example a root Mocha `before`), it is also `undefined`.
+- `isContextlessAllHook(hook)` (an export of `@wdio/reporter`): `true` for a `beforeAll` / `afterAll` hook that has a `hookKind` and no context. Such a hook belongs to its suite, not to a unit.
+- `this.isFeatureHook(hook)`: `true` for a hook of a Cucumber feature (`BeforeAll` / `AfterAll`): the suite of the hook is a `feature`.
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
 - `hookStats.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
 
 :::warning Experimental
 
-The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
+The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
 
 :::
 

@@ -1,5 +1,6 @@
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
+import type { HookKind } from './types.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
@@ -9,6 +10,14 @@ const FIRST_FUNCTION_REGEX = /function (\w+)/
  */
 export function hookCountsAsFailure(hook: { error?: unknown, retried?: boolean, failedTestUid?: string }): boolean {
     return Boolean(hook.error) && !hook.retried && !hook.failedTestUid
+}
+
+/**
+ * @experimental a `beforeAll` / `afterAll` hook with `hookKind` and no context: it belongs to its suite, not to a unit.
+ * A hook with no `hookKind` keeps the owner of today
+ */
+export function isContextlessAllHook(hook: { contextId?: string, hookKind?: HookKind }): boolean {
+    return !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
 }
 
 /**

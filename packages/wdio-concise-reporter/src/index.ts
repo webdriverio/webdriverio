@@ -35,7 +35,7 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     #isFailedFeatureHook (hook: HookStats) {
-        return hookCountsAsFailure(hook) && this.parentOf(hook)?.type === 'feature'
+        return hookCountsAsFailure(hook) && this.isFeatureHook(hook)
     }
 
     onRunnerEnd (runner: RunnerStats): void {

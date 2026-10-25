@@ -1547,3 +1547,19 @@ describe('CR3: an event that opens a unit in a context that ended', () => {
         ])
     })
 })
+
+describe('isFeatureHook', () => {
+    it('is true for a hook whose suite is a feature', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('f', 'F', { type: 'feature' })],
+            ['hook:start', hookEv('ba', 'BeforeAll', { hookKind: 'beforeAll' })],
+            ['suite:start', suiteEv('sc', 'S', { type: 'scenario' })],
+            ['hook:start', hookEv('b', 'Before', { hookKind: 'beforeEach' })],
+        ])
+        expect(r.isFeatureHook(r.hooks.ba)).toBe(true)
+        expect(r.isFeatureHook(r.hooks.b)).toBe(false)
+        r.emit('hook:start', { type: 'hook:start', ...hookEv('root', 'root', { parentUid: null }) })
+        expect(r.isFeatureHook(r.hooks.root)).toBe(false)
+    })
+})

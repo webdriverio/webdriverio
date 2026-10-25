@@ -1,7 +1,7 @@
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook } from '../src/utils.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -88,5 +88,15 @@ describe('hookCountsAsFailure', () => {
     it('does not count a hook whose error is the failure of a test or of a retried attempt', () => {
         expect(hookCountsAsFailure({ error, failedTestUid: 'test-1' })).toBe(false)
         expect(hookCountsAsFailure({ error, retried: true })).toBe(false)
+    })
+})
+
+describe('isContextlessAllHook', () => {
+    it('is true only for a beforeAll / afterAll with hookKind and no context', () => {
+        expect(isContextlessAllHook({ hookKind: 'beforeAll' })).toBe(true)
+        expect(isContextlessAllHook({ hookKind: 'afterAll' })).toBe(true)
+        expect(isContextlessAllHook({ hookKind: 'afterAll', contextId: 'c1' })).toBe(false)
+        expect(isContextlessAllHook({ hookKind: 'beforeEach' })).toBe(false)
+        expect(isContextlessAllHook({})).toBe(false)
     })
 })

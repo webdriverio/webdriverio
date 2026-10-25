@@ -90,6 +90,10 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
+    isFeatureHook (hook: unknown): boolean {
+        return this.parentOf(hook)?.type === 'feature'
+    }
+
     unitOf (_stats: unknown): ReporterModule.ReporterUnit | undefined {
         return undefined
     }
@@ -140,6 +144,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName, knownFramework, hookCountsAsFailure } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
+const { getBrowserName, knownFramework, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, knownFramework, hookCountsAsFailure }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, knownFramework, hookCountsAsFailure, isContextlessAllHook }
