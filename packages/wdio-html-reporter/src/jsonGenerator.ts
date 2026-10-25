@@ -15,12 +15,18 @@ class JsonGenerator {
     }
 
     /**
-     * remove the command output of the tests, also in nested suites
+     * remove the command output of the tests and of the hooks, also in nested suites
      */
     static removeOutput(suites: SuiteStats[] = []) {
         for (const suite of suites) {
             for (const test of suite.tests ?? []) {
                 test.output = []
+            }
+            // the base gives a hook the commands that no test owns
+            for (const hook of suite.hooks ?? []) {
+                if (hook.output) {
+                    hook.output = []
+                }
             }
             JsonGenerator.removeOutput(suite.suites)
         }
