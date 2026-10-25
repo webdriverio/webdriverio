@@ -30,8 +30,8 @@ export default class SpecReporter extends WDIOReporter {
     private _showPreface = true
     private _suiteName = ''
 
-    private _isSuiteRetry = false
-    private _passingTestsSinceLastRetry = 0
+    /** the counts of the current attempt of a suite: a retry of the suite (Cucumber scenario) removes them */
+    private _attemptCounts = { passed: 0, failed: 0, skipped: 0, pending: 0 }
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -101,6 +101,7 @@ export default class SpecReporter extends WDIOReporter {
         this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
+        this._newAttempt()
         if (suite.type === 'feature') {
             this._indents = 0
             this._suiteIndents[suite.uid] = this._indents
@@ -111,22 +112,30 @@ export default class SpecReporter extends WDIOReporter {
 
     onSuiteEnd () {
         this._indents--
-        this._isSuiteRetry = false
-        this._passingTestsSinceLastRetry = 0
+        this._newAttempt()
     }
 
     onSuiteRetry(): void {
-        this._stateCounts.failed--
+        for (const state of ['passed', 'failed', 'skipped', 'pending'] as const) {
+            this._stateCounts[state] -= this._attemptCounts[state]
+        }
         this._stateCounts.retried++
-        this._stateCounts.passed -= this._passingTestsSinceLastRetry
-        this._isSuiteRetry = true
-        this._passingTestsSinceLastRetry = 0
+        this._newAttempt()
+    }
+
+    private _newAttempt () {
+        this._attemptCounts = { passed: 0, failed: 0, skipped: 0, pending: 0 }
+    }
+
+    private _count (state: 'passed' | 'failed' | 'skipped' | 'pending', change = 1) {
+        this._stateCounts[state] += change
+        this._attemptCounts[state] += change
     }
 
     onHookEnd (hook: HookStats) {
         this.printCurrentStats(hook)
         if (hook.error) {
-            this._stateCounts.failed++
+            this._count('failed')
         }
     }
 
@@ -136,36 +145,30 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestPass (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._stateCounts.passed++
+        this._count('passed')
         this._passedTests.add(testStat)
-        if (!this._isSuiteRetry) {
-            this._passingTestsSinceLastRetry++
-        }
     }
 
     onTestFail (testStat: TestStats) {
         this.printCurrentStats(testStat)
 
         if (this._passedTests.delete(testStat)) {
-            this._stateCounts.passed--
-            if (!this._isSuiteRetry) {
-                this._passingTestsSinceLastRetry--
-            }
+            this._count('passed', -1)
         }
 
-        this._stateCounts.failed++
+        this._count('failed')
     }
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._stateCounts.skipped++
+        this._count('skipped')
     }
 
     onTestPending(testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._stateCounts.pending++
+        this._count('pending')
     }
 
     onRunnerEnd (runner: RunnerStats) {

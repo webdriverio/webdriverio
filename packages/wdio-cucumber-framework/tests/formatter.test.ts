@@ -11,6 +11,7 @@ import { EventEmitter } from 'node:events'
 import type { StepDefinition, TestStepFinished, TestStepStarted } from '@cucumber/messages'
 import { TestStepResultStatus } from '@cucumber/messages'
 import path from 'node:path'
+import logger from '@wdio/logger'
 
 import CucumberFormatter from '../src/cucumberFormatter.js'
 
@@ -453,6 +454,124 @@ describe('CucumberFormatter', () => {
         eventBroadcaster.emit('envelope', { testRunFinished })
         return counts
     }
+
+    function stepLevelFormatter (options: Record<string, unknown> = {}) {
+        const eventBroadcaster = new EventEmitter()
+        const formatter = new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: false,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: false,
+                _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
+                ...options,
+            },
+        } as any)
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        return { eventBroadcaster, formatter }
+    }
+
+    /** the test events of one step that ends with this result, in this attempt */
+    function stepEvents (eventBroadcaster: EventEmitter, testStepResult: Record<string, unknown>, attempt = 0, testStepId = '26') {
+        eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt } })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testStepId } })
+        const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(step, { testStepId })
+        Object.assign(step.testStepResult, testStepResult)
+        eventBroadcaster.emit('envelope', { testStepFinished: step })
+        return wdioReporter.emit.mock.calls
+    }
+
+    describe('step level: a step that fails in an attempt that Cucumber retries', () => {
+        const failed = { status: 'FAILED', message: 'first try fails' }
+        const names = (calls: [string, unknown][]) => calls.map(([event]) => event).filter((event) => event.startsWith('test:'))
+
+        it('ends with test:retry and test:end, as the other steps of the attempt', () => {
+            const { eventBroadcaster } = stepLevelFormatter({ _retry: 1 })
+            const calls = stepEvents(eventBroadcaster, failed)
+            expect(names(calls)).toEqual(['test:start', 'test:retry', 'test:end'])
+            const [, retry] = calls.find(([event]: [string]) => event === 'test:retry')
+            expect(retry).toMatchObject({ type: 'step', state: 'fail', passed: false })
+            expect(retry.error.message).toContain('first try fails')
+        })
+
+        it('fails in the last attempt', () => {
+            const { eventBroadcaster } = stepLevelFormatter({ _retry: 1 })
+            expect(names(stepEvents(eventBroadcaster, failed, 1))).toEqual(['test:start', 'test:fail', 'test:end'])
+        })
+
+        it('fails without retry', () => {
+            const { eventBroadcaster } = stepLevelFormatter({ _retry: 0 })
+            expect(names(stepEvents(eventBroadcaster, failed))).toEqual(['test:start', 'test:fail', 'test:end'])
+        })
+
+        it('follows retryTagFilter, as Cucumber', () => {
+            const notRetried = stepLevelFormatter({ _retry: 1, _retryTagFilter: '@other' })
+            expect(names(stepEvents(notRetried.eventBroadcaster, failed))).toEqual(['test:start', 'test:fail', 'test:end'])
+            const retried = stepLevelFormatter({ _retry: 1, _retryTagFilter: '@scenario-tag1 and not @other' })
+            expect(names(stepEvents(retried.eventBroadcaster, failed))).toEqual(['test:start', 'test:retry', 'test:end'])
+        })
+
+        // Cucumber retries only an attempt whose worst result is FAILED
+        it.each(['UNDEFINED', 'PENDING', 'PASSED'])('keeps the result of a %s step', (status) => {
+            const { eventBroadcaster } = stepLevelFormatter({ _retry: 1 })
+            expect(names(stepEvents(eventBroadcaster, { status }))).not.toContain('test:retry')
+        })
+    })
+
+    // as Cucumber: with strict, a pending step stays pending, and it fails the run
+    describe('strict: true counts a pending step as a failure of the run', () => {
+        it('keeps a pending step pending and counts it', () => {
+            const { eventBroadcaster, formatter } = stepLevelFormatter({ _strict: true })
+            const events = stepEvents(eventBroadcaster, { status: 'PENDING' }).map(([event]: [string]) => event)
+            expect(events).toContain('test:pending')
+            expect(events).not.toContain('test:fail')
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it('keeps a pending step pending without strict', () => {
+            const { eventBroadcaster, formatter } = stepLevelFormatter({ _strict: false })
+            const events = stepEvents(eventBroadcaster, { status: 'PENDING' }).map(([event]: [string]) => event)
+            expect(events).toContain('test:pending')
+            expect(events).not.toContain('test:fail')
+            expect(formatter['failedCount']).toBe(0)
+        })
+
+        it('counts a pending hook', () => {
+            const { eventBroadcaster, formatter } = stepLevelFormatter({ _strict: true })
+            const calls = stepEvents(eventBroadcaster, { status: 'PENDING' }, 0, '27')
+            const [, hook] = calls.find(([name]: [string]) => name === 'hook:end')
+            expect(hook).toMatchObject({ state: 'PENDING', error: undefined })
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it('keeps a scenario with a pending step pending at scenario level and counts it', () => {
+            const { eventBroadcaster, formatter } = stepLevelFormatter({ _strict: true, _scenarioLevelReporter: true })
+            stepEvents(eventBroadcaster, { status: 'PENDING' })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            expect(wdioReporter.emit.mock.calls[0][0]).toBe('test:pending')
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it.each([true, false])('names the pending scenarios in a warning at the end of the run, only with strict (%s)', (strict) => {
+            const warn = vi.spyOn(logger('CucumberFormatter'), 'warn').mockClear()
+            const { eventBroadcaster } = stepLevelFormatter({ _strict: strict })
+            stepEvents(eventBroadcaster, { status: 'PENDING' })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            const warnings = warn.mock.calls.map(([message]) => message)
+            expect(warnings).toEqual(strict ? ['The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "Get size of an element"'] : [])
+        })
+    })
 
     describe('counts only the failures of the last attempt of a retried scenario', () => {
         it.each([false, true])('scenario level: %s', (scenarioLevelReporter) => {

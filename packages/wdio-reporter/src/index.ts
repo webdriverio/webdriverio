@@ -60,6 +60,13 @@ export default class WDIOReporter extends EventEmitter {
         // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
         const endedContextTests = new Map<string, TestStats>()
         const retriesByContext = new Map<string, number>()
+        // the count that each result added, to remove it when suite:retry clears the test
+        const countedAs = new WeakMap<TestStats, 'passes' | 'skipping' | 'failures' | 'pending'>()
+        const count = (testStat: TestStats, key: 'passes' | 'skipping' | 'failures' | 'pending') => {
+            this.counts[key]++
+            this.counts.tests++
+            countedAs.set(testStat, key)
+        }
         const getContextId = (test: Test) => test.contextId ?? this.tests[test.uid]?.contextId
         const getRetries = (contextId?: string) => contextId ? retriesByContext.get(contextId) ?? 0 : this.retries
         const setRetries = (contextId: string | undefined, count: number) => {
@@ -138,6 +145,13 @@ export default class WDIOReporter extends EventEmitter {
          */
         this.on('suite:retry', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
+            for (const testStat of suiteStat.tests) {
+                const key = countedAs.get(testStat)
+                if (key) {
+                    this.counts[key]--
+                    this.counts.tests--
+                }
+            }
             suiteStat.retry()
             this.onSuiteRetry(suiteStat)
         })
@@ -173,8 +187,7 @@ export default class WDIOReporter extends EventEmitter {
             const testStat = this.tests[test.uid]
             applyStart(testStat, test)
             testStat.pass(endOf(test))
-            this.counts.passes++
-            this.counts.tests++
+            count(testStat, 'passes')
             this.onTestPass(testStat)
         })
 
@@ -184,8 +197,7 @@ export default class WDIOReporter extends EventEmitter {
                 return
             }
             testStat.skip(test.pendingReason!)
-            this.counts.skipping++
-            this.counts.tests++
+            count(testStat, 'skipping')
             this.onTestSkip(testStat)
         })
 
@@ -194,8 +206,7 @@ export default class WDIOReporter extends EventEmitter {
 
             applyStart(testStat, test)
             testStat.fail(getErrorsFromEvent(test), endOf(test))
-            this.counts.failures++
-            this.counts.tests++
+            count(testStat, 'failures')
             this.onTestFail(testStat)
         })
 
@@ -260,13 +271,11 @@ export default class WDIOReporter extends EventEmitter {
             trackContext(test, currentTest)
             if (test.state === 'pending') {
                 currentTest.state = 'pending'
-                this.counts.pending++
-                this.counts.tests++
+                count(currentTest, 'pending')
                 this.onTestPending(currentTest)
             } else {
                 currentTest.skip(test.pendingReason!)
-                this.counts.skipping++
-                this.counts.tests++
+                count(currentTest, 'skipping')
                 this.onTestSkip(currentTest)
             }
         })

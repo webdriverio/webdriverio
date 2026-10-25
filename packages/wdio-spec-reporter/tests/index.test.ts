@@ -165,6 +165,25 @@ describe('SpecReporter', () => {
         })
     })
 
+    // Cucumber at step level: the step that fails in an attempt that is retried sends test:retry, not test:fail
+    it('removes the counts of every retried attempt, and only those', () => {
+        const step = (uid: string) => ({ uid }) as any
+        tmpReporter.onSuiteStart({ uid: 'scenario', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onTestSkip(step('a3'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('b1'))
+        tmpReporter.onHookEnd({ error: new Error('After hook fails') } as any)
+        tmpReporter.onTestPending(step('b2'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('c1'))
+        tmpReporter.onTestFail(step('c2'))
+        tmpReporter.onSuiteEnd()
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({ passed: 1, failed: 1, skipped: 0, pending: 0, retried: 2 })
+    })
+
     it('should retain a passed test when another test with the same UID fails', () => {
         const passedTest = { uid: 'same-title' } as any
         const failedTest = { uid: 'same-title' } as any

@@ -756,6 +756,7 @@ describe('runParallelCucumber', () => {
                 throw new Error('first attempt fails')
             }
         })
+        reporter.on('test:retry', (p) => reporterEvents.push({ event: 'test:retry', payload: p }))
 
         await runOrCatch({
             browser: browser as unknown as WebdriverIO.Browser,
@@ -768,9 +769,12 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, retry: 1 }),
         })
 
-        // as in a sequential run: the step of attempt 1 fails and ends, the scenario restarts (suite:retry)
+        // as in a sequential run: the step of attempt 1 ends as a retry, the scenario restarts (suite:retry)
         const steps = reporterEvents.filter((e) => e.event.startsWith('test:')).map((e) => e.event)
-        expect(steps).toEqual(['test:start', 'test:fail', 'test:end', 'test:start', 'test:pass', 'test:end'])
+        expect(steps).toEqual(['test:start', 'test:retry', 'test:end', 'test:start', 'test:pass', 'test:end'])
+        const retry = reporterEvents.find((e) => e.event === 'test:retry')!.payload
+        expect(retry).toMatchObject({ type: 'step', state: 'fail', passed: false, contextId: 'ctx-0' })
+        expect((retry.error as Error).message).toContain('first attempt fails')
         // the window ends one time, after the last attempt
         const contextEnds = reporterEvents.filter((e) => e.event === 'context:end')
         expect(contextEnds).toHaveLength(1)
@@ -799,6 +803,52 @@ describe('runParallelCucumber', () => {
 
         expect((await run(false)).result).toBe(0)
         expect((await run(true)).result).toBe(1)
+    })
+
+    test('a step that fails in the last attempt, or with no retry for its tags, fails', async () => {
+        const run = async (cucumberOpts: Partial<CucumberOptions>) => {
+            const events = new EventEmitter()
+            const names: string[] = []
+            for (const ev of ['test:fail', 'test:retry']) { events.on(ev, () => names.push(ev)) }
+            await runOrCatch({
+                browser: mockBrowser({ contexts: ['ctx-0'] }) as unknown as WebdriverIO.Browser,
+                reporter: events,
+                eventEmitter: new EventEmitter(),
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 'scenario a', tags: ['@flaky'] }])],
+                supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', () => { throw new Error('always fails') })] }),
+                cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, ...cucumberOpts }),
+            })
+            return names
+        }
+        expect(await run({ retry: 1 })).toEqual(['test:retry', 'test:fail'])
+        expect(await run({ retry: 1, retryTagFilter: '@other' })).toEqual(['test:fail'])
+        expect(await run({ retry: 1, retryTagFilter: '@flaky' })).toEqual(['test:retry', 'test:fail'])
+    })
+
+    test.each([false, true])('strict: true keeps a pending step pending, as Cucumber, and names it in a warning (scenario level: %s)', async (scenarioLevelReporter) => {
+        const run = async (strict: boolean) => {
+            const events = new EventEmitter()
+            const results: Array<{ event: string, payload: Record<string, unknown> }> = []
+            for (const ev of ['test:fail', 'test:pending']) { events.on(ev, (payload) => results.push({ event: ev, payload })) }
+            await runOrCatch({
+                browser: mockBrowser({ contexts: ['ctx-0'] }) as unknown as WebdriverIO.Browser,
+                reporter: events,
+                eventEmitter: new EventEmitter(),
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])],
+                supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', () => 'pending')] }),
+                cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter, strict }),
+            })
+            return results
+        }
+        const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn').mockClear()
+        expect((await run(false)).map((r) => r.event)).toEqual(['test:pending'])
+        expect(warn).not.toHaveBeenCalled()
+        expect((await run(true)).map((r) => r.event)).toEqual(['test:pending'])
+        expect(warn).toHaveBeenCalledWith('The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "scenario a"')
     })
 
     test('undefined steps fail unless ignoreUndefinedDefinitions is set', async () => {
@@ -1717,6 +1767,19 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(end.event).toBe('test:fail')
         expect(end.payload.error.message).toContain('After hook fails')
         expect(result).toBe(1)
+    })
+
+    test.each([false, true])('strict: %s, an After hook that returns pending stays pending, and fails the run only with strict', async (strict) => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => 'pending', id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts({ scenarioLevelReporter: false, strict }), supportCodeLibrary as never)
+
+        const hook = events.find((e) => e.event === 'hook:end')!
+        expect(hook.payload).toMatchObject({ state: 'PENDING', error: undefined })
+        expect(result).toBe(strict ? 1 : 0)
     })
 
     test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
