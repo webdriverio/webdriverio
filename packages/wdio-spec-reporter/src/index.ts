@@ -561,7 +561,7 @@ export default class SpecReporter extends WDIOReporter {
                     continue
                 }
 
-                const testTitle = test.title
+                const testTitle = test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title
                 const errors: Error[] = test.errors || (test.error ? [test.error] : [])
                 // If we get here then there is a failed test
                 output.push(
