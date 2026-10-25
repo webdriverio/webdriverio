@@ -527,6 +527,41 @@ describe('failed hooks', () => {
         reporter.onSuiteEnd(SUITES[0])
         expect(reporter.metrics).toMatchObject({ failed: 2 })
     })
+
+    // the events of @wdio/vitest-framework: a failed attempt ends with test:retry, its hooks have `retried: true`
+    const retryVitestTest = (reporter: HtmlReporter, kind: 'beforeEach' | 'afterEach', contextId?: string) => {
+        const test = (uid: string) => ({ type: 'test:start', title: 'flaky', fullTitle: 'flaky', uid, cid: '0-0', parent: SUITES[0].title, contextId })
+        const hook = (uid: string, state: 'fail' | 'pass', retried?: boolean) => failHook(reporter, {
+            uid: `${uid}-${kind}`, title: `"${kind}" hook for "flaky"`, contextId, state, retried,
+            error: state === 'fail' ? { name: 'Error', message: `${kind} fails` } : undefined
+        })
+        reporter.emit('test:start', test('t1'))
+        if (kind === 'beforeEach') {
+            hook('t1', 'fail', true)
+        }
+        reporter.emit('test:retry', { ...test('t1'), error: { message: `${kind} fails` } })
+        if (kind === 'afterEach') {
+            hook('t1', 'fail', true)
+        }
+        reporter.emit('test:start', { ...test('t1-retry-1'), retries: 1 })
+        hook('t1-retry-1', 'pass')
+        reporter.emit('test:pass', test('t1-retry-1'))
+        reporter.emit('test:end', test('t1-retry-1'))
+    }
+
+    it('does not count a failed beforeEach hook of a retried Vitest attempt (parallel mode)', () => {
+        const reporter = start()
+        retryVitestTest(reporter, 'beforeEach', 'context-a')
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
+
+    it('does not count a failed afterEach hook of a retried Vitest attempt', () => {
+        const reporter = start()
+        retryVitestTest(reporter, 'afterEach')
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
 })
 
 describe('tests with no describe()', () => {
