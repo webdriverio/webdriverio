@@ -36,6 +36,26 @@ test('oneFailurePerSpec stops the spec after a failed sync expect', async () => 
     expect((globalThis as { __wdioStopOnFailure?: string[] }).__wdioStopOnFailure).toEqual(['before', 'next'])
 })
 
+test.each([
+    ['failingAfterAll.js', 1],
+    ['failingTopLevelAfterAll.js', 1],
+    ['failingOuterAfterAll.js', 1],
+    ['passingAfterAll.js', 0]
+])('a failing afterAll fails the run (%s)', async (fixture, failures) => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const adapter = new JasmineAdapter(
+        '0-0',
+        { beforeHook: [], afterHook: [] } as any,
+        [path.join(__dirname, '__fixtures__', fixture)],
+        { browserName: 'chrome' } as any,
+        reporter as any
+    )
+
+    await adapter.init()
+    expect(await adapter.run()).toBe(failures)
+})
+
 test('expect.extend() in the before hook adds the matcher to Jasmine', async () => {
     vi.mocked(executeHooksWithArgs).mockResolvedValue([])
     const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }

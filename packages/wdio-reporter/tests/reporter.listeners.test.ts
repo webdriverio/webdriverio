@@ -738,6 +738,20 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests[testEndEvent.uid].retries).toBe(1)
         })
 
+        // a retried attempt has no test:end, so the counter goes on; the final test:end resets it
+        it('counts the retries of a test that keeps its uid, and resets them at test:end', () => {
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:retry', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            expect(reporter.tests.S.retries).toBe(1)
+            reporter.emit('test:pass', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:end', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'T', title: 'next' })
+            expect(reporter.tests.T.retries).toBe(0)
+            reporter.emit('test:pending', { uid: 'U', title: 'pending' })
+            expect(reporter.tests.U.retries).toBe(0)
+        })
+
         it('should increment the test and passes counts only after test retry', () => {
             emitEventsFirstTry()
             expect(reporter.counts.tests).toBe(0)

@@ -26,7 +26,9 @@ import {
     testRunFinished,
 } from './fixtures/envelopes.js'
 
-vi.mock('@cucumber/messages', () => ({
+vi.mock('@cucumber/messages', async (importOriginal) => ({
+    // the real rule for the result of a scenario
+    getWorstTestStepResult: (await importOriginal<{ getWorstTestStepResult: unknown }>()).getWorstTestStepResult,
     IdGenerator: { incrementing: vi.fn() },
     TestStepResultStatus: {
         UNKNOWN: 'UNKNOWN',
@@ -142,6 +144,17 @@ describe('CucumberFormatter', () => {
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
+            it.each([
+                [TestStepResultStatus.PASSED, 'test:pass'],
+                [TestStepResultStatus.FAILED, 'test:fail'],
+            ])('ends a %s step with test:end after its result, as Mocha and Jasmine', (status, result) => {
+                const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                step.testStepResult = { ...step.testStepResult, status }
+                eventBroadcaster.emit('envelope', { testStepFinished: step })
+                const events = wdioReporter.emit.mock.calls.map(([event, payload]: [string, { uid: string }]) => [event, payload.uid])
+                expect(events).toEqual([[result, events[0][1]], ['test:end', events[0][1]]])
+            })
+
             it('passed step', () => {
                 const passingStep: TestStepFinished = JSON.parse(
                     JSON.stringify(testStepFinished)
@@ -149,7 +162,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: passingStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
@@ -164,7 +178,8 @@ describe('CucumberFormatter', () => {
                 eventBroadcaster.emit('envelope', {
                     testStepFinished: failedStep,
                 })
-                delete wdioReporter.emit.mock.calls[0][1].duration
+                // the result and its test:end: no time in the snapshot
+                for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
@@ -208,7 +223,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', {
                 testStepFinished: hookFinished,
             })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -227,11 +243,12 @@ describe('CucumberFormatter', () => {
 
     describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
         let eventBroadcaster: EventEmitter
+        let formatter: CucumberFormatter
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
-            new CucumberFormatter({
+            formatter = new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
@@ -280,7 +297,8 @@ describe('CucumberFormatter', () => {
             wdioReporter.emit.mockClear()
 
             eventBroadcaster.emit('envelope', { testCaseFinished })
-            delete wdioReporter.emit.mock.calls[0][1].duration
+            // the result and its test:end: no time in the snapshot
+            for (const [, payload] of wdioReporter.emit.mock.calls) { delete payload.duration }
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
@@ -322,6 +340,67 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testCaseFinished })
             return { started, finished: wdioReporter.emit.mock.calls[0] }
         }
+
+        /** attempt 0 fails and Cucumber retries it, attempt 1 passes (or fails too) */
+        function retryScenarioOnce (lastAttemptFails = false) {
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            const lastStep: TestStepFinished = { ...JSON.parse(JSON.stringify(lastAttemptFails ? failing : testStepFinished)), testCaseStartedId: '29' }
+            eventBroadcaster.emit('envelope', { testStepFinished: lastStep })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+            return wdioReporter.emit.mock.calls.filter(([event]: [string]) => event.startsWith('test:'))
+        }
+
+        it('ends a retried scenario attempt with test:retry, as Mocha does', () => {
+            const events = retryScenarioOnce()
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:pass', 'test:end'])
+            const [[, firstStart], [, retry], [, secondStart]] = events
+            expect(retry).toMatchObject({ uid: firstStart.uid, type: 'scenario', title: firstStart.title, parent: firstStart.parent })
+            expect(retry.error.message).toContain('first try fails')
+            // the reporter counts the retries of the uid from test:retry
+            expect(secondStart.uid).toBe(firstStart.uid)
+        })
+
+        it('counts a scenario that fails on every attempt one time', () => {
+            const events = retryScenarioOnce(true)
+            expect(events.map(([event]: [string]) => event)).toEqual(['test:start', 'test:retry', 'test:start', 'test:fail', 'test:end'])
+            expect(formatter['failedCount']).toBe(1)
+        })
+
+        it('does not count a scenario that passes on retry as failed', () => {
+            retryScenarioOnce()
+            expect(formatter['failedCount']).toBe(0)
+        })
+
+        // Cucumber retries only a FAILED attempt: a pending step and a failing After hook
+        it('gives test:retry the error that made Cucumber retry the attempt', () => {
+            const pending: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(pending.testStepResult, { status: 'PENDING' })
+            const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: pending })
+            eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            const [[event, payload]] = wdioReporter.emit.mock.calls
+            expect(event).toBe('test:retry')
+            expect(payload).toMatchObject({ state: 'fail', passed: false })
+            expect(payload.error.message).toContain('After hook fails')
+        })
 
         it('keeps the scenario title of a pending scenario', () => {
             const { started, finished: [event, payload] } = finishScenarioWith('PENDING')
@@ -374,6 +453,112 @@ describe('CucumberFormatter', () => {
         eventBroadcaster.emit('envelope', { testRunFinished })
         return counts
     }
+
+    describe('counts only the failures of the last attempt of a retried scenario', () => {
+        it.each([false, true])('scenario level: %s', (scenarioLevelReporter) => {
+            const eventBroadcaster = new EventEmitter()
+            const formatter = new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                    _rootDir: '/some/path/to',
+                },
+            } as any)
+            const failing: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            Object.assign(failing.testStepResult, { status: 'FAILED', message: 'first try fails' })
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: failing })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, willBeRetried: true } })
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 1, id: '29' } })
+            eventBroadcaster.emit('envelope', { testStepStarted: { ...testStepStarted, testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testStepFinished: { ...JSON.parse(JSON.stringify(testStepFinished)), testCaseStartedId: '29' } })
+            eventBroadcaster.emit('envelope', { testCaseFinished: { ...testCaseFinished, testCaseStartedId: '29' } })
+
+            expect(formatter['failedCount']).toBe(0)
+        })
+    })
+
+    it('ends a scenario-level scenario with an undefined step as failed, also when an ambiguous step follows (default options)', () => {
+        const eventBroadcaster = new EventEmitter()
+        new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: false,
+                _failAmbiguousDefinitions: false,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const ambiguousStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(ambiguousStep.testStepResult, { status: 'AMBIGUOUS', message: 'Multiple step definitions match:' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('has undefined steps')
+    })
+
+    it('ends a scenario-level scenario with its worst result, as Cucumber: a failed After hook after an ignored undefined step', () => {
+        const eventBroadcaster = new EventEmitter()
+        const formatter = new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: new EventEmitter(),
+                _scenarioLevelReporter: true,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: true,
+                _failAmbiguousDefinitions: true,
+                _rootDir: '/some/path/to',
+            },
+        } as any)
+        const undefinedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(undefinedStep.testStepResult, { status: 'UNDEFINED' })
+        const failedHook: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        Object.assign(failedHook.testStepResult, { status: 'FAILED', message: 'After hook fails' })
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+        eventBroadcaster.emit('envelope', { testStepStarted })
+        eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+        eventBroadcaster.emit('envelope', { testStepFinished: failedHook })
+        wdioReporter.emit.mockClear()
+        eventBroadcaster.emit('envelope', { testCaseFinished })
+
+        const [event, payload] = wdioReporter.emit.mock.calls[0]
+        expect(event).toBe('test:fail')
+        expect(payload.error.message).toContain('After hook fails')
+        expect(formatter['failedCount']).toBe(1)
+    })
 
     describe('provides a fail counter', () => {
         it('should increment failed counter on `failed` status', () => {
@@ -733,10 +918,13 @@ describe('CucumberFormatter', () => {
             expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
                 ['test:start', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
                 ['test:pass', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
+                ['test:end', 'a1', 'features/a.feature:3:1', 'features/a.feature:3:1: a1'],
                 ['test:start', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
                 ['test:pass', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
+                ['test:end', 'b1', 'features/b.feature:3:1', 'features/b.feature:3:1: b1'],
                 ['test:start', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
                 ['test:pass', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
+                ['test:end', 'a2', 'features/a.feature:3:1', 'features/a.feature:3:1: a2'],
             ])
         })
 

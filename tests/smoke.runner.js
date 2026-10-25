@@ -324,6 +324,35 @@ const jasmineAfterAll = async () => {
 }
 
 /**
+ * Jasmine: a failing afterAll fails the run even though all specs passed
+ */
+const jasmineFailingAfterAll = async () => {
+    const logFile = path.resolve(__dirname, 'jasmineFailingAfterAll.spec.log')
+    const error = await launch('jasmineFailingAfterAll', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'afterAll-failing.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine'
+    }).then(() => undefined, (err) => err)
+
+    assert.ok(error, 'run passed although the afterAll hook failed')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    assert.ok(
+        specLogs.includes('✓ Should pass'),
+        'spec did not pass'
+    )
+    assert.ok(
+        specLogs.includes('afterAll failed'),
+        'spec log does not report the afterAll failure'
+    )
+}
+
+/**
  * Jasmine verify failSpecWithNoExpectations support
  */
 const jasmineFailSpecWithNoExpectations = async () => {
@@ -1830,6 +1859,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineTimeout,
         mochaTimeout,
         jasmineAfterAll,
+        jasmineFailingAfterAll,
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
