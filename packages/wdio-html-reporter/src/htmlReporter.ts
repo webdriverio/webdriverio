@@ -126,9 +126,9 @@ export default class HtmlReporter extends WDIOReporter {
         this.reportGenerator = new ReportGenerator(this.options)
         // the hook and test events have the context of a parallel-mode test (Mocha), else the calling code has it
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
-        // after the base reporter: its hook stats have the error
+        // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid]?.error && !this.#countScenarios) {
+            if (this.hooks[hook.uid]?.error && !this.hooks[hook.uid].retried && !this.#countScenarios) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
