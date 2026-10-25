@@ -248,7 +248,8 @@ export default class WDIOReporter extends EventEmitter {
             if (unit) {
                 this.#unitOfStats.set(hookStats, unit)
             }
-            if (unit && !hook.contextId && hookStats.hookKind) {
+            // an ended unit reads no open hook
+            if (unit && !unit.ended && !hook.contextId && hookStats.hookKind) {
                 this.#openUnitHooks.set(unit, [...(this.#openUnitHooks.get(unit) ?? []).filter((entry) => entry.uid !== hookStats.uid), hookStats])
             }
             this.#call(unit, () => this.onHookStart(hookStats))
@@ -282,8 +283,11 @@ export default class WDIOReporter extends EventEmitter {
                 if (hookStats.contextId) {
                     this.#openContextHooks.set(hookStats.contextId, (this.#openContextHooks.get(hookStats.contextId) ?? []).filter((entry) => entry !== hookStats))
                 }
-                if (openUnit && this.#openUnitHooks.has(openUnit)) {
-                    this.#openUnitHooks.set(openUnit, this.#openUnitHooks.get(openUnit)!.filter((entry) => entry !== hookStats))
+                const openHooks = openUnit && this.#openUnitHooks.get(openUnit)?.filter((entry) => entry !== hookStats)
+                if (openHooks?.length) {
+                    this.#openUnitHooks.set(openUnit!, openHooks)
+                } else if (openUnit) {
+                    this.#openUnitHooks.delete(openUnit)
                 }
             }
         })
