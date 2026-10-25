@@ -80,16 +80,16 @@ describe.each([false, true])('setValue on input types (classic: %s)', (classic) 
     })
 
     test.each([
-        ['date', '10/04/2026'],
-        ['date', '2026-13-45'],
-        ['time', 'not-a-time'],
-        ['month', 'nope']
-    ])('#%s rejects %s and keeps its value', async (id, value) => {
+        ['date', '10/04/2026', '2026-10-04'],
+        ['date', '2026-13-45', '2026-10-04'],
+        ['time', 'not-a-time', '14:30'],
+        ['month', 'nope', '2026-10']
+    ])('#%s rejects %s and keeps its value', async (id, value, valid) => {
         const input = await browser.$(`#${id}`)
-        const before = await input.getValue()
+        await input.setValue(valid)
         const fired = (await events(id)).length
         await expect(input.setValue(value)).rejects.toThrow(`The input rejected the value "${value}"`)
-        expect(await input.getValue()).toBe(before)
+        expect(await input.getValue()).toBe(valid)
         expect(await events(id)).toHaveLength(fired)
     })
 
