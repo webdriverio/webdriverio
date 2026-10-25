@@ -14,3 +14,9 @@ Feature: HTML reporter parallel
     Given S3 opens 00ff00
     When S3 waits 100 and logs
     Then S3 logs a screenshot
+
+  @flaky
+  Scenario: S4 fails the first time
+    Given S4 opens ff00ff
+    When S4 waits 200 and logs
+    Then S4 fails the first time

@@ -42,6 +42,9 @@ export const config: WebdriverIO.Config = {
     cucumberOpts: {
         require: [path.join(__dirname, 'parallelSteps.ts')],
         timeout: 60000,
+        // S4 fails on its first try: the Before hook events of the retry must be in the report
+        retry: 1,
+        retryTagFilter: '@flaky',
         ...parallel
     },
 

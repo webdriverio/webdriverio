@@ -1,6 +1,6 @@
 import { browser } from '@wdio/globals'
 
-import { page } from './parallelEvents.js'
+import { log, page } from './parallelEvents.js'
 
 /**
  * The `afterEach` of T21 fails while T22 runs, and T22 fails after it: the report must
@@ -21,4 +21,16 @@ describe('html reporter parallel hooks', () => {
         await browser.pause(800)
         throw new Error('T22 fails')
     })
+})
+
+/**
+ * `this.skip()` in a `before` hook: the test never starts, and the log of the hook must
+ * be under the skipped test
+ */
+describe('html reporter parallel skip', () => {
+    before(function () {
+        log('HS:T23')
+        this.skip()
+    })
+    it('T23 is skipped by its before hook', () => {})
 })

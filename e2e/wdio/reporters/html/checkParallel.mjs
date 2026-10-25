@@ -16,13 +16,14 @@ const md5 = (file) => crypto.createHash('md5').update(fs.readFileSync(file)).dig
 
 const RUNS = {
     mocha: {
-        tokens: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].flatMap((t) => [`${t}:start`, `${t}:end`, `HB:${t}`, `HA:${t}`]).concat('T6:late'),
-        // T21 passes, its afterEach fails, T2 and T22 fail
-        metrics: { passed: 7, failed: 3 }
+        tokens: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].flatMap((t) => [`${t}:start`, `${t}:end`, `HB:${t}`, `HA:${t}`]).concat('T6:late', 'HS:T23'),
+        // T21 passes, its afterEach fails, T2 and T22 fail, the before hook of T23 skips it
+        metrics: { passed: 7, failed: 3, skipped: 1 }
     },
     cucumber: {
-        tokens: ['S1', 'S2', 'S3'].flatMap((s) => [`${s}:open`, `${s}:start`, `${s}:end`, `HB:${s}`, `HA:${s}`]),
-        metrics: { passed: 2, failed: 1 }
+        // the report shows the last try of S4, so its Before hook log comes from the retry
+        tokens: ['S1', 'S2', 'S3'].flatMap((s) => [`${s}:open`, `${s}:start`, `${s}:end`, `HB:${s}`, `HA:${s}`]).concat('HB:S4', 'S4:open', 'S4:start', 'S4:try2', 'HA:S4'),
+        metrics: { passed: 3, failed: 1, skipped: 0 }
     }
 }
 
@@ -43,12 +44,13 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
     if (!reports.length) {
         errors.push(`no report JSON in ${htmlDir}`)
     }
-    const metrics = { passed: 0, failed: 0 }
+    const metrics = { passed: 0, failed: 0, skipped: 0 }
     const tests = new Map()
     for (const file of reports) {
         const data = JSON.parse(fs.readFileSync(path.join(htmlDir, file), 'utf-8'))
         metrics.passed += data.metrics.passed
         metrics.failed += data.metrics.failed
+        metrics.skipped += data.metrics.skipped
         // a suite can be listed twice (its runner and its parent)
         const walk = (suite) => {
             for (const test of suite.tests ?? []) {
@@ -72,7 +74,7 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
             if (event.type === 'log') {
                 const text = String(event.value)
                 found.add(text)
-                const [, sender, hash] = text.match(/^(?:H[BA]:)?([TS]\d+)(?::md5:(\w+))?/) ?? []
+                const [, sender, hash] = text.match(/^(?:H[BAS]:)?([TS]\d+)(?::md5:(\w+))?/) ?? []
                 if (sender !== owner) {
                     errors.push(`log "${text}" is under ${owner}`)
                 }
@@ -111,7 +113,7 @@ function check (framework, { tokens, metrics: expectedMetrics }) {
     if (afterCommandShots.length !== md5Logs.length || new Set(afterCommandShots).size !== afterCommandShots.length) {
         errors.push(`${md5Logs.length} screenshots taken, ${afterCommandShots.length} in the report, ${new Set(afterCommandShots).size} files`)
     }
-    if (metrics.passed !== expectedMetrics.passed || metrics.failed !== expectedMetrics.failed) {
+    if (Object.entries(expectedMetrics).some(([key, value]) => metrics[key] !== value)) {
         errors.push(`metrics ${JSON.stringify(metrics)}, expected ${JSON.stringify(expectedMetrics)}`)
     }
     console.log(`${framework}: ${tests.size} tests, ${found.size} logs, ${afterCommandShots.length} screenshots, metrics ${JSON.stringify(metrics)}`)
