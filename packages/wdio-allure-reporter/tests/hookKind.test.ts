@@ -171,6 +171,23 @@ describe('fixture scope from the hook kind (K31)', () => {
     })
 })
 
+// G3: the result of a failed afterEach of a test that ended has the error of the hook
+describe('the result of a failed afterEach of an ended test (K31)', () => {
+    it('has the message and the trace of the hook error', async () => {
+        const run = createRun()
+        run.start()
+        run.suite('A', () => {
+            run.test('t1')
+            run.hook('afterEach', new Error('AFTER_EACH_BOOM'))
+        })
+        const { results } = await run.end()
+
+        const hookResult = byName(results, '"after each" hook for A')
+        expect([hookResult.status, hookResult.statusDetails.message, hookResult.statusDetails.trace]).toEqual(['broken', 'AFTER_EACH_BOOM', expect.stringContaining('AFTER_EACH_BOOM')])
+        expect(hookResult.historyId).toBe('')
+    })
+})
+
 describe('historyId, testCaseId and fullName (HI rules)', () => {
     it.each(['mocha', 'jasmine'])('stay as today in a sequential %s run: md5 of the full title and the browser', async (framework) => {
         const { results } = await playRootHooks(true, framework)
