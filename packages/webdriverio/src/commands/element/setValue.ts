@@ -29,7 +29,8 @@ const SET_DIRECTLY = ['range', 'date', 'datetime-local', 'month', 'week', 'time'
  * as typed text. For them `setValue` sets the value directly and fires the `input` and `change` events, as
  * picking a value with the mouse does. Pass the value in the input's own format, e.g. `2026-10-04` for a date
  * or `14:30` for a time. The browser corrects values that don't fit, like a range input does with a value
- * between two steps; read the result with [`getValue`](/docs/api/element/getValue).
+ * between two steps; read the result with [`getValue`](/docs/api/element/getValue). A value the browser can't
+ * parse at all, like `10/04/2026` for a date, throws an error and leaves the input unchanged.
  *
  * <example>
     :setValue.js
@@ -67,11 +68,20 @@ export async function setValue (
                 return false
             }
             const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+            const previous = elem.value
             setter.call(elem, newValue)
+            // the browser empties a date or time input on a value it can't parse, e.g. "10/04/2026"
+            if (newValue !== '' && elem.value === '') {
+                setter.call(elem, previous)
+                return 'rejected'
+            }
             elem.dispatchEvent(new Event('input', { bubbles: true }))
             elem.dispatchEvent(new Event('change', { bubbles: true }))
             return true
         }, this as unknown as HTMLInputElement, value.toString())
+        if (done === 'rejected') {
+            throw new Error(`The input rejected the value "${value}", pass it in the input's own format, e.g. "2026-10-04" for a date or "14:30" for a time`)
+        }
         if (done) {
             return
         }

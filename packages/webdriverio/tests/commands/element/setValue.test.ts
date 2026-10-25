@@ -79,6 +79,15 @@ describe('setValue', () => {
         expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '67')
     })
 
+    it('should throw when the input rejects the value', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
+        vi.spyOn(browser, 'execute').mockResolvedValue('rejected' as never)
+
+        await expect(elem.setValue('10/04/2026')).rejects.toThrow('The input rejected the value "10/04/2026"')
+        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
+    })
+
     it('should type into a disabled or read-only input, which reports the reason', async () => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')

@@ -79,6 +79,20 @@ describe.each([false, true])('setValue on input types (classic: %s)', (classic) 
         expect(await input.getValue()).toBe('2027-01-31')
     })
 
+    test.each([
+        ['date', '10/04/2026'],
+        ['date', '2026-13-45'],
+        ['time', 'not-a-time'],
+        ['month', 'nope']
+    ])('#%s rejects %s and keeps its value', async (id, value) => {
+        const input = await browser.$(`#${id}`)
+        const before = await input.getValue()
+        const fired = (await events(id)).length
+        await expect(input.setValue(value)).rejects.toThrow(`The input rejected the value "${value}"`)
+        expect(await input.getValue()).toBe(before)
+        expect(await events(id)).toHaveLength(fired)
+    })
+
     test('a disabled input is not changed', async () => {
         const input = await browser.$('#disabled')
         await expect(input.setValue('2026-10-04')).rejects.toThrow()
