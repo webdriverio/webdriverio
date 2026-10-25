@@ -324,15 +324,18 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('runner:end', (runner: Options.RunnerEnd) => {
-            rootSuite.complete()
-            if (this.runnerStat) {
-                this.runnerStat.failures = runner.failures
-                this.runnerStat.retries = runner.retries
-                this.runnerStat.error = runner.error
-                this.runnerStat.complete()
-                this.onRunnerEnd(this.runnerStat)
+            try {
+                rootSuite.complete()
+                if (this.runnerStat) {
+                    this.runnerStat.failures = runner.failures
+                    this.runnerStat.retries = runner.retries
+                    this.runnerStat.error = runner.error
+                    this.runnerStat.complete()
+                    this.onRunnerEnd(this.runnerStat)
+                }
+            } finally {
+                this.#removeProcessListeners()
             }
-            this.#removeProcessListeners()
             const logFile = (this.options as Reporters.Options).logFile
             if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
                 fs.unlinkSync(logFile)

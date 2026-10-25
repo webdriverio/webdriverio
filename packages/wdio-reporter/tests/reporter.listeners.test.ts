@@ -1200,4 +1200,18 @@ describe('WDIOReporter process listeners', () => {
         running.emit('runner:end', { failures: 0, retries: 0 })
         expect(counts()).toEqual(before)
     })
+
+    it('removes the listeners when onRunnerEnd throws', () => {
+        class ThrowingReporter extends ProcessReporter {
+            onRunnerEnd() {
+                throw new Error('onRunnerEnd failed')
+            }
+        }
+        const before = counts()
+        const r = new ThrowingReporter()
+        r.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+
+        expect(() => r.emit('runner:end', { failures: 0, retries: 0 })).toThrow()
+        expect(counts()).toEqual(before)
+    })
 })
