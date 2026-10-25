@@ -1261,6 +1261,63 @@ describe('units: commands of a parallel context before its test', () => {
     })
 })
 
+// U4: a sequential Cucumber `Before` runs after its scenario suite:start and before the first step
+describe('units: commands of a sequential Cucumber Before', () => {
+    const command = (r: Recorder) => r.emit('client:beforeCommand', { sessionId: 's', method: 'GET', endpoint: '/url', body: {} })
+    const before = (uid: string, sc: string, extra: Record<string, unknown> = {}): Events => [['hook:start', hookEv(uid, 'Before', { parent: sc, hookKind: 'beforeEach', ...extra })]]
+    const beforeEnd = (uid: string, sc: string, extra: Record<string, unknown> = {}): Events => [['hook:end', hookEv(uid, 'Before', { parent: sc, hookKind: 'beforeEach', ...extra })]]
+    const step = (uid: string, sc: string, result = 'test:pass'): Events => [
+        ['test:start', testEv(uid, 'Given step', { parent: sc })],
+        [result, testEv(uid, 'Given step', { parent: sc, ...(result === 'test:retry' && { error: { message: 'x' } }) })],
+        ['test:end', testEv(uid, 'Given step', { parent: sc })],
+    ]
+    const scenario = (uid: string) => suiteEv(uid, uid, { type: 'scenario', parent: 'f' })
+
+    it('each Before gets the commands of its own scenario, also in the first scenario of the worker', () => {
+        const r = new Recorder()
+        r.setContextIdResolver(() => undefined)
+        play(r, [['suite:start', suiteEv('f', 'Feature', { type: 'feature' })], ['suite:start', scenario('sc1')], ...before('b1', 'sc1')])
+        command(r)
+        expect(r.getContextOwner()).toBe(r.hooks.b1)
+        // Q2: getContextTest() does not change
+        expect(r.getContextTest()).toBeUndefined()
+        play(r, [...beforeEnd('b1', 'sc1'), ...step('s1', 'sc1'), ['suite:end', scenario('sc1')], ['suite:start', scenario('sc2')], ...before('b2', 'sc2')])
+        command(r)
+        expect(r.getContextOwner()).toBe(r.hooks.b2)
+        expect(r.getContextTest()).toBe(r.tests.s1)
+        play(r, [...beforeEnd('b2', 'sc2'), ...step('s2', 'sc2')])
+        command(r)
+        expect(r.hooks.b1.output).toHaveLength(1)
+        expect(r.hooks.b2.output).toHaveLength(1)
+        expect(r.tests.s1.output).toHaveLength(0)
+        expect(r.tests.s2.output).toHaveLength(1)
+    })
+
+    it('after a suite:retry, the Before of the next attempt gets its commands', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })], ['suite:start', scenario('sc1')],
+            ...before('b1', 'sc1'), ...beforeEnd('b1', 'sc1'), ...step('s1', 'sc1', 'test:retry'),
+            ['suite:retry', scenario('sc1')], ...before('b2', 'sc1'),
+        ])
+        const failedStep = r.tests.s1
+        command(r)
+        expect(r.hooks.b2.output).toHaveLength(1)
+        expect(failedStep.output).toHaveLength(0)
+    })
+
+    it('a Before with no hookKind keeps the target of today: the step that started last', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })], ['suite:start', scenario('sc1')], ...step('s1', 'sc1'),
+            ['suite:end', scenario('sc1')], ['suite:start', scenario('sc2')], ...before('b2', 'sc2', { hookKind: undefined }),
+        ])
+        command(r)
+        expect(r.tests.s1.output).toHaveLength(1)
+        expect(r.hooks.b2.output).toBeUndefined()
+    })
+})
+
 // the values of main 2c6277f34 for the same events (Q2)
 describe('getContextTest() returns what it returned before the unit API', () => {
     const passed = (uid: string, extra: Record<string, unknown> = {}): Events => [
