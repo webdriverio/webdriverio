@@ -436,7 +436,7 @@ export default class SpecReporter extends WDIOReporter {
                 const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
                     ? this._chalk.yellow(`(${test.retries}x retries)`)
                     : ''
-                const testTitle = `${test.title} ${testRetryAnnotation}`
+                const testTitle = `${test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title} ${testRetryAnnotation}`
                 // a hook shown for its console logs has no state when it passed
                 const state = (test.state ?? (test.type === 'hook' && !test.error ? State.PASSED : undefined)) as State
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
@@ -488,6 +488,16 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         return output
+    }
+
+    // an unnamed hook (a Cucumber Before / After) gets the name that JUnit gives it: before or after the first test
+    private _hookTitle (hook: HookStats, suite: SuiteStats) {
+        if (hook.title) {
+            return hook.title
+        }
+        const order = suite.hooksAndTests
+        const firstTest = order.findIndex((entry) => entry.type !== 'hook')
+        return firstTest === -1 || order.indexOf(hook) < firstTest ? 'Before hook' : 'After hook'
     }
 
     /**
