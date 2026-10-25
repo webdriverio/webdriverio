@@ -1,4 +1,9 @@
 {
     "smoke": { "tags": "@smoke", "strict": false },
-    "retried": { "retry": 2, "retryTagFilter": "@flaky", "strict": true }
+    "retried": { "retry": 2, "retryTagFilter": "@flaky", "strict": true },
+    "everything": { "backtrace": true, "dryRun": true, "failFast": true, "name": ["probe"], "order": "random:5", "retry": 2, "retryTagFilter": "@flaky", "strict": false, "tags": "@profile", "worldParameters": { "fromProfile": true } },
+    "danish": { "language": "da" },
+    "randomOrder": { "order": "random" },
+    "strictOnly": { "strict": true },
+    "requires": { "requireModule": ["moduleProfile"] }
 }

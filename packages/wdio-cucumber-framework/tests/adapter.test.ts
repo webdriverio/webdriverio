@@ -70,6 +70,10 @@ vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
     return {}
 })
+vi.mock('moduleProfile', () => {
+    global.MODULE_PROFILE_WAS_LOADED = true
+    return {}
+})
 vi.mock('moduleB', () => ({
     default: function moduleB(opts: any) {
         // @ts-ignore
@@ -395,6 +399,93 @@ describe('CucumberAdapter', () => {
         await adapter.run()
         // as Cucumber merges them: cucumberOpts win over the profile (retry: 2), the profile gives retryTagFilter
         expect(globalThis.CUCUMBER_FORMAT_OPTIONS).toMatchObject({ _retry: 1, _retryTagFilter: '@flaky', _strict: true, _cid: '0-0' })
+    })
+
+    describe('profiles and config files', () => {
+        const file = 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json'
+        const feature = 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'
+        const resolve = async (cucumberOpts: Record<string, unknown>, specs = [feature], capabilities = {}, generateSkipTags = false) => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts }, specs, capabilities, {}, {}, generateSkipTags)
+            return { adapter, configuration: await adapter._loadRunConfiguration({ cwd: process.cwd() }) }
+        }
+
+        it('uses every Cucumber value of a profile', async () => {
+            const { configuration } = await resolve({ profiles: ['everything'], file })
+            expect(configuration.runtime).toMatchObject({ dryRun: true, failFast: true, retry: 2, retryTagFilter: '@flaky', strict: false, worldParameters: { fromProfile: true }, filterStacktraces: false })
+            expect(configuration.sources).toMatchObject({ names: ['probe'], order: 'random:5' })
+            expect(configuration.sources.tagExpression).toContain('@profile')
+        })
+
+        it('uses the language of a profile for the feature files', async () => {
+            const { adapter, configuration } = await resolve({ profiles: ['danish'], file }, [])
+            expect(configuration.sources.defaultDialect).toBe('da')
+            expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+        })
+
+        it('lets cucumberOpts win over the profile', async () => {
+            const { configuration } = await resolve({ profiles: ['everything'], file, retry: 1, strict: true })
+            expect(configuration.runtime).toMatchObject({ retry: 1, strict: true })
+        })
+
+        it.each([
+            [{}, true],
+            [{ profiles: ['strictOnly'], file }, true],
+            [{ profiles: ['smoke'], file }, false],
+            [{ strict: false }, false],
+        ])('defaults strict to true, as Cucumber (%j)', async (cucumberOpts, strict) => {
+            const { configuration } = await resolve(cucumberOpts)
+            expect(configuration.runtime.strict).toBe(strict)
+        })
+
+        it('joins the tags of cucumberOpts, of the profile and the generated skip tags', async () => {
+            const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
+            const { adapter, configuration } = await resolve({ profiles: ['smoke'], file, tags: '@user' }, [skipFeature], { browserName: 'chrome' }, true)
+            expect(configuration.sources.tagExpression).toContain('@smoke')
+            expect(configuration.sources.tagExpression).toContain('@user')
+            expect(configuration.sources.tagExpression).toContain('@skip')
+            // an empty tags value would replace the tags of the profile
+            const { adapter: plain } = await resolve({ profiles: ['smoke'], file })
+            expect(plain._providedConfiguration()).not.toHaveProperty('tags')
+            expect(adapter._providedConfiguration().tags).toContain('@user')
+        })
+
+        it('seeds the random order of a profile once', async () => {
+            const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn').mockClear()
+            try {
+                const { adapter, configuration } = await resolve({ profiles: ['randomOrder'], file })
+                expect(configuration.sources.order).toMatch(/^random:\d+$/)
+                expect(adapter._cucumberOpts.order).toBe(configuration.sources.order)
+                expect(warn.mock.calls.filter(([message]) => String(message).startsWith('Random order using seed')).length).toBe(1)
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // the WebdriverIO forms (a function, [module, options]) fail Cucumber's schema: they stay out of `provided`
+        it('loads the requireModule of a profile with the WebdriverIO forms of cucumberOpts', async () => {
+            const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: [() => { global.MODULE_FN_WAS_LOADED = true }, ['moduleB', { from: 'cucumberOpts' }]] })
+            await adapter.registerRequiredModules()
+            expect(global.MODULE_PROFILE_WAS_LOADED).toBe(true)
+            expect(global.MODULE_FN_WAS_LOADED).toBe(true)
+            expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
+        })
+
+        it('gives the order and the language of a profile to the parallel run', async () => {
+            vi.mocked(runParallelCucumber).mockResolvedValue(0)
+            ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+            try {
+                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { parallelMode: 'contexts', profiles: ['everything', 'danish'], file } }, [], {}, {}, {}, false, 'progress')
+                await adapter.run()
+                expect(vi.mocked(runParallelCucumber).mock.calls[0][0].cucumberOpts).toMatchObject({ order: 'random:5', language: 'da', retry: 2, strict: false })
+            } finally {
+                delete (globalThis as Record<string, unknown>).browser
+            }
+        })
+
+        it('keeps the values of a config with no profile', async () => {
+            const { configuration } = await resolve({ tags: '@a', name: ['n'], language: 'en' })
+            expect(configuration.sources).toMatchObject({ names: ['n'], order: 'defined', defaultDialect: 'en', tagExpression: '@a' })
+        })
     })
 
     it('registerRequiredModules', async () => {

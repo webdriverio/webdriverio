@@ -43,6 +43,12 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+
+// the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
+const CUCUMBER_VALUES = [
+    'backtrace', 'dryRun', 'failFast', 'forceExit', 'import', 'language', 'name', 'order',
+    'publish', 'require', 'retry', 'retryTagFilter', 'strict', 'tags', 'worldParameters',
+] as const
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
@@ -63,9 +69,13 @@ export class CucumberAdapter {
     private _cucumberOpts: Required<CucumberOptions>
 
     private _hasTests = true
+    // added by WebdriverIO to the values that the user wrote (see `_providedConfiguration`)
+    private _generatedTags?: string
+    private _seededOrder?: string
     private _browser?: WebdriverIO.Browser
 
-    private gherkinParser: InstanceType<typeof Gherkin.Parser>
+    // set in the constructor and again in init(), with the language that Cucumber runs with
+    private gherkinParser!: InstanceType<typeof Gherkin.Parser>
 
     constructor(
         private _cid: string,
@@ -129,11 +139,7 @@ export class CucumberAdapter {
             _rootDir: this._config.rootDir
         }
 
-        const builder = new Gherkin.AstBuilder(uuidFn)
-        const matcher = new Gherkin.GherkinClassicTokenMatcher(
-            this._cucumberOpts.language
-        )
-        this.gherkinParser = new Gherkin.Parser(builder, matcher)
+        this._createGherkinParser()
 
         /**
          * as Cucumber doesn't support file:// formats yet we have to
@@ -187,17 +193,65 @@ export class CucumberAdapter {
             }).flat(1)
     }
 
+    private _createGherkinParser() {
+        const builder = new Gherkin.AstBuilder(uuidFn)
+        const matcher = new Gherkin.GherkinClassicTokenMatcher(
+            this._cucumberOpts.language
+        )
+        this.gherkinParser = new Gherkin.Parser(builder, matcher)
+    }
+
+    /**
+     * Cucumber merges its defaults, then the profile or config file, then `provided`. So `provided` holds
+     * what the user wrote and the values that WebdriverIO adds, not the WebdriverIO defaults
+     */
+    _providedConfiguration(): Partial<IConfiguration> {
+        const { tags, requireModule, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
+        const userTags = this._generatedTags ?? tags
+        return {
+            ...user,
+            // the WebdriverIO forms (a function, [module, options]) fail Cucumber's schema; WebdriverIO loads them
+            ...(requireModule ? { requireModule: (requireModule as unknown[]).filter((module): module is string => typeof module === 'string') } : {}),
+            // an empty value would replace the tags of the profile
+            ...(userTags ? { tags: userTags } : {}),
+            ...(this._seededOrder ? { order: this._seededOrder } : {}),
+            format: this._cucumberOpts.format,
+            formatOptions: this._cucumberOpts.formatOptions,
+            ...(this._cucumberOpts.paths?.length ? { paths: this._cucumberOpts.paths } : {}),
+        } as Partial<IConfiguration>
+    }
+
+    /**
+     * the values that Cucumber runs with, for the code that reads them before or outside of Cucumber
+     */
+    private _useCucumberValues(configuration: IConfiguration) {
+        for (const key of CUCUMBER_VALUES) {
+            (this._cucumberOpts as Record<string, unknown>)[key] = configuration[key as keyof IConfiguration]
+        }
+        // the modules of the profile, then the ones of cucumberOpts in all the WebdriverIO forms
+        const userModules = (this._config.cucumberOpts?.requireModule ?? []) as unknown[]
+        const profileModules = configuration.requireModule.slice(0, configuration.requireModule.length - userModules.filter((module) => typeof module === 'string').length)
+        this._cucumberOpts.requireModule = [...profileModules, ...userModules] as string[]
+    }
+
     async init() {
         if (this._generateSkipTags) {
             // wrap the user expression so an `or` in it can't escape the generated `and` conditions
             const userTags = this._cucumberOpts.tags ? [`(${this._cucumberOpts.tags})`] : []
-            this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(userTags).join(' and ')
+            this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
         }
+
+        const { useConfiguration } = await loadConfiguration(
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
+            { cwd: this._cwd }
+        )
+        this._useCucumberValues(useConfiguration)
+        this._createGherkinParser()
 
         // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
         if (this._cucumberOpts.order === 'random') {
             const seed = Math.floor(Math.random() * 1000 * 1000)
-            this._cucumberOpts.order = `random:${seed}`
+            this._seededOrder = this._cucumberOpts.order = `random:${seed}`
             log.warn(`Random order using seed: ${seed}`)
         }
 
@@ -389,7 +443,7 @@ export class CucumberAdapter {
      */
     private async _loadRunConfiguration(environment: IRunEnvironment) {
         const { runConfiguration } = await loadConfiguration(
-            { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
             environment
         )
         return runConfiguration
