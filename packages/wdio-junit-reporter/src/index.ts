@@ -522,7 +522,7 @@ class JunitReporter extends WDIOReporter {
                 .filter(Boolean)
                 .join('\n')
             if (text) {
-                // junit-report-builder has no system-out for a testsuite
+                // junit-report-builder has no system-out for a testsuite; 5.1.2 `build(parentElement)` returns the testsuite element
                 const build = node.build.bind(node)
                 node.build = (parent?: any) => {
                     const element = build(parent)
