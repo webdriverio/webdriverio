@@ -99,6 +99,7 @@ class Recorder extends WDIOReporter {
     onTestFail (t: TestStats) { this.#line('test:fail', t) }
     onTestRetry (t: TestStats) { this.#line('test:retry', t) }
     onTestPending (t: TestStats) { this.#line('test:pending', t) }
+    onTestSkip (t: TestStats) { this.#line('test:skip', t) }
     onTestEnd (t: TestStats) { this.#line('test:end', t) }
     onContextEnd () { this.log.push(`context:end -> ${name(this.getContextUnit())}`) }
     onBeforeCommand () { this.log.push(`command -> ${name(this.getContextUnit())}`) }
@@ -264,6 +265,52 @@ describe('units: Mocha', () => {
     })
 })
 
+describe('units: fallback ends', () => {
+    it('a test with no test:end and no next unit ends at the end of its suite, else at runner:end', () => {
+        const r = new Recorder()
+        r.onRunnerEnd = () => { r.log.push('runner:end') }
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['suite:start', suiteEv('s2', 'B')],
+            // a failed beforeEach with failHookAffectedTests: false sends no test:end
+            ['test:start', testEv('t1', 'no end')],
+            ['suite:end', suiteEv('s2', 'B')],
+            ['hook:start', hookEv('h1', '"after each" hook')],
+            ['test:start', testEv('t2', 'open at the end')],
+            ['test:start', testEv('t3', 'parallel open', { contextId: 'A' })],
+        ])
+        end(r)
+        expect(r.log.slice(r.log.indexOf('suite:end B -> none'))).toEqual([
+            'suite:end B -> none',
+            'UNIT- seq:no end#0 test=no end',
+            'hook:start "after each" hook -> seq:no end#0',
+            'UNIT+ seq:open at the end#0',
+            'test:start open at the end -> seq:open at the end#0',
+            'UNIT+ A:parallel open#0',
+            'test:start parallel open -> A:parallel open#0',
+            'UNIT- A:parallel open#0 test=parallel open',
+            'UNIT- seq:open at the end#0 test=open at the end',
+            'runner:end',
+        ])
+    })
+
+    it('a retried test that ended with its suite takes no next attempt (2 describe blocks with the same title)', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'A x')],
+            ['test:retry', testEv('t1', 'A x', { error: { message: 'x' } })],
+            // a failed afterEach stops the suite
+            ['suite:end', suiteEv('s1', 'A')],
+            ['suite:start', suiteEv('s2', 'A')],
+            ['test:start', testEv('t2', 'A x')],
+            ['test:end', testEv('t2', 'A x')],
+        ])
+        expect(unitLines(r)).toEqual(['UNIT+ seq:A x#0', 'UNIT~ seq:A x#0', 'UNIT- seq:A x#0 test=A x', 'UNIT+ seq:A x#0', 'UNIT- seq:A x#0 test=A x'])
+        expect(r.unitOf(r.tests.t2)).not.toBe(r.unitOf(r.tests.t1))
+    })
+})
+
 describe('units: Cucumber', () => {
     // a failing step of an attempt that Cucumber retries sends test:retry (#16226)
     const steps = (sc: string, ctx?: string, failing?: 'test:fail' | 'test:retry'): Events => [
@@ -381,6 +428,41 @@ describe('units: Cucumber', () => {
         expect(unitLines(r)).toEqual(['UNIT+ A:S1#0', 'UNIT- A:S1#0 test=-', 'UNIT+ seq:S2#0', 'UNIT- seq:S2#0 test=Given skipped'])
         // the skip scenario ended: code outside every context gets no unit again
         expect(r.getContextUnit()).toBeUndefined()
+    })
+})
+
+describe('units: test:pending', () => {
+    it('a started test that ends as pending stays in its unit, a pending step in its scenario', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            // Jasmine pending() after the start
+            ['test:start', testEv('j1', 'jp')],
+            ['test:pending', testEv('j1', 'jp', { pending: true, state: 'pending' })],
+            ['test:end', testEv('j1', 'jp')],
+            ['suite:end', suiteEv('s1', 'A')],
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
+            ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f' })],
+            ['test:start', testEv('st1', 'Given pending')],
+            ['test:pending', testEv('st1', 'Given pending', { pending: true, state: 'pending' })],
+            ['test:pending', testEv('st2', 'Then skipped', { pending: true, state: 'skipped' })],
+            ['suite:end', suiteEv('sc1', 'S1', { type: 'scenario' })],
+        ])
+        expect(unitLines(r)).toEqual(['UNIT+ seq:jp#0', 'UNIT- seq:jp#0 test=jp', 'UNIT+ seq:S1#0', 'UNIT- seq:S1#0 test=Then skipped'])
+        expect(r.unitOf(r.tests.j1)).toMatchObject({ stats: r.tests.j1, ended: true })
+        expect(r.log).toContain('test:pending Given pending -> seq:S1#0')
+        expect(r.log).toContain('test:skip Then skipped -> seq:S1#0')
+    })
+
+    it('a pending test in a parallel context replaces the started test of its unit', () => {
+        const r = new Recorder()
+        play(r, [
+            ['test:start', testEv('p1', 'x', { contextId: 'A' })],
+            // the Cucumber parallel scenario payload has no contextId
+            ['test:pending', testEv('p1', 'x', { pending: true, state: 'pending' })],
+        ])
+        expect(r.unitOf(r.tests.p1)).toMatchObject({ contextId: 'A', stats: r.tests.p1, test: r.tests.p1 })
+        expect(r.log).toContain('test:pending x -> A:x#0')
     })
 })
 

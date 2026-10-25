@@ -11,7 +11,8 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit } from './types.js'
+import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
@@ -40,6 +41,15 @@ export default class WDIOReporter extends EventEmitter {
     #contextIdResolver?: () => string | undefined
     #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
     #processListeners: [string, (...args: unknown[]) => void][] = []
+    // parallel units stay until runner:end, for late events after context:end
+    #units = new Map<string, Unit>()
+    // the unit with no context: a sequential run, or Cucumber failFast skip scenarios
+    #seqUnit?: Unit
+    #lastUnit?: Unit
+    #unitOfStats = new WeakMap<object, Unit>()
+    #parallelSeen = false
+    // the unit of the event that the base sends to an on* hook
+    #dispatch?: { unit?: Unit }
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -99,7 +109,13 @@ export default class WDIOReporter extends EventEmitter {
             return contextTests.size === 0 ? currentTest : undefined
         }
         this.#getTestByContext = getTestByContext
-        const getCommandTarget = (payload: { contextId?: string }) => getTestByContext(payload.contextId)
+        const getCommandTarget = (payload: { contextId?: string }) => {
+            // after every context of a parallel run: the last test of the unit that opened last (R6)
+            if (!payload.contextId && this.#parallelSeen && contextTests.size === 0) {
+                return this.#lastUnit?.test ?? currentTest
+            }
+            return getTestByContext(payload.contextId)
+        }
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -108,8 +124,8 @@ export default class WDIOReporter extends EventEmitter {
         })
         this.currentSuites.push(rootSuite)
 
-        this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
-        this.on('client:afterCommand', this.onAfterCommand.bind(this))
+        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => this.#callForCommand(payload, () => this.onBeforeCommand(payload)))
+        this.on('client:afterCommand', (payload: AfterCommandArgs) => this.#callForCommand(payload, () => this.onAfterCommand(payload)))
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
@@ -138,7 +154,14 @@ export default class WDIOReporter extends EventEmitter {
             this.#parentOf.set(suite, currentSuite)
             this.currentSuites.push(suite)
             this.suites[suite.uid] = suite
-            this.onSuiteStart(suite)
+            let unit: Unit | undefined
+            if (suite.type === 'scenario') {
+                unit = params.contextId ? this.#contextUnit(params.contextId, suite) : this.#openUnit(undefined, suite)
+                unit.stats = suite
+                unit.test = undefined
+                this.#unitOfStats.set(suite, unit)
+            }
+            this.#call(unit, () => this.onSuiteStart(suite))
         })
 
         /**
@@ -148,6 +171,11 @@ export default class WDIOReporter extends EventEmitter {
          */
         this.on('suite:retry', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
+            const unit = this.#unitOfStats.get(suiteStat)
+            // before the counts and retry() clear the attempt that failed (K12)
+            if (unit) {
+                this.#call(unit, () => this.onUnitRetry(unit))
+            }
             for (const testStat of suiteStat.tests) {
                 const key = countedAs.get(testStat)
                 if (key) {
@@ -156,7 +184,12 @@ export default class WDIOReporter extends EventEmitter {
                 }
             }
             suiteStat.retry()
-            this.onSuiteRetry(suiteStat)
+            // suite:retry is the start of the next attempt
+            if (unit) {
+                unit.nextAttempt()
+                unit.test = undefined
+            }
+            this.#call(unit, () => this.onSuiteRetry(suiteStat))
         })
 
         this.on('hook:start', (hook: Hook) => {
@@ -166,7 +199,11 @@ export default class WDIOReporter extends EventEmitter {
             this.#parentOf.set(hookStats, currentSuite)
             currentSuite.hooksAndTests.push(hookStats)
             this.hooks[hook.uid!] = hookStats
-            this.onHookStart(hookStats)
+            const unit = hook.contextId ? this.#contextUnit(hook.contextId) : this.#fallbackUnit()
+            if (unit) {
+                this.#unitOfStats.set(hookStats, unit)
+            }
+            this.#call(unit, () => this.onHookStart(hookStats))
         })
 
         this.on('hook:end', (hook: Hook) => {
@@ -180,7 +217,7 @@ export default class WDIOReporter extends EventEmitter {
             }
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
-            this.onHookEnd(hookStats)
+            this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
         })
 
         this.on('test:start', (test: Test) => {
@@ -192,7 +229,8 @@ export default class WDIOReporter extends EventEmitter {
             this.#parentOf.set(currentTest, currentSuite)
             currentSuite.hooksAndTests.push(currentTest)
             this.tests[test.uid] = currentTest
-            this.onTestStart(currentTest)
+            const unit = this.#unitForTestStart(currentTest, test.contextId)
+            this.#call(unit, () => this.onTestStart(currentTest))
         })
 
         this.on('test:pass', (test: Test) => {
@@ -200,7 +238,7 @@ export default class WDIOReporter extends EventEmitter {
             applyStart(testStat, test)
             testStat.pass(endOf(test))
             count(testStat, 'passes')
-            this.onTestPass(testStat)
+            this.#call(this.#unitOfStats.get(testStat), () => this.onTestPass(testStat))
         })
 
         this.on('test:skip', (test: Test) => {
@@ -210,7 +248,7 @@ export default class WDIOReporter extends EventEmitter {
             }
             testStat.skip(test.pendingReason!)
             count(testStat, 'skipping')
-            this.onTestSkip(testStat)
+            this.#call(this.#unitOfStats.get(testStat), () => this.onTestSkip(testStat))
         })
 
         this.on('test:fail', (test: Test) => {
@@ -219,7 +257,7 @@ export default class WDIOReporter extends EventEmitter {
             applyStart(testStat, test)
             testStat.fail(getErrorsFromEvent(test), endOf(test))
             count(testStat, 'failures')
-            this.onTestFail(testStat)
+            this.#call(this.#unitOfStats.get(testStat), () => this.onTestFail(testStat))
         })
 
         this.on('test:retry', (test: Test) => {
@@ -228,7 +266,13 @@ export default class WDIOReporter extends EventEmitter {
             applyStart(testStat, test)
             testStat.fail(getErrorsFromEvent(test), endOf(test))
             testStat.retried = true
-            this.onTestRetry(testStat)
+            const unit = this.#unitOfStats.get(testStat)
+            // a step of a scenario attempt is not the attempt: suite:retry is
+            if (unit && !unit.isScenario) {
+                this.#call(unit, () => this.onUnitRetry(unit))
+                unit.retriedTest = testStat
+            }
+            this.#call(unit, () => this.onTestRetry(testStat))
             const contextId = getContextId(test)
             setRetries(contextId, getRetries(contextId) + 1)
         })
@@ -283,14 +327,15 @@ export default class WDIOReporter extends EventEmitter {
             this.#parentOf.set(currentTest, currentSuite)
             this.tests[currentTest.uid] = currentTest
             trackContext(test, currentTest)
+            const unit = this.#unitForPending(currentTest, getContextId(test), startedTest)
             if (test.state === 'pending') {
                 currentTest.state = 'pending'
                 count(currentTest, 'pending')
-                this.onTestPending(currentTest)
+                this.#call(unit, () => this.onTestPending(currentTest))
             } else {
                 currentTest.skip(test.pendingReason!)
                 count(currentTest, 'skipping')
-                this.onTestSkip(currentTest)
+                this.#call(unit, () => this.onTestSkip(currentTest))
             }
         })
 
@@ -307,7 +352,16 @@ export default class WDIOReporter extends EventEmitter {
             } else {
                 this.retries = 0
             }
-            this.onTestEnd(testStat)
+            const unit = testStat && this.#unitOfStats.get(testStat)
+            this.#call(unit, () => this.onTestEnd(testStat))
+            if (unit && unit.stats === testStat) {
+                unit.testEnded = true
+                unit.retriedTest = undefined
+                // end rule `own`: a sequential unit ends at the test:end of its test
+                if (!unit.contextId) {
+                    this.#endUnit(unit)
+                }
+            }
         })
 
         this.on('context:end', (payload: ContextEnd) => {
@@ -315,7 +369,11 @@ export default class WDIOReporter extends EventEmitter {
             // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
             contextTests.delete(payload.contextId)
             retriesByContext.delete(payload.contextId)
-            this.onContextEnd(payload)
+            const unit = this.#units.get(payload.contextId)
+            this.#call(unit, () => this.onContextEnd(payload))
+            if (unit) {
+                this.#endUnit(unit)
+            }
         })
 
         this.on('suite:end', (suite: Suite) => {
@@ -325,12 +383,20 @@ export default class WDIOReporter extends EventEmitter {
             if (index !== -1) {
                 this.currentSuites.splice(index, 1)
             }
-            this.onSuiteEnd(suiteStat)
+            this.#call(this.#unitOfStats.get(suiteStat), () => this.onSuiteEnd(suiteStat))
+            // the sequential unit ends with its scenario, or with the suite of a test that sent no test:end
+            const seq = this.#seqUnit
+            if (seq?.stats && (seq.stats === suiteStat || this.#parentOf.get(seq.stats) === suiteStat)) {
+                this.#endUnit(seq)
+            }
         })
 
         this.on('runner:end', (runner: Options.RunnerEnd) => {
             try {
                 rootSuite.complete()
+                for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
+                    this.#endUnit(unit)
+                }
                 if (this.runnerStat) {
                     this.runnerStat.failures = runner.failures
                     this.runnerStat.retries = runner.retries
@@ -415,6 +481,138 @@ export default class WDIOReporter extends EventEmitter {
         this.#processListeners = []
     }
 
+    /**
+     * The unit of the caller: in an `on*` hook the unit of the event, else the unit of the caller's parallel-mode
+     * context, else the sequential unit (also after its end). With `contextId`: the unit of that context, until
+     * `runner:end`. After the first parallel context, code outside every context gets `undefined`.
+     * @experimental the name and the result may change
+     */
+    getContextUnit(contextId?: string): ReporterUnit | undefined {
+        if (contextId) {
+            return this.#units.get(contextId)
+        }
+        if (this.#dispatch) {
+            return this.#dispatch.unit
+        }
+        const id = this.#contextIdResolver?.()
+        return id ? this.#units.get(id) : this.#fallbackUnit()
+    }
+
+    /** The unit that these stats belong to. @experimental */
+    unitOf(stats: SuiteStats | HookStats | TestStats): ReporterUnit | undefined {
+        return this.#unitOfStats.get(stats)
+    }
+
+    /** State of the reporter for one unit, made by `init` at the first call; `undefined` with no unit (see `getContextUnit`). @experimental */
+    unitState<T>(key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
+        return this.#stateOf('state', key, init, contextId)
+    }
+
+    /** As `unitState`, but new for each attempt of the unit. @experimental */
+    attemptState<T>(key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
+        return this.#stateOf('attemptState', key, init, contextId)
+    }
+
+    #stateOf<T>(kind: 'state' | 'attemptState', key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
+        const unit = this.getContextUnit(contextId) as Unit | undefined
+        if (!unit) {
+            return undefined
+        }
+        const map = unit[kind]
+        if (!map.has(key)) {
+            map.set(key, init(unit))
+        }
+        return map.get(key) as T
+    }
+
+    #call(unit: Unit | undefined, hook: () => void) {
+        const previous = this.#dispatch
+        this.#dispatch = { unit }
+        try {
+            hook()
+        } finally {
+            this.#dispatch = previous
+        }
+    }
+
+    // a command with no contextId keeps the resolver and the fallback
+    #callForCommand(payload: { contextId?: string }, hook: () => void) {
+        const unit = payload.contextId ? this.#units.get(payload.contextId) : undefined
+        return unit ? this.#call(unit, hook) : hook()
+    }
+
+    // a new sequential unit ends the one before it
+    #openUnit(contextId?: string, stats?: SuiteStats | TestStats): Unit {
+        const unit = new Unit(contextId)
+        unit.stats = stats
+        unit.test = stats instanceof SuiteStats ? undefined : stats
+        if (contextId) {
+            this.#units.set(contextId, unit)
+            this.#parallelSeen = true
+        } else {
+            if (this.#seqUnit) {
+                this.#endUnit(this.#seqUnit)
+            }
+            this.#seqUnit = unit
+        }
+        this.#lastUnit = unit
+        this.#call(unit, () => this.onUnitStart(unit))
+        return unit
+    }
+
+    #contextUnit(contextId: string, stats?: SuiteStats | TestStats): Unit {
+        return this.#units.get(contextId) ?? this.#openUnit(contextId, stats)
+    }
+
+    // after the first parallel context, only an open sequential unit (Cucumber failFast skip scenarios)
+    #fallbackUnit(): Unit | undefined {
+        const unit = this.#seqUnit
+        return !this.#parallelSeen || (unit && !unit.ended) ? unit : undefined
+    }
+
+    #endUnit(unit: Unit) {
+        if (unit.ended) {
+            return
+        }
+        unit.ended = true
+        // an ended unit has no next attempt
+        unit.retriedTest = undefined
+        this.#call(unit, () => this.onUnitEnd(unit))
+    }
+
+    #unitForTestStart(stat: TestStats, contextId: string | undefined): Unit {
+        const seq = this.#seqUnit
+        const unit = contextId
+            ? this.#contextUnit(contextId, stat)
+            : seq && seq.takesTest(stat) ? seq : this.#openUnit(undefined, stat)
+        if (!unit.isScenario) {
+            if (unit.retriedTest) {
+                unit.nextAttempt()
+            }
+            unit.stats = stat
+            unit.testEnded = false
+        }
+        unit.test = stat
+        this.#unitOfStats.set(stat, unit)
+        return unit
+    }
+
+    // a test:pending replaces a started test, or is a test of its own (Mocha `it.skip`)
+    #unitForPending(stat: TestStats, contextId: string | undefined, replaced?: TestStats): Unit {
+        const seq = this.#seqUnit
+        const unit = contextId
+            ? this.#contextUnit(contextId, stat)
+            : seq && ((replaced && this.#unitOfStats.get(replaced) === seq) || (seq.isScenario && seq.takesTest(stat)))
+                ? seq
+                : this.#openUnit(undefined, stat)
+        if (!unit.stats || (replaced && unit.stats === replaced)) {
+            unit.stats = stat
+        }
+        unit.test = stat
+        this.#unitOfStats.set(stat, unit)
+        return unit
+    }
+
     /** The suite of these stats as the base inserted them, `undefined` under the root suite. @experimental */
     parentOf(stats: SuiteStats | HookStats | TestStats): SuiteStats | undefined {
         const parent = this.#parentOf.get(stats)
@@ -481,6 +679,12 @@ export default class WDIOReporter extends EventEmitter {
      */
     onContextEnd(_payload: ContextEnd) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
+    /** A unit starts: at the first event of a parallel context, or at a sequential test or scenario. @experimental */
+    onUnitStart(_unit: ReporterUnit) { }
+    /** An attempt of a unit failed and runs again (`test:retry`, `suite:retry`), before the base clears its stats. @experimental */
+    onUnitRetry(_unit: ReporterUnit) { }
+    /** A unit ends: at `context:end`; in a sequential run at its `test:end` or scenario `suite:end`, else the next unit, its suite end, `runner:end`. @experimental */
+    onUnitEnd(_unit: ReporterUnit) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
     onRunnerEnd(_runnerStats: RunnerStats) { }
 }
@@ -505,5 +709,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure, ReporterUnit
 }

@@ -82,6 +82,29 @@ export default class WDIOReporter extends EventEmitter {
         return 0
     }
 
+    getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    unitOf (_stats: unknown): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _contextId?: string): T | undefined {
+        return undefined
+    }
+
+    attemptState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _contextId?: string): T | undefined {
+        return undefined
+    }
+
+    /* istanbul ignore next */
+    onUnitStart (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitRetry (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitEnd (_unit: ReporterModule.ReporterUnit) {}
+
     /* istanbul ignore next */
     onRunnerStart () {}
     /* istanbul ignore next */

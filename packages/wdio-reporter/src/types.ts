@@ -42,3 +42,5 @@ export interface Argument {
         cells: string[]
     }[]
 }
+
+export type { ReporterUnit } from './units.js'
