@@ -47,3 +47,20 @@ test('should allow to retry suite', () => {
     expect(suite.hooks).toHaveLength(0)
     expect(suite.hooksAndTests).toHaveLength(0)
 })
+
+test('retry() keeps the start of the suite, as main', () => {
+    const suite = new SuiteStats({ title: 'foobar', fullTitle: 'barfoo', file: '/this/is/a/file.txt' })
+    const start = new Date(0)
+    suite.start = start
+    suite.retry()
+    expect(suite.start).toBe(start)
+})
+
+test('clearAttempt() starts the next attempt now', () => {
+    const suite = new SuiteStats({ title: 'foobar', fullTitle: 'barfoo', file: '/this/is/a/file.txt' })
+    suite.start = new Date(0)
+    suite.retries = 1
+    suite.clearAttempt()
+    expect(suite.start.getTime()).toBeGreaterThan(0)
+    expect(suite.retries).toBe(1)
+})
