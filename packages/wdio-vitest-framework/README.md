@@ -5,10 +5,10 @@ Run specs written in Vitest syntax (`describe`, `test`, `test.concurrent`) with 
 ## Installation
 
 ```sh
-npm install @wdio/vitest-framework --save-dev
+npm install @wdio/vitest-framework vitest --save-dev
 ```
 
-`vitest` and `expect-webdriverio` are installed with the package.
+`vitest` is a peer dependency, so install it next to the package. `expect-webdriverio` is installed with the package.
 
 ## Usage
 

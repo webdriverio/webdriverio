@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" preserve="true" />
 import type { InlineConfig } from 'vitest/node'
 import type { ParallelMode } from '@wdio/utils'
 

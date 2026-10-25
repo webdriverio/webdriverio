@@ -45,13 +45,16 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "expect-webdriverio": "^8.0.0",
-    "vitest": "^5.0.2",
     "webdriverio": "workspace:*"
+  },
+  "devDependencies": {
+    "@wdio/allure-reporter": "workspace:*",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "vitest": "^5.0.2"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@wdio/allure-reporter": "workspace:*"
   }
 }

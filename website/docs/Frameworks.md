@@ -725,10 +725,10 @@ Please note that `./reports/` is the directory where `cucumber message` reports 
 
 `@wdio/vitest-framework` runs specs written in [Vitest](https://vitest.dev/) syntax (`describe`, `test`, `test.concurrent`, `test.extend`) through the WDIO testrunner. Vitest schedules the tests, so the testrunner starts no WDIO workers. `wdio.conf.ts` stays the source of truth for specs, capabilities, connection options and hooks. Use it when you want Vitest's API, especially [fixtures](pageobjects#page-objects-as-fixtures) and `test.concurrent`. Otherwise Mocha is the default choice.
 
-First, install the adapter package from NPM. It installs `vitest` and `expect-webdriverio` with it:
+First, install the adapter package and `vitest` from NPM. `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
 
 ```bash npm2yarn
-npm install @wdio/vitest-framework --save-dev
+npm install @wdio/vitest-framework vitest --save-dev
 ```
 
 Then set `framework: 'vitest'` in your [config file](configurationfile):
@@ -766,7 +766,7 @@ describe('login page', () => {
 
 The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults. Never `import { expect } from 'vitest'`. That `expect` has no WebdriverIO matchers such as `toBeDisplayed`.
 
-For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed, see [TypeScript Setup](/docs/typescript):
+For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed. It also provides the Vitest globals (`describe`, `test` and the hooks) without imports, see [TypeScript Setup](/docs/typescript):
 
 ```json title="tsconfig.json"
 {
