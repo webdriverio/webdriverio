@@ -93,6 +93,22 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(suiteOutOf(xml, 'S1')).toBeUndefined()
         })
 
+        it('gives the output of a failed before all to its hook testcase, not to the testsuite', () => {
+            reporter.emit('suite:start', suite('S1'))
+            runHook(reporter, 'before-S1', { hookKind: 'beforeAll', hookSuiteUid: 'S1' }, () => {
+                log('before-log')
+                reporter.emit('client:beforeCommand', command('before-url'))
+            }, { error: new Error('before fails'), state: 'failed' })
+            reporter.emit('suite:end', suite('S1'))
+            const xml = xmlOf(reporter)
+
+            const failedHook = testCaseOf(xml, 'before all hook before S1')
+            expect(failedHook).toContain('<failure message="before fails"/>')
+            expect(failedHook).toContain('before-log')
+            expect(failedHook).toContain('before-url')
+            expect(suiteOutOf(xml, 'S1')).toBeUndefined()
+        })
+
         it('gives a root before all to the first testsuite and a root after all to the last one', () => {
             runHook(reporter, 'root-before', { hookKind: 'beforeAll' }, () => log('root-before-log'))
             reporter.emit('suite:start', suite('S1', 'suite', { parentUid: null }))
@@ -167,12 +183,38 @@ describe('JUnit worker logs and commands by their owner', () => {
                 'RESULT: {"url":"c1-before-url"}',
                 'COMMAND: POST /session/s/url - {"url":"c1-test-url"}'
             ].join('\n'))
+            expect(t1.split('c1-before-url').length - 1).toBe(2)
             expect(t1).not.toContain('c2-')
             const t2 = testCaseOf(xml, 't2')
             expect(t2).toContain('c2-before-log')
             expect(t2).toContain('c2-before-url')
             expect(t2).toContain('<property name="c2-prop" value="c2"/>')
             expect(t2).not.toContain('c1-')
+        })
+
+        it('gives the script of a command before the test as the base shortens it', () => {
+            reporter.emit('suite:start', suite('S', 'suite', { parentUid: null }))
+            reporter.emit('hook:start', hook('h1', beforeAll('h1', 'c1')))
+            reporter.emit('client:beforeCommand', { sessionId: 's', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body: { script: 'x'.repeat(300), args: [] }, contextId: 'c1' })
+            reporter.emit('hook:end', hook('h1', beforeAll('h1', 'c1')))
+            runTest(reporter, 't1', { parentUid: 'S', contextId: 'c1' })
+            reporter.emit('suite:end', suite('S'))
+
+            expect(testCaseOf(xmlOf(reporter), 't1')).toContain('COMMAND: POST /session/s/execute/sync - {"script":"<script> [300 bytes]","args":[]}')
+        })
+
+        it('gives a DELETE /session after the last context to the test of the unit that opened last (R6)', () => {
+            reporter.emit('suite:start', suite('S', 'suite', { parentUid: null }))
+            runTest(reporter, 't1', { parentUid: 'S', contextId: 'c1' })
+            runTest(reporter, 't2', { parentUid: 'S', contextId: 'c2' })
+            reporter.emit('context:end', { cid: '0-0', uid: 't2', contextId: 'c2' })
+            reporter.emit('context:end', { cid: '0-0', uid: 't1', contextId: 'c1' })
+            reporter.emit('suite:end', suite('S'))
+            reporter.emit('client:beforeCommand', { sessionId: 's', method: 'DELETE', endpoint: '/session/:sessionId', body: {} })
+            const xml = xmlOf(reporter)
+
+            expect(testCaseOf(xml, 't2')).toContain('COMMAND: DELETE /session/s - {}')
+            expect(testCaseOf(xml, 't1')).not.toContain('DELETE')
         })
 
         it('gives the output of a failed before all to the hook when its test is not reported (failHookAffectedTests: false)', () => {
@@ -241,6 +283,18 @@ describe('JUnit worker logs and commands by their owner', () => {
             const failedHook = testCaseOf(testSuiteOf(xml, 'F'), 'BeforeAll steps ts 23')
             expect(failedHook).toContain('<failure message="BeforeAll fails"/>')
             expect(testSuiteOf(xml, 'F')).toMatch(/<testsuite name="F"[^>]* failures="1"/)
+        })
+
+        it.each([{}, { hookKind: 'afterAll' }])('writes a failed AfterAll of the feature after its scenarios (%o)', (extra) => {
+            reporter.emit('suite:start', suite('F', 'feature', { parentUid: null }))
+            reporter.emit('suite:start', suite('S1', 'scenario', { parentUid: 'F' }))
+            runTest(reporter, 'step-1', { parentUid: 'S1' })
+            reporter.emit('suite:end', suite('S1', 'scenario'))
+            runHook(reporter, 'run-hook', { parentUid: 'F', title: 'AfterAll (steps.ts:30)', ...extra }, () => {}, { error: new Error('AfterAll fails'), state: 'failed' })
+            reporter.emit('suite:end', suite('F', 'feature'))
+
+            const names = [...testSuiteOf(xmlOf(reporter, 'cucumber'), 'F').matchAll(/<testcase [^>]*name="([^"]*)"/g)].map(([, name]) => name)
+            expect(names).toEqual(['S1', 'AfterAll steps ts 30'])
         })
     })
 })
