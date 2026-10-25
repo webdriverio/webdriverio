@@ -8,7 +8,7 @@ import { getErrorsFromEvent, hookCountsAsFailure, knownFramework, transformComma
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
-import HookStats from './stats/hook.js'
+import HookStats, { isSkippedHook } from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
@@ -192,13 +192,17 @@ export default class WDIOReporter extends EventEmitter {
                     this.counts.tests--
                 }
             }
-            suiteStat.retry()
             // suite:retry is the start of the next attempt
             if (unit) {
                 unit.nextAttempt()
                 unit.test = undefined
             }
-            this.#call(unit, () => this.onSuiteRetry(suiteStat))
+            // onSuiteRetry sees the tests, hooks and start of the failed attempt (K12)
+            try {
+                this.#call(unit, () => this.onSuiteRetry(suiteStat))
+            } finally {
+                suiteStat.retry()
+            }
         })
 
         this.on('hook:start', (hook: Hook) => {
@@ -240,7 +244,7 @@ export default class WDIOReporter extends EventEmitter {
                 if (isContextlessAllHook(hookStats)) {
                     this.#unitOfStats.delete(hookStats)
                 }
-                hookStats.complete(getErrorsFromEvent(hook))
+                hookStats.complete(getErrorsFromEvent(hook), isSkippedHook(hook))
                 this.counts.hooks++
                 this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
             } finally {

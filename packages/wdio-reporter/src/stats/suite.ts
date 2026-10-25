@@ -69,12 +69,13 @@ export default class SuiteStats extends RunnableStats {
     }
 
     /**
-     * Mark suite as retried and remove previous history.
+     * Mark suite as retried and remove previous history; the next attempt starts now.
      */
     retry () {
         this.retries++
         this.tests = []
         this.hooks = []
         this.hooksAndTests = []
+        this.start = new Date()
     }
 }

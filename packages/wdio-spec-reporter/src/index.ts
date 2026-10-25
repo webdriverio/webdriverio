@@ -607,8 +607,10 @@ export default class SpecReporter extends WDIOReporter {
                 fullTitle: '(root)',
                 suites: []
             }
-            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
-            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            // a hook that the framework skipped is not shown
+            const shown = (hook: HookStats) => hook.state && hook.state !== 'skipped'
+            const beforeAllHooks = rootSuite.hooks.filter((hook) => shown(hook) && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
+            const afterAllHooks = rootSuite.hooks.filter((hook) => shown(hook) && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
             this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
                 hooks: beforeAllHooks,
                 hooksAndTests: beforeAllHooks

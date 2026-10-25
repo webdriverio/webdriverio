@@ -32,6 +32,13 @@ export interface Hook {
     hookKind?: HookKind
     /** @experimental the uid of the suite that declares an all-hook (`beforeAll` / `afterAll`) */
     hookSuiteUid?: string
+    /** @experimental the result that the framework sends at the hook end (Mocha config hooks `'pass'` / `'fail'`, Cucumber `'SKIPPED'`, ...) */
+    state?: string
+}
+
+/** a hook that the framework skipped: Mocha `this.skip()` (`pending` with no state), a Cucumber hook with the result `SKIPPED` */
+export function isSkippedHook(hook: Pick<Hook, 'pending' | 'state'>): boolean {
+    return (hook.pending === true && hook.state === undefined) || hook.state?.toLowerCase() === 'skipped'
 }
 
 export default class HookStats extends RunnableStats {
@@ -43,7 +50,8 @@ export default class HookStats extends RunnableStats {
     body?: string
     errors?: Error[]
     error?: Error
-    state?: 'failed' | 'passed'
+    /** @experimental `'skipped'`: the framework skipped the hook (Mocha `this.skip()`, a Cucumber hook result `SKIPPED`) */
+    state?: 'failed' | 'passed' | 'skipped'
     currentTest?: string
     // `declare`: no own property when the payload has no value, so these stats stay the same
     /** the browsing context of a parallel hook (Vitest: the id of the test) */
@@ -84,11 +92,13 @@ export default class HookStats extends RunnableStats {
         }
     }
 
-    complete (errors?: Error[]) {
+    complete (errors?: Error[], skipped = false) {
         this.errors = errors
         if (errors && errors.length) {
             this.error = errors[0]
             this.state = 'failed'
+        } else if (skipped) {
+            this.state = 'skipped'
         }
 
         super.complete()
