@@ -80,7 +80,7 @@ Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAl
 
 `cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
 
-Values in a Cucumber profile or configuration file (`cucumberOpts.profiles`, `cucumberOpts.file`) are used. A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options.
+Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
 
 ### Feature uid
 
