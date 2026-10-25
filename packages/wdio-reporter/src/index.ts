@@ -79,6 +79,8 @@ export default class WDIOReporter extends EventEmitter {
         const contextTests = new Map<string, TestStats>()
         // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
         const endedContextTests = new Map<string, TestStats>()
+        // contexts after a suite:retry, until the next attempt starts a test: no command goes to the failed attempt
+        const retriedContexts = new Set<string>()
         const retriesByContext = new Map<string, number>()
         // the count that each result added, to remove it when suite:retry clears the test
         const countedAs = new WeakMap<TestStats, 'passes' | 'skipping' | 'failures' | 'pending'>()
@@ -108,6 +110,7 @@ export default class WDIOReporter extends EventEmitter {
             if (contextId) {
                 contextTests.set(contextId, testStat)
                 endedContextTests.delete(contextId)
+                retriedContexts.delete(contextId)
             }
         }
         const getTestByContext = (contextId: string | undefined) => {
@@ -117,16 +120,18 @@ export default class WDIOReporter extends EventEmitter {
             return contextTests.size === 0 ? currentTest : undefined
         }
         this.#getTestByContext = getTestByContext
+        const noRunningContext = () => contextTests.size === 0 || (retriedContexts.size > 0 && [...contextTests.keys()].every((id) => retriedContexts.has(id)))
         const getCommandTarget = (payload: { contextId?: string }): TestStats | HookStats | undefined => {
             // the innermost open contextless all-hook
             if (!payload.contextId && this.#openAllHooks.size) {
                 return [...this.#openAllHooks].at(-1)
             }
             // after every context of a parallel run: the last test of the unit that opened last (R6)
-            if (!payload.contextId && this.#parallelSeen && contextTests.size === 0) {
+            if (!payload.contextId && this.#parallelSeen && noRunningContext()) {
                 return this.#lastUnit?.test ?? currentTest
             }
-            return getTestByContext(payload.contextId) ?? (payload.contextId ? this.#openContextHooks.get(payload.contextId)?.at(-1) : undefined)
+            const test = payload.contextId && retriedContexts.has(payload.contextId) ? undefined : getTestByContext(payload.contextId)
+            return test ?? (payload.contextId ? this.#openContextHooks.get(payload.contextId)?.at(-1) : undefined)
         }
         this.#getCommandTarget = getCommandTarget
 
@@ -201,10 +206,9 @@ export default class WDIOReporter extends EventEmitter {
                 unit.nextAttempt()
                 unit.test = undefined
             }
-            // the steps of the failed attempt get no more calls: retry() removes them
+            // the steps of the failed attempt get no more calls: retry() removes them; getContextTest() keeps them (Q2)
             if (unit?.contextId) {
-                contextTests.delete(unit.contextId)
-                endedContextTests.delete(unit.contextId)
+                retriedContexts.add(unit.contextId)
             }
             // onSuiteRetry sees the tests, hooks and start of the failed attempt (K12)
             try {
@@ -421,6 +425,7 @@ export default class WDIOReporter extends EventEmitter {
             this.#openContextHooks.delete(payload.contextId)
             // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
             contextTests.delete(payload.contextId)
+            retriedContexts.delete(payload.contextId)
             retriesByContext.delete(payload.contextId)
             const unit = this.#units.get(payload.contextId)
             this.#call(unit, () => this.onContextEnd(payload))
@@ -515,16 +520,15 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * Returns the test running in the caller's parallel-mode context. Without a resolver,
      * returns the current test unless parallel tests are tracked.
-     * In a `beforeAll` / `afterAll` hook with `hookKind` and no context: `undefined` (experimental).
      */
     getContextTest(): TestStats | undefined {
-        const id = this.#contextIdResolver?.()
-        return !id && this.#openAllHooks.size ? undefined : this.#getTestByContext(id)
+        return this.#getTestByContext(this.#contextIdResolver?.())
     }
 
     /**
      * The stats that the commands of the caller go to: the test of its parallel-mode context, else the open hook of
-     * that context (before its test), else the open `beforeAll` / `afterAll` with `hookKind` and no context. With no
+     * that context (before its test, also after a `suite:retry` until the next attempt starts a step), else the open
+     * `beforeAll` / `afterAll` with `hookKind` and no context. With no
      * context in a parallel run and no parallel test running (R6): the last test of the unit that opened last, not the
      * test that started last; else as `getContextTest`.
      * Use it to give a log of the caller to its owner.

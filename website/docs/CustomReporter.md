@@ -240,7 +240,7 @@ The reporter keeps the suite of each stats object. Use these methods to read the
 
 ### Owner of a log and a command
 
-For a log that has no event, `getContextTest()` can return `undefined`, for example in a hook. Call `this.getContextOwner()` to get the stats that own the output of the caller: the test of its parallel context, else the open hook of that context (before its test), else the open `beforeAll` / `afterAll` hook that has a `hookKind` and no context. If there is no context in a parallel run and no parallel test runs, the owner is the last test of the unit that opened last, not the test that started last. In all other cases, it is the same as `getContextTest()`. The behavior of `getContextTest()` and `getContextId()` does not change.
+For a log that has no event, `getContextTest()` does not always return its owner. In a hook, it can return `undefined` or the test that started last. Call `this.getContextOwner()` to get the stats that own the output of the caller: the test of its parallel context, else the open hook of that context (before its test, and after a `suite:retry` until the next attempt starts a step), else the open `beforeAll` / `afterAll` hook that has a `hookKind` and no context. If there is no context in a parallel run and no parallel test runs, the owner is the last test of the unit that opened last, not the test that started last. In all other cases, it is the same as `getContextTest()`. The behavior of `getContextTest()` and `getContextId()` does not change.
 
 ### Hooks
 
