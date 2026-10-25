@@ -481,7 +481,10 @@ export function initiateBidi (
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = getBidiRequestOptions(strictSSL, userHeaders)
     const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout, connectTimeout)
-    handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+    handler.connect().then(
+        (isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`),
+        (err: Error) => log.error(`Could not connect to WebDriver Bidi interface at ${socketUrl}: ${err.message}`)
+    )
 
     return {
         _bidiHandler: { value: handler },
