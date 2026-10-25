@@ -194,7 +194,7 @@ export default function (
              * kill driver process if there is one
              */
             const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-            environment.value.killDriverProcess(this.capabilities, shutdownDriver)
+            environment.value.killDriverProcess(this.capabilities, shutdownDriver, this.requestedCapabilities as WebdriverIO.Capabilities)
 
             /**
              * clear logger stream if session has been terminated

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 const log = logger('webdriver')
 
@@ -10,13 +11,21 @@ const log = logger('webdriver')
 const PROFILE_REMOVAL_TIMEOUT = 2000
 const PROFILE_POLL_INTERVAL = 10
 /**
- * drivers whose kill waits for their profile, killed at once when the process exits
+ * at process exit the wait can only block: keep it short
  */
-const waitingDrivers = new Set<number>()
+const EXIT_WAIT_POLLS = 20
+/**
+ * drivers whose kill waits for their profile (pid -> profile)
+ */
+const waitingDrivers = new Map<number, string>()
 let exitListenerAdded = false
 
 function killWaitingDrivers () {
-    for (const pid of waitingDrivers) {
+    const sleep = new Int32Array(new SharedArrayBuffer(4))
+    for (let poll = 0; poll < EXIT_WAIT_POLLS && [...waitingDrivers.values()].some((profile) => fs.existsSync(profile)); poll++) {
+        Atomics.wait(sleep, 0, 0, PROFILE_POLL_INTERVAL)
+    }
+    for (const pid of waitingDrivers.keys()) {
         kill(pid)
     }
     waitingDrivers.clear()
@@ -47,26 +56,34 @@ function kill (pid: number) {
 }
 
 /**
- * the temporary profile the driver created for the session (`scoped_dir` in
- * its name); a `--user-data-dir` of the user is never deleted, so no wait
+ * the temporary profile the driver created because the session requested no
+ * `--user-data-dir`; the driver never deletes a profile of the user
  */
-function driverProfileOf (capabilities: WebdriverIO.Capabilities) {
-    const caps = capabilities as { chrome?: { userDataDir?: string }, 'ms:edge'?: { userDataDir?: string } }
-    const userDataDir = caps.chrome?.userDataDir || caps['ms:edge']?.userDataDir
-    return userDataDir && userDataDir.includes('scoped_dir') ? userDataDir : undefined
+function driverProfileOf (capabilities: WebdriverIO.Capabilities, requestedCapabilities?: WebdriverIO.Capabilities) {
+    if (!requestedCapabilities) {
+        return undefined
+    }
+    const requested = (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || requestedCapabilities
+    const args = [...(requested['goog:chromeOptions']?.args || []), ...(requested['ms:edgeOptions']?.args || [])]
+    if (args.some((arg) => typeof arg === 'string' && arg.includes('user-data-dir'))) {
+        return undefined
+    }
+    const caps = capabilities as { chrome?: { userDataDir?: string }, msedge?: { userDataDir?: string } }
+    return caps.chrome?.userDataDir || caps.msedge?.userDataDir
 }
 
 /**
  * Kill the driver process after `deleteSession` command is done
  * @param capabilities - the capabilities of the driver
  * @param shutdownDriver - whether to shutdown the driver
+ * @param requestedCapabilities - the capabilities the session was requested with
  */
-export function killDriverProcess(capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean) {
+export function killDriverProcess(capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean, requestedCapabilities?: WebdriverIO.Capabilities) {
     if (!shutdownDriver || !('wdio:driverPID' in capabilities) || !capabilities['wdio:driverPID']) {
         return
     }
     const pid = capabilities['wdio:driverPID']
-    const profile = driverProfileOf(capabilities)
+    const profile = driverProfileOf(capabilities, requestedCapabilities)
     if (!profile) {
         return kill(pid)
     }
@@ -75,7 +92,7 @@ export function killDriverProcess(capabilities: WebdriverIO.Capabilities, shutdo
         exitListenerAdded = true
         process.once('exit', killWaitingDrivers)
     }
-    waitingDrivers.add(pid)
+    waitingDrivers.set(pid, profile)
     const start = Date.now()
     const waitForProfile = () => {
         // already killed because the process exits

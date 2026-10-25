@@ -214,11 +214,16 @@ import path from 'node:path'
 export const config = {
     // ...
     beforeSession (config, capabilities) {
+        if (capabilities.browserName !== 'chrome') {
+            return
+        }
         const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
         chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
     }
 }
 ```
+
+In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`.
 
 ## Multi-remote Global
 

@@ -616,7 +616,7 @@ describe('deleteSession clean up', () => {
         const client = createScope()
         const { onResult } = await runDeleteSession(client)
         onResult({ value: null })
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
     })
@@ -626,7 +626,7 @@ describe('deleteSession clean up', () => {
         const { onError } = await runDeleteSession(client)
         const error = new Error('invalid session id: A session is either terminated or not started')
         expect(() => onError(error)).toThrow(error)
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
     })
@@ -635,7 +635,7 @@ describe('deleteSession clean up', () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client, { shutdownDriver: false })
         expect(() => onError(new Error('fetch failed'))).toThrow('fetch failed')
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false)
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false, client.requestedCapabilities)
     })
 
     it('cleans up only once when the result handler already did it', async () => {

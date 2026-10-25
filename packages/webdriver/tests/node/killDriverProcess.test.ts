@@ -21,12 +21,15 @@ describe('killDriverProcess', () => {
     })
 
     afterEach(() => {
+        // no driver of a failed test may wait until the real exit of the test worker
+        exists.mockReturnValue(false)
+        process.listeners('exit').find((listener) => listener.name === 'killWaitingDrivers')?.(0)
         vi.useRealTimers()
         vi.restoreAllMocks()
     })
 
     it('waits for ChromeDriver to delete its profile before it kills the driver', () => {
-        killDriverProcess({ 'wdio:driverPID': 42, 'goog:chromeOptions': {}, chrome: { userDataDir: profile } } as WebdriverIO.Capabilities, true)
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
         expect(kill).not.toBeCalled()
 
         exists.mockReturnValue(false)
@@ -36,7 +39,7 @@ describe('killDriverProcess', () => {
     })
 
     it('also waits for the profile of Edge', () => {
-        killDriverProcess({ 'wdio:driverPID': 42, 'ms:edge': { userDataDir: 'C:\\Temp\\scoped_dir1234_567' } } as unknown as WebdriverIO.Capabilities, true)
+        killDriverProcess({ 'wdio:driverPID': 42, msedge: { userDataDir: 'C:\\Temp\\scoped_dir1234_567' } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'MicrosoftEdge' })
         expect(kill).not.toBeCalled()
         exists.mockReturnValue(false)
         vi.advanceTimersByTime(10)
@@ -44,7 +47,7 @@ describe('killDriverProcess', () => {
     })
 
     it('kills the driver after 2 s when the profile does not go', () => {
-        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true)
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
         vi.advanceTimersByTime(1990)
         expect(kill).not.toBeCalled()
         vi.advanceTimersByTime(20)
@@ -56,27 +59,74 @@ describe('killDriverProcess', () => {
         expect(kill).toBeCalledWith(42, 'SIGKILL')
     })
 
-    it('kills the driver at once when the profile is a folder of the user', () => {
-        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: 'C:\\profiles\\mine' } } as unknown as WebdriverIO.Capabilities, true)
+    it('waits for a profile of any name that the driver created', () => {
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: '/var/folders/ns/T/.org.chromium.Chromium.wPrPpk' } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
+        expect(kill).not.toBeCalled()
+        exists.mockReturnValue(false)
+        vi.advanceTimersByTime(10)
+        expect(kill).toBeCalledWith(42, 'SIGKILL')
+    })
+
+    it.each([
+        { browserName: 'chrome', 'goog:chromeOptions': { args: ['--user-data-dir=/tmp/scoped_dir_mine'] } },
+        { alwaysMatch: { browserName: 'chrome', 'goog:chromeOptions': { args: ['user-data-dir=/tmp/scoped_dir_mine'] } } },
+        { browserName: 'MicrosoftEdge', 'ms:edgeOptions': { args: ['--user-data-dir=/tmp/scoped_dir_mine'] } }
+    ])('kills the driver at once when the user set the profile: %j', (requested) => {
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: '/tmp/scoped_dir_mine' } } as unknown as WebdriverIO.Capabilities, true, requested as WebdriverIO.Capabilities)
         expect(kill).toBeCalledWith(42, 'SIGKILL')
         expect(exists).not.toBeCalled()
     })
 
-    it('kills a waiting driver at once when the process exits', () => {
-        killDriverProcess({ 'wdio:driverPID': 43, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true)
+    it('kills the driver at once when the requested capabilities are not known', () => {
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true)
+        expect(kill).toBeCalledWith(42, 'SIGKILL')
+    })
+
+    it('waits for the profiles of two drivers at the same time', () => {
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
+        killDriverProcess({ 'wdio:driverPID': 43, chrome: { userDataDir: `${profile}2` } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
+        exists.mockImplementation((dir) => dir === `${profile}2`)
+        vi.advanceTimersByTime(10)
+        expect(kill).toBeCalledTimes(1)
+        expect(kill).toBeCalledWith(42, 'SIGKILL')
+        exists.mockReturnValue(false)
+        vi.advanceTimersByTime(10)
+        expect(kill).toBeCalledWith(43, 'SIGKILL')
+    })
+
+    it('waits a short time for the profile when the process exits during the wait', () => {
+        killDriverProcess({ 'wdio:driverPID': 43, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
+        exists.mockReturnValueOnce(true).mockReturnValueOnce(true).mockReturnValue(false)
+        const onExit = process.listeners('exit').find((listener) => listener.name === 'killWaitingDrivers')!
+        onExit(0)
+        expect(exists.mock.calls.length).toBeGreaterThanOrEqual(3)
+        expect(kill).toBeCalledWith(43, 'SIGKILL')
+    })
+
+    it('kills at exit after at most 200 ms when the profile does not go', () => {
+        killDriverProcess({ 'wdio:driverPID': 43, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
+        const onExit = process.listeners('exit').find((listener) => listener.name === 'killWaitingDrivers')!
+        const start = performance.now()
+        onExit(0)
+        expect(performance.now() - start).toBeLessThan(400)
+        expect(kill).toBeCalledWith(43, 'SIGKILL')
+    })
+
+    it('kills a waiting driver when the process exits', () => {
+        killDriverProcess({ 'wdio:driverPID': 43, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, true, { browserName: 'chrome' })
         expect(kill).not.toBeCalled()
+        exists.mockReturnValue(false)
         const onExit = process.listeners('exit').find((listener) => listener.name === 'killWaitingDrivers')!
         onExit(0)
         expect(kill).toBeCalledWith(43, 'SIGKILL')
 
         // the wait that comes later does not kill it again
-        exists.mockReturnValue(false)
         vi.advanceTimersByTime(10)
         expect(kill).toBeCalledTimes(1)
     })
 
     it('does not kill the driver with shutdownDriver: false', () => {
-        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, false)
+        killDriverProcess({ 'wdio:driverPID': 42, chrome: { userDataDir: profile } } as unknown as WebdriverIO.Capabilities, false, { browserName: 'chrome' })
         vi.advanceTimersByTime(3000)
         expect(kill).not.toBeCalled()
     })
