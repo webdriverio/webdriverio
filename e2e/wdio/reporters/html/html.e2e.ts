@@ -20,3 +20,14 @@ describe('html reporter', () => {
         reportEvents.logMessage({ title: await browser.getTitle() })
     })
 })
+
+describe('html reporter hooks', () => {
+    // the log of a before all hook goes to the first test of its suite, not to the test before
+    before(() => {
+        reportEvents.logMessage('Before all of the hooks suite')
+    })
+
+    it('runs after a before all hook', async () => {
+        reportEvents.logMessage('First test of the hooks suite')
+    })
+})

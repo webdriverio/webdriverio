@@ -57,8 +57,14 @@ export const config: WebdriverIO.Config = {
         check(fs.existsSync(path.join(htmlDir, 'report-styles.css')), 'the report has no CSS file')
 
         const masterJson = path.join(htmlDir, 'master-report.json')
-        const metrics = fs.existsSync(masterJson) ? JSON.parse(fs.readFileSync(masterJson, 'utf-8')).metrics : undefined
-        check(metrics?.passed === 2 && metrics?.failed === 0, `metrics: ${JSON.stringify(metrics)}`)
+        const master = fs.existsSync(masterJson) ? JSON.parse(fs.readFileSync(masterJson, 'utf-8')) : undefined
+        const metrics = master?.metrics
+        check(metrics?.passed === 3 && metrics?.failed === 0, `metrics: ${JSON.stringify(metrics)}`)
+        const logsOf = (title: string) => (master?.suites ?? [])
+            .flatMap((suite: { tests: { title: string, events?: { type: string, value: unknown }[] }[] }) => suite.tests)
+            .find((test: { title: string }) => test.title === title)?.events?.filter((event: { type: string }) => event.type === 'log').map((event: { value: unknown }) => event.value)
+        const hookTest = logsOf('runs after a before all hook')
+        check(hookTest?.[0] === 'Before all of the hooks suite', `the before all log is not in the first test of its suite: ${JSON.stringify(hookTest)}`)
 
         if (errors.length) {
             console.error(`HTML reporter e2e check failed:\n  - ${errors.join('\n  - ')}`)
