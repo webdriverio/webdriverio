@@ -74,13 +74,13 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    // as the commands: the innermost open beforeAll / afterAll with no context, else the test
-                    const hook = this.getContextId() ? undefined : this._openAllHooks.at(-1)
-                    const test = hook ? undefined : this.getContextTest()
-                    if (hook) {
-                        this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
-                    } else if (test && !test.end) {
+                    const test = this.getContextTest()
+                    // no test in a beforeAll / afterAll with no context: the innermost open one gets the logs (K28)
+                    const hook = test || this.getContextId() ? undefined : this._openAllHooks.at(-1)
+                    if (test && !test.end) {
                         this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
+                    } else if (hook) {
+                        this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
                     }
                 }
                 return this._originalStdoutWrite(chunk, encoding, callback)
