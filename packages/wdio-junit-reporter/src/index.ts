@@ -196,7 +196,9 @@ class JunitReporter extends WDIOReporter {
                     // default
                     testCase.failure(test.error.message)
                 }
-                testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
+                // a test can fail with more errors, e.g. its body and the afterEach that Vitest gives it
+                const stacks = (test.errors?.length ? test.errors : [test.error]).map((error) => error.stack?.replace(ansiRegex, '') ?? '')
+                testCase.standardError(`\n${stacks.join('\n')}\n`)
             } else {
                 testCase.failure()
             }

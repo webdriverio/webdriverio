@@ -47,17 +47,17 @@ export default class JsonReporter extends WDIOReporter {
                     start: suite.start,
                     end: suite.end,
                     sessionId: runner.sessionId,
-                    tests: mapTests(suite.tests),
+                    tests: mapTests(suite.tests, (test) => this.#retried.has(test)),
                     hooks: mapHooks(suite.hooks)
                 }
 
                 // the error of a retried attempt is on its `test:retry`, and the error of a `failedTestUid` hook is on that test
-                resultSet.state.failed += suite.hooks.filter(
+                resultSet.state.failed += testSuite.hooks.filter(
                     (hook) => hook.error && !hook.retried && !hook.failedTestUid).length
                 resultSet.state.passed += testSuite.tests.filter(
                     (test) => test.state === 'passed').length
-                resultSet.state.failed += suite.tests.filter(
-                    (test) => test.state === 'failed' && !this.#retried.has(test)).length
+                resultSet.state.failed += testSuite.tests.filter(
+                    (test) => test.state === 'failed' && !test.retried).length
                 resultSet.state.skipped += testSuite.tests.filter(
                     (test) => test.state === 'skipped').length
                 resultSet.suites.push(testSuite)

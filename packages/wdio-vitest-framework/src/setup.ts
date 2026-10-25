@@ -88,6 +88,9 @@ function readAttemptHooks(task: TestTask, errorsBefore: number): AttemptMarker['
         const state = states[kind]
         if (state === 'pass') {
             hooks[kind] = { state: 'pass' }
+        } else if (state === 'run' && errors.length === 0 && task.result?.state === 'skip') {
+            // ctx.skip() stops the hook with no error: the hook skipped the test, it did not fail
+            hooks[kind] = { state: 'pass' }
         } else if (state === 'run' || state === 'fail') {
             const error = kind === 'beforeEach' ? errors[0] : errors[errors.length - 1]
             hooks[kind] = { state: 'fail', ...(error && { error: serializeError(error) }) }

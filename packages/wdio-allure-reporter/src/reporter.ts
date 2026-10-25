@@ -1223,7 +1223,7 @@ export default class AllureReporter extends WDIOReporter {
         const { disableMochaHooks } = this._options
         if (!hook.parent && !this._isGlobalHook(hook)) { return }
         if (disableMochaHooks && !hook.error) { return }
-        if ((hook.retried || hook.failedTestUid) && !this._hasPendingTest && !this._hasPendingHook) { return }
+        if ((hook.retried || hook.failedTestUid) && !this._hasPendingTest) { return }
         const hadPendingTest = this._hasPendingTest
         const hadPendingHook = this._hasPendingHook
 
