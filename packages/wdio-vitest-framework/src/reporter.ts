@@ -14,7 +14,7 @@ const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporte
 
 type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
-type AllHookName = 'beforeAll' | 'afterAll'
+type AllHookName = Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
 type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
 
 type ModuleRun = {
