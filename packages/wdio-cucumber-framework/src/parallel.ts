@@ -54,6 +54,7 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    scenarioLabel,
     strictPendingWarning,
     withAmbiguousMessage,
 } from './utils.js'
@@ -746,7 +747,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
 // Scenario execution
 // ============================================================
 
-type ScenarioResult = { status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number }
+type ScenarioResult = { status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number; label: string }
 
 /**
  * Mirrors Cucumber's shouldCauseFailure (runtime/helpers.js) plus WDIO's
@@ -828,7 +829,7 @@ async function runScenario(
 
     if (!testCase) {
         log.warn(`No assembled test case for pickle "${pickle.name}"`)
-        return { status: 'SKIPPED' as const, name: pickle.name, duration: 0 }
+        return { status: 'SKIPPED' as const, name: pickle.name, duration: 0, label: scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle) }
     }
 
     const execute = async () => {
@@ -884,7 +885,7 @@ async function runScenario(
         }
         const duration = Date.now() - testStart
 
-        return { status, name: pickle.name, duration }
+        return { status, name: pickle.name, duration, label: scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle) }
     }
     return contextId ? parallelStore.run(contextId, execute) : execute()
 }
@@ -1171,7 +1172,7 @@ async function runParallel(params: {
     }
     const hookFailures = Number(!beforeAllOk) + Number(!afterAllOk)
     const strictPending = cucumberOpts.strict && !cucumberOpts.dryRun
-        ? allResults.flatMap((r) => r.status === 'fulfilled' && r.value.status === 'PENDING' ? [r.value.name] : [])
+        ? allResults.flatMap((r) => r.status === 'fulfilled' && r.value.status === 'PENDING' ? [r.value.label] : [])
         : []
     if (strictPending.length) {
         log.warn(strictPendingWarning(strictPending))

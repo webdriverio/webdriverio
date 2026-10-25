@@ -30,8 +30,8 @@ export default class SpecReporter extends WDIOReporter {
     private _showPreface = true
     private _suiteName = ''
 
-    /** the counts of the current attempt of a suite: a retry of the suite (Cucumber scenario) removes them */
-    private _attemptCounts = { passed: 0, failed: 0, skipped: 0, pending: 0 }
+    /** the counts of the current attempt of each suite (uid): a retry of the suite (Cucumber scenario) removes them */
+    private _attemptCounts = new Map<string, Record<'passed' | 'failed' | 'skipped' | 'pending', number>>()
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -101,7 +101,6 @@ export default class SpecReporter extends WDIOReporter {
         this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
-        this._newAttempt()
         if (suite.type === 'feature') {
             this._indents = 0
             this._suiteIndents[suite.uid] = this._indents
@@ -110,32 +109,37 @@ export default class SpecReporter extends WDIOReporter {
         }
     }
 
-    onSuiteEnd () {
+    onSuiteEnd (suite?: SuiteStats) {
         this._indents--
-        this._newAttempt()
+        this._attemptCounts.delete(this._suiteKey(suite?.uid))
     }
 
-    onSuiteRetry(): void {
-        for (const state of ['passed', 'failed', 'skipped', 'pending'] as const) {
-            this._stateCounts[state] -= this._attemptCounts[state]
+    onSuiteRetry(suite?: SuiteStats): void {
+        const key = this._suiteKey(suite?.uid)
+        for (const [state, count] of Object.entries(this._attemptCounts.get(key) ?? {})) {
+            this._stateCounts[state as 'passed'] -= count
         }
+        this._attemptCounts.delete(key)
         this._stateCounts.retried++
-        this._newAttempt()
     }
 
-    private _newAttempt () {
-        this._attemptCounts = { passed: 0, failed: 0, skipped: 0, pending: 0 }
+    /** the suite of a test or hook: its `parentUid` in parallel mode, else the suite that runs */
+    private _suiteKey (uid?: string | null) {
+        return uid ?? this.currentSuites.at(-1)?.uid ?? ''
     }
 
-    private _count (state: 'passed' | 'failed' | 'skipped' | 'pending', change = 1) {
+    private _count (state: 'passed' | 'failed' | 'skipped' | 'pending', stat: TestStats | HookStats, change = 1) {
         this._stateCounts[state] += change
-        this._attemptCounts[state] += change
+        const key = this._suiteKey(stat.parentUid)
+        const counts = this._attemptCounts.get(key) ?? { passed: 0, failed: 0, skipped: 0, pending: 0 }
+        counts[state] += change
+        this._attemptCounts.set(key, counts)
     }
 
     onHookEnd (hook: HookStats) {
         this.printCurrentStats(hook)
         if (hook.error) {
-            this._count('failed')
+            this._count('failed', hook)
         }
     }
 
@@ -145,7 +149,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestPass (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._count('passed')
+        this._count('passed', testStat)
         this._passedTests.add(testStat)
     }
 
@@ -153,22 +157,22 @@ export default class SpecReporter extends WDIOReporter {
         this.printCurrentStats(testStat)
 
         if (this._passedTests.delete(testStat)) {
-            this._count('passed', -1)
+            this._count('passed', testStat, -1)
         }
 
-        this._count('failed')
+        this._count('failed', testStat)
     }
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._count('skipped')
+        this._count('skipped', testStat)
     }
 
     onTestPending(testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)
-        this._count('pending')
+        this._count('pending', testStat)
     }
 
     onRunnerEnd (runner: RunnerStats) {

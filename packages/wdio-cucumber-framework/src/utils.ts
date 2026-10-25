@@ -363,12 +363,24 @@ export function getFeatureStack(uri: string, feature: Feature, scenario: Pickle,
 }
 
 /**
+ * a scenario as Cucumber names it: `"name" (path:line)`, with the line of the example row for an outline
+ */
+export function scenarioLabel(uri: string, feature: Feature | undefined, scenario: Pickle): string {
+    const [scenarioId, rowId] = scenario.astNodeIds ?? []
+    const children = feature?.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
+    const featScenario = children.find((c) => c.scenario?.id === scenarioId)?.scenario
+    const row = featScenario?.examples?.flatMap((examples) => examples.tableBody).find((r) => r.id === rowId)
+    const line = (row ?? featScenario)?.location?.line
+    return `"${scenario.name}" (${path.relative(process.cwd(), uri)}${line ? `:${line}` : ''})`
+}
+
+/**
  * with `strict`, Cucumber fails the run on a pending step or hook, but shows it as pending
- * (a warning, issue_helpers.js): name the scenarios that make the run fail
+ * (a warning, issue_helpers.js): name the scenarios (see `scenarioLabel`) that make the run fail
  */
 export function strictPendingWarning(scenarios: string[]) {
     return `The run fails because cucumberOpts.strict is true and ${scenarios.length} ${scenarios.length === 1 ? 'scenario has' : 'scenarios have'} ` +
-        `a pending step or hook: ${scenarios.map((name) => `"${name}"`).join(', ')}`
+        `a pending step or hook: ${scenarios.join(', ')}`
 }
 
 /**

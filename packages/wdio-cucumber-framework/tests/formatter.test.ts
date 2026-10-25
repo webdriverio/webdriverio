@@ -569,7 +569,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testCaseFinished })
             eventBroadcaster.emit('envelope', { testRunFinished })
             const warnings = warn.mock.calls.map(([message]) => message)
-            expect(warnings).toEqual(strict ? ['The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "Get size of an element"'] : [])
+            const file = path.relative(process.cwd(), gherkinDocument.uri!)
+            expect(warnings).toEqual(strict ? [`The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "Get size of an element" (${file}:12)`] : [])
         })
     })
 

@@ -184,6 +184,23 @@ describe('SpecReporter', () => {
         expect(tmpReporter['_stateCounts']).toMatchObject({ passed: 1, failed: 1, skipped: 0, pending: 0, retried: 2 })
     })
 
+    // parallel mode: the events of scenarios in other windows come between the events of the retried scenario
+    it('removes only the counts of the retried scenario when scenarios overlap', () => {
+        const step = (uid: string, parentUid: string) => ({ uid, parentUid }) as any
+        tmpReporter.onSuiteStart({ uid: 'A', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onSuiteStart({ uid: 'B', type: 'scenario' } as any)
+        tmpReporter.onTestFail(step('b1', 'B'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onSuiteRetry({ uid: 'A' } as any)
+        tmpReporter.onSuiteEnd({ uid: 'B' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onTestPass(step('a2', 'A'))
+        tmpReporter.onSuiteEnd({ uid: 'A' } as any)
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({ passed: 2, failed: 1, retried: 1 })
+    })
+
     it('should retain a passed test when another test with the same UID fails', () => {
         const passedTest = { uid: 'same-title' } as any
         const failedTest = { uid: 'same-title' } as any

@@ -848,7 +848,7 @@ describe('runParallelCucumber', () => {
         expect((await run(false)).map((r) => r.event)).toEqual(['test:pending'])
         expect(warn).not.toHaveBeenCalled()
         expect((await run(true)).map((r) => r.event)).toEqual(['test:pending'])
-        expect(warn).toHaveBeenCalledWith('The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "scenario a"')
+        expect(warn).toHaveBeenCalledWith(`The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "scenario a" (${path.relative(process.cwd(), '/test/foo.feature')}:3)`)
     })
 
     test('undefined steps fail unless ignoreUndefinedDefinitions is set', async () => {

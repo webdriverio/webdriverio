@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { getFeatureStack, getStepResult, retriesForPickle, strictPendingWarning, withAmbiguousMessage } from './utils.js'
+import { getFeatureStack, getStepResult, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -259,9 +259,7 @@ export default class CucumberFormatter extends Formatter {
             this.failedCount++
         }
         // Cucumber retries an attempt with a FAILED result: the step ends as a retry, the scenario starts again
-        if (step && result.status === Status.FAILED && this.hasAttemptsLeft(scenario)) {
-            retried = true
-        }
+        const stepRetried = Boolean(step) && result.status === Status.FAILED && this.hasAttemptsLeft(scenario)
 
         const common = {
             title: title,
@@ -295,9 +293,9 @@ export default class CucumberFormatter extends Formatter {
         if (titleSuffix) {
             payload.title += titleSuffix
         }
-        this.emit(retried ? 'test:retry' : 'test:' + state, payload)
+        this.emit(retried || stepRetried ? 'test:retry' : 'test:' + state, payload)
         // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried scenario attempt has none)
-        if (!retried || step) {
+        if (!retried) {
             this.emit('test:end', payload)
         }
     }
@@ -598,10 +596,6 @@ export default class CucumberFormatter extends Formatter {
             return
         }
 
-        if (!retried && this.strict && results.length && getWorstTestStepResult(results).status === Status.PENDING) {
-            this._strictPendingScenarios.push(scenario.name)
-        }
-
         const finalResult = getScenarioResult(results, {
             ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
             failAmbiguousDefinitions: this.failAmbiguousDefinitions,
@@ -614,6 +608,9 @@ export default class CucumberFormatter extends Formatter {
         const uri = doc?.uri
         const feature = doc?.feature
         this.updateCurrentPickle({ uri, feature, scenario })
+        if (!retried && this.strict && results.length && getWorstTestStepResult(results).status === Status.PENDING) {
+            this._strictPendingScenarios.push(scenarioLabel(uri ?? scenario.uri, feature, scenario))
+        }
 
         const payload = {
             uid: scenario.id,

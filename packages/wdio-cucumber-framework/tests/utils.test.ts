@@ -16,6 +16,7 @@ import {
     getFeatureStack,
     getScenarioResult,
     getStepResult,
+    scenarioLabel,
     withAmbiguousMessage
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
@@ -417,6 +418,18 @@ describe('utils', () => {
         it('finds a background step', () => {
             expect(getFeatureStack('/a.feature', feature, scenario, { astNodeIds: ['bg-1'] } as unknown as PickleStep)).toBe(
                 '\tat Feature(/a.feature):1:1\n\tat Scenario(Get size):6:3\n\tat Step(a background step):4:5\n')
+        })
+
+        // the strict pending warning names a scenario as Cucumber prints it: path and line, the example row for an outline
+        it('gives the label of a scenario: its name, path and line', () => {
+            const outline = {
+                children: [{ scenario: { id: 'sc-2', name: 'Login', location: { line: 6, column: 3 }, steps: [],
+                    examples: [{ tableBody: [{ id: 'row-1', location: { line: 10, column: 7 } }, { id: 'row-2', location: { line: 11, column: 7 } }] }] } }]
+            } as unknown as Feature
+            const file = path.join(process.cwd(), 'features', 'a.feature')
+            expect(scenarioLabel(file, feature, { name: 'Get size', astNodeIds: ['sc-1'] } as unknown as Pickle)).toBe(`"Get size" (${path.join('features', 'a.feature')}:6)`)
+            expect(scenarioLabel(file, outline, { name: 'Login', astNodeIds: ['sc-2', 'row-2'] } as unknown as Pickle)).toBe(`"Login" (${path.join('features', 'a.feature')}:11)`)
+            expect(scenarioLabel(file, outline, { name: 'Other', astNodeIds: ['x'] } as unknown as Pickle)).toBe(`"Other" (${path.join('features', 'a.feature')})`)
         })
 
         it('gives only the feature for an unknown scenario', () => {
