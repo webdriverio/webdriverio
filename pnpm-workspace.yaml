@@ -13,6 +13,9 @@ packages:
   - 'examples/appium/**'
   - '!e2e/session/__fixtures__/**'
 
+# Fail installs when an update no longer supports the current Node.js version.
+engineStrict: true
+
 # only sharp runs its install script; the rest work without theirs
 allowBuilds:
   sharp: true
