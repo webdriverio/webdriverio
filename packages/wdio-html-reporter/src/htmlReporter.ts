@@ -104,6 +104,9 @@ export default class HtmlReporter extends WDIOReporter {
     #onMessage = this.saveMessage.bind(this)
     #onScreenshot = this.saveScreenshot.bind(this)
     #onVideo = this.saveVideo.bind(this)
+    #onMessageEvent = ({ value }: { value: unknown }) => this.saveMessage(value)
+    #onScreenshotEvent = ({ value }: { value: string }) => this.saveScreenshot(value)
+    #onVideoEvent = ({ value }: { value: string }) => this.saveVideo(value)
 
     constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
@@ -123,6 +126,10 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.connectMessageEvent(this.#onMessage)
         reportProxy.connectScreenshotEvent(this.#onScreenshot)
         reportProxy.connectVideoCaptureEvent(this.#onVideo)
+        // a Vitest worker cannot reach the process of the launcher: the framework replays these calls on the reporter, wrapped in `value`
+        this.on('test:log', this.#onMessageEvent)
+        this.on('test:screenshot', this.#onScreenshotEvent)
+        this.on('test:video-capture', this.#onVideoEvent)
         this.reportGenerator = new ReportGenerator(this.options)
         // the hook and test events have the context of a parallel-mode test (Mocha), else the calling code has it
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
@@ -371,6 +378,9 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.disconnectMessageEvent(this.#onMessage)
         reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
         reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
+        this.off('test:log', this.#onMessageEvent)
+        this.off('test:screenshot', this.#onScreenshotEvent)
+        this.off('test:video-capture', this.#onVideoEvent)
 
     }
 

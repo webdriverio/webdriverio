@@ -754,6 +754,24 @@ describe('WdioBridgeReporter', () => {
             expect(emitted[start + 2][1]).toEqual({ name: 'k', value: 'v' })
         })
 
+        it('replays the html reporter log and screenshot calls between test:start and test:pass', async () => {
+            const module = makeModule()
+            const meta = runtimeMeta(
+                { event: 'test:log', payload: { value: 'a log line' }, retry: 0 },
+                { event: 'test:screenshot', payload: { value: 'shot.png' }, retry: 0 }
+            )
+            reporter.onTestModuleStart(module)
+            const test = makeTest(module, module, 'replayed', passed, 1, { meta: () => meta })
+            await reporter.onTestCaseReady(test)
+            await reporter.onTestCaseResult(test)
+
+            const emitted = emittedOf()
+            const start = emitted.findIndex(([name]) => name === 'test:start')
+            expect(emitted.slice(start, start + 5).map(([name]) => name)).toEqual(['test:start', 'test:log', 'test:screenshot', 'test:pass', 'test:end'])
+            expect(emitted[start + 1][1]).toEqual({ value: 'a log line' })
+            expect(emitted[start + 2][1]).toEqual({ value: 'shot.png' })
+        })
+
         describe('pending attachment files', () => {
             let dir: string
             beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-pending-')) })
