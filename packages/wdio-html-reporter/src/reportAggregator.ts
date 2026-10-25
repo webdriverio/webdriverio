@@ -131,28 +131,51 @@ class ReportAggregator {
         const notStarted: string[] = []
         const workerOf = (report: { info?: { cid?: string, specs?: string[] } }) =>
             `${report.info?.cid} (${(report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')})`
-        for (let i = 0; i < files.length; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const workerReports: any[] = []
+        for (const filename of files) {
             try {
-                const filename = files[i]
-                let report
-                try {
-                    report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
-                } catch (ex) {
-                    inputFailed = true
-                    console.error(`Cannot read the report file ${filename}: ${ex}`)
-                    continue
-                }
+                const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
                 // a master report of another name (for example from the command line)
                 if (report.master) {
                     this.LOG.info(`Skip the master report ${filename}`)
                     continue
                 }
+                workerReports.push(report)
+            } catch (ex) {
+                inputFailed = true
+                console.error(`Cannot read the report file ${filename}: ${ex}`)
+            }
+        }
+        /**
+         * `specFileRetries` runs a spec file again with the same cid: the attempt that started
+         * last is the result (also when old files of an earlier run are in the folder)
+         */
+        const startOf = (report: { info?: { start?: string } }) => dayjs.utc(report.info?.start).valueOf() || 0
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const lastAttempts = new Map<string, any>()
+        for (const report of workerReports) {
+            const last = lastAttempts.get(report.info?.cid)
+            if (!last || startOf(report) > startOf(last) || (startOf(report) === startOf(last) && (report.info?.retry ?? 0) > (last.info?.retry ?? 0))) {
+                lastAttempts.set(report.info?.cid, report)
+            }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const retried = new Set<any>()
+        for (const report of workerReports) {
+            try {
+                const isLastAttempt = lastAttempts.get(report.info?.cid) === report
                 if (report.incomplete) {
-                    incomplete.push(workerOf(report))
+                    if (isLastAttempt) {
+                        incomplete.push(workerOf(report))
+                    }
                     continue
                 }
-                if (report.info?.sessionFailed) {
+                if (report.info?.sessionFailed && isLastAttempt) {
                     notStarted.push(workerOf(report))
+                }
+                if (!isLastAttempt) {
+                    retried.add(report)
                 }
                 if (!report.info || !report.info.specs) {
                     this.LOG.error('report structure in question, no info or info.specs ', JSON.stringify(report))
@@ -181,16 +204,14 @@ class ReportAggregator {
             // the attempts of a spec file retry, in order
             return (report1.info.retry ?? 0) - (report2.info.retry ?? 0)
         })
-        // `specFileRetries`: the report shows each attempt of a spec file, and counts only the last one
-        const lastAttempt = new Map<string, number>()
-        for (const report of this.reports) {
-            lastAttempt.set(report.info.cid, Math.max(lastAttempt.get(report.info.cid) ?? 0, report.info.retry ?? 0))
-        }
+        // the report shows each attempt of a spec file, and counts only the last one
+        const attempts = new Map<string, number>()
         for (let j = 0; j < this.reports.length; j++) {
             try {
                 const report = this.reports[j]
-                const retried = (report.info.retry ?? 0) < (lastAttempt.get(report.info.cid) ?? 0)
-                if (!retried) {
+                const attempt = (attempts.get(report.info.cid) ?? 0) + 1
+                attempts.set(report.info.cid, attempt)
+                if (!retried.has(report)) {
                     metrics.passed += report.metrics.passed
                     metrics.failed += report.metrics.failed
                     metrics.skipped += report.metrics.skipped
@@ -198,8 +219,8 @@ class ReportAggregator {
                 removeMissingVideos(report.suites)
                 for (let k = 0; k < report.suites.length; k++) {
                     const suiteInfo = report.suites[k]
-                    if (retried) {
-                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${(report.info.retry ?? 0) + 1}, retried)`
+                    if (retried.has(report)) {
+                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${attempt}, retried)`
                     }
                     this.updateSuiteMetrics(metrics, suiteInfo)
                     suites.push(suiteInfo)

@@ -42,6 +42,17 @@ function reportCapabilities (capabilities: unknown) {
 }
 
 /**
+ * The attempt of a spec file with `specFileRetries`: 0 for the first one. The runner gives
+ * the first attempt `specFileRetries + 1` (the launcher does not know the retries yet),
+ * and 1 when there are no retries
+ */
+function specFileAttempt (runner: RunnerStats) {
+    const specFileRetries = (runner.config as { specFileRetries?: number } | undefined)?.specFileRetries ?? 0
+    const retry = runner.retry ?? 0
+    return specFileRetries && retry <= specFileRetries ? retry : 0
+}
+
+/**
  * The runner data for the report files, which are often shared (for example as CI
  * artifacts): only the fields that the report uses, and no configuration, session
  * options or capabilities with credentials (`user`, `key`, `accessKey`, a URL with a
@@ -62,8 +73,7 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         end: runner.end,
         _duration: runner._duration,
         isMultiRemote: runner.isMultiRemote,
-        // the runner gives 1 also with no specFileRetries
-        retry: (runner.config as { specFileRetries?: number } | undefined)?.specFileRetries ? runner.retry ?? 0 : 0,
+        retry: specFileAttempt(runner),
         capabilities,
         // the names of the full capabilities: the reduced copy above cannot name an app
         browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
@@ -105,6 +115,8 @@ export default class HtmlReporter extends WDIOReporter {
      * test context (a `before all` or Cucumber `Before` hook) waits for the next test
      */
     #waitingForTest = true
+    /** sequential mode: the suite that started the wait; a nested suite with no test does not end it */
+    #waitingSuite?: string
     /** sequential mode: the first test that the suite skipped while it waited (`this.skip()` in a before hook) */
     #firstSkipped?: string
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
@@ -159,11 +171,11 @@ export default class HtmlReporter extends WDIOReporter {
         })
         this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
         // a Cucumber retry runs in the same context: its Before hook events are for the first step of the retry
-        this.on('suite:retry', ({ contextId }: { contextId?: string }) => {
+        this.on('suite:retry', ({ uid, contextId }: { uid: string, contextId?: string }) => {
             if (contextId) {
                 this.#contextTests.delete(contextId)
             } else {
-                this.#waitingForTest = true
+                this.#startWaiting(uid)
             }
         })
     }
@@ -190,8 +202,10 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
-        this.#waitingForTest = true
-        this.#firstSkipped = undefined
+        // a nested suite keeps the events that its parent's before hook sent for the parent's first test
+        if (!this.#waitingForTest || !this.#earlyEvents.get('')?.length) {
+            this.#startWaiting(suite.uid)
+        }
         suite.start = new Date()
         this.LOG.info(`onSuiteStart: ${suite.cid}:${suite.uid}`)
     }
@@ -339,12 +353,21 @@ export default class HtmlReporter extends WDIOReporter {
         }
     }
 
+    #startWaiting(suiteUid: string) {
+        this.#waitingForTest = true
+        this.#waitingSuite = suiteUid
+        this.#firstSkipped = undefined
+    }
+
     /**
      * sequential mode: no test of the suite started (a failed before hook with
      * `failHookAffectedTests: false`, `this.skip()`): its events go to the first test
      * that it skipped, else to the test before, else nowhere (not to the next suite)
      */
-    #endWaiting() {
+    #endWaiting(suite: SuiteStats) {
+        if (this.#waitingForTest && this.#waitingSuite && suite.uid !== this.#waitingSuite) {
+            return
+        }
         const early = this.#earlyEvents.get('')
         if (early && !this.#contextTests.size) {
             const test = this.getTest(this.#firstSkipped ?? this._currentTestUid)
@@ -353,6 +376,7 @@ export default class HtmlReporter extends WDIOReporter {
             this.#earlyEvents.delete('')
         }
         this.#waitingForTest = false
+        this.#waitingSuite = undefined
         this.#firstSkipped = undefined
     }
 
@@ -399,7 +423,7 @@ export default class HtmlReporter extends WDIOReporter {
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
-        this.#endWaiting()
+        this.#endWaiting(suite)
         this.#countOpenHookFailures()
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
