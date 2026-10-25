@@ -252,7 +252,7 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `isContextlessAllHook(hook)` (an export of `@wdio/reporter`): `true` for a `beforeAll` / `afterAll` hook that has a `hookKind` and no context. Such a hook belongs to its suite, not to a unit.
 - `this.isFeatureHook(hook)`: `true` for a hook of a Cucumber feature (`BeforeAll` / `AfterAll`): the suite of the hook is a `feature`.
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
-- `hookStats.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
+- `hookStats.state`: `'failed'` when the hook failed, `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), else `undefined` (a passed hook). The reporter does not set `'passed'` on a hook.
 
 :::warning Experimental
 

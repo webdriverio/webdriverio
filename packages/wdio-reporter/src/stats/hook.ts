@@ -50,7 +50,11 @@ export default class HookStats extends RunnableStats {
     body?: string
     errors?: Error[]
     error?: Error
-    /** @experimental `'skipped'`: the framework skipped the hook (Mocha `this.skip()`, a Cucumber hook result `SKIPPED`) */
+    /**
+     * `'failed'`, `'skipped'` (the framework skipped the hook: Mocha `this.skip()`, a Cucumber hook result `SKIPPED`),
+     * else `undefined` (a passed hook). No code sets `'passed'`.
+     * @experimental the `'skipped'` value
+     */
     state?: 'failed' | 'passed' | 'skipped'
     currentTest?: string
     // `declare`: no own property when the payload has no value, so these stats stay the same
