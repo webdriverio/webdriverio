@@ -21,6 +21,8 @@ import util from 'node:util'
 import logger from '@wdio/logger'
 
 type ReportEvent = InternalReportEvent | { type: string, value: unknown }
+/** sequential mode: a suite whose first test did not start yet, and the events of its before hooks */
+type WaitingSuite = { uid?: string, events: ReportEvent[], firstSkipped?: string }
 
 const reportProxy = new ReportEvents()
 const TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -108,17 +110,14 @@ export default class HtmlReporter extends WDIOReporter {
      * an afterEach log or a timer of the test can come later
      */
     #contextTests = new Map<string, string>()
-    /** the events of a context before its test starts (a before hook); key '' in sequential mode */
+    /** parallel mode: the events of a context before its test starts (a before hook) */
     #earlyEvents = new Map<string, ReportEvent[]>()
     /**
-     * sequential mode: a suite started and no test of it started yet, so an event with no
-     * test context (a `before all` or Cucumber `Before` hook) waits for the next test
+     * sequential mode: the open suites whose first test did not start yet, the outer one first
+     * (the first one is for the events before any suite). An event with no test context (a
+     * `before all` or Cucumber `Before` hook) waits in the innermost one for the next test
      */
-    #waitingForTest = true
-    /** sequential mode: the suite that started the wait; a nested suite with no test does not end it */
-    #waitingSuite?: string
-    /** sequential mode: the first test that the suite skipped while it waited (`this.skip()` in a before hook) */
-    #firstSkipped?: string
+    #waitingSuites: WaitingSuite[] = [{ events: [] }]
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
     /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
@@ -175,7 +174,7 @@ export default class HtmlReporter extends WDIOReporter {
             if (contextId) {
                 this.#contextTests.delete(contextId)
             } else {
-                this.#startWaiting(uid)
+                this.#waitingSuites = [{ uid, events: [] }]
             }
         })
     }
@@ -202,9 +201,8 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
-        // a nested suite keeps the events that its parent's before hook sent for the parent's first test
-        if (!this.#waitingForTest || !this.#earlyEvents.get('')?.length) {
-            this.#startWaiting(suite.uid)
+        if (!this.#contextTests.size) {
+            this.#waitingSuites.push({ uid: suite.uid, events: [] })
         }
         suite.start = new Date()
         this.LOG.info(`onSuiteStart: ${suite.cid}:${suite.uid}`)
@@ -227,19 +225,19 @@ export default class HtmlReporter extends WDIOReporter {
 
     /**
      * The test takes the events that came before it (a before hook): in parallel mode
-     * it is the test of its context, in sequential mode the next test
+     * the events of its context, in sequential mode those of all the waiting suites
      */
     #takeEarlyEvents(test: TestStats) {
+        //@ts-ignore
+        const events: ReportEvent[] = test.events
         if (test.contextId) {
             this.#contextTests.set(test.contextId, test.uid)
+            events.push(...this.#earlyEvents.get(test.contextId) ?? [])
+            this.#earlyEvents.delete(test.contextId)
         } else {
-            this.#waitingForTest = false
-            this.#firstSkipped = undefined
+            events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
+            this.#waitingSuites = []
         }
-        const key = test.contextId ?? ''
-        //@ts-ignore
-        test.events.push(...this.#earlyEvents.get(key) ?? [])
-        this.#earlyEvents.delete(key)
     }
 
     onTestPass(theTest: TestStats) {
@@ -276,11 +274,12 @@ export default class HtmlReporter extends WDIOReporter {
         // a test that a before hook skips (`this.skip()`) never starts: in parallel mode it takes the events of its context
         if (!this._testUids.has(test.uid)) {
             this.#registerTest(test)
+            const waiting = this.#waitingSuites.at(-1)
             if (test.contextId) {
                 this.#takeEarlyEvents(test)
-            } else if (this.#waitingForTest) {
+            } else if (waiting) {
                 // sequential mode: a test that runs later in the suite takes the events (`it.skip`), else this one
-                this.#firstSkipped ??= test.uid
+                waiting.firstSkipped ??= test.uid
             }
         }
         if (!this.#countScenarios) {
@@ -333,8 +332,12 @@ export default class HtmlReporter extends WDIOReporter {
             this.LOG.warn(message)
             console.warn(`[@wdio/html-reporter] ${message}`)
         }
-        const waiting = !id && this.#waitingForTest && !this.#contextTests.size
-        const uid = id ? this.#contextTests.get(id) : waiting ? undefined : this._currentTestUid
+        const waiting = !id && !this.#contextTests.size ? this.#waitingSuites.at(-1) : undefined
+        if (waiting) {
+            waiting.events.push(event)
+            return
+        }
+        const uid = id ? this.#contextTests.get(id) : this._currentTestUid
         const test = uid ? this.getTest(uid) : undefined
         if (test) {
             if (moveErrors) {
@@ -342,42 +345,38 @@ export default class HtmlReporter extends WDIOReporter {
             }
             //@ts-ignore
             test.events.push(event)
-        } else if (id || waiting) {
-            const key = id ?? ''
-            const early = this.#earlyEvents.get(key)
+        } else if (id) {
+            const early = this.#earlyEvents.get(id)
             if (early) {
                 early.push(event)
             } else {
-                this.#earlyEvents.set(key, [event])
+                this.#earlyEvents.set(id, [event])
             }
         }
     }
 
-    #startWaiting(suiteUid: string) {
-        this.#waitingForTest = true
-        this.#waitingSuite = suiteUid
-        this.#firstSkipped = undefined
-    }
-
     /**
      * sequential mode: no test of the suite started (a failed before hook with
-     * `failHookAffectedTests: false`, `this.skip()`): its events go to the first test
-     * that it skipped, else to the test before, else nowhere (not to the next suite)
+     * `failHookAffectedTests: false`, `this.skip()`): its events go to the first test that it
+     * skipped, else wait for the next test of its parent suite; a top-level suite gives them
+     * to the test before, else to nothing (not to the next suite)
      */
     #endWaiting(suite: SuiteStats) {
-        if (this.#waitingForTest && this.#waitingSuite && suite.uid !== this.#waitingSuite) {
+        if (this.#contextTests.size) {
+            // parallel mode: an event with no context before the first test has no test
+            this.#waitingSuites = []
             return
         }
-        const early = this.#earlyEvents.get('')
-        if (early && !this.#contextTests.size) {
-            const test = this.getTest(this.#firstSkipped ?? this._currentTestUid)
-            //@ts-ignore
-            test?.events.push(...early)
-            this.#earlyEvents.delete('')
+        const waiting = this.#waitingSuites.at(-1)
+        if (!waiting || waiting.uid !== suite.uid) {
+            return
         }
-        this.#waitingForTest = false
-        this.#waitingSuite = undefined
-        this.#firstSkipped = undefined
+        this.#waitingSuites.pop()
+        const parent = this.#waitingSuites.at(-1)
+        const test = waiting.firstSkipped ? this.getTest(waiting.firstSkipped) : parent?.uid ? undefined : this.getTest(this._currentTestUid)
+        //@ts-ignore
+        const events: ReportEvent[] | undefined = test ? test.events : parent?.uid ? parent.events : undefined
+        events?.push(...waiting.events)
     }
 
     onHookStart(hook: HookStats) {
