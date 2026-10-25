@@ -57,8 +57,9 @@ export function formatMessage ({ payload = {} }: { payload: Payload }): Payload 
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
     if (payload.error && (payload.error.message || payload.error.stack)) {
-        const { name, message, stack } = payload.error
-        content.error = { name, message, stack }
+        const { name, message, stack, type } = payload.error
+        // as the Mocha framework: the concise reporter prints the type
+        content.error = { name, message, stack, type: type || name }
     }
 
     if (payload.title && payload.parent) {

@@ -35,8 +35,17 @@ describe('utils', () => {
                     name: 'Error',
                     message: 'boom',
                     stack: error.stack,
+                    type: 'Error',
                 }
             })
+        })
+
+        // the concise reporter prints the type: Cucumber errors had none (`undefined : …`)
+        it('keeps the error type, as the Mocha framework', () => {
+            const error = new TypeError('x')
+            expect(formatMessage({ payload: { error } }).error).toEqual({ name: 'TypeError', message: 'x', stack: error.stack, type: 'TypeError' })
+            const assertion = Object.assign(new Error('y'), { type: 'AssertionError' })
+            expect(formatMessage({ payload: { error: assertion } }).error.type).toBe('AssertionError')
         })
 
         it('should not fail if payload was not passed', () => {
