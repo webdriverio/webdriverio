@@ -47,15 +47,61 @@ describe('dot reporter hook of a feature (K26)', () => {
         expect(dots(reporter)).toEqual(['greenBright .', 'redBright F'])
     })
 
-    it('writes nothing for a passed hook of the feature or a failed hook of a Mocha suite (no change)', () => {
+    it('writes nothing for a passed hook', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('F', 'feature', null))
         reporter.emit('hook:start', hook('BeforeAll', 'F', 'beforeAll'))
         reporter.emit('hook:end', hook('BeforeAll', 'F', 'beforeAll'))
         reporter.emit('suite:end', suite('F', 'feature'))
+        expect(dots(reporter)).toEqual([])
+    })
+})
+
+describe('dot reporter writes an F for each failed hook', () => {
+    const error = { message: 'fails' }
+
+    it('Mocha beforeEach: the F of the hook and the F of the affected test', () => {
+        const reporter = newReporter()
         reporter.emit('suite:start', suite('s', 'suite', null))
-        reporter.emit('hook:start', hook('"after all" hook', 's', 'afterAll'))
-        reporter.emit('hook:end', { ...hook('"after all" hook', 's', 'afterAll'), error: { message: 'fails' } })
+        reporter.emit('hook:start', hook('"before each" hook', 's', 'beforeEach'))
+        reporter.emit('hook:end', { ...hook('"before each" hook', 's', 'beforeEach'), error })
+        reporter.emit('test:start', step('t1', 's'))
+        reporter.emit('test:fail', { ...step('t1', 's'), error })
+        reporter.emit('test:end', step('t1', 's'))
+        reporter.emit('suite:end', suite('s', 'suite'))
+        expect(dots(reporter)).toEqual(['redBright F', 'redBright F'])
+    })
+
+    it('Cucumber scenario Before: the F, then the skip dots', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('F', 'feature', null))
+        reporter.emit('suite:start', suite('S1', 'scenario', 'F'))
+        reporter.emit('hook:start', hook('Before', 'S1', 'beforeEach'))
+        reporter.emit('hook:end', { ...hook('Before', 'S1', 'beforeEach'), error })
+        reporter.emit('test:start', step('step-1', 'S1'))
+        reporter.emit('test:skip', step('step-1', 'S1'))
+        reporter.emit('test:end', step('step-1', 'S1'))
+        reporter.emit('suite:end', suite('S1', 'scenario'))
+        reporter.emit('suite:end', suite('F', 'feature'))
+        expect(dots(reporter)).toEqual(['redBright F', 'cyanBright .'])
+    })
+
+    it('Jasmine afterAll', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('s', 'suite', null))
+        reporter.emit('hook:start', hook('afterAll', 's', 'afterAll'))
+        reporter.emit('hook:end', { ...hook('afterAll', 's', 'afterAll'), error })
+        reporter.emit('suite:end', suite('s', 'suite'))
+        expect(dots(reporter)).toEqual(['redBright F'])
+    })
+
+    it('writes no extra F for a hook that counts on its test (failedTestUid) or for a retried hook', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('s', 'suite', null))
+        reporter.emit('hook:start', hook('beforeEach', 's', 'beforeEach'))
+        reporter.emit('hook:end', { ...hook('beforeEach', 's', 'beforeEach'), error, failedTestUid: 't1' })
+        reporter.emit('hook:start', hook('afterEach', 's', 'afterEach'))
+        reporter.emit('hook:end', { ...hook('afterEach', 's', 'afterEach'), error, retried: true })
         reporter.emit('suite:end', suite('s', 'suite'))
         expect(dots(reporter)).toEqual([])
     })
