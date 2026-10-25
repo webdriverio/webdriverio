@@ -217,6 +217,26 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(testCaseOf(xml, 't1')).not.toContain('DELETE')
         })
 
+        it('gives the output of a failed before all once, to its test, when the test is reported (failHookAffectedTests: true)', () => {
+            reporter.emit('suite:start', suite('S', 'suite', { parentUid: null }))
+            reporter.emit('hook:start', hook('h1', beforeAll('h1', 'c1')))
+            inContext('c1', () => {
+                log('c1-before-log')
+                addProperty('c1-prop', 'c1')
+            })
+            reporter.emit('client:beforeCommand', command('c1-before-url', 'c1'))
+            reporter.emit('hook:end', hook('h1', { ...beforeAll('h1', 'c1'), error: new Error('before fails'), state: 'failed' }))
+            runTest(reporter, 't1', { parentUid: 'S', contextId: 'c1' }, 'test:fail')
+            reporter.emit('context:end', { cid: '0-0', uid: 't1', contextId: 'c1' })
+            reporter.emit('suite:end', suite('S'))
+            const xml = xmlOf(reporter)
+
+            for (const item of ['c1-before-log', 'c1-before-url', 'name="c1-prop"']) {
+                expect(xml.split(item).length - 1).toBe(1)
+            }
+            expect(testCaseOf(xml, 't1')).toContain('c1-before-url')
+        })
+
         it('gives the output of a failed before all to the hook when its test is not reported (failHookAffectedTests: false)', () => {
             reporter.emit('suite:start', suite('S', 'suite', { parentUid: null }))
             reporter.emit('hook:start', hook('h1', beforeAll('h1', 'c1')))
