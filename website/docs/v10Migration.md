@@ -218,10 +218,15 @@ export const config = {
             return
         }
         const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
+        if (chromeOptions.args?.some((arg) => arg.includes('user-data-dir'))) {
+            return
+        }
         chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
     }
 }
 ```
+
+These folders stay on disk after the run: delete them when you no longer need them.
 
 In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`. With W3C capabilities, use `capabilities.alwaysMatch`.
 
