@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       full_matrix:
-        description: Run every distro × scenario combination. When false, PRs cover Ubuntu (both scenarios) and Alpine base (musl / auto-install).
+        description: Run every distro × scenario combination. When false, PRs cover Ubuntu 24.04 (both scenarios), Ubuntu 26.04 with xvfb and Alpine base (musl / auto-install).
         type: boolean
         default: true
 
@@ -23,7 +23,8 @@ jobs:
           if [ "${{ inputs.full_matrix }}" = "true" ]; then
             include='[
               {"distro":"ubuntu","version":"24.04","scenario":"base","dockerfile":"ubuntu-base.dockerfile"},
-              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile"},
+              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile","runner":true},
+              {"distro":"ubuntu","version":"26.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile","build_args":"--build-arg UBUNTU_VERSION=26.04","runner":true},
               {"distro":"fedora","version":"40","scenario":"base","dockerfile":"fedora-base.dockerfile"},
               {"distro":"fedora","version":"40","scenario":"with-xvfb","dockerfile":"fedora-with-xvfb.dockerfile"},
               {"distro":"alpine","version":"3.23","scenario":"base","dockerfile":"alpine-base.dockerfile"},
@@ -42,7 +43,8 @@ jobs:
           else
             include='[
               {"distro":"ubuntu","version":"24.04","scenario":"base","dockerfile":"ubuntu-base.dockerfile"},
-              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile"},
+              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile","runner":true},
+              {"distro":"ubuntu","version":"26.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile","build_args":"--build-arg UBUNTU_VERSION=26.04","runner":true},
               {"distro":"alpine","version":"3.23","scenario":"base","dockerfile":"alpine-base.dockerfile"}
             ]'
           fi
@@ -81,6 +83,7 @@ jobs:
       - name: Build test container
         run: |
           docker build \
+            ${{ matrix.build_args }} \
             -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
             -t xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             e2e/wdio/xvfb/docker/
@@ -111,6 +114,9 @@ jobs:
                 cd e2e && pnpm test:xvfb:base
               else
                 cd e2e && pnpm test:xvfb:existing
+                if [ '${{ matrix.runner }}' = 'true' ]; then
+                  pnpm test:xvfb:runner
+                fi
               fi
             "
 
