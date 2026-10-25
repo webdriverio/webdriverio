@@ -159,9 +159,9 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 
 ### Cucumber
 
-- `BeforeAll` / `AfterAll` and the `beforeFeature` / `afterFeature` hooks in `wdio.conf.ts` run once per worker, not once per feature. `beforeFeature` / `afterFeature` receive the uri and feature of the first feature file only, which matters when one worker runs several feature files, for example grouped specs. They run outside any scenario's window, so they must not use commands that need one.
+- `BeforeAll` / `AfterAll` and the `beforeFeature` / `afterFeature` hooks in `wdio.conf.ts` run once per worker, not once per feature. A failed `BeforeAll` / `AfterAll` is reported once, as a hook of the first feature, as in a sequential run. `beforeFeature` / `afterFeature` receive the uri and feature of the first feature file only, which matters when one worker runs several feature files, for example grouped specs. They run outside any scenario's window, so they must not use commands that need one.
 - `Before` / `After`, `BeforeStep` / `AfterStep` and the scenario and step hooks in `wdio.conf.ts` run for every scenario, in that scenario's window.
-- `cucumberOpts.strict` defaults to `false` in WebdriverIO. A pending step fails the scenario only with `strict: true`.
+- `cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run. Set `strict: false` to let it pass.
 - With `failFast`, the scenarios that already run in other windows finish after the first failure. The scenarios that did not start are reported as skipped, as in a sequential run.
 - With `ignoreUndefinedDefinitions: true`, an ambiguous step (with `failAmbiguousDefinitions: false`) fails the run. A sequential run then passes.
 - Cucumber formatters (`format`, `formatOptions`, `publish`) don't run, so they write no file.

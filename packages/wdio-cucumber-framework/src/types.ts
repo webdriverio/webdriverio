@@ -131,7 +131,7 @@ export interface CucumberOptions {
      * step as pending, and the worker logs a warning that names the scenarios with
      * a pending step or hook. An undefined step fails the run also without `strict`,
      * unless `ignoreUndefinedDefinitions` is `true`.
-     * @default false
+     * @default true
      */
     strict?: boolean;
     /**
@@ -179,7 +179,8 @@ export interface CucumberOptions {
      */
     failAmbiguousDefinitions?: boolean;
     /**
-     * Profiles from which to include configuration.
+     * Profiles from which to include configuration. A value in `cucumberOpts`
+     * wins over the profile, and the profile wins over Cucumber's defaults.
      * @default []
      */
     profiles?: string[];

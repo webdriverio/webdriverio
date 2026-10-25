@@ -494,9 +494,9 @@ cucumberOpts: {
 
 #### strict
 
-<Option type="boolean" default="false">
+<Option type="boolean" default="true">
 
-Fail the run on a pending step. As in Cucumber, the reporters still show the step as pending, and the worker logs a warning that names the scenarios with a pending step or hook. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
+Fail the run on a pending step. The default is `true`, as in Cucumber. The reporters still show the step as pending (Cucumber shows it as a warning), and the worker logs a warning that names the scenarios with a pending step or hook. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
 
 </Option>
 
@@ -600,7 +600,7 @@ Report an ambiguous step (a step that matches more than one step definition) as 
 The profiles of the Cucumber configuration file to use.
 
 </Option>
-***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
+Cucumber merges the values in this order: Cucumber's defaults, then the profiles or the configuration file, then `cucumberOpts`. So a value in `cucumberOpts` wins over the profile, and a profile value wins over Cucumber's default. `tags` and `retryTagFilter` of both are joined with `and`, and lists (for example `require`, `import`, `name`) are added together.
 
 #### file
 

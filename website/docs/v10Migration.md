@@ -76,6 +76,12 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+### `strict` and profiles
+
+`cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
+
+Values in a Cucumber profile or configuration file (`cucumberOpts.profiles`, `cucumberOpts.file`) are used. A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options.
+
 ### Feature uid
 
 The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. `%`, `:` and `#` in the path are encoded as `%25`, `%3A` and `%23`, so `uid.split(':')[1]` is still the line and a `#` only starts a part number. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
