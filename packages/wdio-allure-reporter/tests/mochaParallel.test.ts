@@ -524,6 +524,37 @@ describe('Mocha parallel mode', () => {
         })
     })
 
+    describe('root before all hook with a hook kind', () => {
+        it('keeps the commands of a contextless root before all hook in its fixture, not in a test (K28, K31)', async () => {
+            const h = createHarness('parallel', [A1, B1])
+            h.emit('runner:start', {
+                cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {},
+            })
+            const title = '"before all" hook in "{root}"'
+            const rootHook = { cid: CID, specs: [SPEC], uid: 'root-hook', title, fullTitle: title, parent: '', file: SPEC, hookKind: 'beforeAll' }
+            h.emit('hook:start', { ...rootHook, type: 'hook:start' })
+            h.emit('client:beforeCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session' })
+            h.emit('client:afterCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session', result: undefined })
+            h.emit('hook:end', { ...rootHook, type: 'hook:end', state: 'pass' })
+            const keys = [...h.uids.keys()]
+            keys.forEach((key) => h.emit('suite:start', h.suiteMessage('suite:start', key)))
+            interleave([A1, B1].map((test) => scriptOf(h, test)))
+            keys.reverse().forEach((key) => h.emit('suite:end', h.suiteMessage('suite:end', key)))
+            h.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
+            await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
+            const { results, containers } = getResults(h.outputDir)
+
+            const rootFixtures = containers.flatMap((c: Result) => fixtures(c, 'befores')).filter((f: Result) => f.name === title)
+            expect(rootFixtures.map((f: Result) => stepNames(f.steps))).toEqual([['rootCommand']])
+            for (const test of [A1, B1]) {
+                const result = byName(results, test.title)
+                expect(stepNames(result.steps)).not.toContain('rootCommand')
+                expect(childrenOf(containers, result).flatMap((c) => fixtures(c, 'befores')).map((f: Result) => f.name)).toContain(title)
+            }
+        })
+    })
+
     describe('result timing and console logs', () => {
         const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
 
@@ -651,7 +682,8 @@ describe('Mocha parallel mode', () => {
 
             expect(sequential.map((r) => r.logs)).toEqual([['log 0\n'], ['log 1\n'], ['log 2\n']])
             expect(new Set(sequential.map((r) => r.historyId)).size).toBe(1)
-            expect(sequential[0].historyId).toMatch(/^[0-9a-f]{32}$/)
+            // md5('R flaky#chrome'): no uuid, context, cid or attempt in it
+            expect(sequential[0].historyId).toBe('7b360d3d5d9819a0e2dd8ef5dd11de41')
             expect(parallel).toEqual(sequential)
         })
     })

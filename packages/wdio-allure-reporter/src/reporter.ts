@@ -355,7 +355,9 @@ export default class AllureReporter extends WDIOReporter {
 
     /** the state of a Cucumber scenario in a parallel unit; `undefined` in a sequential run */
     private _cukeUnit(): { scenario: boolean } | undefined {
-        return this.getContextUnit?.()?.contextId ? this.unitState?.(CUCUMBER_UNIT, () => ({ scenario: false })) : undefined
+        return this._framework === 'cucumber' && this.getContextUnit?.()?.contextId
+            ? this.unitState?.(CUCUMBER_UNIT, () => ({ scenario: false }))
+            : undefined
     }
 
     private _cukeScenarioActive(cid: string): boolean {
@@ -1302,7 +1304,6 @@ export default class AllureReporter extends WDIOReporter {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
-            this._emitHistoryIdsFrom(this._hookFullTitle(cid, hook))
             // the hook of its own result is a fixture of that result only
             this._startHook({ name: hook.title || 'Hook', type: hookType, start, scope: scope === 'root' ? 'all' : scope })
             this._endHook({
@@ -1330,7 +1331,6 @@ export default class AllureReporter extends WDIOReporter {
             const stop = AllureReporter.getTimeOrNow(hook.end)
             this._endHook({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stop, duration: hook.duration })
             this._startTest({ name: hook.title || 'Hook failure', start: AllureReporter.getTimeOrNow(hook.start), standalone: true })
-            this._emitHistoryIdsFrom(this._hookFullTitle(cid, hook))
             this._endTest({ status: AllureStatusEnum.BROKEN, stage: AllureStage.FINISHED, duration: hook.duration, stop })
             return
         }
@@ -1348,7 +1348,6 @@ export default class AllureReporter extends WDIOReporter {
         })
 
         if (hook.error && !hadPendingTest && hadPendingHook) {
-            this._emitHistoryIdsFrom(this._hookFullTitle(cid, hook))
             this._endTest({
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
@@ -1475,14 +1474,6 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         return [...fileParts, ...suitePath]
-    }
-
-    // the full title of the result of a failed hook (#16167): the suites of the hook from the tree, else the current suites
-    private _hookFullTitle(cid: string, hook: HookStats): string {
-        const suites = this.pathOf(hook).map((suite) => suite.title)
-        const parts = [...(suites.length ? suites : this._activeSuitePath(cid))]
-        if (hook.title) { parts.push(hook.title) }
-        return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
 
     // the hook kind of the framework; with no kind, the hook title
