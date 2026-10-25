@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent, knownFramework, transformCommandScript } from './utils.js'
+import { getErrorsFromEvent, hookCountsAsFailure, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -222,6 +222,7 @@ export default class WDIOReporter extends EventEmitter {
 
             applyStart(testStat, test)
             testStat.fail(getErrorsFromEvent(test), endOf(test))
+            testStat.retried = true
             this.onTestRetry(testStat)
             const contextId = getContextId(test)
             setRetries(contextId, getRetries(contextId) + 1)
@@ -458,5 +459,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure
 }

@@ -16,7 +16,7 @@ export function mapHooks (hooks: HookStats[]): Hook[] {
     }))
 }
 
-export function mapTests (tests: TestStats[], isRetried: (test: TestStats) => boolean = () => false): Test[] {
+export function mapTests (tests: TestStats[]): Test[] {
     return tests.map((test) => ({
         name: test.title,
         start: test.start,
@@ -24,6 +24,6 @@ export function mapTests (tests: TestStats[], isRetried: (test: TestStats) => bo
         duration: test.duration,
         state: test.state,
         error: test.error,
-        ...(isRetried(test) && { retried: true })
+        ...(test.retried && { retried: true })
     }))
 }

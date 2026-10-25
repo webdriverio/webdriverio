@@ -64,6 +64,8 @@ export default class TestStats extends RunnableStats {
     output: Output[]
     argument?: string | Argument
     retries?: number
+    /** @experimental a failed attempt that the framework ran again (`test:retry`): only the last attempt counts */
+    retried?: boolean
     parent: string
     /**
      * initial test state is pending

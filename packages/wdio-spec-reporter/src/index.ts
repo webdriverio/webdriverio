@@ -3,7 +3,7 @@ import { format } from 'node:util'
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName, hookCountsAsFailure } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -138,8 +138,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onHookEnd (hook: HookStats) {
         this.printCurrentStats(hook)
-        // the error of such a hook is on its test, or on the test:retry of its attempt
-        if (hook.error && !hook.retried && !hook.failedTestUid) {
+        if (hookCountsAsFailure(hook)) {
             this._count('failed', hook)
         }
     }

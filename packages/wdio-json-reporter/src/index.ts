@@ -1,4 +1,4 @@
-import WDIOReporter, { type RunnerStats, type TestStats } from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, type RunnerStats } from '@wdio/reporter'
 import type { Reporters } from '@wdio/types'
 
 import type { ResultSet, TestSuite } from './types.js'
@@ -6,18 +6,11 @@ import type { ResultSet, TestSuite } from './types.js'
 import { mapHooks, mapTests } from './utils.js'
 
 export default class JsonReporter extends WDIOReporter {
-    // attempts that the framework ran again: only the last attempt counts
-    #retried = new WeakSet<TestStats>()
-
     constructor (options: Reporters.Options) {
         if (options.logFile && options.logFile.endsWith('.log')) {
             options.logFile = options.logFile.slice(0, -4) + '.json'
         }
         super(options)
-    }
-
-    onTestRetry (test: TestStats) {
-        this.#retried.add(test)
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -47,13 +40,11 @@ export default class JsonReporter extends WDIOReporter {
                     start: suite.start,
                     end: suite.end,
                     sessionId: runner.sessionId,
-                    tests: mapTests(suite.tests, (test) => this.#retried.has(test)),
+                    tests: mapTests(suite.tests),
                     hooks: mapHooks(suite.hooks)
                 }
 
-                // the error of a retried attempt is on its `test:retry`, and the error of a `failedTestUid` hook is on that test
-                resultSet.state.failed += testSuite.hooks.filter(
-                    (hook) => hook.error && !hook.retried && !hook.failedTestUid).length
+                resultSet.state.failed += testSuite.hooks.filter(hookCountsAsFailure).length
                 resultSet.state.passed += testSuite.tests.filter(
                     (test) => test.state === 'passed').length
                 resultSet.state.failed += testSuite.tests.filter(

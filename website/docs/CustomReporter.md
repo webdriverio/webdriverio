@@ -150,7 +150,28 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
-Some frameworks count the error of a failed hook one time, as the failure of a test. Vitest does this for `beforeEach` and `afterEach`: the test fails with the error of the hook. Such a hook has `hook.failedTestUid`, the uid of that test, and the test has the error too (in `test.errors` when it has more than one). Show the hook as failed, but do not count it as one more failure. The hooks of an attempt that Vitest runs again (`retry`) also have `hook.retried === true`; the error of that attempt is on its `test:retry` (`onTestRetry`). `failedTestUid` and `retried` are experimental.
+Some frameworks count the error of a failed hook one time, as the failure of a test. Vitest does this for `beforeEach` and `afterEach`: the test fails with the error of the hook. Such a hook has `hook.failedTestUid`, the uid of that test, and the test has the error too (in `test.errors` when it has more than one). Show the hook as failed, but do not count it as one more failure. The hooks of an attempt that Vitest runs again (`retry`) also have `hook.retried === true`; the error of that attempt is on its `test:retry` (`onTestRetry`), and its test stats have `test.retried === true` (with every framework). To count failures, use the helper `hookCountsAsFailure(hook)` from `@wdio/reporter` and skip the tests with `test.retried`, so that your reporter follows the same rule as the WebdriverIO reporters:
+
+```js
+import WDIOReporter, { hookCountsAsFailure } from '@wdio/reporter'
+
+export default class CountingReporter extends WDIOReporter {
+    failures = 0
+    onHookEnd(hook) {
+        if (hookCountsAsFailure(hook)) {
+            this.failures++
+        }
+    }
+    onTestFail(test) {
+        this.failures++
+    }
+    onTestRetry() {
+        // a retried attempt does not count: its test:retry comes instead of test:fail
+    }
+}
+```
+
+`failedTestUid`, `retried` and `hookCountsAsFailure` are experimental.
 
 The `afterEach` and `after` hooks of a parallel test run after its `test:end`. To know when a context is done, use `onContextEnd(payload)`. It is called after the last hook of the test (with Cucumber: after the `After` hooks of the last attempt of the scenario), and the context sends no more events after it. The payload has `cid`, `specs`, `uid` (the last test of the context; for a Cucumber scenario with no step, the scenario) and `contextId`. Close or write what your reporter keeps for that context there.
 
