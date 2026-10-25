@@ -1229,8 +1229,8 @@ export default class AllureReporter extends WDIOReporter {
         if (hook.error && !hookCountsAsFailure(hook) && !hadPendingTest) {
             if (hadPendingHook) {
                 this._endHook({
-                    status: hook.error ? AllureStatusEnum.BROKEN : AllureStatusEnum.PASSED,
-                    statusDetails: hook.error && getMessageAndTraceFromError(hook.error),
+                    status: AllureStatusEnum.BROKEN,
+                    statusDetails: getMessageAndTraceFromError(hook.error),
                     stop: AllureReporter.getTimeOrNow(hook.end),
                     duration: hook.duration,
                 })

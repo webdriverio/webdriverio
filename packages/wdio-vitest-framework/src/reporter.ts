@@ -41,7 +41,7 @@ type ModuleRun = {
 
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
 
-// Vitest gives the errors of a failed beforeEach / afterEach to the test, so the test gets all errors of its attempt
+// Vitest gives the errors of a failed beforeEach / afterEach to the test, so the test also gets the errors of its failed hooks
 const withHookErrors = (error: ReturnType<typeof toErrorPayload>, marker?: AttemptMarker) => {
     const errors = [error]
     for (const kind of ATTEMPT_HOOK_KINDS) {
