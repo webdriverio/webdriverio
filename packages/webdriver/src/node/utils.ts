@@ -57,7 +57,11 @@ function driverProfileOf (capabilities: WebdriverIO.Capabilities, requestedCapab
 
 async function waitForRemoval (profile: string) {
     const start = Date.now()
-    while (fs.existsSync(profile) && Date.now() - start < PROFILE_REMOVAL_TIMEOUT) {
+    while (fs.existsSync(profile)) {
+        if (Date.now() - start >= PROFILE_REMOVAL_TIMEOUT) {
+            log.warn(`The driver did not delete its temporary profile ${profile} within ${PROFILE_REMOVAL_TIMEOUT}ms`)
+            return
+        }
         await new Promise((resolve) => setTimeout(resolve, PROFILE_POLL_INTERVAL))
     }
 }

@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { killDriverProcess } from '../../src/node/utils.js'
 
-vi.mock('@wdio/logger', () => ({ default: () => ({ info: vi.fn(), warn: vi.fn() }) }))
+const log = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn() }))
+vi.mock('@wdio/logger', () => ({ default: () => log }))
 
 /**
  * ChromeDriver deletes the temporary profile it created a few ms after it
@@ -28,9 +29,12 @@ describe('killDriverProcess', () => {
     })
 
     it('waits for the driver to delete its profile, then kills the driver', async () => {
-        const done = killDriverProcess(session(42), true, requested)
+        let resolved = false
+        const done = killDriverProcess(session(42), true, requested).then(() => { resolved = true })
         await vi.advanceTimersByTimeAsync(10)
         expect(kill).not.toBeCalled()
+        // deleteSession waits on this promise: it stays pending until the kill
+        expect(resolved).toBe(false)
 
         exists.mockReturnValue(false)
         await vi.advanceTimersByTimeAsync(10)
@@ -59,6 +63,19 @@ describe('killDriverProcess', () => {
         expect(kill).toBeCalledWith(42, 'SIGKILL')
     })
 
+    it.each([
+        { alwaysMatch: { browserName: 'chrome' } },
+        { alwaysMatch: {}, firstMatch: [{ browserName: 'chrome' }] }
+    ])('waits with W3C requested capabilities: %j', async (requestedCapabilities) => {
+        const done = killDriverProcess(session(42), true, requestedCapabilities as WebdriverIO.Capabilities)
+        await vi.advanceTimersByTimeAsync(10)
+        expect(kill).not.toBeCalled()
+        exists.mockReturnValue(false)
+        await vi.advanceTimersByTimeAsync(10)
+        await done
+        expect(kill).toBeCalledWith(42, 'SIGKILL')
+    })
+
     it('kills the driver after 2 s when the profile does not go', async () => {
         const done = killDriverProcess(session(42), true, requested)
         await vi.advanceTimersByTimeAsync(1990)
@@ -66,6 +83,7 @@ describe('killDriverProcess', () => {
         await vi.advanceTimersByTimeAsync(20)
         await done
         expect(kill).toBeCalledTimes(1)
+        expect(log.warn).toBeCalledWith(`The driver did not delete its temporary profile ${profile} within 2000ms`)
     })
 
     it('waits for two drivers at the same time', async () => {

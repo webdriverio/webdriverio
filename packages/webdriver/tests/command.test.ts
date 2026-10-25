@@ -591,6 +591,7 @@ describe('deleteSession clean up', () => {
     function createScope () {
         const client = new FakeClient() as unknown as BaseClient & { _bidiHandler: { close: () => void } }
         client.capabilities = { 'wdio:driverPID': 1234 } as WebdriverIO.Capabilities
+        client.requestedCapabilities = { browserName: 'chrome' } as WebdriverIO.Capabilities
         client._bidiHandler = { close: vi.fn() }
         return client
     }
@@ -640,7 +641,8 @@ describe('deleteSession clean up', () => {
         const { onError } = await runDeleteSession(client)
         const error = new Error('invalid session id: A session is either terminated or not started')
         await expect(onError(error)).rejects.toThrow(error)
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
+        // the driver did not delete its profile: no wait for it
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, undefined)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
     })
@@ -649,7 +651,7 @@ describe('deleteSession clean up', () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client, { shutdownDriver: false })
         await expect(onError(new Error('fetch failed'))).rejects.toThrow('fetch failed')
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false, client.requestedCapabilities)
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false, undefined)
     })
 
     it('cleans up only once when the result handler already did it', async () => {
