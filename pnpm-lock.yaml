@@ -1544,7 +1544,7 @@ importers:
         version: link:../wdio-display-server
       '@wdio/electron-service':
         specifier: '*'
-        version: 10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)
+        version: 10.4.1(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -7114,8 +7114,8 @@ packages:
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
-  '@wdio/electron-service@10.3.0':
-    resolution: {integrity: sha512-fQJTJbnDqt1SRWIZcBbjXe553vl376zckUMuk3Oq/To61XcHMbnJf8I35IBgmT7Y6VgUMauV2Hkhv7XFAoCXfw==}
+  '@wdio/electron-service@10.4.1':
+    resolution: {integrity: sha512-W3dh85IyMPt6l7lSbmfN2Z2UNlsRm5g62byV3tE+5j12L0Jz91wgysXvODqyYvmr8uBBALW7fU97BIrhxpCwDg==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       electron: '*'
@@ -7131,12 +7131,12 @@ packages:
       expect-webdriverio: ^8.0.0-0 || ^8.0.0-alpha.3
       webdriverio: ^10.0.0-0 || ^10.0.0
 
-  '@wdio/globals@9.29.1':
-    resolution: {integrity: sha512-F96BKppx4HGD64v+s57TM4K4zaxqUCg2RXHk6sjB2xrSa7P+d2VYV28ID2ddF7iSodVfPlpa1i2/jy8jMGrU8w==}
+  '@wdio/globals@9.31.3':
+    resolution: {integrity: sha512-ZzmRKUlwUBahNoNxHbAzst+9dNInEjLQc7Z3c86OhDRxAf3Ivw8k2rc56UCbyYiZnkd1dOpuA91zFiTrUNNORw==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
-      expect-webdriverio: ^5.6.5
-      webdriverio: ^9.0.0
+      expect-webdriverio: ^6.0.9
+      webdriverio: ^9.28.0
 
   '@wdio/image-comparison-core@3.0.0':
     resolution: {integrity: sha512-SYuXtNmR3K28gTFOYIVsYL5TgOZl/TeXuT0BiYBPRiRX4ds0bYjf3qDJOsz0u+pj1o5T+AvP2n7IC9/7KzTSxA==}
@@ -7152,21 +7152,21 @@ packages:
     resolution: {integrity: sha512-0ZAEIo6PNyMIJPlOGkIgyOJUjcd0pC8/QHlVAAe1c91/IcjZ1X+k0yidXHaboJdN7dq1XPUacmhRdtua0U5EZg==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/native-cdp-bridge@1.2.0':
-    resolution: {integrity: sha512-OIhalp01MRNV2tVEKbs1KvyI8OVTDRBLX+GVbFT4V7wYEXH9ed/1Cenm+xc1ZDIABdrcE14bGyQmBLQKbrtmAQ==}
+  '@wdio/native-cdp-bridge@1.3.1':
+    resolution: {integrity: sha512-M02WXjVNi2m3tDzmAb1aOIvJy7Yx8etnBnannn2xGsuBa8uGfmRo4ZAn9rv6fM+U6pNeRBwGWAmqt1VTRCjJHw==}
     engines: {node: '>=22.12.0'}
 
-  '@wdio/native-core@1.2.0':
-    resolution: {integrity: sha512-Z/Qa2xmV/2IMSCsCKyVk79tda8n47FOOOS9XEOWGpHUiFr1z4gGOFxt13Fd9RQu9Kk1IA9fJB1VmJZtrtkXvEw==}
-    engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
+  '@wdio/native-core@1.3.1':
+    resolution: {integrity: sha512-fdGk2lEr2vS+bClJXuZEnsG30cLzQv+B9W+dAt/Yte/fE33s/vDBn7hHwFx8aZLTOS0pPExErUxYiZEMXX+04g==}
+    engines: {node: '>=18.20.0'}
 
-  '@wdio/native-types@2.5.0':
-    resolution: {integrity: sha512-NjaIfcsEKpU9gm0goywEG0A7J4pyEsgORKNrQ1xboSy10BeTk5QpgHWP1bNvqUnZrKoKJRonpSn81ZyYKghO1g==}
-    engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
+  '@wdio/native-types@2.6.1':
+    resolution: {integrity: sha512-Rm5chX+MrRhVgJYcYdcX/yyTZaLjxvi0w/fnSgPaDT16gMIntXlk22K2x3hwEdaUonOKepZyhh4jr9ZgRz7UaQ==}
+    engines: {node: '>=18.20.0'}
 
-  '@wdio/native-utils@2.7.0':
-    resolution: {integrity: sha512-qCzc+5o4YVESApQB5//NxomZ+F+M3Pc02hUNnJ1/w9naMb8mfgaHXBLWVwejEfO36z2MnwGatBNWZAm38G1frA==}
-    engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
+  '@wdio/native-utils@2.8.1':
+    resolution: {integrity: sha512-QbmZjGkLUC2bmUJSzyqsHM11HND1D7tkxHFssUV1Kmx43+oPAeHHVR0NSZu2hMzSNrDZMBAmNYycR+3X8rqWcA==}
+    engines: {node: '>=18.20.0'}
     peerDependencies:
       tsx: ^4.22.4
     peerDependenciesMeta:
@@ -8765,10 +8765,6 @@ packages:
       '@langchain/openai':
         optional: true
 
-  deepmerge-ts@7.1.6:
-    resolution: {integrity: sha512-gQhL1ksGBLQbHeAo47YU6cs2ahd3Pv+8PFYoWogNZbQnNwQyOh9Ad5kbeHFiWwbKdeWQJ5Z7Y7mwb9ew2hXBLw==}
-    engines: {node: '>=16.0.0'}
-
   deepmerge-ts@8.0.2:
     resolution: {integrity: sha512-uqbvqLUMrc6p0MO+WBRtTxY55hmyh94WRwI5a++PZe54X+bfVh59FSN7uWCBCW1CCVjzjnrwzfI8zidE2obMMw==}
     engines: {node: '>=16.9.0'}
@@ -9581,8 +9577,8 @@ packages:
   fast-content-type-parse@3.0.0:
     resolution: {integrity: sha512-ZvLdcY8P+N8mGQJahJV5G4U88CSvT1rP8ApL6uETe88MBXrBHAkZlSEySdUlyztF7ccb+Znos3TFqaepHxdhBg==}
 
-  fast-copy@4.1.1:
-    resolution: {integrity: sha512-A4QTJmuiztpGtr6AMeJts9R4hbj2ZBUwtOaKrG6rw2y7t6+IaJKjz5M3XDs8BUznxDH43FVc6A0y/gWlMl4UtA==}
+  fast-copy@4.2.0:
+    resolution: {integrity: sha512-WSlnvPXaMdUjFdgxPkovE4e5aslybVod4TNKrEKKyoA8GoHZzbDLlhDXZOvqjtFgjtOHd9TYCstkUcGXy1+SEA==}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -13951,6 +13947,10 @@ packages:
 
   smol-toml@1.9.0:
     resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+    engines: {node: '>= 18'}
+
+  smol-toml@1.9.1:
+    resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
     engines: {node: '>= 18'}
 
   snake-case@3.0.4:
@@ -21297,22 +21297,22 @@ snapshots:
       js-beautify: 1.15.4
       vue-component-type-helpers: 2.2.10
 
-  '@wdio/electron-service@10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)':
+  '@wdio/electron-service@10.4.1(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)':
     dependencies:
       '@babel/parser': 8.0.7
       '@electron/fuses': 2.1.3
       '@electron/packager': 20.3.0(supports-color@11.0.0)
-      '@wdio/globals': 9.29.1(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(webdriverio@packages+webdriverio)
+      '@wdio/globals': 9.31.3(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(webdriverio@packages+webdriverio)
       '@wdio/logger': 9.29.1
-      '@wdio/native-cdp-bridge': 1.2.0(supports-color@11.0.0)(tsx@4.23.15)
-      '@wdio/native-core': 1.2.0(supports-color@11.0.0)(tsx@4.23.15)
-      '@wdio/native-types': 2.5.0
-      '@wdio/native-utils': 2.7.0(supports-color@11.0.0)(tsx@4.23.15)
+      '@wdio/native-cdp-bridge': 1.3.1(supports-color@11.0.0)(tsx@4.23.15)
+      '@wdio/native-core': 1.3.1(supports-color@11.0.0)(tsx@4.23.15)
+      '@wdio/native-types': 2.6.1
+      '@wdio/native-utils': 2.8.1(supports-color@11.0.0)(tsx@4.23.15)
       compare-versions: 6.1.1
       debug: 4.4.3(supports-color@11.0.0)
-      deepmerge-ts: 7.1.6
+      deepmerge-ts: 8.0.2
       electron-to-chromium: 1.5.461
-      fast-copy: 4.1.1
+      fast-copy: 4.2.0
       find-versions: 6.0.0
       get-port: 7.2.0
       puppeteer-core: 25.15.0(yauzl@3.4.0)
@@ -21335,7 +21335,7 @@ snapshots:
       expect-webdriverio: 8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
       webdriverio: link:packages/webdriverio
 
-  '@wdio/globals@9.29.1(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(webdriverio@packages+webdriverio)':
+  '@wdio/globals@9.31.3(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(webdriverio@packages+webdriverio)':
     dependencies:
       expect-webdriverio: 8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
       webdriverio: link:packages/webdriverio
@@ -21364,9 +21364,9 @@ snapshots:
       safe-regex2: 5.1.2
       strip-ansi: 7.2.0
 
-  '@wdio/native-cdp-bridge@1.2.0(supports-color@11.0.0)(tsx@4.23.15)':
+  '@wdio/native-cdp-bridge@1.3.1(supports-color@11.0.0)(tsx@4.23.15)':
     dependencies:
-      '@wdio/native-utils': 2.7.0(supports-color@11.0.0)(tsx@4.23.15)
+      '@wdio/native-utils': 2.8.1(supports-color@11.0.0)(tsx@4.23.15)
       wait-port: 1.1.0(supports-color@11.0.0)
       ws: 8.22.0
     transitivePeerDependencies:
@@ -21375,11 +21375,11 @@ snapshots:
       - tsx
       - utf-8-validate
 
-  '@wdio/native-core@1.2.0(supports-color@11.0.0)(tsx@4.23.15)':
+  '@wdio/native-core@1.3.1(supports-color@11.0.0)(tsx@4.23.15)':
     dependencies:
       '@wdio/logger': 9.29.1
-      '@wdio/native-types': 2.5.0
-      '@wdio/native-utils': 2.7.0(supports-color@11.0.0)(tsx@4.23.15)
+      '@wdio/native-types': 2.6.1
+      '@wdio/native-utils': 2.8.1(supports-color@11.0.0)(tsx@4.23.15)
       debug: 4.4.3(supports-color@11.0.0)
       get-port: 7.2.0
       tslib: 2.8.1
@@ -21387,16 +21387,16 @@ snapshots:
       - supports-color
       - tsx
 
-  '@wdio/native-types@2.5.0': {}
+  '@wdio/native-types@2.6.1': {}
 
-  '@wdio/native-utils@2.7.0(supports-color@11.0.0)(tsx@4.23.15)':
+  '@wdio/native-utils@2.8.1(supports-color@11.0.0)(tsx@4.23.15)':
     dependencies:
       '@wdio/logger': 9.29.1
       debug: 4.4.3(supports-color@11.0.0)
       esbuild: 0.28.2
       find-up-simple: 1.0.1
       json5: 2.2.3
-      smol-toml: 1.9.0
+      smol-toml: 1.9.1
       yaml: 2.9.1
     optionalDependencies:
       tsx: 4.23.15
@@ -23202,8 +23202,6 @@ snapshots:
       '@langchain/anthropic': 1.5.12(@langchain/core@1.2.18(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.11.0(@opentelemetry/api@1.9.1))(openai@7.25.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(undici@8.12.3)(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))
       '@langchain/openai': 1.6.2(@aws-sdk/credential-provider-node@3.972.88)(@langchain/core@1.2.18(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.11.0(@opentelemetry/api@1.9.1))(openai@7.25.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(undici@8.12.3)(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@smithy/signature-v4@5.7.4)(undici@8.12.3)(ws@8.22.0)
 
-  deepmerge-ts@7.1.6: {}
-
   deepmerge-ts@8.0.2: {}
 
   deepmerge@4.3.1: {}
@@ -24168,7 +24166,7 @@ snapshots:
 
   fast-content-type-parse@3.0.0: {}
 
-  fast-copy@4.1.1: {}
+  fast-copy@4.2.0: {}
 
   fast-deep-equal@3.1.3: {}
 
@@ -29538,6 +29536,8 @@ snapshots:
   smart-buffer@4.2.0: {}
 
   smol-toml@1.9.0: {}
+
+  smol-toml@1.9.1: {}
 
   snake-case@3.0.4:
     dependencies:
