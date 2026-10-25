@@ -1466,3 +1466,84 @@ describe('CR1: a contextless beforeEach before its test:start', () => {
         ])
     })
 })
+
+describe('CR3: an event that opens a unit in a context that ended', () => {
+    /** the CustomReporter.md "Units" example */
+    class PerTestReporter extends WDIOReporter {
+        out: string[] = []
+        starts = 0
+        constructor () { super({ logFile: tmp.fileSync().name }) }
+        #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit.contextId)!
+        onUnitStart () { this.starts++ }
+        onTestEnd (test: TestStats) {
+            const unit = this.unitOf(test)
+            if (unit) {
+                this.#lines(unit).push(`${test.state} ${test.title}`)
+            }
+        }
+        onUnitEnd (unit: ReporterUnit) {
+            this.out.push(`${unit.stats?.title} (attempt ${unit.attempt}): ${this.#lines(unit).join(', ')}`)
+        }
+    }
+    const ctx = { contextId: 'A' }
+
+    it('a test:pending opens a new unit; a hook:start after context:end keeps the ended unit', () => {
+        const r = new PerTestReporter()
+        play(r, [
+            ['suite:start', suiteEv('s', 'S')],
+            ['test:start', testEv('t1', 't1', ctx)], ['test:pass', testEv('t1', 't1', ctx)], ['test:end', testEv('t1', 't1', ctx)],
+            ctxEnd('t1', 'A'),
+            ['hook:start', hookEv('h2', '"before each" hook for "t2"', { ...ctx, hookKind: 'beforeEach' })],
+            ['hook:end', hookEv('h2', '"before each" hook for "t2"', { ...ctx, hookKind: 'beforeEach' })],
+            ['test:pending', testEv('t2', 't2', { ...ctx, state: 'pending' })], ['test:end', testEv('t2', 't2', ctx)],
+            ctxEnd('t2', 'A'),
+            ['suite:end', suiteEv('s', 'S')],
+        ])
+        end(r)
+        const first = r.unitOf(r.tests.t1)
+        expect(r.unitOf(r.hooks.h2)).toBe(first)
+        expect(r.unitOf(r.tests.t2)).not.toBe(first)
+        expect(r.unitOf(r.tests.t2)).toMatchObject({ contextId: 'A', ended: true, stats: r.tests.t2 })
+        expect(r.starts).toBe(2)
+        expect(r.out).toEqual(['t1 (attempt 0): passed t1', 't2 (attempt 0): pending t2'])
+    })
+
+    it('a Cucumber scenario suite:start opens one new unit for its scenario', () => {
+        const r = new PerTestReporter()
+        const sc = (uid: string) => suiteEv(uid, uid, { type: 'scenario', ...ctx })
+        play(r, [
+            ['suite:start', suiteEv('f', 'F', { type: 'feature' })],
+            ['suite:start', sc('sc1')], ['test:start', testEv('s1', 'step1', ctx)], ['test:pass', testEv('s1', 'step1', ctx)], ['test:end', testEv('s1', 'step1', ctx)], ['suite:end', sc('sc1')],
+            ctxEnd('s1', 'A'),
+            ['suite:start', sc('sc2')], ['test:start', testEv('s2', 'step2', ctx)], ['test:pass', testEv('s2', 'step2', ctx)], ['test:end', testEv('s2', 'step2', ctx)], ['suite:end', sc('sc2')],
+            ctxEnd('s2', 'A'),
+        ])
+        end(r)
+        expect(r.unitOf(r.suites.sc2)).not.toBe(r.unitOf(r.suites.sc1))
+        expect(r.unitOf(r.tests.s2)).toBe(r.unitOf(r.suites.sc2))
+        expect(r.unitOf(r.suites.sc2)?.stats).toBe(r.suites.sc2)
+        expect(r.starts).toBe(2)
+        expect(r.out).toEqual(['sc1 (attempt 0): passed step1', 'sc2 (attempt 0): passed step2'])
+    })
+
+    it('the recorded Vitest bail stream: the example writes each of the 7 tests', () => {
+        const r = new PerTestReporter()
+        const resolved: { id?: string } = {}
+        r.setContextIdResolver(() => resolved.id)
+        for (const [event, payload, als] of vitest.bail) {
+            resolved.id = als ?? undefined
+            r.emit(event, { type: event, ...(event.startsWith('runner:') ? runnerEv : base), ...payload })
+        }
+        expect(Object.values(r.tests)).toHaveLength(7)
+        expect(r.starts).toBe(7)
+        expect(r.out).toEqual([
+            'bl1 fails fast (attempt 0): failed bl1 fails fast',
+            'bl2 slow 2000 (attempt 0): skipped bl2 slow 2000',
+            'bl3 slow 3000 (attempt 0): skipped bl3 slow 3000',
+            'bl1 fails fast (attempt 0): failed bl1 fails fast',
+            'bl2 slow 2000 (attempt 0): skipped bl2 slow 2000',
+            'bl3 slow 3000 (attempt 0): skipped bl3 slow 3000',
+            'bl4 never runs (attempt 0): skipped bl4 never runs',
+        ])
+    })
+})
