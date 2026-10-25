@@ -18,7 +18,9 @@ vi.mock('../src/helpers.js', async (importOriginal) => {
     }
 })
 
-vi.mock('@wdio/reporter', () => ({
+vi.mock('@wdio/reporter', async () => ({
+    // the real rule for the name of the framework
+    knownFramework: (await vi.importActual<{ knownFramework: unknown }>('../../wdio-reporter/src/utils.js')).knownFramework,
     default: class {
         options: unknown
         write = vi.fn()

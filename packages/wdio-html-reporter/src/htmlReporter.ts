@@ -6,7 +6,7 @@ import type {
     SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
@@ -135,7 +135,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.failed = 0
         this.metrics.start = dayjs().utc().format(TIME_FORMAT)
         const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
-        this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
+        this.#countScenarios = knownFramework(config?.framework) === 'cucumber' && !config?.cucumberOpts?.scenarioLevelReporter
         void this.reportGenerator?.startReport(this.#reportData(runner, []))
     }
 

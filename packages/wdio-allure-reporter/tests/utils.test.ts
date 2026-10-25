@@ -36,6 +36,11 @@ describe('utils', () => {
             expect(getTestStatus({} as any, config)).toEqual(Status.FAILED)
         })
 
+        // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+        it.each(['jasmine', 'Jasmine', '@wdio/jasmine-framework'])('return the jasmine status for framework %s', (framework) => {
+            expect(getTestStatus({} as any, { framework } as any)).toEqual(Status.FAILED)
+        })
+
         it('broken for test with no error', () => {
             const config: any = { framework: 'mocha' }
             expect(getTestStatus({} as any, config)).toEqual(Status.BROKEN)

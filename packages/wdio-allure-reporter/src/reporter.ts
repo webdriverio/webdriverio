@@ -13,7 +13,7 @@ import type {
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -161,6 +161,8 @@ export default class AllureReporter extends WDIOReporter {
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
     private _laneMode = false
+    /** the framework of the run, from its name in any case or its scoped package; `undefined` when not known */
+    private _framework?: ReturnType<typeof knownFramework>
     // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
@@ -676,10 +678,11 @@ export default class AllureReporter extends WDIOReporter {
         this._cid = runner.cid
         this._ensureState(runner.cid)
         this._config = runner.config
+        this._framework = knownFramework(runner.config?.framework)
         this._capabilities = runner.capabilities
         this._isMultiRemote = runner.isMultiRemote || false
         const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
-        this._laneMode = runner.config?.framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
+        this._laneMode = this._framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
         this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
@@ -950,20 +953,18 @@ export default class AllureReporter extends WDIOReporter {
 
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
         const kind = getType(exec)
-        const keyword = getKeyword(exec)
-        const parentType = getParentType(exec)
-        const file = (exec as unknown as MaybeFile).file
-        const title = getTitle(exec)
-        const hasCucumberKeyword = hasCucumberKeywordInTitle(title)
-        const isFeatureFile = isFeatureFilePath(file)
-
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
+        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
+        // framework; another one (a custom framework or adapter) keeps the rules below
+        if (this._framework) {
+            const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts
+            return this._framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
+        }
         if (kind === 'step') { return true }
-        if (keyword) { return true }
-        if (parentType === 'scenario') { return true }
-        if (isFeatureFile) { return true }
-        if (hasCucumberKeyword) { return true }
-        return false
+        if (getKeyword(exec)) { return true }
+        if (getParentType(exec) === 'scenario') { return true }
+        if (isFeatureFilePath((exec as unknown as MaybeFile).file)) { return true }
+        return hasCucumberKeywordInTitle(getTitle(exec))
     }
 
     onTestStart(test: TestStats | HookStats): void {
@@ -986,23 +987,6 @@ export default class AllureReporter extends WDIOReporter {
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepStart(test as TestStats)
             return
-        }
-
-        // Detect a scenarioLevelReporter retry: test:start fires again for a scenario while
-        // a previous scenario test is still open (because testCaseFinished was skipped for
-        // the willBeRetried=true attempt).  End the first attempt explicitly so Allure
-        // generates a separate result file for it before opening the retry result.
-        if (getType(test) === 'scenario' && this._hasPendingTest) {
-            this._pushRuntimeMessage({
-                type: 'metadata',
-                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
-            })
-            this._attachLogs()
-            this._endTest({
-                stage: AllureStage.FINISHED,
-                status: AllureStatusEnum.FAILED,
-                stop: Date.now(),
-            })
         }
 
         this._laneKey()
@@ -1055,10 +1039,18 @@ export default class AllureReporter extends WDIOReporter {
             this._handleCucumberStepEnd(test, getTestStatus(test, this._config), getStatusDetailsFromFailedTest(test))
             return
         }
+        // a retried Cucumber scenario attempt keeps its tag, as in onSuiteRetry (its TestStats type is 'test')
+        if (this._framework === 'cucumber') {
+            this._pushRuntimeMessage({
+                type: 'metadata',
+                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
+            })
+        }
         this._attachLogs()
         const status = getTestStatus(test, this._config)
         this._endTest({
             status,
+            stage: AllureStage.FINISHED,
             statusDetails: getStatusDetailsFromFailedTest(test),
             stop: AllureReporter.getTimeOrNow(test.end),
             duration: test.duration,

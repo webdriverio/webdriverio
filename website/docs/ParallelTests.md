@@ -165,6 +165,7 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 - With `failFast`, the scenarios that already run in other windows finish after the first failure. The scenarios that did not start are reported as skipped, as in a sequential run.
 - With `ignoreUndefinedDefinitions: true`, an ambiguous step (with `failAmbiguousDefinitions: false`), or a pending step with `strict: true`, fails the run. A sequential run then passes.
 - Cucumber formatters (`format`, `formatOptions`, `publish`) don't run, so they write no file.
+- An error that no step awaits (for example a timer that throws, or an unhandled rejection) fails the step or hook of the window it comes from, as in a sequential run, and the other scenarios go on. An error that comes after its scenario ended, while other scenarios still run, fails the run and is logged, but no step shows it (a sequential run shows it on the step that runs at that time). The same is true for an error from an event emitter that your code made outside a scenario, and on Node.js 22 for an error from `queueMicrotask()`, because the window of the scenario is not known there. An error in `BeforeAll` / `AfterAll` fails that hook, as in a sequential run.
 
 ### Both frameworks
 

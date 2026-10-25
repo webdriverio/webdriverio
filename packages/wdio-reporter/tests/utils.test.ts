@@ -1,7 +1,7 @@
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework } from '../src/utils.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -58,5 +58,21 @@ describe('utils', () => {
         // @ts-ignore
         supportsColor.set(true)
         expect(color('fast', 'foobar')).toBe('\u001b[90mfoobar\u001b[0m')
+    })
+})
+
+// the forms of initializePlugin (wdio-utils initializePlugin.ts): a short name in any case, the scoped package
+describe('knownFramework', () => {
+    it.each([
+        ['cucumber', 'cucumber'], ['Cucumber', 'cucumber'], ['@wdio/cucumber-framework', 'cucumber'],
+        ['mocha', 'mocha'], ['MOCHA', 'mocha'], ['@wdio/mocha-framework', 'mocha'],
+        ['jasmine', 'jasmine'], ['@wdio/jasmine-framework', 'jasmine'],
+        ['vitest', 'vitest'], ['@wdio/vitest-framework', 'vitest'],
+    ])('gives %s as %s', (name, expected) => {
+        expect(knownFramework(name)).toBe(expected)
+    })
+
+    it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
+        expect(knownFramework(name)).toBeUndefined()
     })
 })
