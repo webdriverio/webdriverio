@@ -27,7 +27,7 @@ const testCaseOf = (xml: string, name: string) => new RegExp(`<testcase [^>]*nam
 const testSuiteOf = (xml: string, name: string) => new RegExp(`<testsuite name="${name}"[\\s\\S]*?</testsuite>`).exec(xml)?.[0] ?? ''
 // the system-out of the testsuite itself, not of its testcases
 const suiteOutOf = (xml: string, name: string) => /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/
-    .exec(testSuiteOf(xml, name).replace(/<testcase [\s\S]*?(?:\/>|<\/testcase>)/g, ''))?.[1]
+    .exec(testSuiteOf(xml, name).replace(/<testcase [^>]*[^/]>[\s\S]*?<\/testcase>/g, '').replace(/<testcase [^>]*\/>/g, ''))?.[1]
 
 describe('JUnit worker logs and commands by their owner', () => {
     const originalWrite = process.stdout.write
