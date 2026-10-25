@@ -12,10 +12,7 @@ name: Test
 on:
   push:
     branches:
-      - main
-      - v7
-      - v8
-      - '!l10n_main'
+      - v9
     paths-ignore:
       - '**/*.md'
   pull_request:
