@@ -23,6 +23,7 @@ pnpm run test:e2e:cucumberjs-json-reporter # @wdio/cucumberjs-json-reporter in C
 pnpm run test:e2e:video-reporter # @wdio/video-reporter + Allure in Chrome; needs ffmpeg on PATH (also in the CI testrunner lane)
 pnpm run test:e2e:video-reporter-parallel # the same in Mocha parallel mode: one video per test, no frame of another test
 pnpm run test:e2e:html-reporter # @wdio/html-reporter in Chrome (local only)
+pnpm run test:e2e:html-reporter-parallel # the same in Mocha and Cucumber parallel mode: each log and screenshot under its test (also in the CI testrunner lane)
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only, not in CI
 pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
