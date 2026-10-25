@@ -178,17 +178,29 @@ class ReportAggregator {
             } else if (first.isBefore(second)) {
                 return -1
             }
-            return  0
+            // the attempts of a spec file retry, in order
+            return (report1.info.retry ?? 0) - (report2.info.retry ?? 0)
         })
+        // `specFileRetries`: the report shows each attempt of a spec file, and counts only the last one
+        const lastAttempt = new Map<string, number>()
+        for (const report of this.reports) {
+            lastAttempt.set(report.info.cid, Math.max(lastAttempt.get(report.info.cid) ?? 0, report.info.retry ?? 0))
+        }
         for (let j = 0; j < this.reports.length; j++) {
             try {
                 const report = this.reports[j]
-                metrics.passed += report.metrics.passed
-                metrics.failed += report.metrics.failed
-                metrics.skipped += report.metrics.skipped
+                const retried = (report.info.retry ?? 0) < (lastAttempt.get(report.info.cid) ?? 0)
+                if (!retried) {
+                    metrics.passed += report.metrics.passed
+                    metrics.failed += report.metrics.failed
+                    metrics.skipped += report.metrics.skipped
+                }
                 removeMissingVideos(report.suites)
                 for (let k = 0; k < report.suites.length; k++) {
                     const suiteInfo = report.suites[k]
+                    if (retried) {
+                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${(report.info.retry ?? 0) + 1}, retried)`
+                    }
                     this.updateSuiteMetrics(metrics, suiteInfo)
                     suites.push(suiteInfo)
                 }

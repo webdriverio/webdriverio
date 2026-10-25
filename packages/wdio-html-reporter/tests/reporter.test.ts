@@ -1227,6 +1227,30 @@ describe('sequential mode: events of a before hook', () => {
         expect(logsOf(reporter, 'A2')).toEqual([])
     })
 
+    it('adds the log of the Before hook of a Cucumber retry to the first step of the retry', () => {
+        const reporter = start()
+        suite(reporter, 'S1')
+        runTest(reporter, 'S1 step 1', 'S1')
+        // the retry clears the steps of the first try
+        reporter.emit('suite:retry', { type: 'suite:retry', uid: 'S1', title: 'S1', fullTitle: 'S1', cid: '0-0', parent: '', file: 'spec.js' })
+        hook(reporter, '', 'S1', () => log('Before of the retry'))
+        runTest(reporter, 'S1 step 1 retry', 'S1')
+        expect(logsOf(reporter, 'S1 step 1 retry')).toEqual(['Before of the retry'])
+    })
+
+    it('does not give the log of a first suite with no test to the next suite', () => {
+        const reporter = start()
+        // `failHookAffectedTests: false`: the before all hook fails and no test of A is reported
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        endSuite(reporter, 'A')
+        suite(reporter, 'B')
+        hook(reporter, '"before all" hook for B', 'B', () => log('before all of B'))
+        reporter.emit('test:pending', { ...test('B1', 'B'), type: 'test:pending' })
+        endSuite(reporter, 'B')
+        expect(logsOf(reporter, 'B1')).toEqual(['before all of B'])
+    })
+
     it('adds the log of a suite with no test to the test before, as before', () => {
         const reporter = start()
         suite(reporter, 'A')

@@ -11,9 +11,10 @@ export function withExtension (file: string, extension: string) {
 
 /**
  * The HTML file of a worker: `report.html` → `report-0-0.html` (`.html` when the
- * file name has no extension)
+ * file name has no extension). The retry of a spec file (`specFileRetries`) has the
+ * same cid: `report-0-0-retry1.html`
  */
-export function workerFile (file: string, cid: string) {
+export function workerFile (file: string, cid: string, retry = 0) {
     const { dir, name, ext } = path.parse(file)
-    return path.join(dir, `${name}-${cid}${ext || '.html'}`)
+    return path.join(dir, `${name}-${cid}${retry ? `-retry${retry}` : ''}${ext || '.html'}`)
 }
