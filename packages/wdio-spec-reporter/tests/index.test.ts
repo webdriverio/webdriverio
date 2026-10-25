@@ -688,6 +688,21 @@ describe('SpecReporter', () => {
             expect(result[0].hooks.length).toBe(1)
             expect(result[3].hooks.length).toBe(1)
         })
+
+        it('does not show a root suite hook that the framework skipped (K32)', () => {
+            tmpReporter['_suiteUids'] = new Set(['5'])
+            tmpReporter.suites = { '5': { uid: 5 } } as any
+            tmpReporter.currentSuites = [{
+                hooks: [{
+                    type: 'hook',
+                    title: '"before all" hook in "{root}"',
+                    state: 'skipped'
+                }]
+            }] as any
+            const result = tmpReporter.getOrderedSuites()
+            expect(result[0].hooks).toEqual([])
+            expect(result.at(-1)!.hooks).toEqual([])
+        })
     })
 
     describe('indent', () => {

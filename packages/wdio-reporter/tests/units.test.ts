@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import tmp from 'tmp'
 
 import WDIOReporter from '../src/index.js'
@@ -360,6 +360,71 @@ describe('units: Cucumber', () => {
         ])
         expect(r.retrySeen).toEqual(['seq:S1#0 tests=Given one:passed,Then two:failed'])
         expect(r.suites.sc1.tests).toEqual([])
+    })
+
+    /** what onSuiteRetry sees: the steps, the hooks and the start of the scenario */
+    class RetryRecorder extends Recorder {
+        retrySuites: string[] = []
+        retryStarts: number[] = []
+        onSuiteRetry (s: SuiteStats) {
+            super.onSuiteRetry(s)
+            this.retrySuites.push(`${s.title} tests=${s.tests.map((t) => `${t.title}:${t.state}`).join(',')} hooks=${s.hooks.map((h) => h.uid).join(',')} order=${s.hooksAndTests.length}`)
+            this.retryStarts.push(s.start.getTime())
+        }
+    }
+
+    it('K12: onSuiteRetry sees the tests and hooks of the failed attempt, then the base clears them', () => {
+        const r = new RetryRecorder()
+        play(r, [
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
+            ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f' })],
+            ...steps('sc1', undefined, 'test:retry'),
+            ['suite:retry', suiteEv('sc1', 'S1', { type: 'scenario' })],
+        ])
+        expect(r.retrySuites).toEqual(['S1 tests=Given one:passed,Then two:failed hooks=sc1-before order=3'])
+        expect(r.log).toContain('suite:retry S1 -> seq:S1#1')
+        expect(r.suites.sc1).toMatchObject({ tests: [], hooks: [], hooksAndTests: [], retries: 1 })
+        expect(r.counts).toMatchObject({ tests: 0, passes: 0, failures: 0 })
+    })
+
+    it('K12 parallel: onSuiteRetry sees only the failed attempt of its scenario, with interleaved payloads', () => {
+        const r = new RetryRecorder()
+        // the parallel adapter gives the hooks the uid of their scenario
+        const withParent = (events: Events, sc: string): Events => events.map(([e, p]) => [e, e === 'hook:start' ? { ...p, parentUid: sc } : p])
+        const a = withParent(steps('sc1', 'A', 'test:retry'), 'sc1'), b = withParent(steps('sc2', 'B'), 'sc2')
+        play(r, [
+            ['suite:start', suiteEv('f', 'Feature', { type: 'feature', parentUid: null })],
+            ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f', parentUid: 'f', contextId: 'A' })],
+            ['suite:start', suiteEv('sc2', 'S2', { type: 'scenario', parent: 'f', parentUid: 'f', contextId: 'B' })],
+            a[0], b[0], a[1], b[1], a[2], b[2], b[3], a[3], b[4], a[4], a[5], b[5], a[6], b[6], a[7], b[7],
+            ['suite:retry', suiteEv('sc1', 'S1', { type: 'scenario', contextId: 'A' })],
+        ])
+        expect(r.retrySuites).toEqual(['S1 tests=Given one:passed,Then two:failed hooks=sc1-before order=3'])
+        expect(r.log).toContain('suite:retry S1 -> A:S1#1')
+        expect(r.suites.sc1.tests).toEqual([])
+        expect(r.suites.sc2.tests.map((t) => t.title)).toEqual(['Given one', 'Then two'])
+        expect(r.suites.sc2.hooks.map((h) => h.uid)).toEqual(['sc2-before'])
+    })
+
+    it('K12: the next attempt has its own start, onSuiteRetry sees the start of the failed attempt', () => {
+        vi.useFakeTimers({ now: 1000 })
+        try {
+            const r = new RetryRecorder()
+            play(r, [
+                ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
+                ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f' })],
+                ...steps('sc1', undefined, 'test:retry'),
+            ])
+            vi.setSystemTime(5000)
+            r.emit('suite:retry', { type: 'suite:retry', ...suiteEv('sc1', 'S1', { type: 'scenario' }) })
+            expect(r.retryStarts).toEqual([1000])
+            expect(r.suites.sc1.start.getTime()).toBe(5000)
+            vi.setSystemTime(7000)
+            r.emit('suite:end', { type: 'suite:end', ...suiteEv('sc1', 'S1', { type: 'scenario' }) })
+            expect(r.suites.sc1.duration).toBe(2000)
+        } finally {
+            vi.useRealTimers()
+        }
     })
 
     it('scenario level with test:retry: the same uid started again is the next attempt, in both modes', () => {
@@ -1043,5 +1108,43 @@ describe('units: hook owner (hookKind, hookSuiteUid)', () => {
         expect(r.hookOwner(r.hooks.h1)).toBe(r.suites.s1)
         expect(r.unitOf(r.hooks.h1)).toBeUndefined()
         expect(r.log.at(-1)).toBe('hook:end "after all" hook -> none')
+    })
+})
+
+describe('K32: hooks that the framework skips', () => {
+    const hookEnd = (uid: string, extra: Record<string, unknown>): Events => [
+        ['hook:start', hookEv(uid, uid, extra)],
+        ['hook:end', hookEv(uid, uid, extra)],
+    ]
+    const stateAtEnd = (extra: Record<string, unknown>) => {
+        const seen: (string | undefined)[] = []
+        const r = new (class extends Recorder {
+            onHookEnd (h: HookStats) { seen.push(h.state) }
+        })()
+        play(r, [['suite:start', suiteEv('s1', 'A')], ...hookEnd('h1', extra)])
+        expect(seen).toEqual([r.hooks.h1.state])
+        return r.hooks.h1.state
+    }
+
+    it('Mocha `this.skip()` (sequential and parallel payloads): pending with no state', () => {
+        expect(stateAtEnd({ hookKind: 'beforeAll', pending: true })).toBe('skipped')
+        expect(stateAtEnd({ hookKind: 'beforeEach', pending: true })).toBe('skipped')
+        expect(stateAtEnd({ hookKind: 'beforeEach', pending: true, contextId: 'A', parentUid: 's1' })).toBe('skipped')
+    })
+
+    it('Cucumber hook result SKIPPED (a Before that returns \'skipped\'), sequential and parallel', () => {
+        expect(stateAtEnd({ hookKind: 'beforeEach', state: 'SKIPPED' })).toBe('skipped')
+        expect(stateAtEnd({ hookKind: 'beforeEach', state: 'SKIPPED', parentUid: 's1' })).toBe('skipped')
+    })
+
+    it('a hook that ran or failed is not skipped', () => {
+        // Mocha sequential hook:end, Mocha parallel config hook (pending of a skipped first suite), Vitest ctx.skip(), Cucumber
+        expect(stateAtEnd({ pending: false })).toBeUndefined()
+        expect(stateAtEnd({ state: 'pass', pending: true })).toBeUndefined()
+        expect(stateAtEnd({ state: 'pass' })).toBeUndefined()
+        expect(stateAtEnd({ state: 'PASSED' })).toBeUndefined()
+        expect(stateAtEnd({ state: 'PENDING' })).toBeUndefined()
+        expect(stateAtEnd({ pending: true, error: { message: 'x' } })).toBe('failed')
+        expect(stateAtEnd({ state: 'SKIPPED', error: { message: 'x' } })).toBe('failed')
     })
 })
