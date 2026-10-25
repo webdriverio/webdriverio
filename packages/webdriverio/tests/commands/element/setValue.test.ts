@@ -62,7 +62,7 @@ describe('setValue', () => {
     it.each(['range', 'date', 'datetime-local', 'month', 'week', 'time', 'color'])('should set the value of a %s input directly', async (type) => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue(type)
-        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue('set' as never)
 
         await elem.setValue('2026-10-04')
         expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
@@ -70,10 +70,74 @@ describe('setValue', () => {
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
     })
 
+    it.each(['date', 'datetime-local', 'month', 'week', 'time'])('should throw when the browser rejects the value of a %s input', async (type) => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockResolvedValue(type)
+        vi.spyOn(browser, 'execute').mockResolvedValue('rejected' as never)
+
+        await expect(elem.setValue('garbage')).rejects.toThrow('The browser rejected the value "garbage"')
+        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
+        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
+    })
+
+    describe('in-page setter', () => {
+        /**
+         * runs the function `setValue` sends to the browser against a fake input
+         * that, like a date input, resets to '' for a value it can't parse
+         */
+        const run = async (input: { disabled?: boolean, accepts?: (v: string) => boolean }, value: string) => {
+            const events: string[] = []
+            class FakeInput {
+                _value = 'previous'
+                disabled = input.disabled ?? false
+                readOnly = false
+                get value () { return this._value }
+                set value (v: string) { this._value = v === 'previous' || (input.accepts ?? (() => true))(v) ? v : '' }
+                dispatchEvent (e: { type: string }) { events.push(e.type) }
+            }
+            vi.stubGlobal('HTMLInputElement', FakeInput)
+            vi.stubGlobal('Event', class { constructor (public type: string) {} })
+            const fake = new FakeInput()
+            const elem = await browser.$('#foo')
+            vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
+            let result: string | undefined
+            vi.spyOn(browser, 'execute').mockImplementation(async (fn: any, _el: unknown, v: string) => (result = fn(fake, v)))
+            await elem.setValue(value).catch(() => undefined)
+            delete (globalThis as any).HTMLInputElement
+            delete (globalThis as any).Event
+            return { result, state: { value: fake.value, events } }
+        }
+
+        it('should restore the previous value and skip the events when the value is rejected', async () => {
+            const { result, state } = await run({ accepts: (v) => v === '2026-10-04' }, 'garbage')
+            expect(result).toBe('rejected')
+            expect(state.value).toBe('previous')
+            expect(state.events).toEqual([])
+        })
+
+        it('should fire input and change events when the value is accepted', async () => {
+            const { result, state } = await run({ accepts: (v) => v === '2026-10-04' }, '2026-10-04')
+            expect(result).toBe('set')
+            expect(state.value).toBe('2026-10-04')
+            expect(state.events).toEqual(['input', 'change'])
+        })
+
+        it('should accept an empty value to clear the input', async () => {
+            const { result, state } = await run({ accepts: () => false }, '')
+            expect(result).toBe('set')
+            expect(state.value).toBe('')
+        })
+
+        it('should skip a disabled input', async () => {
+            const { result } = await run({ disabled: true }, '2026-10-04')
+            expect(result).toBe('skipped')
+        })
+    })
+
     it('should pass numbers as strings', async () => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue('range')
-        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue('set' as never)
 
         await elem.setValue(67)
         expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '67')
@@ -82,7 +146,7 @@ describe('setValue', () => {
     it('should type into a disabled or read-only input, which reports the reason', async () => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
-        vi.spyOn(browser, 'execute').mockResolvedValue(false as never)
+        vi.spyOn(browser, 'execute').mockResolvedValue('skipped' as never)
 
         await elem.setValue('2026-10-04')
         expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
@@ -123,7 +187,7 @@ describe('setValue', () => {
             const elem = await browser.$('#foo')
             const classic = vi.spyOn(elem, 'getElementProperty')
             vi.mocked(bidiGetProperty).mockResolvedValue('date')
-            const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+            const execute = vi.spyOn(browser, 'execute').mockResolvedValue('set' as never)
 
             await elem.setValue('2026-10-04')
             expect(bidiGetProperty).toHaveBeenCalledWith(elem, 'type')
