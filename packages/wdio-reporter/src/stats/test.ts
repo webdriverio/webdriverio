@@ -64,6 +64,9 @@ export default class TestStats extends RunnableStats {
     output: Output[]
     argument?: string | Argument
     retries?: number
+    // `declare`: no own property until `test:retry` sets it, so the stats of other tests stay the same
+    /** @experimental a failed attempt that the framework ran again (`test:retry`): only the last attempt counts */
+    declare retried?: boolean
     parent: string
     /**
      * initial test state is pending
@@ -75,7 +78,7 @@ export default class TestStats extends RunnableStats {
     error?: Error
     body?: string
     // `declare`: no own property when the payload has no value, so these stats stay the same
-    /** the browsing context of a parallel test */
+    /** the browsing context of a parallel test (Vitest: the id of the test) */
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null

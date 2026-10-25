@@ -80,3 +80,9 @@ test('adds no context or parent property when the payload has none', () => {
     expect(Object.keys(hook)).not.toContain('contextId')
     expect(Object.keys(hook)).not.toContain('parentUid')
 })
+
+test('keeps failedTestUid only when the payload has it', () => {
+    const payload = { type: 'hook:start', title: 'foo', parent: 'bar', fullTitle: 'foo bar', uid: 'hook-1', cid: '0-0' } as any
+    expect('failedTestUid' in new HookStats(payload)).toBe(false)
+    expect(new HookStats({ ...payload, failedTestUid: 'test-1' }).failedTestUid).toBe('test-1')
+})

@@ -80,7 +80,7 @@ function recordAttempt(task: TestTask, start: number, error: unknown, hooks: Att
  * attempts, so this attempt's errors are the ones after `errorsBefore`. A hook that threw stays in the
  * 'run' state; the beforeEach error is the first of an attempt and the afterEach error the last.
  */
-function readAttemptHooks(task: TestTask, errorsBefore: number): AttemptMarker['hooks'] {
+function readAttemptHooks(task: TestTask, errorsBefore: number, attemptError: unknown): AttemptMarker['hooks'] {
     const states = (task.result?.hooks ?? {}) as Record<string, string | undefined>
     const errors = (task.result?.errors ?? []).slice(errorsBefore)
     const hooks: NonNullable<AttemptMarker['hooks']> = {}
@@ -88,9 +88,12 @@ function readAttemptHooks(task: TestTask, errorsBefore: number): AttemptMarker['
         const state = states[kind]
         if (state === 'pass') {
             hooks[kind] = { state: 'pass' }
+        } else if (state === 'run' && errors.length === 0 && task.result?.state === 'skip') {
+            // ctx.skip() stops the hook with no error: the hook skipped the test, it did not fail
+            hooks[kind] = { state: 'pass' }
         } else if (state === 'run' || state === 'fail') {
             const error = kind === 'beforeEach' ? errors[0] : errors[errors.length - 1]
-            hooks[kind] = { state: 'fail', ...(error && { error: serializeError(error) }) }
+            hooks[kind] = { state: 'fail', ...(error && { error: serializeError(error) }), ...(error && error === attemptError && { isAttemptError: true }) }
         }
     }
     return Object.keys(hooks).length > 0 ? hooks : undefined
@@ -354,7 +357,7 @@ aroundEach(async (...args) => {
             await runAttempt()
         } finally {
             // before runTest the hook states are still the previous attempt's
-            recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore) : undefined)
+            recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore, error ?? serviceError) : undefined)
         }
     }
 

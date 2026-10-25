@@ -17,10 +17,15 @@ export interface Hook {
     currentTest?: string
     /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
     parentUid?: string | null
-    /** the browsing context of a parallel hook */
+    /** the browsing context of a parallel hook (Vitest: the id of the test) */
     contextId?: string
     /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
     retried?: boolean
+    /**
+     * @experimental the uid of the test that failed with the error of this hook: the framework counts the
+     * error one time, as the failure of that test (Vitest `beforeEach` / `afterEach`)
+     */
+    failedTestUid?: string
 }
 
 export default class HookStats extends RunnableStats {
@@ -35,12 +40,14 @@ export default class HookStats extends RunnableStats {
     state?: 'failed' | 'passed'
     currentTest?: string
     // `declare`: no own property when the payload has no value, so these stats stay the same
-    /** the browsing context of a parallel hook */
+    /** the browsing context of a parallel hook (Vitest: the id of the test) */
     declare contextId?: string
     /** the uid of the suite of the hook */
     declare parentUid?: string | null
     /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
     declare retried?: boolean
+    /** @experimental the uid of the test that failed with the error of this hook; do not count the hook as another failure */
+    declare failedTestUid?: string
 
     constructor (runner: Hook) {
         super('hook')
@@ -53,6 +60,9 @@ export default class HookStats extends RunnableStats {
         this.keepParallelFields(runner)
         if (runner.retried !== undefined) {
             this.retried = runner.retried
+        }
+        if (runner.failedTestUid !== undefined) {
+            this.failedTestUid = runner.failedTestUid
         }
     }
 

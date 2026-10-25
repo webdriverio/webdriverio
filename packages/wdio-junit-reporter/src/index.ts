@@ -4,7 +4,7 @@ import url from 'node:url'
 import os from 'node:os'
 
 import type { HookStats, RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -107,7 +107,7 @@ class JunitReporter extends WDIOReporter {
         /**
          * Add failed hooks to suite as tests.
          */
-        const failedHooks = suite.hooks.filter(hook => hook.error && !hook.retried && hook.title.match(/^"(before|after)( all| each)?" hook/))
+        const failedHooks = suite.hooks.filter(hook => hookCountsAsFailure(hook) && hook.title.match(/^"(before|after)( all| each)?" hook/))
         failedHooks.forEach(hook => {
             const { title, _duration, error, state } = hook
             suite.tests.push({
@@ -154,7 +154,7 @@ class JunitReporter extends WDIOReporter {
             output: []
         }) as unknown as TestStats
 
-        const failedHooks = scenario.hooks.filter((hook) => hook.error)
+        const failedHooks = scenario.hooks.filter(hookCountsAsFailure)
         scenario.tests.unshift(...failedHooks.filter(isBefore).map((hook) => toStep(hook, true)))
         scenario.tests.push(...failedHooks.filter((hook) => !isBefore(hook)).map((hook) => toStep(hook, false)))
         return scenario
@@ -196,7 +196,9 @@ class JunitReporter extends WDIOReporter {
                     // default
                     testCase.failure(test.error.message)
                 }
-                testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
+                // a test can fail with more errors, e.g. its body and the afterEach that Vitest gives it
+                const stacks = (test.errors?.length ? test.errors : [test.error]).map((error) => error.stack?.replace(ansiRegex, '') ?? '')
+                testCase.standardError(`\n${stacks.join('\n')}\n`)
             } else {
                 testCase.failure()
             }

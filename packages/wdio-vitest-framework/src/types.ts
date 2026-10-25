@@ -20,7 +20,8 @@ export const ATTEMPT_HOOK_KINDS = ['beforeEach', 'afterEach'] as const
 
 export type AttemptHookKind = typeof ATTEMPT_HOOK_KINDS[number]
 
-export type AttemptHook = { state: 'pass' | 'fail', error?: AttemptError }
+// isAttemptError: the hook error is the error of the attempt (the same object in the worker)
+export type AttemptHook = { state: 'pass' | 'fail', error?: AttemptError, isAttemptError?: boolean }
 
 export type AttemptMarker = {
     start: number

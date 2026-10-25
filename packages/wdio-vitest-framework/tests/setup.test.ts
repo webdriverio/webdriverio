@@ -331,9 +331,9 @@ describe('setup', () => {
             it('attributes a failing beforeEach to the first error of this attempt, not an earlier one', async () => {
                 const earlier = new Error('previous attempt')
                 const failure = new Error('before each failed')
-                const payload = await attemptWith({ errors: [earlier] }, { hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
+                const payload = await attemptWith({ errors: [earlier] }, { state: 'fail', hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
                 expect(payload.hooks).toEqual({
-                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }) },
+                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }), isAttemptError: true },
                     afterEach: { state: 'pass' }
                 })
             })
@@ -346,6 +346,19 @@ describe('setup', () => {
                     beforeEach: { state: 'pass' },
                     afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
                 })
+            })
+
+            // the attempt error is the first error of the attempt: the same object as the beforeEach error, or as a lone afterEach error
+            it('marks the hook error that is the error of the attempt', async () => {
+                const after = new Error('after each failed')
+                const payload = await attemptWith({}, { state: 'fail', hooks: { beforeEach: 'pass', afterEach: 'run' }, errors: [after] })
+                expect(payload.hooks.afterEach).toEqual({ state: 'fail', error: expect.objectContaining({ message: 'after each failed' }), isAttemptError: true })
+            })
+
+            // ctx.skip() in a beforeEach stops the hook, so Vitest leaves it in the 'run' state with no error
+            it('records a beforeEach that skipped the test as passed, not failed', async () => {
+                const payload = await attemptWith({}, { state: 'skip', hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [] })
+                expect(payload.hooks).toEqual({ beforeEach: { state: 'pass' }, afterEach: { state: 'pass' } })
             })
 
             it('adds no hooks field when the test has no hooks', async () => {

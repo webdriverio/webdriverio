@@ -488,6 +488,12 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
             expect(reporter.counts.hooks).toBe(1)
         })
+
+        it('keeps failedTestUid and retried when only hook:end has them', () => {
+            hookEndEvent = { ...hookEndEvent, error: new Error('boom'), failedTestUid: 'test-1', retried: true } as any
+            emitEvents()
+            expect(reporter.hooks[hookStartEvent.uid!]).toMatchObject({ failedTestUid: 'test-1', retried: true })
+        })
     })
 
     describe('handling test:start', () => {
@@ -774,6 +780,14 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.counts.tests).toBe(1)
             expect(reporter.counts.passes).toBe(0)
             expect(reporter.counts.failures).toBe(1)
+        })
+
+        it('marks the stats of a retried attempt, not the next attempt', () => {
+            emitEventsFirstTry()
+            const attempt = reporter.tests[testRetryEvent.uid]
+            emitEventsSecondPassTry()
+            expect(attempt.retried).toBe(true)
+            expect(reporter.tests[testEndEvent.uid].retried).toBeUndefined()
         })
     })
 

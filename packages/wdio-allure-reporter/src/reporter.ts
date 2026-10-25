@@ -13,7 +13,7 @@ import type {
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter, { knownFramework } from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -1223,6 +1223,20 @@ export default class AllureReporter extends WDIOReporter {
         if (disableMochaHooks && !hook.error) { return }
         const hadPendingTest = this._hasPendingTest
         const hadPendingHook = this._hasPendingHook
+
+        // its error is on its test (the `test:retry` of the attempt, or `failedTestUid`), which ended before this hook
+        // (Vitest afterEach): the hook stays a fixture of that test, with no extra result for it
+        if (hook.error && !hookCountsAsFailure(hook) && !hadPendingTest) {
+            if (hadPendingHook) {
+                this._endHook({
+                    status: AllureStatusEnum.BROKEN,
+                    statusDetails: getMessageAndTraceFromError(hook.error),
+                    stop: AllureReporter.getTimeOrNow(hook.end),
+                    duration: hook.duration,
+                })
+            }
+            return
+        }
 
         const isCucumber = this._isCucumberHook(hook)
 

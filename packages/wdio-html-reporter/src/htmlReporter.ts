@@ -6,7 +6,7 @@ import type {
     SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { knownFramework } from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
@@ -128,7 +128,7 @@ export default class HtmlReporter extends WDIOReporter {
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid]?.error && !this.hooks[hook.uid].retried && !this.#countScenarios) {
+            if (this.hooks[hook.uid] && hookCountsAsFailure(this.hooks[hook.uid]) && !this.#countScenarios) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
