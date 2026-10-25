@@ -210,11 +210,12 @@ export default class WDIOReporter extends EventEmitter {
             if (unit?.contextId) {
                 retriedContexts.add(unit.contextId)
             }
-            // onSuiteRetry sees the tests, hooks and start of the failed attempt (K12)
+            // onSuiteRetry sees the new retry count (as main) and the tests, hooks and start of the failed attempt (K12)
+            suiteStat.retries++
             try {
                 this.#call(unit, () => this.onSuiteRetry(suiteStat))
             } finally {
-                suiteStat.retry()
+                suiteStat.clearAttempt()
             }
         })
 
@@ -770,6 +771,7 @@ export default class WDIOReporter extends EventEmitter {
      * @experimental sent only in Mocha `parallelMode` for now; the name and the payload may change
      */
     onContextEnd(_payload: ContextEnd) { }
+    /** A suite runs again (Cucumber): it has its new `retries` and the tests and hooks of the failed attempt; the base clears them after it. */
     onSuiteRetry(_suiteStats: SuiteStats) { }
     /** A unit starts: at the first event of a parallel context (a `test:start` in an ended context starts a new one), or at a sequential test or scenario. @experimental */
     onUnitStart(_unit: ReporterUnit) { }
