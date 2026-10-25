@@ -781,6 +781,14 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.counts.passes).toBe(0)
             expect(reporter.counts.failures).toBe(1)
         })
+
+        it('marks the stats of a retried attempt, not the next attempt', () => {
+            emitEventsFirstTry()
+            const attempt = reporter.tests[testRetryEvent.uid]
+            emitEventsSecondPassTry()
+            expect(attempt.retried).toBe(true)
+            expect(reporter.tests[testEndEvent.uid].retried).toBeUndefined()
+        })
     })
 
     // Cucumber at step level: suite:retry starts the next attempt of a scenario and clears its steps
