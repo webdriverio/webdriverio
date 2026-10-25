@@ -163,6 +163,11 @@ export default class SpecReporter extends WDIOReporter {
         this._count('failed', testStat)
     }
 
+    /** a test that runs again (Mocha), or a Cucumber step of an attempt that runs again: counted only by its last attempt */
+    onTestRetry (testStat: TestStats) {
+        this.printCurrentStats(Object.assign(Object.create(testStat), { state: State.RETRIED }))
+    }
+
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._pendingReasons.push(testStat.pendingReason as string)

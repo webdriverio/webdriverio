@@ -89,7 +89,7 @@ export default class CustomReporter extends WDIOReporter {
 
 The method names are pretty self explanatory.
 
-After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts`. Finish your work for a test in `onTestEnd`, not in the result methods.
+After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts` (`this.counts.hooks` keeps the hooks of every attempt, as for a Mocha retry). Finish your work for a test in `onTestEnd`, not in the result methods.
 
 To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 

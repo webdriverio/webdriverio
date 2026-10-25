@@ -747,7 +747,11 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
 // Scenario execution
 // ============================================================
 
-type ScenarioResult = { status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number; label: string }
+type ScenarioResult = {
+    status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number
+    /** only for a pending scenario under `strict`: its name in the warning (see `scenarioLabel`) */
+    strictPendingLabel?: string
+}
 
 /**
  * Mirrors Cucumber's shouldCauseFailure (runtime/helpers.js) plus WDIO's
@@ -829,7 +833,7 @@ async function runScenario(
 
     if (!testCase) {
         log.warn(`No assembled test case for pickle "${pickle.name}"`)
-        return { status: 'SKIPPED' as const, name: pickle.name, duration: 0, label: scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle) }
+        return { status: 'SKIPPED' as const, name: pickle.name, duration: 0 }
     }
 
     const execute = async () => {
@@ -885,7 +889,10 @@ async function runScenario(
         }
         const duration = Date.now() - testStart
 
-        return { status, name: pickle.name, duration, label: scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle) }
+        const strictPendingLabel = cucumberOpts.strict && status === 'PENDING'
+            ? scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle)
+            : undefined
+        return { status, name: pickle.name, duration, ...(strictPendingLabel ? { strictPendingLabel } : {}) }
     }
     return contextId ? parallelStore.run(contextId, execute) : execute()
 }
@@ -1171,9 +1178,7 @@ async function runParallel(params: {
         }
     }
     const hookFailures = Number(!beforeAllOk) + Number(!afterAllOk)
-    const strictPending = cucumberOpts.strict && !cucumberOpts.dryRun
-        ? allResults.flatMap((r) => r.status === 'fulfilled' && r.value.status === 'PENDING' ? [r.value.label] : [])
-        : []
+    const strictPending = allResults.flatMap((r) => r.status === 'fulfilled' && r.value.strictPendingLabel ? [r.value.strictPendingLabel] : [])
     if (strictPending.length) {
         log.warn(strictPendingWarning(strictPending))
     }

@@ -77,6 +77,8 @@ export default class CucumberFormatter extends Formatter {
     private failedCount = 0
     /** `failedCount` when the attempt started: a retried attempt does not count */
     private _failedCountAtAttemptStart = 0
+    /** the retries that Cucumber gives the scenario that runs (`retry`, `retryTagFilter`) */
+    private _retries = 0
     /** the scenarios that make the run fail with `strict` because their worst result is pending */
     private _strictPendingScenarios: string[] = []
 
@@ -259,7 +261,7 @@ export default class CucumberFormatter extends Formatter {
             this.failedCount++
         }
         // Cucumber retries an attempt with a FAILED result: the step ends as a retry, the scenario starts again
-        const stepRetried = Boolean(step) && result.status === Status.FAILED && this.hasAttemptsLeft(scenario)
+        const stepRetried = Boolean(step) && result.status === Status.FAILED && (this._currentTestCase?.attempt ?? 0) < this._retries
 
         const common = {
             title: title,
@@ -298,15 +300,6 @@ export default class CucumberFormatter extends Formatter {
         if (!retried) {
             this.emit('test:end', payload)
         }
-    }
-
-    /** as Cucumber (test_case_runner.js): `attempt + 1 < 1 + retries` */
-    hasAttemptsLeft(scenario: Pickle) {
-        if (!this.retry) {
-            return false
-        }
-        const retries = retriesForPickle(scenario, { retry: this.retry, retryTagFilter: this.retryTagFilter })
-        return retries !== undefined && (this._currentTestCase?.attempt ?? 0) < retries
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
@@ -358,6 +351,7 @@ export default class CucumberFormatter extends Formatter {
 
     onTestCaseStarted(testcase: TestCaseStarted) {
         this._currentTestCase = testcase
+        this._retries = 0
 
         const tc = this._testCases.find((tc) => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(
@@ -366,6 +360,10 @@ export default class CucumberFormatter extends Formatter {
         /* istanbul ignore if */
         if (!scenario) {
             return
+        }
+        // as Cucumber (test_case_runner.js): an attempt is retried while `attempt < retries`
+        if (this.retry) {
+            this._retries = retriesForPickle(scenario, { retry: this.retry, retryTagFilter: this.retryTagFilter }) ?? 0
         }
 
         const doc = this._gherkinDocEvents.find(

@@ -1256,6 +1256,17 @@ describe('SpecReporter', () => {
             })
         })
 
+        // a Cucumber step that fails in an attempt that Cucumber retries, a Mocha test that runs again
+        it('sends a line with the retry symbol for a retried test', () => {
+            withRunnerSend((sent) => {
+                const realtime = new SpecReporter({ realtimeReporting: true })
+                realtime.onRunnerStart(getRunnerConfig() as any)
+                realtime.onTestRetry({ type: 'test', title: 'Then I fail once', state: State.FAILED, uid: 'step-2' } as any)
+
+                expect(sent.map((message) => message.content).some((line) => line?.includes('↻') && line.includes('Then I fail once'))).toBe(true)
+            })
+        })
+
         it('does not send when realtime reporting is off', () => {
             withRunnerSend((sent) => {
                 const realtime = new SpecReporter({ realtimeReporting: false })
