@@ -248,7 +248,7 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 
 - `hook.hookKind`: `'beforeAll'`, `'beforeEach'`, `'afterEach'`, `'afterAll'`, `'beforeStep'` or `'afterStep'`.
 - `hook.hookSuiteUid`: the uid of the suite that declares a `beforeAll` / `afterAll` hook.
-- `this.hookOwner(hook)`: the owner of a hook (`ReporterUnit | SuiteStats | undefined`). This is its unit, or `undefined` when the hook has no unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`).
+- `this.hookOwner(hook)`: the owner of a hook (`ReporterUnit | SuiteStats | undefined`). This is its unit, or `undefined` when the hook has no unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`). When that hook is a hook of the root suite (for example a root Mocha `before`), it is also `undefined`.
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and of a hook of a parallel context that runs before its test. The array exists after the first command.
 - `hookStats.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
 

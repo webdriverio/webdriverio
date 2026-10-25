@@ -597,7 +597,11 @@ export default class WDIOReporter extends EventEmitter {
         return this.#openAllHooks.size ? undefined : this.#fallbackUnit()
     }
 
-    /** The owner of a hook: its unit, or for a `beforeAll` / `afterAll` with `hookKind` and no context its suite (`hookSuiteUid`, else `parentOf`). @experimental */
+    /**
+     * The owner of a hook: its unit, or for a `beforeAll` / `afterAll` with `hookKind` and no context its suite
+     * (`hookSuiteUid`, else `parentOf`). Such a hook of the root suite gets `undefined`, as a hook with no unit.
+     * @experimental
+     */
     hookOwner(hook: HookStats): ReporterUnit | SuiteStats | undefined {
         if (isContextlessAllHook(hook)) {
             return (hook.hookSuiteUid && this.suites[hook.hookSuiteUid]) || this.parentOf(hook)
