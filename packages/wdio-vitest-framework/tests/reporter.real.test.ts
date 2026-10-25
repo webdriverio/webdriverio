@@ -175,3 +175,47 @@ describe('WdioBridgeReporter with the real JUnit reporter', () => {
         }
     })
 })
+
+describe('WdioBridgeReporter with the real JUnit and Allure reporters across many spec files', () => {
+    it('removes the process listeners of each finished reporter', async () => {
+        // the reporters are not dependencies of this package; their builds are only test fixtures
+        const { default: JunitReporter } = await import('../../wdio-junit-reporter/build/index.js')
+        const { default: AllureReporter } = await import('../../wdio-allure-reporter/build/index.js')
+        const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-listeners-'))
+        const events = ['junit:addProperty', 'allure:addTestInfo', 'allure:startStep', 'allure:endStep', 'allure:runtimeMessage']
+        const counts = () => events.map((event) => process.listenerCount(event))
+        const warnings: Error[] = []
+        const onWarning = (warning: Error) => warnings.push(warning)
+        process.on('warning', onWarning)
+        try {
+            const before = counts()
+            const config = {
+                framework: 'vitest',
+                reporters: [[JunitReporter, { outputDir }], [AllureReporter, { outputDir, disableWebdriverStepsReporting: true }]]
+            } as unknown as WebdriverIO.Config
+            const bridge = new WdioBridgeReporter(config, () => {})
+            for (let index = 0; index < 12; index++) {
+                const module: any = {
+                    type: 'module', id: `m${index}`, moduleId: `/repo/${index}.spec.ts`, relativeModuleId: `${index}.spec.ts`,
+                    project: { config: { provide: { wdioCapabilities: { browserName: 'chrome' } } } },
+                    meta: () => ({}), state: () => 'passed', errors: () => [], children: { allTests: () => [test] }
+                }
+                const test: any = {
+                    type: 'test', id: `t${index}`, name: 't', module, parent: module,
+                    result: () => ({ state: 'passed' }), diagnostic: () => ({ duration: 1 }), meta: () => ({}), options: { concurrent: false }
+                }
+                bridge.onTestModuleStart(module)
+                await bridge.onTestCaseReady(test)
+                await bridge.onTestCaseResult(test)
+                await bridge.onTestModuleEnd(module)
+            }
+            await bridge.onTestRunEnd()
+
+            expect(counts()).toEqual(before)
+            expect(warnings.filter(({ name }) => name === 'MaxListenersExceededWarning')).toEqual([])
+        } finally {
+            process.off('warning', onWarning)
+            await fs.rm(outputDir, { recursive: true, force: true })
+        }
+    })
+})

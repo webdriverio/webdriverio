@@ -1170,3 +1170,34 @@ describe('WDIOReporter Listeners', () => {
         })
     })
 })
+
+describe('WDIOReporter process listeners', () => {
+    class ProcessReporter extends WDIOReporter {
+        constructor() {
+            super({ logFile: tmp.fileSync().name })
+            this.onProcess('wdio-test:event', () => {})
+            this.onProcess('wdio-test:other', () => {})
+        }
+    }
+    const counts = () => [process.listenerCount('wdio-test:event'), process.listenerCount('wdio-test:other')]
+
+    it('removes the listeners registered with onProcess when the runner ends', () => {
+        const before = counts()
+        const reporters = Array.from({ length: 3 }, () => new ProcessReporter())
+        expect(counts()).toEqual(before.map((count) => count + 3))
+
+        reporters.forEach((reporter) => reporter.emit('runner:end', { failures: 0, retries: 0 }))
+        expect(counts()).toEqual(before)
+    })
+
+    it('keeps the listeners of reporters whose runner has not ended', () => {
+        const before = counts()
+        const ended = new ProcessReporter()
+        const running = new ProcessReporter()
+        ended.emit('runner:end', { failures: 0, retries: 0 })
+
+        expect(counts()).toEqual(before.map((count) => count + 1))
+        running.emit('runner:end', { failures: 0, retries: 0 })
+        expect(counts()).toEqual(before)
+    })
+})

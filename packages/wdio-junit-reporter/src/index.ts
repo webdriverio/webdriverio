@@ -59,7 +59,7 @@ class JunitReporter extends WDIOReporter {
             processObj.stdout.write = this._appendConsoleLog.bind(this)
         }
         const addProperty = this._addPropertyToCurrentTest.bind(this)
-        processObj.on(events.addProperty, addProperty)
+        this.onProcess(events.addProperty, addProperty)
         this.on(events.addProperty, addProperty)
     }
 
