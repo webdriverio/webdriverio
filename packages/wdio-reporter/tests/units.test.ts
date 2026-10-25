@@ -818,6 +818,10 @@ describe('units: hook owner (hookKind, hookSuiteUid)', () => {
         r.emit('suite:start', { type: 'suite:start', ...suiteEv('s3', 'last') })
         r.emit('hook:start', { type: 'hook:start', ...hookEv('h4', '"after all" hook for last', { hookKind: 'afterAll', hookSuiteUid: 'nope' }) })
         expect(r.hookOwner(r.hooks.h4)).toBe(r.suites.s3)
+        // hookSuiteUid wins over the suite that the base inserted the hook in
+        r.emit('hook:start', { type: 'hook:start', ...hookEv('h5', '"after all" hook for outer', { parentUid: 's3', hookKind: 'afterAll', hookSuiteUid: 's1' }) })
+        expect(r.parentOf(r.hooks.h5)).toBe(r.suites.s3)
+        expect(r.hookOwner(r.hooks.h5)).toBe(r.suites.s1)
     })
 
     it('a contextless all-hook under the root suite has no owner', () => {

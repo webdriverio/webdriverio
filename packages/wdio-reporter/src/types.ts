@@ -43,4 +43,7 @@ export interface Argument {
     }[]
 }
 
+/** The kind of a hook, sent by the framework adapter. @experimental */
+export type HookKind = 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll' | 'beforeStep' | 'afterStep'
+
 export type { ReporterUnit } from './units.js'

@@ -11,10 +11,13 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
 import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
+
+// a `beforeAll` / `afterAll` with no context belongs to its suite; no hookKind keeps the owner of today
+const isContextlessAllHook = (hook: HookStats) => !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -50,6 +53,8 @@ export default class WDIOReporter extends EventEmitter {
     #parallelSeen = false
     // the unit of the event that the base sends to an on* hook
     #dispatch?: { unit?: Unit }
+    // contextless all-hooks between hook:start and hook:end: their calls get no unit and no test
+    #openAllHooks = new Set<HookStats>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -110,6 +115,9 @@ export default class WDIOReporter extends EventEmitter {
         }
         this.#getTestByContext = getTestByContext
         const getCommandTarget = (payload: { contextId?: string }) => {
+            if (!payload.contextId && this.#openAllHooks.size) {
+                return undefined
+            }
             // after every context of a parallel run: the last test of the unit that opened last (R6)
             if (!payload.contextId && this.#parallelSeen && contextTests.size === 0) {
                 return this.#lastUnit?.test ?? currentTest
@@ -199,7 +207,11 @@ export default class WDIOReporter extends EventEmitter {
             this.#parentOf.set(hookStats, currentSuite)
             currentSuite.hooksAndTests.push(hookStats)
             this.hooks[hook.uid!] = hookStats
-            const unit = hook.contextId ? this.#contextUnit(hook.contextId) : this.#fallbackUnit()
+            const allHook = isContextlessAllHook(hookStats)
+            if (allHook) {
+                this.#openAllHooks.add(hookStats)
+            }
+            const unit = hook.contextId ? this.#contextUnit(hook.contextId) : allHook ? undefined : this.#fallbackUnit()
             if (unit) {
                 this.#unitOfStats.set(hookStats, unit)
             }
@@ -215,9 +227,19 @@ export default class WDIOReporter extends EventEmitter {
             if (hook.failedTestUid !== undefined) {
                 hookStats.failedTestUid = hook.failedTestUid
             }
+            if (hook.hookKind !== undefined) {
+                hookStats.hookKind = hook.hookKind
+            }
+            if (hook.hookSuiteUid !== undefined) {
+                hookStats.hookSuiteUid = hook.hookSuiteUid
+            }
+            if (isContextlessAllHook(hookStats)) {
+                this.#unitOfStats.delete(hookStats)
+            }
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
+            this.#openAllHooks.delete(hookStats)
         })
 
         this.on('test:start', (test: Test) => {
@@ -455,9 +477,11 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * Returns the test running in the caller's parallel-mode context. Without a resolver,
      * returns the current test unless parallel tests are tracked.
+     * In a `beforeAll` / `afterAll` hook with `hookKind` and no context: `undefined` (experimental).
      */
     getContextTest(): TestStats | undefined {
-        return this.#getTestByContext(this.#contextIdResolver?.())
+        const id = this.#contextIdResolver?.()
+        return !id && this.#openAllHooks.size ? undefined : this.#getTestByContext(id)
     }
 
     /** Context id of the caller's parallel test, also in hooks that run before `test:start`. Undefined without parallel mode. */
@@ -485,7 +509,7 @@ export default class WDIOReporter extends EventEmitter {
      * The unit of the caller: in an `on*` hook the unit of the event, else the unit of the caller's parallel-mode
      * context, else the sequential unit (also after its end). With `contextId`: the last unit of that context, until
      * `runner:end`. After the first parallel context, code outside every context gets `undefined`. Runner and suite
-     * events (except a Cucumber scenario) have no unit.
+     * events (except a Cucumber scenario) and a `beforeAll` / `afterAll` with `hookKind` and no context have no unit.
      * @experimental the name and the result may change
      */
     getContextUnit(contextId?: string): ReporterUnit | undefined {
@@ -496,7 +520,18 @@ export default class WDIOReporter extends EventEmitter {
             return this.#dispatch.unit
         }
         const id = this.#contextIdResolver?.()
-        return id ? this.#units.get(id) : this.#fallbackUnit()
+        if (id) {
+            return this.#units.get(id)
+        }
+        return this.#openAllHooks.size ? undefined : this.#fallbackUnit()
+    }
+
+    /** The owner of a hook: its unit, or for a `beforeAll` / `afterAll` with `hookKind` and no context its suite (`hookSuiteUid`, else `parentOf`). @experimental */
+    hookOwner(hook: HookStats): ReporterUnit | SuiteStats | undefined {
+        if (isContextlessAllHook(hook)) {
+            return (hook.hookSuiteUid && this.suites[hook.hookSuiteUid]) || this.parentOf(hook)
+        }
+        return this.#unitOfStats.get(hook)
     }
 
     /** The unit that these stats belong to. @experimental */
@@ -712,5 +747,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure, ReporterUnit
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure, ReporterUnit, HookKind
 }

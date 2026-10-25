@@ -90,6 +90,10 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
+    hookOwner (_hook: unknown): ReporterModule.ReporterUnit | SuiteStats | undefined {
+        return undefined
+    }
+
     unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _contextId?: string): T | undefined {
         return undefined
     }
