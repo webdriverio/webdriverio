@@ -1148,3 +1148,97 @@ describe('K32: hooks that the framework skips', () => {
         expect(stateAtEnd({ state: 'SKIPPED', error: { message: 'x' } })).toBe('failed')
     })
 })
+
+describe('units: commands of a parallel context before its test', () => {
+    const emit = (r: Recorder, event: string, payload: Record<string, unknown>) => r.emit(event, { type: event, ...payload })
+    const command = (r: Recorder) => r.emit('client:beforeCommand', { sessionId: 's', method: 'GET', endpoint: '/url', body: {} })
+    const afterAll: Events = [
+        ['suite:start', suiteEv('s1', 'A')],
+        ['test:start', testEv('t1', 'a1')],
+        ['test:pass', testEv('t1', 'a1')],
+        ['test:end', testEv('t1', 'a1')],
+        ['hook:start', hookEv('h1', '"after all" hook', { hookKind: 'afterAll', hookSuiteUid: 's1' })],
+    ]
+    const ctxCommand = (r: WDIOReporter, contextId: string, script?: string) => r.emit('client:beforeCommand', {
+        sessionId: 's', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body: script ? { script, args: [] } : {}, contextId
+    })
+    const beforeAll = (uid: string, contextId: string) => hookEv(uid, `"before all" hook ${uid}`, { contextId, hookKind: 'beforeAll', parentUid: 's1' })
+
+    it('a command of a context with no test goes to the open hook of that context, with its script shortened', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A', { parentUid: null })],
+            ['hook:start', beforeAll('h1', 'c1')],
+            ['hook:start', beforeAll('h2', 'c2')],
+        ])
+        ctxCommand(r, 'c1', 'function first () { return 1 }')
+        ctxCommand(r, 'c2')
+        emit(r, 'hook:end', beforeAll('h1', 'c1'))
+        ctxCommand(r, 'c1')
+        emit(r, 'test:start', testEv('t2', 'b1', { contextId: 'c2', parentUid: 's1' }))
+        ctxCommand(r, 'c2')
+
+        expect(r.hooks.h1.output).toHaveLength(1)
+        expect((r.hooks.h1.output![0] as { body: { script: string } }).body.script).toBe('<script fn first(...)> [30 bytes]')
+        expect(r.hooks.h2.output).toHaveLength(1)
+        expect(r.tests.t2.output).toHaveLength(1)
+        expect(r.getContextOwner()).toBeUndefined()
+    })
+
+    it('getContextOwner gives the stats of the caller: its test, else its open hook', () => {
+        const r = new Recorder()
+        let contextId: string | undefined
+        r.setContextIdResolver(() => contextId)
+        play(r, [['suite:start', suiteEv('s1', 'A', { parentUid: null })], ['hook:start', beforeAll('h1', 'c1')]])
+        contextId = 'c1'
+        expect(r.getContextOwner()).toBe(r.hooks.h1)
+        expect(r.getContextTest()).toBeUndefined()
+        emit(r, 'test:start', testEv('t1', 'a1', { contextId: 'c1', parentUid: 's1' }))
+        expect(r.getContextOwner()).toBe(r.tests.t1)
+        contextId = undefined
+        // a contextless all-hook of a sequential run
+        const s = new Recorder()
+        play(s, afterAll)
+        expect(s.getContextOwner()).toBe(s.hooks.h1)
+        expect(s.getContextTest()).toBeUndefined()
+    })
+
+    it('a context:end ends the open hooks of its context', () => {
+        const r = new Recorder()
+        play(r, [['suite:start', suiteEv('s1', 'A', { parentUid: null })], ['hook:start', beforeAll('h1', 'c1')], ctxEnd('h1', 'c1')])
+        ctxCommand(r, 'c1')
+        expect(r.hooks.h1.output).toBeUndefined()
+    })
+
+    it('a parallel Cucumber retry gives the Before commands of the next attempt to its hook, not to the step of the failed attempt', () => {
+        const r = new Recorder()
+        const scenario = suiteEv('sc1', 'S1', { type: 'scenario', contextId: 'c1', parentUid: 'f1' })
+        const before = (uid: string) => hookEv(uid, 'Before', { contextId: 'c1', parentUid: 'sc1', hookKind: 'beforeEach' })
+        play(r, [
+            ['suite:start', suiteEv('f1', 'F', { type: 'feature', parentUid: null })],
+            ['suite:start', scenario],
+            ['test:start', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1' })],
+            ['test:retry', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1', error: { message: 'x' } })],
+            ['test:end', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1' })],
+            ['suite:retry', scenario],
+            ['hook:start', before('b2')],
+        ])
+        const failedStep = r.tests.st1
+        ctxCommand(r, 'c1')
+        expect(failedStep.output).toHaveLength(0)
+        expect(r.hooks.b2.output).toHaveLength(1)
+    })
+
+    it('a sequential hook keeps the commands on the test (no change)', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['test:end', testEv('t1', 'a1')],
+            ['hook:start', hookEv('h1', '"before each" hook', { hookKind: 'beforeEach' })],
+        ])
+        command(r)
+        expect(r.tests.t1.output).toHaveLength(1)
+        expect(r.hooks.h1.output).toBeUndefined()
+    })
+})
