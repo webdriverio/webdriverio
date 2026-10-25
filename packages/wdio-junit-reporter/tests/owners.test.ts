@@ -287,6 +287,21 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(step2).not.toContain('c1-')
             expect(() => xmlOf(reporter, 'cucumber')).not.toThrow()
         })
+
+        it('writes each Cucumber step of a parallel scenario on its own line, followed by its output (U2, #15968)', () => {
+            const before = { contextId: 'c1', parentUid: 'S1', hookKind: 'beforeEach' }
+            reporter.emit('suite:start', suite('F', 'feature', { parentUid: null }))
+            reporter.emit('suite:start', suite('S1', 'scenario', { parentUid: 'F', contextId: 'c1' }))
+            runHook(reporter, 'b1', before, () => inContext('c1', () => log('c1-before-log')))
+            runTest(reporter, 'step-a', { parentUid: 'S1', contextId: 'c1' })
+            runTest(reporter, 'step-b', { parentUid: 'S1', contextId: 'c1' })
+            reporter.emit('suite:end', suite('S1', 'scenario', { parentUid: 'F', contextId: 'c1' }))
+            reporter.emit('context:end', { cid: '0-0', uid: 'S1', contextId: 'c1' })
+            reporter.emit('suite:end', suite('F', 'feature'))
+
+            const systemOut = /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(testCaseOf(xmlOf(reporter, 'cucumber'), 'S1'))?.[1]
+            expect(systemOut).toBe(['', '✅ step-a', 'c1-before-log', '✅ step-b', '', ''].join('\n'))
+        })
     })
 
     describe('a hook whose parent is a feature (K26)', () => {
