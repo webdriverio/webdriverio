@@ -5,14 +5,14 @@ import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
 import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
 
-import { RUNTIME_META_KEY, SESSION_META_KEY, type RelayedEntry, type SessionMeta } from './types.js'
+import { ATTEMPT_EVENT, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
 
 // Vitest's console reporter always prints, so a WDIO console reporter would duplicate the output
 const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporter', '@wdio/dot-reporter', '@wdio/concise-reporter'])
 
-type TestError = { name?: string, message: string, stack?: string }
+type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
 type AllHookName = 'beforeAll' | 'afterAll'
 type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
@@ -42,6 +42,7 @@ type ModuleRun = {
 const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name || 'Error', message, stack })
 const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
+const HOOK_TITLES: Record<AttemptHookKind, string> = { beforeEach: 'before each', afterEach: 'after each' }
 const join = (parent: string, title: string) => parent ? `${parent} ${title}` : title
 
 /**
@@ -95,7 +96,7 @@ export class WdioBridgeReporter implements Reporter {
 
     onHookStart(hook: ReportedHookContext) {
         const { name, entity } = hook
-        if (entity.type === 'test') {
+        if (entity.type === 'test' || !(name in HOOK_KIND)) {
             return
         }
         const run = this.#tryRun(entity.type === 'module' ? entity : entity.module)
@@ -124,25 +125,53 @@ export class WdioBridgeReporter implements Reporter {
         return run && this.#enqueue(run, () => this.#inContext(testCase, () => {
             const base = this.#openTest(run, testCase)
             run.entities.delete(testCase.id)
-            this.#replayRuntimeCalls(run, testCase)
             const result = testCase.result()
             const diagnostic = testCase.diagnostic()
-            const duration = diagnostic?.duration ?? 0
+            const attempts = this.#attempts(testCase)
+            const finalAttempt = attempts.length - 1
+            attempts.slice(0, finalAttempt).forEach(({ calls, marker }, attempt) => {
+                const retryBase = this.#attemptBase(base, attempt)
+                if (attempt > 0) {
+                    this.#emit(run, 'test:start', { ...retryBase, retries: attempt })
+                }
+                this.#emitHook(run, retryBase, 'beforeEach', marker, true)
+                this.#replay(run, calls)
+                const times = marker ? { start: marker.start, end: marker.end } : {}
+                this.#emit(run, 'test:retry', {
+                    ...retryBase, ...times, duration: marker ? marker.end - marker.start : 0, pending: false,
+                    error: toErrorPayload(marker?.error ?? { message: 'test failed' })
+                })
+                this.#emitHook(run, retryBase, 'afterEach', marker, true)
+            })
+            const last = this.#attemptBase(base, finalAttempt)
+            if (finalAttempt > 0) {
+                this.#emit(run, 'test:start', { ...last, retries: finalAttempt })
+            }
+            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker)
+            this.#replay(run, attempts[finalAttempt].calls)
+            // diagnostic() spans every attempt, so a retried test is timed by its final attempt's marker; a lone attempt keeps diagnostic()
+            const finalMarker = finalAttempt > 0 ? attempts[finalAttempt].marker : undefined
+            const duration = finalMarker ? finalMarker.end - finalMarker.start : diagnostic?.duration ?? 0
             // Events reach the launcher batched, so the receipt time is not the time the test ran; startTime is the worker's Date.now()
-            const times = diagnostic?.startTime === undefined ? {} : { start: diagnostic.startTime, end: diagnostic.startTime + duration }
+            const times = finalMarker ? { start: finalMarker.start, end: finalMarker.end }
+                : diagnostic?.startTime === undefined ? {} : { start: diagnostic.startTime, end: diagnostic.startTime + duration }
             if (result.state === 'failed') {
                 run.failedTests++
-                const error = toErrorPayload(result.errors[0])
-                this.#emit(run, 'test:fail', { ...base, ...times, duration, error })
-                this.#emit(run, 'test:end', { ...base, duration, passed: false, error })
+                const error = toErrorPayload(attempts[finalAttempt].marker?.error ?? result.errors[result.errors.length - 1])
+                this.#emit(run, 'test:fail', { ...last, ...times, duration, error })
+                this.#emit(run, 'test:end', { ...last, duration, passed: false, error })
             } else if (result.state === 'passed') {
-                this.#emit(run, 'test:pass', { ...base, ...times, duration, passed: true })
-                this.#emit(run, 'test:end', { ...base, duration, passed: true })
+                this.#emit(run, 'test:pass', { ...last, ...times, duration, passed: true })
+                this.#emit(run, 'test:end', { ...last, duration, passed: true })
             } else {
                 // TestResultPending: collected but never finished; 'skipped' is a deliberate skip
                 run.incomplete ||= result.state === 'pending'
-                this.#emit(run, 'test:pending', { ...base, ...times, duration, pending: true })
-                this.#emit(run, 'test:end', { ...base, duration, passed: false, pending: true })
+                this.#emit(run, 'test:pending', { ...last, ...times, duration, pending: true })
+                this.#emit(run, 'test:end', { ...last, duration, passed: false, pending: true })
+            }
+            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker)
+            if (typeof last.contextId === 'string') {
+                this.#emit(run, 'context:end', { type: 'context:end', cid: run.cid, uid: last.uid, contextId: last.contextId })
             }
         }))
     }
@@ -231,15 +260,47 @@ export class WdioBridgeReporter implements Reporter {
     #relayedEntries(testCase: TestCase) {
         return ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
     }
-
-    // Only the last attempt is replayed, matching the single result the reporters get for a retried test
-    #replayRuntimeCalls(run: ModuleRun, testCase: TestCase) {
-        const finalRetry = testCase.diagnostic()?.retryCount ?? 0
+    // The worker closes every attempt with a marker; an attempt that died before it (a failing beforeTest) has none
+    #attempts(testCase: TestCase) {
         const entries = this.#relayedEntries(testCase)
-        entries.filter(({ retry }) => retry === finalRetry).forEach(({ event, payload }) => {
+        const finalRetry = testCase.diagnostic()?.retryCount ?? 0
+        return Array.from({ length: finalRetry + 1 }, (_, attempt) => {
+            const own = entries.filter(({ retry }) => retry === attempt)
+            const marker = own.find(({ event }) => event === ATTEMPT_EVENT)?.payload as AttemptMarker | undefined
+            return { calls: own.filter(({ event }) => event !== ATTEMPT_EVENT), marker }
+        })
+    }
+
+    // A retry is a new test to the reporters, as in a sequential WDIO run; attempt 0 keeps the uid of the test:start sent when the test became ready
+    #attemptBase<T extends { uid: string }>(base: T, attempt: number): T {
+        return attempt === 0 ? base : { ...base, uid: `${base.uid}-retry-${attempt}` }
+    }
+
+    // The worker reports one outcome per hook kind and attempt, not one per registered hook
+    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker?: AttemptMarker, retried = false) {
+        const outcome = marker?.hooks?.[kind]
+        if (!outcome) {
+            return
+        }
+        const title = `"${HOOK_TITLES[kind]}" hook for "${test.title}"`
+        const testParent = test.fullTitle === test.title ? '' : test.fullTitle.slice(0, -(test.title.length + 1))
+        const base = {
+            uid: `${test.uid}-${kind}`, title, fullTitle: join(testParent, title), parent: test.parent, parentUid: test.parentUid,
+            ...(test.contextId !== undefined && { contextId: test.contextId }),
+            ...(retried && { retried })
+        }
+        const error = outcome.state === 'fail' ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
+        this.#emit(run, 'hook:start', { ...base, type: 'hook:start', cid: run.cid })
+        this.#emit(run, 'hook:end', {
+            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: outcome.state,
+            ...(error && { error: toErrorPayload(error) })
+        })
+    }
+
+    #replay(run: ModuleRun, calls: RelayedEntry[]) {
+        calls.forEach(({ event, payload }) => {
             run.reporter?.emit(event, payload as Parameters<BaseReporter['emit']>[1])
         })
-        this.#discardFiles(entries.filter(({ retry }) => retry !== finalRetry))
     }
 
     // Nobody else knows about files of calls that are never replayed, so they would stay in the results folder

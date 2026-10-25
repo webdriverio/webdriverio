@@ -576,4 +576,64 @@ describe('Mocha parallel mode', () => {
             }
         })
     })
+
+    describe('retried test', () => {
+        const RETRIED: PlannedTest = { id: 'r1', title: 'flaky', suites: ['R'], outcome: 'pass' }
+        const ATTEMPTS = [
+            { uid: 'r1-0', final: false },
+            { uid: 'r1-1', final: false },
+            { uid: 'r1-2', final: true },
+        ]
+
+        // the sequence a Mocha run with this.retries(2) sends, which the Vitest bridge reproduces in one lane
+        async function playRetried(mode: Mode) {
+            const h = createHarness(mode, [RETRIED])
+            const { emit, message } = h
+            emit('runner:start', {
+                cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: mode === 'parallel' ? { parallelMode: true } : {} },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {},
+            })
+            const suiteKey = RETRIED.suites.join('>')
+            emit('suite:start', h.suiteMessage('suite:start', suiteKey))
+            ATTEMPTS.forEach(({ uid, final }, attempt) => h.inContext(RETRIED, () => {
+                emit('test:start', message('test:start', RETRIED, uid, { retries: attempt }))
+                process.emit(events.startStep as any, `step-${attempt}` as any)
+                h.reporter.addAttachment({ name: `attachment-${attempt}`, content: `content ${attempt}`, type: 'text/plain' })
+                process.emit(events.endStep as any, 'passed' as any)
+                if (final) {
+                    emit('test:pass', message('test:pass', RETRIED, uid, { duration: 1, passed: true }))
+                    emit('test:end', message('test:end', RETRIED, uid, { duration: 1, passed: true }))
+                } else {
+                    const error = { name: 'AssertionError', message: `fail ${attempt}`, stack: `AssertionError: fail ${attempt}` }
+                    emit('test:retry', message('test:retry', RETRIED, uid, { duration: 1, error, pending: false }))
+                }
+            }))
+            if (mode === 'parallel') {
+                emit('context:end', { type: 'context:end', cid: CID, specs: [SPEC], uid: ATTEMPTS.at(-1)!.uid, contextId: 'ctx-r1' })
+            }
+            emit('suite:end', h.suiteMessage('suite:end', suiteKey))
+            emit('runner:end', { cid: CID, failures: 0, retries: 0 })
+            await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
+            return { h, ...getResults(h.outputDir) }
+        }
+        const attempts = ({ h, results }: Awaited<ReturnType<typeof playRetried>>) => results
+            .map((r: Result) => ({
+                status: r.status,
+                message: r.statusDetails?.message,
+                steps: stepNames(r.steps).filter((name) => name.startsWith('step-')),
+                attachments: [...r.attachments ?? [], ...r.steps.flatMap((s: Result) => s.attachments ?? [])]
+                    .filter((a: Result) => a.name.startsWith('attachment-')).map((a: Result) => attachmentText(h.outputDir, a)),
+            }))
+            .sort((a, b) => a.steps[0]?.localeCompare(b.steps[0]))
+
+        it('writes one result per attempt in a lane, as a sequential Mocha run does', async () => {
+            const sequential = attempts(await playRetried('sequential'))
+            const parallel = attempts(await playRetried('parallel'))
+
+            expect(sequential.map((r) => r.status)).toEqual(['failed', 'failed', 'passed'])
+            expect(sequential.map((r) => r.steps)).toEqual([['step-0'], ['step-1'], ['step-2']])
+            expect(sequential.map((r) => r.attachments)).toEqual([['content 0'], ['content 1'], ['content 2']])
+            expect(parallel).toEqual(sequential)
+        })
+    })
 })
