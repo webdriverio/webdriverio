@@ -524,8 +524,10 @@ export default class WDIOReporter extends EventEmitter {
 
     /**
      * The stats that the commands of the caller go to: the test of its parallel-mode context, else the open hook of
-     * that context (before its test), else the open `beforeAll` / `afterAll` with `hookKind` and no context, else
-     * as `getContextTest`. Use it to give a log of the caller to its owner.
+     * that context (before its test), else the open `beforeAll` / `afterAll` with `hookKind` and no context. With no
+     * context in a parallel run and no parallel test running (R6): the last test of the unit that opened last, not the
+     * test that started last; else as `getContextTest`.
+     * Use it to give a log of the caller to its owner.
      * @experimental the name and the result may change
      */
     getContextOwner(): TestStats | HookStats | undefined {
