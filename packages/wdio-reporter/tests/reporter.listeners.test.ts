@@ -488,6 +488,12 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
             expect(reporter.counts.hooks).toBe(1)
         })
+
+        it('keeps failedTestUid and retried when only hook:end has them', () => {
+            hookEndEvent = { ...hookEndEvent, error: new Error('boom'), failedTestUid: 'test-1', retried: true } as any
+            emitEvents()
+            expect(reporter.hooks[hookStartEvent.uid!]).toMatchObject({ failedTestUid: 'test-1', retried: true })
+        })
     })
 
     describe('handling test:start', () => {

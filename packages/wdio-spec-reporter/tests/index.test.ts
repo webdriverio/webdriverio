@@ -78,6 +78,12 @@ describe('SpecReporter', () => {
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
             expect(tmpReporter['_stateCounts'].failed).toBe(1)
         })
+
+        it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
+            tmpReporter.onHookEnd({ error: new Error('boom!'), failedTestUid: 'test-1' } as any)
+            tmpReporter.onHookEnd({ error: new Error('boom!'), retried: true } as any)
+            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+        })
     })
 
     describe('getEventsToReport', () => {

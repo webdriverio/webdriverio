@@ -333,7 +333,7 @@ describe('setup', () => {
                 const failure = new Error('before each failed')
                 const payload = await attemptWith({ errors: [earlier] }, { hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
                 expect(payload.hooks).toEqual({
-                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }) },
+                    beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }), isAttemptError: true },
                     afterEach: { state: 'pass' }
                 })
             })
@@ -346,6 +346,13 @@ describe('setup', () => {
                     beforeEach: { state: 'pass' },
                     afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
                 })
+            })
+
+            // the attempt error is the first error of the attempt: the same object as the beforeEach error, or as a lone afterEach error
+            it('marks the hook error that is the error of the attempt', async () => {
+                const after = new Error('after each failed')
+                const payload = await attemptWith({}, { state: 'fail', hooks: { beforeEach: 'pass', afterEach: 'run' }, errors: [after] })
+                expect(payload.hooks.afterEach).toEqual({ state: 'fail', error: expect.objectContaining({ message: 'after each failed' }), isAttemptError: true })
             })
 
             // ctx.skip() in a beforeEach stops the hook, so Vitest leaves it in the 'run' state with no error

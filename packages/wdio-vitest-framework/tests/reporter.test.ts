@@ -1052,7 +1052,7 @@ describe('WdioBridgeReporter', () => {
                     // Vitest counts the error of a failed beforeEach / afterEach one time, as the failure of the test
                     it('names the test on a failed afterEach of the final attempt', async () => {
                         const { module, test } = once({ state: 'failed', errors: [{ message: 'ae' }] }, [
-                            withHooks(0, 'failed', { beforeEach: hookOf('pass'), afterEach: hookOf('fail', { message: 'ae', stack: 's' }) }, { message: 'ae', stack: 's' })
+                            withHooks(0, 'failed', { beforeEach: hookOf('pass'), afterEach: { ...hookOf('fail', { message: 'ae', stack: 's' }), isAttemptError: true } }, { message: 'ae', stack: 's' })
                         ])
                         await runTests(module, test)
 
@@ -1092,6 +1092,15 @@ describe('WdioBridgeReporter', () => {
                         await runTests(module, test)
 
                         expect(payloadOf('test:fail', 'test-0-0-0').errors).toHaveLength(2)
+                    })
+
+                    it('does not give the test the same beforeEach error two times when it has no stack', async () => {
+                        const { module, test } = once({ state: 'failed', errors: [{ message: 'boom' }] }, [
+                            withHooks(0, 'failed', { beforeEach: { ...hookOf('fail', { message: 'boom' }), isAttemptError: true } }, { message: 'boom' })
+                        ])
+                        await runTests(module, test)
+
+                        expect(payloadOf('test:fail', 'test-0-0-0')).not.toHaveProperty('errors')
                     })
 
                     it('gives the test the errors of the body and of the afterEach', async () => {
