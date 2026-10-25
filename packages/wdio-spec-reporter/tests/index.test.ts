@@ -43,7 +43,6 @@ describe('SpecReporter', () => {
     describe('on create', () => {
         it('should verify initial properties', () => {
             expect(reporter['_suiteUids'].size).toBe(0)
-            expect(reporter['_indents']).toBe(0)
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
@@ -244,16 +243,6 @@ describe('SpecReporter', () => {
 
         it('should increase stateCounts.skipped by 1', () => {
             expect(reporter['_stateCounts'].skipped).toBe(1)
-        })
-    })
-
-    describe('onSuiteEnd', () => {
-        beforeAll(() => {
-            reporter.onSuiteEnd()
-        })
-
-        it('should decrease indents', () => {
-            expect(reporter['_indents']).toBe(0)
         })
     })
 
@@ -794,16 +783,14 @@ describe('SpecReporter', () => {
 
         it('should add pending reason to report for skipped tests', () => {
             tmpReporter = new SpecReporter(options)
-            tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter.onTestSkip({
-                title:'test1',
-                state:State.SKIPPED,
-                pendingReason:'some random Reasons'
-            } as any)
-            const result = tmpReporter.getResultDisplay().toString()
-            expect(result).toContain('Pending Reasons')
-            expect(result).toContain('some random Reasons')
+            const suite = Object.values(SUITES)[2] as any
+            tmpReporter.onSuiteStart(suite)
+            const skipped = { ...suite.tests[1], pendingReason: 'some random Reasons' }
+            tmpReporter['_orderedSuites'] = [{ ...suite, tests: [suite.tests[0], skipped], hooksAndTests: [suite.tests[0], skipped] }] as any
+            tmpReporter.onTestSkip(skipped)
+            const result = tmpReporter.getResultDisplay().join('\n')
+            // under its own test (R3), not under the first printed test
+            expect(result).toMatch(/foo bar baz\n.*a skipped test\n\n.*Pending Reasons.*\n\s+some random Reasons/)
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
