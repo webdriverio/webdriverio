@@ -174,3 +174,28 @@ describe('historyId, testCaseId and fullName (HI rules)', () => {
         expect(results.map((r) => [r.name, r.status, r.historyId])).toEqual([['"before all" hook for A', 'broken', '']])
     })
 })
+
+describe('parameters of a failed root before all (U1)', () => {
+    const params = (result: Result) => result.parameters.map((p: Result) => `${p.name}=${p.value}`)
+
+    it.each(['mocha', 'jasmine'])('give each test and the hook result the browser parameter once, as on main (%s)', async (framework) => {
+        const run = createRun(framework)
+        run.start()
+        run.hook('beforeAll', new Error('root before fails'))
+        run.suite('A', () => {
+            run.test('t1', 'fail')
+            run.test('t2', 'fail')
+        })
+        const { results, containers } = await run.end()
+
+        expect(results.map((r) => [r.name, params(r), r.historyId]).sort()).toEqual([
+            [ROOT_BEFORE, ['browser=chrome'], ''],
+            ['t1', ['browser=chrome'], md5('A t1#chrome')],
+            ['t2', ['browser=chrome'], md5('A t2#chrome')],
+        ])
+        // the root before all stays a fixture of every result (K31)
+        for (const result of results) {
+            expect(fixturesOf(containers, result), result.name).toContain(`before ${ROOT_BEFORE}`)
+        }
+    })
+})
