@@ -240,7 +240,7 @@ The reporter keeps the suite of each stats object. Use these methods to read the
 
 ### Owner of a log and a command
 
-For a log that has no event, `getContextTest()` does not always return its owner. In a hook, it can return `undefined` or the test that started last. Call `this.getContextOwner()` to get the stats that own the output of the caller: the test of its parallel context, else the open hook of that context (before its test, and after a `suite:retry` until the next attempt starts a step), else the open `beforeAll` / `afterAll` hook that has a `hookKind` and no context. If there is no context in a parallel run and no parallel test runs, the owner is the last test of the unit that opened last, not the test that started last. In all other cases, it is the same as `getContextTest()`. The behavior of `getContextTest()` and `getContextId()` does not change.
+For a log that has no event, `getContextTest()` does not always return its owner. In a hook, it can return `undefined` or the test that started last. Call `this.getContextOwner()` to get the stats that own the output of the caller: the test of its parallel context, else the open hook of that context (before its test, and after a `suite:retry` until the next attempt starts a step), else the open `beforeAll` / `afterAll` hook that has a `hookKind` and no context, else in a sequential Cucumber scenario before its first step the open hook (with a `hookKind`) of that scenario. If there is no context in a parallel run and no parallel test runs, the owner is the last test of the unit that opened last, not the test that started last. In all other cases, it is the same as `getContextTest()`. The behavior of `getContextTest()` and `getContextId()` does not change.
 
 ### Hooks
 
@@ -249,12 +249,12 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `hook.hookKind`: `'beforeAll'`, `'beforeEach'`, `'afterEach'`, `'afterAll'`, `'beforeStep'` or `'afterStep'`.
 - `hook.hookSuiteUid`: the uid of the suite that declares a `beforeAll` / `afterAll` hook.
 - `this.hookOwner(hook)`: the owner of a hook (`ReporterUnit | SuiteStats | undefined`). This is its unit, or `undefined` when the hook has no unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`). When that hook is a hook of the root suite (for example a root Mocha `before`), it is also `undefined`.
-- `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and of a hook of a parallel context that runs before its test. The array exists after the first command.
+- `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
 - `hookStats.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
 
 :::warning Experimental
 
-The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output` and the `'skipped'` state of a hook. The names and the results can change.
+The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
 
 :::
 
