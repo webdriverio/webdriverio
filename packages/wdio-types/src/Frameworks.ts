@@ -52,6 +52,10 @@ export interface Results {
 
 export interface World {
     pickle: {
+        /**
+         * the same for every attempt of a retried scenario
+         */
+        id?: string
         name?: string
     }
     result?: {
