@@ -1557,9 +1557,6 @@ importers:
       acorn:
         specifier: ^8.15.0
         version: 8.19.0
-      appium:
-        specifier: ^3.0.0
-        version: 3.8.0(debug@4.4.3(supports-color@11.0.0))(supports-color@11.0.0)
       get-port:
         specifier: ^7.1.0
         version: 7.2.0
@@ -1594,6 +1591,9 @@ importers:
       '@wdio/visual-service':
         specifier: ^11.0.0
         version: 11.0.0(expect-webdriverio@8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(webdriverio@packages+webdriverio)
+      appium:
+        specifier: ^3.8.0
+        version: 3.8.0(debug@4.4.3(supports-color@11.0.0))(supports-color@11.0.0)
       expect-webdriverio:
         specifier: ^8.0.0
         version: 8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)

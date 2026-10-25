@@ -73,6 +73,7 @@
     "@types/yargs": "^17.0.33",
     "@wdio/electron-service": "^10.4.1",
     "@wdio/visual-service": "^11.0.0",
+    "appium": "^3.8.0",
     "expect-webdriverio": "^8.0.0",
     "tsx": "^4.23.15"
   },
