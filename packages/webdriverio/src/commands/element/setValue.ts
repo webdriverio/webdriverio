@@ -96,7 +96,7 @@ export async function setValue (
         if (result === 'rejected') {
             throw new Error(
                 `The browser rejected the value "${value}" for this input, which keeps its previous value. ` +
-                'Pass the value in the format of the input type, e.g. `2026-10-04` for a date or `14:30` for a time.'
+                'Pass the value in the format of the input type: `2026-10-04` for a date, `14:30` for a time, a number for a range or `#rrggbb` for a color.'
             )
         }
         if (result === 'set') {
