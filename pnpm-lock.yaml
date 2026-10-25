@@ -2374,6 +2374,72 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
 
+  tests/typings/vitest:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      '@wdio/vitest-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-vitest-framework
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
   tests/typings/webdriver:
     dependencies:
       '@wdio/allure-reporter':
