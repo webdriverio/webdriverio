@@ -25,6 +25,8 @@ export interface TestEvent extends jasmine.SpecResult {
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation,
+    /** the kind of a beforeAll / afterAll hook event, as `@wdio/reporter` reads it. @experimental */
+    hookKind?: 'beforeAll' | 'afterAll'
 }
 
 export interface ResultHandlerPayload {

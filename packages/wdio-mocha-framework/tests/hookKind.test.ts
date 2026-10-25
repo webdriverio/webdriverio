@@ -108,7 +108,7 @@ describe('Mocha sequential hook events: hookKind and hookSuiteUid', () => {
             addTest(outer, 'a')
         })
 
-        const start = hooksOf(events, 'hook:start').find((h) => h.title.startsWith(`"${title}" hook`))!
+        const start = hooksOf(events, 'hook:start').find((h) => h.title === `"${title}" hook for outer`)!
         const end = hooksOf(events, 'hook:end').find((h) => h.uid === start.uid)!
         expect(end).toMatchObject({ hookKind: kind, error: { message: 'boom' } })
         expect(start.hookKind).toBe(kind)

@@ -19,10 +19,10 @@ import type { AsyncLocalStorage } from 'node:async_hooks'
 import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
-import { dottedFullTitle, formatError, type TitledNode } from './common.js'
+import { checkHookKind, dottedFullTitle, formatError, type TitledNode } from './common.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation, type ParallelContextBrowser, type ParallelMode } from '@wdio/utils'
 import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
-import type { MochaError } from './types.js'
+import type { FormattedMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -106,6 +106,8 @@ interface CollectedTest {
     timeout?: number
     /** Mocha's resolved retries for this test (`_retries`): `mochaOpts.retries`, `this.retries(n)` in a describe, `it().retries(n)` */
     retries?: number
+    /** {@link CollectedSuite.depth} of each suite of the tree, for the declaring suite of a hook */
+    suiteIndexOf: Map<object, number>
 }
 
 interface CollectedSuite {
@@ -141,6 +143,7 @@ interface SuiteCollection {
 function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): SuiteCollection {
     const tests: CollectedTest[] = []
     const suiteStubs = new Map<Suite, CollectedSuite>()
+    const suiteIndexOf = new Map<object, number>()
     const matchedSuites = new Set<Suite>()
     let nextDepth = 0
 
@@ -155,6 +158,9 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         parentIndex?: number
     ) => {
         const suiteIndex = depth > 0 ? nextDepth++ : undefined
+        if (suiteIndex !== undefined) {
+            suiteIndexOf.set(s, suiteIndex)
+        }
 
         const ownBeforeEach = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
         const ownAfterEach = (s as unknown as { _afterEach?: Function[] })._afterEach || []
@@ -186,7 +192,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 file: test.file || undefined,
                 suiteIndex,
                 timeout: (test as unknown as { _timeout?: number })._timeout,
-                retries: (test as unknown as { _retries?: number })._retries
+                retries: (test as unknown as { _retries?: number })._retries,
+                suiteIndexOf
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -256,6 +263,8 @@ interface TestMessage {
     duration?: number
     passed?: boolean
     error?: MochaError
+    hookKind?: ReporterHookKind
+    hookSuiteUid?: string
 }
 
 /** The test name that formatError puts in the timeout text, as formatMessage builds it */
@@ -311,6 +320,8 @@ function emitTestFail(
 }
 
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
+type ReporterHookKind = NonNullable<FormattedMessage['hookKind']>
+const HOOK_KINDS: Record<HookKind, ReporterHookKind> = { 'before all': 'beforeAll', 'after all': 'afterAll', 'before each': 'beforeEach', 'after each': 'afterEach' }
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
     reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
@@ -343,14 +354,19 @@ function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTes
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
     const native = nativeHookTitle(kind, hook, test)
     const declaringSuite = hook.parent?.title
+    // an all-hook belongs to its declaring suite, an each-hook to the suite of its test
+    const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
+    const ownSuite = (kind === 'before all' || kind === 'after all') && (hook.parent?.root || declaringIndex !== undefined)
     return {
         type, cid, specs, uid,
         title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
         fullTitle: dottedFullTitle(native, hook.parent),
-        parent: test.parentTitle,
+        parent: ownSuite ? declaringSuite ?? '' : test.parentTitle,
         file: test.file || specs[0],
-        ...parentUidField(cid, test.suiteIndex),
-        contextId
+        ...parentUidField(cid, ownSuite ? declaringIndex : test.suiteIndex),
+        contextId,
+        hookKind: checkHookKind(hook, HOOK_KINDS[kind]),
+        ...(ownSuite && declaringIndex !== undefined && { hookSuiteUid: suiteUid(cid, declaringIndex) })
     } satisfies TestMessage
 }
 

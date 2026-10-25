@@ -340,7 +340,8 @@ class JasmineAdapter {
                 status: '',
                 debugLogs: null,
                 filename: '',
-                ...(error ? { error } : {})
+                ...(error ? { error } : {}),
+                hookKind: fnName as 'beforeAll' | 'afterAll'
             }
 
             this._reporter.emit('hook:' + eventType, hook)

@@ -135,4 +135,8 @@ export interface FormattedMessage {
     error?: MochaError
     context?: unknown
     body?: string
+    /** the kind of a hook event, as `@wdio/reporter` reads it. @experimental */
+    hookKind?: 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll'
+    /** the uid of the suite that declares an all-hook. @experimental */
+    hookSuiteUid?: string
 }

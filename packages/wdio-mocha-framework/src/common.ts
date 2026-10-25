@@ -1,7 +1,11 @@
+import logger from '@wdio/logger'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, FrameworkMessage, MochaError, MochaOpts } from './types.js'
+
+const log = logger('@wdio/mocha-framework')
+type HookKind = NonNullable<FormattedMessage['hookKind']>
 
 /**
 * Extracts the mocha UI type following this convention:
@@ -25,6 +29,29 @@ interface Payload {
     state?: string
     pending?: boolean
     ctx?: Mocha.Context
+}
+
+const HOOK_LISTS = [['_beforeAll', 'beforeAll'], ['_beforeEach', 'beforeEach'], ['_afterEach', 'afterEach'], ['_afterAll', 'afterAll']] as const
+const TITLE_KINDS: Record<string, HookKind> = { 'before all': 'beforeAll', 'before each': 'beforeEach', 'after each': 'afterEach', 'after all': 'afterAll' }
+
+/**
+ * Logs a hook whose title rule (`"before all" hook ...`) disagrees with its kind
+ */
+export function checkHookKind(hook: { title?: string, originalTitle?: string }, kind: HookKind) {
+    const titleKind = TITLE_KINDS[(hook.originalTitle ?? hook.title)?.match(/^"(before|after) (all|each)" hook/)?.slice(1).join(' ') ?? '']
+    if (titleKind && titleKind !== kind) {
+        log.debug(`hook "${hook.title}" is a ${kind} hook, but its title says ${titleKind}`)
+    }
+    return kind
+}
+
+/**
+ * The kind of a Mocha hook from the hook list of its suite
+ */
+export function mochaHookKind(hook: { title?: string, originalTitle?: string, parent?: unknown }) {
+    const parent = hook.parent as Record<string, unknown[] | undefined> | undefined
+    const kind = HOOK_LISTS.find(([list]) => parent?.[list]?.includes(hook))?.[1]
+    return kind && checkHookKind(hook, kind)
 }
 
 export interface TitledNode {
@@ -133,6 +160,9 @@ export function formatMessage (params: FrameworkMessage) {
         }
 
         if (payload.context) { message.context = payload.context }
+
+        const hookKind = message.type.startsWith('hook:') ? mochaHookKind(payload) : undefined
+        if (hookKind) { message.hookKind = hookKind }
     }
 
     return message
