@@ -181,7 +181,7 @@ describe('SpecReporter', () => {
         tmpReporter.onTestFail(step('c2'))
         tmpReporter.onSuiteEnd()
 
-        expect(tmpReporter['_stateCounts']).toMatchObject({ passed: 1, failed: 1, skipped: 0, pending: 0, retried: 2 })
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 1 passing ', 'red 1 failing', 'yellow 2 retried'])
     })
 
     // parallel mode: the events of scenarios in other windows come between the events of the retried scenario
@@ -198,7 +198,7 @@ describe('SpecReporter', () => {
         tmpReporter.onTestPass(step('a2', 'A'))
         tmpReporter.onSuiteEnd({ uid: 'A' } as any)
 
-        expect(tmpReporter['_stateCounts']).toMatchObject({ passed: 2, failed: 1, retried: 1 })
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 2 passing ', 'red 1 failing', 'yellow 1 retried'])
     })
 
     it('should retain a passed test when another test with the same UID fails', () => {
