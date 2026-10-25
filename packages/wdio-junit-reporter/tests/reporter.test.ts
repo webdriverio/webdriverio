@@ -19,6 +19,7 @@ const featuresLog = (await vi.importActual('./__fixtures__/cucumber-features.jso
 const featuresWithFailingThenSkipStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-then-skipped-steps.json') as any).default
 const featuresWithPendingStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-pending-step.json') as any).default
 const featuresWithErrorStepAndNoErrorObjectLog = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object.json') as any).default
+const featuresWithFailedHooksLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-hooks.json') as any).default
 const featuresScenarioLevelLog = (await vi.importActual('./__fixtures__/cucumber-features-scenario-level.json') as any).default
 const nestedSuites = (await vi.importActual('./__fixtures__/nested-suites.json') as any).default
 const nestedArrayOfSuites = (await vi.importActual('./__fixtures__/nested-array-suites.json') as any).default
@@ -41,7 +42,7 @@ if (os.platform() === 'win32') {
     cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackAndroidLog.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackIosLog.specs = ['file:///C:/features/sample_feature.feature']
-    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog, featuresScenarioLevelLog]) {
+    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog, featuresScenarioLevelLog, featuresWithFailedHooksLog]) {
         for (const [, suite] of Object.entries(fixture) as any) {
             suite.file = 'C:\\features\\sample_feature.feature'
         }
@@ -203,6 +204,37 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
+    })
+
+    it('reports failed Cucumber hooks as failures of the scenario', () => {
+        // the report adds the failed hooks to the steps, keep the fixture as it is for the next test
+        reporter.suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+        expect(output).toContain('<testsuites tests="1" failures="1" errors="0" skipped="0">')
+        expect(output).toContain('<failure message="Error: After hook failed"/>')
+        expect(output).not.toContain('<skipped/>')
+        // unnamed hooks get a title, hooks that ran before the steps come first
+        const stdout = output.slice(output.indexOf('<system-out>'))
+        expect(stdout.indexOf('❗ Before hook')).toBeGreaterThan(-1)
+        expect(stdout.indexOf('❗ Before hook')).toBeLessThan(stdout.indexOf('Given a passing step'))
+        expect(stdout.indexOf('❗ After hook')).toBeGreaterThan(stdout.indexOf('Given a passing step'))
+        // passing hooks are not added
+        expect(stdout.match(/❗/g)).toHaveLength(2)
+    })
+
+    it('places failed Cucumber hooks by their start time if the order was not recorded', () => {
+        const suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
+        const scenario = suites['hooks-scenario']
+        expect(scenario.tests.map((test: { title: string }) => test.title)).toEqual(['Given a passing step'])
+        scenario.hooksAndTests = []
+        scenario.hooks[1].start = '2026-10-22T18:00:00.015Z'
+        reporter.suites = suites
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+        const stdout = output.slice(output.indexOf('<system-out>'))
+        expect(stdout.indexOf('❗ Before hook')).toBeLessThan(stdout.indexOf('Given a passing step'))
+        expect(stdout.indexOf('❗ After hook')).toBeGreaterThan(stdout.indexOf('Given a passing step'))
     })
 
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
