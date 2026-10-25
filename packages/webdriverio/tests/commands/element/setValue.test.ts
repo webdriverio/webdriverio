@@ -96,24 +96,30 @@ describe('setValue', () => {
                 set value (v: string) { this._value = input.sanitize ? input.sanitize(v) : v === 'previous' || (input.accepts ?? (() => true))(v) ? v : '' }
                 dispatchEvent (e: { type: string }) { events.push(e.type) }
             }
-            vi.stubGlobal('HTMLInputElement', FakeInput)
-            vi.stubGlobal('Event', class { constructor (public type: string) {} })
+            // restore the real globals by hand: `vi.unstubAllGlobals` would also drop the `fetch` stub of this file
+            const stubbed = ['HTMLInputElement', 'Event', 'document']
+            const originals = stubbed.map((name) => Object.getOwnPropertyDescriptor(globalThis, name))
             // a canvas keeps its current color for a value it can't parse, and reports black as #000000
             const canvasContext = {
                 _color: '',
                 get fillStyle () { return this._color },
                 set fillStyle (v: string) { this._color = ['black', '#000000', 'rgb(0,0,0)'].includes(v) ? '#000000' : /^#[0-9a-f]{6}$/i.test(v) ? v : this._color }
             }
-            vi.stubGlobal('document', { createElement: () => ({ getContext: () => canvasContext }) })
             const fake = new FakeInput()
-            const elem = await browser.$('#foo')
-            vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
             let result: string | undefined
-            vi.spyOn(browser, 'execute').mockImplementation(async (fn: any, _el: unknown, v: string) => (result = fn(fake, v)))
-            await elem.setValue(value).catch(() => undefined)
-            delete (globalThis as any).HTMLInputElement
-            delete (globalThis as any).Event
-            delete (globalThis as any).document
+            try {
+                vi.stubGlobal('HTMLInputElement', FakeInput)
+                vi.stubGlobal('Event', class { constructor (public type: string) {} })
+                vi.stubGlobal('document', { createElement: () => ({ getContext: () => canvasContext }) })
+                const elem = await browser.$('#foo')
+                vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
+                vi.spyOn(browser, 'execute').mockImplementation(async (fn: any, _el: unknown, v: string) => (result = fn(fake, v)))
+                await elem.setValue(value).catch(() => undefined)
+            } finally {
+                stubbed.forEach((name, i) => originals[i]
+                    ? Object.defineProperty(globalThis, name, originals[i]!)
+                    : delete (globalThis as any)[name])
+            }
             return { result, state: { value: fake.value, events } }
         }
 
@@ -134,6 +140,8 @@ describe('setValue', () => {
         it.each([
             ['range', 'garbage', '50'],
             ['range', '1e', '50'],
+            ['range', '1e309', '50'],
+            ['range', '-1e309', '50'],
             ['color', 'garbage', '#000000'],
             ['color', '#zzz', '#000000']
         ])('should reject %s value %s before the browser replaces it with the fallback %s', async (type, value, fallback) => {
@@ -163,6 +171,15 @@ describe('setValue', () => {
             expect(result).toBe('set')
             expect(state.value).toBe('#000000')
             expect(state.events).toEqual(['input', 'change'])
+        })
+
+        it('should restore the globals it stubs', async () => {
+            const { Event: event, fetch: fetchStub } = globalThis
+            await run({}, '2026-10-04')
+            expect(globalThis.Event).toBe(event)
+            expect(globalThis.fetch).toBe(fetchStub)
+            expect('HTMLInputElement' in globalThis).toBe(false)
+            expect('document' in globalThis).toBe(false)
         })
 
         it('should accept an empty value to clear the input', async () => {
