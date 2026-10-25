@@ -93,6 +93,28 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(suiteOutOf(xml, 'S1')).toBeUndefined()
         })
 
+        // the system-out of a testsuite comes from a patch of junit-report-builder build(parentElement) (M9)
+        it('writes the system-out of a testsuite after its properties and testcases, in a testsuite with its counts', () => {
+            runSequential()
+            const s2 = testSuiteOf(xmlOf(reporter), 'S2').replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '')
+            const children: string[] = []
+            let depth = 0
+            for (const [, close, name, self] of s2.matchAll(/<(\/?)([a-z-]+)[^>]*?(\/?)>/g)) {
+                if (close) {
+                    depth--
+                    continue
+                }
+                if (depth === 1) {
+                    children.push(name)
+                }
+                if (!self) {
+                    depth++
+                }
+            }
+            expect(children).toEqual(['properties', 'testcase', 'system-out'])
+            expect(s2).toMatch(/^<testsuite name="S2" [^>]*tests="1" failures="0"/)
+        })
+
         it('gives the output of a failed before all to its hook testcase, not to the testsuite', () => {
             reporter.emit('suite:start', suite('S1'))
             runHook(reporter, 'before-S1', { hookKind: 'beforeAll', hookSuiteUid: 'S1' }, () => {
