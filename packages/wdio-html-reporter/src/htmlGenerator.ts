@@ -156,8 +156,9 @@ class HtmlGenerator {
                 if (!suiteInfo || !suiteInfo.tests) {
                     return 'suite-unknown'
                 }
-                // the last attempt of a retried test decides (K24)
-                const tests = Object.values(suiteInfo.tests).filter((test: TestStats) => !test.retried)
+                // the last attempt of a retried test decides (K24); the entry of a failed attempt keeps it (K12)
+                const counts = (suite: SuiteStats) => (test: TestStats) => !test.retried || Boolean((suite as { retriedAttempt?: boolean }).retriedAttempt)
+                const tests = Object.values(suiteInfo.tests).filter(counts(suiteInfo))
                 let numTests = tests.length
 
                 Object.values(tests).find((test: TestStats) => {
@@ -171,7 +172,7 @@ class HtmlGenerator {
                  * filters must not hide a suite with a failure inside
                  */
                 const hasFailure = (suite: SuiteStats): boolean =>
-                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed' && !test.retried) ||
+                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed' && counts(suite)(test)) ||
                     (suite.hooks ?? []).some(hookCountsAsFailure) ||
                     (suite.suites ?? []).some(hasFailure)
                 if (hasFailure(suiteInfo)) {

@@ -331,15 +331,16 @@ export default class HtmlReporter extends WDIOReporter {
             tests: [...suite.tests],
             hooks: [...suite.hooks],
             hooksAndTests: [...suite.hooksAndTests],
-            suites: [...suite.suites]
+            suites: [...suite.suites],
+            // its retried step is its failure (K24 skips retried attempts only in the last attempt)
+            retriedAttempt: true
         })
         attempt.complete()
+        // a Cucumber scenario is always in its feature
         const siblings = this.parentOf(suite)?.suites
         const index = siblings?.indexOf(suite) ?? -1
         if (siblings && index >= 0) {
             siblings.splice(index, 0, attempt)
-        } else {
-            this._suiteUids.set(`${suite.uid} (attempt ${suite.retries + 1})`, attempt)
         }
     }
 
