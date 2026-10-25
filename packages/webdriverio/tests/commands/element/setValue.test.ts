@@ -70,7 +70,7 @@ describe('setValue', () => {
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
     })
 
-    it.each(['date', 'datetime-local', 'month', 'week', 'time'])('should throw when the browser rejects the value of a %s input', async (type) => {
+    it.each(['range', 'date', 'datetime-local', 'month', 'week', 'time', 'color'])('should throw when the browser rejects the value of a %s input', async (type) => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue(type)
         vi.spyOn(browser, 'execute').mockResolvedValue('rejected' as never)
@@ -85,18 +85,26 @@ describe('setValue', () => {
          * runs the function `setValue` sends to the browser against a fake input
          * that, like a date input, resets to '' for a value it can't parse
          */
-        const run = async (input: { disabled?: boolean, accepts?: (v: string) => boolean }, value: string) => {
+        const run = async (input: { type?: string, disabled?: boolean, accepts?: (v: string) => boolean, sanitize?: (v: string) => string }, value: string) => {
             const events: string[] = []
             class FakeInput {
+                type = input.type ?? 'date'
                 _value = 'previous'
                 disabled = input.disabled ?? false
                 readOnly = false
                 get value () { return this._value }
-                set value (v: string) { this._value = v === 'previous' || (input.accepts ?? (() => true))(v) ? v : '' }
+                set value (v: string) { this._value = input.sanitize ? input.sanitize(v) : v === 'previous' || (input.accepts ?? (() => true))(v) ? v : '' }
                 dispatchEvent (e: { type: string }) { events.push(e.type) }
             }
             vi.stubGlobal('HTMLInputElement', FakeInput)
             vi.stubGlobal('Event', class { constructor (public type: string) {} })
+            // a canvas keeps its current color for a value it can't parse, and reports black as #000000
+            const canvasContext = {
+                _color: '',
+                get fillStyle () { return this._color },
+                set fillStyle (v: string) { this._color = ['black', '#000000', 'rgb(0,0,0)'].includes(v) ? '#000000' : /^#[0-9a-f]{6}$/i.test(v) ? v : this._color }
+            }
+            vi.stubGlobal('document', { createElement: () => ({ getContext: () => canvasContext }) })
             const fake = new FakeInput()
             const elem = await browser.$('#foo')
             vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
@@ -105,6 +113,7 @@ describe('setValue', () => {
             await elem.setValue(value).catch(() => undefined)
             delete (globalThis as any).HTMLInputElement
             delete (globalThis as any).Event
+            delete (globalThis as any).document
             return { result, state: { value: fake.value, events } }
         }
 
@@ -119,6 +128,40 @@ describe('setValue', () => {
             const { result, state } = await run({ accepts: (v) => v === '2026-10-04' }, '2026-10-04')
             expect(result).toBe('set')
             expect(state.value).toBe('2026-10-04')
+            expect(state.events).toEqual(['input', 'change'])
+        })
+
+        it.each([
+            ['range', 'garbage', '50'],
+            ['range', '1e', '50'],
+            ['color', 'garbage', '#000000'],
+            ['color', '#zzz', '#000000']
+        ])('should reject %s value %s before the browser replaces it with the fallback %s', async (type, value, fallback) => {
+            // like the browser, fall back to a non-empty default for a value that can't be parsed
+            const { result, state } = await run({ type, sanitize: (v) => v === 'previous' || v === fallback ? v : fallback }, value)
+            expect(result).toBe('rejected')
+            expect(state.value).toBe('previous')
+            expect(state.events).toEqual([])
+        })
+
+        it.each([
+            ['range', '67'],
+            ['range', '-1.5e2'],
+            ['range', '.5'],
+            ['range', '1000'],
+            ['color', '#FF8800'],
+            ['color', '#ff8800']
+        ])('should accept %s value %s', async (type, value) => {
+            const { result, state } = await run({ type }, value)
+            expect(result).toBe('set')
+            expect(state.value).toBe(value)
+            expect(state.events).toEqual(['input', 'change'])
+        })
+
+        it.each(['black', '#000000'])('should accept the color %s that the browser reports as #000000', async (value) => {
+            const { result, state } = await run({ type: 'color', sanitize: (v) => v === 'previous' ? v : '#000000' }, value)
+            expect(result).toBe('set')
+            expect(state.value).toBe('#000000')
             expect(state.events).toEqual(['input', 'change'])
         })
 

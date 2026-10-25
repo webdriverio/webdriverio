@@ -30,7 +30,7 @@ const SET_DIRECTLY = ['range', 'date', 'datetime-local', 'month', 'week', 'time'
  * picking a value with the mouse does. Pass the value in the input's own format, e.g. `2026-10-04` for a date
  * or `14:30` for a time. The browser corrects values that don't fit, like a range input does with a value
  * between two steps; read the result with [`getValue`](/docs/api/element/getValue). A value the browser
- * can't parse at all, like `garbage` for a date, throws an error and leaves the previous value in place.
+ * can't parse at all, like `garbage` for a date or a range, throws an error and leaves the previous value in place.
  *
  * <example>
     :setValue.js
@@ -67,11 +67,25 @@ export async function setValue (
             if (elem.disabled || elem.readOnly) {
                 return 'skipped'
             }
+            // a range input falls back to its midpoint for a value that isn't a number, which a value
+            // inside the range can't be told from, so check it before the assignment
+            if (elem.type === 'range' && newValue !== '' && !/^-?(\d+|\d*\.\d+)([eE][-+]?\d+)?$/.test(newValue)) {
+                return 'rejected'
+            }
             const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
             const previous = elem.value
             setter.call(elem, newValue)
-            // the browser rejects a value it can't parse by resetting the input to an empty string
-            if (newValue !== '' && elem.value === '') {
+            // the other types reject a value they can't parse by resetting the input to an empty string,
+            // a color input to #000000, which is only right if the value is a CSS color for black
+            let rejected = newValue !== '' && elem.value === ''
+            if (!rejected && newValue !== '' && elem.type === 'color' && elem.value === '#000000') {
+                // a canvas keeps its current color for a value it can't parse
+                const context = document.createElement('canvas').getContext('2d')!
+                context.fillStyle = '#010101'
+                context.fillStyle = newValue
+                rejected = context.fillStyle !== '#000000'
+            }
+            if (rejected) {
                 setter.call(elem, previous)
                 return 'rejected'
             }
