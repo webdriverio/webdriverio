@@ -392,6 +392,36 @@ export function scenarioLabel(uri: string, feature: Feature | undefined, scenari
 }
 
 /**
+ * the `hook:start` / `hook:end` payload of a failed BeforeAll or AfterAll: Cucumber runs it once for each
+ * run, outside of any scenario, so it is a hook of the feature suite
+ */
+export function testRunHookPayload(params: {
+    uid: string
+    kind: 'BeforeAll' | 'AfterAll'
+    name?: string
+    location?: { uri: string, line?: number }
+    featureUid: string
+    uri: string
+    result: TestStepResult
+}) {
+    const { uid, kind, name, location, featureUid, uri, result } = params
+    const message = result.message ?? ''
+    const error = new Error(result.exception?.message ?? message.split('\n')[0])
+    error.stack = message
+    return {
+        type: 'hook',
+        uid,
+        title: `${kind}${name ? ` "${name}"` : ''}${location ? ` (${path.relative(process.cwd(), location.uri)}${location.line ? `:${location.line}` : ''})` : ''}`,
+        parent: featureUid,
+        parentUid: featureUid,
+        file: uri,
+        state: 'failed',
+        error,
+        duration: Math.round((result.duration?.seconds ?? 0) * 1000 + (result.duration?.nanos ?? 0) / 1e6),
+    }
+}
+
+/**
  * with `strict`, Cucumber fails the run on a pending step or hook, but shows it as pending
  * (a warning, issue_helpers.js): name the scenarios (see `scenarioLabel`) that make the run fail
  */

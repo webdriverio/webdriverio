@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { HookKind, Payload } from './types.js'
-import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
+import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, testRunHookPayload, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -25,7 +25,8 @@ import type {
     TestStepFinished,
     TestStepResult,
     Hook,
-    StepDefinition
+    StepDefinition,
+    TestRunHookFinished
 } from '@cucumber/messages'
 
 import {
@@ -44,6 +45,8 @@ import type { HookParams, ReporterScenario } from './types.js'
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
     private _hookEvent: Hook[] = []
+    // the hook of each started BeforeAll / AfterAll
+    private _testRunHooks = new Map<string, string>()
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
     private _stepDefinitions = new Map<string, StepDefinition>()
@@ -127,6 +130,10 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.testRunHookStarted) {
+                this._testRunHooks.set(envelope.testRunHookStarted.id, envelope.testRunHookStarted.hookId)
+            } else if (envelope.testRunHookFinished) {
+                this.onTestRunHookFinished(envelope.testRunHookFinished)
             } else if (envelope.stepDefinition) {
                 this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
@@ -403,24 +410,7 @@ export default class CucumberFormatter extends Formatter {
             doc.uri &&
             doc !== this._currentDoc
         ) {
-            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
-            this._featureStarts.set(doc.uri, starts)
-            const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
-            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
-            const payload = {
-                uid: this._currentFeatureUid,
-                title: this.getTitle(doc.feature as Feature),
-                type: 'feature',
-                file: doc.uri,
-                tags: doc.feature?.tags,
-                description: doc.feature?.description,
-                keyword: doc.feature?.keyword,
-            }
-
-            this.emit('suite:start', payload)
-            this._currentDoc = doc
-            // the duration of this part of the feature
-            this._featureStart = new Date()
+            this.startFeaturePart(doc)
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
@@ -635,6 +625,57 @@ export default class CucumberFormatter extends Formatter {
             return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult, retried)
         }
         this.emit('suite:end', payload)
+    }
+
+    /**
+     * grouped specs: start a part of the feature (see `featurePartUid`)
+     */
+    startFeaturePart(doc: GherkinDocument) {
+        const starts = (this._featureStarts.get(doc.uri as string) ?? 0) + 1
+        this._featureStarts.set(doc.uri as string, starts)
+        const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
+        this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
+        const payload = {
+            uid: this._currentFeatureUid,
+            title: this.getTitle(doc.feature as Feature),
+            type: 'feature',
+            file: doc.uri,
+            tags: doc.feature?.tags,
+            description: doc.feature?.description,
+            keyword: doc.feature?.keyword,
+        }
+
+        this.emit('suite:start', payload)
+        this._currentDoc = doc
+        // the duration of this part of the feature
+        this._featureStart = new Date()
+    }
+
+    /**
+     * a failed BeforeAll / AfterAll runs outside of any scenario: report it once, as a hook of the feature
+     */
+    onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
+        if (result.status !== Status.FAILED) {
+            return
+        }
+        const hook = this._hookEvent.find(({ id }) => id === this._testRunHooks.get(testRunHookStartedId))
+        // grouped specs start a feature at its first scenario: a failed BeforeAll comes before any
+        if (this.usesSpecGrouping() && !this._currentDoc.uri) {
+            this.startFeaturePart(this._gherkinDocEvents[0])
+        }
+        const doc = this.usesSpecGrouping() ? this._currentDoc : this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
+        const payload = testRunHookPayload({
+            uid: testRunHookStartedId,
+            kind: hook?.type === 'AFTER_TEST_RUN' ? 'AfterAll' : 'BeforeAll',
+            name: hook?.name,
+            location: hook?.sourceReference.uri ? { uri: hook.sourceReference.uri, line: hook.sourceReference.location?.line } : undefined,
+            featureUid: this.featurePartUid(doc.uri as string, doc.feature as Feature),
+            uri: doc.uri as string,
+            result,
+        })
+        const { error: _error, state: _state, ...start } = payload
+        this.emit('hook:start', start)
+        this.emit('hook:end', payload)
     }
 
     onTestRunFinished() {
