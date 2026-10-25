@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it, beforeEach } from 'vitest'
 import tmp from 'tmp'
 
@@ -564,5 +566,200 @@ describe('unit state', () => {
         expect(r.unitState('n', () => ({ n: 0 }))!.n).toBe(1)
         resolved.id = undefined
         expect(r.unitState('n', () => ({ n: 0 }))).toBeUndefined()
+    })
+})
+
+/**
+ * Event streams of the Vitest bridge, recorded on this branch (headless Chrome, 2026-10-25) by an event probe: per event
+ * the payload fields that the base reads and the resolver context of the bridge (the module hash of a Vitest id is `m`)
+ */
+type Recorded = [string, Record<string, unknown>, string | null]
+const vitest: Record<string, Recorded[]> = JSON.parse(fs.readFileSync(path.join(__dirname, '__fixtures__', 'vitest-streams.json'), 'utf-8'))
+const runnerEv = { ...base, capabilities: {}, config: {}, sessionId: 's', isMultiRemote: false, instanceOptions: {}, retry: 0, failures: 0, retries: 0 }
+
+class VitestRecorder extends Recorder {
+    // the attemptState that each hook sees: the uid of the test that started the attempt
+    attempts: string[] = []
+    #scopeFree (event: string, title = '') {
+        this.log.push(`${event} ${title} -> ${name(this.getContextUnit())} state=${this.unitState('k', () => 'made') ?? '-'}`)
+    }
+    onRunnerStart () { this.#scopeFree('runner:start') }
+    onSuiteStart (s: SuiteStats) { this.#scopeFree('suite:start', s.title) }
+    onSuiteEnd (s: SuiteStats) { this.#scopeFree('suite:end', s.title) }
+    onTestStart (t: TestStats) {
+        super.onTestStart(t)
+        this.attemptState('first', () => t.uid)
+    }
+    onHookEnd (h: HookStats) {
+        super.onHookEnd(h)
+        this.attempts.push(`${h.title} -> ${this.attemptState('first', () => '(new)')}`)
+    }
+}
+
+function replayVitest (stream: string, skip: (event: string) => boolean = () => false) {
+    const r = new VitestRecorder()
+    const resolved: { id?: string } = {}
+    r.setContextIdResolver(() => resolved.id)
+    for (const event of ['allure:runtimeMessage', 'junit:addProperty']) {
+        r.on(event, (p: { kind?: string }) => r.log.push(`${event} ${p.kind} -> ${name(r.getContextUnit())}`))
+    }
+    for (const [event, payload, als] of vitest[stream]) {
+        if (skip(event)) {
+            continue
+        }
+        resolved.id = als ?? undefined
+        r.emit(event, { type: event, ...(event.startsWith('runner:') ? runnerEv : base), ...payload })
+    }
+    return r
+}
+const count = (r: Recorder, prefix: string) => r.log.filter((l) => l.startsWith(prefix)).length
+
+describe('units: Vitest bridge (recorded streams)', () => {
+    it('lane modules: one unit per test with its contextId, ends at context:end', () => {
+        for (const c of ['conc', 'mixed', 'skip-conc', 'runtime-conc']) {
+            const r = replayVitest(c)
+            const tests = Object.values(r.tests)
+            expect(count(r, 'UNIT+'), c).toBe(tests.length)
+            for (const t of tests) {
+                expect(r.unitOf(t), `${c} ${t.title}`).toMatchObject({ contextId: t.contextId, ended: true, attempt: 0 })
+            }
+        }
+        // the results come in another order than the starts: each unit still ends after its own test
+        expect(unitLines(replayVitest('conc'))).toEqual([
+            'UNIT+ m_0_0:c1 slow 1500#0', 'UNIT+ m_0_1:c2 fast fail 200#0', 'UNIT+ m_0_2:c3 mid 700#0',
+            'UNIT- m_0_1:c2 fast fail 200#0 test=c2 fast fail 200', 'UNIT- m_0_2:c3 mid 700#0 test=c3 mid 700', 'UNIT- m_0_0:c1 slow 1500#0 test=c1 slow 1500',
+        ])
+    })
+
+    it('non-lane modules: a sequential unit per test, also when the module-level wrapper suite opens again', () => {
+        const r = replayVitest('seq')
+        expect(unitLines(r).filter((l) => l.startsWith('UNIT+'))).toEqual([
+            'UNIT+ seq:s0 module first#0', 'UNIT+ seq:s1 pass#0', 'UNIT+ seq:s2 fail#0', 'UNIT+ seq:s3 after inner#0',
+            'UNIT+ seq:s4 module after describe#0', 'UNIT+ seq:s5 pass#0',
+        ])
+        expect(count(r, 'UNIT-')).toBe(6)
+        expect(r.pathOf(r.tests['test-0-0-2']).map((s) => s.title)).toEqual(['S outer', 'S inner'])
+        expect(r.pathOf(r.tests['test-0-0-4']).map((s) => s.title)).toEqual(['src/specs/vt-seq.ts'])
+    })
+
+    it('retries: onUnitRetry once per failed attempt, although test:retry, a new uid with the same title and payload retries all come', () => {
+        for (const c of ['retry-seq', 'retry-conc']) {
+            const r = replayVitest(c)
+            const retries = (title: string) => r.log.filter((l) => l.startsWith('UNIT~') && l.includes(`:${title}#`)).map((l) => l.slice(-2))
+            expect([retries('r1 fails twice then passes'), retries('r2 always fails'), retries('r3 plain pass')], c).toEqual([['#0', '#1'], ['#0', '#1'], []])
+            expect(count(r, 'UNIT+'), c).toBe(3)
+            expect(count(r, 'UNIT-'), c).toBe(3)
+            expect(r.unitOf(r.tests['test-0-0-0-retry-2']), c).toBe(r.unitOf(r.tests['test-0-0-0']))
+            expect(r.unitOf(r.tests['test-0-0-0-retry-2'])?.attempt, c).toBe(2)
+        }
+    })
+
+    it('D15: the hooks of a failed attempt keep that attempt and its attemptState, also the afterEach after test:retry', () => {
+        for (const c of ['hook-each-seq', 'hook-each-conc']) {
+            const r = replayVitest(c)
+            expect(r.log.filter((l) => l.startsWith('hook:end "before each" hook for "h1')).map((l) => l.slice(-2)), c).toEqual(['#0', '#1'])
+            expect(r.attempts.filter((l) => l.includes('"h1')), c).toEqual([
+                '"before each" hook for "h1 passes on retry" -> test-0-0-0', '"before each" hook for "h1 passes on retry" -> test-0-0-0-retry-1',
+            ])
+        }
+        for (const c of ['hook-after-seq', 'hook-after-conc']) {
+            const r = replayVitest(c)
+            const after = r.log.filter((l) => l.startsWith('hook:') && l.includes('"after each" hook for "h1'))
+            expect(after.map((l) => l.replace(/m_0_0|seq/, '*')), c).toEqual([
+                'hook:start "after each" hook for "h1 passes on retry" -> *:h1 passes on retry#0',
+                'hook:end "after each" hook for "h1 passes on retry" -> *:h1 passes on retry#0',
+                'hook:start "after each" hook for "h1 passes on retry" -> *:h1 passes on retry#1',
+                'hook:end "after each" hook for "h1 passes on retry" -> *:h1 passes on retry#1',
+            ])
+            // the failed afterEach comes after test:retry of attempt 0
+            expect(r.log.indexOf(after[0]), c).toBeGreaterThan(r.log.findIndex((l) => l.startsWith('test:retry h1')))
+            expect(r.hooks['test-0-0-0-afterEach'], c).toMatchObject({ retried: true, failedTestUid: 'test-0-0-0' })
+            expect(r.attempts.filter((l) => l.includes('"h1')), c).toEqual([
+                '"after each" hook for "h1 passes on retry" -> test-0-0-0', '"after each" hook for "h1 passes on retry" -> test-0-0-0-retry-1',
+            ])
+        }
+    })
+
+    it('failed beforeAll / afterAll: no unit in a lane module (latch), the ended unit of the last test in a non-lane module', () => {
+        const conc = replayVitest('hookall-conc')
+        expect(conc.log.filter((l) => l.startsWith('hook:'))).toEqual([
+            'hook:start "before all" hook in "A conc before all fails" -> none', 'hook:end "before all" hook in "A conc before all fails" -> none',
+            'hook:start "after all" hook in "B conc after all fails" -> none', 'hook:end "after all" hook in "B conc after all fails" -> none',
+        ])
+        const seq = replayVitest('hookall-seq')
+        expect(seq.unitOf(seq.hooks['hook-0-0-0'])).toBe(seq.unitOf(seq.tests['test-0-0-1']))
+        expect(seq.log).toContain('hook:end "before all" hook in "A seq before all fails" -> seq:a2#0')
+        expect(seq.unitOf(seq.tests['test-0-0-1'])?.ended).toBe(true)
+        expect(replayVitest('rootall-conc').log).toContain('hook:end "before all" hook in "{root}" -> none')
+    })
+
+    it('runtime calls replayed by the bridge get the unit of the test that made them (resolver in lane modules, open unit else)', () => {
+        for (const c of ['runtime-seq', 'runtime-conc', 'runtime-mixed']) {
+            const r = replayVitest(c)
+            const calls = r.log.filter((l) => /^(allure|junit):/.test(l))
+            const recorded = vitest[c].filter(([e]) => /^(allure|junit):/.test(e))
+            expect(calls.length, c).toBe(recorded.length)
+            expect(calls.length, c).toBeGreaterThan(0)
+            for (const [event, p] of recorded) {
+                expect(calls.shift(), c).toMatch(new RegExp(`^${event} ${p.kind} -> [^:]+:${p.test}#0$`))
+            }
+        }
+    })
+
+    it('D16: a test:start in a context that ended opens a new unit (Vitest bail reports each test again); the first unit stays ended', () => {
+        const r = replayVitest('bail')
+        expect(count(r, 'UNIT+')).toBe(7)
+        expect(Object.values(r.tests).filter((t) => t.title === 'bl1 fails fast')).toHaveLength(2)
+        const first = r.unitOf(r.tests['test-0-0-0'])!
+        const again = r.unitOf(r.tests['test-0-0-3'])!
+        expect(again).not.toBe(first)
+        expect(first).toMatchObject({ contextId: 'm_0_0', ended: true, stats: r.tests['test-0-0-0'], test: r.tests['test-0-0-0'] })
+        expect(again).toMatchObject({ contextId: 'm_0_0', ended: true, stats: r.tests['test-0-0-3'], attempt: 0 })
+        expect(r.getContextUnit('m_0_0')).toBe(again)
+        const second = r.log.indexOf('test:start bl1 fails fast -> m_0_0:bl1 fails fast#0', r.log.indexOf('UNIT- m_0_2:bl3 slow 3000#0 test=bl3 slow 3000'))
+        expect(r.log.slice(second - 1, r.log.indexOf('suite:end BL conc -> none state=-') + 1)).toEqual([
+            'UNIT+ m_0_0:bl1 fails fast#0',
+            'test:start bl1 fails fast -> m_0_0:bl1 fails fast#0',
+            'test:fail bl1 fails fast -> m_0_0:bl1 fails fast#0',
+            'test:end bl1 fails fast -> m_0_0:bl1 fails fast#0',
+            'context:end -> m_0_0:bl1 fails fast#0',
+            'UNIT- m_0_0:bl1 fails fast#0 test=bl1 fails fast',
+            'UNIT+ m_0_1:bl2 slow 2000#0',
+            'test:start bl2 slow 2000 -> m_0_1:bl2 slow 2000#0',
+            'test:skip bl2 slow 2000 -> m_0_1:bl2 slow 2000#0',
+            'test:end bl2 slow 2000 -> m_0_1:bl2 slow 2000#0',
+            'context:end -> m_0_1:bl2 slow 2000#0',
+            'UNIT- m_0_1:bl2 slow 2000#0 test=bl2 slow 2000',
+            'UNIT+ m_0_2:bl3 slow 3000#0',
+            'test:start bl3 slow 3000 -> m_0_2:bl3 slow 3000#0',
+            'test:skip bl3 slow 3000 -> m_0_2:bl3 slow 3000#0',
+            'test:end bl3 slow 3000 -> m_0_2:bl3 slow 3000#0',
+            'context:end -> m_0_2:bl3 slow 3000#0',
+            'UNIT- m_0_2:bl3 slow 3000#0 test=bl3 slow 3000',
+            'suite:end BL conc -> none state=-',
+        ])
+    })
+
+    it('D17: runner:start, suite:start and suite:end get no unit, also in the resolver context of an open unit', () => {
+        const r = replayVitest('d17-conc')
+        const wrapper = 'suite:start src/specs/vt-d17-conc.ts -> none state=-'
+        // the bridge opens the module-level wrapper again in the replay of x, whose unit is open
+        expect(r.log.lastIndexOf(wrapper)).toBeGreaterThan(r.log.indexOf('test:start x module level slow -> m_0:x module level slow#0'))
+        expect(r.log.lastIndexOf(wrapper)).toBeLessThan(r.log.indexOf('UNIT- m_0:x module level slow#0 test=x module level slow'))
+        expect(r.log[0]).toBe('runner:start  -> none state=-')
+        for (const c of ['d17-conc', 'rootall-conc', 'mixed']) {
+            const events = replayVitest(c).log.filter((l) => /^(runner|suite):/.test(l))
+            expect(events.length, c).toBeGreaterThan(2)
+            expect(events.filter((l) => !l.endsWith(' -> none state=-')), c).toEqual([])
+        }
+    })
+
+    it('no context:end (the bridge closes unfinished tests): the units end at runner:end', () => {
+        const r = replayVitest('conc', (event) => event === 'context:end')
+        expect(r.log.slice(-4)).toEqual([
+            'suite:end C group -> none state=-',
+            'UNIT- m_0_0:c1 slow 1500#0 test=c1 slow 1500', 'UNIT- m_0_1:c2 fast fail 200#0 test=c2 fast fail 200', 'UNIT- m_0_2:c3 mid 700#0 test=c3 mid 700',
+        ])
+        expect(Object.values(r.tests).every((t) => r.unitOf(t)?.ended)).toBe(true)
     })
 })
