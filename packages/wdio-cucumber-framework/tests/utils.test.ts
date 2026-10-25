@@ -78,7 +78,7 @@ describe('utils', () => {
                 featureUid: 'features/k22.feature:1:1', uri: '/project/features/k22.feature', result,
             })
             expect(payload).toMatchObject({
-                type: 'hook', uid: 'r1', title: 'BeforeAll (features/steps.ts:23)', state: 'failed', duration: 5,
+                type: 'hook', uid: 'r1', title: `BeforeAll (${path.join('features', 'steps.ts')}:23)`, state: 'failed', duration: 5,
                 parent: 'features/k22.feature:1:1', parentUid: 'features/k22.feature:1:1', file: '/project/features/k22.feature',
             })
             expect(payload.error?.message).toBe('BeforeAll fails')
