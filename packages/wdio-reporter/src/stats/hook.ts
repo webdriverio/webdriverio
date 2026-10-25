@@ -1,5 +1,6 @@
 import RunnableStats from './runnable.js'
 import type { HookKind } from '../types.js'
+import type TestStats from './test.js'
 
 export interface Hook {
     type?: string
@@ -57,6 +58,8 @@ export default class HookStats extends RunnableStats {
     declare hookKind?: HookKind
     /** @experimental the uid of the suite that declares an all-hook */
     declare hookSuiteUid?: string
+    /** @experimental the commands of a `beforeAll` / `afterAll` with `hookKind` and no context; made at the first command */
+    declare output?: TestStats['output']
 
     constructor (runner: Hook) {
         super('hook')

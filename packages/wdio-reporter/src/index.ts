@@ -114,9 +114,10 @@ export default class WDIOReporter extends EventEmitter {
             return contextTests.size === 0 ? currentTest : undefined
         }
         this.#getTestByContext = getTestByContext
-        const getCommandTarget = (payload: { contextId?: string }) => {
+        const getCommandTarget = (payload: { contextId?: string }): TestStats | HookStats | undefined => {
+            // the innermost open contextless all-hook
             if (!payload.contextId && this.#openAllHooks.size) {
-                return undefined
+                return [...this.#openAllHooks].at(-1)
             }
             // after every context of a parallel run: the last test of the unit that opened last (R6)
             if (!payload.contextId && this.#parallelSeen && contextTests.size === 0) {
@@ -206,6 +207,8 @@ export default class WDIOReporter extends EventEmitter {
             currentSuite.hooks.push(hookStats)
             this.#parentOf.set(hookStats, currentSuite)
             currentSuite.hooksAndTests.push(hookStats)
+            // a uid that starts again replaces its open entry
+            this.#openAllHooks.delete(this.hooks[hook.uid!])
             this.hooks[hook.uid!] = hookStats
             const allHook = isContextlessAllHook(hookStats)
             if (allHook) {
@@ -220,29 +223,36 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end', (hook: Hook) => {
             const hookStats = this.hooks[hook.uid!]
-            // a producer can know them only at the end of the hook
-            if (hook.retried !== undefined) {
-                hookStats.retried = hook.retried
+            try {
+                // a producer can know them only at the end of the hook
+                if (hook.retried !== undefined) {
+                    hookStats.retried = hook.retried
+                }
+                if (hook.failedTestUid !== undefined) {
+                    hookStats.failedTestUid = hook.failedTestUid
+                }
+                if (hook.hookKind !== undefined) {
+                    hookStats.hookKind = hook.hookKind
+                }
+                if (hook.hookSuiteUid !== undefined) {
+                    hookStats.hookSuiteUid = hook.hookSuiteUid
+                }
+                if (isContextlessAllHook(hookStats)) {
+                    this.#unitOfStats.delete(hookStats)
+                }
+                hookStats.complete(getErrorsFromEvent(hook))
+                this.counts.hooks++
+                this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
+            } finally {
+                this.#openAllHooks.delete(hookStats)
             }
-            if (hook.failedTestUid !== undefined) {
-                hookStats.failedTestUid = hook.failedTestUid
-            }
-            if (hook.hookKind !== undefined) {
-                hookStats.hookKind = hook.hookKind
-            }
-            if (hook.hookSuiteUid !== undefined) {
-                hookStats.hookSuiteUid = hook.hookSuiteUid
-            }
-            if (isContextlessAllHook(hookStats)) {
-                this.#unitOfStats.delete(hookStats)
-            }
-            hookStats.complete(getErrorsFromEvent(hook))
-            this.counts.hooks++
-            this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
-            this.#openAllHooks.delete(hookStats)
         })
 
         this.on('test:start', (test: Test) => {
+            // an all-hook ends before a test starts: a missing hook:end
+            if (!test.contextId) {
+                this.#openAllHooks.clear()
+            }
             test.retries = getRetries(test.contextId)
             currentTest = new TestStats(test)
             trackContext(test, currentTest)
@@ -405,6 +415,12 @@ export default class WDIOReporter extends EventEmitter {
             if (index !== -1) {
                 this.currentSuites.splice(index, 1)
             }
+            // a missing hook:end: in a sequential run every open all-hook, else the ones of this suite
+            for (const open of this.#openAllHooks) {
+                if (!this.#parallelSeen || this.hookOwner(open) === suiteStat || this.#parentOf.get(open) === suiteStat) {
+                    this.#openAllHooks.delete(open)
+                }
+            }
             this.#call(this.#unitOfStats.get(suiteStat), () => this.onSuiteEnd(suiteStat))
             // the sequential unit ends with its scenario, or with the suite of a test that sent no test:end
             const seq = this.#seqUnit
@@ -415,6 +431,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('runner:end', (runner: Options.RunnerEnd) => {
             try {
+                this.#openAllHooks.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
@@ -449,7 +466,7 @@ export default class WDIOReporter extends EventEmitter {
                     script: transformCommandScript(payload.body.script)
                 }
             }
-            target.output.push(Object.assign(payload, { type: 'command' }))
+            (target.output ??= []).push(Object.assign(payload, { type: 'command' }))
         })
         this.on('client:afterCommand', (payload) => {
             const target = getCommandTarget(payload)
@@ -462,7 +479,7 @@ export default class WDIOReporter extends EventEmitter {
                     script: transformCommandScript(payload.body.script)
                 }
             }
-            target.output.push(Object.assign(payload, { type: 'result' }))
+            (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
         })
     }
 
