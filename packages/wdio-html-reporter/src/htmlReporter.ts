@@ -135,7 +135,9 @@ export default class HtmlReporter extends WDIOReporter {
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid] && hookCountsAsFailure(this.hooks[hook.uid]) && !this.#countScenarios) {
+            const stats = this.hooks[hook.uid]
+            // a failed Cucumber BeforeAll / AfterAll fails no scenario (K26)
+            if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.parentOf(stats)?.type === 'feature')) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
@@ -318,6 +320,27 @@ export default class HtmlReporter extends WDIOReporter {
     #countOpenHookFailures() {
         this.metrics.failed += [...this.#openHookFailures.values()].reduce((sum, count) => sum + count, 0)
         this.#openHookFailures.clear()
+    }
+
+    /**
+     * Cucumber `retry` (step level): the failed attempt stays in the report as its own entry, with its own
+     * times, before the base clears the suite for the next attempt (K12). Only the last attempt counts
+     */
+    onSuiteRetry(suite: SuiteStats) {
+        const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
+            tests: [...suite.tests],
+            hooks: [...suite.hooks],
+            hooksAndTests: [...suite.hooksAndTests],
+            suites: [...suite.suites]
+        })
+        attempt.complete()
+        const siblings = this.parentOf(suite)?.suites
+        const index = siblings?.indexOf(suite) ?? -1
+        if (siblings && index >= 0) {
+            siblings.splice(index, 0, attempt)
+        } else {
+            this._suiteUids.set(`${suite.uid} (attempt ${suite.retries + 1})`, attempt)
+        }
     }
 
     onSuiteEnd(suite: SuiteStats) {
