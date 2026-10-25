@@ -181,6 +181,83 @@ The `afterEach` and `after` hooks of a parallel test run after its `test:end`. T
 
 :::
 
+### Units
+
+A unit is one test or scenario with all its attempts. In parallel mode, a unit is one browsing context, from its first event to `context:end`. In a sequential run, a unit is a test, or a Cucumber scenario (at step level, the suite of the scenario). The unit is the key to use for per-test state of a reporter, in both modes.
+
+A `ReporterUnit` has these fields:
+
+| Field | Description |
+|-------|-------------|
+| `contextId` | The browsing context of a parallel unit. `undefined` in a sequential run. |
+| `stats` | The scenario (Cucumber step level) or the test. `undefined` before it starts, for example in Mocha `before all` hooks. |
+| `test` | The test or step that started last in the unit. |
+| `attempt` | `0` for the first attempt. It changes at the start of the next attempt. |
+| `ended` | `true` from `onUnitEnd` on. |
+
+The reporter calls these methods. In them, `getContextUnit()`, `unitState()` and `attemptState()` use the unit of the event:
+
+- `onUnitStart(unit)`: at the first event of a parallel context (a `test:start` in a context that ended starts a new unit), or at a sequential test or scenario.
+- `onUnitRetry(unit)`: an attempt failed and runs again (`test:retry`, `suite:retry`). It comes before the base clears the stats of the attempt.
+- `onUnitEnd(unit)`: at `context:end`. In a sequential run, at the `test:end` of the test or the `suite:end` of the scenario, else when the next unit starts, at the end of its suite or at `runner:end`.
+
+Use these methods to find the unit and to keep state for it:
+
+- `this.getContextUnit(contextId?)`: the unit of the caller. In an `on*` method, this is the unit of the event. Else it is the unit of the parallel context of the caller, or the sequential unit. With `contextId`, it is the last unit of that context. It returns `undefined` for runner events, suite events (except a Cucumber scenario), a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and for code outside every context after the first parallel context.
+- `this.unitOf(stats)`: the unit of a suite, hook or test stats.
+- `this.unitState(key, init, contextId?)`: state of your reporter for the unit. `init(unit)` runs at the first call, and the same value comes back after that. It returns `undefined` when there is no unit.
+- `this.attemptState(key, init, contextId?)`: as `unitState`, but new for each attempt of the unit.
+
+This reporter keeps the lines of each test in `unitState` and prints them at `onUnitEnd`, also when tests run at the same time:
+
+```ts
+import WDIOReporter, { type ReporterUnit, type TestStats } from '@wdio/reporter'
+
+export default class PerTestReporter extends WDIOReporter {
+    #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit.contextId)!
+
+    onTestEnd(test: TestStats) {
+        const unit = this.unitOf(test)
+        if (unit) {
+            this.#lines(unit).push(`${test.state} ${test.title}`)
+        }
+    }
+
+    onUnitEnd(unit: ReporterUnit) {
+        const lines = this.#lines(unit)
+        this.write(`${unit.stats?.title} (attempt ${unit.attempt})\n  ${lines.join('\n  ')}\n`)
+    }
+}
+```
+
+### Tree helpers
+
+The reporter keeps the suite of each stats object. Use these methods to read the tree without your own bookkeeping:
+
+- `this.parentOf(stats)`: the suite that holds the suite, hook or test stats. `undefined` for a stats object under the root suite.
+- `this.pathOf(stats)`: the suites above the stats, outermost first, without the root suite.
+- `this.depthOf(stats)`: the number of these suites.
+
+### Owner of a log and a command
+
+For a log that has no event, `getContextTest()` can return `undefined`, for example in a hook. Call `this.getContextOwner()` to get the stats that own the output of the caller: the test of its parallel context, else the open hook of that context (before its test), else the open `beforeAll` / `afterAll` hook that has a `hookKind` and no context. If there is no context in a parallel run and no parallel test runs, the owner is the last test of the unit that opened last, not the test that started last. In all other cases, it is the same as `getContextTest()`. The behavior of `getContextTest()` and `getContextId()` does not change.
+
+### Hooks
+
+Frameworks can send these fields on a hook. A framework that sends no `hookKind` keeps the old owner rules of the reporter, which use the title of the hook. If you write an adapter for a framework, send `hookKind` to get the new rules.
+
+- `hook.hookKind`: `'beforeAll'`, `'beforeEach'`, `'afterEach'`, `'afterAll'`, `'beforeStep'` or `'afterStep'`.
+- `hook.hookSuiteUid`: the uid of the suite that declares a `beforeAll` / `afterAll` hook.
+- `this.hookOwner(hook)`: the owner of a hook. This is its unit. For a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, it is the suite (`hookSuiteUid`, else `parentOf(hook)`).
+- `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and of a hook of a parallel context that runs before its test. The array exists after the first command.
+- `hook.state`: can be `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`), next to `'passed'` and `'failed'`.
+
+:::warning Experimental
+
+The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output` and the `'skipped'` state of a hook. The names and the results can change.
+
+:::
+
 ## Wait Until `isSynchronised`
 
 If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts):
