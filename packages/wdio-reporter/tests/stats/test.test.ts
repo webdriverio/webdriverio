@@ -157,4 +157,7 @@ describe('TestStats', () => {
         expect(stat.error?.message).toContain('actual')
     })
 
+    it('has no own retried property until a retry marks it', () => {
+        expect(Object.prototype.hasOwnProperty.call(stat, 'retried')).toBe(false)
+    })
 })
