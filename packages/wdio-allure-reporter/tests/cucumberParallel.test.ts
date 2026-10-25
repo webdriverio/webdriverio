@@ -238,6 +238,51 @@ describe('Cucumber parallelMode, step level', () => {
     })
 })
 
+// G2: the test plan skips a scenario in its own unit, not in every scenario of the worker
+describe('Cucumber parallelMode with a test plan', () => {
+    const included: Scenario = { uid: 's-ok', title: 'ok', feature: login, steps: ['Given a'], contextId: 'ctx-ok' }
+    const excluded: Scenario = { uid: 's-out', title: 'out', feature: login, steps: ['Given x'], contextId: 'ctx-out' }
+
+    function planRun(mode: Mode) {
+        const dir = temporaryDirectory()
+        const plan = path.join(dir, 'testplan.json')
+        fs.writeFileSync(plan, JSON.stringify({ version: '1.0', tests: [{ id: '1', selector: 'Login ok' }, { id: '2', selector: 'Login.ok' }] }))
+        process.env.ALLURE_TESTPLAN_PATH = plan
+        try {
+            return createRun(mode)
+        } finally {
+            delete process.env.ALLURE_TESTPLAN_PATH
+        }
+    }
+
+    // the included scenario ends while the excluded one runs
+    async function play(order: 'included-first' | 'excluded-first', mode: Mode = 'parallel') {
+        const run = planRun(mode)
+        run.start()
+        run.featureStart(login)
+        const [first, second] = order === 'included-first' ? [included, excluded] : [excluded, included]
+        run.scenarioStart(first)
+        run.stepStart(first, 0)
+        run.scenarioStart(second)
+        run.stepStart(second, 0)
+        run.command(included, 'ok-command')
+        run.stepEnd(included, 0)
+        run.scenarioEnd(included)
+        run.contextEnd(included)
+        run.command(excluded, 'out-command')
+        run.stepEnd(excluded, 0)
+        run.scenarioEnd(excluded)
+        run.contextEnd(excluded)
+        run.featureEnd(login)
+        const { results } = await run.end()
+        return results.map((r) => ({ name: r.name, status: r.status, stage: r.stage, steps: stepNames(r.steps) }))
+    }
+
+    it.each(['included-first', 'excluded-first'] as const)('ends the included scenario with its command step (%s)', async (order) => {
+        expect(await play(order)).toEqual([{ name: 'ok', status: 'passed', stage: 'finished', steps: ['Given a', 'ok-command'] }])
+    })
+})
+
 describe('Cucumber parallelMode, scenario level', () => {
     // scenario level: the scenario is the test; a retried attempt ends with test:retry and starts again in its context
     async function playRetried(mode: Mode) {
