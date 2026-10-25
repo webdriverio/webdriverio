@@ -101,7 +101,7 @@ In a WebDriver BiDi session, runs element commands and browser commands like `ge
 }
 ```
 
-In Chrome and Edge 137 and later, WebdriverIO removes the on-page log of the ChromeDriver BiDi Mapper when a WebDriver BiDi session starts: that log makes each command after a large BiDi message (for example a screenshot) slower ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). To keep the log, set the environment variable `WDIO_KEEP_BIDI_MAPPER_LOG=1`.
+In every WebDriver BiDi session with Chrome or Edge 137 and later (or when the browser version is not known), with or without this capability, WebdriverIO removes the on-page log of the ChromeDriver BiDi Mapper when the session starts: that log makes each command after a large BiDi message (for example a screenshot) slower ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). To keep the log, set the environment variable `WDIO_KEEP_BIDI_MAPPER_LOG=1`.
 
 </Option>
 

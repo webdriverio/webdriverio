@@ -59,9 +59,8 @@ describe('BidiMapperLogManager', () => {
         vi.mocked(log.debug).mockClear()
         vi.mocked(log.info).mockClear()
         browser = {
-            isChromium: true,
             isMobile: false,
-            capabilities: { browserName: 'chrome', browserVersion: '156.0.8078.47' },
+            capabilities: { browserName: 'chrome', browserVersion: '156.0.8078.47', 'goog:chromeOptions': {} },
             options: { hostname: 'localhost', port: 4321 },
             isEnabled: vi.fn().mockReturnValue(true),
             _bidiHandler: { send: vi.fn() }
@@ -123,9 +122,28 @@ describe('BidiMapperLogManager', () => {
     })
 
     it('does nothing in a browser that is not Chromium', async () => {
-        browser.isChromium = false
+        browser.capabilities = { browserName: 'firefox', browserVersion: '158.0.1', 'moz:firefoxOptions': {} }
         expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
         expect(browser._bidiHandler.send).not.toBeCalled()
+    })
+
+    // `browser.isChromium` keeps the value of the first session after `reloadSession()` to another browser
+    it('reads the browser from the capabilities of the current session', async () => {
+        Object.assign(browser, { isChromium: false })
+        expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(cdpMethods()).toContain('Target.sendMessageToTarget')
+
+        browser._bidiHandler.send.mockClear()
+        Object.assign(browser, { isChromium: true })
+        browser.capabilities = { browserName: 'firefox', browserVersion: '158.0.1', 'moz:firefoxOptions': {} }
+        expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(browser._bidiHandler.send).not.toBeCalled()
+    })
+
+    it('removes the log in Edge', async () => {
+        browser.capabilities = { browserName: 'MicrosoftEdge', browserVersion: '156.0.4314.42', 'ms:edgeOptions': {} }
+        expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(cdpMethods()).toContain('Target.sendMessageToTarget')
     })
 
     // the Mapper is a page with a viewport before Chrome 137, and Chrome 132 has no `goog:cdp`
@@ -146,7 +164,7 @@ describe('BidiMapperLogManager', () => {
 
     it('keeps the log when WDIO_KEEP_BIDI_MAPPER_LOG is set', async () => {
         try {
-            for (const value of ['1', 'true']) {
+            for (const value of ['1', 'true', 'TRUE']) {
                 process.env.WDIO_KEEP_BIDI_MAPPER_LOG = value
                 expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
             }
@@ -201,15 +219,63 @@ describe('BidiMapperLogManager', () => {
         expect(log.warn).toBeCalledTimes(1)
     })
 
-    it('logs a warning and does not throw when the detach fails', async () => {
+    // the log is already gone when only the detach fails
+    it('does not warn when only the detach fails', async () => {
         answer((method, params) => {
             if (method === 'Target.detachFromTarget') {
                 throw new Error('no session to detach')
             }
             return defaultCdp(method, params)
         })
+        expect(await new BidiMapperLogManager(browser).initialize()).toBe(true)
+        expect(log.warn).not.toBeCalled()
+        expect(log.debug).toBeCalledWith(expect.stringContaining('no session to detach'))
+    })
+
+    it('still removes the log of a second Mapper target after a failure on the first one', async () => {
+        answer((method, params) => {
+            if (method === 'Target.getTargets') {
+                return { targetInfos: [MAPPER, { ...MAPPER, targetId: 'mapper-2' }] }
+            }
+            if (method === 'Target.attachToTarget' && params.targetId === 'mapper') {
+                throw new Error('no target')
+            }
+            return defaultCdp(method, params)
+        })
         expect(await new BidiMapperLogManager(browser).initialize()).toBe(false)
-        expect(vi.mocked(log.warn).mock.calls[0][0]).toContain('no session to detach')
+        expect(cdpCalls()).toContainEqual({ method: 'Target.attachToTarget', params: { targetId: 'mapper-2', flatten: false } })
+        expect(cdpMethods()).toContain('Target.sendMessageToTarget')
+        expect(vi.mocked(log.warn).mock.calls[0][0]).toContain('no target')
+    })
+
+    it('sends no new command after the 5 seconds limit', async () => {
+        vi.useFakeTimers()
+        answer(async (method, params) => {
+            if (method === 'Target.getTargets') {
+                await new Promise((resolve) => setTimeout(resolve, 6000))
+            }
+            return defaultCdp(method, params)
+        })
+        const initialized = new BidiMapperLogManager(browser).initialize()
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(await initialized).toBe(false)
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(cdpMethods()).toEqual(['Target.getTargets'])
+    })
+
+    it('still detaches when the limit comes after the attach', async () => {
+        vi.useFakeTimers()
+        answer(async (method, params) => {
+            if (method === 'Target.attachToTarget') {
+                await new Promise((resolve) => setTimeout(resolve, 6000))
+            }
+            return defaultCdp(method, params)
+        })
+        const initialized = new BidiMapperLogManager(browser).initialize()
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(await initialized).toBe(false)
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(cdpMethods()).toEqual(['Target.getTargets', 'Target.attachToTarget', 'Target.detachFromTarget'])
     })
 
     it('stops waiting after 5 seconds when the browser does not answer, and ignores a late error', async () => {

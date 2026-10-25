@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { capabilitiesEnvironmentDetector } from '@wdio/utils'
 
 import { SessionManager } from './session.js'
 import { environment } from '../environment.js'
@@ -54,20 +55,22 @@ export class BidiMapperLogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, BidiMapperLogManager.name)
 
+        // `browser.isChromium` does not change with `reloadSession()` to another browser
+        const { isChromium } = capabilitiesEnvironmentDetector(browser.capabilities)
         // NaN for an unknown version, which does not skip
         const majorVersion = parseInt(browser.capabilities.browserVersion ?? '', 10)
-        if (!this.isEnabled() || !browser.isChromium || browser.isMobile || majorVersion < FIRST_SLOW_VERSION) {
+        if (!this.isEnabled() || !isChromium || browser.isMobile || majorVersion < FIRST_SLOW_VERSION) {
             this.#initialize = Promise.resolve(true)
             return
         }
         // the switch to turn off the fix when it causes a problem
-        if (['1', 'true'].includes(environment.value.variables.WDIO_KEEP_BIDI_MAPPER_LOG ?? '')) {
+        if (['1', 'true'].includes(environment.value.variables.WDIO_KEEP_BIDI_MAPPER_LOG?.toLowerCase() ?? '')) {
             log.info('WDIO_KEEP_BIDI_MAPPER_LOG is set: keep the log of the ChromeDriver BiDi Mapper')
             this.#initialize = Promise.resolve(true)
             return
         }
 
-        this.#initialize = withTimeout(removeMapperLog(browser)).then(() => true, (err: Error) => {
+        this.#initialize = withTimeout((signal) => removeMapperLog(browser, signal)).then(() => true, (err: Error) => {
             log.warn(
                 `Could not remove the log of the ChromeDriver BiDi Mapper (${err.message}), so large ` +
                 'WebDriver BiDi messages (e.g. screenshots) can make the next commands slower: ' +
@@ -83,17 +86,21 @@ export class BidiMapperLogManager extends SessionManager {
 }
 
 /**
- * the race also handles a late rejection of `promise`
+ * after the timeout, `run` sends no new command; the race also handles its late rejection
  */
-function withTimeout(promise: Promise<void>) {
+function withTimeout(run: (signal: AbortSignal) => Promise<void>) {
+    const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeout = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`no answer after ${MAPPER_LOG_TIMEOUT}ms`)), MAPPER_LOG_TIMEOUT)
+        timer = setTimeout(() => {
+            controller.abort()
+            reject(new Error(`no answer after ${MAPPER_LOG_TIMEOUT}ms`))
+        }, MAPPER_LOG_TIMEOUT)
     })
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+    return Promise.race([run(controller.signal), timeout]).finally(() => clearTimeout(timer))
 }
 
-async function removeMapperLog(browser: WebdriverIO.Browser) {
+async function removeMapperLog(browser: WebdriverIO.Browser, signal: AbortSignal) {
     /**
      * CDP through the BiDi connection (chromium-bidi `goog:cdp.sendCommand`)
      * also reaches the browser through a grid or a cloud service
@@ -105,19 +112,35 @@ async function removeMapperLog(browser: WebdriverIO.Browser) {
 
     // hidden targets are listed only with an explicit filter
     const { targetInfos } = await cdp<{ targetInfos: TargetInfo[] }>('Target.getTargets', { filter: [{}] })
+    let error: unknown
     for (const { targetId } of targetInfos.filter(({ title, type }) => title === MAPPER_TITLE && MAPPER_TYPES.includes(type))) {
-        /**
-         * the Mapper detaches the flat sessions of its own target, so only the
-         * non-flat mode (deprecated, https://crbug.com/991325) can reach it
-         */
-        const { sessionId } = await cdp<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: false })
-        try {
-            await cdp('Target.sendMessageToTarget', {
-                sessionId,
-                message: JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: REMOVE_MAPPER_LOG } })
-            })
-        } finally {
-            await cdp('Target.detachFromTarget', { sessionId })
+        if (signal.aborted) {
+            return
         }
+        try {
+            /**
+             * the Mapper detaches the flat sessions of its own target, so only the
+             * non-flat mode (deprecated, https://crbug.com/991325) can reach it
+             */
+            const { sessionId } = await cdp<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: false })
+            try {
+                if (!signal.aborted) {
+                    await cdp('Target.sendMessageToTarget', {
+                        sessionId,
+                        message: JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: REMOVE_MAPPER_LOG } })
+                    })
+                }
+            } finally {
+                // the log is already gone when only the detach fails
+                await cdp('Target.detachFromTarget', { sessionId }).catch((err: Error) => {
+                    log.debug(`Could not detach from the BiDi Mapper: ${err.message}`)
+                })
+            }
+        } catch (err) {
+            error ??= err
+        }
+    }
+    if (error) {
+        throw error
     }
 }
