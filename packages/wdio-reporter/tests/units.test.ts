@@ -952,7 +952,7 @@ describe('units: hook owner (hookKind, hookSuiteUid)', () => {
         command(r)
         expect(r.log.at(-1)).toBe('command -> none')
         expect(r.tests.t1.output).toHaveLength(0)
-        expect(r.getContextTest()).toBeUndefined()
+        expect(r.getContextTest()).toBe(r.tests.t1)
         expect(r.getContextUnit()).toBeUndefined()
         expect(r.unitState('k', () => 1)).toBeUndefined()
         // a call in a parallel context keeps its context
@@ -1200,7 +1200,7 @@ describe('units: commands of a parallel context before its test', () => {
         const s = new Recorder()
         play(s, afterAll)
         expect(s.getContextOwner()).toBe(s.hooks.h1)
-        expect(s.getContextTest()).toBeUndefined()
+        expect(s.getContextTest()).toBe(s.tests.t1)
     })
 
     it('a context:end ends the open hooks of its context', () => {
@@ -1240,5 +1240,74 @@ describe('units: commands of a parallel context before its test', () => {
         command(r)
         expect(r.tests.t1.output).toHaveLength(1)
         expect(r.hooks.h1.output).toBeUndefined()
+    })
+})
+
+// the values of main 2c6277f34 for the same events (Q2)
+describe('getContextTest() returns what it returned before the unit API', () => {
+    const passed = (uid: string, extra: Record<string, unknown> = {}): Events => [
+        ['test:start', testEv(uid, uid, extra)],
+        ['test:pass', testEv(uid, uid, extra)],
+        ['test:end', testEv(uid, uid, extra)],
+    ]
+
+    it('in a sequential contextless all-hook: the test that started last; the owner is the hook', () => {
+        const after = new Recorder()
+        play(after, [['suite:start', suiteEv('s1', 'A')], ...passed('t1'), ['hook:start', hookEv('h1', '"after all" hook', { hookKind: 'afterAll', hookSuiteUid: 's1' })]])
+        expect(after.getContextTest()).toBe(after.tests.t1)
+        expect(after.getContextOwner()).toBe(after.hooks.h1)
+
+        const nested = new Recorder()
+        play(nested, [
+            ['suite:start', suiteEv('s1', 'A')], ...passed('t1'), ['suite:start', suiteEv('s2', 'B')],
+            ['hook:start', hookEv('h1', '"before all" hook', { hookKind: 'beforeAll', hookSuiteUid: 's2' })],
+        ])
+        expect(nested.getContextTest()).toBe(nested.tests.t1)
+        expect(nested.getContextOwner()).toBe(nested.hooks.h1)
+
+        const first = new Recorder()
+        play(first, [['suite:start', suiteEv('s1', 'A')], ['hook:start', hookEv('h1', '"before all" hook', { hookKind: 'beforeAll', hookSuiteUid: 's1' })]])
+        expect(first.getContextTest()).toBeUndefined()
+    })
+
+    it('in a parallel contextless all-hook: undefined outside a context, the test of the context inside it', () => {
+        const r = new Recorder()
+        const resolved: { id?: string } = {}
+        r.setContextIdResolver(() => resolved.id)
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A', { parentUid: null })],
+            ['test:start', testEv('t1', 't1', { contextId: 'c1', parentUid: 's1' })],
+            ['hook:start', hookEv('h1', '"before all" hook', { hookKind: 'beforeAll', hookSuiteUid: 's1', parentUid: 's1' })],
+        ])
+        expect(r.getContextTest()).toBeUndefined()
+        resolved.id = 'c1'
+        expect(r.getContextTest()).toBe(r.tests.t1)
+    })
+
+    it('after a parallel Cucumber suite:retry: the step that started last in the context; the owner is the Before hook', () => {
+        const r = new Recorder()
+        let contextId: string | undefined
+        r.setContextIdResolver(() => contextId)
+        const scenario = suiteEv('sc1', 'S1', { type: 'scenario', contextId: 'c1', parentUid: 'f1' })
+        play(r, [
+            ['suite:start', suiteEv('f1', 'F', { type: 'feature', parentUid: null })],
+            ['suite:start', scenario],
+            ['test:start', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1' })],
+            ['test:retry', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1', error: { message: 'x' } })],
+            ['test:end', testEv('st1', 'step', { contextId: 'c1', parentUid: 'sc1' })],
+            ['suite:retry', scenario],
+            ['hook:start', hookEv('b2', 'Before', { contextId: 'c1', parentUid: 'sc1', hookKind: 'beforeEach' })],
+        ])
+        const failedStep = r.tests.st1
+        contextId = 'c1'
+        expect(r.getContextTest()).toBe(failedStep)
+        expect(r.getContextOwner()).toBe(r.hooks.b2)
+        contextId = undefined
+        expect(r.getContextTest()).toBe(failedStep)
+        // the next attempt
+        r.emit('test:start', { type: 'test:start', ...testEv('st2', 'step', { contextId: 'c1', parentUid: 'sc1' }) })
+        contextId = 'c1'
+        expect(r.getContextTest()).toBe(r.tests.st2)
+        expect(r.getContextOwner()).toBe(r.tests.st2)
     })
 })
