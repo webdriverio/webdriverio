@@ -66,7 +66,7 @@ export default class HookStats extends RunnableStats {
     declare hookKind?: HookKind
     /** @experimental the uid of the suite that declares an all-hook */
     declare hookSuiteUid?: string
-    /** @experimental the commands of a `beforeAll` / `afterAll` with `hookKind` and no context; made at the first command */
+    /** @experimental the commands of a `beforeAll` / `afterAll` with `hookKind` and no context, or of a hook of a parallel context before its test; made at the first command */
     declare output?: TestStats['output']
 
     constructor (runner: Hook) {

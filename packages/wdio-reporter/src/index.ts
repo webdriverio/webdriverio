@@ -55,6 +55,9 @@ export default class WDIOReporter extends EventEmitter {
     #dispatch?: { unit?: Unit }
     // contextless all-hooks between hook:start and hook:end: their calls get no unit and no test
     #openAllHooks = new Set<HookStats>()
+    // the open hooks of each context: they get the calls of the context before its test
+    #openContextHooks = new Map<string, HookStats[]>()
+    #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -123,8 +126,9 @@ export default class WDIOReporter extends EventEmitter {
             if (!payload.contextId && this.#parallelSeen && contextTests.size === 0) {
                 return this.#lastUnit?.test ?? currentTest
             }
-            return getTestByContext(payload.contextId)
+            return getTestByContext(payload.contextId) ?? (payload.contextId ? this.#openContextHooks.get(payload.contextId)?.at(-1) : undefined)
         }
+        this.#getCommandTarget = getCommandTarget
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -197,6 +201,11 @@ export default class WDIOReporter extends EventEmitter {
                 unit.nextAttempt()
                 unit.test = undefined
             }
+            // the steps of the failed attempt get no more calls: retry() removes them
+            if (unit?.contextId) {
+                contextTests.delete(unit.contextId)
+                endedContextTests.delete(unit.contextId)
+            }
             // onSuiteRetry sees the tests, hooks and start of the failed attempt (K12)
             try {
                 this.#call(unit, () => this.onSuiteRetry(suiteStat))
@@ -213,6 +222,10 @@ export default class WDIOReporter extends EventEmitter {
             currentSuite.hooksAndTests.push(hookStats)
             // a uid that starts again replaces its open entry
             this.#openAllHooks.delete(this.hooks[hook.uid!])
+            if (hook.contextId) {
+                const open = (this.#openContextHooks.get(hook.contextId) ?? []).filter((entry) => entry !== this.hooks[hook.uid!])
+                this.#openContextHooks.set(hook.contextId, [...open, hookStats])
+            }
             this.hooks[hook.uid!] = hookStats
             const allHook = isContextlessAllHook(hookStats)
             if (allHook) {
@@ -249,6 +262,9 @@ export default class WDIOReporter extends EventEmitter {
                 this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
             } finally {
                 this.#openAllHooks.delete(hookStats)
+                if (hookStats.contextId) {
+                    this.#openContextHooks.set(hookStats.contextId, (this.#openContextHooks.get(hookStats.contextId) ?? []).filter((entry) => entry !== hookStats))
+                }
             }
         })
 
@@ -402,6 +418,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('context:end', (payload: ContextEnd) => {
             endedContextTests.delete(payload.contextId)
+            this.#openContextHooks.delete(payload.contextId)
             // a test with no test:end (a failed beforeEach with failHookAffectedTests: false) stays as it is in the report
             contextTests.delete(payload.contextId)
             retriesByContext.delete(payload.contextId)
@@ -503,6 +520,16 @@ export default class WDIOReporter extends EventEmitter {
     getContextTest(): TestStats | undefined {
         const id = this.#contextIdResolver?.()
         return !id && this.#openAllHooks.size ? undefined : this.#getTestByContext(id)
+    }
+
+    /**
+     * The stats that the commands of the caller go to: the test of its parallel-mode context, else the open hook of
+     * that context (before its test), else the open `beforeAll` / `afterAll` with `hookKind` and no context, else
+     * as `getContextTest`. Use it to give a log of the caller to its owner.
+     * @experimental the name and the result may change
+     */
+    getContextOwner(): TestStats | HookStats | undefined {
+        return this.#getCommandTarget({ contextId: this.#contextIdResolver?.() })
     }
 
     /** Context id of the caller's parallel test, also in hooks that run before `test:start`. Undefined without parallel mode. */

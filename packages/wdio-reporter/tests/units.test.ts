@@ -1179,7 +1179,7 @@ describe('units: commands of a parallel context before its test', () => {
         ctxCommand(r, 'c2')
 
         expect(r.hooks.h1.output).toHaveLength(1)
-        expect((r.hooks.h1.output![0] as { body: { script: string } }).body.script).toBe('<script fn first(...)> [30 bytes]')
+        expect((r.hooks.h1.output![0] as { body: { script: string } }).body.script).toBe('<script> [30 bytes]')
         expect(r.hooks.h2.output).toHaveLength(1)
         expect(r.tests.t2.output).toHaveLength(1)
         expect(r.getContextOwner()).toBeUndefined()

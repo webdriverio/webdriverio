@@ -66,6 +66,10 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
+    getContextOwner (): TestStats | HookStats | undefined {
+        return this.getContextTest()
+    }
+
     getContextId (): string | undefined {
         return undefined
     }
