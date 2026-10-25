@@ -178,7 +178,7 @@ export default function (
          * timeout or a lost network), so the driver process does not keep running.
          */
         let sessionCleanedUp = false
-        const cleanUpSession = () => {
+        const cleanUpSession = async () => {
             if (command !== 'deleteSession' || sessionCleanedUp) {
                 return
             }
@@ -194,7 +194,7 @@ export default function (
              * kill driver process if there is one
              */
             const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-            environment.value.killDriverProcess(this.capabilities, shutdownDriver, this.requestedCapabilities as WebdriverIO.Capabilities)
+            await environment.value.killDriverProcess(this.capabilities, shutdownDriver, this.requestedCapabilities as WebdriverIO.Capabilities)
 
             /**
              * clear logger stream if session has been terminated
@@ -221,12 +221,14 @@ export default function (
             }
 
             this.emit('result', { command, method, endpoint, body: maskedBody, result })
-            cleanUpSession()
-
-            return result.value as WebDriverResponse | BidiResponses
+            const value = result.value as WebDriverResponse | BidiResponses
+            // `deleteSession` resolves once the driver is stopped
+            return command === 'deleteSession' ? cleanUpSession().then(() => value) : value
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
-            cleanUpSession()
+            if (command === 'deleteSession') {
+                return cleanUpSession().then(() => { throw error })
+            }
             throw error
         }).finally(() => {
             cleanup()

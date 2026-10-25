@@ -10,26 +10,6 @@ const log = logger('webdriver')
  */
 const PROFILE_REMOVAL_TIMEOUT = 2000
 const PROFILE_POLL_INTERVAL = 10
-/**
- * at process exit the wait can only block: keep it short
- */
-const EXIT_WAIT_POLLS = 20
-/**
- * drivers whose kill waits for their profile (pid -> profile)
- */
-const waitingDrivers = new Map<number, string>()
-let exitListenerAdded = false
-
-function killWaitingDrivers () {
-    const sleep = new Int32Array(new SharedArrayBuffer(4))
-    for (let poll = 0; poll < EXIT_WAIT_POLLS && [...waitingDrivers.values()].some((profile) => fs.existsSync(profile)); poll++) {
-        Atomics.wait(sleep, 0, 0, PROFILE_POLL_INTERVAL)
-    }
-    for (const pid of waitingDrivers.keys()) {
-        kill(pid)
-    }
-    waitingDrivers.clear()
-}
 
 function kill (pid: number) {
     log.info(`Kill driver process with PID ${pid}`)
@@ -57,19 +37,29 @@ function kill (pid: number) {
 
 /**
  * the temporary profile the driver created because the session requested no
- * `--user-data-dir`; the driver never deletes a profile of the user
+ * `--user-data-dir`; the driver never deletes a profile of the user. Unknown
+ * when the request is not known: none, `{}` from `attach()` or the session
+ * capabilities (they have the `chrome` / `msedge` keys only a driver returns).
  */
 function driverProfileOf (capabilities: WebdriverIO.Capabilities, requestedCapabilities?: WebdriverIO.Capabilities) {
-    if (!requestedCapabilities) {
+    const w3c = requestedCapabilities as Capabilities.W3CCapabilities | undefined
+    const requests = [w3c?.alwaysMatch || requestedCapabilities, ...(w3c?.firstMatch || [])].filter(Boolean) as WebdriverIO.Capabilities[]
+    if (!requests.some((request) => request.browserName) || requests.some((request) => 'chrome' in request || 'msedge' in request)) {
         return undefined
     }
-    const requested = (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || requestedCapabilities
-    const args = [...(requested['goog:chromeOptions']?.args || []), ...(requested['ms:edgeOptions']?.args || [])]
+    const args = requests.flatMap((request) => [...(request['goog:chromeOptions']?.args || []), ...(request['ms:edgeOptions']?.args || [])])
     if (args.some((arg) => typeof arg === 'string' && arg.includes('user-data-dir'))) {
         return undefined
     }
     const caps = capabilities as { chrome?: { userDataDir?: string }, msedge?: { userDataDir?: string } }
     return caps.chrome?.userDataDir || caps.msedge?.userDataDir
+}
+
+async function waitForRemoval (profile: string) {
+    const start = Date.now()
+    while (fs.existsSync(profile) && Date.now() - start < PROFILE_REMOVAL_TIMEOUT) {
+        await new Promise((resolve) => setTimeout(resolve, PROFILE_POLL_INTERVAL))
+    }
 }
 
 /**
@@ -78,33 +68,13 @@ function driverProfileOf (capabilities: WebdriverIO.Capabilities, requestedCapab
  * @param shutdownDriver - whether to shutdown the driver
  * @param requestedCapabilities - the capabilities the session was requested with
  */
-export function killDriverProcess(capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean, requestedCapabilities?: WebdriverIO.Capabilities) {
+export async function killDriverProcess(capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean, requestedCapabilities?: WebdriverIO.Capabilities) {
     if (!shutdownDriver || !('wdio:driverPID' in capabilities) || !capabilities['wdio:driverPID']) {
         return
     }
-    const pid = capabilities['wdio:driverPID']
     const profile = driverProfileOf(capabilities, requestedCapabilities)
-    if (!profile) {
-        return kill(pid)
+    if (profile) {
+        await waitForRemoval(profile)
     }
-
-    if (!exitListenerAdded) {
-        exitListenerAdded = true
-        process.once('exit', killWaitingDrivers)
-    }
-    waitingDrivers.set(pid, profile)
-    const start = Date.now()
-    const waitForProfile = () => {
-        // already killed because the process exits
-        if (!waitingDrivers.has(pid)) {
-            return
-        }
-        if (fs.existsSync(profile) && Date.now() - start < PROFILE_REMOVAL_TIMEOUT) {
-            setTimeout(waitForProfile, PROFILE_POLL_INTERVAL).unref()
-            return
-        }
-        waitingDrivers.delete(pid)
-        kill(pid)
-    }
-    setTimeout(waitForProfile, PROFILE_POLL_INTERVAL).unref()
+    kill(capabilities['wdio:driverPID'])
 }

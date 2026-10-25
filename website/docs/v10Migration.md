@@ -214,7 +214,7 @@ import path from 'node:path'
 export const config = {
     // ...
     beforeSession (config, capabilities) {
-        if (capabilities.browserName !== 'chrome') {
+        if (!/chrom/i.test(capabilities.browserName ?? '')) {
             return
         }
         const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
@@ -223,7 +223,7 @@ export const config = {
 }
 ```
 
-In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`.
+In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`. With W3C capabilities, use `capabilities.alwaysMatch`.
 
 ## Multi-remote Global
 

@@ -574,7 +574,7 @@ describe('command wrapper result log', () => {
             deleteSessionCmd.path,
             deleteSessionCmd.endpoint
         ) as unknown as mockResponse
-        resultFunction({})
+        await resultFunction({})
         expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
     })
@@ -615,17 +615,31 @@ describe('deleteSession clean up', () => {
     it('kills the driver and closes the Bidi socket when the session is deleted', async () => {
         const client = createScope()
         const { onResult } = await runDeleteSession(client)
-        onResult({ value: null })
+        await onResult({ value: null })
         expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
+    })
+
+    it('resolves deleteSession only after the driver is killed', async () => {
+        const client = createScope()
+        let killed!: () => void
+        environment.value.killDriverProcess = vi.fn(() => new Promise<void>((resolve) => { killed = resolve }))
+        const { onResult } = await runDeleteSession(client)
+        let resolved = false
+        const result = onResult({ value: null }).then(() => { resolved = true })
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(resolved).toBe(false)
+        killed()
+        await result
+        expect(resolved).toBe(true)
     })
 
     it('still kills the driver and closes the Bidi socket when deleteSession fails, then throws', async () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client)
         const error = new Error('invalid session id: A session is either terminated or not started')
-        expect(() => onError(error)).toThrow(error)
+        await expect(onError(error)).rejects.toThrow(error)
         expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
@@ -634,15 +648,15 @@ describe('deleteSession clean up', () => {
     it('keeps the driver running on a failed deleteSession with shutdownDriver: false', async () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client, { shutdownDriver: false })
-        expect(() => onError(new Error('fetch failed'))).toThrow('fetch failed')
+        await expect(onError(new Error('fetch failed'))).rejects.toThrow('fetch failed')
         expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false, client.requestedCapabilities)
     })
 
     it('cleans up only once when the result handler already did it', async () => {
         const client = createScope()
         const { onResult, onError } = await runDeleteSession(client)
-        onResult({ value: null })
-        expect(() => onError(new Error('later failure'))).toThrow('later failure')
+        await onResult({ value: null })
+        await expect(onError(new Error('later failure'))).rejects.toThrow('later failure')
         expect(environment.value.killDriverProcess).toHaveBeenCalledTimes(1)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
     })
