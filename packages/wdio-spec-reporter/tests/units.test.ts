@@ -365,6 +365,51 @@ describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
         expect(text).toMatch(/✓ "before all" hook for A\n\n.*Console Logs.*\n\s+LOG A-before\n/)
     })
 
+    it('gives no logs of a parallel context with no test yet to a contextless all-hook', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        let contextId: string | undefined
+        reporter.setContextIdResolver(() => contextId)
+        reporter.emit('suite:start', suite('A', 'suite', null))
+        runTest(reporter, 'a0', 'test:pass', { parentUid: 'A', contextId: 'c0' })
+        const beforeAll = { ...allHook('h1', 'beforeAll', '"before all" hook for A', 'A'), parentUid: 'A' }
+        reporter.emit('hook:start', beforeAll)
+        contextId = 'c9'
+        process.stdout.write('LOG c9 before its test\n')
+        contextId = undefined
+        reporter.emit('hook:end', beforeAll)
+        reporter.emit('suite:end', suite('A', 'suite'))
+
+        expect(display(reporter).join('\n')).not.toContain('LOG c9')
+    })
+
+    it('follows the base when a hook:end is missing: the next test gets its logs', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        reporter.emit('suite:start', suite('A', 'suite'))
+        reporter.emit('hook:start', allHook('h1', 'beforeAll', '"before all" hook for A', 'A'))
+        process.stdout.write('LOG A-before\n')
+        reporter.emit('test:start', test('a1'))
+        process.stdout.write('LOG a1\n')
+        reporter.emit('test:pass', test('a1'))
+        reporter.emit('test:end', test('a1'))
+        reporter.emit('suite:end', suite('A', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'A',
+            '   ✓ "before all" hook for A',
+            '',
+            '      .........Console Logs.........',
+            '         LOG A-before',
+            '          ',
+            '   ✓ a1',
+            '',
+            '      .........Console Logs.........',
+            '         LOG a1',
+            '          ',
+            ''
+        ])
+    })
+
     it('does not print an all-hook with no logs, or the logs of a hook with no hookKind', () => {
         const reporter = newReporter({ addConsoleLogs: true })
         reporter.emit('suite:start', suite('A', 'suite'))
