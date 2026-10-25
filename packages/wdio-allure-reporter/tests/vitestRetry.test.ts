@@ -4,6 +4,9 @@ import { temporaryDirectory } from 'tempy'
 import AllureReporter from '../src/reporter.js'
 import { getResults } from './helpers/wdio-allure-helper.js'
 
+const afterFixtures = (outputDir: string) => (getResults(outputDir).containers as { afters?: { name: string, status: string }[] }[])
+    .flatMap(({ afters = [] }) => afters.map(({ name, status }) => `${name}=${status}`))
+
 // the shared mock replaces the base class, but the hook stats and the lane key come from the real one
 vi.mock('@wdio/reporter', () => vi.importActual('@wdio/reporter'))
 
@@ -65,7 +68,7 @@ async function play(mode: Mode, kind: Kind) {
     reporter.emit('suite:end', { cid: CID, specs: [SPEC], file: SPEC, uid: 'suite-0-0-0', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null })
     reporter.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
     await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
-    return getResults(outputDir).results as { name: string, status: string }[]
+    return Object.assign(getResults(outputDir).results as { name: string, status: string }[], { outputDir })
 }
 
 describe('Vitest retry: the failed hook of a retried attempt', () => {
@@ -74,6 +77,11 @@ describe('Vitest retry: the failed hook of a retried attempt', () => {
             const results = await play(mode, 'afterEach')
             expect(results.map(({ name }) => name)).toEqual(['passes on retry', 'passes on retry'])
             expect(results.map(({ status }) => status).sort()).toEqual(['broken', 'passed'])
+        })
+
+        it(`afterEach (${mode}): keeps the hook as a broken teardown fixture`, async () => {
+            const { outputDir } = await play(mode, 'afterEach')
+            expect(afterFixtures(outputDir)).toContain('"after each" hook for "passes on retry"=broken')
         })
 
         it(`beforeEach (${mode}): the hook stays in its attempt`, async () => {
@@ -121,6 +129,7 @@ describe('Vitest: a failed afterEach that is the failure of its test', () => {
             await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
             const results = getResults(outputDir).results as { name: string, status: string }[]
             expect(results.map(({ name, status }) => `${name}=${status}`)).toEqual(['fails in afterEach=broken'])
+            expect(afterFixtures(outputDir)).toEqual(['"after each" hook for "fails in afterEach"=broken'])
         })
     }
 })

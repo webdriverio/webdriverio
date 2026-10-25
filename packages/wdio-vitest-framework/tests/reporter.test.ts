@@ -1075,6 +1075,25 @@ describe('WdioBridgeReporter', () => {
                         expect(payloadOf('hook:end', 'test-0-0-0-retry-2-afterEach')).not.toHaveProperty('failedTestUid')
                     })
 
+                    it('does not name a test that did not fail', async () => {
+                        const { module, test } = once({ state: 'pending' } as never, [
+                            withHooks(0, 'failed', { beforeEach: hookOf('fail') })
+                        ])
+                        await runTests(module, test)
+
+                        expect(payloadOf('hook:end', 'test-0-0-0-beforeEach')).toMatchObject({ state: 'fail' })
+                        expect(payloadOf('hook:end', 'test-0-0-0-beforeEach')).not.toHaveProperty('failedTestUid')
+                    })
+
+                    it('keeps two errors that have the same message but no stack', async () => {
+                        const { module, test } = once({ state: 'failed', errors: [{ message: 'timeout' }, { message: 'timeout' }] }, [
+                            withHooks(0, 'failed', { afterEach: hookOf('fail', { message: 'timeout' }) }, { message: 'timeout' })
+                        ])
+                        await runTests(module, test)
+
+                        expect(payloadOf('test:fail', 'test-0-0-0').errors).toHaveLength(2)
+                    })
+
                     it('gives the test the errors of the body and of the afterEach', async () => {
                         const { module, test } = once({ state: 'failed', errors: [{ message: 'body' }, { message: 'ae' }] }, [
                             withHooks(0, 'failed', { afterEach: hookOf('fail', { message: 'ae', stack: 's2' }) }, { message: 'body', stack: 's1' })
