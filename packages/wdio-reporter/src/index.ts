@@ -57,6 +57,8 @@ export default class WDIOReporter extends EventEmitter {
     #openAllHooks = new Set<HookStats>()
     // the open hooks of each context: they get the calls of the context before its test
     #openContextHooks = new Map<string, HookStats[]>()
+    // the open hooks with hookKind of each sequential unit: a scenario gets their calls before its first step (U4)
+    #openUnitHooks = new Map<Unit, HookStats[]>()
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
 
     constructor(public options: Partial<Reporters.Options>) {
@@ -129,6 +131,12 @@ export default class WDIOReporter extends EventEmitter {
             // after every context of a parallel run: the last test of the unit that opened last (R6)
             if (!payload.contextId && this.#parallelSeen && noRunningContext()) {
                 return this.#lastUnit?.test ?? currentTest
+            }
+            // a sequential scenario before its first step: its open hook, not the step of the scenario before (U4)
+            const seq = this.#seqUnit
+            const seqHook = !payload.contextId && seq && !seq.ended && seq.isScenario && !seq.test ? this.#openUnitHooks.get(seq)?.at(-1) : undefined
+            if (seqHook) {
+                return seqHook
             }
             const test = payload.contextId && retriedContexts.has(payload.contextId) ? undefined : getTestByContext(payload.contextId)
             return test ?? (payload.contextId ? this.#openContextHooks.get(payload.contextId)?.at(-1) : undefined)
@@ -240,11 +248,15 @@ export default class WDIOReporter extends EventEmitter {
             if (unit) {
                 this.#unitOfStats.set(hookStats, unit)
             }
+            if (unit && !hook.contextId && hookStats.hookKind) {
+                this.#openUnitHooks.set(unit, [...(this.#openUnitHooks.get(unit) ?? []).filter((entry) => entry.uid !== hookStats.uid), hookStats])
+            }
             this.#call(unit, () => this.onHookStart(hookStats))
         })
 
         this.on('hook:end', (hook: Hook) => {
             const hookStats = this.hooks[hook.uid!]
+            const openUnit = hookStats && this.#unitOfStats.get(hookStats)
             try {
                 // a producer can know them only at the end of the hook
                 if (hook.retried !== undefined) {
@@ -269,6 +281,9 @@ export default class WDIOReporter extends EventEmitter {
                 this.#openAllHooks.delete(hookStats)
                 if (hookStats.contextId) {
                     this.#openContextHooks.set(hookStats.contextId, (this.#openContextHooks.get(hookStats.contextId) ?? []).filter((entry) => entry !== hookStats))
+                }
+                if (openUnit && this.#openUnitHooks.has(openUnit)) {
+                    this.#openUnitHooks.set(openUnit, this.#openUnitHooks.get(openUnit)!.filter((entry) => entry !== hookStats))
                 }
             }
         })
@@ -529,7 +544,8 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * The stats that the commands of the caller go to: the test of its parallel-mode context, else the open hook of
      * that context (before its test, also after a `suite:retry` until the next attempt starts a step), else the open
-     * `beforeAll` / `afterAll` with `hookKind` and no context. With no
+     * `beforeAll` / `afterAll` with `hookKind` and no context, else in a sequential Cucumber scenario before its first
+     * step the open hook with `hookKind` of that scenario. With no
      * context in a parallel run and no parallel test running (R6): the last test of the unit that opened last, not the
      * test that started last; else as `getContextTest`.
      * Use it to give a log of the caller to its owner.
@@ -666,6 +682,7 @@ export default class WDIOReporter extends EventEmitter {
             return
         }
         unit.ended = true
+        this.#openUnitHooks.delete(unit)
         // an ended unit has no next attempt
         unit.retriedTest = undefined
         this.#call(unit, () => this.onUnitEnd(unit))
