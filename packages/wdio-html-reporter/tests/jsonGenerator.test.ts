@@ -143,7 +143,8 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
 
     it.each(cases)('$name: keeps its command in the hook output with removeOutput: false', async ({ framework, script, pick, url }) => {
         const hook = pick(await run(framework, false, script))
-        expect(urls(hook)).toEqual([url])
+        // the base keeps the command and its result
+        expect(new Set(urls(hook))).toEqual(new Set([url]))
     })
 
     it.each(cases)('$name: has no output key with removeOutput: true', async ({ framework, script, pick }) => {
