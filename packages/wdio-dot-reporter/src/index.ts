@@ -32,10 +32,11 @@ export default class DotReporter extends WDIOReporter {
     }
 
     /**
-     * a failed Cucumber BeforeAll / AfterAll: it fails no test (K26)
+     * a failed hook that fails no test, in any framework (K26)
      */
     onHookEnd(hook: HookStats): void {
-        if (hookCountsAsFailure(hook) && this.parentOf(hook)?.type === 'feature') {
+        // as Mocha dot and Cucumber progress: one F for each failed hook
+        if (hookCountsAsFailure(hook)) {
             this.write(chalk.redBright('F'))
         }
     }
