@@ -57,6 +57,8 @@ class JunitReporter extends WDIOReporter {
     private _hookTestCases = new Map<object, HookStats>()
     private _afterScenarioHooks = new Set<HookStats>()
     private _lateTestCases: (() => void)[] = []
+    // hooks whose output a test took (K29): their testcase does not write it again
+    private _takenHooks = new Set<HookStats>()
 
     constructor(public options: JUnitReporterOptions) {
         super(options)
@@ -116,6 +118,7 @@ class JunitReporter extends WDIOReporter {
     // the hooks of the unit that ran before its test (K29)
     private _hooksBeforeTest() {
         const hooks = this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])?.splice(0)
+        hooks?.forEach((hook) => this._takenHooks.add(hook))
         return hooks?.length ? { hooks } : undefined
     }
 
@@ -171,7 +174,7 @@ class JunitReporter extends WDIOReporter {
             title,
             error,
             state: state as 'failed' | 'passed',
-            output: hook.output ?? []
+            output: this._takenHooks.has(hook) ? [] : hook.output ?? []
         } as unknown as TestStats
         this._hookTestCases.set(test, hook)
         return test
@@ -493,8 +496,8 @@ class JunitReporter extends WDIOReporter {
      */
     private _addAllHookOutput() {
         const hooksOf = new Map<SuiteStats | undefined, HookStats[]>()
+        const written = new Set(this._hookTestCases.values())
         for (const suite of [this.currentSuites[0], ...Object.values(this.suites)]) {
-            const written = new Set(this._hookTestCases.values())
             for (const hook of (suite?.hooks ?? []).filter((hook) => isContextlessAllHook(hook) && !written.has(hook))) {
                 const owner = this.hookOwner(hook)
                 const key = owner instanceof SuiteStats ? owner : undefined
@@ -631,7 +634,10 @@ class JunitReporter extends WDIOReporter {
 
     private _informationOf(test: Pick<TestStats, 'uid'>) {
         const hook = this._hookTestCases.get(test)
-        return hook ? this._hookInformation.get(hook) : this._testToAdditionalInformation[test.uid]
+        if (hook) {
+            return this._takenHooks.has(hook) ? undefined : this._hookInformation.get(hook)
+        }
+        return this._testToAdditionalInformation[test.uid]
     }
 
     // the hooks of the context before the test, then the test
