@@ -1001,7 +1001,7 @@ describe('WdioBridgeReporter', () => {
                     const [start, end] = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
                     expect(start).toEqual({
                         type: 'hook:start', cid: '0-0', specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', uid: 'test-0-0-0-beforeEach',
-                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), retried: true
+                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true
                     })
                     expect(end).toEqual({ ...start, type: 'hook:end', duration: 0, state: 'pass' })
                     const after = emittedOf().filter(([name]) => name === 'hook:start').map(([, payload]) => payload.title)
