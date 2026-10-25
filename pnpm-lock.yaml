@@ -1817,6 +1817,39 @@ importers:
         specifier: workspace:*
         version: link:../webdriverio
 
+  packages/wdio-vitest-framework:
+    dependencies:
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.5
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/runner':
+        specifier: workspace:*
+        version: link:../wdio-runner
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      expect-webdriverio:
+        specifier: ^8.0.0
+        version: 8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
+      vitest:
+        specifier: ^5.0.2
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(@vitest/browser-webdriverio@5.0.0)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@30.1.3(@noble/hashes@1.8.0))(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.43.1)(tsx@4.23.15)(yaml@2.9.1))
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+
   packages/wdio-webdriver-mock-service:
     dependencies:
       '@wdio/protocols':
