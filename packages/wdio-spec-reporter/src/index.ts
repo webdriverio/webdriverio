@@ -23,7 +23,6 @@ export default class SpecReporter extends WDIOReporter {
     private _consoleLogs = new Map<string, string>()
     /** the console logs of a `beforeAll` / `afterAll` with no context (K28), by hook: Jasmine hook uids repeat */
     private _hookLogs = new Map<HookStats, string>()
-    private _openAllHooks: HookStats[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
@@ -74,13 +73,14 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                    // with no context, a hook owner is the innermost open beforeAll / afterAll: it gets the logs (K28)
+                    const owner = this.getContextId() ? undefined : this.getContextOwner()
+                    const hook = owner?.type === 'hook' ? owner as HookStats : undefined
                     const test = this.getContextTest()
-                    // no test in a beforeAll / afterAll with no context: the innermost open one gets the logs (K28)
-                    const hook = test || this.getContextId() ? undefined : this._openAllHooks.at(-1)
-                    if (test && !test.end) {
-                        this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
-                    } else if (hook) {
+                    if (hook) {
                         this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
+                    } else if (test && !test.end) {
+                        this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
                     }
                 }
                 return this._originalStdoutWrite(chunk, encoding, callback)
@@ -137,14 +137,7 @@ export default class SpecReporter extends WDIOReporter {
         this._attemptCounts.set(key, counts)
     }
 
-    onHookStart (hook: HookStats) {
-        if (!hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')) {
-            this._openAllHooks.push(hook)
-        }
-    }
-
     onHookEnd (hook: HookStats) {
-        this._openAllHooks = this._openAllHooks.filter((open) => open !== hook)
         this.printCurrentStats(hook)
         if (hookCountsAsFailure(hook)) {
             this._count('failed', hook)
