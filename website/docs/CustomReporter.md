@@ -197,7 +197,7 @@ A `ReporterUnit` has these fields:
 
 The reporter calls these methods. In them, `getContextUnit()`, `unitState()` and `attemptState()` use the unit of the event:
 
-- `onUnitStart(unit)`: at the first event of a parallel context (a `test:start` in a context that ended starts a new unit), or at a sequential test or scenario.
+- `onUnitStart(unit)`: at the first event of a parallel context (a `test:start`, a `test:pending` or a scenario `suite:start` in a context that ended starts a new unit), or at a sequential test or scenario.
 - `onUnitRetry(unit)`: an attempt failed and runs again (`test:retry`, `suite:retry`). It comes before the base clears the stats of the attempt.
 - `onUnitEnd(unit)`: at `context:end`. In a sequential run, at the `test:end` of the test or the `suite:end` of the scenario, else when the next unit starts, at the end of its suite or at `runner:end`.
 

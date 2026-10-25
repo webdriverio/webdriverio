@@ -182,7 +182,7 @@ export default class WDIOReporter extends EventEmitter {
             this.suites[suite.uid] = suite
             let unit: Unit | undefined
             if (suite.type === 'scenario') {
-                unit = params.contextId ? this.#contextUnit(params.contextId, suite) : this.#openUnit(undefined, suite)
+                unit = params.contextId ? this.#openContextUnit(params.contextId, suite) : this.#openUnit(undefined, suite)
                 unit.stats = suite
                 unit.test = undefined
                 this.#unitOfStats.set(suite, unit)
@@ -677,8 +677,15 @@ export default class WDIOReporter extends EventEmitter {
         return unit
     }
 
-    #contextUnit(contextId: string, stats?: SuiteStats | TestStats): Unit {
-        return this.#units.get(contextId) ?? this.#openUnit(contextId, stats)
+    // a hook after context:end keeps the ended unit
+    #contextUnit(contextId: string): Unit {
+        return this.#units.get(contextId) ?? this.#openUnit(contextId)
+    }
+
+    // a test or scenario in a context that ended is a new unit (Vitest bail reports each test again)
+    #openContextUnit(contextId: string, stats: SuiteStats | TestStats): Unit {
+        const known = this.#units.get(contextId)
+        return known && !known.ended ? known : this.#openUnit(contextId, stats)
     }
 
     // after the first parallel context, only an open sequential unit (Cucumber failFast skip scenarios)
@@ -700,10 +707,8 @@ export default class WDIOReporter extends EventEmitter {
 
     #unitForTestStart(stat: TestStats, contextId: string | undefined): Unit {
         const seq = this.#seqUnit
-        const known = contextId ? this.#units.get(contextId) : undefined
-        // a test:start in a context that ended is a new unit (Vitest bail reports each test again)
         const unit = contextId
-            ? known && !known.ended ? known : this.#openUnit(contextId, stat)
+            ? this.#openContextUnit(contextId, stat)
             : seq && seq.takesTest(stat) ? seq : this.#openUnit(undefined, stat)
         if (!unit.isScenario) {
             if (unit.retriedTest) {
@@ -721,7 +726,7 @@ export default class WDIOReporter extends EventEmitter {
     #unitForPending(stat: TestStats, contextId: string | undefined, replaced?: TestStats): Unit {
         const seq = this.#seqUnit
         const unit = contextId
-            ? this.#contextUnit(contextId, stat)
+            ? this.#openContextUnit(contextId, stat)
             : seq && ((replaced && this.#unitOfStats.get(replaced) === seq) || (seq.isScenario && seq.takesTest(stat)))
                 ? seq
                 : this.#openUnit(undefined, stat)
@@ -800,7 +805,7 @@ export default class WDIOReporter extends EventEmitter {
     onContextEnd(_payload: ContextEnd) { }
     /** A suite runs again (Cucumber): it has its new `retries` and the tests and hooks of the failed attempt; the base clears them after it. */
     onSuiteRetry(_suiteStats: SuiteStats) { }
-    /** A unit starts: at the first event of a parallel context (a `test:start` in an ended context starts a new one), or at a sequential test or scenario. @experimental */
+    /** A unit starts: at the first event of a parallel context (a `test:start`, a `test:pending` or a scenario `suite:start` in an ended context starts a new one), or at a sequential test or scenario. @experimental */
     onUnitStart(_unit: ReporterUnit) { }
     /** An attempt of a unit failed and runs again (`test:retry`, `suite:retry`), before the base clears its stats. @experimental */
     onUnitRetry(_unit: ReporterUnit) { }
