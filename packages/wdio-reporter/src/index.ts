@@ -167,6 +167,13 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end', (hook: Hook) => {
             const hookStats = this.hooks[hook.uid!]
+            // a producer can know them only at the end of the hook
+            if (hook.retried !== undefined) {
+                hookStats.retried = hook.retried
+            }
+            if (hook.failedTestUid !== undefined) {
+                hookStats.failedTestUid = hook.failedTestUid
+            }
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStats)

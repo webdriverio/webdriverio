@@ -38,7 +38,7 @@ export interface Test {
     start: Date
     end?: Date
     error?: Error
-    /** a failed attempt that the framework ran again: only the last attempt counts */
+    /** @experimental a failed attempt that the framework ran again: only the last attempt counts */
     retried?: boolean
 }
 
@@ -51,8 +51,8 @@ export interface Hook {
     associatedSuite?: string
     associatedTest?: string
     error?: Error
-    /** a hook of an attempt that the framework ran again */
+    /** @experimental a hook of an attempt that the framework ran again */
     retried?: boolean
-    /** the uid of the test that failed with the error of this hook: the hook does not count as another failure */
+    /** @experimental the uid of the test that failed with the error of this hook: the hook does not count as another failure */
     failedTestUid?: string
 }

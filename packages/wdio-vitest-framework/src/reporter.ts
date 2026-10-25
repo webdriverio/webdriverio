@@ -45,10 +45,10 @@ const toErrorPayload = ({ name, message, stack }: TestError) => ({ name: name ||
 const withHookErrors = (error: ReturnType<typeof toErrorPayload>, marker?: AttemptMarker) => {
     const errors = [error]
     for (const kind of ATTEMPT_HOOK_KINDS) {
-        const hookError = marker?.hooks?.[kind]?.state === 'fail' ? marker.hooks[kind].error : undefined
-        // the same error has the same stack; with no stack, two errors can only look the same
-        if (hookError && !errors.some(({ message, stack }) => stack !== undefined && stack === hookError.stack && message === hookError.message)) {
-            errors.push(toErrorPayload(hookError))
+        const hook = marker?.hooks?.[kind]
+        // the worker marks the hook error that is the error of the attempt (the same object there)
+        if (hook?.state === 'fail' && hook.error && !hook.isAttemptError) {
+            errors.push(toErrorPayload(hook.error))
         }
     }
     return errors.length > 1 ? { error, errors } : { error }

@@ -46,7 +46,7 @@ reporters: [
 
 ## Retries
 
-`state` counts only the last attempt of a retried test (Mocha `retries`, Cucumber `retry` with `scenarioLevelReporter`, Vitest `retry`). The earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`, so they are in no count. A hook has `retried: true` when it belongs to such an attempt, and `failedTestUid` when its error is the failure of that test (Vitest `beforeEach` / `afterEach`); these hooks do not count as failures either.
+`state` counts only the last attempt of a retried test (Mocha `retries`, Cucumber `retry` with `scenarioLevelReporter`, Vitest `retry`). The earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`, so they are in no count. A hook has `retried: true` when it belongs to such an attempt, and `failedTestUid` when its error is the failure of that test (Vitest `beforeEach` / `afterEach`); these hooks do not count as failures either. `retried` and `failedTestUid` are experimental: their name or meaning can change in any release.
 
 ## Result Files
 

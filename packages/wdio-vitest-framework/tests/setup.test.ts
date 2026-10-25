@@ -331,7 +331,7 @@ describe('setup', () => {
             it('attributes a failing beforeEach to the first error of this attempt, not an earlier one', async () => {
                 const earlier = new Error('previous attempt')
                 const failure = new Error('before each failed')
-                const payload = await attemptWith({ errors: [earlier] }, { hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
+                const payload = await attemptWith({ errors: [earlier] }, { state: 'fail', hooks: { beforeEach: 'run', afterEach: 'pass' }, errors: [earlier, failure] }, 1)
                 expect(payload.hooks).toEqual({
                     beforeEach: { state: 'fail', error: expect.objectContaining({ message: 'before each failed' }), isAttemptError: true },
                     afterEach: { state: 'pass' }

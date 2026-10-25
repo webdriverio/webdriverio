@@ -138,7 +138,8 @@ export default class SpecReporter extends WDIOReporter {
 
     onHookEnd (hook: HookStats) {
         this.printCurrentStats(hook)
-        if (hook.error) {
+        // the error of such a hook is on its test, or on the test:retry of its attempt
+        if (hook.error && !hook.retried && !hook.failedTestUid) {
             this._count('failed', hook)
         }
     }
