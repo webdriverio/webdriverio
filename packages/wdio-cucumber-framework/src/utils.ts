@@ -414,6 +414,9 @@ export function testRunHookPayload(params: {
         title: `${kind}${name ? ` "${name}"` : ''}${location ? ` (${path.relative(process.cwd(), location.uri)}${location.line ? `:${location.line}` : ''})` : ''}`,
         parent: featureUid,
         parentUid: featureUid,
+        // no contextId: the base reporter gives the hook to this feature (hookOwner)
+        hookKind: (kind === 'AfterAll' ? 'afterAll' : 'beforeAll') as HookKind,
+        hookSuiteUid: featureUid,
         file: uri,
         state: 'failed',
         error,

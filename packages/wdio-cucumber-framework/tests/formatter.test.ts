@@ -549,7 +549,8 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testRunFinished })
             expect(events()).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
             const hook = payloadOf('hook:end')
-            expect(hook).toMatchObject({ type: 'hook', title: 'BeforeAll (steps.ts:23)', state: 'failed', parentUid: payloadOf('suite:start').uid })
+            expect(hook).toMatchObject({ type: 'hook', title: 'BeforeAll (steps.ts:23)', state: 'failed', parentUid: payloadOf('suite:start').uid, hookKind: 'beforeAll', hookSuiteUid: payloadOf('suite:start').uid })
+            expect(hook).not.toHaveProperty('contextId')
             expect(hook.error.message).toBe('BeforeAll fails')
         })
 
@@ -571,7 +572,7 @@ describe('CucumberFormatter', () => {
             runHook(eventBroadcaster, 'AFTER_TEST_RUN', 'FAILED')
             eventBroadcaster.emit('envelope', { testRunFinished })
             expect(events()).toEqual(['hook:start', 'hook:end', 'suite:end'])
-            expect(payloadOf('hook:end').title).toBe('AfterAll (steps.ts:23)')
+            expect(payloadOf('hook:end')).toMatchObject({ title: 'AfterAll (steps.ts:23)', hookKind: 'afterAll' })
         })
 
         it.each(['PASSED', 'SKIPPED'])('sends nothing for a %s run hook', (status) => {

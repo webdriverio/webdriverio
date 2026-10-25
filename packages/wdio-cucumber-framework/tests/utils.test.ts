@@ -80,7 +80,9 @@ describe('utils', () => {
             expect(payload).toMatchObject({
                 type: 'hook', uid: 'r1', title: `BeforeAll (${path.join('features', 'steps.ts')}:23)`, state: 'failed', duration: 5,
                 parent: 'features/k22.feature:1:1', parentUid: 'features/k22.feature:1:1', file: '/project/features/k22.feature',
+                hookKind: 'beforeAll', hookSuiteUid: 'features/k22.feature:1:1',
             })
+            expect(payload).not.toHaveProperty('contextId')
             expect(payload.error?.message).toBe('BeforeAll fails')
             expect(payload.error?.stack).toBe(result.message)
         })
@@ -88,6 +90,7 @@ describe('utils', () => {
         it('names a named AfterAll', () => {
             const payload = testRunHookPayload({ uid: 'r2', kind: 'AfterAll', name: 'cleanup', featureUid: 'f', uri: 'u', result })
             expect(payload.title).toBe('AfterAll "cleanup"')
+            expect(payload).toMatchObject({ hookKind: 'afterAll', hookSuiteUid: 'f' })
         })
     })
 

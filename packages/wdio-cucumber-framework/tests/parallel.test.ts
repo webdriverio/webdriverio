@@ -1409,6 +1409,8 @@ describe('runParallelCucumber run-level behavior', () => {
             expect(events.map(({ event }) => event)).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
             const hook = events.find(({ event }) => event === 'hook:end')!.payload
             expect(hook).toMatchObject({ type: 'hook', state: 'failed', parentUid: events[0].payload.uid, cid: '0-0' })
+            expect(hook).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: events[0].payload.uid })
+            expect(hook).not.toHaveProperty('contextId')
             expect(hook.title).toMatch(/^BeforeAll/)
             expect(hook.error.message).toBeTruthy()
         })
@@ -1421,6 +1423,7 @@ describe('runParallelCucumber run-level behavior', () => {
             expect(names.at(-1)).toBe('suite:end')
             expect(names.slice(-3)).toEqual(['hook:start', 'hook:end', 'suite:end'])
             expect(events.find(({ event }) => event === 'hook:end')!.payload.title).toMatch(/^AfterAll/)
+            expect(events.find(({ event }) => event === 'hook:end')!.payload.hookKind).toBe('afterAll')
         })
 
         test('sends nothing for a BeforeAll and an AfterAll that pass', async () => {
