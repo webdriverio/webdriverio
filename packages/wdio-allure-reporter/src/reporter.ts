@@ -1331,7 +1331,7 @@ export default class AllureReporter extends WDIOReporter {
             const stop = AllureReporter.getTimeOrNow(hook.end)
             this._endHook({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stop, duration: hook.duration })
             this._startTest({ name: hook.title || 'Hook failure', start: AllureReporter.getTimeOrNow(hook.start), standalone: true })
-            this._endTest({ status: AllureStatusEnum.BROKEN, stage: AllureStage.FINISHED, duration: hook.duration, stop })
+            this._endTest({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stage: AllureStage.FINISHED, duration: hook.duration, stop })
             return
         }
 
