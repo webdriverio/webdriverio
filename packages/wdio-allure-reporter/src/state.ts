@@ -50,6 +50,9 @@ export class AllureReportState {
     private _rootScopeUuid?: string
     private _testUuids: string[] = []
     private _standaloneUuid?: string
+    private _rootFixtures = new Set<string>()
+    // the fixture that was open when the current test started
+    private _testStartFixture?: string
 
     constructor(private allureRuntime: ReporterRuntime) {
     }
@@ -204,6 +207,7 @@ export class AllureReportState {
         this._executablesStack.push(testUuid)
         this._currentTestUuid = testUuid
         this._currentTestName = name
+        this._testStartFixture = this._fixturesStack.at(-1)
         this._openSteps = 0
 
         if (this._pendingHookMessages.length > 0 && !this.currentFeature) {
@@ -324,6 +328,9 @@ export class AllureReportState {
 
         const hookUuid = this.allureRuntime.startFixture(testScopeUuid, type, { name, start })
         if (hookUuid) {
+            if (scope === 'root') {
+                this._rootFixtures.add(hookUuid)
+            }
             this._fixturesStack.push(hookUuid)
             this._openHookSteps.set(hookUuid, 0)
             this._hookMeta.set(hookUuid, { name, type })
@@ -447,7 +454,9 @@ export class AllureReportState {
                 continue
             }
 
-            const hookUuid = this._fixturesStack.at(-1)
+            const openFixture = this._fixturesStack.at(-1)
+            // a result started in an open root fixture (its failed hook) keeps its metadata: the root scope holds every test (U1)
+            const hookUuid = openFixture && this._rootFixtures.has(openFixture) && this._testStartFixture === openFixture ? undefined : openFixture
             const target = hookUuid ?? this._standaloneUuid ?? this._currentTestUuid
 
             if (!target) {
