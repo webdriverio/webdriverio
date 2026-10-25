@@ -89,7 +89,7 @@ export default class CustomReporter extends WDIOReporter {
 
 The method names are pretty self explanatory.
 
-After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts` (`this.counts.hooks` keeps the hooks of every attempt, as for a Mocha retry). Finish your work for a test in `onTestEnd`, not in the result methods.
+After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts` (`this.counts.hooks` keeps the hooks of every attempt, as for a Mocha retry). `onSuiteRetry` sees the new `suite.retries` and the tests and hooks of the failed attempt; the base clears them after it. Finish your work for a test in `onTestEnd`, not in the result methods.
 
 To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 
@@ -190,7 +190,7 @@ A `ReporterUnit` has these fields:
 | Field | Description |
 |-------|-------------|
 | `contextId` | The browsing context of a parallel unit. `undefined` in a sequential run. |
-| `stats` | The scenario (Cucumber step level) or the test. `undefined` before it starts, for example in Mocha `before all` hooks. |
+| `stats` | The scenario (Cucumber step level) or the test. `undefined` before it starts, for example in a Mocha `parallelMode` `before all` hook (its unit opens at `hook:start`). |
 | `test` | The test or step that started last in the unit. |
 | `attempt` | `0` for the first attempt. It changes at the start of the next attempt: at the next `test:start`, or at `suite:retry` for a Cucumber scenario at step level. |
 | `ended` | `true` from `onUnitEnd` on. |
