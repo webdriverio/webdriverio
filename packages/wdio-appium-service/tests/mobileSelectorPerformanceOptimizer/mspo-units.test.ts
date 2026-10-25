@@ -46,6 +46,21 @@ describe('MobileSelectorPerformanceReporter owner of a command (K19)', () => {
         expect(names('ctx-a').testName).toBe('test b')
     })
 
+    test('the end of another reporter does not clear the resolver of the reporter that set it last', () => {
+        const runnerStart = { cid: '0-0', specs: ['/specs/a.spec.ts'], capabilities: {}, config: {}, sessionId: 's', isMultiRemote: false, instanceOptions: {} }
+        current = undefined
+        const first = newReporter()
+        first.emit('runner:start', runnerStart)
+        const second = newReporter()
+        second.emit('runner:start', runnerStart)
+        second.emit('suite:start', suite('outer', null, '/specs/a.spec.ts'))
+        second.emit('test:start', testOf('test a', 'outer', { contextId: 'ctx-a' }))
+        second.emit('test:start', testOf('test b', 'outer', { contextId: 'ctx-b' }))
+        first.emit('runner:end', { cid: '0-0', failures: 0, retries: 0 })
+
+        expect(names('ctx-a').testName).toBe('test a')
+    })
+
     test('keeps the names of the last started test and suite in a sequential run (no change)', () => {
         const reporter = newReporter()
         current = undefined
