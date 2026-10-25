@@ -67,7 +67,7 @@
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@sinonjs/fake-timers": "^14.0.0",
-    "@types/archiver": "^8.0.0",
+    "@types/archiver": "^6.0.4",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
