@@ -304,6 +304,49 @@ describe('JUnit worker logs and commands by their owner', () => {
         })
     })
 
+    // U4: the Before runs after the scenario suite:start and before the first step
+    describe('a sequential Cucumber Before writes to the first step of its scenario', () => {
+        const scenarioOut = (xml: string, name: string) => /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(testCaseOf(xml, name))?.[1] ?? ''
+        const runScenario = (uid: string, tag: string, stepResult = 'test:pass') => {
+            runHook(reporter, `${uid}-before`, { parent: uid, hookKind: 'beforeEach', title: 'Before' }, () => {
+                log(`${tag}-before-log`)
+                reporter.emit('client:beforeCommand', command(`${tag}-before-url`))
+            })
+            runTest(reporter, `${uid}-step`, { parent: uid }, stepResult)
+        }
+
+        it('gives each scenario its own Before output, also the first scenario of the worker', () => {
+            reporter.emit('suite:start', suite('F', 'feature'))
+            for (const uid of ['S1', 'S2']) {
+                reporter.emit('suite:start', suite(uid, 'scenario', { parent: 'F' }))
+                runScenario(uid, uid.toLowerCase())
+                reporter.emit('suite:end', suite(uid, 'scenario'))
+            }
+            reporter.emit('suite:end', suite('F', 'feature'))
+
+            const xml = xmlOf(reporter, 'cucumber')
+            expect(scenarioOut(xml, 'S1')).toBe(['', '✅ S1-step', 's1-before-log', '...command output...', '',
+                'COMMAND: POST /session/s/url - {"url":"s1-before-url"}', '', ''].join('\n'))
+            expect(scenarioOut(xml, 'S2')).toBe(['', '✅ S2-step', 's2-before-log', '...command output...', '',
+                'COMMAND: POST /session/s/url - {"url":"s2-before-url"}', '', ''].join('\n'))
+        })
+
+        it('gives the Before of the next attempt to the next attempt after a suite:retry', () => {
+            reporter.emit('suite:start', suite('F', 'feature'))
+            reporter.emit('suite:start', suite('S1', 'scenario', { parent: 'F' }))
+            runScenario('S1', 'attempt1', 'test:retry')
+            reporter.emit('suite:retry', suite('S1', 'scenario', { parent: 'F' }))
+            runScenario('S1', 'attempt2')
+            reporter.emit('suite:end', suite('S1', 'scenario'))
+            reporter.emit('suite:end', suite('F', 'feature'))
+
+            const out = scenarioOut(xmlOf(reporter, 'cucumber'), 'S1')
+            expect(out).toContain('attempt2-before-log')
+            expect(out).toContain('attempt2-before-url')
+            expect(out).not.toContain('attempt1-')
+        })
+    })
+
     describe('a hook whose parent is a feature (K26)', () => {
         it.each([{}, { hookKind: 'beforeAll' }])('writes a failed BeforeAll of the feature as a testcase of its testsuite (%o)', (extra) => {
             reporter.emit('suite:start', suite('F', 'feature', { parentUid: null }))
