@@ -19,7 +19,7 @@ export function applyHeadlessFlag(caps: WebdriverIO.Capabilities, headless: bool
         for (const key of Object.keys(caps)) {
             const val = (caps as Record<string, unknown>)[key]
             const instanceCaps = (val as { capabilities?: unknown } | undefined)?.capabilities || val
-            if (instanceCaps && typeof instanceCaps === 'object' && (instanceCaps as WebdriverIO.Capabilities).browserName) {
+            if (instanceCaps && typeof instanceCaps === 'object' && ('alwaysMatch' in instanceCaps || (instanceCaps as WebdriverIO.Capabilities).browserName)) {
                 applyHeadlessFlag(instanceCaps as WebdriverIO.Capabilities, headless)
             }
         }

@@ -84,6 +84,9 @@ describe('applyHeadlessFlag', () => {
             },
             browserB: {
                 capabilities: { browserName: 'firefox' }
+            },
+            browserC: {
+                capabilities: { alwaysMatch: { browserName: 'chrome' }, firstMatch: [] }
             }
         }
         applyHeadlessFlag(caps, true)
@@ -92,6 +95,9 @@ describe('applyHeadlessFlag', () => {
         })
         expect(caps.browserB.capabilities['moz:firefoxOptions']).toEqual({
             args: ['-headless']
+        })
+        expect(caps.browserC.capabilities.alwaysMatch['goog:chromeOptions']).toEqual({
+            args: ['--headless', '--disable-gpu']
         })
     })
 })
