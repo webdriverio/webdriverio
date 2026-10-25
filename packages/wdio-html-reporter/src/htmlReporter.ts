@@ -274,8 +274,8 @@ export default class HtmlReporter extends WDIOReporter {
         const id = contextId ?? this.getContextId()
         if (!id && this.#contextTests.size && !this.#noContextWarned) {
             this.#noContextWarned = true
-            const message = 'An event with no parallel-mode test context (for example from a `browser.on()` callback ' +
-                'or an `AfterAll` hook) goes to the test that started last.'
+            const message = 'An event with no parallel-mode test context (from code that runs outside a test, such as ' +
+                'an `AfterAll` hook or a `browser.on()` callback) goes to the test that started last.'
             this.LOG.warn(message)
             console.warn(`[@wdio/html-reporter] ${message}`)
         }
