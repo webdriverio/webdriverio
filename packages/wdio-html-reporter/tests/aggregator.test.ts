@@ -440,4 +440,47 @@ describe('ReportAggregator', () => {
             expect(header(await makeReport(['from-env.html', outputDir, 'Title'], { CI: 'true', TEST_BROWSER: 'edge' }))).toBe('edge')
         })
     })
+
+    /**
+     * `specFileRetries`: the retry runs in a new worker with the same cid. The runner
+     * gives the attempt as `retry` (it is 1 also in a run with no `specFileRetries`)
+     */
+    const runAttempt = async (outputDir: string, retry: number, passed: boolean, specFileRetries?: number) => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER } = await import('./testdata.js')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Retries' } as never)
+        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, { retry, config: { specFileRetries } })
+        reporter.onRunnerStart(runner)
+        const common = { cid: '0-0', file: 'retried.spec.js' }
+        const test = { ...common, type: 'test:start', uid: 'flaky', title: 'flaky', fullTitle: 'flaky', parent: 'retried' }
+        reporter.emit('suite:start', { ...common, type: 'suite:start', uid: 'retried', title: 'retried', fullTitle: 'retried', parent: '' })
+        reporter.emit('test:start', test)
+        reporter.emit(passed ? 'test:pass' : 'test:fail', { ...test, ...(passed ? {} : { error: { message: 'fails' } }) })
+        reporter.emit('test:end', test)
+        reporter.emit('suite:end', { ...common, type: 'suite:end', uid: 'retried', title: 'retried', fullTitle: 'retried' })
+        await reporter.onRunnerEnd(runner)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    }
+
+    it('writes one worker file for each attempt of a spec file retry', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 0, false, 1)
+        await runAttempt(outputDir, 1, true, 1)
+        expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json')).sort()).toEqual(['report-0-0-retry1.json', 'report-0-0.json'])
+        const single = path.join(tempDir(), 'out')
+        await runAttempt(single, 1, true)
+        expect(fs.readdirSync(single).filter((file) => file.endsWith('.json'))).toEqual(['report-0-0.json'])
+    })
+
+    it('shows the retried attempt of a spec file, and counts only its last attempt', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 0, false, 1)
+        await runAttempt(outputDir, 1, true, 1)
+        await new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Retries' }).createReport()
+        const master = JSON.parse(fs.readFileSync(path.join(outputDir, 'master-report.json'), 'utf-8'))
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried (spec file attempt 1, retried)', 'retried'])
+    })
 })

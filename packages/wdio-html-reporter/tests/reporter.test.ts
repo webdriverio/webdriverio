@@ -1139,3 +1139,103 @@ describe('parallel mode', () => {
         expect(fs.existsSync(fileA as string) && fs.existsSync(fileB as string)).toBe(true)
     })
 })
+
+describe('sequential mode: events of a before hook', () => {
+    const dir = path.join(outputRoot, 'sequential-hooks') + path.sep
+    const start = () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html' } as never)
+        reporter.onRunnerStart(RUNNER)
+        return reporter
+    }
+    const log = (text: string) => new ReportEvents().logMessage(text)
+    const suite = (reporter: HtmlReporter, uid: string, parent = '') =>
+        reporter.emit('suite:start', { type: 'suite:start', uid, title: uid, fullTitle: uid, cid: '0-0', parent, file: 'spec.js' })
+    const endSuite = (reporter: HtmlReporter, uid: string) =>
+        reporter.emit('suite:end', { type: 'suite:end', uid, title: uid, fullTitle: uid, cid: '0-0', file: 'spec.js' })
+    const hook = (reporter: HtmlReporter, title: string, parent: string, body: () => void) => {
+        const payload = { uid: `${parent} ${title}`, title, parent, cid: '0-0' }
+        reporter.emit('hook:start', payload)
+        body()
+        reporter.emit('hook:end', payload)
+    }
+    const test = (uid: string, parent: string) => ({ type: 'test:start', uid, title: uid, fullTitle: uid, cid: '0-0', parent })
+    const runTest = (reporter: HtmlReporter, uid: string, parent: string, body: () => void = () => {}) => {
+        reporter.emit('test:start', test(uid, parent))
+        body()
+        reporter.emit('test:pass', test(uid, parent))
+        reporter.emit('test:end', test(uid, parent))
+    }
+    const logsOf = (reporter: HtmlReporter, uid: string) =>
+        (reporter.getTest(uid) as unknown as { events: { type: string, value: unknown }[] }).events.map((event) => event.value)
+    afterEach(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    })
+
+    it('adds the log of a before all hook to the first test of its suite, not to the test before (Mocha, Jasmine)', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        runTest(reporter, 'A1', 'A', () => log('A1'))
+        // an afterEach log comes after the end of its test
+        hook(reporter, '"after each" hook for A', 'A', () => log('after each of A1'))
+        suite(reporter, 'A nested', 'A')
+        hook(reporter, '"before all" hook for A nested', 'A nested', () => log('before all of A nested'))
+        runTest(reporter, 'AN1', 'A nested', () => log('AN1'))
+        expect(logsOf(reporter, 'A1')).toEqual(['before all of A', 'A1', 'after each of A1'])
+        expect(logsOf(reporter, 'AN1')).toEqual(['before all of A nested', 'AN1'])
+    })
+
+    it('adds the log of a Before hook to the first step of its scenario, not to the scenario before (Cucumber)', () => {
+        const reporter = start()
+        suite(reporter, 'feature')
+        log('BeforeAll')
+        suite(reporter, 'S1', 'feature')
+        hook(reporter, '', 'S1', () => log('Before of S1'))
+        runTest(reporter, 'S1 step 1', 'S1', () => log('S1 step 1'))
+        runTest(reporter, 'S1 step 2', 'S1')
+        hook(reporter, '', 'S1', () => log('After of S1'))
+        endSuite(reporter, 'S1')
+        suite(reporter, 'S2', 'feature')
+        hook(reporter, '', 'S2', () => log('Before of S2'))
+        runTest(reporter, 'S2 step 1', 'S2')
+        expect(logsOf(reporter, 'S1 step 1')).toEqual(['BeforeAll', 'Before of S1', 'S1 step 1'])
+        expect(logsOf(reporter, 'S1 step 2')).toEqual(['After of S1'])
+        expect(logsOf(reporter, 'S2 step 1')).toEqual(['Before of S2'])
+    })
+
+    it('adds the log of a before all hook to the first test that runs, not to a skipped test before it', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        // `it.skip`: the test ends as pending and never starts
+        reporter.emit('test:pending', { ...test('A1', 'A'), type: 'test:pending' })
+        runTest(reporter, 'A2', 'A')
+        expect(logsOf(reporter, 'A1')).toEqual([])
+        expect(logsOf(reporter, 'A2')).toEqual(['before all of A'])
+    })
+
+    it('adds the log of a before all hook to the first test that it skips (`this.skip()`)', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        hook(reporter, '"before all" hook for A', 'A', () => log('before all of A'))
+        reporter.emit('test:pending', { ...test('A1', 'A'), type: 'test:pending' })
+        reporter.emit('test:pending', { ...test('A2', 'A'), type: 'test:pending' })
+        endSuite(reporter, 'A')
+        expect(logsOf(reporter, 'A1')).toEqual(['before all of A'])
+        expect(logsOf(reporter, 'A2')).toEqual([])
+    })
+
+    it('adds the log of a suite with no test to the test before, as before', () => {
+        const reporter = start()
+        suite(reporter, 'A')
+        runTest(reporter, 'A1', 'A')
+        endSuite(reporter, 'A')
+        // a before all hook fails with `failHookAffectedTests: false`: no test of B is reported
+        suite(reporter, 'B')
+        hook(reporter, '"before all" hook for B', 'B', () => log('before all of B'))
+        endSuite(reporter, 'B')
+        expect(logsOf(reporter, 'A1')).toEqual(['before all of B'])
+    })
+})
