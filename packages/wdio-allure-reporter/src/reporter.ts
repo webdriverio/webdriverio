@@ -354,9 +354,9 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     /** the state of a Cucumber scenario in a parallel unit; `undefined` in a sequential run */
-    private _cukeUnit(): { scenario: boolean } | undefined {
+    private _cukeUnit(): { scenario: boolean, tpSkip: boolean } | undefined {
         return this._framework === 'cucumber' && this.getContextUnit?.()?.contextId
-            ? this.unitState?.(CUCUMBER_UNIT, () => ({ scenario: false }))
+            ? this.unitState?.(CUCUMBER_UNIT, () => ({ scenario: false, tpSkip: false }))
             : undefined
     }
 
@@ -824,7 +824,7 @@ export default class AllureReporter extends WDIOReporter {
             }
 
             if (mustSkip) {
-                this._tpSkipByCid.set(cid, true)
+                this._setTpSkip(cid, true)
                 this._pushRuntimeMessage({
                     type: 'attachment_content',
                     data: {
@@ -859,7 +859,7 @@ export default class AllureReporter extends WDIOReporter {
         const cid = this._currentCid()
 
         if (isScenario && this._tpSkipActive(cid)) {
-            this._tpSkipByCid.delete(cid)
+            this._setTpSkip(cid, false)
             this._setCukeScenarioActive(cid, false)
             return
         }
@@ -1253,7 +1253,7 @@ export default class AllureReporter extends WDIOReporter {
         const hookType = this._hookType(hook)
 
         if (isCucumber && hookType === 'before' && this._decideCucumberSkipForHook(hook)) {
-            this._tpSkipByCid.set(cid, true)
+            this._setTpSkip(cid, true)
             return
         }
 
@@ -1417,8 +1417,20 @@ export default class AllureReporter extends WDIOReporter {
         return this._decideCucumberSkip(this._currentCid(), scenarioTitle)
     }
 
+    // a parallel scenario keeps its own test plan skip (G2); the cid map is the sequential fallback
     private _tpSkipActive(cid: string): boolean {
-        return Boolean(this._tpSkipByCid.get(cid))
+        return this._cukeUnit()?.tpSkip ?? Boolean(this._tpSkipByCid.get(cid))
+    }
+
+    private _setTpSkip(cid: string, skip: boolean): void {
+        const unit = this._cukeUnit()
+        if (unit) {
+            unit.tpSkip = skip
+        } else if (skip) {
+            this._tpSkipByCid.set(cid, true)
+        } else {
+            this._tpSkipByCid.delete(cid)
+        }
     }
 
     private _decideCucumberSkip(cid: string, scenarioTitle: string): boolean {
