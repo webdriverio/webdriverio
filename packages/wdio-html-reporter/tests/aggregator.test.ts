@@ -352,7 +352,7 @@ describe('ReportAggregator', () => {
         it('the report of a worker shows the browser of the session when no browserName is set', async () => {
             const outputDir = path.join(tempDir(), 'out')
             expect(header(await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome', browserVersion: '130' } }))).toBe('chrome')
-            expect(header(await runWorker(outputDir, { cid: '0-1', capabilities: { platformName: 'iOS', deviceName: 'iPhone 17' } }))).toBe('iPhone 17')
+            expect(header(await runWorker(outputDir, { cid: '0-1', capabilities: { platformName: 'iOS', deviceName: 'iPhone 17' } }))).toBe('iPhone 17 (iOS)')
             expect(header(await runWorker(outputDir, {
                 cid: '0-2',
                 isMultiRemote: true,
@@ -379,13 +379,18 @@ describe('ReportAggregator', () => {
             expect(header(configured.reportFile)).toBe('my browser')
         })
 
-        it('the master report shows the name that the worker found, also for an app session', async () => {
+        it('the worker and the master report show the app, the device and the platform of a mobile session', async () => {
             const outputDir = path.join(tempDir(), 'out')
-            const workerFile = await runWorker(outputDir, { cid: '0-0', capabilities: { platformName: 'iOS', deviceName: 'iPhone 17', app: '/Users/me/MyApp.app' } })
+            const workerFile = await runWorker(outputDir, {
+                cid: '0-0',
+                capabilities: { platformName: 'iOS', deviceName: 'iPhone 17', platformVersion: '18.2', app: '/Users/me/MyApp.app' }
+            })
             const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
             await reportAggregator.createReport()
-            expect(header(workerFile)).toBe('MyApp.app')
-            expect(header(reportAggregator.reportFile)).toBe('MyApp.app')
+            expect(header(workerFile)).toBe('MyApp.app on iPhone 17 (iOS 18.2)')
+            expect(header(reportAggregator.reportFile)).toBe('MyApp.app on iPhone 17 (iOS 18.2)')
+            const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8'))
+            expect(json.info.browserNames).toEqual(['MyApp.app on iPhone 17 (iOS 18.2)'])
         })
 
         it('the master report falls back to the capabilities for a worker file with no browser names', async () => {
@@ -412,7 +417,7 @@ describe('ReportAggregator', () => {
             const outputDir = path.join(tempDir(), 'out')
             await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
             await runWorker(outputDir, { cid: '1-0', isMultiRemote: true, capabilities: { a: { browserName: 'firefox' }, b: { platformName: 'iOS', deviceName: 'iPhone 17' } } })
-            expect(header(await makeReport(['from-cli.html', outputDir, 'Title'], { CI: 'true' }))).toBe('chrome, firefox, iPhone 17')
+            expect(header(await makeReport(['from-cli.html', outputDir, 'Title'], { CI: 'true' }))).toBe('chrome, firefox, iPhone 17 (iOS)')
             expect(header(await makeReport(['from-env.html', outputDir, 'Title'], { CI: 'true', TEST_BROWSER: 'edge' }))).toBe('edge')
         })
     })
