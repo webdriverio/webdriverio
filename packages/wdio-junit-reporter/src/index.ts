@@ -48,14 +48,14 @@ class JunitReporter extends WDIOReporter {
     private _originalStdoutWrite: Function
     private _addWorkerLogs: boolean
     private _isWindows: boolean
-    // worker logs and properties of a hook: the base gives it the calls with no test (K28, K29)
+    // worker logs and properties of a hook: the base gives it the calls with no test
     private _hookInformation = new Map<HookStats, JunitReporterAdditionalInformation>()
     private _suiteNodes: { node: any, suite: SuiteStats }[] = []
     // failed hooks written as testcases: their output is not in the testsuite
     private _hookTestCases = new Map<object, HookStats>()
     private _afterScenarioHooks = new Set<HookStats>()
     private _lateTestCases: (() => void)[] = []
-    // hooks whose output a test took (K29): their testcase does not write it again
+    // hooks whose output a test took: their testcase does not write it again
     private _takenHooks = new Set<HookStats>()
 
     constructor(public options: JUnitReporterOptions) {
@@ -99,7 +99,7 @@ class JunitReporter extends WDIOReporter {
 
     onHookStart(hook: HookStats) {
         const unit = this.getContextUnit()
-        // a parallel unit, or a sequential scenario before its first step (U4)
+        // a parallel unit, or a sequential scenario before its first step
         if (unit && !unit.test) {
             this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])!.push(hook)
         }
@@ -114,7 +114,7 @@ class JunitReporter extends WDIOReporter {
         this.write(xml)
     }
 
-    // the hooks of the unit that ran before its test (K29)
+    // the hooks of the unit that ran before its test
     private _hooksBeforeTest() {
         const hooks = this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])?.splice(0)
         hooks?.forEach((hook) => this._takenHooks.add(hook))
@@ -309,7 +309,7 @@ class JunitReporter extends WDIOReporter {
                 this._buildTestCase(feature, test, filePath, classNameFormat)
             }
 
-            // a failed hook of the feature: a Cucumber BeforeAll / AfterAll (K26), an AfterAll after the scenarios
+            // a failed hook of the feature: a Cucumber BeforeAll / AfterAll, an AfterAll after the scenarios
             for (const hook of suite.hooks.filter(hookCountsAsFailure)) {
                 const add = () => this._buildTestCase(feature, this._hookTestCase(hook), filePath, classNameFormat)
                 if (hook.hookKind === 'afterAll' || (!hook.hookKind && this._afterScenarioHooks.has(hook))) {
@@ -490,7 +490,7 @@ class JunitReporter extends WDIOReporter {
     }
 
     /**
-     * The output of a contextless all-hook goes to the testsuite of its suite (K28): a hook of
+     * The output of a contextless all-hook goes to the testsuite of its suite: a hook of
      * the root suite to the first testsuite (before all) or the last one (after all).
      */
     private _addAllHookOutput() {

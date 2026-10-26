@@ -525,7 +525,7 @@ describe('Mocha parallel mode', () => {
     })
 
     describe('root before all hook with a hook kind', () => {
-        it('keeps the commands of a contextless root before all hook in its fixture, not in a test (K28, K31)', async () => {
+        it('keeps the commands of a contextless root before all hook in its fixture, not in a test', async () => {
             const h = createHarness('parallel', [A1, B1])
             h.emit('runner:start', {
                 cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } },

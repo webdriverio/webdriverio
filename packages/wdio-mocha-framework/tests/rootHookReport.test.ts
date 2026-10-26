@@ -49,7 +49,7 @@ async function run(build: (root: Mocha.Suite) => void, failHookAffectedTests: bo
 
 const failedTestCases = (xml: string) => [...xml.matchAll(/<testcase [^>]*name="([^"]*)"[^>]*>\s*<failure message="([^"]*)"/g)].map(([, name, message]) => `${name}: ${message}`)
 
-// G1: a failed root hook of a parallel Mocha run is in the JUnit report and in the JSON count, as on main
+// a failed root hook of a parallel Mocha run is in the JUnit report and in the JSON count, as on main
 describe('Mocha parallelMode: a failed root before / after all in the reports', () => {
     test('a failed root after(): one failed hook testcase, counted in the JSON report', async () => {
         const r = await run((root) => {

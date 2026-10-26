@@ -107,7 +107,7 @@ function playRootHooks(withKind: boolean, framework = 'mocha') {
     return run.end()
 }
 
-describe('fixture scope from the hook kind (K31)', () => {
+describe('fixture scope from the hook kind', () => {
     it('gives every test the root before all and after all hooks, with their commands', async () => {
         const { results, containers } = await playRootHooks(true)
 
@@ -190,8 +190,8 @@ describe('fixture scope from the hook kind (K31)', () => {
     })
 })
 
-// G3: the result of a failed afterEach of a test that ended has the error of the hook
-describe('the result of a failed afterEach of an ended test (K31)', () => {
+// the result of a failed afterEach of a test that ended has the error of the hook
+describe('the result of a failed afterEach of an ended test', () => {
     it('has the message and the trace of the hook error', async () => {
         const run = createRun()
         run.start()
@@ -228,7 +228,7 @@ describe('historyId, testCaseId and fullName (HI rules)', () => {
     })
 })
 
-describe('parameters of a failed root before all (U1)', () => {
+describe('parameters of a failed root before all', () => {
     const params = (result: Result) => result.parameters.map((p: Result) => `${p.name}=${p.value}`)
 
     it.each(['mocha', 'jasmine'])('give each test and the hook result the browser parameter once, as on main (%s)', async (framework) => {
@@ -246,7 +246,7 @@ describe('parameters of a failed root before all (U1)', () => {
             ['t1', ['browser=chrome'], md5('A t1#chrome')],
             ['t2', ['browser=chrome'], md5('A t2#chrome')],
         ])
-        // the root before all stays a fixture of every result (K31)
+        // the root before all stays a fixture of every result
         for (const result of results) {
             expect(fixturesOf(containers, result), result.name).toContain(`before ${ROOT_BEFORE}`)
         }

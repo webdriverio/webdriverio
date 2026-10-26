@@ -341,7 +341,7 @@ export default class AllureReporter extends WDIOReporter {
         return find(this.currentSuites[0], [])
     }
 
-    /** the feature of a parallel Cucumber unit: parallel mode starts every feature first (K14) */
+    /** the feature of a parallel Cucumber unit: parallel mode starts every feature first */
     private _unitFeature(): SuiteStats | undefined {
         const stats = this._laneKey() ? this.getContextUnit?.()?.stats : undefined
         return stats && this.pathOf(stats).findLast((suite) => suite.type === 'feature')
@@ -777,7 +777,7 @@ export default class AllureReporter extends WDIOReporter {
         }
         case 'scenario': {
             this._setCukeScenarioActive(cid, true)
-            // a parallel scenario keeps the path of its own feature (K14)
+            // a parallel scenario keeps the path of its own feature
             const lane = this._openLane()
             if (lane) { lane.suitePath = this.pathOf(suite).map((parent) => parent.title) }
 
@@ -1326,7 +1326,7 @@ export default class AllureReporter extends WDIOReporter {
             this._startHook({ name: hook.title ?? 'Hook', type: hookType, start, scope })
         }
 
-        // a failed afterEach of a test that ended: its fixture and the next afterEach hooks stay on that test (K31)
+        // a failed afterEach of a test that ended: its fixture and the next afterEach hooks stay on that test
         if (hook.error && !hadPendingTest && hadPendingHook && hook.hookKind === 'afterEach') {
             const stop = AllureReporter.getTimeOrNow(hook.end)
             this._endHook({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stop, duration: hook.duration })
@@ -1417,7 +1417,7 @@ export default class AllureReporter extends WDIOReporter {
         return this._decideCucumberSkip(this._currentCid(), scenarioTitle)
     }
 
-    // a parallel scenario keeps its own test plan skip (G2); the cid map is the sequential fallback
+    // a parallel scenario keeps its own test plan skip; the cid map is the sequential fallback
     private _tpSkipActive(cid: string): boolean {
         return this._cukeUnit()?.tpSkip ?? Boolean(this._tpSkipByCid.get(cid))
     }
@@ -1499,7 +1499,7 @@ export default class AllureReporter extends WDIOReporter {
         return hook.hookKind ? hook.hookKind === 'afterEach' || hook.hookKind === 'afterAll' : AFTER_HOOK_PATTERN.test(hook.title ?? '')
     }
 
-    // an all-hook of the root suite is a fixture of every test of the run (K31)
+    // an all-hook of the root suite is a fixture of every test of the run
     private _hookScope(hook: HookStats): 'root' | 'all' | 'each' | undefined {
         const kind = hook.hookKind
         if (!kind) { return undefined }

@@ -21,7 +21,7 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs = new Map<string, string>()
-    /** the console logs of a `beforeAll` / `afterAll` with no context (K28), by hook: Jasmine hook uids repeat */
+    /** the console logs of a `beforeAll` / `afterAll` with no context, by hook: Jasmine hook uids repeat */
     private _hookLogs = new Map<HookStats, string>()
     /** the open `beforeAll` / `afterAll` of each parallel context: a Mocha `after()` runs after its test ended */
     private _openContextAllHooks = new Map<string, HookStats[]>()
@@ -110,7 +110,7 @@ export default class SpecReporter extends WDIOReporter {
         this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
-        // the place of the suite in the tree, below its feature, not the suites that started before it (R1)
+        // the place of the suite in the tree, below its feature, not the suites that started before it
         const path = this.pathOf(suite)
         this._suiteIndents[suite.uid] = suite.type === 'feature' ? 0 : path.length - path.findLastIndex((parent) => parent.type === 'feature')
     }
@@ -482,7 +482,7 @@ export default class SpecReporter extends WDIOReporter {
                     }
                 }
 
-                // print the pending reason of this test (R3)
+                // print the pending reason of this test
                 const pendingItem = (test as TestStats).pendingReason
                 if (pendingItem) {
                     output.push('')
@@ -613,7 +613,7 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         this._orderedSuites = []
-        // the order of the tree, first place of each uid: in parallel mode suites (Cucumber: features) start first (R1)
+        // the order of the tree, first place of each uid: in parallel mode suites (Cucumber: features) start first
         const treeUids = new Set<unknown>()
         const walk = (parent: SuiteStats) => (parent.suites ?? []).forEach((child) => {
             if (this._suiteUids.has(child.uid)) {
@@ -648,7 +648,7 @@ export default class SpecReporter extends WDIOReporter {
             }
             // a hook that the framework skipped is not shown
             const shown = (hook: HookStats) => hook.state && hook.state !== 'skipped'
-            // a failed root hook, or a root beforeAll / afterAll with console logs (K28)
+            // a failed root hook, or a root beforeAll / afterAll with console logs
             const rootHooks = (kind: 'before' | 'after') => rootSuite.hooks.filter((hook) => this._hookLogs.get(hook)
                 ? hook.hookKind === `${kind}All`
                 : shown(hook) && hook.title.startsWith(`"${kind}`) && hook.title.endsWith('"{root}"'))

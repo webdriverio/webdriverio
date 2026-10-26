@@ -18,7 +18,7 @@ const FEATURE_TEXT = [
     '',
 ].join('\n')
 
-describe('cucumberOpts.parallelMode: one state for each scenario (R5)', () => {
+describe('cucumberOpts.parallelMode: one state for each scenario', () => {
     let folder: string
     let featureFile: string
     let reporter: CucumberJsJsonReporter

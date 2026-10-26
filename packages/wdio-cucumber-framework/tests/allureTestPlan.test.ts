@@ -113,7 +113,7 @@ async function run(order: 'A-first' | 'B-first', maxParallelContexts: number) {
         .map((r) => ({ name: r.name, status: r.status, stage: r.stage, steps: flat(r.steps) }))
 }
 
-// G2: the scenario that the test plan excludes does not skip the included scenario that runs at the same time
+// the scenario that the test plan excludes does not skip the included scenario that runs at the same time
 describe('Cucumber parallelMode with the Allure test plan', () => {
     test.each([['A-first', 1], ['A-first', 2], ['B-first', 2]] as const)('the included scenario ends with its attachment and command (%s, maxParallelContexts %i)', async (order, max) => {
         expect(await run(order, max)).toEqual([

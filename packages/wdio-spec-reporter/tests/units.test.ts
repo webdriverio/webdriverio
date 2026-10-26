@@ -20,7 +20,7 @@ const runTest = (reporter: SpecReporter, uid: string, result = 'test:pass', extr
 }
 const hook = (uid: string, title: string, extra: Record<string, unknown> = {}) => ({ uid, title, type: 'hook', cid: '0-0', ...extra })
 
-describe('spec reporter tree (R1, suite order)', () => {
+describe('spec reporter tree (suite order)', () => {
     it('indents nested suites by their place in the tree when all suites start first (Mocha parallel)', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('outer', 'suite', null))
@@ -118,7 +118,7 @@ describe('spec reporter tree (R1, suite order)', () => {
     })
 })
 
-describe('spec reporter pending reasons (R3)', () => {
+describe('spec reporter pending reasons', () => {
     it('prints the pending reason under its own test', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('S', 'suite'))
@@ -171,7 +171,7 @@ describe('spec reporter pending reasons (R3)', () => {
     })
 })
 
-describe('spec reporter counts with Cucumber retry (R2)', () => {
+describe('spec reporter counts with Cucumber retry', () => {
     it('counts only the last attempt of a scenario that runs 3 times in a sequential run', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('F', 'feature'))
@@ -210,7 +210,7 @@ describe('spec reporter counts with Cucumber retry (R2)', () => {
     })
 })
 
-describe('spec reporter hooks of a feature (K26)', () => {
+describe('spec reporter hooks of a feature', () => {
     it('prints a failed BeforeAll / AfterAll whose parent is the feature under the feature', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('F', 'feature', null))
@@ -243,7 +243,7 @@ describe('spec reporter hooks of a feature (K26)', () => {
     })
 })
 
-describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
+describe('spec reporter console logs of a beforeAll / afterAll', () => {
     const originalStdoutWrite = process.stdout.write
     afterEach(() => {
         process.stdout.write = originalStdoutWrite
@@ -508,7 +508,7 @@ describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
     })
 })
 
-// U4: a sequential Cucumber Before owns its logs; a hook with no name gets the name that JUnit gives it
+// a sequential Cucumber Before owns its logs; a hook with no name gets the name that JUnit gives it
 describe('spec reporter Cucumber hooks with no name', () => {
     const originalWrite = process.stdout.write
     afterEach(() => {

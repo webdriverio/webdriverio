@@ -156,7 +156,7 @@ class HtmlGenerator {
                 if (!suiteInfo || !suiteInfo.tests) {
                     return 'suite-unknown'
                 }
-                // the last attempt of a retried test decides (K24); the entry of a failed attempt keeps it (K12)
+                // the last attempt of a retried test decides; the entry of a failed attempt keeps it
                 const counts = (suite: SuiteStats) => (test: TestStats) => !test.retried || Boolean((suite as { retriedAttempt?: boolean }).retriedAttempt)
                 const tests = Object.values(suiteInfo.tests).filter(counts(suiteInfo))
                 let numTests = tests.length

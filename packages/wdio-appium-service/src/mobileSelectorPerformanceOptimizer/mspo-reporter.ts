@@ -28,7 +28,7 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
     }
 
     /**
-     * Parallel mode: the names of the test of the caller's context and of its suite, as tests overlap (K19).
+     * Parallel mode: the names of the test of the caller's context and of its suite, as tests overlap.
      * Sequential: `undefined`, the names of the last events stay
      */
     private getContextNames(): ContextNames | undefined {

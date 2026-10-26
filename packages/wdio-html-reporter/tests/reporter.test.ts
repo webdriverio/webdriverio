@@ -661,7 +661,7 @@ describe('suite state', () => {
     })
 })
 
-describe('retries and hooks of a feature (K12, K24, K26)', () => {
+describe('retries and hooks of a feature', () => {
     const common = { cid: '0-0', specs: [], file: 'spec.js' }
     const suite = (uid: string, type = 'suite:start', parent = '') => ({ ...common, type, uid, title: uid, fullTitle: uid, parent, parentUid: parent || null })
     const test = (uid: string, title: string, parent: string) => ({ ...common, type: 'test:start', uid, title, fullTitle: `${parent} ${title}`, parent, parentUid: parent })
@@ -682,7 +682,7 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         return { reporter, classOf, classesOf, json: JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')) }
     }
 
-    // K24: Mocha `retries`, a failed attempt ends with test:retry and the next attempt has a new uid
+    // Mocha `retries`, a failed attempt ends with test:retry and the next attempt has a new uid
     it('shows a suite with a test that passed on retry as passed', async () => {
         const { classOf } = await run('k24-flaky', (reporter) => {
             reporter.emit('suite:start', suite('flaky suite'))
@@ -696,7 +696,7 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         expect(classOf('flaky suite')).toBe('suite-pass')
     })
 
-    // K24: @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
+    // @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
     it('shows a suite with a failed hook of a retried attempt as passed when the test passed on retry', async () => {
         const { classOf } = await run('k24-hook', (reporter) => {
             const hook = { ...common, type: 'hook:start', uid: 't1-beforeEach', title: '"beforeEach" hook for "flaky"', parent: 'hook suite', parentUid: 'hook suite' }
@@ -713,7 +713,7 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         expect(classOf('hook suite')).toBe('suite-pass')
     })
 
-    // K12: Cucumber `retry` (step level) ends the failed step with test:retry, then sends suite:retry in place of the suite:start of the next attempt
+    // Cucumber `retry` (step level) ends the failed step with test:retry, then sends suite:retry in place of the suite:start of the next attempt
     it.each([
         ['', []],
         [' and skipped steps after the failed step', ['skipped']]
@@ -793,7 +793,7 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
         }
     })
 
-    // K26: a failed Cucumber BeforeAll is a hook of the feature, and Cucumber runs no scenario after it
+    // a failed Cucumber BeforeAll is a hook of the feature, and Cucumber runs no scenario after it
     it('shows and counts a failed Cucumber BeforeAll of the feature', async () => {
         const hook = { ...common, type: 'hook:start', uid: 'run-hook', title: 'BeforeAll', parent: 'F', parentUid: 'F', hookKind: 'beforeAll' }
         const { json, reporter } = await run('k26-before-all', (reporter) => {

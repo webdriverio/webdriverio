@@ -17,7 +17,7 @@ const names = (contextId?: string) => {
 const suite = (uid: string, parentUid: string | null, file = `/specs/${uid}.spec.ts`) => ({ uid, title: uid, type: 'suite', cid: '0-0', file, parentUid })
 const testOf = (uid: string, parentUid: string, extra: Record<string, unknown> = {}) => ({ uid, title: uid, fullTitle: uid, type: 'test', cid: '0-0', parentUid, ...extra })
 
-describe('MobileSelectorPerformanceReporter owner of a command (K19)', () => {
+describe('MobileSelectorPerformanceReporter owner of a command', () => {
     test('gives a command of a parallel test the names of its own test and suite', () => {
         const reporter = newReporter()
         current = undefined
@@ -32,7 +32,7 @@ describe('MobileSelectorPerformanceReporter owner of a command (K19)', () => {
         expect(names('ctx-b')).toEqual({ testFile: 'specs/b.spec.ts', suiteName: 'other', testName: 'test b' })
     })
 
-    // M11: the resolver is module-global, so the reporter clears it at its end
+    // the resolver is module-global, so the reporter clears it at its end
     test('clears its resolver at runner:end: the names that the events set last come back', () => {
         const reporter = newReporter()
         current = undefined

@@ -54,7 +54,7 @@ export default class WDIOReporter extends EventEmitter {
     #openAllHooks = new Set<HookStats>()
     // the open hooks of each context: they get the calls of the context before its test
     #openContextHooks = new Map<string, HookStats[]>()
-    // the open hooks with hookKind of each sequential unit: a scenario gets their calls before its first step (U4)
+    // the open hooks with hookKind of each sequential unit: a scenario gets their calls before its first step
     #openUnitHooks = new Map<Unit, HookStats[]>()
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
 
@@ -125,11 +125,11 @@ export default class WDIOReporter extends EventEmitter {
             if (!payload.contextId && this.#openAllHooks.size) {
                 return [...this.#openAllHooks].at(-1)
             }
-            // after every context of a parallel run: the last test of the unit that opened last (R6)
+            // after every context of a parallel run: the last test of the unit that opened last
             if (!payload.contextId && this.#parallelSeen && noRunningContext()) {
                 return this.#lastUnit?.test ?? currentTest
             }
-            // a sequential scenario before its first step: its open hook, not the step of the scenario before (U4)
+            // a sequential scenario before its first step: its open hook, not the step of the scenario before
             const seq = this.#seqUnit
             const seqHook = !payload.contextId && seq && !seq.ended && seq.isScenario && !seq.test ? this.#openUnitHooks.get(seq)?.at(-1) : undefined
             if (seqHook) {
@@ -195,7 +195,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('suite:retry', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
             const unit = this.#unitOfStats.get(suiteStat)
-            // before the counts and retry() clear the attempt that failed (K12)
+            // before the counts and retry() clear the attempt that failed
             if (unit) {
                 this.#call(unit, () => this.onUnitRetry(unit))
             }
@@ -215,7 +215,7 @@ export default class WDIOReporter extends EventEmitter {
             if (unit?.contextId) {
                 retriedContexts.add(unit.contextId)
             }
-            // onSuiteRetry sees the new retry count (as main) and the tests and hooks of the failed attempt (K12); the start stays the first attempt's
+            // onSuiteRetry sees the new retry count (as main) and the tests and hooks of the failed attempt; the start stays the first attempt's
             suiteStat.retries++
             try {
                 this.#call(unit, () => this.onSuiteRetry(suiteStat))
@@ -549,7 +549,7 @@ export default class WDIOReporter extends EventEmitter {
      * that context (before its test, also after a `suite:retry` until the next attempt starts a step), else the open
      * `beforeAll` / `afterAll` with `hookKind` and no context, else in a sequential Cucumber scenario before its first
      * step the open hook with `hookKind` of that scenario. With no
-     * context in a parallel run and no parallel test running (R6): the last test of the unit that opened last, not the
+     * context in a parallel run and no parallel test running: the last test of the unit that opened last, not the
      * test that started last; else as `getContextTest`.
      * Use it to give a log of the caller to its owner.
      * @experimental the name and the result may change

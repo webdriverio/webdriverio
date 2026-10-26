@@ -247,7 +247,7 @@ describe('units: Mocha', () => {
         expect(r.unitOf(r.tests.t2)).toBe(r.unitOf(r.tests.t1))
     })
 
-    it('K8: a retried test with no test:end ends at the next unit start', () => {
+    it('a retried test with no test:end ends at the next unit start', () => {
         const r = new Recorder()
         play(r, [
             ['suite:start', suiteEv('s1', 'A')],
@@ -351,7 +351,7 @@ describe('units: Cucumber', () => {
         expect(r.log).toContain('suite:start Feature -> none')
     })
 
-    it('K12: onUnitRetry sees the tests of the failed attempt before retry() clears them', () => {
+    it('onUnitRetry sees the tests of the failed attempt before retry() clears them', () => {
         const r = new Recorder()
         play(r, [
             ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
@@ -374,7 +374,7 @@ describe('units: Cucumber', () => {
         }
     }
 
-    it('K12: onSuiteRetry sees the tests and hooks of the failed attempt, then the base clears them', () => {
+    it('onSuiteRetry sees the tests and hooks of the failed attempt, then the base clears them', () => {
         const r = new RetryRecorder()
         play(r, [
             ['suite:start', suiteEv('f', 'Feature', { type: 'feature' })],
@@ -388,7 +388,7 @@ describe('units: Cucumber', () => {
         expect(r.counts).toMatchObject({ tests: 0, passes: 0, failures: 0 })
     })
 
-    it('I1: onSuiteRetry sees the new retry count, as on main, with the failed attempt', () => {
+    it('onSuiteRetry sees the new retry count, as on main, with the failed attempt', () => {
         const retries: string[] = []
         class CountRecorder extends Recorder {
             onSuiteRetry (s: SuiteStats) { retries.push(`${s.title} retries=${s.retries} tests=${s.tests.length}`) }
@@ -406,7 +406,7 @@ describe('units: Cucumber', () => {
         expect(r.suites.sc1).toMatchObject({ tests: [], retries: 2 })
     })
 
-    it('K12 parallel: onSuiteRetry sees only the failed attempt of its scenario, with interleaved payloads', () => {
+    it('parallel: onSuiteRetry sees only the failed attempt of its scenario, with interleaved payloads', () => {
         const r = new RetryRecorder()
         // the parallel adapter gives the hooks the uid of their scenario
         const withParent = (events: Events, sc: string): Events => events.map(([e, p]) => [e, e === 'hook:start' ? { ...p, parentUid: sc } : p])
@@ -425,7 +425,7 @@ describe('units: Cucumber', () => {
         expect(r.suites.sc2.hooks.map((h) => h.uid)).toEqual(['sc2-before'])
     })
 
-    it('K12: a retried scenario keeps the start of its first attempt, as main; onSuiteRetry sees the failed attempt', () => {
+    it('a retried scenario keeps the start of its first attempt, as main; onSuiteRetry sees the failed attempt', () => {
         vi.useFakeTimers({ now: 1000 })
         try {
             const r = new RetryRecorder()
@@ -601,7 +601,7 @@ describe('units: parallel latch and late events', () => {
         expect(r.getContextUnit('B')).toMatchObject({ ended: true, test: r.tests.t2 })
     })
 
-    it('R6: DELETE /session with no context after the run goes to the test of the unit that opened last', () => {
+    it('DELETE /session with no context after the run goes to the test of the unit that opened last', () => {
         const r = new Recorder()
         play(r, events)
         // B opened last, A started its test last
@@ -635,7 +635,7 @@ describe('unit state', () => {
         expect(r.unitState('k', () => ({ n: 0 }), 'A')).toEqual({ n: 1 })
     })
 
-    it('M2: onRunnerStart and onRunnerEnd get no unit and no state, also in the resolver context of a unit', () => {
+    it('onRunnerStart and onRunnerEnd get no unit and no state, also in the resolver context of a unit', () => {
         const seen: string[] = []
         class RunnerRecorder extends Recorder {
             onRunnerStart () { seen.push(`start ${name(this.getContextUnit())} ${this.unitState('k', () => 1) ?? '-'}`) }
@@ -771,7 +771,7 @@ describe('units: Vitest bridge (recorded streams)', () => {
         }
     })
 
-    it('D15: the hooks of a failed attempt keep that attempt and its attemptState, also the afterEach after test:retry', () => {
+    it('the hooks of a failed attempt keep that attempt and its attemptState, also the afterEach after test:retry', () => {
         for (const c of ['hook-each-seq', 'hook-each-conc']) {
             const r = replayVitest(c)
             expect(r.log.filter((l) => l.startsWith('hook:end "before each" hook for "h1')).map((l) => l.slice(-2)), c).toEqual(['#0', '#1'])
@@ -823,7 +823,7 @@ describe('units: Vitest bridge (recorded streams)', () => {
         }
     })
 
-    it('D16: a test:start in a context that ended opens a new unit (Vitest bail reports each test again); the first unit stays ended', () => {
+    it('a test:start in a context that ended opens a new unit (Vitest bail reports each test again); the first unit stays ended', () => {
         const r = replayVitest('bail')
         expect(count(r, 'UNIT+')).toBe(7)
         expect(Object.values(r.tests).filter((t) => t.title === 'bl1 fails fast')).toHaveLength(2)
@@ -857,7 +857,7 @@ describe('units: Vitest bridge (recorded streams)', () => {
         ])
     })
 
-    it('D17: runner:start, suite:start and suite:end get no unit, also in the resolver context of an open unit', () => {
+    it('runner:start, suite:start and suite:end get no unit, also in the resolver context of an open unit', () => {
         const r = replayVitest('d17-conc')
         const wrapper = 'suite:start src/specs/vt-d17-conc.ts -> none state=-'
         // the bridge opens the module-level wrapper again in the replay of x, whose unit is open
@@ -1106,7 +1106,7 @@ describe('units: hook owner (hookKind, hookSuiteUid)', () => {
         emit(r, 'suite:end', suiteEv('s2', 'B'))
         command(r)
         expect(r.hooks.h1.output).toHaveLength(1)
-        // R6: the test of the unit that opened last
+        // the test of the unit that opened last
         expect(r.tests.t1.output).toHaveLength(1)
     })
 
@@ -1163,7 +1163,7 @@ describe('units: hook owner (hookKind, hookSuiteUid)', () => {
     })
 })
 
-describe('K32: hooks that the framework skips', () => {
+describe('hooks that the framework skips', () => {
     const hookEnd = (uid: string, extra: Record<string, unknown>): Events => [
         ['hook:start', hookEv(uid, uid, extra)],
         ['hook:end', hookEv(uid, uid, extra)],
@@ -1295,7 +1295,7 @@ describe('units: commands of a parallel context before its test', () => {
     })
 })
 
-// U4: a sequential Cucumber `Before` runs after its scenario suite:start and before the first step
+// a sequential Cucumber `Before` runs after its scenario suite:start and before the first step
 describe('units: commands of a sequential Cucumber Before', () => {
     const command = (r: Recorder) => r.emit('client:beforeCommand', { sessionId: 's', method: 'GET', endpoint: '/url', body: {} })
     const before = (uid: string, sc: string, extra: Record<string, unknown> = {}): Events => [['hook:start', hookEv(uid, 'Before', { parent: sc, hookKind: 'beforeEach', ...extra })]]
@@ -1421,7 +1421,7 @@ describe('getContextTest() returns what it returned before the unit API', () => 
     })
 })
 
-describe('CR2: the open hooks of a sequential unit', () => {
+describe('the open hooks of a sequential unit', () => {
     // the maps keyed by a unit that the reporter writes to
     const unitMaps = (spy: { mock: { contexts: unknown[], calls: unknown[][] } }) => new Set(spy.mock.contexts.filter((_, i) => spy.mock.calls[i][0] instanceof Unit) as Map<Unit, unknown>[])
     const each = (uid: string, kind: string, test: string) => hookEv(uid, `"${kind === 'beforeEach' ? 'before' : 'after'} each" hook for "${test}"`, { hookKind: kind })
@@ -1449,7 +1449,7 @@ describe('CR2: the open hooks of a sequential unit', () => {
     })
 })
 
-describe('CR1: a contextless beforeEach before its test:start', () => {
+describe('a contextless beforeEach before its test:start', () => {
     class HookProbe extends Recorder {
         seen: string[] = []
         onHookStart (h: HookStats) {
@@ -1484,7 +1484,7 @@ describe('CR1: a contextless beforeEach before its test:start', () => {
     })
 })
 
-describe('CR3: an event that opens a unit in a context that ended', () => {
+describe('an event that opens a unit in a context that ended', () => {
     /** the CustomReporter.md "Units" example */
     class PerTestReporter extends WDIOReporter {
         out: string[] = []

@@ -52,7 +52,7 @@ async function run(mode: 'sequential' | 'parallel') {
         .filter((r) => r.name.startsWith('"after each" hook'))
 }
 
-// G3: the Allure result of a failed afterEach has the error of the hook
+// the Allure result of a failed afterEach has the error of the hook
 describe('Mocha: the Allure result of a failed afterEach', () => {
     test.each(['sequential', 'parallel'] as const)('has the message and the trace of the hook error (%s)', async (mode) => {
         const results = await run(mode)

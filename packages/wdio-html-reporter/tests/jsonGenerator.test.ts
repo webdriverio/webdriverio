@@ -26,7 +26,7 @@ describe('JsonGenerator.removeOutput', () => {
 })
 
 describe('JsonGenerator.jsonOutput', () => {
-    // the JSON keys of a hook on main 2c6277f34; K32 adds `state` to a skipped hook
+    // the JSON keys of a hook on main 2c6277f34; this branch adds `state` to a skipped hook
     const MAIN_KEYS = ['_duration', 'cid', 'end', 'errors', 'parent', 'start', 'title', 'type', 'uid']
 
     const hookJson = async (removeOutput: boolean) => {
@@ -97,7 +97,7 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
 
     const urls = (hook: { output?: { body?: { url?: string } }[] }) => hook.output?.map((o) => o.body?.url)
 
-    // U4: sequential Cucumber, the Before hook of scenario 2
+    // sequential Cucumber, the Before hook of scenario 2
     const cucumber = (emit: (e: string, p: Record<string, unknown>) => void) => {
         emit('suite:start', { uid: 'F', title: 'F', fullTitle: 'F', type: 'feature' })
         for (const sc of ['SC1', 'SC2']) {
@@ -116,7 +116,7 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
         emit('suite:end', { uid: 'F', title: 'F', fullTitle: 'F', type: 'feature' })
     }
 
-    // K28: Mocha, the before all hook of a second suite
+    // Mocha, the before all hook of a second suite
     const mocha = (emit: (e: string, p: Record<string, unknown>) => void) => {
         const test = (uid: string) => ({ uid, title: uid, fullTitle: uid, type: 'test' })
         emit('suite:start', { uid: 'S1', title: 'S1', fullTitle: 'S1', type: 'suite' })
@@ -137,8 +137,8 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
     }
 
     const cases = [
-        { name: 'U4 Before of scenario 2', framework: 'cucumber', script: cucumber, pick: (roots: Node[]) => roots[0].suites!.find((s) => s.uid === 'SC2')!.hooks[0], url: 'SC2-before-url' },
-        { name: 'K28 before all of a suite', framework: 'mocha', script: mocha, pick: (roots: Node[]) => roots.find((s) => s.uid === 'S2')!.hooks[0], url: 'before-S2-url' },
+        { name: 'Before of scenario 2', framework: 'cucumber', script: cucumber, pick: (roots: Node[]) => roots[0].suites!.find((s) => s.uid === 'SC2')!.hooks[0], url: 'SC2-before-url' },
+        { name: 'before all of a suite', framework: 'mocha', script: mocha, pick: (roots: Node[]) => roots.find((s) => s.uid === 'S2')!.hooks[0], url: 'before-S2-url' },
     ]
 
     it.each(cases)('$name: keeps its command in the hook output with removeOutput: false', async ({ framework, script, pick, url }) => {

@@ -360,7 +360,7 @@ function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test
     const native = nativeHookTitle(kind, hook, test)
     const currentTest = hookCurrentTest(kind, hook, test)
     const declaringSuite = hook.parent?.title
-    // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test (G1)
+    // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test
     const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
     const ownSuite = (kind === 'before all' || kind === 'after all') && declaringIndex !== undefined
     return {

@@ -464,7 +464,7 @@ export class AllureReportState {
             }
 
             const openFixture = this._fixturesStack.at(-1)
-            // a result started in an open root fixture (its failed hook) keeps its metadata: the root scope holds every test (U1)
+            // a result started in an open root fixture (its failed hook) keeps its metadata: the root scope holds every test
             const hookUuid = openFixture && this._rootFixtures.has(openFixture) && this._testStartFixture === openFixture ? undefined : openFixture
             const target = hookUuid ?? this._standaloneUuid ?? this._currentTestUuid
 

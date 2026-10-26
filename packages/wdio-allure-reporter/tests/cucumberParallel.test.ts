@@ -200,14 +200,14 @@ describe('Cucumber parallelMode, step level', () => {
         expect(byName(results).map(view(run.outputDir))).toEqual(expected)
     })
 
-    it('keeps the steps, commands and logs of 2 overlapping scenarios of grouped features with their own scenario, feature and historyId (R4, K14)', async () => {
+    it('keeps the steps, commands and logs of 2 overlapping scenarios of grouped features with their own scenario, feature and historyId', async () => {
         const run = playGrouped('parallel')
         const { results } = await run.end()
 
         expect(byName(results).map(view(run.outputDir))).toEqual(expected)
     })
 
-    it('gives every attempt of a retried scenario the same historyId, and the failed attempt its error (K12)', async () => {
+    it('gives every attempt of a retried scenario the same historyId, and the failed attempt its error', async () => {
         const flaky: Scenario = { uid: 's-flaky', title: 'flaky', feature: login, steps: ['Given a'], contextId: 'ctx-flaky' }
         const results: Result[][] = []
         for (const mode of ['sequential', 'parallel'] as const) {
@@ -238,7 +238,7 @@ describe('Cucumber parallelMode, step level', () => {
     })
 })
 
-// G2: the test plan skips a scenario in its own unit, not in every scenario of the worker
+// the test plan skips a scenario in its own unit, not in every scenario of the worker
 describe('Cucumber parallelMode with a test plan', () => {
     const included: Scenario = { uid: 's-ok', title: 'ok', feature: login, steps: ['Given a'], contextId: 'ctx-ok' }
     const excluded: Scenario = { uid: 's-out', title: 'out', feature: login, steps: ['Given x'], contextId: 'ctx-out' }

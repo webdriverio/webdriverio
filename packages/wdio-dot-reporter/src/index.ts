@@ -32,7 +32,7 @@ export default class DotReporter extends WDIOReporter {
     }
 
     /**
-     * a failed hook that fails no test, in any framework (K26)
+     * a failed hook that fails no test, in any framework
      */
     onHookEnd(hook: HookStats): void {
         // as Mocha dot and Cucumber progress: one F for each failed hook

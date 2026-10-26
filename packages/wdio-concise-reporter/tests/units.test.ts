@@ -22,7 +22,7 @@ const suite = (uid: string, type: string, parentUid?: string | null) => ({
 const test = (uid: string, extra: Record<string, unknown> = {}) => ({ uid, title: 'flaky', type: 'test', cid: '0-0', fullTitle: 'suite flaky', parentUid: 's', ...extra })
 const failure = (message: string) => ({ error: { type: 'AssertionError', message } })
 
-describe('concise reporter failure list (K27)', () => {
+describe('concise reporter failure list', () => {
     // Mocha `retries`: a failed attempt ends with test:retry, the next attempt starts with a new uid
     const retryThen = (reporter: ConciseReporter, last: 'test:pass' | 'test:fail') => {
         reporter.emit('suite:start', suite('s', 'suite', null))

@@ -18,7 +18,7 @@ const suite = (uid: string, type: string, parentUid?: string | null) => ({
 const step = (uid: string, parentUid: string) => ({ uid, title: uid, type: 'test', cid: '0-0', fullTitle: uid, parentUid })
 const hook = (title: string, parentUid: string, hookKind: string) => ({ uid: `${title}-hook`, title, type: 'hook', cid: '0-0', parent: parentUid, parentUid, hookKind })
 
-describe('dot reporter hook of a feature (K26)', () => {
+describe('dot reporter hook of a feature', () => {
     it('writes an F for a failed Cucumber BeforeAll of the feature', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('F', 'feature', null))

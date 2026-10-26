@@ -46,7 +46,7 @@ describe('JUnit worker logs and commands by their owner', () => {
         process.stdout.write = originalWrite
     })
 
-    describe('a contextless all-hook writes to the testsuite of its suite (K28)', () => {
+    describe('a contextless all-hook writes to the testsuite of its suite', () => {
         const runSequential = () => {
             reporter.emit('suite:start', suite('S1'))
             reporter.emit('test:start', test('t1'))
@@ -93,7 +93,7 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(suiteOutOf(xml, 'S1')).toBeUndefined()
         })
 
-        // the system-out of a testsuite comes from a patch of junit-report-builder build(parentElement) (M9)
+        // the system-out of a testsuite comes from a patch of junit-report-builder build(parentElement)
         it('writes the system-out of a testsuite after its properties and testcases, in a testsuite with its counts', () => {
             runSequential()
             const s2 = testSuiteOf(xmlOf(reporter), 'S2').replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '')
@@ -162,7 +162,7 @@ describe('JUnit worker logs and commands by their owner', () => {
         })
     })
 
-    describe('a parallel context keeps the output of its hooks before its test starts (K29)', () => {
+    describe('a parallel context keeps the output of its hooks before its test starts', () => {
         const beforeAll = (uid: string, ctx: string) => ({ hookKind: 'beforeAll', hookSuiteUid: 'S', parentUid: 'S', contextId: ctx, uid })
         const inContext = (ctx: string, body: () => void) => {
             contextId = ctx
@@ -225,7 +225,7 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(testCaseOf(xmlOf(reporter), 't1')).toContain('COMMAND: POST /session/s/execute/sync - {"script":"<script> [300 bytes]","args":[]}')
         })
 
-        it('gives a DELETE /session after the last context to the test of the unit that opened last (R6)', () => {
+        it('gives a DELETE /session after the last context to the test of the unit that opened last', () => {
             reporter.emit('suite:start', suite('S', 'suite', { parentUid: null }))
             runTest(reporter, 't1', { parentUid: 'S', contextId: 'c1' })
             runTest(reporter, 't2', { parentUid: 'S', contextId: 'c2' })
@@ -310,7 +310,7 @@ describe('JUnit worker logs and commands by their owner', () => {
             expect(() => xmlOf(reporter, 'cucumber')).not.toThrow()
         })
 
-        it('writes each Cucumber step of a parallel scenario on its own line, followed by its output (U2, #15968)', () => {
+        it('writes each Cucumber step of a parallel scenario on its own line, followed by its output', () => {
             const before = { contextId: 'c1', parentUid: 'S1', hookKind: 'beforeEach' }
             reporter.emit('suite:start', suite('F', 'feature', { parentUid: null }))
             reporter.emit('suite:start', suite('S1', 'scenario', { parentUid: 'F', contextId: 'c1' }))
@@ -326,7 +326,7 @@ describe('JUnit worker logs and commands by their owner', () => {
         })
     })
 
-    // U4: the Before runs after the scenario suite:start and before the first step
+    // the Before runs after the scenario suite:start and before the first step
     describe('a sequential Cucumber Before writes to the first step of its scenario', () => {
         const scenarioOut = (xml: string, name: string) => /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(testCaseOf(xml, name))?.[1] ?? ''
         const runScenario = (uid: string, tag: string, stepResult = 'test:pass') => {
@@ -369,7 +369,7 @@ describe('JUnit worker logs and commands by their owner', () => {
         })
     })
 
-    describe('a hook whose parent is a feature (K26)', () => {
+    describe('a hook whose parent is a feature', () => {
         it.each([{}, { hookKind: 'beforeAll' }])('writes a failed BeforeAll of the feature as a testcase of its testsuite (%o)', (extra) => {
             reporter.emit('suite:start', suite('F', 'feature', { parentUid: null }))
             runHook(reporter, 'run-hook', { parentUid: 'F', title: 'BeforeAll (steps.ts:23)', ...extra }, () => {}, { error: new Error('BeforeAll fails'), state: 'failed' })

@@ -678,7 +678,7 @@ describe('SpecReporter', () => {
             expect(result[3].hooks.length).toBe(1)
         })
 
-        it('does not show a root suite hook that the framework skipped (K32)', () => {
+        it('does not show a root suite hook that the framework skipped', () => {
             tmpReporter['_suiteUids'] = new Set(['5'])
             tmpReporter.suites = { '5': { uid: 5 } } as any
             tmpReporter.currentSuites = [{
@@ -789,7 +789,7 @@ describe('SpecReporter', () => {
             tmpReporter['_orderedSuites'] = [{ ...suite, tests: [suite.tests[0], skipped], hooksAndTests: [suite.tests[0], skipped] }] as any
             tmpReporter.onTestSkip(skipped)
             const result = tmpReporter.getResultDisplay().join('\n')
-            // under its own test (R3), not under the first printed test
+            // under its own test, not under the first printed test
             expect(result).toMatch(/foo bar baz\n.*a skipped test\n\n.*Pending Reasons.*\n\s+some random Reasons/)
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())

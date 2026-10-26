@@ -99,7 +99,7 @@ export default class HtmlReporter extends WDIOReporter {
     #earlyEvents = new Map<string, ReportEvent[]>()
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
-    /** K12: the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
+    /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
     #attemptEnds = new WeakMap<SuiteStats, Date>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
@@ -141,7 +141,7 @@ export default class HtmlReporter extends WDIOReporter {
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
             const stats = this.hooks[hook.uid]
-            // a failed Cucumber BeforeAll / AfterAll fails no scenario (K26)
+            // a failed Cucumber BeforeAll / AfterAll fails no scenario
             if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.isFeatureHook(stats))) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
@@ -329,7 +329,7 @@ export default class HtmlReporter extends WDIOReporter {
 
     /**
      * Cucumber `retry` (step level): the failed attempt stays in the report as its own entry, with its own
-     * times, before the base clears the suite for the next attempt (K12). Only the last attempt counts
+     * times, before the base clears the suite for the next attempt. Only the last attempt counts
      */
     onSuiteRetry(suite: SuiteStats) {
         const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
@@ -337,7 +337,7 @@ export default class HtmlReporter extends WDIOReporter {
             hooks: [...suite.hooks],
             hooksAndTests: [...suite.hooksAndTests],
             suites: [...suite.suites],
-            // its retried step is its failure (K24 skips retried attempts only in the last attempt)
+            // its retried step is its failure (retried attempts are skipped only in the last attempt)
             retriedAttempt: true
         })
         attempt.start = this.#attemptEnds.get(suite) ?? suite.start

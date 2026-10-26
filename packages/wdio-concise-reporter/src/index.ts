@@ -81,7 +81,7 @@ export default class ConciseReporter extends WDIOReporter {
         const output: string[] = []
 
         this.getOrderedSuites().map(suite => suite.tests.map(test => {
-            // the last attempt of a retried test decides (K27)
+            // the last attempt of a retried test decides
             if (test.state === 'failed' && !test.retried) {
                 output.push(
                     `  Fail : ${chalk.red(test.title)}`,
