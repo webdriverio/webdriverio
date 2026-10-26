@@ -60,6 +60,19 @@ describe('ConciseReporter', () => {
             ))
         })
 
+        it('names a multi-remote run with no known browser like the spec reporter', () => {
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { a: { platformName: 'linux' }, b: {} }
+            } as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'MultiRemoteBrowser',
+                '❌ Failed to setup tests, no tests found'
+            ))
+        })
+
         it('should print the all-clear report when every test passed', () => {
             // Failure totals live on this reporter. Passes stay on the base
             // counts object, which the reporter mock does not increment.
