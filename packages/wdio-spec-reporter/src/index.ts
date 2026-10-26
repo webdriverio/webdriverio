@@ -3,7 +3,7 @@ import { format } from 'node:util'
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats, getBrowserName, hookCountsAsFailure } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName, getBrowserNames, hookCountsAsFailure } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -723,11 +723,11 @@ export default class SpecReporter extends WDIOReporter {
      */
     getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiRemote = false): string {
         if (isMultiRemote) {
-            const browserNames = Object.values(capability).map((c) => c.browserName)
+            const browserNames = getBrowserNames(capability, true)
             const browserName = browserNames.length > 1
                 ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
                 : browserNames.pop()
-            return `MultiRemoteBrowser on ${browserName}`
+            return browserName ? `MultiRemoteBrowser on ${browserName}` : 'MultiRemoteBrowser'
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
