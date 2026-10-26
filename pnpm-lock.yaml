@@ -64,9 +64,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.1.1
         version: 5.1.1(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vite@7.3.6(@types/node@20.19.37)(jiti@2.7.0)(terser@5.43.1)(tsx@4.21.0)(yaml@2.8.2))
-      '@types/archiver':
-        specifier: ^6.0.3
-        version: 6.0.3
       '@types/inquirer':
         specifier: ^9.0.8
         version: 9.0.8
@@ -160,9 +157,6 @@ importers:
       glob:
         specifier: ^11.0.3
         version: 11.1.0
-      globals:
-        specifier: ^16.3.0
-        version: 16.3.0
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -6526,9 +6520,6 @@ packages:
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
 
-  '@types/archiver@6.0.3':
-    resolution: {integrity: sha512-a6wUll6k3zX6qs5KlxIggs1P1JcYJaTCx2gnlr+f0S1yd2DoaEwoIK10HmBaLnZwWneBz+JBm0dwcZu0zECBcQ==}
-
   '@types/archiver@8.0.0':
     resolution: {integrity: sha512-YpXPbEuv9+eUIPPQWUPahj3cvs9isWRuF+J4z+KbdYVDO3rWorWQFxUVHnwPu2AgKwvgpki5F2VMX0Xx+mX45A==}
 
@@ -10319,10 +10310,6 @@ packages:
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
-    engines: {node: '>=18'}
-
-  globals@16.3.0:
-    resolution: {integrity: sha512-bqWEnJ1Nt3neqx2q5SFfGS8r/ahumIakg3HcwtNlrVlwXIeNumWn/c7Pn/wKzGhf6SaW6H6uWXLqC30STCMchQ==}
     engines: {node: '>=18'}
 
   globals@16.5.0:
@@ -21955,10 +21942,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@types/archiver@6.0.3':
-    dependencies:
-      '@types/readdir-glob': 1.1.5
-
   '@types/archiver@8.0.0':
     dependencies:
       '@types/node': 20.19.43
@@ -26679,8 +26662,6 @@ snapshots:
   globals@11.12.0: {}
 
   globals@14.0.0: {}
-
-  globals@16.3.0: {}
 
   globals@16.5.0: {}
 
