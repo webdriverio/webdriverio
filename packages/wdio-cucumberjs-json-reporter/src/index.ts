@@ -79,8 +79,6 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * CucumberJS JSON format needs them, so make no report
      */
     #noSteps = false
-    // a failed Cucumber BeforeAll / AfterAll is a hook of the feature: it has no scenario, and no place in Cucumber's JSON
-    #featureUids = new Set<string>()
     /** a scenario ran in a parallel unit (`cucumberOpts.parallelMode`) */
     #parallelSeen = false
     /** `true` when the user set the `language` option: `cucumberOpts.language` replaces it */
@@ -233,9 +231,6 @@ export class CucumberJsJsonReporter extends WDIOReporter {
          * a suite without parent is a feature: a worker can run several feature
          * files (grouped specs), so start a new feature each time
          */
-        if (!payload.parent) {
-            this.#featureUids.add(payload.uid)
-        }
         const known = payload.file ? this.#featuresByFile.get(payload.file) : undefined
         if (known) {
             /**
@@ -296,7 +291,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             return
         }
         // There is always a scenario, take the last one
-        if (this.options.disableHooks || this.#isFeatureHook(payload)) {
+        if (this.options.disableHooks || this.isFeatureHook(payload)) {
             return
         }
         const currentSteps = this.getCurrentScenario().steps
@@ -314,7 +309,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (this.#noSteps) {
             return
         }
-        if (this.options.disableHooks || this.#isFeatureHook(payload)) {
+        if (this.options.disableHooks || this.isFeatureHook(payload)) {
             return
         }
         // Cucumber skips the hooks after a failed hook, and a hook can return 'skipped' or 'pending'
@@ -324,11 +319,6 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
 
         return this.updateStepStatus(payload)
-    }
-
-    /** a hook of the feature (Cucumber `BeforeAll` / `AfterAll`), not of a scenario */
-    #isFeatureHook (hook: HookStats) {
-        return this.#featureUids.has(hook.parent)
     }
 
     /**
