@@ -382,6 +382,64 @@ describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
         expect(display(reporter).join('\n')).not.toContain('LOG c9')
     })
 
+    it('prints the logs of a parallel before() that runs before its test (Mocha parallel)', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        let contextId: string | undefined
+        reporter.setContextIdResolver(() => contextId)
+        reporter.emit('suite:start', suite('A', 'suite', null))
+        for (const [index, uid] of ['a1', 'a2'].entries()) {
+            const context = `c${index}`
+            const before = { ...allHook(`h${index}`, 'beforeAll', '"before all" hook for A', 'A'), parentUid: 'A', contextId: context }
+            reporter.emit('hook:start', before)
+            contextId = context
+            process.stdout.write(`LOG A-before ${uid}\n`)
+            contextId = undefined
+            reporter.emit('hook:end', before)
+            runTest(reporter, uid, 'test:pass', { parentUid: 'A', contextId: context })
+            reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid, contextId: context })
+        }
+        reporter.emit('suite:end', suite('A', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'A',
+            '   ✓ "before all" hook for A',
+            '',
+            '      .........Console Logs.........',
+            '         LOG A-before a1',
+            '          ',
+            '   ✓ a1',
+            '   ✓ "before all" hook for A',
+            '',
+            '      .........Console Logs.........',
+            '         LOG A-before a2',
+            '          ',
+            '   ✓ a2',
+            ''
+        ])
+    })
+
+    it('prints the logs of a parallel Cucumber Before that runs before the first step', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        let contextId: string | undefined
+        reporter.setContextIdResolver(() => contextId)
+        reporter.emit('suite:start', suite('F', 'feature', null))
+        reporter.emit('suite:start', { ...suite('S', 'scenario', 'F'), parent: 'F', contextId: 'c1' })
+        const before = hook('b1', 'Before', { parent: 'S', parentUid: 'S', hookKind: 'beforeEach', contextId: 'c1' })
+        reporter.emit('hook:start', before)
+        contextId = 'c1'
+        process.stdout.write('LOG S-before\n')
+        contextId = undefined
+        reporter.emit('hook:end', before)
+        runTest(reporter, 'step', 'test:pass', { parent: 'S', parentUid: 'S', contextId: 'c1' })
+        reporter.emit('suite:end', suite('S', 'scenario'))
+        reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'S', contextId: 'c1' })
+        reporter.emit('suite:end', suite('F', 'feature'))
+
+        const text = display(reporter).join('\n')
+        expect(text).toMatch(/✓ Before\n\n.*Console Logs.*\n\s+LOG S-before\n/)
+    })
+
     it('follows the base when a hook:end is missing: the next test gets its logs', () => {
         const reporter = newReporter({ addConsoleLogs: true })
         reporter.emit('suite:start', suite('A', 'suite'))
