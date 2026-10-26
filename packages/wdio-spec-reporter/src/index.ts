@@ -23,6 +23,8 @@ export default class SpecReporter extends WDIOReporter {
     private _consoleLogs = new Map<string, string>()
     /** the console logs of a `beforeAll` / `afterAll` with no context (K28), by hook: Jasmine hook uids repeat */
     private _hookLogs = new Map<HookStats, string>()
+    /** the open `beforeAll` / `afterAll` of each parallel context: a Mocha `after()` runs after its test ended */
+    private _openContextAllHooks = new Map<string, HookStats[]>()
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
@@ -75,7 +77,9 @@ export default class SpecReporter extends WDIOReporter {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
                     // a hook owner gets the logs: the innermost open beforeAll / afterAll with no context, or the open hook of a context before its test
                     const owner = this.getContextOwner()
-                    const hook = owner?.type === 'hook' ? owner as HookStats : undefined
+                    const contextId = this.getContextId()
+                    const afterTest = owner?.type === 'test' && owner.end && contextId ? this._openContextAllHooks.get(contextId)?.at(-1) : undefined
+                    const hook = afterTest ?? (owner?.type === 'hook' ? owner as HookStats : undefined)
                     const test = this.getContextTest()
                     if (hook) {
                         this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
@@ -137,7 +141,21 @@ export default class SpecReporter extends WDIOReporter {
         this._attemptCounts.set(key, counts)
     }
 
+    onHookStart (hook: HookStats) {
+        if (hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')) {
+            this._openContextAllHooks.set(hook.contextId, [...(this._openContextAllHooks.get(hook.contextId) ?? []), hook])
+        }
+    }
+
     onHookEnd (hook: HookStats) {
+        if (hook.contextId) {
+            const open = this._openContextAllHooks.get(hook.contextId)?.filter((entry) => entry !== hook)
+            if (open?.length) {
+                this._openContextAllHooks.set(hook.contextId, open)
+            } else {
+                this._openContextAllHooks.delete(hook.contextId)
+            }
+        }
         this.printCurrentStats(hook)
         if (hookCountsAsFailure(hook)) {
             this._count('failed', hook)
