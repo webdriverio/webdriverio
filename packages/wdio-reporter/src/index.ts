@@ -674,6 +674,9 @@ export default class WDIOReporter extends EventEmitter {
             }
             this.#seqUnit = unit
         }
+        if (stats) {
+            this.#unitOfStats.set(stats, unit)
+        }
         this.#lastUnit = unit
         this.#call(unit, () => this.onUnitStart(unit))
         return unit
