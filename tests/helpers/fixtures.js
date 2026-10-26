@@ -87,6 +87,8 @@ onRunnerEnd
 
 export const CUCUMBER_REPORTER_LOGS = `onRunnerStart
 onSuiteStart
+onHookStart
+onHookEnd
 onSuiteStart
 onHookStart
 onHookEnd
@@ -104,6 +106,8 @@ onHookEnd
 onHookStart
 onHookEnd
 onSuiteEnd
+onHookStart
+onHookEnd
 onSuiteEnd
 onBeforeCommand
 onAfterCommand
