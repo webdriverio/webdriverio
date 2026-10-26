@@ -216,9 +216,18 @@ describe('getSessionNames', () => {
             expect(getSessionNames({ ...pixel, 'appium:app': 'bs://abcdef' })).toEqual(['bs://abcdef on Pixel 9 (Android 15)'])
         })
 
-        it('does not change the result of getBrowserName and getBrowserNames', () => {
-            expect(getBrowserName({ 'appium:app': url })).toBe(url)
-            expect(getBrowserNames({ 'appium:app': url })).toEqual([url])
+        it('names an app URL in getBrowserName and getBrowserNames by its file name', () => {
+            expect(getBrowserName({ 'appium:app': url })).toBe('app.apk')
+            expect(getBrowserName({ app: 'https://user:secret@apps.example.com/?token=abc123' } as WebdriverIO.Capabilities)).toBe('apps.example.com')
+            expect(getBrowserNames({ 'appium:app': url })).toEqual(['app.apk'])
+            expect(getBrowserNames({ a: { 'appium:app': url }, b: { browserName: 'chrome' } }, true)).toEqual(['app.apk', 'chrome'])
+        })
+
+        it('keeps the other forms of an app in getBrowserName', () => {
+            expect(getBrowserName({ 'appium:app': 'sauce-storage:my-app.zip' })).toBe('my-app.zip')
+            expect(getBrowserName({ 'appium:app': 'bs://abcdef' })).toBe('bs://abcdef')
+            expect(getBrowserName({ 'appium:app': url, browserName: 'chrome' })).toBe('chrome')
+            expect(getBrowserName({ 'appium:app': url, 'appium:bundleId': 'com.example.app' })).toBe('com.example.app')
         })
     })
 })

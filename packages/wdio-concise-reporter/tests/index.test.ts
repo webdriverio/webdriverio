@@ -60,6 +60,21 @@ describe('ConciseReporter', () => {
             ))
         })
 
+        it('names a remote app URL by its file name, without credentials and token', () => {
+            const app = 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { a: { platformName: 'Android', 'appium:app': app }, b: { browserName: 'chrome' } }
+            } as any)
+            printReporter.onRunnerEnd({ ...RUNNER, capabilities: { platformName: 'Android', 'appium:app': app } } as any)
+
+            const written = (printReporter.write as any).mock.calls.map((call: string[]) => call[0]).join('')
+            expect(written).toContain('my.apk, chrome')
+            expect(written).toContain('my.apk on Android')
+            expect(written).not.toMatch(/secret|abc123/)
+        })
+
         it('names a multi-remote run with no known browser like the spec reporter', () => {
             printReporter.onRunnerEnd({
                 ...RUNNER,

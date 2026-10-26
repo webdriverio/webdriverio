@@ -1016,6 +1016,15 @@ describe('SpecReporter', () => {
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
+        it('names a remote app URL by its file name, without credentials and token', () => {
+            const app = 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            expect(tmpReporter.getEnviromentCombo({
+                a: { platformName: 'Android', 'appium:app': app },
+                b: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on my.apk and chrome')
+            expect(tmpReporter.getEnviromentCombo({ platformName: 'Android', 'appium:app': app } as any)).toBe('my.apk on Android')
+        })
+
         it('should not throw if mutliremote name is "app"', () => {
             expect(tmpReporter.getEnviromentCombo({
                 app: {
