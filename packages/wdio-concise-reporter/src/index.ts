@@ -49,7 +49,7 @@ export default class ConciseReporter extends WDIOReporter {
         const countDisplay = this.getCountDisplay()
         const output = [
             runner.isMultiRemote
-                ? getBrowserNames(runner.capabilities, true).join(', ')
+                ? getBrowserNames(runner.capabilities, true).join(', ') || 'MultiRemoteBrowser'
                 : this.getEnviromentCombo(runner.capabilities),
             // no count line when only hooks failed: their own part follows
             ...(countDisplay ? [countDisplay] : []),
