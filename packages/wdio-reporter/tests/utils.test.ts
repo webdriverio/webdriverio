@@ -49,6 +49,15 @@ describe('utils', () => {
         })).toBe('android.androidemulator.6_4.my-awesome_apk')
     })
 
+    it('sanitizeCaps drops the credentials, the query and the hash of an app URL', () => {
+        const phone = { deviceName: 'Pixel 9', platformName: 'Android', 'appium:platformVersion': '15' }
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123#part' }))
+            .toBe('android.pixel9.15.app_apk')
+        expect(sanitizeCaps({ browserName: 'chrome', 'appium:app': 'https://host/app.apk?token=abc123' })).toBe('chrome.app_apk')
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'sauce-storage:my-app.zip' })).toBe('android.pixel9.15.sauce-storage:my-app_zip')
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'bs://abcdef' })).toBe('android.pixel9.15.abcdef')
+    })
+
     it('pad', () => {
         expect(pad('foobar', 10)).toBe('    foobar')
     })
