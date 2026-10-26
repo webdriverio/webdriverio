@@ -4,7 +4,7 @@ import url from 'node:url'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -773,10 +773,9 @@ function capabilitiesName (runner: RunnerStats): string {
     if (!runner.isMultiRemote || !runner.capabilities || typeof runner.capabilities !== 'object') {
         return runner.sanitizedCapabilities
     }
-    return Object.entries(runner.capabilities as Record<string, any>).map(([instanceName, instance]) => {
-        // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
-        const caps = sanitizeCaps(instance?.capabilities ?? instance).replace(/\./g, '_')
-        return caps ? `${instanceName}-${caps}` : instanceName
+    return getSessions(runner.capabilities, true).map(({ name, capabilities }) => {
+        const caps = sanitizeCaps(capabilities as WebdriverIO.Capabilities).replace(/\./g, '_')
+        return caps ? `${name}-${caps}` : name
     }).join('+')
 }
 
