@@ -668,6 +668,22 @@ describe('unit state', () => {
         resolved.id = undefined
         expect(r.unitState('n', () => ({ n: 0 }))).toBeUndefined()
     })
+
+    it('a unit has no state maps until the first unitState / attemptState call', () => {
+        const r = new Recorder()
+        r.setContextIdResolver(() => 'A')
+        play(r, [['test:start', testEv('p1', 'x', { contextId: 'A' })]])
+        const unit = r.getContextUnit() as Unit
+        expect(unit.state).toBeUndefined()
+        expect(unit.attemptState).toBeUndefined()
+        r.unitState('n', () => 1)
+        expect(unit.state?.size).toBe(1)
+        expect(unit.attemptState).toBeUndefined()
+        r.attemptState('n', () => 1)
+        unit.nextAttempt()
+        expect(unit.attemptState).toBeUndefined()
+        expect(new Unit('B')).toMatchObject({ state: undefined, attemptState: undefined })
+    })
 })
 
 /**

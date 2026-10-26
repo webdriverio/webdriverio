@@ -637,7 +637,7 @@ export default class WDIOReporter extends EventEmitter {
         if (!unit) {
             return undefined
         }
-        const map = unit[kind]
+        const map = unit[kind] ??= new Map()
         if (!map.has(key)) {
             map.set(key, init(unit))
         }

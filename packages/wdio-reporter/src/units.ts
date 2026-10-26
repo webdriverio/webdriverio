@@ -28,8 +28,9 @@ export class Unit implements ReporterUnit {
     testEnded = false
     /** the test of a `test:retry`: the next start of it is the next attempt */
     retriedTest?: TestStats
-    readonly state = new Map<unknown, unknown>()
-    readonly attemptState = new Map<unknown, unknown>()
+    /** made at the first `unitState` / `attemptState` call: most units have no state */
+    state?: Map<unknown, unknown>
+    attemptState?: Map<unknown, unknown>
 
     constructor (readonly contextId?: string) {}
 
@@ -52,7 +53,7 @@ export class Unit implements ReporterUnit {
     /** the start of the next attempt after a retry */
     nextAttempt () {
         this.attempt++
-        this.attemptState.clear()
+        this.attemptState = undefined
         this.retriedTest = undefined
     }
 }
