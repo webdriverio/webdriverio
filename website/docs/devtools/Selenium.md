@@ -22,7 +22,7 @@ Pick your language in the tabs below; the choice follows you down the page.
 npm install @wdio/selenium-devtools
 ```
 
-Requires `selenium-webdriver` 4.8 or later. Encoding a screencast `.webm` needs `ffmpeg` on `PATH`.
+Requires Node.js 22.23.4+, 24.22.1+ or 26.12.1+ and `selenium-webdriver` 4.8 or later. Encoding a screencast `.webm` needs `ffmpeg` on `PATH`.
 
 </TabItem>
 <TabItem value="python" label="Python">
