@@ -334,13 +334,18 @@ interface MochaHookLike {
     parent?: TitledNode & { root?: boolean, tests?: { title: string }[] }
 }
 
+/** Mocha's `ctx.currentTest` of a hook (runner.js hook): first sibling for before all, last for after all, else the test. */
+function hookCurrentTest(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
+    const siblings = hook.parent?.tests
+    return kind === 'before all' ? siblings?.[0]?.title
+        : kind === 'after all' ? siblings?.[siblings.length - 1]?.title
+            : test.title
+}
+
 /** Mocha's own hook title (runner.js setHookTitle). */
 function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
     const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
-    const siblings = hook.parent?.tests
-    const currentTest = kind === 'before all' ? siblings?.[0]?.title
-        : kind === 'after all' ? siblings?.[siblings.length - 1]?.title
-            : test.title
+    const currentTest = hookCurrentTest(kind, hook, test)
     return currentTest !== undefined
         ? `${original} for "${currentTest}"`
         : `${original} in "${hook.parent?.title || (hook.parent?.root ? '{root}' : '')}"`
@@ -353,6 +358,7 @@ function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTes
  */
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
     const native = nativeHookTitle(kind, hook, test)
+    const currentTest = hookCurrentTest(kind, hook, test)
     const declaringSuite = hook.parent?.title
     // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test (G1)
     const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
@@ -365,6 +371,7 @@ function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test
         file: test.file || specs[0],
         ...parentUidField(cid, ownSuite ? declaringIndex : test.suiteIndex),
         contextId,
+        ...(currentTest !== undefined && { currentTest }),
         hookKind: checkHookKind(hook, HOOK_KINDS[kind]),
         ...(ownSuite && declaringIndex !== undefined && { hookSuiteUid: suiteUid(cid, declaringIndex) })
     } satisfies TestMessage
