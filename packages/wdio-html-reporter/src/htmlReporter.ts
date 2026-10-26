@@ -13,6 +13,7 @@ import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
 import { writeFile } from './files.js'
+import { headerBrowserName } from './browserName.js'
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -109,6 +110,7 @@ export default class HtmlReporter extends WDIOReporter {
     #onMessageEvent = ({ value }: { value: unknown }) => this.saveMessage(value)
     #onScreenshotEvent = ({ value }: { value: string }) => this.saveScreenshot(value)
     #onVideoEvent = ({ value }: { value: string }) => this.saveVideo(value)
+    #configuredBrowserName: string | undefined
 
     constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
@@ -119,6 +121,7 @@ export default class HtmlReporter extends WDIOReporter {
         const opts = new HtmlReporterOptions()
         opts.stdout = true
         this.options = Object.assign(opts, options)
+        this.#configuredBrowserName = options.browserName
         const dir = path.join(this.options.outputDir, 'screenshots')
 
         fs.mkdirSync(dir, { recursive: true })
@@ -421,7 +424,7 @@ export default class HtmlReporter extends WDIOReporter {
             suites,
             this.metrics,
             reportFile,
-            this.options.browserName)
+            headerBrowserName(this.#configuredBrowserName, [runner], this.options.browserName))
     }
 
     /**
