@@ -167,6 +167,12 @@ describe('ConciseReporter', () => {
                 platformName : 'iOS',
                 'appium:app' : 'sauce-storage:myApp.app'
             }, 'iPhone 6 Plus on iOS 9.2 executing myApp.app'],
+            ['mobile app from a remote URL', {
+                deviceName : 'Pixel 9',
+                'appium:platformVersion' : '15',
+                platformName : 'Android',
+                'appium:app' : 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            }, 'Pixel 9 on Android 15 executing my.apk'],
             ['mobile browser', {
                 deviceName : 'iPhone 6 Plus',
                 'appium:platformVersion' : '9.2',
