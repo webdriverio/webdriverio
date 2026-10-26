@@ -224,7 +224,7 @@ This reporter keeps the lines of each test in `unitState` and prints them at `on
 import WDIOReporter, { type ReporterUnit, type TestStats } from '@wdio/reporter'
 
 export default class PerTestReporter extends WDIOReporter {
-    #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit.contextId)!
+    #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit)!
 
     onTestEnd(test: TestStats) {
         const unit = this.unitOf(test)

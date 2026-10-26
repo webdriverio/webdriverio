@@ -1709,7 +1709,7 @@ describe('an event that opens a unit in a context that ended', () => {
         out: string[] = []
         starts = 0
         constructor () { super({ logFile: tmp.fileSync().name }) }
-        #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit.contextId)!
+        #lines = (unit: ReporterUnit) => this.unitState('lines', () => [] as string[], unit)!
         onUnitStart () { this.starts++ }
         onTestEnd (test: TestStats) {
             const unit = this.unitOf(test)
