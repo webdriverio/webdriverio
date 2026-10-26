@@ -1,4 +1,4 @@
-import { getBrowserName, hookCountsAsFailure, type HookStats, type SuiteStats, type RunnerStats } from '@wdio/reporter'
+import { getBrowserName, getBrowserNames, hookCountsAsFailure, type HookStats, type SuiteStats, type RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
@@ -48,7 +48,9 @@ export default class ConciseReporter extends WDIOReporter {
 
         const countDisplay = this.getCountDisplay()
         const output = [
-            this.getEnviromentCombo(runner.capabilities),
+            runner.isMultiRemote
+                ? getBrowserNames(runner.capabilities, true).join(', ')
+                : this.getEnviromentCombo(runner.capabilities),
             // no count line when only hooks failed: their own part follows
             ...(countDisplay ? [countDisplay] : []),
             ...this.getFailureDisplay(),
