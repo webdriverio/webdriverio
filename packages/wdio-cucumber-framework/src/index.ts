@@ -265,6 +265,12 @@ export class CucumberAdapter {
             }
         }
 
+        // the reporters (cucumberjs-json) read the language of the config: the one of the profile too;
+        // not Cucumber's default `en`, which would replace the `language` option of the reporter
+        if (this._cucumberOpts.language && this._cucumberOpts.language !== (this._config.cucumberOpts?.language ?? 'en')) {
+            this._config.cucumberOpts = { ...this._config.cucumberOpts, language: this._cucumberOpts.language }
+        }
+
         // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
         if (this._cucumberOpts.order === 'random') {
             const seed = Math.floor(Math.random() * 1000 * 1000)

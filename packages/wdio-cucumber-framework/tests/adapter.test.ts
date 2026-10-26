@@ -508,6 +508,18 @@ describe('CucumberAdapter', () => {
             expect(adapter._cucumberOpts.requireModule).toEqual(['moduleProfile', 'moduleA', userModule])
         })
 
+        // the cucumberjs-json reporter reads cucumberOpts.language of the config (onRunnerStart)
+        it.each([
+            [{ profiles: ['danish'], file }, 'da'],
+            [{ profiles: ['danish'], file, language: 'en' }, 'en'],
+            // Cucumber's default: the `language` option of the reporter stays in use
+            [{}, undefined],
+        ])('gives the reporters the language of the profile (%j)', async (cucumberOpts, language) => {
+            const config = { cucumberOpts }
+            await CucumberAdapter.init!('0-0', config, [], {}, {}, {}, false)
+            expect((config.cucumberOpts as { language?: string }).language).toBe(language)
+        })
+
         it('gives the order and the language of a profile to the parallel run', async () => {
             vi.mocked(runParallelCucumber).mockResolvedValue(0)
             ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
