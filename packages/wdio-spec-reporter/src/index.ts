@@ -4,7 +4,7 @@ import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats, getBrowserName, getBrowserNames, hookCountsAsFailure } from '@wdio/reporter'
-import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument, ContextEnd } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
 
@@ -75,7 +75,7 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    // a hook owner gets the logs: the innermost open beforeAll / afterAll with no context, or the open hook of a context before its test
+                    // a hook owner gets the logs: the innermost open beforeAll / afterAll with no context, the open hook of a context before its test, or the open beforeAll / afterAll of a context after its test ended
                     const owner = this.getContextOwner()
                     const contextId = this.getContextId()
                     const afterTest = owner?.type === 'test' && owner.end && contextId ? this._openContextAllHooks.get(contextId)?.at(-1) : undefined
@@ -160,6 +160,11 @@ export default class SpecReporter extends WDIOReporter {
         if (hookCountsAsFailure(hook)) {
             this._count('failed', hook)
         }
+    }
+
+    onContextEnd (payload: ContextEnd) {
+        // a hook with no hook:end must not stay for a late log
+        this._openContextAllHooks.delete(payload.contextId)
     }
 
     onTestStart (testStat: TestStats) {
