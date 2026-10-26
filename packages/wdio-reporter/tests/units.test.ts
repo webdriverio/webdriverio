@@ -1615,3 +1615,47 @@ describe('units: unitOf in onUnitStart', () => {
         expect(r.seen).toEqual([[true, 'no test']])
     })
 })
+
+describe('state of an async on* method', () => {
+    const STATE = Symbol('lines')
+    const ev = (type: string, uid: string, title: string, extra: Record<string, unknown> = {}) => (
+        { type, uid, title, fullTitle: title, cid: '0-0', parent: '', pending: false, ...extra }
+    )
+
+    class AsyncReporter extends WDIOReporter {
+        pending: Promise<void>[] = []
+        constructor () {
+            super({ logFile: tmp.fileSync().name })
+        }
+        onTestEnd (test: TestStats) {
+            const unit = this.unitOf(test)!
+            this.pending.push((async () => {
+                await Promise.resolve()
+                this.unitState(STATE, () => [] as string[], unit)!.push(test.title)
+                this.attemptState(STATE, () => [] as string[], unit)!.push(test.title)
+            })())
+        }
+    }
+
+    it('parallel mode: the state goes to the unit that the method kept before the await', async () => {
+        const r = new AsyncReporter()
+        r.setContextIdResolver(() => 'B')
+        r.emit('test:start', ev('test:start', 't1', 'testA', { contextId: 'A' }))
+        r.emit('test:start', ev('test:start', 't2', 'testB', { contextId: 'B' }))
+        r.emit('test:end', ev('test:end', 't1', 'testA', { contextId: 'A' }))
+        await Promise.all(r.pending)
+        expect(r.unitState(STATE, () => ['none'], 'A')).toEqual(['testA'])
+        expect(r.unitState(STATE, () => ['none'], 'B')).toEqual(['none'])
+        expect(r.attemptState(STATE, () => ['none'], r.getContextUnit('A'))).toEqual(['testA'])
+    })
+
+    it('sequential mode: the state goes to the unit of the event, not to the next unit', async () => {
+        const r = new AsyncReporter()
+        r.emit('test:start', ev('test:start', 't1', 'test1'))
+        r.emit('test:end', ev('test:end', 't1', 'test1'))
+        r.emit('test:start', ev('test:start', 't2', 'test2'))
+        await Promise.all(r.pending)
+        expect(r.unitState(STATE, () => ['none'], r.unitOf(r.tests.t1))).toEqual(['test1'])
+        expect(r.unitState(STATE, () => ['none'], r.unitOf(r.tests.t2))).toEqual(['none'])
+    })
+})
