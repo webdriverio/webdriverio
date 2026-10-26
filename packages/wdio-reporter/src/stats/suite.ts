@@ -73,9 +73,7 @@ export default class SuiteStats extends RunnableStats {
      */
     retry () {
         this.retries++
-        this.tests = []
-        this.hooks = []
-        this.hooksAndTests = []
+        this.clearAttempt()
     }
 
     /**
