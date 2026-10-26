@@ -356,3 +356,23 @@ export interface Payload {
 
 /** The kind of a hook, as `@wdio/reporter` reads it */
 export type HookKind = Frameworks.HookKind
+
+/** a user BeforeAll / AfterAll of the support code library (WDIO's own run hooks are left out) */
+export interface UserRunHook {
+    kind: 'BeforeAll' | 'AfterAll'
+    name?: string
+    uri?: string
+    line?: number
+}
+
+/** the `hook:start` payload of a run hook: a hook of the feature, with no context */
+export interface TestRunHookStart {
+    type: 'hook'
+    uid: string
+    title: string
+    parent: string
+    parentUid: string
+    hookKind: HookKind
+    hookSuiteUid: string
+    file: string
+}

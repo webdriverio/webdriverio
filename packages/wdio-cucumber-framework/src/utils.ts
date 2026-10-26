@@ -19,7 +19,7 @@ import type {
 } from '@cucumber/messages'
 import { getWorstTestStepResult } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
-import type { HookKind, ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
+import type { HookKind, ReporterStep, TestHookDefinitionConfig, Payload, TestRunHookStart, UserRunHook } from './types.js'
 import { AMBIGUOUS_STEP_MESSAGE, CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 const require_ = createRequire(import.meta.url)
@@ -422,6 +422,64 @@ export function testRunHookPayload(params: {
         error,
         duration: Math.round((result.duration?.seconds ?? 0) * 1000 + (result.duration?.nanos ?? 0) / 1e6),
     }
+}
+
+interface RunHookDefinition {
+    id: string
+    name?: string
+    uri?: string
+    line?: number
+    code: Function
+}
+
+/**
+ * the user BeforeAll / AfterAll hooks by hook id: the kind comes from the list, also when Cucumber sends
+ * no hook `type`; WDIO's own run hooks (`wdioHook*`, see `setUserHookNames`) are left out
+ */
+export function userRunHooks(library: { beforeTestRunHookDefinitions: RunHookDefinition[], afterTestRunHookDefinitions: RunHookDefinition[] }) {
+    const hooks: Record<string, UserRunHook> = {}
+    const add = (definitions: RunHookDefinition[], kind: UserRunHook['kind']) => {
+        for (const { id, name, uri, line, code } of definitions) {
+            if (!code.name.startsWith('wdioHook')) {
+                hooks[id] = { kind, name, uri, line }
+            }
+        }
+    }
+    add(library.beforeTestRunHookDefinitions, 'BeforeAll')
+    add(library.afterTestRunHookDefinitions, 'AfterAll')
+    return hooks
+}
+
+/**
+ * the `hook:start` of a BeforeAll or AfterAll: Cucumber runs it once for each run, outside of any scenario,
+ * so it is a hook of the feature suite; no contextId, so the base reporter gives it its commands (hookOwner)
+ */
+export function testRunHookStart({ uid, hook, featureUid, uri }: { uid: string, hook: UserRunHook, featureUid: string, uri: string }): TestRunHookStart {
+    const { kind, name, uri: hookUri, line } = hook
+    return {
+        type: 'hook',
+        uid,
+        title: `${kind}${name ? ` "${name}"` : ''}${hookUri ? ` (${path.relative(process.cwd(), hookUri)}${line ? `:${line}` : ''})` : ''}`,
+        parent: featureUid,
+        parentUid: featureUid,
+        hookKind: kind === 'AfterAll' ? 'afterAll' : 'beforeAll',
+        hookSuiteUid: featureUid,
+        file: uri,
+    }
+}
+
+/**
+ * the `hook:end` of a run hook: a passed one has no state (HookStats), SKIPPED is a dry run
+ */
+export function testRunHookEnd(start: TestRunHookStart, result: TestStepResult): TestRunHookStart & { duration: number, state?: 'failed' | 'skipped', error?: Error } {
+    const duration = Math.round((result.duration?.seconds ?? 0) * 1000 + (result.duration?.nanos ?? 0) / 1e6)
+    if (result.status === 'FAILED') {
+        const message = result.message ?? ''
+        const error = new Error(result.exception?.message ?? message.split('\n')[0])
+        error.stack = message
+        return { ...start, duration, state: 'failed', error }
+    }
+    return { ...start, duration, ...(result.status === 'SKIPPED' && { state: 'skipped' as const }) }
 }
 
 /**
