@@ -205,8 +205,18 @@ Use these methods to find the unit and to keep state for it:
 
 - `this.getContextUnit(contextId?)`: the unit of the caller. In an `on*` method, this is the unit of the event. Else it is the unit of the parallel context of the caller, or the sequential unit. With `contextId`, it is the last unit of that context. The units and their state stay for the life of the reporter, also after `runner:end`. It returns `undefined` for runner events, suite events (except a Cucumber scenario), a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, and for code outside every context after the first parallel context.
 - `this.unitOf(stats)`: the unit of a suite, hook or test stats.
-- `this.unitState(key, init, contextId?)`: state of your reporter for the unit. `init(unit)` runs at the first call, and the same value comes back after that. It returns `undefined` when there is no unit.
-- `this.attemptState(key, init, contextId?)`: as `unitState`, but new for each attempt of the unit.
+- `this.unitState(key, init, target?)`: state of your reporter for the unit. `init(unit)` runs at the first call, and the same value comes back after that. It returns `undefined` when there is no unit. `target` is a context id or a unit.
+- `this.attemptState(key, init, target?)`: as `unitState`, but new for each attempt of the unit.
+
+In an async `on*` method, the unit of the event is known only before the first `await`. Keep it (`const unit = this.unitOf(test)`) and pass it to `unitState()` / `attemptState()` after the `await`:
+
+```ts
+async onTestEnd(test: TestStats) {
+    const unit = this.unitOf(test)
+    await this.upload(test)
+    this.unitState('uploads', () => [] as string[], unit)?.push(test.title)
+}
+```
 
 This reporter keeps the lines of each test in `unitState` and prints them at `onUnitEnd`, also when tests run at the same time:
 
