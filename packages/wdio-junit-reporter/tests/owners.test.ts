@@ -35,8 +35,11 @@ describe('JUnit worker logs and commands by their owner', () => {
     let contextId: string | undefined
     const log = (text: string) => process.stdout.write(text)
 
+    let earlierListeners: Function[] = []
+
     beforeEach(() => {
         contextId = undefined
+        earlierListeners = process.listeners('junit:addProperty' as never)
         reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true, writeStream: { write: vi.fn() } } as never)
         reporter['_originalStdoutWrite'] = vi.fn()
         reporter.setContextIdResolver(() => contextId)
@@ -44,6 +47,12 @@ describe('JUnit worker logs and commands by their owner', () => {
 
     afterEach(() => {
         process.stdout.write = originalWrite
+        // these tests send no runner:end, so the reporter keeps its process listener
+        for (const listener of process.listeners('junit:addProperty' as never)) {
+            if (!earlierListeners.includes(listener)) {
+                process.off('junit:addProperty' as never, listener as never)
+            }
+        }
     })
 
     describe('a contextless all-hook writes to the testsuite of its suite', () => {
