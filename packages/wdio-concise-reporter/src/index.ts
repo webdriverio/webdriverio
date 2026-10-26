@@ -155,7 +155,8 @@ export default class ConciseReporter extends WDIOReporter {
 
         // mobile capabilities
         if (device) {
-            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
+            // the app first, as before; a remote app URL gives only its file name
+            const program = getBrowserName({ 'appium:app': caps['appium:app'] } as WebdriverIO.Capabilities) || caps.browserName
             const executing = program ? `executing ${program}` : ''
 
             return `${device} on ${platform} ${version} ${executing}`.trim()
