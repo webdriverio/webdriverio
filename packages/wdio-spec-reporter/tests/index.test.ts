@@ -1025,6 +1025,19 @@ describe('SpecReporter', () => {
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
+        it('names an Appium device of a multi-remote run, and a session that did not start', () => {
+            // Appium returns its capabilities without the `appium:` prefix
+            expect(tmpReporter.getEnviromentCombo({
+                myPhone: { platformName: 'iOS', deviceName: 'iPhone 17' },
+                myBrowser: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on iPhone 17 and chrome')
+            expect(tmpReporter.getEnviromentCombo({
+                myBrowser: { capabilities: { browserName: 'chrome' } },
+                myOther: { capabilities: { browserName: 'firefox' } }
+            } as any, false, true)).toBe('MultiRemoteBrowser on chrome and firefox')
+            expect(tmpReporter.getEnviromentCombo({ a: { platformName: 'linux' } } as any, true, true)).toBe('MultiRemoteBrowser')
+        })
+
         it('should return verbose desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
