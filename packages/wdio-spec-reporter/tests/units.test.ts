@@ -565,3 +565,131 @@ describe('spec reporter Cucumber hooks with no name', () => {
         expect(reporter.getFailureDisplay()).toContain('1) S After hook')
     })
 })
+
+// an after all hook runs after the child suites of its suite: it prints after them
+describe('spec reporter after all hook of a suite with child suites', () => {
+    const originalStdoutWrite = process.stdout.write
+    afterEach(() => {
+        process.stdout.write = originalStdoutWrite
+    })
+    const allHook = (uid: string, kind: 'beforeAll' | 'afterAll', title: string, extra: Record<string, unknown> = {}) =>
+        hook(uid, title, { hookKind: kind, ...extra })
+    const runHook = (reporter: SpecReporter, payload: Record<string, unknown>, log: string, end: Record<string, unknown> = {}) => {
+        reporter.emit('hook:start', payload)
+        process.stdout.write(log)
+        reporter.emit('hook:end', { ...payload, ...end })
+    }
+    const logs = (log: string) => ['', '      .........Console Logs.........', `         ${log}`, '          ']
+
+    it.each([
+        ['passed', {}, '✓'],
+        ['failed', { error: { message: 'boom' } }, '✖']
+    ])('prints a %s after() after the nested describe of its describe, and a root after() at the end (Mocha)', (_, end, symbol) => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        reporter.emit('suite:start', suite('outer', 'suite'))
+        runTest(reporter, 'o1')
+        reporter.emit('suite:start', suite('inner', 'suite'))
+        runTest(reporter, 'i1')
+        reporter.emit('suite:end', suite('inner', 'suite'))
+        runHook(reporter, allHook('h1', 'afterAll', '"after all" hook for outer', { hookSuiteUid: 'outer' }), 'LOG outer-after\n', end)
+        reporter.emit('suite:end', suite('outer', 'suite'))
+        runHook(reporter, allHook('h2', 'afterAll', '"after all" hook in "{root}"'), 'LOG root-after\n', end)
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'outer',
+            '   ✓ o1',
+            '',
+            '    inner',
+            '       ✓ i1',
+            '',
+            `   ${symbol} "after all" hook for outer`,
+            ...logs('LOG outer-after'),
+            '',
+            '(root)',
+            `   ${symbol} "after all" hook in "{root}"`,
+            ...logs('LOG root-after'),
+            ''
+        ])
+    })
+
+    it('prints the after() of each test context after the nested describe (Mocha parallel)', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('outer', 'suite', null))
+        reporter.emit('suite:start', suite('inner', 'suite', 'outer'))
+        const after = (uid: string, contextId: string) => allHook(uid, 'afterAll', '"after all" hook for outer', { parentUid: 'outer', hookSuiteUid: 'outer', contextId })
+        runTest(reporter, 'o1', 'test:pass', { parentUid: 'outer', contextId: 'c1' })
+        runHook(reporter, after('h1', 'c1'), '', { error: { message: 'boom' } })
+        runTest(reporter, 'i1', 'test:pass', { parentUid: 'inner', contextId: 'c2' })
+        runHook(reporter, after('h2', 'c2'), '', { error: { message: 'boom' } })
+        reporter.emit('suite:end', suite('inner', 'suite'))
+        reporter.emit('suite:end', suite('outer', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'outer',
+            '   ✓ o1',
+            '',
+            '    inner',
+            '       ✓ i1',
+            '',
+            '   ✖ "after all" hook for outer',
+            '   ✖ "after all" hook for outer',
+            ''
+        ])
+    })
+
+    it('prints a Cucumber BeforeAll before the scenarios of its feature and an AfterAll after them', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        const runHookOf = (uid: string, kind: 'beforeAll' | 'afterAll', title: string) =>
+            allHook(uid, kind, title, { parent: 'F', parentUid: 'F', hookSuiteUid: 'F' })
+        reporter.emit('suite:start', suite('F', 'feature', null))
+        runHook(reporter, runHookOf('ba', 'beforeAll', 'BeforeAll (steps.ts:3)'), 'LOG before-all\n')
+        for (const scenario of ['S1', 'S2']) {
+            reporter.emit('suite:start', { ...suite(scenario, 'scenario'), parent: 'F' })
+            runTest(reporter, `${scenario}-step`, 'test:pass', { parent: scenario })
+            reporter.emit('suite:end', suite(scenario, 'scenario'))
+        }
+        runHook(reporter, runHookOf('aa', 'afterAll', 'AfterAll (steps.ts:9)'), 'LOG after-all\n')
+        reporter.emit('suite:end', suite('F', 'feature'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'F',
+            '   ✓ BeforeAll (steps.ts:3)',
+            ...logs('LOG before-all'),
+            '',
+            'S1',
+            '   ✓ S1-step',
+            '',
+            'S2',
+            '   ✓ S2-step',
+            '',
+            '   ✓ AfterAll (steps.ts:9)',
+            ...logs('LOG after-all'),
+            ''
+        ])
+    })
+
+    it('keeps the order of a failed after all hook with no hookKind', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('outer', 'suite'))
+        runTest(reporter, 'o1')
+        reporter.emit('suite:start', suite('inner', 'suite'))
+        runTest(reporter, 'i1')
+        reporter.emit('suite:end', suite('inner', 'suite'))
+        runHook(reporter, hook('h1', '"after all" hook for outer'), '', { error: { message: 'boom' } })
+        reporter.emit('suite:end', suite('outer', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'outer',
+            '   ✓ o1',
+            '   ✖ "after all" hook for outer',
+            '',
+            '    inner',
+            '       ✓ i1',
+            ''
+        ])
+    })
+})
