@@ -81,6 +81,9 @@ updates:
   ignore:
     - dependency-name: "*"
       update-types: ["version-update:semver-major"]
+    # 0.24 needs Node >= 22 and breaks Safari component tests without the #15696 guard
+    - dependency-name: "recast"
+      versions: [">=0.24.0"]
   groups:
     patch-deps-updates-v9:
       update-types:
