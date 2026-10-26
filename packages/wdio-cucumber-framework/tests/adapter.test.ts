@@ -501,6 +501,13 @@ describe('CucumberAdapter', () => {
             expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
         })
 
+        it('does not send requireModule to Cucumber', async () => {
+            const userModule = () => {}
+            const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })
+            expect(adapter._providedConfiguration()).not.toHaveProperty('requireModule')
+            expect(adapter._cucumberOpts.requireModule).toEqual(['moduleProfile', 'moduleA', userModule])
+        })
+
         it('gives the order and the language of a profile to the parallel run', async () => {
             vi.mocked(runParallelCucumber).mockResolvedValue(0)
             ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }

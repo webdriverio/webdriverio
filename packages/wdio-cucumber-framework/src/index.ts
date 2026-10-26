@@ -215,12 +215,11 @@ export class CucumberAdapter {
      * what the user wrote and the values that WebdriverIO adds, not the WebdriverIO defaults
      */
     _providedConfiguration(): Partial<IConfiguration> {
-        const { tags, requireModule, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
+        // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
+        const { tags, requireModule: _requireModule, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
         const userTags = this._generatedTags ?? tags
         return {
             ...user,
-            // the WebdriverIO forms (a function, [module, options]) fail Cucumber's schema; WebdriverIO loads them
-            ...(requireModule ? { requireModule: (requireModule as unknown[]).filter((module): module is string => typeof module === 'string') } : {}),
             // an empty value would replace the tags of the profile
             ...(userTags ? { tags: userTags } : {}),
             ...(this._seededOrder ? { order: this._seededOrder } : {}),
@@ -239,8 +238,7 @@ export class CucumberAdapter {
         }
         // the modules of the profile, then the ones of cucumberOpts in all the WebdriverIO forms
         const userModules = (this._config.cucumberOpts?.requireModule ?? []) as unknown[]
-        const profileModules = configuration.requireModule.slice(0, configuration.requireModule.length - userModules.filter((module) => typeof module === 'string').length)
-        this._cucumberOpts.requireModule = [...profileModules, ...userModules] as string[]
+        this._cucumberOpts.requireModule = [...configuration.requireModule, ...userModules] as string[]
     }
 
     /**
