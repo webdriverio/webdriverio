@@ -426,11 +426,11 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         for (const suite of suites) {
-            printPending(suite)
             // Don't do anything if a suite has no tests or sub suites
             if (!this._isShown(suite)) {
                 continue
             }
+            printPending(suite)
 
             // Get the indent/starting point for this suite
             const suiteIndent = this.indent(suite.uid)
