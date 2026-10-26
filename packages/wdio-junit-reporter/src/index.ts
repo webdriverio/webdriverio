@@ -4,7 +4,7 @@ import url from 'node:url'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -286,7 +286,7 @@ class JunitReporter extends WDIOReporter {
                 .time(suite._duration / 1000)
                 .property('specId', 0)
                 .property(this._suiteTitleLabel, suite.title)
-                .property('capabilities', runner.sanitizedCapabilities)
+                .property('capabilities', capabilitiesName(runner))
                 .property(this._fileNameLabel, filePath)
             this._activeFeature = feature
             this._activeFeatureName = featureName
@@ -410,7 +410,7 @@ class JunitReporter extends WDIOReporter {
             .time(suite._duration / 1000)
             .property('specId', 0)
             .property(this._suiteTitleLabel, suite.title)
-            .property('capabilities', runner.sanitizedCapabilities)
+            .property('capabilities', capabilitiesName(runner))
             .property(this._fileNameLabel, filePath)
         this._suiteNodes.push({ node: testSuite, suite })
 
@@ -446,10 +446,10 @@ class JunitReporter extends WDIOReporter {
                 .filter(Boolean)
                 .map((capability) => capability!.toLowerCase())
                 .join('.')
-                .replace(/ /g, '') || runner.sanitizedCapabilities
+                .replace(/ /g, '') || capabilitiesName(runner)
             this._packageName = this.options.packageName || browserstackSanitizedCapabilities
         } else {
-            this._packageName = this.options.packageName || runner.sanitizedCapabilities
+            this._packageName = this.options.packageName || capabilitiesName(runner)
         }
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
             || Object.values(this.suites).some((suite) => suite.type === 'feature' || suite.type === 'scenario')
@@ -766,4 +766,18 @@ class JunitReporter extends WDIOReporter {
 }
 
 export * from './common/api.js'
+/**
+ * the sanitized capabilities of a runner; a multi-remote run lists each instance and its browser
+ */
+function capabilitiesName (runner: RunnerStats): string {
+    if (!runner.isMultiRemote || !runner.capabilities || typeof runner.capabilities !== 'object') {
+        return runner.sanitizedCapabilities
+    }
+    return Object.entries(runner.capabilities as Record<string, any>).map(([instanceName, instance]) => {
+        // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
+        const caps = sanitizeCaps(instance?.capabilities ?? instance).replace(/\./g, '_')
+        return caps ? `${instanceName}-${caps}` : instanceName
+    }).join('+')
+}
+
 export default JunitReporter

@@ -224,12 +224,12 @@ describe('wdio-junit-reporter', () => {
             reporter.suites = suitesLog as any
             const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
             expect(output).toContain('classname="custom.')
-            expect(output).toContain('<property name="capabilities" value="custom"/>')
+            expect(output).toContain('<property name="capabilities" value="mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac"/>')
         })
 
         it('keeps the Cucumber prefix', () => {
             reporter.suites = featuresLog as any
-            const output = reporter['_buildJunitXml'](multiRemoteRunner({ config: { ...mochaRunnerLog.config, framework: 'cucumber' } }) as any)
+            const output = reporter['_buildJunitXml']({ ...cucumberRunnerMultiRemoteLog, capabilities: { mrA: chrome, mrB: chrome }, sanitizedCapabilities: '' } as any)
             expect(output).toContain('classname="CucumberJUnitReport-mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac.')
         })
 

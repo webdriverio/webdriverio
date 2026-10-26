@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent, hookCountsAsFailure, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
+import { getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -858,5 +858,5 @@ function getBrowserNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
 }

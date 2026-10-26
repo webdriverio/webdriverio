@@ -48,7 +48,7 @@ export function sanitizeString (str?: string) {
 }
 
 /**
- * formats capability object into sanitized string for e.g.filenames
+ * @experimental formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
  */
 export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
