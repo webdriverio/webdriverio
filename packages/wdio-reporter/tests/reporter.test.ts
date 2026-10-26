@@ -198,6 +198,7 @@ describe('getSessionNames', () => {
         it('keeps only the file name of an app URL, without credentials, query and hash', () => {
             expect(getSessionNames({ ...pixel, 'appium:app': url })).toEqual(['app.apk on Pixel 9 (Android 15)'])
             expect(getSessionNames({ ...pixel, app: 'ftp://host/dir/my%20app.apk' })).toEqual(['my app.apk on Pixel 9 (Android 15)'])
+            expect(getSessionNames({ ...pixel, 'appium:app': 'https://user:secret@apps.example.com/?token=abc123' })).toEqual(['apps.example.com on Pixel 9 (Android 15)'])
         })
 
         it('keeps only the file name in w3c, multi-remote and failed-start capabilities', () => {

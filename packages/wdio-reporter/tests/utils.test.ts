@@ -54,6 +54,7 @@ describe('utils', () => {
         expect(sanitizeCaps({ ...phone, 'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123#part' }))
             .toBe('android.pixel9.15.app_apk')
         expect(sanitizeCaps({ browserName: 'chrome', 'appium:app': 'https://host/app.apk?token=abc123' })).toBe('chrome.app_apk')
+        expect(sanitizeCaps({ browserName: 'chrome', 'appium:app': 'https://user:secret@apps.example.com/?token=abc123' })).toBe('chrome.apps_example_com')
         expect(sanitizeCaps({ ...phone, 'appium:app': 'sauce-storage:my-app.zip' })).toBe('android.pixel9.15.sauce-storage:my-app_zip')
         expect(sanitizeCaps({ ...phone, 'appium:app': 'bs://abcdef' })).toBe('android.pixel9.15.abcdef')
     })
