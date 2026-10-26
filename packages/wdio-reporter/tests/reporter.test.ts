@@ -169,6 +169,10 @@ describe('getSessionNames', () => {
         expect(getSessionNames(phone)).toEqual(['iPhone 17 (iOS 18.2)'])
     })
 
+    it('names a device with a version and no platform name', () => {
+        expect(getSessionNames({ 'appium:deviceName': 'iPhone 17', 'appium:platformVersion': '18.2' })).toEqual(['iPhone 17 (18.2)'])
+    })
+
     it('reads w3c capabilities', () => {
         expect(getSessionNames({ alwaysMatch: { ...phone, browserName: 'safari' }, firstMatch: [] })).toEqual(['safari on iPhone 17 (iOS 18.2)'])
     })
