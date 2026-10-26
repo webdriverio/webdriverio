@@ -835,6 +835,17 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
     return caps.browserName || caps.browser || appName
 }
 
+/** The capabilities of each session of a runner, in the order of the multi-remote instances */
+function sessionCapabilities(capabilities: unknown, isMultiRemote: boolean): Record<string, unknown>[] {
+    const sessions = isMultiRemote && capabilities && typeof capabilities === 'object'
+        // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
+        ? Object.values(capabilities).map((instance) => instance?.capabilities ?? instance)
+        : [capabilities]
+    return sessions.flatMap((session) => (
+        session && typeof session === 'object' ? [(session.alwaysMatch ?? session) as Record<string, unknown>] : []
+    ))
+}
+
 /**
  * @experimental the name of the browser of each session of a runner, in the order of the multi-remote
  * instances: `getBrowserName`, else the Appium device name. A session with neither has no entry
@@ -842,21 +853,35 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
  * @param isMultiRemote `runner.isMultiRemote`
  */
 function getBrowserNames(capabilities: unknown, isMultiRemote = false): string[] {
-    const sessions = isMultiRemote && capabilities && typeof capabilities === 'object'
-        // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
-        ? Object.values(capabilities).map((instance) => instance?.capabilities ?? instance)
-        : [capabilities]
-    return sessions.flatMap((session) => {
-        if (!session || typeof session !== 'object') {
-            return []
-        }
-        const caps = (session.alwaysMatch ?? session) as Record<string, unknown>
+    return sessionCapabilities(capabilities, isMultiRemote).flatMap((caps) => {
         const name = getBrowserName(caps as WebdriverIO.Capabilities) || caps['appium:deviceName'] || caps.deviceName
         return typeof name === 'string' && name ? [name] : []
     })
 }
 
+/**
+ * @experimental the label of each session of a runner, in the order of the multi-remote instances:
+ * the `getBrowserName` result (the browser or the app), then ` on <device> (<platform> <version>)`
+ * when the session has a device. A session with a device only has `<device> (<platform> <version>)`.
+ * A session with neither a name nor a device has no entry
+ * @param capabilities the `capabilities` of a runner: of one session, or a map of the multi-remote instances
+ * @param isMultiRemote `runner.isMultiRemote`
+ */
+function getSessionNames(capabilities: unknown, isMultiRemote = false): string[] {
+    return sessionCapabilities(capabilities, isMultiRemote).flatMap((caps) => {
+        const text = (value: unknown) => typeof value === 'string' || typeof value === 'number' ? String(value) : ''
+        const name = text(getBrowserName(caps as WebdriverIO.Capabilities))
+        const device = text(caps['appium:deviceName'] || caps.deviceName)
+        if (!device) {
+            return name ? [name] : []
+        }
+        const platform = [text(caps.platformName), text(caps['appium:platformVersion'] || caps.platformVersion)].filter(Boolean).join(' ')
+        const label = `${device}${platform ? ` (${platform})` : ''}`
+        return [name ? `${name} on ${label}` : label]
+    })
+}
+
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
 }
