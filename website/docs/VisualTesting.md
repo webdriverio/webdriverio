@@ -41,7 +41,7 @@ Please use the property `isHybridApp:true` in your service settings when you wan
 
 :::caution Upgrading from v10?
 
-`@wdio/visual-service` **v11** supports only **WebdriverIO v10** (and Node.js 22.19 or later). With WebdriverIO v9, stay on `@wdio/visual-service@10`.
+`@wdio/visual-service` **v11** supports only **WebdriverIO v10** (and Node.js 22.23.4+, 24.22.1+ or 26.12.1+). With WebdriverIO v9, stay on `@wdio/visual-service@10`.
 
 v11 compares colors with pixelmatch 8 (OKLab color space, HyAB distance) instead of YIQ. The threshold scale and the `ignore*` presets did not change, but **mismatch percentages can differ a little** from v10 for the same images. Your test code does not need to change. If a check depends on an exact mismatch percentage or a tight tolerance, check it again after the upgrade.
 
@@ -363,7 +363,7 @@ export const config = {
 
 For version 10 and up, this module has no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Pixelmatch](https://github.com/mapbox/pixelmatch) for perceptual image comparison and [fast-png](https://github.com/image-js/fast-png) for image encoding/decoding. Both are pure JavaScript with zero native dependencies.
 
-Version 11 needs WebdriverIO v10 and Node.js 22.19 or later. Version 10 works with WebdriverIO v9 (9.29.1 or later) and v10.
+Version 11 needs WebdriverIO v10 and Node.js 22.23.4+, 24.22.1+ or 26.12.1+. Version 10 works with WebdriverIO v9 (9.29.1 or later) and v10.
 
 ### Version 5 to 9 (legacy)
 
