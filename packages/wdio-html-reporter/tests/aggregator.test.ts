@@ -379,6 +379,34 @@ describe('ReportAggregator', () => {
             expect(header(configured.reportFile)).toBe('my browser')
         })
 
+        it('the master report shows the name that the worker found, also for an app session', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            const workerFile = await runWorker(outputDir, { cid: '0-0', capabilities: { platformName: 'iOS', deviceName: 'iPhone 17', app: '/Users/me/MyApp.app' } })
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            expect(header(workerFile)).toBe('MyApp.app')
+            expect(header(reportAggregator.reportFile)).toBe('MyApp.app')
+        })
+
+        it('the master report falls back to the capabilities for a worker file with no browser names', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
+            const file = path.join(outputDir, 'report-0-0.json')
+            const json = JSON.parse(fs.readFileSync(file, 'utf-8'))
+            delete json.info.browserNames
+            fs.writeFileSync(file, JSON.stringify(json))
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            expect(header(reportAggregator.reportFile)).toBe('chrome')
+        })
+
+        it('the master report from the command line shows not specified when no worker file names a browser', async () => {
+            const { makeReport } = await import('../src/makeReportCli.js')
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { platformName: 'linux' } })
+            expect(header(await makeReport(['from-cli.html', outputDir, 'Title'], { CI: 'true' }))).toBe('not specified')
+        })
+
         it('the master report from the command line shows TEST_BROWSER, else the browsers of the worker reports', async () => {
             const { makeReport } = await import('../src/makeReportCli.js')
             const outputDir = path.join(tempDir(), 'out')
