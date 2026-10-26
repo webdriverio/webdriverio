@@ -228,6 +228,18 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
+    it('gives the formatter the user run hooks', async () => {
+        const { supportCodeLibraryBuilder } = await import('@cucumber/cucumber')
+        vi.mocked(supportCodeLibraryBuilder.finalize).mockReturnValueOnce({
+            beforeTestRunHookDefinitions: [{ id: 'b1', code: function userHookAsyncFn () {} }, { id: 'w1', code: function wdioHookBeforeFeature () {} }],
+            afterTestRunHookDefinitions: [{ id: 'w2', code: function wdioHookAfterFeature () {} }],
+        } as any)
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false, 'progress')
+        ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
+        await adapter.run()
+        expect((adapter as any)._cucumberOpts.formatOptions._userRunHooks).toEqual({ b1: { kind: 'BeforeAll' } })
+    })
+
     it('gives the rootDir of the config to the parallel run', async () => {
         vi.mocked(runParallelCucumber).mockResolvedValue(0)
         ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }

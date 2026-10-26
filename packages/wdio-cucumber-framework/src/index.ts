@@ -28,7 +28,7 @@ import type { IConfiguration, IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
 import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
+import { generateSkipTagsFromCapabilities, setUserHookNames, userRunHooks } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
@@ -325,6 +325,10 @@ export class CucumberAdapter {
             setDefaultTimeout(this._cucumberOpts.timeout)
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
+            // the formatter sends the user BeforeAll / AfterAll as hooks, not the WDIO ones
+            if (supportCodeLibrary) {
+                (this._cucumberOpts.formatOptions as Record<string, unknown>)._userRunHooks = userRunHooks(supportCodeLibrary)
+            }
 
             const { parallelMode } = this._cucumberOpts
             result = parallelMode === 'contexts' || parallelMode === 'userContexts'

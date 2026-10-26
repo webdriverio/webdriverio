@@ -5,8 +5,8 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 
-import type { HookKind, Payload } from './types.js'
-import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, testRunHookPayload, withAmbiguousMessage } from './utils.js'
+import type { HookKind, Payload, TestRunHookStart, UserRunHook } from './types.js'
+import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, testRunHookEnd, testRunHookStart, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -26,7 +26,8 @@ import type {
     TestStepResult,
     Hook,
     StepDefinition,
-    TestRunHookFinished
+    TestRunHookFinished,
+    TestRunHookStarted
 } from '@cucumber/messages'
 
 import {
@@ -46,7 +47,8 @@ export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
     private _hookEvent: Hook[] = []
     // the hook of each started BeforeAll / AfterAll
-    private _testRunHooks = new Map<string, string>()
+    /** the open BeforeAll / AfterAll by `testRunHookStarted.id` */
+    private _openRunHooks = new Map<string, TestRunHookStart>()
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
     private _stepDefinitions = new Map<string, StepDefinition>()
@@ -72,6 +74,7 @@ export default class CucumberFormatter extends Formatter {
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
     private strict: boolean
+    private userRunHooks: Record<string, UserRunHook>
     private retry: number
     private retryTagFilter: string
     private rootDir?: string
@@ -131,7 +134,7 @@ export default class CucumberFormatter extends Formatter {
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
             } else if (envelope.testRunHookStarted) {
-                this._testRunHooks.set(envelope.testRunHookStarted.id, envelope.testRunHookStarted.hookId)
+                this.onTestRunHookStarted(envelope.testRunHookStarted)
             } else if (envelope.testRunHookFinished) {
                 this.onTestRunHookFinished(envelope.testRunHookFinished)
             } else if (envelope.stepDefinition) {
@@ -153,6 +156,7 @@ export default class CucumberFormatter extends Formatter {
         this.retry = options.parsedArgvOptions._retry ?? 0
         this.retryTagFilter = options.parsedArgvOptions._retryTagFilter ?? ''
         this.rootDir = options.parsedArgvOptions._rootDir
+        this.userRunHooks = options.parsedArgvOptions._userRunHooks ?? {}
     }
 
     updateCurrentPickle(params: HookParams) {
@@ -652,32 +656,40 @@ export default class CucumberFormatter extends Formatter {
     }
 
     /**
-     * a failed BeforeAll / AfterAll runs outside of any scenario: report it once, as a hook of the feature
+     * a user BeforeAll / AfterAll runs outside of any scenario: a hook of the feature, sent when it starts,
+     * so that the reporters give it the commands and logs of its body
      */
-    onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
-        if (result.status !== Status.FAILED) {
+    onTestRunHookStarted({ id, hookId }: TestRunHookStarted) {
+        const hook = this.userRunHooks[hookId]
+        if (!hook) {
             return
         }
-        // the exit code of a run with `ignoreUndefinedDefinitions` (index.ts)
-        this.failedCount++
-        const hook = this._hookEvent.find(({ id }) => id === this._testRunHooks.get(testRunHookStartedId))
-        // grouped specs start a feature at its first scenario: a failed BeforeAll comes before any
+        // grouped specs start a feature at its first scenario: a BeforeAll comes before any
         if (this.usesSpecGrouping() && !this._currentDoc.uri) {
             this.startFeaturePart(this._gherkinDocEvents[0])
         }
         const doc = this.usesSpecGrouping() ? this._currentDoc : this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
-        const payload = testRunHookPayload({
-            uid: testRunHookStartedId,
-            kind: hook?.type === 'AFTER_TEST_RUN' ? 'AfterAll' : 'BeforeAll',
-            name: hook?.name,
-            location: hook?.sourceReference.uri ? { uri: hook.sourceReference.uri, line: hook.sourceReference.location?.line } : undefined,
+        const start = testRunHookStart({
+            uid: id,
+            hook,
             featureUid: this.featurePartUid(doc.uri as string, doc.feature as Feature),
             uri: doc.uri as string,
-            result,
         })
-        const { error: _error, state: _state, ...start } = payload
+        this._openRunHooks.set(id, start)
         this.emit('hook:start', start)
-        this.emit('hook:end', payload)
+    }
+
+    onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
+        const start = this._openRunHooks.get(testRunHookStartedId)
+        if (!start) {
+            return
+        }
+        this._openRunHooks.delete(testRunHookStartedId)
+        if (result.status === Status.FAILED) {
+            // the exit code of a run with `ignoreUndefinedDefinitions` (index.ts)
+            this.failedCount++
+        }
+        this.emit('hook:end', testRunHookEnd(start, result))
     }
 
     onTestRunFinished() {
