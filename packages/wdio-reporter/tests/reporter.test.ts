@@ -190,4 +190,34 @@ describe('getSessionNames', () => {
         expect(getSessionNames(undefined)).toEqual([])
         expect(getSessionNames({ platformName: 'linux' })).toEqual([])
     })
+
+    describe('a remote app', () => {
+        const url = 'https://user:secret@storage.example.com/builds/app.apk?token=abc123#part'
+        const pixel = { platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15' }
+
+        it('keeps only the file name of an app URL, without credentials, query and hash', () => {
+            expect(getSessionNames({ ...pixel, 'appium:app': url })).toEqual(['app.apk on Pixel 9 (Android 15)'])
+            expect(getSessionNames({ ...pixel, app: 'ftp://host/dir/my%20app.apk' })).toEqual(['my app.apk on Pixel 9 (Android 15)'])
+        })
+
+        it('keeps only the file name in w3c, multi-remote and failed-start capabilities', () => {
+            expect(getSessionNames({ alwaysMatch: { ...pixel, 'appium:app': url }, firstMatch: [] })).toEqual(['app.apk on Pixel 9 (Android 15)'])
+            expect(getSessionNames({ phone: { capabilities: { ...pixel, 'appium:app': url } } }, true)).toEqual(['app.apk on Pixel 9 (Android 15)'])
+        })
+
+        it('keeps a file name that is not valid URL encoding', () => {
+            expect(getSessionNames({ ...pixel, 'appium:app': 'https://u:p@host/a/100%.apk?token=1' })).toEqual(['100%.apk on Pixel 9 (Android 15)'])
+        })
+
+        it('keeps the other forms of an app', () => {
+            expect(getSessionNames({ ...pixel, 'appium:app': 'sauce-storage:my-app.zip' })).toEqual(['my-app.zip on Pixel 9 (Android 15)'])
+            expect(getSessionNames({ ...pixel, 'appium:app': '/Users/me/app.apk' })).toEqual(['app.apk on Pixel 9 (Android 15)'])
+            expect(getSessionNames({ ...pixel, 'appium:app': 'bs://abcdef' })).toEqual(['bs://abcdef on Pixel 9 (Android 15)'])
+        })
+
+        it('does not change the result of getBrowserName and getBrowserNames', () => {
+            expect(getBrowserName({ 'appium:app': url })).toBe(url)
+            expect(getBrowserNames({ 'appium:app': url })).toEqual([url])
+        })
+    })
 })

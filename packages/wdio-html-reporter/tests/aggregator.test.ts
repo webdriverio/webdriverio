@@ -393,6 +393,25 @@ describe('ReportAggregator', () => {
             expect(json.info.browserNames).toEqual(['MyApp.app on iPhone 17 (iOS 18.2)'])
         })
 
+        it('the worker and the master header name a remote app by its file name, without the credentials and the token', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            const workerFile = await runWorker(outputDir, {
+                cid: '0-0',
+                capabilities: {
+                    platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15',
+                    'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123'
+                }
+            })
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            for (const file of [workerFile, reportAggregator.reportFile]) {
+                expect(header(file)).toBe('app.apk on Pixel 9 (Android 15)')
+                expect(fs.readFileSync(file, 'utf-8')).not.toMatch(/secret|token/)
+            }
+            const json = fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')
+            expect(JSON.parse(json).info.browserNames).toEqual(['app.apk on Pixel 9 (Android 15)'])
+        })
+
         it('the master report falls back to the capabilities for a worker file with no browser names', async () => {
             const outputDir = path.join(tempDir(), 'out')
             await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
