@@ -129,6 +129,25 @@ describe('fixture scope from the hook kind (K31)', () => {
         expect(containers.flatMap((c) => c.afters)).toEqual([])
     })
 
+    it('stops the list of test uuids when the root scope exists, and the root still has every test', async () => {
+        const run = createRun()
+        run.start()
+        run.suite('A', () => run.test('t1'))
+        run.hook('beforeAll')
+        run.suite('B', () => {
+            run.test('t2')
+            run.test('t3')
+        })
+        run.hook('afterAll')
+        await vi.waitFor(() => expect(run.reporter.isSynchronised).toBe(true))
+        expect(run.reporter.allureStatesByCid.get(CID)!['_testUuids']).toEqual([])
+        const { results, containers } = await run.end()
+
+        for (const name of ['t1', 't2', 't3']) {
+            expect(fixturesOf(containers, byName(results, name)), name).toEqual([`after ${ROOT_AFTER}`, `before ${ROOT_BEFORE}`])
+        }
+    })
+
     // main 1e0534c46 gives the same fixtures: its gate `!hook.parent && !_isGlobalHook(hook)` never returns
     it.each([['jasmine', null], ['mocha', '']])('keeps the fixtures of main for a %s hook with no parent and no hook kind in an open suite', async (framework, parent) => {
         const run = createRun(framework)
