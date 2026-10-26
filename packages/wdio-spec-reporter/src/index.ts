@@ -417,10 +417,18 @@ export default class SpecReporter extends WDIOReporter {
         const preface = this._showPreface ? prefaceString : ''
         const suites = this.getOrderedSuites()
         const specFileReferences: string[] = []
+        // the afterAll lines of a suite with child suites, printed after the last of them
+        const pending: { childUids: Set<string>, lines: string[] }[] = []
+        const printPending = (next?: SuiteStats) => {
+            while (pending.length && !(next && pending.at(-1)!.childUids.has(next.uid))) {
+                output.push(...pending.pop()!.lines)
+            }
+        }
 
         for (const suite of suites) {
+            printPending(suite)
             // Don't do anything if a suite has no tests or sub suites
-            if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
+            if (!this._isShown(suite)) {
                 continue
             }
 
@@ -455,61 +463,91 @@ export default class SpecReporter extends WDIOReporter {
             }
 
             const eventsToReport = this.getEventsToReport(suite)
-            for (const test of eventsToReport) {
-                const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
-                    ? this._chalk.yellow(`(${test.retries}x retries)`)
-                    : ''
-                const testTitle = `${test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title} ${testRetryAnnotation}`
-                // a hook shown for its console logs has no state when it passed
-                const state = (test.state ?? (test.type === 'hook' && !test.error ? State.PASSED : undefined)) as State
-                const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
-
-                // Output for a single test
-                output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state)} ${testTitle.trim()}`)
-
-                // print cucumber data table cells and docstring
-                const arg = (test as TestStats).argument
-                if (typeof(arg) === 'string'){
-                    // Doc string is the same with the indent on the output for a single test
-                    const docstringIndent = '  '
-                    const docstringMark = `${testIndent}${docstringIndent}"""`
-                    const docstring = String(arg)
-                    const formattedDocstringLines = docstring.split('\n').filter(line => line)
-                        .map((line: string) => `${testIndent}${docstringIndent}${line}`)
-                    output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
-                } else {
-                    const dataTable = arg as Argument
-                    if (dataTable && dataTable.rows && dataTable.rows.length) {
-                        const data = buildTableData(dataTable.rows)
-                        const rawTable = printTable(data)
-                        const table = getFormattedRows(rawTable, testIndent)
-                        output.push(...table)
-                    }
-                }
-
-                // print the pending reason of this test
-                const pendingItem = (test as TestStats).pendingReason
-                if (pendingItem) {
-                    output.push('')
-                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
-                    output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
-                }
-
-                // print console output
-                const logItem = test.type === 'hook' ? this._hookLogs.get(test as HookStats) : this._consoleLogs.get(test.uid)
-                if (logItem) {
-                    output.push('')
-                    output.push(testIndent.repeat(2) + '.........Console Logs.........')
-                    output.push(testIndent.repeat(3) + logItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
-                }
-            }
+            const childUids = this._shownChildUids(suite)
+            const afterChildren = childUids.size
+                ? eventsToReport.filter((test) => test.type === 'hook' && (test as HookStats).hookKind === 'afterAll')
+                : []
+            const beforeChildren = eventsToReport.filter((test) => !afterChildren.includes(test))
+            output.push(...beforeChildren.flatMap((test) => this._eventLines(test, suite, suiteIndent, preface)))
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (eventsToReport.length) {
+            if (beforeChildren.length) {
                 output.push('')
+            }
+            if (afterChildren.length) {
+                pending.push({ childUids, lines: [...afterChildren.flatMap((test) => this._eventLines(test, suite, suiteIndent, preface)), ''] })
+            }
+        }
+        printPending()
+
+        return output
+    }
+
+    // a suite with no tests, hooks or sub suites is not printed
+    private _isShown (suite: SuiteStats) {
+        return suite.tests.length > 0 || suite.suites.length > 0 || suite.hooks.length > 0
+    }
+
+    // the uids of the printed suites below this suite
+    private _shownChildUids (suite: SuiteStats, uids = new Set<string>()) {
+        for (const child of suite.suites ?? []) {
+            if (this._isShown(child)) {
+                uids.add(child.uid)
+            }
+            this._shownChildUids(child, uids)
+        }
+        return uids
+    }
+
+    // the lines of one test or hook of a suite
+    private _eventLines (test: HookStats | TestStats, suite: SuiteStats, suiteIndent: string, preface?: string) {
+        const output: string[] = []
+        const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
+            ? this._chalk.yellow(`(${test.retries}x retries)`)
+            : ''
+        const testTitle = `${test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title} ${testRetryAnnotation}`
+        // a hook shown for its console logs has no state when it passed
+        const state = (test.state ?? (test.type === 'hook' && !test.error ? State.PASSED : undefined)) as State
+        const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
+
+        // Output for a single test
+        output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state)} ${testTitle.trim()}`)
+
+        // print cucumber data table cells and docstring
+        const arg = (test as TestStats).argument
+        if (typeof(arg) === 'string'){
+            // Doc string is the same with the indent on the output for a single test
+            const docstringIndent = '  '
+            const docstringMark = `${testIndent}${docstringIndent}"""`
+            const docstring = String(arg)
+            const formattedDocstringLines = docstring.split('\n').filter(line => line)
+                .map((line: string) => `${testIndent}${docstringIndent}${line}`)
+            output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
+        } else {
+            const dataTable = arg as Argument
+            if (dataTable && dataTable.rows && dataTable.rows.length) {
+                const data = buildTableData(dataTable.rows)
+                const rawTable = printTable(data)
+                const table = getFormattedRows(rawTable, testIndent)
+                output.push(...table)
             }
         }
 
+        // print the pending reason of this test
+        const pendingItem = (test as TestStats).pendingReason
+        if (pendingItem) {
+            output.push('')
+            output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
+            output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
+        }
+
+        // print console output
+        const logItem = test.type === 'hook' ? this._hookLogs.get(test as HookStats) : this._consoleLogs.get(test.uid)
+        if (logItem) {
+            output.push('')
+            output.push(testIndent.repeat(2) + '.........Console Logs.........')
+            output.push(testIndent.repeat(3) + logItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
+        }
         return output
     }
 
