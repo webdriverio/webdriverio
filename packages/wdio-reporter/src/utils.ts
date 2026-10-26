@@ -47,6 +47,22 @@ export function sanitizeString (str?: string) {
         .toLowerCase()
 }
 
+// an app URL can hold credentials or a token: only its origin-free path stays
+function withoutUrlSecrets (app?: string) {
+    if (typeof app !== 'string') {
+        return app
+    }
+    try {
+        const url = new URL(app)
+        if (['http:', 'https:', 'ftp:'].includes(url.protocol)) {
+            return url.pathname
+        }
+    } catch {
+        // not a URL
+    }
+    return app
+}
+
 /**
  * @experimental formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
@@ -68,7 +84,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             // @ts-expect-error legacy capability names
             sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(withoutUrlSecrets(caps['appium:app']))
         ]
         : [
             sanitizeString(caps.browserName),
@@ -76,7 +92,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             sanitizeString(caps.version || caps.browserVersion),
             // @ts-expect-error legacy capability names
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(withoutUrlSecrets(caps['appium:app']))
         ]
 
     result = result.filter(n => n !== undefined && n !== '')
