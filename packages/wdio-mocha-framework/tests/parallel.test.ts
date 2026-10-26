@@ -1998,6 +1998,20 @@ describe('runParallelTests — hookKind and hookSuiteUid', () => {
         expect(test).toBe('c1')
     })
 
+    test('a before all of a suite with only child suites has no currentTest', async () => {
+        const root = new Mocha().suite
+        const b = Mocha.Suite.create(root, 'B')
+        b.beforeAll('setup', () => {})
+        const child = Mocha.Suite.create(b, 'child')
+        child.addTest(new Mocha.Test('c1', () => {}))
+        const reporter = new EventEmitter()
+        const hooks: [string, string | undefined][] = []
+        reporter.on('hook:start', (p) => hooks.push([p.title, p.currentTest]))
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'], 1)
+
+        expect(hooks).toEqual([['"before all" hook for B', undefined]])
+    })
+
     test('a title that disagrees with the hook list is logged, and the hook list gives the kind', async () => {
         const root = tree()
         const hook = (root.suites[0] as unknown as { _beforeAll: { title: string }[] })._beforeAll[0]
