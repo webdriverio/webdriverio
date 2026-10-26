@@ -64,7 +64,9 @@ test('transform', () => {
         var expect_default = require_build11();
         process.stdout.isTTY
     `
-    expect((plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')).toMatchSnapshot()
+    const transformedExpect = (plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')
+    expect(transformedExpect).toMatchSnapshot()
+    expect((plugin[0].transform as Function)(expectJS, '.vite/deps/@wdio_browser-runner___expect.js')).toEqual(transformedExpect)
 })
 
 const req = { headers: { cookie: '' } }
