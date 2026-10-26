@@ -3,6 +3,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { RELAYED_REPORTER_EVENTS } from '../src/types.js'
+
 const hooks = vi.hoisted(() => ({ aroundEach: undefined as unknown as (runTest: () => Promise<void>, context: unknown) => Promise<void> }))
 const store = vi.hoisted(() => ({ run: vi.fn(async (_id: string, fn: () => Promise<void>) => fn()) }))
 const browser = vi.hoisted(() => ({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' }, isBidi: true, __bidiCommandsEnabled: true, __parallelContextStore: undefined as unknown, deleteSession: vi.fn() }))
@@ -66,7 +68,7 @@ vi.mock('webdriverio', () => ({
 const task = (concurrent: boolean, result?: object) => ({ task: { name: 't', fullName: 'f > t', concurrent, suite: undefined, result, meta: {} as Record<string, unknown> } })
 const testTask = (state: string) => ({ type: 'test', result: { state } })
 const file = (tasks: object[] = [], errors?: Error[]) => ({ tasks, result: { state: errors ? 'fail' : 'pass', errors } })
-const RELAYED_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty']
+const RELAYED_EVENTS = RELAYED_REPORTER_EVENTS
 const afterTestResult = () => utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterTest')![2][2]
 
 describe('setup', () => {
@@ -185,7 +187,7 @@ describe('setup', () => {
             await import('../src/setup.js')
             await callbacks.beforeAll({}, { file: fileTask })
 
-            expect(before).toEqual([1, 1, 1, 1])
+            expect(before).toEqual(RELAYED_EVENTS.map(() => 1))
             expect(counts()).toEqual(before)
             const meta = await runInTest(() => { process.emit('junit:addProperty' as never, { name: 'k', value: 'v' } as never) })
             expect(meta).toHaveLength(1)
@@ -201,6 +203,28 @@ describe('setup', () => {
                 { event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 },
                 { event: 'allure:runtimeMessage', payload: message, retry: 0 }
             ])
+        })
+
+        it('relays the html reporter log, screenshot and video events under their own name', async () => {
+            const meta = await runInTest(() => {
+                process.emit('test:log' as never, 'a log line' as never)
+                process.emit('test:screenshot' as never, '/tmp/shot.png' as never)
+                process.emit('test:video-capture' as never, '/tmp/video.webm' as never)
+            })
+            expect(meta).toEqual([
+                { event: 'test:log', payload: { value: 'a log line' }, retry: 0 },
+                { event: 'test:screenshot', payload: { value: '/tmp/shot.png' }, retry: 0 },
+                { event: 'test:video-capture', payload: { value: '/tmp/video.webm' }, retry: 0 }
+            ])
+        })
+
+        it('keeps a test:log value that structured clone rejects as readable text', async () => {
+            const meta = await runInTest(() => {
+                process.emit('test:log' as never, { name: 'x', fn: () => {} } as never)
+            }) as { payload: { value: unknown } }[]
+            expect(typeof meta[0].payload.value).toBe('string')
+            expect(meta[0].payload.value).toContain('name')
+            expect(() => structuredClone(meta)).not.toThrow()
         })
 
         it('converts allure:startStep and a status string allure:endStep into timestamped runtime messages', async () => {

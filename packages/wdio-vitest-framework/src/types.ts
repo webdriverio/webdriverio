@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" preserve="true" />
 import type { InlineConfig } from 'vitest/node'
 import type { ParallelMode } from '@wdio/utils'
 
@@ -7,7 +8,7 @@ export const SESSION_META_KEY = 'wdio'
 /** Key on the Vitest test task meta, which carries reporter runtime API calls from the worker to the reporter in the launcher process. */
 export const RUNTIME_META_KEY = 'wdio:runtime'
 
-export const RELAYED_REPORTER_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty'] as const
+export const RELAYED_REPORTER_EVENTS = ['allure:startStep', 'allure:endStep', 'allure:runtimeMessage', 'junit:addProperty', 'test:log', 'test:screenshot', 'test:video-capture'] as const
 
 export type RelayedReporterEvent = typeof RELAYED_REPORTER_EVENTS[number]
 

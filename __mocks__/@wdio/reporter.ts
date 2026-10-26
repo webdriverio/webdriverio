@@ -58,6 +58,10 @@ export default class WDIOReporter extends EventEmitter {
 
     setContextIdResolver (_resolver: () => string | undefined): void {}
 
+    onProcess<Args extends unknown[]> (event: string, handler: (...args: Args) => void): void {
+        process.on(event, handler as (...args: unknown[]) => void)
+    }
+
     getContextTest (): TestStats | undefined {
         return undefined
     }

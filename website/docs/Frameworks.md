@@ -725,10 +725,10 @@ Please note that `./reports/` is the directory where `cucumber message` reports 
 
 `@wdio/vitest-framework` runs specs written in [Vitest](https://vitest.dev/) syntax (`describe`, `test`, `test.concurrent`, `test.extend`) through the WDIO testrunner. Vitest schedules the tests, so the testrunner starts no WDIO workers. `wdio.conf.ts` stays the source of truth for specs, capabilities, connection options and hooks. Use it when you want Vitest's API, especially [fixtures](pageobjects#page-objects-as-fixtures) and `test.concurrent`. Otherwise Mocha is the default choice.
 
-First, install the adapter package from NPM. It installs `vitest` and `expect-webdriverio` with it:
+First, install the adapter package and `vitest` from NPM. `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
 
 ```bash npm2yarn
-npm install @wdio/vitest-framework --save-dev
+npm install @wdio/vitest-framework vitest --save-dev
 ```
 
 Then set `framework: 'vitest'` in your [config file](configurationfile):
@@ -766,7 +766,7 @@ describe('login page', () => {
 
 The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. `waitforTimeout` and `waitforInterval` from the config set its defaults. Never `import { expect } from 'vitest'`. That `expect` has no WebdriverIO matchers such as `toBeDisplayed`.
 
-For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed, see [TypeScript Setup](/docs/typescript):
+For TypeScript, add `@wdio/vitest-framework` to `types` so `vitestOpts` is typed. It also provides the Vitest globals (`describe`, `test` and the hooks) without imports, see [TypeScript Setup](/docs/typescript):
 
 ```json title="tsconfig.json"
 {
@@ -856,7 +856,8 @@ The framework controls some keys itself:
 - `switchWindow` and `switchFrame` throw in a WebDriver BiDi session, which `parallelMode` requires. Inside concurrent tests, `getWindowSize`, `setWindowSize`, `throttleCPU`, `throttleNetwork` and classic window and frame protocol commands such as `switchToWindow` also throw, because they change session-wide state.
 - The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run, in `wdio.conf.ts` or in services.
 - `hook:start` / `hook:end` events are sent per hook kind and attempt, not per hook: one pair for all `beforeEach` hooks and one for all `afterEach` hooks, with no duration. A failed hook ends with `state: 'fail'` and its error. A failing `beforeAll` / `afterAll` is reported separately, see below. Reporter runtime API calls made inside a `beforeEach` / `afterEach` hook are attributed to the test, not to the hook.
-- `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
+- `--watch`, `--repeat` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
+- WebDriver commands are not sent to the WDIO reporters, because the reporters run in the launcher and the commands run in the Vitest workers. Allure therefore shows no WebDriver steps and no automatic screenshots (`disableWebdriverStepsReporting` and `disableWebdriverScreenshotsReporting` have no effect), the video reporter records nothing, and the HTML reporter shows no automatic screenshots. Attach screenshots explicitly, for example `allure.addAttachment('screenshot', Buffer.from(await browser.takeScreenshot(), 'base64'), 'image/png')` in `afterTest` or `afterEach`. The `beforeCommand` / `afterCommand` hooks of `wdio.conf.ts` and of worker services still run. Calls of the HTML reporter (`ReportEvents.logMessage`, `logScreenshot` and `videoCapture`) are relayed, so their logs, screenshots and videos reach the report; WebDriver commands still do not.
 - Top-level config changes made in `onPrepare` do not reach the specs, because each Vitest worker parses the config file again. Changes to capabilities do reach them.
 - Reporter runtime APIs such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter` work from tests and `beforeEach` / `afterEach` hooks. Calls in `beforeAll` / `afterAll` are dropped. With exactly one Allure reporter in the final reporter list (after `onPrepare` ran), the launcher tells the Vitest workers its results folder, they write Allure attachments there and only the path travels to the launcher. Otherwise attachments are sent through the launcher.
 - A failing `beforeAll` or `afterAll` is reported to WDIO reporters as a failed hook, so the JUnit reporter adds a failing testcase for it. Other `beforeAll` / `afterAll` results are not reported.

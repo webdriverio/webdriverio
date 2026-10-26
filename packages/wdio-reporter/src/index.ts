@@ -38,6 +38,7 @@ export default class WDIOReporter extends EventEmitter {
     currentSpec?: string
     #contextIdResolver?: () => string | undefined
     #getTestByContext: (contextId: string | undefined) => TestStats | undefined = () => undefined
+    #processListeners: [string, (...args: unknown[]) => void][] = []
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -323,13 +324,17 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('runner:end', (runner: Options.RunnerEnd) => {
-            rootSuite.complete()
-            if (this.runnerStat) {
-                this.runnerStat.failures = runner.failures
-                this.runnerStat.retries = runner.retries
-                this.runnerStat.error = runner.error
-                this.runnerStat.complete()
-                this.onRunnerEnd(this.runnerStat)
+            try {
+                rootSuite.complete()
+                if (this.runnerStat) {
+                    this.runnerStat.failures = runner.failures
+                    this.runnerStat.retries = runner.retries
+                    this.runnerStat.error = runner.error
+                    this.runnerStat.complete()
+                    this.onRunnerEnd(this.runnerStat)
+                }
+            } finally {
+                this.#removeProcessListeners()
             }
             const logFile = (this.options as Reporters.Options).logFile
             if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
@@ -387,6 +392,22 @@ export default class WDIOReporter extends EventEmitter {
     /** Context id of the caller's parallel test, also in hooks that run before `test:start`. Undefined without parallel mode. */
     getContextId(): string | undefined {
         return this.#contextIdResolver?.()
+    }
+
+    /**
+     * Listens on `process` until this reporter's runner ends. One process can create a reporter
+     * per job, e.g. the Vitest framework in the launcher, so listeners that outlive their runner
+     * would pile up and keep every finished reporter in memory.
+     */
+    protected onProcess<Args extends unknown[]>(event: string, handler: (...args: Args) => void) {
+        const listener = handler as (...args: unknown[]) => void
+        process.on(event, listener)
+        this.#processListeners.push([event, listener])
+    }
+
+    #removeProcessListeners() {
+        this.#processListeners.forEach(([event, handler]) => process.off(event, handler))
+        this.#processListeners = []
     }
 
     #owningSuite(parentUid?: string | null) {

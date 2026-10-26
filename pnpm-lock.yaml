@@ -1846,9 +1846,6 @@ importers:
       expect-webdriverio:
         specifier: ^8.0.0
         version: 8.0.0(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
-      vitest:
-        specifier: ^5.0.2
-        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(@vitest/browser-webdriverio@5.0.0)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@30.1.3(@noble/hashes@1.8.0))(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.43.1)(tsx@4.23.15)(yaml@2.9.1))
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -1856,6 +1853,9 @@ importers:
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../wdio-allure-reporter
+      vitest:
+        specifier: ^5.0.2
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(@vitest/browser-webdriverio@5.0.0)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@30.1.3(@noble/hashes@1.8.0))(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.43.1)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/wdio-webdriver-mock-service:
     dependencies:
@@ -2367,6 +2367,72 @@ importers:
       '@wdio/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/vitest:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      '@wdio/vitest-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-vitest-framework
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
