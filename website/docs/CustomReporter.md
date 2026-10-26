@@ -199,7 +199,7 @@ The reporter calls these methods. In them, `getContextUnit()`, `unitState()` and
 
 - `onUnitStart(unit)`: at the first event of a parallel context (a `test:start`, a `test:pending` or a scenario `suite:start` in a context that ended starts a new unit), or at a sequential test or scenario.
 - `onUnitRetry(unit)`: an attempt failed and runs again (`test:retry`, `suite:retry`). It comes before the base clears the stats of the attempt.
-- `onUnitEnd(unit)`: at `context:end`. In a sequential run, after the `afterEach` hooks of the test (at the next hook, test or suite event), or at the `suite:end` of the scenario. A test with no `test:end` ends when the next unit starts or at the end of its suite. Else the unit ends at `runner:end`. `onUnitEnd` comes before the `on*` method of the event that ends the unit.
+- `onUnitEnd(unit)`: at `context:end`. In a sequential run, after the `afterEach` hooks of the test (at the next hook, test or suite event), or at the `suite:end` of the scenario. A test with no `test:end` ends when the next unit starts or at the end of its suite. Else the unit ends at `runner:end`. `onUnitEnd` comes after `onContextEnd` and after the `onSuiteEnd` of the scenario, so these methods still see the open unit. At any other event that ends the unit (the next hook, test or suite, `runner:end`), it comes before the `on*` method of that event.
 
 Use these methods to find the unit and to keep state for it:
 
