@@ -173,6 +173,12 @@ describe('ConciseReporter', () => {
                 platformName : 'Android',
                 'appium:app' : 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
             }, 'Pixel 9 on Android 15 executing my.apk'],
+            ['mobile app from a local path', {
+                deviceName : 'iPhone 6 Plus',
+                'appium:platformVersion' : '9.2',
+                platformName : 'iOS',
+                'appium:app' : '/Users/me/builds/myApp.app'
+            }, 'iPhone 6 Plus on iOS 9.2 executing myApp.app'],
             ['mobile browser', {
                 deviceName : 'iPhone 6 Plus',
                 'appium:platformVersion' : '9.2',
