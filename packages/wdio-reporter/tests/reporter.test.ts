@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 import type { WriteStream } from 'node:fs'
 import fs from 'node:fs'
 
-import WDIOReporter from '../src/index.js'
+import WDIOReporter, { getBrowserName, getBrowserNames } from '../src/index.js'
 
 vi.mock('node:fs', () => ({
     default: {
@@ -88,5 +88,48 @@ describe('WDIOReporter', () => {
 
     afterAll(() => {
         eventsOnSpy.mockRestore()
+    })
+})
+
+describe('getBrowserNames', () => {
+    it('gives the browser of a session', () => {
+        expect(getBrowserNames({ browserName: 'chrome', browserVersion: '130' })).toEqual(['chrome'])
+    })
+
+    it('gives the browser of w3c capabilities', () => {
+        expect(getBrowserNames({ alwaysMatch: { browserName: 'firefox' }, firstMatch: [] })).toEqual(['firefox'])
+    })
+
+    it('gives the app, else the device of an Appium session', () => {
+        expect(getBrowserNames({ 'appium:deviceName': 'iPhone 15', 'appium:bundleId': 'com.example.app' })).toEqual(['com.example.app'])
+        // Appium returns its capabilities without the `appium:` prefix
+        expect(getBrowserNames({ platformName: 'iOS', deviceName: 'iPhone 15' } as WebdriverIO.Capabilities)).toEqual(['iPhone 15'])
+    })
+
+    it('gives one name for each multi-remote instance, in their order', () => {
+        expect(getBrowserNames({
+            myChrome: { browserName: 'chrome' },
+            myPhone: { platformName: 'iOS', deviceName: 'iPhone 15' },
+            otherChrome: { browserName: 'chrome' }
+        }, true)).toEqual(['chrome', 'iPhone 15', 'chrome'])
+    })
+
+    it('reads the requested multi-remote capabilities of a session that did not start', () => {
+        expect(getBrowserNames({
+            myChrome: { capabilities: { browserName: 'chrome' } },
+            myFirefox: { capabilities: { alwaysMatch: { browserName: 'firefox' } } }
+        }, true)).toEqual(['chrome', 'firefox'])
+    })
+
+    it('leaves out a session with no browser and no device', () => {
+        expect(getBrowserNames({ platformName: 'linux' })).toEqual([])
+        expect(getBrowserNames(undefined)).toEqual([])
+        expect(getBrowserNames({ a: { platformName: 'linux' }, b: { browserName: 'edge' } }, true)).toEqual(['edge'])
+    })
+
+    it('keeps the results of getBrowserName', () => {
+        expect(getBrowserName({ browserName: 'chrome' })).toBe('chrome')
+        expect(getBrowserName({ 'appium:app': '/path/to/my.app' })).toBe('my.app')
+        expect(getBrowserName({})).toBe('')
     })
 })
