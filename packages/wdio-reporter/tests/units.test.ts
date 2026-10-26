@@ -388,7 +388,7 @@ describe('units: Cucumber', () => {
         expect(r.counts).toMatchObject({ tests: 0, passes: 0, failures: 0 })
     })
 
-    it('onSuiteRetry sees the new retry count, as on main, with the failed attempt', () => {
+    it('onSuiteRetry sees the new retry count, as before, with the failed attempt', () => {
         const retries: string[] = []
         class CountRecorder extends Recorder {
             onSuiteRetry (s: SuiteStats) { retries.push(`${s.title} retries=${s.retries} tests=${s.tests.length}`) }
@@ -687,7 +687,7 @@ describe('unit state', () => {
 })
 
 /**
- * Event streams of the Vitest bridge, recorded on this branch (headless Chrome, 2026-10-25) by an event probe: per event
+ * Event streams of the Vitest bridge, recorded (headless Chrome, 2026-10-25) by an event probe: per event
  * the payload fields that the base reads and the resolver context of the bridge (the module hash of a Vitest id is `m`)
  */
 type Recorded = [string, Record<string, unknown>, string | null]
@@ -1313,7 +1313,7 @@ describe('units: commands of a sequential Cucumber Before', () => {
         play(r, [['suite:start', suiteEv('f', 'Feature', { type: 'feature' })], ['suite:start', scenario('sc1')], ...before('b1', 'sc1')])
         command(r)
         expect(r.getContextOwner()).toBe(r.hooks.b1)
-        // Q2: getContextTest() does not change
+        // getContextTest() keeps its documented result
         expect(r.getContextTest()).toBeUndefined()
         play(r, [...beforeEnd('b1', 'sc1'), ...step('s1', 'sc1'), ['suite:end', scenario('sc1')], ['suite:start', scenario('sc2')], ...before('b2', 'sc2')])
         command(r)
@@ -1352,7 +1352,7 @@ describe('units: commands of a sequential Cucumber Before', () => {
     })
 })
 
-// the values of main 2c6277f34 for the same events (Q2)
+// the values of the earlier code for the same events
 describe('getContextTest() returns what it returned before the unit API', () => {
     const passed = (uid: string, extra: Record<string, unknown> = {}): Events => [
         ['test:start', testEv(uid, uid, extra)],

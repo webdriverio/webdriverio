@@ -148,7 +148,7 @@ describe('fixture scope from the hook kind', () => {
         }
     })
 
-    // main 1e0534c46 gives the same fixtures: its gate `!hook.parent && !_isGlobalHook(hook)` never returns
+    // the earlier hook code gives the same fixtures: its gate `!hook.parent && !_isGlobalHook(hook)` never returns
     it.each([['jasmine', null], ['mocha', '']])('keeps the fixtures of main for a %s hook with no parent and no hook kind in an open suite', async (framework, parent) => {
         const run = createRun(framework)
         const emit = (type: string, payload: Record<string, unknown>) => run.reporter.emit(type, { type, cid: CID, specs: [SPEC], file: SPEC, ...payload })
@@ -231,7 +231,7 @@ describe('historyId, testCaseId and fullName (HI rules)', () => {
 describe('parameters of a failed root before all', () => {
     const params = (result: Result) => result.parameters.map((p: Result) => `${p.name}=${p.value}`)
 
-    it.each(['mocha', 'jasmine'])('give each test and the hook result the browser parameter once, as on main (%s)', async (framework) => {
+    it.each(['mocha', 'jasmine'])('give each test and the hook result the browser parameter once, as before (%s)', async (framework) => {
         const run = createRun(framework)
         run.start()
         run.hook('beforeAll', new Error('root before fails'))
@@ -252,7 +252,7 @@ describe('parameters of a failed root before all', () => {
         }
     })
 
-    it('give the result of a failed root after all the browser parameter, as on main', async () => {
+    it('give the result of a failed root after all the browser parameter, as before', async () => {
         const run = createRun()
         run.start()
         run.suite('A', () => run.test('t1'))

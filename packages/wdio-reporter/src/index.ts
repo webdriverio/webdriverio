@@ -211,7 +211,7 @@ export default class WDIOReporter extends EventEmitter {
                 unit.nextAttempt()
                 unit.test = undefined
             }
-            // the steps of the failed attempt get no more calls: retry() removes them; getContextTest() keeps them (Q2)
+            // the steps of the failed attempt get no more calls: retry() removes them; getContextTest() keeps them
             if (unit?.contextId) {
                 retriedContexts.add(unit.contextId)
             }

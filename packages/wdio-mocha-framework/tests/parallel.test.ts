@@ -1930,7 +1930,7 @@ describe('runParallelTests — hookKind and hookSuiteUid', () => {
         const { emitted, uidOf } = await run(tree())
         const starts = emitted.filter((e) => e.event === 'hook:start').map(({ payload: p }) => [p.title, p.hookKind, p.parent, p.parentUid, p.hookSuiteUid, p.contextId])
         expect(starts).toEqual([
-            // a root hook has no suite event: it keeps the suite of its test, as on main
+            // a root hook has no suite event: it keeps the suite of its test, as in earlier versions
             ['"before all" hook: root setup in "{root}"', 'beforeAll', 'inner', uidOf('inner'), undefined, 'ctx-a'],
             ['"before all" hook for outer', 'beforeAll', 'outer', uidOf('outer'), uidOf('outer'), 'ctx-a'],
             ['"before all" hook for inner', 'beforeAll', 'inner', uidOf('inner'), uidOf('inner'), 'ctx-a'],

@@ -26,7 +26,7 @@ describe('JsonGenerator.removeOutput', () => {
 })
 
 describe('JsonGenerator.jsonOutput', () => {
-    // the JSON keys of a hook on main 2c6277f34; this branch adds `state` to a skipped hook
+    // the JSON keys of a hook before the `state` field was added to a skipped hook
     const MAIN_KEYS = ['_duration', 'cid', 'end', 'errors', 'parent', 'start', 'title', 'type', 'uid']
 
     const hookJson = async (removeOutput: boolean) => {
