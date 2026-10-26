@@ -843,15 +843,27 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
     return caps.browserName || caps.browser || appName
 }
 
-/** The capabilities of each session of a runner, in the order of the multi-remote instances */
-function sessionCapabilities(capabilities: unknown, isMultiRemote: boolean): Record<string, unknown>[] {
-    const sessions = isMultiRemote && capabilities && typeof capabilities === 'object'
+/**
+ * @experimental the capabilities of each session of a runner, in the order of the multi-remote instances, with the
+ * name of the instance (none for a run with one session). `alwaysMatch` is unwrapped, and a session that is not an object is left out
+ * @param capabilities the `capabilities` of a runner: of one session, or a map of the multi-remote instances
+ * @param isMultiRemote `runner.isMultiRemote`
+ */
+function getSessions(capabilities: unknown, isMultiRemote = false): { name?: string, capabilities: Record<string, unknown> }[] {
+    type Session = { alwaysMatch?: Record<string, unknown>, capabilities?: unknown } | null | undefined
+    const sessions: [string | undefined, Session][] = isMultiRemote && capabilities && typeof capabilities === 'object'
         // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
-        ? Object.values(capabilities).map((instance) => instance?.capabilities ?? instance)
-        : [capabilities]
-    return sessions.flatMap((session) => (
-        session && typeof session === 'object' ? [(session.alwaysMatch ?? session) as Record<string, unknown>] : []
+        ? Object.entries(capabilities as Record<string, Session>).map(([name, instance]) => [name, (instance?.capabilities ?? instance) as Session])
+        : [[undefined, capabilities as Session]]
+    return sessions.flatMap(([name, session]) => (
+        session && typeof session === 'object'
+            ? [{ ...(name !== undefined && { name }), capabilities: (session.alwaysMatch ?? session) as Record<string, unknown> }]
+            : []
     ))
+}
+
+function sessionCapabilities(capabilities: unknown, isMultiRemote: boolean): Record<string, unknown>[] {
+    return getSessions(capabilities, isMultiRemote).map((session) => session.capabilities)
 }
 
 /**
@@ -891,5 +903,5 @@ function getSessionNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
 }
