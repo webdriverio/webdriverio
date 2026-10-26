@@ -281,6 +281,17 @@ describe('reporter', () => {
         })
     })
 
+    // Cucumber at step level: the step that fails in an attempt that Cucumber retries
+    describe('onTestRetry', () => {
+        it('should update the step as a failed step', () => {
+            const updateStepStatusSpy = vi.spyOn(tmpReporter, 'updateStepStatus').mockReturnValue()
+
+            tmpReporter.onTestRetry({ bar: true, state: 'failed' } as unknown as TestStatsExtended)
+
+            expect(updateStepStatusSpy).toHaveBeenCalledWith({ bar: true, state: 'failed' })
+        })
+    })
+
     describe('onTestSkip', () => {
         it('should call update a step', () => {
             const updateStepStatusSpy = vi.spyOn(tmpReporter, 'updateStepStatus').mockReturnValue()

@@ -1,7 +1,7 @@
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure } from '../src/utils.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -74,5 +74,19 @@ describe('knownFramework', () => {
 
     it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
         expect(knownFramework(name)).toBeUndefined()
+    })
+})
+
+describe('hookCountsAsFailure', () => {
+    const error = new Error('boom')
+    it('counts a failed hook', () => {
+        expect(hookCountsAsFailure({ error })).toBe(true)
+    })
+    it('does not count a passed hook', () => {
+        expect(hookCountsAsFailure({})).toBe(false)
+    })
+    it('does not count a hook whose error is the failure of a test or of a retried attempt', () => {
+        expect(hookCountsAsFailure({ error, failedTestUid: 'test-1' })).toBe(false)
+        expect(hookCountsAsFailure({ error, retried: true })).toBe(false)
     })
 })

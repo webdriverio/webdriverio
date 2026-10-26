@@ -1,3 +1,4 @@
 {
-    "smoke": { "tags": "@smoke", "strict": false }
+    "smoke": { "tags": "@smoke", "strict": false },
+    "retried": { "retry": 2, "retryTagFilter": "@flaky", "strict": true }
 }

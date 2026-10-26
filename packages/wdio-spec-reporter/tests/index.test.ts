@@ -78,6 +78,12 @@ describe('SpecReporter', () => {
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
             expect(tmpReporter['_stateCounts'].failed).toBe(1)
         })
+
+        it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
+            tmpReporter.onHookEnd({ error: new Error('boom!'), failedTestUid: 'test-1' } as any)
+            tmpReporter.onHookEnd({ error: new Error('boom!'), retried: true } as any)
+            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+        })
     })
 
     describe('getEventsToReport', () => {
@@ -163,6 +169,42 @@ describe('SpecReporter', () => {
             failed: 0,
             retried: 1
         })
+    })
+
+    // Cucumber at step level: the step that fails in an attempt that is retried sends test:retry, not test:fail
+    it('removes the counts of every retried attempt, and only those', () => {
+        const step = (uid: string) => ({ uid }) as any
+        tmpReporter.onSuiteStart({ uid: 'scenario', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onTestSkip(step('a3'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('b1'))
+        tmpReporter.onHookEnd({ error: new Error('After hook fails') } as any)
+        tmpReporter.onTestPending(step('b2'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('c1'))
+        tmpReporter.onTestFail(step('c2'))
+        tmpReporter.onSuiteEnd()
+
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 1 passing ', 'red 1 failing', 'yellow 2 retried'])
+    })
+
+    // parallel mode: the events of scenarios in other windows come between the events of the retried scenario
+    it('removes only the counts of the retried scenario when scenarios overlap', () => {
+        const step = (uid: string, parentUid: string) => ({ uid, parentUid }) as any
+        tmpReporter.onSuiteStart({ uid: 'A', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onSuiteStart({ uid: 'B', type: 'scenario' } as any)
+        tmpReporter.onTestFail(step('b1', 'B'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onSuiteRetry({ uid: 'A' } as any)
+        tmpReporter.onSuiteEnd({ uid: 'B' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onTestPass(step('a2', 'A'))
+        tmpReporter.onSuiteEnd({ uid: 'A' } as any)
+
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 2 passing ', 'red 1 failing', 'yellow 1 retried'])
     })
 
     it('should retain a passed test when another test with the same UID fails', () => {
@@ -1217,6 +1259,17 @@ describe('SpecReporter', () => {
                 const beforeEmptyHook = sent.length
                 realtime.onHookEnd({ type: 'hook', title: '' } as any)
                 expect(sent.length).toBe(beforeEmptyHook)
+            })
+        })
+
+        // a Cucumber step that fails in an attempt that Cucumber retries, a Mocha test that runs again
+        it('sends a line with the retry symbol for a retried test', () => {
+            withRunnerSend((sent) => {
+                const realtime = new SpecReporter({ realtimeReporting: true })
+                realtime.onRunnerStart(getRunnerConfig() as any)
+                realtime.onTestRetry({ type: 'test', title: 'Then I fail once', state: State.FAILED, uid: 'step-2' } as any)
+
+                expect(sent.map((message) => message.content).some((line) => line?.includes('↻') && line.includes('Then I fail once'))).toBe(true)
             })
         })
 

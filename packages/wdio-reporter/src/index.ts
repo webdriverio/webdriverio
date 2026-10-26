@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent, knownFramework, transformCommandScript } from './utils.js'
+import { getErrorsFromEvent, hookCountsAsFailure, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -60,6 +60,13 @@ export default class WDIOReporter extends EventEmitter {
         // the last test of a context after its test:end, until context:end: Mocha runs afterEach / after hooks then
         const endedContextTests = new Map<string, TestStats>()
         const retriesByContext = new Map<string, number>()
+        // the count that each result added, to remove it when suite:retry clears the test
+        const countedAs = new WeakMap<TestStats, 'passes' | 'skipping' | 'failures' | 'pending'>()
+        const count = (testStat: TestStats, key: 'passes' | 'skipping' | 'failures' | 'pending') => {
+            this.counts[key]++
+            this.counts.tests++
+            countedAs.set(testStat, key)
+        }
         const getContextId = (test: Test) => test.contextId ?? this.tests[test.uid]?.contextId
         const getRetries = (contextId?: string) => contextId ? retriesByContext.get(contextId) ?? 0 : this.retries
         const setRetries = (contextId: string | undefined, count: number) => {
@@ -69,6 +76,12 @@ export default class WDIOReporter extends EventEmitter {
                 this.retries = count
             }
         }
+        const applyStart = (testStat: TestStats, test: Test) => {
+            if (typeof test.start === 'number' && typeof test.end === 'number') {
+                testStat.start = new Date(test.start)
+            }
+        }
+        const endOf = (test: Test) => typeof test.end === 'number' ? new Date(test.end) : undefined
         const trackContext = (test: Test, testStat: TestStats) => {
             // the stat keeps the contextId of its start when the payload has none (Cucumber scenario level)
             const contextId = test.contextId ?? testStat.contextId
@@ -132,6 +145,13 @@ export default class WDIOReporter extends EventEmitter {
          */
         this.on('suite:retry', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
+            for (const testStat of suiteStat.tests) {
+                const key = countedAs.get(testStat)
+                if (key) {
+                    this.counts[key]--
+                    this.counts.tests--
+                }
+            }
             suiteStat.retry()
             this.onSuiteRetry(suiteStat)
         })
@@ -147,6 +167,13 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end', (hook: Hook) => {
             const hookStats = this.hooks[hook.uid!]
+            // a producer can know them only at the end of the hook
+            if (hook.retried !== undefined) {
+                hookStats.retried = hook.retried
+            }
+            if (hook.failedTestUid !== undefined) {
+                hookStats.failedTestUid = hook.failedTestUid
+            }
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStats)
@@ -165,9 +192,9 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:pass', (test: Test) => {
             const testStat = this.tests[test.uid]
-            testStat.pass()
-            this.counts.passes++
-            this.counts.tests++
+            applyStart(testStat, test)
+            testStat.pass(endOf(test))
+            count(testStat, 'passes')
             this.onTestPass(testStat)
         })
 
@@ -177,24 +204,25 @@ export default class WDIOReporter extends EventEmitter {
                 return
             }
             testStat.skip(test.pendingReason!)
-            this.counts.skipping++
-            this.counts.tests++
+            count(testStat, 'skipping')
             this.onTestSkip(testStat)
         })
 
         this.on('test:fail', (test: Test) => {
             const testStat = this.tests[test.uid]
 
-            testStat.fail(getErrorsFromEvent(test))
-            this.counts.failures++
-            this.counts.tests++
+            applyStart(testStat, test)
+            testStat.fail(getErrorsFromEvent(test), endOf(test))
+            count(testStat, 'failures')
             this.onTestFail(testStat)
         })
 
         this.on('test:retry', (test: Test) => {
             const testStat = this.tests[test.uid]
 
-            testStat.fail(getErrorsFromEvent(test))
+            applyStart(testStat, test)
+            testStat.fail(getErrorsFromEvent(test), endOf(test))
+            testStat.retried = true
             this.onTestRetry(testStat)
             const contextId = getContextId(test)
             setRetries(contextId, getRetries(contextId) + 1)
@@ -222,8 +250,9 @@ export default class WDIOReporter extends EventEmitter {
                     currentTest.parentUid = startedTest.parentUid
                 }
             }
+            applyStart(currentTest, test)
             // a pending test that never started (Mocha `it.skip`) ends now, with no duration
-            currentTest.complete()
+            currentTest.complete(endOf(test))
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
@@ -250,13 +279,11 @@ export default class WDIOReporter extends EventEmitter {
             trackContext(test, currentTest)
             if (test.state === 'pending') {
                 currentTest.state = 'pending'
-                this.counts.pending++
-                this.counts.tests++
+                count(currentTest, 'pending')
                 this.onTestPending(currentTest)
             } else {
                 currentTest.skip(test.pendingReason!)
-                this.counts.skipping++
-                this.counts.tests++
+                count(currentTest, 'skipping')
                 this.onTestSkip(currentTest)
             }
         })
@@ -432,5 +459,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework
+    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, knownFramework, hookCountsAsFailure
 }

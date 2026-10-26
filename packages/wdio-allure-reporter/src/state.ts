@@ -209,7 +209,7 @@ export class AllureReportState {
     }
 
     private async _endTest(message: WDIOTestEndMessage): Promise<void> {
-        const { status, stage, stop, duration, statusDetails } = message.data
+        const { status, stage, start, stop, duration, statusDetails } = message.data
         const testUuid = this._executablesStack.pop()
 
         if (!testUuid) {
@@ -222,6 +222,9 @@ export class AllureReportState {
 
         this.allureRuntime.updateTest(testUuid, r => {
             r.status = status
+            if (start !== undefined) {
+                r.start = start
+            }
             if (stage) {
                 r.stage = stage
             }

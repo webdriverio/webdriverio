@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import type { TestStats } from '@wdio/reporter'
 
 import { HtmlReporter, ReportAggregator, ReportEvents } from '../src/index.js'
@@ -487,13 +487,23 @@ describe('failed hooks', () => {
         return reporter
     }
 
+    const failHook = (reporter: HtmlReporter, hook: Record<string, unknown> = {}) => {
+        const payload = { ...failedHook, cid: '0-0', parent: SUITES[0].title, ...hook }
+        reporter.emit('hook:start', payload)
+        reporter.emit('hook:end', payload)
+    }
+    const failTest = (reporter: HtmlReporter, uid: string, contextId?: string) => {
+        const test = { type: 'test:start', title: uid, fullTitle: uid, uid, cid: '0-0', parent: SUITES[0].title, contextId }
+        reporter.emit('test:start', test)
+        reporter.emit('test:fail', { ...test, error: { message: 'fails' } })
+        reporter.emit('test:end', test)
+    }
+
     it('counts a failed before hook one time when Mocha fails the tests that it affects', () => {
         const reporter = start()
-        reporter.onHookEnd(failedHook as never)
+        failHook(reporter)
         for (const uid of ['t1', 't2', 't3']) {
-            const test = { ...SUITES[0].tests[1], uid } as TestStats
-            reporter.onTestStart(test)
-            reporter.onTestFail(test)
+            failTest(reporter, uid)
         }
         reporter.onSuiteEnd(SUITES[0])
         // 3 tests: the failures of the tests show the failure of the hook
@@ -505,9 +515,64 @@ describe('failed hooks', () => {
         const test = SUITES[0].tests[0]
         reporter.onTestStart(test)
         reporter.onTestPass(test)
-        reporter.onHookEnd({ ...failedHook, title: '"after all" hook' } as never)
+        failHook(reporter, { title: '"after all" hook' })
         reporter.onSuiteEnd(SUITES[0])
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 1 })
+    })
+
+    it('keeps a failed hook of a parallel-mode test when a test of another context fails', () => {
+        const reporter = start()
+        failHook(reporter, { title: '"after each" hook', contextId: 'context-a' })
+        failTest(reporter, 't2', 'context-b')
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ failed: 2 })
+    })
+
+    // the events of @wdio/vitest-framework: a failed attempt ends with test:retry, its hooks have `retried: true`
+    const retryVitestTest = (reporter: HtmlReporter, kind: 'beforeEach' | 'afterEach', contextId?: string) => {
+        const test = (uid: string) => ({ type: 'test:start', title: 'flaky', fullTitle: 'flaky', uid, cid: '0-0', parent: SUITES[0].title, contextId })
+        const hook = (uid: string, state: 'fail' | 'pass', retried?: boolean) => failHook(reporter, {
+            uid: `${uid}-${kind}`, title: `"${kind}" hook for "flaky"`, contextId, state, retried,
+            error: state === 'fail' ? { name: 'Error', message: `${kind} fails` } : undefined
+        })
+        reporter.emit('test:start', test('t1'))
+        if (kind === 'beforeEach') {
+            hook('t1', 'fail', true)
+        }
+        reporter.emit('test:retry', { ...test('t1'), error: { message: `${kind} fails` } })
+        if (kind === 'afterEach') {
+            hook('t1', 'fail', true)
+        }
+        reporter.emit('test:start', { ...test('t1-retry-1'), retries: 1 })
+        hook('t1-retry-1', 'pass')
+        reporter.emit('test:pass', test('t1-retry-1'))
+        reporter.emit('test:end', test('t1-retry-1'))
+    }
+
+    it('does not count a failed beforeEach hook of a retried Vitest attempt (parallel mode)', () => {
+        const reporter = start()
+        retryVitestTest(reporter, 'beforeEach', 'context-a')
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
+
+    // Vitest fails the test with the afterEach error, then sends the hook with failedTestUid
+    it('does not count a failed Vitest afterEach that is the failure of its test', () => {
+        const reporter = start()
+        const test = { type: 'test:start', title: 't', fullTitle: 't', uid: 't1', cid: '0-0', parent: SUITES[0].title }
+        reporter.emit('test:start', test)
+        reporter.emit('test:fail', { ...test, error: { message: 'afterEach fails' } })
+        reporter.emit('test:end', test)
+        failHook(reporter, { uid: 't1-afterEach', title: '"after each" hook for "t"', state: 'fail', failedTestUid: 't1', error: { name: 'Error', message: 'afterEach fails' } })
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 1 })
+    })
+
+    it('does not count a failed afterEach hook of a retried Vitest attempt', () => {
+        const reporter = start()
+        retryVitestTest(reporter, 'afterEach')
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
     })
 })
 
@@ -575,9 +640,6 @@ describe('code review points', () => {
         dirs.push(dir)
         return dir
     }
-    const common = { cid: '0-0', specs: [], file: 'spec.js' }
-    const suite = (uid: string) => ({ ...common, type: 'suite:start', uid, title: uid, fullTitle: uid, parent: '' })
-    const test = (uid: string, contextId?: string) => ({ ...common, type: 'test:start', uid, title: uid, fullTitle: uid, parent: 'suite', ...(contextId ? { contextId } : {}) })
 
     afterAll(() => {
         process.removeAllListeners('test:log')
@@ -616,48 +678,6 @@ describe('code review points', () => {
         const format = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
         expect(reporter.metrics.start).toMatch(format)
         expect(reporter.metrics.end).toMatch(format)
-    })
-
-    it('warns one time when tests run at the same time (parallel mode)', async () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('parallel'), filename: 'report.html', reportTitle: 'Parallel' } as never)
-        reporter.onRunnerStart(RUNNER)
-        reporter.emit('suite:start', suite('suite'))
-        for (const [uid, contextId] of [['p1', 'ctx-1'], ['p2', 'ctx-2'], ['p3', 'ctx-3']]) {
-            reporter.emit('test:start', test(uid, contextId))
-        }
-        for (const [uid, contextId] of [['p1', 'ctx-1'], ['p2', 'ctx-2'], ['p3', 'ctx-3']]) {
-            reporter.emit('test:pass', test(uid, contextId))
-            reporter.emit('test:end', test(uid, contextId))
-        }
-        reporter.emit('suite:end', suite('suite'))
-        await reporter.onRunnerEnd(RUNNER)
-        expect(warn.mock.calls.filter(([message]) => String(message).includes('parallel mode'))).toHaveLength(1)
-        warn.mockRestore()
-    })
-
-    it('does not warn for tests that run one after the other, also with a retry', async () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: tempDir('sequential'), filename: 'report.html', reportTitle: 'Sequential' } as never)
-        reporter.onRunnerStart(RUNNER)
-        reporter.emit('suite:start', suite('suite'))
-        reporter.emit('test:start', test('s1'))
-        reporter.emit('test:retry', { ...test('s1'), error: { message: 'first try' } })
-        reporter.emit('test:end', test('s1'))
-        reporter.emit('test:start', test('s1'))
-        reporter.emit('test:pass', test('s1'))
-        reporter.emit('test:end', test('s1'))
-        // a test in its own context (parallel mode with one context at a time)
-        reporter.emit('test:start', test('s2', 'ctx-1'))
-        reporter.emit('test:pass', test('s2', 'ctx-1'))
-        reporter.emit('test:end', test('s2', 'ctx-1'))
-        reporter.emit('test:start', test('s3', 'ctx-1'))
-        reporter.emit('test:pass', test('s3', 'ctx-1'))
-        reporter.emit('test:end', test('s3', 'ctx-1'))
-        reporter.emit('suite:end', suite('suite'))
-        await reporter.onRunnerEnd(RUNNER)
-        expect(warn.mock.calls.filter(([message]) => String(message).includes('parallel mode'))).toHaveLength(0)
-        warn.mockRestore()
     })
 })
 
@@ -772,5 +792,120 @@ describe('third code review points', () => {
             htmlOutput.mockRestore()
             error.mockRestore()
         }
+    })
+})
+
+describe('parallel mode', () => {
+    const dir = path.join(outputRoot, 'parallel') + path.sep
+    let context: string | undefined
+    const start = (options: Record<string, unknown> = {}) => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', ...options } as never)
+        reporter.setContextIdResolver(() => context)
+        reporter.onRunnerStart(RUNNER)
+        return reporter
+    }
+    const startTest = (reporter: HtmlReporter, uid: string, contextId: string) =>
+        reporter.emit('test:start', { type: 'test:start', title: uid, fullTitle: uid, uid, cid: '0-0', parent: '', contextId })
+    const eventsOf = (reporter: HtmlReporter, uid: string) =>
+        (reporter.getTest(uid) as unknown as { events: { type: string, value: unknown }[] }).events
+    const screenshot = (contextId: string) => ({
+        command: 'takeScreenshot', endpoint: '/session/:sessionId/screenshot', sessionId: 's', contextId,
+        result: { value: Buffer.from('png').toString('base64') }
+    })
+    afterEach(() => {
+        context = undefined
+        vi.useRealTimers()
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    })
+
+    it('adds the logs and the videos of a test to the test of its context', () => {
+        const reporter = start()
+        startTest(reporter, 'a', 'context-a')
+        startTest(reporter, 'b', 'context-b')
+        context = 'context-a'
+        new ReportEvents().logMessage('log of a')
+        reporter.emit('test:end', { uid: 'a', contextId: 'context-a' })
+        // the video reporter sends the video after the end of the test
+        new ReportEvents().videoCapture('a.webm')
+        expect(eventsOf(reporter, 'a')).toEqual([{ type: 'log', value: 'log of a' }, { type: 'video-capture', value: 'a.webm' }])
+        expect(eventsOf(reporter, 'b')).toEqual([])
+    })
+
+    it('adds the screenshot of a command to the test of the command context', () => {
+        const reporter = start({ useOnAfterCommandForScreenshot: true })
+        startTest(reporter, 'a', 'context-a')
+        startTest(reporter, 'b', 'context-b')
+        reporter.onAfterCommand(screenshot('context-a') as never)
+        expect(eventsOf(reporter, 'a')).toHaveLength(1)
+        expect(eventsOf(reporter, 'b')).toEqual([])
+    })
+
+    it('adds the events of a before hook to the first test of its context', () => {
+        const reporter = start()
+        startTest(reporter, 'a', 'context-a')
+        context = 'context-b'
+        new ReportEvents().logMessage('before hook of b')
+        startTest(reporter, 'b', 'context-b')
+        expect(eventsOf(reporter, 'a')).toEqual([])
+        expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }])
+    })
+
+    it('adds the events of a before hook to the test that it skips', () => {
+        const reporter = start()
+        startTest(reporter, 'a', 'context-a')
+        context = 'context-b'
+        // `this.skip()` in the before hook: the test ends as pending and never starts
+        new ReportEvents().logMessage('before hook of b')
+        reporter.emit('test:pending', { type: 'test:pending', title: 'b', fullTitle: 'b', uid: 'b', cid: '0-0', parent: '', contextId: 'context-b' })
+        new ReportEvents().logMessage('after hook of b')
+        expect(eventsOf(reporter, 'a')).toEqual([])
+        expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }, { type: 'log', value: 'after hook of b' }])
+    })
+
+    it('warns one time for events with no test context while parallel tests run', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            const reporter = start()
+            startTest(reporter, 'a', 'context-a')
+            startTest(reporter, 'b', 'context-b')
+            // a `browser.on()` callback runs outside the context of its test
+            new ReportEvents().logMessage('from a callback')
+            new ReportEvents().logMessage('from a callback again')
+            expect(eventsOf(reporter, 'b')).toHaveLength(2)
+            const warnings = warn.mock.calls.filter(([message]) => String(message).startsWith('[@wdio/html-reporter] An event with no parallel-mode test context'))
+            expect(warnings).toHaveLength(1)
+        } finally {
+            warn.mockRestore()
+        }
+    })
+
+    it('adds the events of a Before hook of a Cucumber retry to the first step of the retry', () => {
+        const reporter = start()
+        const scenario = { type: 'suite:start', title: 's', fullTitle: 's', uid: 's', cid: '0-0', parent: '', contextId: 'context-a' }
+        reporter.emit('suite:start', scenario)
+        startTest(reporter, 'step', 'context-a')
+        reporter.emit('test:fail', { uid: 'step', contextId: 'context-a', error: { message: 'first try' } })
+        reporter.emit('test:end', { uid: 'step', contextId: 'context-a' })
+        reporter.emit('suite:retry', { ...scenario, type: 'suite:retry' })
+        context = 'context-a'
+        new ReportEvents().logMessage('Before hook of the retry')
+        startTest(reporter, 'step', 'context-a')
+        expect(eventsOf(reporter, 'step')).toEqual([{ type: 'log', value: 'Before hook of the retry' }])
+    })
+
+    it('gives 2 screenshots of the same millisecond 2 files', () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        vi.setSystemTime(new Date('2026-10-22T10:00:00.000Z'))
+        const reporter = start({ useOnAfterCommandForScreenshot: true })
+        startTest(reporter, 'a', 'context-a')
+        startTest(reporter, 'b', 'context-b')
+        reporter.onAfterCommand(screenshot('context-a') as never)
+        reporter.onAfterCommand(screenshot('context-b') as never)
+        const [fileA] = eventsOf(reporter, 'a').map((event) => event.value)
+        const [fileB] = eventsOf(reporter, 'b').map((event) => event.value)
+        expect(fileA).not.toBe(fileB)
+        expect(fs.existsSync(fileA as string) && fs.existsSync(fileB as string)).toBe(true)
     })
 })

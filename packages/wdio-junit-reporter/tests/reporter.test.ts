@@ -78,6 +78,20 @@ describe('wdio-junit-reporter', () => {
         expect(written).not.toContain('<testcase')
     })
 
+    it('adds the failed hooks of a suite as testcases, except those of a retried attempt', () => {
+        const hook = (title: string, retried?: boolean) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(retried && { retried }) })
+        const suite = { tests: [], hooks: [hook('"before each" hook for "a"', true), hook('"before each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"before each" hook for "b"'])
+    })
+
+    it('does not add a failed hook whose error is the failure of a test', () => {
+        const hook = (title: string, failedTestUid?: string) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(failedTestUid && { failedTestUid }) })
+        const suite = { tests: [], hooks: [hook('"after each" hook for "a"', 'test-a'), hook('"after each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"after each" hook for "b"'])
+    })
+
     it('should prepare name', () => {
         expect(reporter['_prepareName']()).toMatchSnapshot()
         expect(reporter['_prepareName']('Chrome something_odd.foobar')).toMatchSnapshot()
@@ -647,6 +661,17 @@ describe('wdio-junit-reporter', () => {
         } finally {
             process.stdout.write = originalWrite
         }
+    })
+
+    it('attributes properties emitted on the reporter instance to the current test', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const [testA] = (Object.values(suitesLog)[0] as SuiteStats).tests
+        reporter.onTestStart(testA)
+        vi.spyOn(reporter, 'getContextTest').mockReturnValue(testA)
+
+        reporter.emit('junit:addProperty', { name: 'a-prop', value: 'a-value' })
+
+        expect(reporter['_testToAdditionalInformation'][testA.uid].properties).toEqual({ 'a-prop': 'a-value' })
     })
 
     it('skips attribution for a context test that never started, e.g. a skipped test', () => {

@@ -16,6 +16,7 @@ import {
     getFeatureStack,
     getScenarioResult,
     getStepResult,
+    scenarioLabel,
     withAmbiguousMessage
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
@@ -419,6 +420,18 @@ describe('utils', () => {
                 '\tat Feature(/a.feature):1:1\n\tat Scenario(Get size):6:3\n\tat Step(a background step):4:5\n')
         })
 
+        // the strict pending warning names a scenario as Cucumber prints it: path and line, the example row for an outline
+        it('gives the label of a scenario: its name, path and line', () => {
+            const outline = {
+                children: [{ scenario: { id: 'sc-2', name: 'Login', location: { line: 6, column: 3 }, steps: [],
+                    examples: [{ tableBody: [{ id: 'row-1', location: { line: 10, column: 7 } }, { id: 'row-2', location: { line: 11, column: 7 } }] }] } }]
+            } as unknown as Feature
+            const file = path.join(process.cwd(), 'features', 'a.feature')
+            expect(scenarioLabel(file, feature, { name: 'Get size', astNodeIds: ['sc-1'] } as unknown as Pickle)).toBe(`"Get size" (${path.join('features', 'a.feature')}:6)`)
+            expect(scenarioLabel(file, outline, { name: 'Login', astNodeIds: ['sc-2', 'row-2'] } as unknown as Pickle)).toBe(`"Login" (${path.join('features', 'a.feature')}:11)`)
+            expect(scenarioLabel(file, outline, { name: 'Other', astNodeIds: ['x'] } as unknown as Pickle)).toBe(`"Other" (${path.join('features', 'a.feature')})`)
+        })
+
         it('gives only the feature for an unknown scenario', () => {
             expect(getFeatureStack('/a.feature', feature, { astNodeIds: ['x'] } as unknown as Pickle)).toBe('\tat Feature(/a.feature):1:1\n')
         })
@@ -426,7 +439,7 @@ describe('utils', () => {
 
     describe('getStepResult', () => {
         const featureStack = '\tat Feature(/a.feature):1:1\n'
-        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, featureStack: () => featureStack }
+        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, strict: false, featureStack: () => featureStack }
         const result = (status: string, message?: string) => ({ status, message, duration: { seconds: 0, nanos: 0 } }) as unknown as TestStepResult
 
         it('passes a passed step', () => {
@@ -465,6 +478,15 @@ describe('utils', () => {
                 .toEqual({ state: 'pending', error: undefined, titleSuffix: ' (undefined step)', failed: false })
         })
 
+        // Cucumber shows a pending step as a warning, also when strict makes it fail the run (issue_helpers.js)
+        it('keeps a pending step pending with strict, and counts it as a failure of the run', () => {
+            expect(getStepResult(result(Status.PENDING), { ...params, strict: true })).toEqual({ state: 'pending', error: undefined, titleSuffix: '', failed: true })
+        })
+
+        it('keeps a pending step pending without strict', () => {
+            expect(getStepResult(result(Status.PENDING), params)).toEqual({ state: 'pending', error: undefined, titleSuffix: '', failed: false })
+        })
+
         it('keeps the first line of a failed step as message and the Cucumber message as stack', () => {
             const message = 'Error: fails on purpose\n    at World.<anonymous> (steps.ts:1:1)'
             const { state, error, failed } = getStepResult(result(Status.FAILED, message), params)
@@ -501,7 +523,16 @@ describe('utils', () => {
 
 describe('getScenarioResult', () => {
     const r = (status: string, message?: string) => ({ status, message }) as any
-    const defaults = { ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false }
+    const defaults = { ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, strict: false }
+
+    it('fails a pending scenario with strict, as Cucumber', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('SKIPPED')], { ...defaults, strict: true })).toEqual(r('PENDING'))
+        // an ignored undefined step, then an After hook that returns 'pending'
+        const ignoredThenPendingHook = [r('UNDEFINED'), r('SKIPPED'), r('PENDING')]
+        expect(getScenarioResult(ignoredThenPendingHook, { ...defaults, ignoreUndefinedDefinitions: true })).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult(ignoredThenPendingHook, { ...defaults, ignoreUndefinedDefinitions: true, strict: true })).toEqual(r('PENDING'))
+        expect(getScenarioResult([r('PENDING'), r('FAILED', 'After hook fails')], { ...defaults, strict: true })).toEqual(r('FAILED', 'After hook fails'))
+    })
 
     it('gives the worst result of the ones that fail under the options, as Cucumber orders them', () => {
         expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED', 'After hook fails')], defaults)).toEqual(r('FAILED', 'After hook fails'))

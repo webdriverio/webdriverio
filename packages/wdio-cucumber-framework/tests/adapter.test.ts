@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
@@ -101,6 +102,7 @@ declare global {
     var MODULE_B_WAS_LOADED_WITH: any
     var MODULE_INLINE_WAS_LOADED: boolean
     var MODULE_C_WAS_LOADED: boolean
+    var CUCUMBER_FORMAT_OPTIONS: Record<string, unknown> | undefined
 
 }
 
@@ -379,6 +381,20 @@ describe('CucumberAdapter', () => {
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadFiles).toBeCalledTimes(1)
         expect(setUserHookNames).toBeCalledTimes(1)
+    })
+
+    it('gives the formatter the retry and strict values that Cucumber runs with, also from a profile', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {
+            cucumberOpts: { retry: 1, strict: true, profiles: ['retried'], file: 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json' }
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooks = vi.fn()
+        adapter.loadFiles = vi.fn()
+        adapter._cucumberOpts.format = [[url.pathToFileURL(path.resolve(__dirname, 'fixtures', 'optionsProbeFormatter.mjs')).href]]
+
+        await adapter.run()
+        // as Cucumber merges them: cucumberOpts win over the profile (retry: 2), the profile gives retryTagFilter
+        expect(globalThis.CUCUMBER_FORMAT_OPTIONS).toMatchObject({ _retry: 1, _retryTagFilter: '@flaky', _strict: true, _cid: '0-0' })
     })
 
     it('registerRequiredModules', async () => {
