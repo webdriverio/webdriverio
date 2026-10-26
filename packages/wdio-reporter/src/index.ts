@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -160,6 +160,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('suite:start', (params: Suite) => {
+            this.#endEndedTestUnit()
             /**
              * the jasmine framework doesn't give us information about the file
              * therefore we need to propagate these information into params
@@ -193,6 +194,7 @@ export default class WDIOReporter extends EventEmitter {
          * display the number of times a suite was retried.
          */
         this.on('suite:retry', (suite: Suite) => {
+            this.#endEndedTestUnit()
             const suiteStat = this.suites[suite.uid!]
             const unit = this.#unitOfStats.get(suiteStat)
             // before the counts and retry() clear the attempt that failed
@@ -225,6 +227,9 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('hook:start', (hook: Hook) => {
+            if (hook.contextId || !isAfterEachHook(hook)) {
+                this.#endEndedTestUnit()
+            }
             const hookStats = new HookStats(hook)
             const currentSuite = this.#owningSuite(hook.parentUid)
             currentSuite.hooks.push(hookStats)
@@ -292,6 +297,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test: Test) => {
+            this.#endEndedTestUnit()
             // an all-hook ends before a test starts: a missing hook:end
             if (!test.contextId) {
                 this.#openAllHooks.clear()
@@ -353,6 +359,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test: Test) => {
+            this.#endEndedTestUnit()
             test.retries = getRetries(getContextId(test))
             const currentSuite = this.#owningSuite(test.parentUid)
             /**
@@ -432,10 +439,6 @@ export default class WDIOReporter extends EventEmitter {
             if (unit && unit.stats === testStat) {
                 unit.testEnded = true
                 unit.retriedTest = undefined
-                // end rule `own`: a sequential unit ends at the test:end of its test
-                if (!unit.contextId) {
-                    this.#endUnit(unit)
-                }
             }
         })
 
@@ -454,6 +457,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('suite:end', (suite: Suite) => {
+            this.#endEndedTestUnit()
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             const index = this.currentSuites.lastIndexOf(suiteStat)
@@ -715,6 +719,14 @@ export default class WDIOReporter extends EventEmitter {
         this.#call(unit, () => this.onUnitEnd(unit))
     }
 
+    // a sequential test unit stays open after its test:end for the afterEach hooks of the test
+    #endEndedTestUnit() {
+        const seq = this.#seqUnit
+        if (seq?.testEnded) {
+            this.#endUnit(seq)
+        }
+    }
+
     #unitForTestStart(stat: TestStats, contextId: string | undefined): Unit {
         const seq = this.#seqUnit
         const unit = contextId
@@ -819,7 +831,7 @@ export default class WDIOReporter extends EventEmitter {
     onUnitStart(_unit: ReporterUnit) { }
     /** An attempt of a unit failed and runs again (`test:retry`, `suite:retry`), before the base clears its stats. @experimental */
     onUnitRetry(_unit: ReporterUnit) { }
-    /** A unit ends: at `context:end`; in a sequential run at its `test:end` or scenario `suite:end`, else the next unit, its suite end, `runner:end`. @experimental */
+    /** A unit ends: at `context:end`; in a sequential run after the `afterEach` hooks of its test (at the next hook, test or suite event) or at the scenario `suite:end`, else the next unit, its suite end, `runner:end`. @experimental */
     onUnitEnd(_unit: ReporterUnit) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
     onRunnerEnd(_runnerStats: RunnerStats) { }

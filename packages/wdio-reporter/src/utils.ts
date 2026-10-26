@@ -20,6 +20,11 @@ export function isContextlessAllHook(hook: { contextId?: string, hookKind?: Hook
     return !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
 }
 
+// a hook with no hookKind: the Mocha title rule (`"after each" hook ...`)
+export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): boolean {
+    return hook.hookKind ? hook.hookKind === 'afterEach' : /^"after each" hook/.test(hook.title ?? '')
+}
+
 /**
  * the framework of a runner config, from its short name in any case or its scoped package, as
  * `initializePlugin` loads them (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for another

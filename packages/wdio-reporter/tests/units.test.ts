@@ -1689,7 +1689,7 @@ describe('a contextless beforeEach before its test:start', () => {
         expect(r.log).toContain('hook:end beforeEach t2 -> none')
     })
 
-    it('an afterEach and a hook with no hookKind keep the ended unit of the test before them', () => {
+    it('an afterEach keeps the unit of the test before it; a hook with no hookKind after it gets that unit, ended', () => {
         const r = new HookProbe()
         play(r, [['suite:start', suiteEv('s', 'S')], ...run('t1'), ['hook:start', each('at1', 'afterEach', 't1')], ['hook:end', each('at1', 'afterEach', 't1')],
             ['hook:start', hookEv('h', 'no kind')]])
@@ -1698,6 +1698,8 @@ describe('a contextless beforeEach before its test:start', () => {
             'afterEach t1 unitOf=seq:t1#0 owner=seq:t1#0 context=seq:t1#0 state=t1',
             'no kind unitOf=seq:t1#0 owner=seq:t1#0 context=seq:t1#0 state=t1',
         ])
+        expect(r.unitOf(r.hooks.h)).toBe(r.unitOf(r.tests.t1))
+        expect(r.unitOf(r.hooks.h)?.ended).toBe(true)
     })
 })
 
