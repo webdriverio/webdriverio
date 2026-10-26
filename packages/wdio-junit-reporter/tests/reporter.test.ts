@@ -242,6 +242,12 @@ describe('wdio-junit-reporter', () => {
             expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
         })
 
+        it('names an instance with no capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: null } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
         it('reads the requested capabilities of an instance that did not start', () => {
             reporter.suites = suitesLog as any
             const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: { capabilities: { alwaysMatch: { browserName: 'chrome' } } }, mrB: chrome } }) as any)
