@@ -110,6 +110,24 @@ describe('concise reporter failed hooks: each one in its own part', () => {
         ])
     })
 
+    it('names an error with no type by its name, in a hook and in a test', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('s', 'suite', null))
+        reporter.emit('test:start', test('t1'))
+        reporter.emit('test:fail', { ...test('t1'), error: { name: 'Error', message: 'boom' } })
+        reporter.emit('test:end', test('t1'))
+        runHook(reporter, hook('h1', '"after all" hook for s', { parent: 's', parentUid: 's', hookKind: 'afterAll' }), { error: { name: 'Error', message: 'boom' } })
+        reporter.emit('suite:end', suite('s', 'suite'))
+        expect(report(reporter)).toEqual([
+            '❌ Test failed (1):',
+            '  Fail : red flaky',
+            '    Error : yellow boom',
+            '❌ Hook failed (1):',
+            '  Fail : red "after all" hook for s',
+            '    Error : yellow boom'
+        ])
+    })
+
     it.each([
         ['BeforeAll', false],
         ['AfterAll', true]
