@@ -630,7 +630,7 @@ Parameters for your World, as `this.parameters`.
 
 <Option type="Boolean" default="false">
 
-Report each scenario as one test. Its steps and hooks are not reported.
+Report each scenario as one test. Its steps and hooks are not reported. A `BeforeAll` / `AfterAll` is still reported, as a hook of the feature.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
