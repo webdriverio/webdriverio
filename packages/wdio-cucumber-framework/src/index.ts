@@ -81,6 +81,8 @@ export class CucumberAdapter {
     // added by WebdriverIO to the values that the user wrote (see `_providedConfiguration`)
     private _generatedTags?: string
     private _seededOrder?: string
+    /** a profile or config file error: run() throws it, after the `after` hook, as Cucumber's own errors */
+    private _configurationError?: unknown
     private _browser?: WebdriverIO.Browser
 
     // set in the constructor and again in init(), with the language that Cucumber runs with
@@ -255,7 +257,13 @@ export class CucumberAdapter {
 
     async init() {
         // first: the skip tags parse the feature files in the language of the profile
-        await this._resolveCucumberValues()
+        try {
+            await this._resolveCucumberValues()
+        } catch (err) {
+            this._configurationError = err
+            this._hasTests = this._specs.length > 0
+            return this
+        }
         if (this._generateSkipTags) {
             // wrap the user expression so an `or` in it can't escape the generated `and` conditions
             const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
@@ -314,6 +322,9 @@ export class CucumberAdapter {
         let result: number
 
         try {
+            if (this._configurationError) {
+                throw this._configurationError
+            }
             await this.registerRequiredModules()
             supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
                 requireModules: this._cucumberOpts.requireModule,

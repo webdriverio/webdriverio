@@ -520,6 +520,18 @@ describe('CucumberAdapter', () => {
             expect((config.cucumberOpts as { language?: string }).language).toBe(language)
         })
 
+        // as on main: the error comes from run(), after the after hook, and the runner reports it
+        it('reports a profile error from run(), after the after hook', async () => {
+            const after = vi.fn()
+            vi.mocked(executeHooksWithArgs).mockClear()
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['missing'], file }, after: [after] }, [feature], {}, {}, {}, false)
+            expect(adapter.hasTests()).toBe(true)
+            await expect(adapter.run()).rejects.toThrow(/missing/)
+            const [name, hooks, [error]] = vi.mocked(executeHooksWithArgs).mock.calls.find(([hookName]) => hookName === 'after')!
+            expect([name, hooks]).toEqual(['after', [after]])
+            expect(String(error)).toMatch(/missing/)
+        })
+
         it('gives the order and the language of a profile to the parallel run', async () => {
             vi.mocked(runParallelCucumber).mockResolvedValue(0)
             ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
