@@ -419,6 +419,34 @@ describe('spec reporter console logs of a beforeAll / afterAll (K28)', () => {
         ])
     })
 
+    it('prints the logs of a parallel after() that runs after its test ended (Mocha parallel)', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        let contextId: string | undefined
+        reporter.setContextIdResolver(() => contextId)
+        reporter.emit('suite:start', suite('A', 'suite', null))
+        runTest(reporter, 'a1', 'test:pass', { parentUid: 'A', contextId: 'c1' })
+        const after = { ...allHook('h1', 'afterAll', '"after all" hook for A', 'A'), parentUid: 'A', contextId: 'c1' }
+        reporter.emit('hook:start', after)
+        contextId = 'c1'
+        process.stdout.write('LOG A-after\n')
+        contextId = undefined
+        reporter.emit('hook:end', after)
+        reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'a1', contextId: 'c1' })
+        reporter.emit('suite:end', suite('A', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'A',
+            '   ✓ a1',
+            '   ✓ "after all" hook for A',
+            '',
+            '      .........Console Logs.........',
+            '         LOG A-after',
+            '          ',
+            ''
+        ])
+    })
+
     it('prints the logs of a parallel Cucumber Before that runs before the first step', () => {
         const reporter = newReporter({ addConsoleLogs: true })
         let contextId: string | undefined
