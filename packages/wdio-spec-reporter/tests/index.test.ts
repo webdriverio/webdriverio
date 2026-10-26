@@ -163,6 +163,22 @@ describe('SpecReporter', () => {
         expect(output).not.toMatch(/1 failing(?: \([^\n]*\))?\n/)
     })
 
+    it('does not display hooks whose failure is already counted on a test or retried attempt', () => {
+        tmpReporter.suites = {
+            suite: {
+                uid: 'suite',
+                tests: [],
+                hooks: [
+                    { error: new Error('before each failed'), failedTestUid: 'test-1' },
+                    { error: new Error('retried after all failed'), retried: true }
+                ],
+                hooksAndTests: []
+            }
+        } as any
+
+        expect(tmpReporter.getCountDisplay('')).not.toContain('failing hook')
+    })
+
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass({

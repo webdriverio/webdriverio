@@ -569,7 +569,7 @@ export default class SpecReporter extends WDIOReporter {
     getCountDisplay (duration: string) {
         const output: string[] = []
         const failedHooks = new Set(this.getOrderedSuites().flatMap(
-            suite => suite.hooks.filter(hook => hook.error)
+            suite => suite.hooks.filter(hookCountsAsFailure)
         )).size
         const failedTests = this._stateCounts.failed - failedHooks
 
