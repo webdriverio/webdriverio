@@ -164,19 +164,27 @@ describe('SpecReporter', () => {
     })
 
     it('does not display hooks whose failure is already counted on a test or retried attempt', () => {
+        tmpReporter.write = vi.fn()
+        const suite = Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR)[0]
+        const hooks = [
+            { ...suite.hooks[0], failedTestUid: 'test-1' },
+            { ...suite.hooks[0], uid: 'retried-hook', retried: true }
+        ]
+        tmpReporter['_suiteUids'] = new Set([suite.uid])
         tmpReporter.suites = {
-            suite: {
-                uid: 'suite',
-                tests: [],
-                hooks: [
-                    { error: new Error('before each failed'), failedTestUid: 'test-1' },
-                    { error: new Error('retried after all failed'), retried: true }
-                ],
+            [suite.uid]: {
+                ...suite,
+                hooks,
                 hooksAndTests: []
             }
         } as any
+        hooks.forEach(hook => tmpReporter.onHookEnd(hook as any))
+        tmpReporter.onTestFail({ uid: 'test-1' } as any)
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
 
-        expect(tmpReporter.getCountDisplay('')).not.toContain('failing hook')
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toMatch(/1 failing(?: \([^\n]*\))?\n/)
+        expect(output).not.toMatch(/failing hooks?/)
     })
 
     describe('onTestPass', () => {
