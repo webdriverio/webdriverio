@@ -73,8 +73,8 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    // with no context, a hook owner is the innermost open beforeAll / afterAll: it gets the logs (K28)
-                    const owner = this.getContextId() ? undefined : this.getContextOwner()
+                    // a hook owner gets the logs: the innermost open beforeAll / afterAll with no context, or the open hook of a context before its test
+                    const owner = this.getContextOwner()
                     const hook = owner?.type === 'hook' ? owner as HookStats : undefined
                     const test = this.getContextTest()
                     if (hook) {
