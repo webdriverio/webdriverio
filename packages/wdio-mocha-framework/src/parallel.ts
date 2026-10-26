@@ -319,8 +319,8 @@ function emitTestFail(
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, error: errorPayload })
 }
 
-type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 type ReporterHookKind = NonNullable<FormattedMessage['hookKind']>
+type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
     reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
@@ -342,9 +342,8 @@ function hookCurrentTest(kind: HookKind, hook: MochaHookLike, test: CollectedTes
 }
 
 /** Mocha's own hook title (runner.js setHookTitle). */
-function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
+function nativeHookTitle(kind: HookKind, hook: MochaHookLike, currentTest: string | undefined) {
     const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
-    const currentTest = hookCurrentTest(kind, hook, test)
     return currentTest !== undefined
         ? `${original} for "${currentTest}"`
         : `${original} in "${hook.parent?.title || (hook.parent?.root ? '{root}' : '')}"`
@@ -356,8 +355,8 @@ function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTes
  * suite has a title, but builds fullTitle from the native title.
  */
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
-    const native = nativeHookTitle(kind, hook, test)
     const currentTest = hookCurrentTest(kind, hook, test)
+    const native = nativeHookTitle(kind, hook, currentTest)
     const declaringSuite = hook.parent?.title
     // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test
     const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
@@ -372,7 +371,7 @@ function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test
         contextId,
         ...(currentTest !== undefined && { currentTest }),
         hookKind: checkHookKind(hook, TITLE_KINDS[kind]),
-        ...(ownSuite && declaringIndex !== undefined && { hookSuiteUid: suiteUid(cid, declaringIndex) })
+        ...(ownSuite && { hookSuiteUid: suiteUid(cid, declaringIndex) })
     } satisfies TestMessage
 }
 
@@ -393,7 +392,7 @@ function emitHookEnd(
     error?: Error,
     pending?: boolean
 ) {
-    const native = nativeHookTitle(kind, hook, test)
+    const native = nativeHookTitle(kind, hook, hookCurrentTest(kind, hook, test))
     const errorPayload = error
         ? formatError(error as unknown as MochaError, hook.parent?.title ? `${hook.parent.title} ${native}` : native)
         : undefined
@@ -660,7 +659,7 @@ async function runOneTest(
                 emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
                 return { status: 'passed', name: test.title, duration: fnDuration }
             }
-            const error = failedHook ? hookSkipError(nativeHookTitle(failedHook.kind, failedHook.hook, test), caughtError!) : caughtError!
+            const error = failedHook ? hookSkipError(nativeHookTitle(failedHook.kind, failedHook.hook, hookCurrentTest(failedHook.kind, failedHook.hook, test)), caughtError!) : caughtError!
             if (!failedHook || failHookAffectedTests) {
                 if (!started) {
                     // WDIOReporter's test:fail handler needs a prior test:start for this uid
