@@ -1580,3 +1580,38 @@ describe('isFeatureHook', () => {
         expect(r.isFeatureHook(r.hooks.root)).toBe(false)
     })
 })
+
+describe('units: unitOf in onUnitStart', () => {
+    class Asker extends WDIOReporter {
+        seen: unknown[] = []
+        constructor () {
+            super({ logFile: tmp.fileSync().name })
+        }
+        onUnitStart (unit: ReporterUnit) {
+            this.seen.push([this.unitOf(unit.stats!) === unit, unit.test ? this.unitOf(unit.test) === unit : 'no test'])
+        }
+    }
+
+    it('finds the unit of a test', () => {
+        const r = new Asker()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['test:pass', testEv('t1', 'a1')],
+            ['test:end', testEv('t1', 'a1')]
+        ])
+        end(r)
+        expect(r.seen).toEqual([[true, true]])
+    })
+
+    it('finds the unit of a scenario', () => {
+        const r = new Asker()
+        play(r, [
+            ['suite:start', suiteEv('f', 'F', { type: 'feature' })],
+            ['suite:start', suiteEv('sc1', 'S1', { type: 'scenario', parent: 'f' })],
+            ['suite:end', suiteEv('sc1', 'S1', { type: 'scenario' })]
+        ])
+        end(r)
+        expect(r.seen).toEqual([[true, 'no test']])
+    })
+})
