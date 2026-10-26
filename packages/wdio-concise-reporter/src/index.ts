@@ -35,6 +35,11 @@ export default class ConciseReporter extends WDIOReporter {
         }
     }
 
+    // the base clears the hooks of the attempt after this call: the retried attempt does not count
+    onSuiteRetry (suite: SuiteStats) {
+        this._failedHooks = this._failedHooks.filter((hook) => !suite.hooks.includes(hook))
+    }
+
     onRunnerEnd (runner: RunnerStats): void {
         this.printReport(runner)
     }
