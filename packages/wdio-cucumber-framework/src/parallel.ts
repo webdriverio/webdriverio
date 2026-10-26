@@ -42,7 +42,7 @@ import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
 
-import type { CucumberOptions, HookKind, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
+import type { CucumberOptions, HookKind, ParallelBrowser, ParallelMode, ReporterStep, TestRunHookStart } from './types.js'
 import {
     addKeywordToStep,
     getFeatureId,
@@ -57,7 +57,9 @@ import {
     hookKindOf,
     scenarioLabel,
     strictPendingWarning,
-    testRunHookPayload,
+    testRunHookEnd,
+    testRunHookStart,
+    userRunHooks,
     withAmbiguousMessage,
 } from './utils.js'
 
@@ -171,6 +173,8 @@ interface TestCaseRunnerInstance {
 }
 
 interface TestRunHookDefinition {
+    id: string
+    name?: string
     code: Function
     uri?: string
     line?: number
@@ -405,39 +409,6 @@ async function runTestRunHooks(
 let executionStarted = false
 export function parallelRunHasStarted(): boolean {
     return executionStarted
-}
-
-/** a failed BeforeAll / AfterAll: a hook of the feature, as in a sequential run (cucumberFormatter.ts) */
-interface FailedTestRunHook {
-    id: string
-    hookId: string
-    result: messages.TestStepResult
-}
-
-function emitFailedTestRunHooks(
-    reporter: EventEmitter,
-    cid: string,
-    specs: string[],
-    group: FeatureGroup,
-    failures: FailedTestRunHook[],
-    kind: 'BeforeAll' | 'AfterAll',
-    definitions: { id?: string, name?: string, uri?: string, line?: number }[]
-): void {
-    for (const { id, hookId, result } of failures) {
-        const definition = definitions.find((hookDefinition) => hookDefinition.id === hookId)
-        const payload = testRunHookPayload({
-            uid: id,
-            kind,
-            name: definition?.name,
-            location: definition?.uri ? { uri: definition.uri, line: definition.line } : undefined,
-            featureUid: group.uid,
-            uri: group.uri,
-            result,
-        })
-        const { error: _error, state: _state, ...start } = payload
-        reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
-        reporter.emit('hook:end', formatMessage({ payload: { ...payload, cid, specs } }))
-    }
 }
 
 function emitFeatureSuiteEvents(
@@ -1066,23 +1037,27 @@ async function runParallel(params: {
 
     const testRunStartedId = uuidFn()
     const runBroadcaster = new EventEmitter()
-    const runHookIds = new Map<string, string>()
-    let failedRunHooks: FailedTestRunHook[] = []
+    // a user BeforeAll / AfterAll is a hook of the first feature, sent live as in a sequential run (cucumberFormatter.ts)
+    const runHooks = userRunHooks(supportCodeLibrary)
+    const openRunHooks = new Map<string, TestRunHookStart>()
     runBroadcaster.on('envelope', (envelope: messages.Envelope) => {
-        if (envelope.testRunHookStarted) {
-            runHookIds.set(envelope.testRunHookStarted.id, envelope.testRunHookStarted.hookId)
+        const started = envelope.testRunHookStarted
+        const hook = started && runHooks[started.hookId]
+        if (started && hook) {
+            const start = testRunHookStart({ uid: started.id, hook, featureUid: featureGroups[0].uid, uri: featureGroups[0].uri })
+            openRunHooks.set(started.id, start)
+            reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
         }
         const finished = envelope.testRunHookFinished
-        if (finished?.result.status === 'FAILED') {
-            log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
-            failedRunHooks.push({ id: finished.testRunHookStartedId, hookId: runHookIds.get(finished.testRunHookStartedId) ?? '', result: finished.result })
+        const start = finished && openRunHooks.get(finished.testRunHookStartedId)
+        if (finished && start) {
+            openRunHooks.delete(finished.testRunHookStartedId)
+            if (finished.result.status === 'FAILED') {
+                log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
+            }
+            reporter.emit('hook:end', formatMessage({ payload: { ...testRunHookEnd(start, finished.result), cid, specs } }))
         }
     })
-    const takeFailedRunHooks = () => {
-        const failures = failedRunHooks
-        failedRunHooks = []
-        return failures
-    }
     const snippetBuilder = await FormatterBuilder.getStepDefinitionSnippetBuilder({
         cwd: process.cwd(),
         snippetInterface: cucumberOpts.snippetInterface,
@@ -1096,10 +1071,9 @@ async function runParallel(params: {
 
     // BeforeAll side effects cannot be replayed by a sequential fallback
     executionStarted = true
-    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
-
+    // the features start first: the BeforeAll hooks are hooks of the first feature
     emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start', cucumberOpts.tagsInTitle)
-    emitFailedTestRunHooks(reporter, cid, specs, featureGroups[0], takeFailedRunHooks(), 'BeforeAll', supportCodeLibrary.beforeTestRunHookDefinitions)
+    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
 
     // Once BeforeAll ran, AfterAll and suite:end must run even if assembly or
     // context allocation throws; the error is rethrown afterwards.
@@ -1224,7 +1198,6 @@ async function runParallel(params: {
 
     // AfterAll runs before the end of the features, which get its failure as a hook
     const afterAllOk = await runTestRunHooks(eventEmitter, () => executor.runAfterAllHooks(), featureGroups, 'an AfterAll')
-    emitFailedTestRunHooks(reporter, cid, specs, featureGroups[0], takeFailedRunHooks(), 'AfterAll', supportCodeLibrary.afterTestRunHookDefinitions)
     emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
     if (runFailure) { throw runFailure.error }
 

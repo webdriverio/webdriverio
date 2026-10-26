@@ -64,13 +64,16 @@ function mockSupportCodeLibrary(overrides: Partial<{
             importPaths: [],
             loaders: [],
         },
-        beforeTestRunHookDefinitions: (overrides.beforeTestRunHooks || []).map((code) => ({
+        // Cucumber gives each definition an id: the hookId of its testRunHookStarted
+        beforeTestRunHookDefinitions: (overrides.beforeTestRunHooks || []).map((code, index) => ({
+            id: `before-all-${index}`,
             code,
             uri: '/test/features',
             line: 1,
             options: {},
         })),
-        afterTestRunHookDefinitions: (overrides.afterTestRunHooks || []).map((code) => ({
+        afterTestRunHookDefinitions: (overrides.afterTestRunHooks || []).map((code, index) => ({
+            id: `after-all-${index}`,
             code,
             uri: '/test/features',
             line: 1,
@@ -1393,7 +1396,7 @@ describe('runParallelCucumber run-level behavior', () => {
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(1)
     })
 
-    describe('failed BeforeAll / AfterAll (K22)', () => {
+    describe('run hooks', () => {
         const record = () => {
             const events: { event: string, payload: Record<string, any> }[] = []
             for (const event of ['suite:start', 'suite:end', 'hook:start', 'hook:end', 'test:start', 'test:end']) {
@@ -1426,10 +1429,38 @@ describe('runParallelCucumber run-level behavior', () => {
             expect(events.find(({ event }) => event === 'hook:end')!.payload.hookKind).toBe('afterAll')
         })
 
-        test('sends nothing for a BeforeAll and an AfterAll that pass', async () => {
+        test('starts every feature before the first BeforeAll', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}] }))
+            const names = events.map(({ event }) => event)
+            expect(names.slice(0, 3)).toEqual(['suite:start', 'hook:start', 'hook:end'])
+            expect(names.lastIndexOf('suite:start')).toBeLessThan(names.indexOf('hook:start'))
+        })
+
+        test('sends a passed BeforeAll and AfterAll', async () => {
             const events = record()
             await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}], afterTestRunHooks: [() => {}] }))
-            expect(events.map(({ event }) => event)).not.toContain('hook:end')
+            const featureUid = events[0].payload.uid
+            const ends = events.filter(({ event }) => event === 'hook:end').map(({ payload }) => payload)
+            expect(events.filter(({ event }) => event === 'hook:start')).toHaveLength(2)
+            expect(ends.map((hook) => hook.hookKind)).toEqual(['beforeAll', 'afterAll'])
+            for (const hook of ends) {
+                expect(hook).toMatchObject({ hookSuiteUid: featureUid, parentUid: featureUid })
+                expect(hook).not.toHaveProperty('state')
+                expect(hook).not.toHaveProperty('contextId')
+            }
+        })
+
+        test('sends a BeforeAll start before its body runs', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => { events.push({ event: 'body', payload: {} }) }] }))
+            expect(events.map(({ event }) => event).filter((event) => event !== 'suite:start').slice(0, 3)).toEqual(['hook:start', 'body', 'hook:end'])
+        })
+
+        test('sends nothing for WDIO run hooks', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [async function wdioHookBeforeFeature () {}], afterTestRunHooks: [async function wdioHookAfterFeature () {}] }))
+            expect(events.map(({ event }) => event).filter((event) => event.startsWith('hook:'))).toEqual([])
         })
     })
 
@@ -2318,13 +2349,14 @@ describe('runParallelCucumber uncaught errors', () => {
             await sleep(40)
         }
         const failures = await run([{ name: 's1', steps: ['waits'] }], [waits], {
-            beforeTestRunHookDefinitions: [{ code: beforeAll, uri: '/test/features', line: 1, options: {} }],
+            beforeTestRunHookDefinitions: [{ id: 'before-all-0', code: beforeAll, uri: '/test/features', line: 1, options: {} }],
         } as never)
 
         expect(failures).toBe(1)
-        // once, as a hook of the feature (K22)
+        // once, as a hook of the feature
         expect(emitted).toHaveLength(1)
-        expect(emitted[0]).toMatchObject({ event: 'hook:end', payload: { title: 'BeforeAll', state: 'failed', error: { message: 'before all boom' } } })
+        expect(emitted[0]).toMatchObject({ event: 'hook:end', payload: { state: 'failed', error: { message: 'before all boom' } } })
+        expect(emitted[0].payload.title).toMatch(/^BeforeAll/)
     })
 
     test('keeps parallel mode when the Cucumber module for uncaught errors cannot load', async () => {

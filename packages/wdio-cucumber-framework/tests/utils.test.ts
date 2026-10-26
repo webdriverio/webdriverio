@@ -18,7 +18,6 @@ import {
     getStepResult,
     scenarioLabel,
     withAmbiguousMessage,
-    testRunHookPayload,
     userRunHooks,
     testRunHookStart,
     testRunHookEnd,
@@ -64,36 +63,6 @@ describe('utils', () => {
                 title: 'bar',
                 fullTitle: 'foo: bar',
             })
-        })
-    })
-
-    describe('testRunHookPayload', () => {
-        const result = {
-            status: 'FAILED',
-            message: 'Error: BeforeAll fails\n    at steps.ts:23:9',
-            exception: { type: 'Error', message: 'BeforeAll fails' },
-            duration: { seconds: 0, nanos: 5e6 },
-        } as unknown as TestStepResult
-
-        it('builds the hook of a failed BeforeAll under the feature', () => {
-            const payload = testRunHookPayload({
-                uid: 'r1', kind: 'BeforeAll', location: { uri: path.join(process.cwd(), 'features', 'steps.ts'), line: 23 },
-                featureUid: 'features/k22.feature:1:1', uri: '/project/features/k22.feature', result,
-            })
-            expect(payload).toMatchObject({
-                type: 'hook', uid: 'r1', title: `BeforeAll (${path.join('features', 'steps.ts')}:23)`, state: 'failed', duration: 5,
-                parent: 'features/k22.feature:1:1', parentUid: 'features/k22.feature:1:1', file: '/project/features/k22.feature',
-                hookKind: 'beforeAll', hookSuiteUid: 'features/k22.feature:1:1',
-            })
-            expect(payload).not.toHaveProperty('contextId')
-            expect(payload.error?.message).toBe('BeforeAll fails')
-            expect(payload.error?.stack).toBe(result.message)
-        })
-
-        it('names a named AfterAll', () => {
-            const payload = testRunHookPayload({ uid: 'r2', kind: 'AfterAll', name: 'cleanup', featureUid: 'f', uri: 'u', result })
-            expect(payload.title).toBe('AfterAll "cleanup"')
-            expect(payload).toMatchObject({ hookKind: 'afterAll', hookSuiteUid: 'f' })
         })
     })
 
