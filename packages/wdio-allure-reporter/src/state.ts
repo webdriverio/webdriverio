@@ -183,7 +183,7 @@ export class AllureReportState {
             // the test that ended keeps its open scope for its next after each hooks
             const scopes = this._testScopePendingClose ? this._scopesStack.slice(0, -1) : this._scopesStack
             const uuid = this.allureRuntime.startTest({ name: message.data.name, start: message.data.start }, [...this._rootScopes(), ...scopes])
-            this._testUuids.push(uuid)
+            this._trackTest(uuid)
             this._executablesStack.push(uuid)
             this._standaloneUuid = uuid
             return
@@ -203,7 +203,7 @@ export class AllureReportState {
             [...this._rootScopes(), ...this._scopesStack],
         )
 
-        this._testUuids.push(testUuid)
+        this._trackTest(testUuid)
         this._executablesStack.push(testUuid)
         this._currentTestUuid = testUuid
         this._currentTestName = name
@@ -270,11 +270,20 @@ export class AllureReportState {
         return this._rootScopeUuid ? [this._rootScopeUuid] : []
     }
 
+    // only the tests that ran before the root scope need the list
+    private _trackTest(uuid: string): void {
+        if (!this._rootScopeUuid) {
+            this._testUuids.push(uuid)
+        }
+    }
+
     // opened at the first root all-hook, with the tests that ran before it
     private _rootScope(): string {
         if (!this._rootScopeUuid) {
             const uuid = this.allureRuntime.startScope()
             this.allureRuntime.updateScope(uuid, (scope) => { scope.tests.push(...this._testUuids) })
+            // later tests join the root scope through their scopes
+            this._testUuids = []
             this._rootScopeUuid = uuid
         }
         return this._rootScopeUuid
