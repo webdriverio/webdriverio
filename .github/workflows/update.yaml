@@ -33,7 +33,8 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30 # seconds
           running-workflow-name: dependencies # wait for all checks except this one
-          allowed-conclusions: success,skipped,cancelled # all other checks must pass, being skipped or cancelled is not sufficient
+          # CodeQL default setup does not scan Dependabot PRs, so its PR check ends neutral; an alert still ends as failure
+          allowed-conclusions: success,skipped,cancelled,neutral
 
       - name: Auto-merge dependabot PRs
         # Don't merge updates to GitHub Actions versions automatically.
