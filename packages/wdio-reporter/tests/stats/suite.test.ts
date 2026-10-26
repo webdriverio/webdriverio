@@ -56,11 +56,14 @@ test('retry() keeps the start of the suite, as main', () => {
     expect(suite.start).toBe(start)
 })
 
-test('clearAttempt() starts the next attempt now', () => {
+test('clearAttempt() keeps the start of the first attempt, as main', () => {
     const suite = new SuiteStats({ title: 'foobar', fullTitle: 'barfoo', file: '/this/is/a/file.txt' })
-    suite.start = new Date(0)
+    const start = new Date(0)
+    suite.start = start
     suite.retries = 1
+    suite.tests = [1] as any
     suite.clearAttempt()
-    expect(suite.start.getTime()).toBeGreaterThan(0)
+    expect(suite.start).toBe(start)
+    expect(suite.tests).toHaveLength(0)
     expect(suite.retries).toBe(1)
 })

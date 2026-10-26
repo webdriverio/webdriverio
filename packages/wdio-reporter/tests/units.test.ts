@@ -425,7 +425,7 @@ describe('units: Cucumber', () => {
         expect(r.suites.sc2.hooks.map((h) => h.uid)).toEqual(['sc2-before'])
     })
 
-    it('K12: the next attempt has its own start, onSuiteRetry sees the start of the failed attempt', () => {
+    it('K12: a retried scenario keeps the start of its first attempt, as main; onSuiteRetry sees the failed attempt', () => {
         vi.useFakeTimers({ now: 1000 })
         try {
             const r = new RetryRecorder()
@@ -437,10 +437,11 @@ describe('units: Cucumber', () => {
             vi.setSystemTime(5000)
             r.emit('suite:retry', { type: 'suite:retry', ...suiteEv('sc1', 'S1', { type: 'scenario' }) })
             expect(r.retryStarts).toEqual([1000])
-            expect(r.suites.sc1.start.getTime()).toBe(5000)
+            expect(r.suites.sc1.start.getTime()).toBe(1000)
             vi.setSystemTime(7000)
             r.emit('suite:end', { type: 'suite:end', ...suiteEv('sc1', 'S1', { type: 'scenario' }) })
-            expect(r.suites.sc1.duration).toBe(2000)
+            // the duration covers all attempts
+            expect(r.suites.sc1.duration).toBe(6000)
         } finally {
             vi.useRealTimers()
         }

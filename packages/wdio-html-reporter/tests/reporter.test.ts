@@ -751,12 +751,43 @@ describe('retries and hooks of a feature (K12, K24, K26)', () => {
             }))
             expect(attempts).toEqual([
                 { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
-                { title: 'S', start: '2026-10-25T10:00:03.000Z', end: '2026-10-25T10:00:07.000Z', duration: 4000, states: ['passed', ...after.map(() => 'passed')] }
+                // the scenario keeps the start of its first attempt and the duration of all attempts, as main
+                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:07.000Z', duration: 7000, states: ['passed', ...after.map(() => 'passed')] }
             ])
             // the failed attempt shows as failed, the scenario as its last attempt
             expect(classesOf('S')).toEqual(['suite-fail', 'suite-pass'])
             // the scenario counts one time, as its last attempt
             expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    it('gives the second failed attempt of a Cucumber scenario its own times', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        const at = (time: string) => vi.setSystemTime(new Date(`2026-10-25T10:00:${time}.000Z`))
+        try {
+            const { json } = await run('k12-retry-twice', (reporter) => {
+                at('00')
+                reporter.emit('suite:start', suite('F', 'feature'))
+                reporter.emit('suite:start', suite('S', 'scenario', 'F'))
+                for (const [retryAt, endAt] of [['02', '03'], ['05', '06']]) {
+                    reporter.emit('test:start', test('step', 'a step', 'S'))
+                    at(retryAt)
+                    reporter.emit('test:retry', { ...test('step', 'a step', 'S'), error: { message: 'failed attempt' } })
+                    reporter.emit('test:end', test('step', 'a step', 'S'))
+                    at(endAt)
+                    reporter.emit('suite:retry', suite('S', 'scenario', 'F'))
+                }
+                reporter.emit('test:start', test('step', 'a step', 'S'))
+                at('08')
+                reporter.emit('test:pass', test('step', 'a step', 'S'))
+                reporter.emit('test:end', test('step', 'a step', 'S'))
+                reporter.emit('suite:end', suite('S', 'scenario', 'F'))
+                reporter.emit('suite:end', suite('F', 'feature'))
+            }, cucumber)
+            const times = json.suites[0].suites.map((entry: { start: string, end: string }) => [entry.start.slice(17, 19), entry.end.slice(17, 19)])
+            expect(times).toEqual([['00', '03'], ['03', '06'], ['00', '08']])
         } finally {
             vi.useRealTimers()
         }
