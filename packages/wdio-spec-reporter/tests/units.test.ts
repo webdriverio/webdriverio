@@ -671,6 +671,37 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         ])
     })
 
+    it('prints an after() after its last nested describe when an empty describe is between them', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('outer', 'suite'))
+        runTest(reporter, 'o1')
+        reporter.emit('suite:start', suite('inner1', 'suite'))
+        runTest(reporter, 'i1')
+        reporter.emit('suite:end', suite('inner1', 'suite'))
+        reporter.emit('suite:start', suite('empty', 'suite'))
+        reporter.emit('suite:end', suite('empty', 'suite'))
+        reporter.emit('suite:start', suite('inner2', 'suite'))
+        runTest(reporter, 'i2')
+        reporter.emit('suite:end', suite('inner2', 'suite'))
+        runHook(reporter, allHook('h1', 'afterAll', '"after all" hook for outer', { hookSuiteUid: 'outer' }), '', { error: { message: 'boom' } })
+        reporter.emit('suite:end', suite('outer', 'suite'))
+
+        expect(display(reporter)).toEqual([
+            '» spec.js',
+            'outer',
+            '   ✓ o1',
+            '',
+            '    inner1',
+            '       ✓ i1',
+            '',
+            '    inner2',
+            '       ✓ i2',
+            '',
+            '   ✖ "after all" hook for outer',
+            ''
+        ])
+    })
+
     it('keeps the order of a failed after all hook with no hookKind', () => {
         const reporter = newReporter()
         reporter.emit('suite:start', suite('outer', 'suite'))
