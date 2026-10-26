@@ -1,4 +1,4 @@
-import { getBrowserNames } from '@wdio/reporter'
+import { getSessionNames } from '@wdio/reporter'
 
 type SessionInfo = { browserNames?: string[], capabilities?: unknown, isMultiRemote?: boolean } | undefined
 
@@ -11,6 +11,6 @@ export function headerBrowserName (configured: string | undefined, sessions: Ses
     if (configured !== undefined) {
         return configured
     }
-    const names = new Set(sessions.flatMap((info) => Array.isArray(info?.browserNames) ? info.browserNames : getBrowserNames(info?.capabilities, info?.isMultiRemote)))
+    const names = new Set(sessions.flatMap((info) => Array.isArray(info?.browserNames) ? info.browserNames : getSessionNames(info?.capabilities, info?.isMultiRemote)))
     return [...names].join(', ') || fallback
 }

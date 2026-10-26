@@ -6,7 +6,7 @@ import type {
     SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { getBrowserNames, hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
@@ -65,7 +65,7 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         retry: runner.retry,
         capabilities,
         // the names of the full capabilities: the reduced copy above cannot name an app
-        browserNames: getBrowserNames(runner.capabilities, runner.isMultiRemote),
+        browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
         // the runner gives the error of a session that did not start; its text can have credentials
         ...(runner.error ? { sessionFailed: true } : {})
     } as unknown as RunnerStats
