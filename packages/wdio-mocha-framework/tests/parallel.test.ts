@@ -1959,6 +1959,45 @@ describe('runParallelTests — hookKind and hookSuiteUid', () => {
         expect(hooks.find((h) => h.event === 'hook:end' && h.payload.error)!.payload.hookKind).toBe('afterEach')
     })
 
+    test('a hook has the currentTest of sequential Mocha: first sibling for before all, last for after all, its test for each-hooks', async () => {
+        const root = new Mocha().suite
+        root.beforeAll('root setup', () => {})
+        const a = Mocha.Suite.create(root, 'A')
+        a.beforeAll(() => {})
+        a.beforeEach(() => {})
+        a.afterAll(() => {})
+        a.addTest(new Mocha.Test('a1', () => {}))
+        a.addTest(new Mocha.Test('a2', () => {}))
+        const child = Mocha.Suite.create(a, 'child')
+        child.addTest(new Mocha.Test('c1', () => {}))
+        const reporter = new EventEmitter()
+        const hooks: [string, string, string | undefined][] = []
+        let test = ''
+        reporter.on('test:start', (p) => { test = p.title })
+        for (const ev of ['hook:start', 'hook:end']) {
+            reporter.on(ev, (p) => hooks.push([ev, p.title, p.currentTest]))
+        }
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a', 'ctx-b', 'ctx-c'] }), reporter, '0-0', ['/spec.js'], 1)
+
+        const starts = hooks.filter(([ev]) => ev === 'hook:start').map(([, title, currentTest]) => [title, currentTest])
+        expect(starts).toEqual([
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'a1'],
+            ['"after all" hook for A', 'a2'],
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'a2'],
+            ['"after all" hook for A', 'a2'],
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'c1'],
+            ['"after all" hook for A', 'a2'],
+        ])
+        expect(hooks.filter(([ev]) => ev === 'hook:end').map(([, , currentTest]) => currentTest)).toEqual(starts.map(([, currentTest]) => currentTest))
+        expect(test).toBe('c1')
+    })
+
     test('a title that disagrees with the hook list is logged, and the hook list gives the kind', async () => {
         const root = tree()
         const hook = (root.suites[0] as unknown as { _beforeAll: { title: string }[] })._beforeAll[0]
