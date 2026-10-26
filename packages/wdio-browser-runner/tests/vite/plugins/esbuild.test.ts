@@ -1,9 +1,15 @@
 import { build } from 'esbuild'
-import { test, expect } from 'vitest'
+import { test, expect, vi, afterEach } from 'vitest'
 
 import { DEFAULT_VITE_CONFIG } from '../../../src/vite/constants.js'
 
+afterEach(() => {
+    vi.unstubAllGlobals()
+})
+
 test('pre-bundled deps can use path and __dirname when they load', async () => {
+    // the process polyfill reads navigator.language, which Node.js 20 does not have
+    vi.stubGlobal('navigator', { language: 'en-US' })
     const result = await build({
         ...DEFAULT_VITE_CONFIG.optimizeDeps!.esbuildOptions,
         stdin: {
