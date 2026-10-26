@@ -845,7 +845,8 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 /**
  * @experimental the capabilities of each session of a runner, in the order of the multi-remote instances, with the
- * name of the instance (none for a run with one session). `alwaysMatch` is unwrapped, and a session that is not an object is left out
+ * name of the instance (none for a run with one session). `alwaysMatch` is unwrapped; a multi-remote instance with no capabilities
+ * keeps its name with empty capabilities, and a single session that is not an object is left out
  * @param capabilities the `capabilities` of a runner: of one session, or a map of the multi-remote instances
  * @param isMultiRemote `runner.isMultiRemote`
  */
@@ -855,11 +856,13 @@ function getSessions(capabilities: unknown, isMultiRemote = false): { name?: str
         // a session that did not start has the requested capabilities: `{ capabilities: { ... } }`
         ? Object.entries(capabilities as Record<string, Session>).map(([name, instance]) => [name, (instance?.capabilities ?? instance) as Session])
         : [[undefined, capabilities as Session]]
-    return sessions.flatMap(([name, session]) => (
-        session && typeof session === 'object'
-            ? [{ ...(name !== undefined && { name }), capabilities: (session.alwaysMatch ?? session) as Record<string, unknown> }]
-            : []
-    ))
+    return sessions.flatMap(([name, session]) => {
+        if (session && typeof session === 'object') {
+            return [{ ...(name !== undefined && { name }), capabilities: (session.alwaysMatch ?? session) as Record<string, unknown> }]
+        }
+        // an instance with no capabilities still has a name
+        return name !== undefined ? [{ name, capabilities: {} }] : []
+    })
 }
 
 function sessionCapabilities(capabilities: unknown, isMultiRemote: boolean): Record<string, unknown>[] {
