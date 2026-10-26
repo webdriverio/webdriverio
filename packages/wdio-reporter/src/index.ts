@@ -829,7 +829,7 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
         caps['appium:bundleId'] ||
         caps['appium:appPackage'] ||
         caps['appium:appActivity'] ||
-        (path.isAbsolute(app) ? path.basename(app) : app)
+        (path.isAbsolute(app) ? path.basename(app) : appFileName(app))
     )
     // @ts-expect-error legacy capability names
     return caps.browserName || caps.browser || appName
@@ -870,7 +870,7 @@ function getBrowserNames(capabilities: unknown, isMultiRemote = false): string[]
 function getSessionNames(capabilities: unknown, isMultiRemote = false): string[] {
     return sessionCapabilities(capabilities, isMultiRemote).flatMap((caps) => {
         const text = (value: unknown) => typeof value === 'string' || typeof value === 'number' ? String(value) : ''
-        const name = appFileName(text(getBrowserName(caps as WebdriverIO.Capabilities)))
+        const name = text(getBrowserName(caps as WebdriverIO.Capabilities))
         const device = text(caps['appium:deviceName'] || caps.deviceName)
         if (!device) {
             return name ? [name] : []
