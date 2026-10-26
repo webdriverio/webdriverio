@@ -256,11 +256,11 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 
 ### Browser name
 
-`runner.capabilities` are the capabilities of the session (in a multi-remote run, a map of the instance names to their capabilities). To show the browser that ran, use `getBrowserNames(runner.capabilities, runner.isMultiRemote)` (an export of `@wdio/reporter`). It returns one name for each session, in the order of the multi-remote instances: the result of `getBrowserName(caps)` (the browser, else the Appium app), else the Appium device name. A session with none of these has no entry. If your reporter has an option for the browser name, show that option when the user sets it, else these names.
+`runner.capabilities` are the capabilities of the session (in a multi-remote run, a map of the instance names to their capabilities). To show the browser that ran, use `getBrowserNames(runner.capabilities, runner.isMultiRemote)` (an export of `@wdio/reporter`). It returns one name for each session, in the order of the multi-remote instances: the result of `getBrowserName(caps)` (the browser, else the Appium app), else the Appium device name. A session with none of these has no entry. If your reporter has an option for the browser name, show that option when the user sets it, else these names. To put the capabilities in a file name or a package name, use `sanitizeCaps(caps)`: it returns one capability string.
 
 :::warning Experimental
 
-The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()`, `getBrowserNames` and the `'skipped'` state of a hook. The names and the results can change.
+The unit API, `getBrowserNames` and `sanitizeCaps` are experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()`, `getBrowserNames`, `sanitizeCaps` and the `'skipped'` state of a hook. The names and the results can change.
 
 :::
 
