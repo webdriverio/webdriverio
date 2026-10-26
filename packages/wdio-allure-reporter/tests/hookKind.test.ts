@@ -149,7 +149,7 @@ describe('fixture scope from the hook kind', () => {
     })
 
     // the earlier hook code gives the same fixtures: its gate `!hook.parent && !_isGlobalHook(hook)` never returns
-    it.each([['jasmine', null], ['mocha', '']])('keeps the fixtures of main for a %s hook with no parent and no hook kind in an open suite', async (framework, parent) => {
+    it.each([['jasmine', null], ['mocha', '']])('keeps the earlier fixtures for a %s hook with no parent and no hook kind in an open suite', async (framework, parent) => {
         const run = createRun(framework)
         const emit = (type: string, payload: Record<string, unknown>) => run.reporter.emit(type, { type, cid: CID, specs: [SPEC], file: SPEC, ...payload })
         run.start()
