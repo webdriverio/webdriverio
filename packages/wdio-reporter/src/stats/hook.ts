@@ -51,8 +51,9 @@ export default class HookStats extends RunnableStats {
     errors?: Error[]
     error?: Error
     /**
-     * `'failed'`, `'skipped'` (the framework skipped the hook: Mocha `this.skip()`, a Cucumber hook result `SKIPPED`),
-     * else `undefined` (a passed hook). No code sets `'passed'`.
+     * The base reporter sets `'failed'` or `'skipped'` (the framework skipped the hook: Mocha `this.skip()`, a Cucumber
+     * hook result `SKIPPED`); a passed hook keeps `undefined`. A reporter can set `'passed'` on its own stats
+     * (`AllureReporter` does); each reporter has its own `HookStats`.
      * @experimental the `'skipped'` value
      */
     state?: 'failed' | 'passed' | 'skipped'
