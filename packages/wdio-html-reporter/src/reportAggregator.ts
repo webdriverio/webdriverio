@@ -133,7 +133,8 @@ class ReportAggregator {
             `${report.info?.cid} (${(report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')})`
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const workerReports: any[] = []
-        // each run starts its cids at 0-0: the results of 2 CI jobs are in 2 folders
+        // the worker file of each attempt, with no `-retry<n>`: each run (each CI job, each
+        // configuration with its own file name) starts its cids at 0-0
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const workerOfRun = new Map<any, string>()
         for (const filename of files) {
@@ -145,7 +146,7 @@ class ReportAggregator {
                     continue
                 }
                 workerReports.push(report)
-                workerOfRun.set(report, JSON.stringify([path.dirname(path.resolve(filename)), report.info?.cid]))
+                workerOfRun.set(report, path.resolve(filename).replace(/-retry\d+(\.json)$/, '$1'))
             } catch (ex) {
                 inputFailed = true
                 console.error(`Cannot read the report file ${filename}: ${ex}`)
@@ -166,9 +167,17 @@ class ReportAggregator {
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const retried = new Set<any>()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const specsOf = (report: any) => JSON.stringify(report.info?.specs ?? [])
         for (const report of workerReports) {
             try {
-                const isLastAttempt = lastAttempts.get(workerOfRun.get(report)!) === report
+                const lastAttempt = lastAttempts.get(workerOfRun.get(report)!)
+                const isLastAttempt = lastAttempt === report
+                // a file of an earlier run (no clean) for another spec file is not an attempt of this one
+                if (!isLastAttempt && specsOf(report) !== specsOf(lastAttempt)) {
+                    this.LOG.info(`Skip ${workerOf(report)}: an old file of another spec file`)
+                    continue
+                }
                 if (report.incomplete) {
                     if (isLastAttempt) {
                         incomplete.push(workerOf(report))
@@ -209,12 +218,9 @@ class ReportAggregator {
             return (report1.info.retry ?? 0) - (report2.info.retry ?? 0)
         })
         // the report shows each attempt of a spec file, and counts only the last one
-        const attempts = new Map<string, number>()
         for (let j = 0; j < this.reports.length; j++) {
             try {
                 const report = this.reports[j]
-                const attempt = (attempts.get(workerOfRun.get(report)!) ?? 0) + 1
-                attempts.set(workerOfRun.get(report)!, attempt)
                 if (!retried.has(report)) {
                     metrics.passed += report.metrics.passed
                     metrics.failed += report.metrics.failed
@@ -224,7 +230,7 @@ class ReportAggregator {
                 for (let k = 0; k < report.suites.length; k++) {
                     const suiteInfo = report.suites[k]
                     if (retried.has(report)) {
-                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${attempt}, retried)`
+                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${(report.info.retry ?? 0) + 1}, retried)`
                     }
                     this.updateSuiteMetrics(metrics, suiteInfo)
                     suites.push(suiteInfo)
