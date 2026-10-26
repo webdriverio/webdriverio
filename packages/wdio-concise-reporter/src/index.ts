@@ -4,6 +4,12 @@ import chalk from 'chalk'
 
 import type { Reporters } from '@wdio/types'
 
+// an error from a framework other than Mocha has no `type`: its name is the prefix
+function errorLine(error?: Error & { type?: string }) {
+    const label = error?.type ?? error?.name
+    return `    ${label ? `${label} : ` : ''}${chalk.yellow(error?.message)}`
+}
+
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
     private _suiteUids: string[] = []
@@ -90,8 +96,7 @@ export default class ConciseReporter extends WDIOReporter {
             if (test.state === 'failed' && !test.retried) {
                 output.push(
                     `  Fail : ${chalk.red(test.title)}`,
-                    // @ts-ignore
-                    `    ${test.error.type} : ${chalk.yellow(test.error?.message)}`
+                    errorLine(test.error)
                 )
             }
         }))
@@ -112,7 +117,7 @@ export default class ConciseReporter extends WDIOReporter {
             `❌ Hook${hooks.length > 1 ? 's' : ''} failed (${hooks.length}):`,
             ...hooks.flatMap((hook) => [
                 `  Fail : ${chalk.red(hook.title)}`,
-                `    ${(hook.error as Error & { type?: string } | undefined)?.type} : ${chalk.yellow(hook.error?.message)}`
+                errorLine(hook.error)
             ])
         ]
     }
