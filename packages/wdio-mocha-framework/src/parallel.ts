@@ -19,7 +19,7 @@ import type { AsyncLocalStorage } from 'node:async_hooks'
 import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
-import { checkHookKind, dottedFullTitle, formatError, type TitledNode } from './common.js'
+import { TITLE_KINDS, checkHookKind, dottedFullTitle, formatError, type TitledNode } from './common.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation, type ParallelContextBrowser, type ParallelMode } from '@wdio/utils'
 import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, MochaError } from './types.js'
@@ -321,7 +321,6 @@ function emitTestFail(
 
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 type ReporterHookKind = NonNullable<FormattedMessage['hookKind']>
-const HOOK_KINDS: Record<HookKind, ReporterHookKind> = { 'before all': 'beforeAll', 'after all': 'afterAll', 'before each': 'beforeEach', 'after each': 'afterEach' }
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
     reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
@@ -372,7 +371,7 @@ function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test
         ...parentUidField(cid, ownSuite ? declaringIndex : test.suiteIndex),
         contextId,
         ...(currentTest !== undefined && { currentTest }),
-        hookKind: checkHookKind(hook, HOOK_KINDS[kind]),
+        hookKind: checkHookKind(hook, TITLE_KINDS[kind]),
         ...(ownSuite && declaringIndex !== undefined && { hookSuiteUid: suiteUid(cid, declaringIndex) })
     } satisfies TestMessage
 }

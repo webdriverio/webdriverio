@@ -32,7 +32,7 @@ interface Payload {
 }
 
 const HOOK_LISTS = [['_beforeAll', 'beforeAll'], ['_beforeEach', 'beforeEach'], ['_afterEach', 'afterEach'], ['_afterAll', 'afterAll']] as const
-const TITLE_KINDS: Record<string, HookKind> = { 'before all': 'beforeAll', 'before each': 'beforeEach', 'after each': 'afterEach', 'after all': 'afterAll' }
+export const TITLE_KINDS: Record<string, HookKind> = { 'before all': 'beforeAll', 'before each': 'beforeEach', 'after each': 'afterEach', 'after all': 'afterAll' }
 
 /**
  * Logs a hook whose title rule (`"before all" hook ...`) disagrees with its kind
