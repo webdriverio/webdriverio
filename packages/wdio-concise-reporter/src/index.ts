@@ -9,6 +9,7 @@ export default class ConciseReporter extends WDIOReporter {
     private _suiteUids: string[] = []
     private _suites: SuiteStats[] = []
     private _stateCounts = { failed: 0 }
+    private _failedHooks: HookStats[] = []
 
     constructor(options: Reporters.Options) {
         // write to output stream by default
@@ -27,15 +28,11 @@ export default class ConciseReporter extends WDIOReporter {
         this._stateCounts.failed++
     }
 
-    // a failed Cucumber BeforeAll / AfterAll fails no test (K26)
+    // each failed hook that counts as a failure, in any framework: also one that fails no test
     onHookEnd (hook: HookStats) {
-        if (this.#isFailedFeatureHook(hook)) {
-            this._stateCounts.failed++
+        if (hookCountsAsFailure(hook) && !this._failedHooks.includes(hook)) {
+            this._failedHooks.push(hook)
         }
-    }
-
-    #isFailedFeatureHook (hook: HookStats) {
-        return hookCountsAsFailure(hook) && this.isFeatureHook(hook)
     }
 
     onRunnerEnd (runner: RunnerStats): void {
@@ -49,10 +46,13 @@ export default class ConciseReporter extends WDIOReporter {
     printReport(runner: RunnerStats): void {
         const header = chalk.yellow('========= Your concise report ==========')
 
+        const countDisplay = this.getCountDisplay()
         const output = [
             this.getEnviromentCombo(runner.capabilities),
-            this.getCountDisplay(),
-            ...this.getFailureDisplay()
+            // no count line when only hooks failed: their own part follows
+            ...(countDisplay ? [countDisplay] : []),
+            ...this.getFailureDisplay(),
+            ...this.getHookFailureDisplay()
         ]
 
         this.write(`${header}\n${output.join('\n')}\n`)
@@ -68,7 +68,7 @@ export default class ConciseReporter extends WDIOReporter {
             ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
             : this.counts.tests === 0
                 ? '❌ Failed to setup tests, no tests found'
-                : '✅ All went well!'
+                : this._failedHooks.length ? '' : '✅ All went well!'
     }
 
     /**
@@ -78,7 +78,7 @@ export default class ConciseReporter extends WDIOReporter {
     getFailureDisplay () {
         const output: string[] = []
 
-        this.getOrderedSuites().map(suite => [...suite.tests, ...(suite.hooks ?? []).filter((hook) => this.#isFailedFeatureHook(hook))].map(test => {
+        this.getOrderedSuites().map(suite => suite.tests.map(test => {
             // the last attempt of a retried test decides (K27)
             if (test.state === 'failed' && !test.retried) {
                 output.push(
@@ -90,6 +90,24 @@ export default class ConciseReporter extends WDIOReporter {
         }))
 
         return output
+    }
+
+    /**
+     * Get display for failed hooks that count as a failure, in the order they ended
+     * @return {Array} Hook failure output
+     */
+    getHookFailureDisplay () {
+        const hooks = this._failedHooks
+        if (!hooks.length) {
+            return []
+        }
+        return [
+            `❌ Hook${hooks.length > 1 ? 's' : ''} failed (${hooks.length}):`,
+            ...hooks.flatMap((hook) => [
+                `  Fail : ${chalk.red(hook.title)}`,
+                `    ${(hook.error as Error & { type?: string } | undefined)?.type} : ${chalk.yellow(hook.error?.message)}`
+            ])
+        ]
     }
 
     /**
