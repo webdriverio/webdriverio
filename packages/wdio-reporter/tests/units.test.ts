@@ -124,7 +124,7 @@ const end = (reporter: WDIOReporter) => reporter.emit('runner:end', { ...base, f
 const unitLines = (r: Recorder) => r.log.filter((l) => l.startsWith('UNIT'))
 
 describe('units: Mocha', () => {
-    it('sequential: a unit per test, ends at its test:end; after hooks get the ended unit', () => {
+    it('sequential: a unit per test, ends after the afterEach hooks of its test', () => {
         const r = new Recorder()
         play(r, [
             ['suite:start', suiteEv('s1', 'A')],
@@ -157,9 +157,9 @@ describe('units: Mocha', () => {
             'hook:end "before each" hook -> seq:a1#0',
             'test:pass a1 -> seq:a1#0',
             'test:end a1 -> seq:a1#0',
-            'UNIT- seq:a1#0 test=a1',
             'hook:start "after each" hook -> seq:a1#0',
             'hook:end "after each" hook -> seq:a1#0',
+            'UNIT- seq:a1#0 test=a1',
             'UNIT+ seq:a2 skip#0',
             'test:pending a2 skip -> seq:a2 skip#0',
             'test:end a2 skip -> seq:a2 skip#0',
@@ -258,12 +258,227 @@ describe('units: Mocha', () => {
             ['test:start', testEv('t2', 'next')],
             ['test:end', testEv('t2', 'next')],
         ])
+        end(r)
         expect(unitLines(r)).toEqual([
             'UNIT+ seq:k8#0',
             'UNIT~ seq:k8#0',
             'UNIT- seq:k8#0 test=k8',
             'UNIT+ seq:next#0',
             'UNIT- seq:next#0 test=next',
+        ])
+    })
+})
+
+describe('units: a sequential unit ends after the afterEach hooks of its test', () => {
+    /** keeps the hook errors in the state of the unit of the hook, and prints them at onUnitEnd */
+    class ErrorsProbe extends Recorder {
+        onHookEnd (h: HookStats) {
+            super.onHookEnd(h)
+            if (h.error) {
+                this.unitState('errors', () => [] as string[], this.unitOf(h))?.push(h.error.message)
+            }
+        }
+        onUnitEnd (unit: ReporterUnit) {
+            super.onUnitEnd(unit)
+            this.log.push(`errors=${this.unitState('errors', () => [] as string[], unit)!.join(',')}`)
+        }
+    }
+    const each = (uid: string, kind: 'beforeEach' | 'afterEach', t: string, extra: Record<string, unknown> = {}) => (
+        hookEv(uid, `"${kind === 'beforeEach' ? 'before' : 'after'} each" hook for "${t}"`, { hookKind: kind, ...extra })
+    )
+
+    it('Mocha: the failed afterEach of a test is in its unit at onUnitEnd, before the next test', () => {
+        const r = new ErrorsProbe()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['test:fail', testEv('t1', 'a1', { error: { message: 'x' } })],
+            ['test:end', testEv('t1', 'a1')],
+            ['hook:start', each('ha1', 'afterEach', 'a1')],
+            ['hook:end', each('ha1', 'afterEach', 'a1', { error: { message: 'afterEach failed' } })],
+            ['test:start', testEv('t2', 'a2')],
+            ['test:pass', testEv('t2', 'a2')],
+            ['test:end', testEv('t2', 'a2')],
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log).toEqual([
+            'suite:start A -> none',
+            'UNIT+ seq:a1#0',
+            'test:start a1 -> seq:a1#0',
+            'test:fail a1 -> seq:a1#0',
+            'test:end a1 -> seq:a1#0',
+            'hook:start "after each" hook for "a1" -> seq:a1#0',
+            'hook:end "after each" hook for "a1" -> seq:a1#0',
+            'UNIT- seq:a1#0 test=a1',
+            'errors=afterEach failed',
+            'UNIT+ seq:a2#0',
+            'test:start a2 -> seq:a2#0',
+            'test:pass a2 -> seq:a2#0',
+            'test:end a2 -> seq:a2#0',
+            'UNIT- seq:a2#0 test=a2',
+            'errors=',
+            'suite:end A -> none',
+        ])
+        expect(r.unitOf(r.hooks.ha1)).toBe(r.unitOf(r.tests.t1))
+    })
+
+    it('the last test of a suite ends before the after() hook of its suite', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['test:pass', testEv('t1', 'a1')],
+            ['test:end', testEv('t1', 'a1')],
+            ['hook:start', each('ha1', 'afterEach', 'a1')],
+            ['hook:end', each('ha1', 'afterEach', 'a1')],
+            ['hook:start', hookEv('h2', '"after all" hook in "A"', { hookKind: 'afterAll' })],
+            ['hook:end', hookEv('h2', '"after all" hook in "A"', { hookKind: 'afterAll' })],
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log.slice(r.log.indexOf('test:end a1 -> seq:a1#0'))).toEqual([
+            'test:end a1 -> seq:a1#0',
+            'hook:start "after each" hook for "a1" -> seq:a1#0',
+            'hook:end "after each" hook for "a1" -> seq:a1#0',
+            'UNIT- seq:a1#0 test=a1',
+            'hook:start "after all" hook in "A" -> none',
+            'hook:end "after all" hook in "A" -> none',
+            'suite:end A -> none',
+        ])
+    })
+
+    it('a test ends before the suite:start of a nested describe with a before() hook', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'a1')],
+            ['test:pass', testEv('t1', 'a1')],
+            ['test:end', testEv('t1', 'a1')],
+            ['suite:start', suiteEv('s2', 'B')],
+            ['hook:start', hookEv('h1', '"before all" hook in "B"', { hookKind: 'beforeAll' })],
+            ['hook:end', hookEv('h1', '"before all" hook in "B"', { hookKind: 'beforeAll' })],
+            ['test:start', testEv('t2', 'b1')],
+            ['test:pass', testEv('t2', 'b1')],
+            ['test:end', testEv('t2', 'b1')],
+            ['suite:end', suiteEv('s2', 'B')],
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log.slice(r.log.indexOf('test:end a1 -> seq:a1#0'))).toEqual([
+            'test:end a1 -> seq:a1#0',
+            'UNIT- seq:a1#0 test=a1',
+            'suite:start B -> none',
+            'hook:start "before all" hook in "B" -> none',
+            'hook:end "before all" hook in "B" -> none',
+            'UNIT+ seq:b1#0',
+            'test:start b1 -> seq:b1#0',
+            'test:pass b1 -> seq:b1#0',
+            'test:end b1 -> seq:b1#0',
+            'UNIT- seq:b1#0 test=b1',
+            'suite:end B -> none',
+            'suite:end A -> none',
+        ])
+    })
+
+    it('a hook with no hookKind: an "after each" title keeps the unit open, a "before each" title ends it', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 't1')],
+            ['test:pass', testEv('t1', 't1')],
+            ['test:end', testEv('t1', 't1')],
+            ['hook:start', hookEv('ha1', '"after each" hook for "t1"')],
+            ['hook:end', hookEv('ha1', '"after each" hook for "t1"')],
+            ['hook:start', hookEv('hb2', '"before each" hook for "t2"')],
+            ['hook:end', hookEv('hb2', '"before each" hook for "t2"')],
+            ['test:start', testEv('t2', 't2')],
+            ['test:pass', testEv('t2', 't2')],
+            ['test:end', testEv('t2', 't2')],
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log.slice(r.log.indexOf('test:end t1 -> seq:t1#0'))).toEqual([
+            'test:end t1 -> seq:t1#0',
+            'hook:start "after each" hook for "t1" -> seq:t1#0',
+            'hook:end "after each" hook for "t1" -> seq:t1#0',
+            'UNIT- seq:t1#0 test=t1',
+            // a hook with no hookKind keeps the owner of today: the ended unit of the test before it
+            'hook:start "before each" hook for "t2" -> seq:t1#0',
+            'hook:end "before each" hook for "t2" -> seq:t1#0',
+            'UNIT+ seq:t2#0',
+            'test:start t2 -> seq:t2#0',
+            'test:pass t2 -> seq:t2#0',
+            'test:end t2 -> seq:t2#0',
+            'UNIT- seq:t2#0 test=t2',
+            'suite:end A -> none',
+        ])
+    })
+
+    it('a retried Mocha test keeps one unit for its attempts, and ends after the afterEach of its last attempt', () => {
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A')],
+            ['test:start', testEv('t1', 'flaky')],
+            ['test:retry', testEv('t1', 'flaky', { error: { message: 'x' } })],
+            ['hook:start', each('ha1', 'afterEach', 'flaky')],
+            ['hook:end', each('ha1', 'afterEach', 'flaky')],
+            ['hook:start', each('hb2', 'beforeEach', 'flaky')],
+            ['hook:end', each('hb2', 'beforeEach', 'flaky')],
+            ['test:start', testEv('t2', 'flaky')],
+            ['test:pass', testEv('t2', 'flaky')],
+            ['test:end', testEv('t2', 'flaky')],
+            ['hook:start', each('ha2', 'afterEach', 'flaky')],
+            ['hook:end', each('ha2', 'afterEach', 'flaky')],
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log.slice(1)).toEqual([
+            'UNIT+ seq:flaky#0',
+            'test:start flaky -> seq:flaky#0',
+            'UNIT~ seq:flaky#0',
+            'test:retry flaky -> seq:flaky#0',
+            'hook:start "after each" hook for "flaky" -> seq:flaky#0',
+            'hook:end "after each" hook for "flaky" -> seq:flaky#0',
+            'hook:start "before each" hook for "flaky" -> seq:flaky#0',
+            'hook:end "before each" hook for "flaky" -> seq:flaky#0',
+            'test:start flaky -> seq:flaky#1',
+            'test:pass flaky -> seq:flaky#1',
+            'test:end flaky -> seq:flaky#1',
+            'hook:start "after each" hook for "flaky" -> seq:flaky#1',
+            'hook:end "after each" hook for "flaky" -> seq:flaky#1',
+            'UNIT- seq:flaky#1 test=flaky',
+            'suite:end A -> none',
+        ])
+        expect(r.retrySeen).toEqual(['seq:flaky#0 tests=flaky:failed'])
+        expect(r.unitOf(r.tests.t2)).toBe(r.unitOf(r.tests.t1))
+    })
+
+    it('parallel: a unit still ends at context:end, after its afterEach and after() hooks', () => {
+        const ctx = { contextId: 'A', parentUid: 's1' }
+        const r = new Recorder()
+        play(r, [
+            ['suite:start', suiteEv('s1', 'A', { parentUid: null })],
+            ['test:start', testEv('t1', 'a1', ctx)],
+            ['test:pass', testEv('t1', 'a1', ctx)],
+            ['test:end', testEv('t1', 'a1', ctx)],
+            ['hook:start', each('ha1', 'afterEach', 'a1', ctx)],
+            ['hook:end', each('ha1', 'afterEach', 'a1', ctx)],
+            ['hook:start', hookEv('h2', '"after all" hook in "A"', { ...ctx, hookKind: 'afterAll' })],
+            ['hook:end', hookEv('h2', '"after all" hook in "A"', { ...ctx, hookKind: 'afterAll' })],
+            ctxEnd('t1', 'A'),
+            ['suite:end', suiteEv('s1', 'A')],
+        ])
+        end(r)
+        expect(r.log.slice(r.log.indexOf('test:end a1 -> A:a1#0'))).toEqual([
+            'test:end a1 -> A:a1#0',
+            'hook:start "after each" hook for "a1" -> A:a1#0',
+            'hook:end "after each" hook for "a1" -> A:a1#0',
+            'hook:start "after all" hook in "A" -> A:a1#0',
+            'hook:end "after all" hook in "A" -> A:a1#0',
+            'context:end -> A:a1#0',
+            'UNIT- A:a1#0 test=a1',
+            'suite:end A -> none',
         ])
     })
 })
@@ -309,6 +524,7 @@ describe('units: fallback ends', () => {
             ['test:start', testEv('t2', 'A x')],
             ['test:end', testEv('t2', 'A x')],
         ])
+        end(r)
         expect(unitLines(r)).toEqual(['UNIT+ seq:A x#0', 'UNIT~ seq:A x#0', 'UNIT- seq:A x#0 test=A x', 'UNIT+ seq:A x#0', 'UNIT- seq:A x#0 test=A x'])
         expect(r.unitOf(r.tests.t2)).not.toBe(r.unitOf(r.tests.t1))
     })
@@ -461,6 +677,7 @@ describe('units: Cucumber', () => {
                 ['test:start', testEv('p2', 'R other')],
                 ['test:end', testEv('p2', 'R other')],
             ])
+            end(r)
             const tag = contextId ?? 'seq'
             expect(unitLines(r), tag).toEqual([
                 `UNIT+ ${tag}:R flaky#0`, `UNIT~ ${tag}:R flaky#0`, `UNIT- ${tag}:R flaky#1 test=R flaky`,
