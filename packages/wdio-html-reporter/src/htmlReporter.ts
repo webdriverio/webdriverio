@@ -98,6 +98,8 @@ export default class HtmlReporter extends WDIOReporter {
     #earlyEvents = new Map<string, ReportEvent[]>()
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
+    /** K12: the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
+    #attemptEnds = new WeakMap<SuiteStats, Date>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
@@ -335,7 +337,9 @@ export default class HtmlReporter extends WDIOReporter {
             // its retried step is its failure (K24 skips retried attempts only in the last attempt)
             retriedAttempt: true
         })
+        attempt.start = this.#attemptEnds.get(suite) ?? suite.start
         attempt.complete()
+        this.#attemptEnds.set(suite, attempt.end!)
         // a Cucumber scenario is always in its feature
         const siblings = this.parentOf(suite)?.suites
         const index = siblings?.indexOf(suite) ?? -1

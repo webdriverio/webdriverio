@@ -215,7 +215,7 @@ export default class WDIOReporter extends EventEmitter {
             if (unit?.contextId) {
                 retriedContexts.add(unit.contextId)
             }
-            // onSuiteRetry sees the new retry count (as main) and the tests, hooks and start of the failed attempt (K12)
+            // onSuiteRetry sees the new retry count (as main) and the tests and hooks of the failed attempt (K12); the start stays the first attempt's
             suiteStat.retries++
             try {
                 this.#call(unit, () => this.onSuiteRetry(suiteStat))

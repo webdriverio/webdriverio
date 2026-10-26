@@ -79,13 +79,12 @@ export default class SuiteStats extends RunnableStats {
     }
 
     /**
-     * Remove the tests and hooks of the failed attempt; the next attempt starts now.
+     * Remove the tests and hooks of the failed attempt; the suite keeps the start of its first attempt, as main.
      * @experimental the name may change
      */
     clearAttempt () {
         this.tests = []
         this.hooks = []
         this.hooksAndTests = []
-        this.start = new Date()
     }
 }
