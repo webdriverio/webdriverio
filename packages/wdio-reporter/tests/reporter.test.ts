@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 import type { WriteStream } from 'node:fs'
 import fs from 'node:fs'
 
-import WDIOReporter, { getBrowserName, getBrowserNames } from '../src/index.js'
+import WDIOReporter, { getBrowserName, getBrowserNames, getSessionNames } from '../src/index.js'
 
 vi.mock('node:fs', () => ({
     default: {
@@ -131,5 +131,59 @@ describe('getBrowserNames', () => {
         expect(getBrowserName({ browserName: 'chrome' })).toBe('chrome')
         expect(getBrowserName({ 'appium:app': '/path/to/my.app' })).toBe('my.app')
         expect(getBrowserName({})).toBe('')
+    })
+})
+
+describe('getSessionNames', () => {
+    const phone = { platformName: 'iOS', 'appium:deviceName': 'iPhone 17', 'appium:platformVersion': '18.2' }
+
+    it('names an Appium app with its device and platform version', () => {
+        expect(getSessionNames({ ...phone, 'appium:app': '/Users/me/MyApp.app' })).toEqual(['MyApp.app on iPhone 17 (iOS 18.2)'])
+    })
+
+    it('names a mobile browser with its device and platform version', () => {
+        expect(getSessionNames({ ...phone, browserName: 'safari' })).toEqual(['safari on iPhone 17 (iOS 18.2)'])
+    })
+
+    it('leaves out the version when there is none', () => {
+        expect(getSessionNames({ platformName: 'iOS', 'appium:deviceName': 'iPhone 17', 'appium:app': '/Users/me/MyApp.app' }))
+            .toEqual(['MyApp.app on iPhone 17 (iOS)'])
+    })
+
+    it('names an Android app by its package', () => {
+        expect(getSessionNames({
+            platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15', 'appium:appPackage': 'com.example'
+        })).toEqual(['com.example on Pixel 9 (Android 15)'])
+    })
+
+    it('reads the capabilities that Appium returns, without the prefix', () => {
+        expect(getSessionNames({ platformName: 'iOS', deviceName: 'iPhone 17', platformVersion: '18.2', app: '/Users/me/MyApp.app' }))
+            .toEqual(['MyApp.app on iPhone 17 (iOS 18.2)'])
+    })
+
+    it('does not change the name of a desktop browser', () => {
+        expect(getSessionNames({ browserName: 'chrome', browserVersion: '130', platformName: 'mac' })).toEqual(['chrome'])
+    })
+
+    it('names a session with only a device', () => {
+        expect(getSessionNames(phone)).toEqual(['iPhone 17 (iOS 18.2)'])
+    })
+
+    it('reads w3c capabilities', () => {
+        expect(getSessionNames({ alwaysMatch: { ...phone, browserName: 'safari' }, firstMatch: [] })).toEqual(['safari on iPhone 17 (iOS 18.2)'])
+    })
+
+    it('gives one name for each multi-remote instance, in their order', () => {
+        expect(getSessionNames({
+            myChrome: { browserName: 'chrome' },
+            myPhone: { capabilities: { ...phone, 'appium:app': '/Users/me/MyApp.app' } },
+            otherChrome: { browserName: 'firefox' }
+        }, true)).toEqual(['chrome', 'MyApp.app on iPhone 17 (iOS 18.2)', 'firefox'])
+    })
+
+    it('leaves out a session with no name', () => {
+        expect(getSessionNames({})).toEqual([])
+        expect(getSessionNames(undefined)).toEqual([])
+        expect(getSessionNames({ platformName: 'linux' })).toEqual([])
     })
 })
