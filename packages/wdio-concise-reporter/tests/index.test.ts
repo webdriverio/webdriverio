@@ -47,6 +47,19 @@ describe('ConciseReporter', () => {
             ))
         })
 
+        it('names the browser of each instance of a multi-remote run', () => {
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { myChrome: { browserName: 'chrome' }, myPhone: { platformName: 'iOS', deviceName: 'iPhone 17' } }
+            } as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'chrome, iPhone 17',
+                '❌ Failed to setup tests, no tests found'
+            ))
+        })
+
         it('should print the all-clear report when every test passed', () => {
             // Failure totals live on this reporter. Passes stay on the base
             // counts object, which the reporter mock does not increment.
