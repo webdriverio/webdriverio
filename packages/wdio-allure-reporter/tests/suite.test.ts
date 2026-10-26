@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { hostname } from 'node:os'
 import { log } from 'node:console'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, } from 'vitest'
 import type { Attachment, Label, Link, Parameter } from 'allure-js-commons'
@@ -166,12 +167,13 @@ describe('Passing tests', () => {
         expect(browsers[0].value).toEqual('chrome-68')
     })
 
-    it('should add label, story, feature, severity, issue, testId, thread and package labels', () => {
+    it('should add label, story, feature, severity, issue, testId, host, thread and package labels', () => {
         const labels = mapBy<Label>(allureResult.labels, 'name')
         const customLabels = labels.customLabel
         const features = labels[LabelName.FEATURE]
         const stories = labels[LabelName.STORY]
         const severities = labels[LabelName.SEVERITY]
+        const hosts = labels[LabelName.HOST]
         const threads = labels[LabelName.THREAD]
         const packages = labels[LabelName.PACKAGE]
 
@@ -183,6 +185,9 @@ describe('Passing tests', () => {
         expect(stories[0].value).toEqual('Story')
         expect(severities).toHaveLength(1)
         expect(severities[0].value).toEqual('baz')
+        expect(hosts).toHaveLength(1)
+        expect(hosts[0].value).toEqual(hostname())
+        expect(hosts[0].value.length).toBeGreaterThan(0)
         expect(threads).toHaveLength(1)
         expect(threads[0].value).toEqual(testStart().cid)
         expect(packages).toHaveLength(1)
@@ -1541,5 +1546,44 @@ describe('Incremental flush', () => {
         clean(endOnlyDir)
 
         expect(await run(flushedDir, true)).toEqual(await run(endOnlyDir, false))
+    })
+})
+
+describe('host label env override', () => {
+    const outputDir = temporaryDirectory()
+    let allureResult: Record<string, any>
+    const originalHostLabel = process.env.ALLURE_LABEL_host
+
+    beforeAll(async () => {
+        process.env.ALLURE_LABEL_host = 'custom-host'
+
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        allureResult = results[0]
+    })
+
+    afterAll(() => {
+        if (originalHostLabel === undefined) {
+            delete process.env.ALLURE_LABEL_host
+        } else {
+            process.env.ALLURE_LABEL_host = originalHostLabel
+        }
+        clean(outputDir)
+    })
+
+    it('lets ALLURE_LABEL_host override the default hostname', () => {
+        const hostLabels = allureResult.labels.filter((l: Label) => l.name === LabelName.HOST)
+
+        // the built-in default and the env-provided label are both emitted
+        expect(hostLabels.length).toBeGreaterThanOrEqual(1)
+        // last label wins in Allure, so the effective host is the env value
+        expect(hostLabels[hostLabels.length - 1].value).toEqual('custom-host')
     })
 })
