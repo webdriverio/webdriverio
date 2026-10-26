@@ -276,7 +276,7 @@ export default class WDIOReporter extends EventEmitter {
                 if (hook.hookSuiteUid !== undefined) {
                     hookStats.hookSuiteUid = hook.hookSuiteUid
                 }
-                if (isContextlessAllHook(hookStats)) {
+                if (hookStats && isContextlessAllHook(hookStats)) {
                     this.#unitOfStats.delete(hookStats)
                 }
                 hookStats.complete(getErrorsFromEvent(hook), isSkippedHook(hook))
@@ -284,7 +284,8 @@ export default class WDIOReporter extends EventEmitter {
                 this.#call(this.#unitOfStats.get(hookStats), () => this.onHookEnd(hookStats))
             } finally {
                 this.#openAllHooks.delete(hookStats)
-                if (hookStats.contextId) {
+                // a hook:end with no hook:start: the first error stays the thrown one
+                if (hookStats?.contextId) {
                     this.#openContextHooks.set(hookStats.contextId, (this.#openContextHooks.get(hookStats.contextId) ?? []).filter((entry) => entry !== hookStats))
                 }
                 const openHooks = openUnit && this.#openUnitHooks.get(openUnit)?.filter((entry) => entry !== hookStats)
