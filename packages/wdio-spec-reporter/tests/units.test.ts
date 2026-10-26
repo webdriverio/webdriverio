@@ -447,6 +447,24 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         ])
     })
 
+    it('does not give a late log to a hook that never ended, after its context ended', () => {
+        const reporter = newReporter({ addConsoleLogs: true })
+        let contextId: string | undefined
+        reporter.setContextIdResolver(() => contextId)
+        reporter.emit('suite:start', suite('A', 'suite', null))
+        runTest(reporter, 'a1', 'test:pass', { parentUid: 'A', contextId: 'c1' })
+        const after = { ...allHook('h1', 'afterAll', '"after all" hook for A', 'A'), parentUid: 'A', contextId: 'c1' }
+        reporter.emit('hook:start', after)
+        reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'a1', contextId: 'c1' })
+        contextId = 'c1'
+        process.stdout.write('LOG late\n')
+        contextId = undefined
+        reporter.emit('suite:end', suite('A', 'suite'))
+
+        expect(display(reporter).join('\n')).not.toMatch(/after all.*\n\n\s+\.+Console Logs[\s\S]*LOG late/)
+        expect(reporter['_openContextAllHooks'].has('c1')).toBe(false)
+    })
+
     it('prints the logs of a parallel Cucumber Before that runs before the first step', () => {
         const reporter = newReporter({ addConsoleLogs: true })
         let contextId: string | undefined
