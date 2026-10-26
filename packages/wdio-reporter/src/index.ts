@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isContextlessAllHook, knownFramework, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -859,24 +859,6 @@ function getBrowserNames(capabilities: unknown, isMultiRemote = false): string[]
     })
 }
 
-// a remote app URL can hold credentials or a token: the label keeps the file name only
-function withoutUrlSecrets(name: string) {
-    try {
-        const url = new URL(name)
-        if (['http:', 'https:', 'ftp:'].includes(url.protocol)) {
-            const file = url.pathname.split('/').filter(Boolean).pop() ?? ''
-            try {
-                return decodeURIComponent(file)
-            } catch {
-                return file
-            }
-        }
-    } catch {
-        // not a URL
-    }
-    return name
-}
-
 /**
  * @experimental the label of each session of a runner, in the order of the multi-remote instances:
  * the `getBrowserName` result (the browser or the app), then ` on <device> (<platform> <version>)`
@@ -888,7 +870,7 @@ function withoutUrlSecrets(name: string) {
 function getSessionNames(capabilities: unknown, isMultiRemote = false): string[] {
     return sessionCapabilities(capabilities, isMultiRemote).flatMap((caps) => {
         const text = (value: unknown) => typeof value === 'string' || typeof value === 'number' ? String(value) : ''
-        const name = withoutUrlSecrets(text(getBrowserName(caps as WebdriverIO.Capabilities)))
+        const name = appFileName(text(getBrowserName(caps as WebdriverIO.Capabilities)))
         const device = text(caps['appium:deviceName'] || caps.deviceName)
         if (!device) {
             return name ? [name] : []
