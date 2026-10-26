@@ -441,15 +441,16 @@ describe('ReportAggregator', () => {
         })
     })
 
+    const RUNNER_SPECS = ['/foo/bar/baz.js']
     /**
      * `specFileRetries: 1`: the retry runs in a new worker with the same cid. The runner gives the first
      * attempt `retry` 2 (`specFileRetries + 1`), the retry 1, and a run with no `specFileRetries` 1
      */
-    const runAttempt = async (outputDir: string, retry: number, { passed = true, killed = false, specFileRetries = 1, start = '2021-06-11T16:24:27.910Z' } = {}) => {
+    const runAttempt = async (outputDir: string, retry: number, { passed = true, killed = false, specFileRetries = 1, start = '2021-06-11T16:24:27.910Z', filename = 'report.html', specs = RUNNER_SPECS } = {}) => {
         const { HtmlReporter } = await import('../src/index.js')
         const { RUNNER } = await import('./testdata.js')
-        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Retries' } as never)
-        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, { retry, start, config: { specFileRetries } })
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename, reportTitle: 'Retries' } as never)
+        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, { retry, start, specs, config: { specFileRetries } })
         reporter.onRunnerStart(runner)
         if (!killed) {
             const common = { cid: '0-0', file: 'retried.spec.js' }
@@ -508,6 +509,37 @@ describe('ReportAggregator', () => {
         const master = await masterOf(outputDir)
         expect(master.metrics).toMatchObject({ passed: 2, failed: 0 })
         expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
+    })
+
+    it('counts the reports of 2 configurations with another file name in one folder, which both have the cid 0-0', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 1, { specFileRetries: 0, filename: 'report-chrome.html', passed: false })
+        await runAttempt(outputDir, 1, { specFileRetries: 0, filename: 'report-firefox.html', start: '2021-06-11T16:30:00.000Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 1 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
+    })
+
+    it('labels each attempt with its own number when a killed attempt is not in the report', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        // specFileRetries: 2: the runner gives 3, then 1, then 2
+        await runAttempt(outputDir, 3, { specFileRetries: 2, killed: true })
+        await runAttempt(outputDir, 1, { specFileRetries: 2, passed: false, start: '2021-06-11T16:25:27.910Z' })
+        await runAttempt(outputDir, 2, { specFileRetries: 2, start: '2021-06-11T16:26:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried (spec file attempt 2, retried)', 'retried'])
+    })
+
+    it('leaves out an old retry file of another spec file in the same folder', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { passed: false, specs: ['/project/a.js'] })
+        await runAttempt(outputDir, 1, { start: '2021-06-11T16:25:27.910Z', specs: ['/project/a.js'] })
+        // a new run of another spec file with the same cid, and no clean of the folder
+        await runAttempt(outputDir, 1, { specFileRetries: 0, start: '2021-06-12T10:00:00.000Z', specs: ['/project/b.js'] })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried'])
     })
 
     it('counts the new run, not the retry files of an earlier run in the same folder', async () => {
