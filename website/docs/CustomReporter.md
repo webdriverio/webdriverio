@@ -254,9 +254,13 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
 - `hookStats.state`: the base reporter sets `'failed'` when the hook failed, or `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`). A passed hook keeps `undefined`. A reporter can set `'passed'` on its own stats (`AllureReporter` does). Each reporter has its own `HookStats`.
 
+### Browser name
+
+`runner.capabilities` are the capabilities of the session (in a multi-remote run, a map of the instance names to their capabilities). To show the browser that ran, use `getBrowserNames(runner.capabilities, runner.isMultiRemote)` (an export of `@wdio/reporter`). It returns one name for each session, in the order of the multi-remote instances: the result of `getBrowserName(caps)` (the browser, else the Appium app), else the Appium device name. A session with none of these has no entry. If your reporter has an option for the browser name, show that option when the user sets it, else these names.
+
 :::warning Experimental
 
-The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
+The unit API is experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()`, `getBrowserNames` and the `'skipped'` state of a hook. The names and the results can change.
 
 :::
 
