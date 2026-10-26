@@ -27,7 +27,7 @@ describe('JsonGenerator.removeOutput', () => {
 
 describe('JsonGenerator.jsonOutput', () => {
     // the JSON keys of a hook before the `state` field was added to a skipped hook
-    const MAIN_KEYS = ['_duration', 'cid', 'end', 'errors', 'parent', 'start', 'title', 'type', 'uid']
+    const EARLIER_KEYS = ['_duration', 'cid', 'end', 'errors', 'parent', 'start', 'title', 'type', 'uid']
 
     const hookJson = async (removeOutput: boolean) => {
         const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-json-'))
@@ -64,10 +64,10 @@ describe('JsonGenerator.jsonOutput', () => {
         // with removeOutput: false a hook that has commands also has its `output`
         const keys = (extra: string[]) => (removeOutput ? extra : [...extra, 'output']).sort()
         expect(Object.fromEntries(suite.hooks.map((hook) => [hook.uid, Object.keys(hook).sort()]))).toEqual({
-            passed: keys(MAIN_KEYS),
-            failed: keys([...MAIN_KEYS, 'error', 'state']),
-            skipped: keys([...MAIN_KEYS, 'state']),
-            after: keys(MAIN_KEYS),
+            passed: keys(EARLIER_KEYS),
+            failed: keys([...EARLIER_KEYS, 'error', 'state']),
+            skipped: keys([...EARLIER_KEYS, 'state']),
+            after: keys(EARLIER_KEYS),
         })
         expect(suite.hooks.find((hook) => hook.uid === 'skipped')?.state).toBe('skipped')
         // a test keeps its output
