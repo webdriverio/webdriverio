@@ -102,11 +102,11 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
-    unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _contextId?: string): T | undefined {
+    unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
         return undefined
     }
 
-    attemptState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _contextId?: string): T | undefined {
+    attemptState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
         return undefined
     }
 

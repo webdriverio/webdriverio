@@ -622,18 +622,23 @@ export default class WDIOReporter extends EventEmitter {
         return this.#unitOfStats.get(stats)
     }
 
-    /** State of the reporter for one unit, made by `init` at the first call; `undefined` with no unit (see `getContextUnit`). @experimental */
-    unitState<T>(key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
-        return this.#stateOf('state', key, init, contextId)
+    /**
+     * State of the reporter for one unit, made by `init` at the first call; `undefined` with no unit (see `getContextUnit`).
+     * `target` is a context id, or the unit itself (from `unitOf` or `getContextUnit`): after an `await` in an `on*` method,
+     * pass the unit that you kept before the `await`.
+     * @experimental
+     */
+    unitState<T>(key: unknown, init: (unit: ReporterUnit) => T, target?: string | ReporterUnit): T | undefined {
+        return this.#stateOf('state', key, init, target)
     }
 
     /** As `unitState`, but new for each attempt of the unit. @experimental */
-    attemptState<T>(key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
-        return this.#stateOf('attemptState', key, init, contextId)
+    attemptState<T>(key: unknown, init: (unit: ReporterUnit) => T, target?: string | ReporterUnit): T | undefined {
+        return this.#stateOf('attemptState', key, init, target)
     }
 
-    #stateOf<T>(kind: 'state' | 'attemptState', key: unknown, init: (unit: ReporterUnit) => T, contextId?: string): T | undefined {
-        const unit = this.getContextUnit(contextId) as Unit | undefined
+    #stateOf<T>(kind: 'state' | 'attemptState', key: unknown, init: (unit: ReporterUnit) => T, target?: string | ReporterUnit): T | undefined {
+        const unit = (typeof target === 'object' ? target : this.getContextUnit(target)) as Unit | undefined
         if (!unit) {
             return undefined
         }
