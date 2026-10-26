@@ -200,6 +200,36 @@ In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files its
 
 In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1`. WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
 
+## Chrome profile on Windows
+
+In v9, a testrunner worker on Windows gave Chrome the profile folder `wdio-chrome-<worker id>-<time>` in `outputDir` (or the temporary folder) when your capabilities set no `--user-data-dir`. The folder stayed on disk after the run, and two sessions of one worker, for example the instances of a multi-remote worker, could get the same folder.
+
+In v10, WebdriverIO adds no profile folder. ChromeDriver gives each session its own temporary profile in the system temporary folder, also after `reloadSession()`, as on Linux and macOS. To keep a profile, for example its `Crashpad` crash dumps, set your own `--user-data-dir`. WebdriverIO never changes or deletes it. Give each session its own folder: the capabilities in the config file are read once by the launcher, so set the folder in `beforeSession`, which runs in each worker:
+
+```js
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+export const config = {
+    // ...
+    beforeSession (config, capabilities) {
+        if (!/chrom/i.test(capabilities.browserName ?? '')) {
+            return
+        }
+        const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
+        if (chromeOptions.args?.some((arg) => arg.includes('user-data-dir'))) {
+            return
+        }
+        chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
+    }
+}
+```
+
+These folders stay on disk after the run: delete them when you no longer need them.
+
+In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`. With W3C capabilities, use `capabilities.alwaysMatch`.
+
 ## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.

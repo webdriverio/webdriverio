@@ -855,59 +855,62 @@ describe('startWebDriver', () => {
         })
     })
 
-    it('should add a unique user-data-dir on Windows for Chrome workers', async () => {
-        // Change the mocked OS to Windows
-        // @ts-ignore
-        os.__setPlatform('win32')
-
+    describe('Chrome profile on Windows', () => {
         const originalPlatform = process.platform
-        Object.defineProperty(process, 'platform', {
-            value: 'win32',
-            writable: true,
-            configurable: true
+        const setPlatform = (value: string) => Object.defineProperty(process, 'platform', { value, writable: true, configurable: true })
+        const userDataDirArgs = (caps: { 'goog:chromeOptions'?: { args?: string[] } }) =>
+            (caps['goog:chromeOptions']?.args || []).filter((arg) => arg.includes('user-data-dir'))
+
+        beforeEach(() => {
+            setPlatform('win32')
+            process.env.WDIO_WORKER_ID = '0-1'
         })
 
-        // Simulate WDIO worker env
-        process.env.WDIO_WORKER_ID = '0-1'
+        afterEach(() => {
+            delete process.env.WDIO_WORKER_ID
+            setPlatform(originalPlatform)
+        })
 
-        // Reset mocks
-        vi.mocked(fsp.mkdir).mockClear()
-        vi.mocked(cp.spawn).mockClear()
+        /**
+         * ChromeDriver gives each session its own temporary profile and deletes
+         * it at quit, as on Linux and macOS
+         */
+        it('adds no --user-data-dir for a worker session', async () => {
+            const options: any = { capabilities: { browserName: 'chrome' } }
+            await startWebDriver(options)
+            expect(userDataDirArgs(options.capabilities)).toEqual([])
+        })
 
-        const options: any = {
-            capabilities: {
-                browserName: 'chrome',
-                'wdio:chromedriverOptions': { foo: 'bar' }
+        it('adds none for two sessions that start in the same millisecond', async () => {
+            const now = vi.spyOn(Date, 'now').mockReturnValue(1761400000000)
+            try {
+                const first: any = { capabilities: { browserName: 'chrome' } }
+                const second: any = { capabilities: { browserName: 'chrome' } }
+                await Promise.all([startWebDriver(first), startWebDriver(second)])
+                expect(userDataDirArgs(first.capabilities)).toEqual([])
+                expect(userDataDirArgs(second.capabilities)).toEqual([])
+            } finally {
+                now.mockRestore()
             }
-        }
-
-        const result = await startWebDriver(options)
-
-        expect(Boolean(result?.stdout)).toBe(true)
-
-        // startWebDriver does not create the directory, it just passes the path to Chrome
-        expect(fsp.mkdir).not.toBeCalled()
-
-        expect(cp.spawn).toBeCalledTimes(1)
-
-        // Check that the user-data-dir was added to the chromeOptions args
-        const chromeArgs = options.capabilities['goog:chromeOptions'].args
-        const userDataArg = chromeArgs.find((a: string) =>
-            a.startsWith('--user-data-dir=')
-        )
-
-        expect(userDataArg).toBeDefined()
-        expect(userDataArg).toContain('wdio-chrome-')
-        expect(userDataArg).toContain('0-1')
-
-        delete process.env.WDIO_WORKER_ID
-        // @ts-ignore
-        os.__setPlatform('linux')
-        Object.defineProperty(process, 'platform', {
-            value: originalPlatform,
-            writable: true,
-            configurable: true
         })
-        vi.restoreAllMocks()
+
+        it('adds none with W3C alwaysMatch capabilities', async () => {
+            const options: any = { capabilities: { alwaysMatch: { browserName: 'chrome' } } }
+            await startWebDriver(options)
+            expect(userDataDirArgs(options.capabilities.alwaysMatch)).toEqual([])
+        })
+
+        it.each(['--user-data-dir=C:\\profiles\\mine', 'user-data-dir=C:\\profiles\\mine'])('keeps the user\'s %s', async (arg) => {
+            const options: any = { capabilities: { browserName: 'chrome', 'goog:chromeOptions': { args: [arg] } } }
+            await startWebDriver(options)
+            expect(userDataDirArgs(options.capabilities)).toEqual([arg])
+        })
+
+        it('adds none on Linux', async () => {
+            setPlatform('linux')
+            const options: any = { capabilities: { browserName: 'chrome' } }
+            await startWebDriver(options)
+            expect(userDataDirArgs(options.capabilities)).toEqual([])
+        })
     })
 })

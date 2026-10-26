@@ -12,6 +12,8 @@ A WebdriverIO service that provides a developer tools UI for running, debugging,
 npm install @wdio/devtools-service --save-dev
 ```
 
+Requires Node.js 22.23.4+, 24.22.1+ or 26.12.1+, also with WebdriverIO v9.
+
 ## Usage
 
 ### Test Runner

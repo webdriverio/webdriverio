@@ -66,6 +66,31 @@ updates:
     major-deps-updates-main:
       update-types:
         - "major"
+# v9 maintenance branch: minor and patch updates only. Dependabot reads this
+# file from the default branch, so the v9 entry lives here.
+- package-ecosystem: npm
+  directory: "/"
+  target-branch: v9
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 5
+  versioning-strategy: increase-if-necessary
+  cooldown:
+    default-days: 2
+  ignore:
+    - dependency-name: "*"
+      update-types: ["version-update:semver-major"]
+    # 0.24 needs Node >= 22 and breaks Safari component tests without the #15696 guard
+    - dependency-name: "recast"
+      versions: [">=0.24.0"]
+  groups:
+    patch-deps-updates-v9:
+      update-types:
+        - "patch"
+    minor-deps-updates-v9:
+      update-types:
+        - "minor"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
