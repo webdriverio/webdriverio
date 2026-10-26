@@ -194,6 +194,53 @@ describe('wdio-junit-reporter', () => {
         expect(output).toMatchSnapshot()
     })
 
+    describe('package of a multi-remote run', () => {
+        const chrome = { browserName: 'chrome', browserVersion: '155.0.8059.85', platformName: 'mac' }
+        const multiRemoteRunner = (extra: Record<string, unknown> = {}) => ({
+            ...mochaRunnerLog,
+            isMultiRemote: true,
+            capabilities: { mrA: chrome, mrB: chrome },
+            sanitizedCapabilities: '',
+            ...extra
+        })
+
+        it('names each instance and its browser in the classname and the capabilities property', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            const name = 'mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac'
+            expect(output).toContain(`<property name="capabilities" value="${name}"/>`)
+            expect(output).toContain(`classname="${name}.`)
+            expect(output).not.toContain('classname=".')
+        })
+
+        it('names an instance without usable capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: {} } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
+        it('keeps the packageName option first', () => {
+            reporter.options.packageName = 'custom'
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            expect(output).toContain('classname="custom.')
+            expect(output).toContain('<property name="capabilities" value="custom"/>')
+        })
+
+        it('keeps the Cucumber prefix', () => {
+            reporter.suites = featuresLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ config: { ...mochaRunnerLog.config, framework: 'cucumber' } }) as any)
+            expect(output).toContain('classname="CucumberJUnitReport-mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac.')
+        })
+
+        it('does not change the package of a single browser run', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: false } as any)
+            expect(output).toContain(`value="${mochaRunnerLog.sanitizedCapabilities}"`)
+            expect(output).toContain(`classname="${mochaRunnerLog.sanitizedCapabilities}.`)
+        })
+    })
+
     it('generates xml output (Cucumber-style) with cucumberOpts.scenarioLevelReporter', () => {
         reporter.suites = featuresScenarioLevelLog as any
 
