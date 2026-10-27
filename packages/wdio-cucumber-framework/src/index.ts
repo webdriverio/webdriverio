@@ -640,12 +640,13 @@ export class CucumberAdapter {
         // a folder: its script files, sorted, as Cucumber loads them (a profile often lists `features/support`)
         const isFolder = (file: string) => Boolean(fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory())
         const folderFiles = (folder: string) => globSync('**/*.{js,cjs,mjs}', { cwd: path.resolve(folder), absolute: true }).sort()
+        // paths, not file:// URLs (glob finds nothing for a URL); loadAndRefreshModule makes the URL to import
         const files = fileList.flatMap((file: string) => {
             if (!isGlob(file)) {
-                return isFolder(file) ? folderFiles(file) : [os.platform() === 'win32' ? url.pathToFileURL(file).href : file]
+                return isFolder(file) ? folderFiles(file) : [file]
             }
-            const filePath = os.platform() === 'win32' ? url.pathToFileURL(file).href : file
-            return globSync(filePath).sort().flatMap((match) => isFolder(match) ? folderFiles(match) : [match])
+            const matches = globSync(file, { windowsPathsNoEscape: os.platform() === 'win32' }).sort()
+            return matches.flatMap((match) => isFolder(match) ? folderFiles(match) : [match])
         })
         return [...new Set(files)]
     }

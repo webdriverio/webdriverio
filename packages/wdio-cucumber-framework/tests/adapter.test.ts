@@ -655,6 +655,20 @@ describe('CucumberAdapter', () => {
         }
     })
 
+    // glob finds nothing for a file:// URL pattern: on Windows the patterns stay paths too
+    it('finds the files of a glob on Windows', async () => {
+        const os = (await import('node:os')).default
+        const platform = vi.spyOn(os, 'platform').mockReturnValue('win32')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([path.join(process.cwd(), '__mocks__', 'module*.ts')])
+            expect(files.length).toBeGreaterThan(0)
+            expect(files.every((file: string) => !file.startsWith('file:'))).toBe(true)
+        } finally {
+            platform.mockRestore()
+        }
+    })
+
     it('loads the script files of the folders that a glob matches', async () => {
         const fs = await import('node:fs')
         const os = await import('node:os')
@@ -695,14 +709,6 @@ describe('CucumberAdapter', () => {
     })
 
     it('loadFilesWithType', async () => {
-        /**
-         * skip for windows which for some reasons only can find one entry, e.g.:
-         * D:\\a\\webdriverio\\webdriverio\\packages\\wdio-cucumber-framework\\tests\\adapter.test.ts
-         */
-        if (process.platform === 'win32') {
-            return
-        }
-
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 require: [
