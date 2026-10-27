@@ -142,6 +142,19 @@ describe('user command events', () => {
         ])
     })
 
+    it('sends no call pair for an overwritten call', async () => {
+        const browser = await bidiSession()
+        browser.overwriteCommand('call', async (origCall, fn) => origCall(fn))
+        const events = recordEvents(browser)
+        await browser.call(async () => browser.$('#foo').getText())
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', '$'],
+            ['userResult', '$'],
+            ['userCommand', 'getText'],
+            ['userResult', 'getText']
+        ])
+    })
+
     it('sends the name of the function that execute runs', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
