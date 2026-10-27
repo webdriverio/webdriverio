@@ -14,6 +14,25 @@ import url from 'node:url'
 dayjs.extend(duration)
 
 /**
+ * The workers of a run copy the same styles and font next to their reports, at the same time on parallel
+ * workers. Windows locks a file during its copy (EBUSY / EPERM): the other copy writes the same file
+ */
+async function copyAsset (from: string, to: string) {
+    const content = await fsp.readFile(from)
+    if (await fsp.readFile(to).then((existing) => existing.equals(content), () => false)) {
+        return
+    }
+    try {
+        await fsp.copyFile(from, to)
+    } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code
+        if (!(code === 'EBUSY' || code === 'EPERM') || !fs.existsSync(to)) {
+            throw err
+        }
+    }
+}
+
+/**
  * The path of a file relative to the report, as a link: the browser reads `#`, `?`
  * and `%` in a file name as URL characters
  */
@@ -277,11 +296,11 @@ class HtmlGenerator {
 
                         const reportCss = rootdirname + '/css/report-styles.css'
                         const destCss = reportOptions.outputDir + '/report-styles.css'
-                        await fsp.copyFile(reportCss, destCss)
+                        await copyAsset(reportCss, destCss)
 
                         const cssFont = rootdirname + '/css/glyphicons-halflings-regular.woff'
                         const fontDest = reportOptions.outputDir + '/glyphicons-halflings-regular.woff'
-                        await fsp.copyFile(cssFont, fontDest)
+                        await copyAsset(cssFont, fontDest)
                     }
                 } catch (error) {
                     failed = true
