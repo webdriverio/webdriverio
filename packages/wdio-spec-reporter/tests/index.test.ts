@@ -47,6 +47,7 @@ describe('SpecReporter', () => {
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
                 failed: 0,
+                failedHooks: 0,
                 skipped: 0,
                 pending: 0,
                 retried: 0
@@ -70,18 +71,18 @@ describe('SpecReporter', () => {
     })
 
     describe('onHookEnd', () => {
-        it('should increase stateCount failures if hook failed', () => {
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+        it('should increase stateCount failedHooks if hook failed', () => {
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({} as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(1)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(1)
         })
 
         it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
             tmpReporter.onHookEnd({ error: new Error('boom!'), failedTestUid: 'test-1' } as any)
             tmpReporter.onHookEnd({ error: new Error('boom!'), retried: true } as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
         })
     })
 
@@ -152,7 +153,12 @@ describe('SpecReporter', () => {
         tmpReporter.write = vi.fn()
         tmpReporter['_suiteUids'] = SUITE_UIDS
         tmpReporter.suites = SUITES
-        const hook = { title, state: State.FAILED, error: new Error('root hook failed') }
+        const hook = {
+            title,
+            hookKind: title.includes('before') ? 'beforeAll' : 'afterAll',
+            state: State.FAILED,
+            error: new Error('root hook failed')
+        }
         tmpReporter.currentSuites = [{ hooks: [hook], suites: [], tests: [], hooksAndTests: [hook] }] as any
         tmpReporter.onHookEnd(hook as any)
         tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))

@@ -33,12 +33,13 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteName = ''
 
     /** the counts of the current attempt of each suite (uid): a retry of the suite (Cucumber scenario) removes them */
-    private _attemptCounts = new Map<string, Record<'passed' | 'failed' | 'skipped' | 'pending', number>>()
+    private _attemptCounts = new Map<string, Record<'passed' | 'failed' | 'failedHooks' | 'skipped' | 'pending', number>>()
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
         passed: 0,
         failed: 0,
+        failedHooks: 0,
         skipped: 0,
         pending: 0,
         retried: 0
@@ -133,10 +134,10 @@ export default class SpecReporter extends WDIOReporter {
         return uid ?? this.currentSuites.at(-1)?.uid ?? ''
     }
 
-    private _count (state: 'passed' | 'failed' | 'skipped' | 'pending', stat: TestStats | HookStats, change = 1) {
+    private _count (state: 'passed' | 'failed' | 'failedHooks' | 'skipped' | 'pending', stat: TestStats | HookStats, change = 1) {
         this._stateCounts[state] += change
         const key = this._suiteKey(stat.parentUid)
-        const counts = this._attemptCounts.get(key) ?? { passed: 0, failed: 0, skipped: 0, pending: 0 }
+        const counts = this._attemptCounts.get(key) ?? { passed: 0, failed: 0, failedHooks: 0, skipped: 0, pending: 0 }
         counts[state] += change
         this._attemptCounts.set(key, counts)
     }
@@ -158,7 +159,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         this.printCurrentStats(hook)
         if (hookCountsAsFailure(hook)) {
-            this._count('failed', hook)
+            this._count('failedHooks', hook)
         }
     }
 
@@ -568,11 +569,6 @@ export default class SpecReporter extends WDIOReporter {
      */
     getCountDisplay (duration: string) {
         const output: string[] = []
-        const failedHooks = new Set(this.getOrderedSuites().flatMap(
-            suite => suite.hooks.filter(hookCountsAsFailure)
-        )).size
-        const failedTests = this._stateCounts.failed - failedHooks
-
         // Get the passes
         if (this._stateCounts.passed > 0) {
             const text = `${this._stateCounts.passed} passing ${duration}`
@@ -581,14 +577,14 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         // Get the failures
-        if (failedTests > 0) {
-            const text = `${failedTests} failing ${duration}`.trim()
+        if (this._stateCounts.failed > 0) {
+            const text = `${this._stateCounts.failed} failing ${duration}`.trim()
             output.push(this.setMessageColor(text, State.FAILED))
             duration = ''
         }
 
-        if (failedHooks > 0) {
-            const text = `${failedHooks} failing hook${failedHooks === 1 ? '' : 's'} ${duration}`.trim()
+        if (this._stateCounts.failedHooks > 0) {
+            const text = `${this._stateCounts.failedHooks} failing hook${this._stateCounts.failedHooks === 1 ? '' : 's'} ${duration}`.trim()
             output.push(this.setMessageColor(text, State.FAILED))
             duration = ''
         }

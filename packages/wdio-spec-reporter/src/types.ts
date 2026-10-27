@@ -3,6 +3,7 @@ import type { Capabilities } from '@wdio/types'
 export interface StateCount {
     passed: number
     failed: number
+    failedHooks: number
     skipped: number
     pending: number
     retried: number
