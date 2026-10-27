@@ -533,6 +533,12 @@ describe('CucumberAdapter', () => {
             }
         })
 
+        // Cucumber joins the file to the working folder: `path.join(__dirname, 'cucumber.json')` in wdio.conf must work too
+        it('loads a configuration file with an absolute path', async () => {
+            const { configuration } = await resolve({ profiles: ['danish'], file: path.resolve(file) }, [])
+            expect(configuration.sources.defaultDialect).toBe('da')
+        })
+
         it('does not send requireModule to Cucumber', async () => {
             const userModule = () => {}
             const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })

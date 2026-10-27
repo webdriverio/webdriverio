@@ -606,7 +606,7 @@ Cucumber merges the values in this order: Cucumber's defaults, then the profiles
 
 <Option type="string | false" default="undefined">
 
-Path of the Cucumber configuration file to load, or `false` to load none. Without it, Cucumber looks for its default configuration files.
+Path of the Cucumber configuration file to load (absolute, or from the working folder), or `false` to load none. Without it, Cucumber looks for its default configuration files.
 
 </Option>
 

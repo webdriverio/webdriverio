@@ -253,7 +253,7 @@ export class CucumberAdapter {
     private async _resolveCucumberValues() {
         const provided = this._providedConfiguration()
         const { useConfiguration } = await loadConfiguration(
-            { profiles: this._cucumberOpts.profiles, provided, file: this._cucumberOpts.file },
+            { profiles: this._cucumberOpts.profiles, provided, file: this._configurationFile() },
             this._cucumberEnvironment()
         )
         this._warnProfilePaths(useConfiguration.paths, provided.paths ?? [])
@@ -483,6 +483,14 @@ export class CucumberAdapter {
     }
 
     /**
+     * Cucumber joins `file` to the working folder: an absolute path must be relative to it
+     */
+    private _configurationFile() {
+        const { file } = this._cucumberOpts
+        return typeof file === 'string' && path.isAbsolute(file) ? path.relative(this._cwd, file) : file
+    }
+
+    /**
      * the paths of a profile or config file: Cucumber adds them to the specs of each worker (#13562)
      */
     private _warnProfilePaths(paths: string[], providedPaths: string[]) {
@@ -521,7 +529,7 @@ export class CucumberAdapter {
      */
     private async _loadRunConfiguration(environment: IRunEnvironment) {
         const { runConfiguration } = await loadConfiguration(
-            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._configurationFile() },
             environment
         )
         // the WebdriverIO specs choose the features, also in parallel mode: not the paths of the profile
