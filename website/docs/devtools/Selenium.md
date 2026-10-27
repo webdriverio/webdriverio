@@ -80,10 +80,10 @@ describe('smoke test', function () {
     }
   })
 
-  it('loads example.com and reads the heading', async function () {
-    await driver.get('https://example.com')
-    const heading = await driver.wait(until.elementLocated(By.css('h1')), 10000)
-    assert.equal(await heading.getText(), 'Example Domain')
+  it('loads the login page and reads the heading', async function () {
+    await driver.get('https://the-internet.herokuapp.com/login')
+    const heading = await driver.wait(until.elementLocated(By.css('h2')), 10000)
+    assert.equal(await heading.getText(), 'Login Page')
   })
 })
 ```
