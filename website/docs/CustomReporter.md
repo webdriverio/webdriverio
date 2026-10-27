@@ -319,7 +319,7 @@ When your reporter overrides one of these methods, the base reporter does these 
 
 A reporter that overrides neither method gets no user commands, and it gets all protocol commands as before.
 
-Only the outer user command sends events. The commands that a custom command or `waitUntil` runs send no events. The commands that a `beforeCommand` or `afterCommand` hook runs, and the commands that a reporter runs, send no events. An excluded command (see [`userCommandEvents`](./Configuration.md#usercommandevents)) is still the outer command, so the commands that it runs send no events. For example, when you exclude `waitUntil`, its polls are hidden too. When you overwrite a command with `overwriteCommand` (for example `click`), that command sends no user command events. It sends the `command` and `result` events of a custom command as before.
+Only the outer user command sends events. The commands that a custom command or `waitUntil` runs send no events. The commands that a `beforeCommand` or `afterCommand` hook runs, and the commands that a reporter runs, send no events. An excluded command (see [`userCommandEvents`](./Configuration.md#usercommandevents)) is still the outer command, so the commands that it runs send no events. For example, when you exclude `waitUntil`, its polls are hidden too. A custom command and a command that you overwrite with `overwriteCommand` (for example `click`) send one `userCommand` and one `userResult` event, as a WebdriverIO command does. The old `command` and `result` events of a custom command that runs in a user command have the `parent` field. Thus, a reporter that gets user commands does not see the custom command two times, and other reporters get these events as before.
 
 :::warning Experimental
 

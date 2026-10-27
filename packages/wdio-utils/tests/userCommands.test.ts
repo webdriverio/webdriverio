@@ -372,8 +372,14 @@ describe('custom commands', () => {
             throw new Error('boom')
         })
         await expect(browser.myCmd()).rejects.toThrow('boom')
-        expect(names(events).map(([event]) => event)).toEqual(['userCommand', 'command', 'result', 'userResult'])
-        expect(events[3][1].result).toEqual({ error: expect.objectContaining({ message: 'boom' }) })
+        // the old code sends its error result one tick later than the user result
+        expect(names(events)).toEqual([
+            ['userCommand', 'myCmd', undefined],
+            ['command', 'myCmd', 1],
+            ['userResult', 'myCmd', undefined],
+            ['result', 'myCmd', 1]
+        ])
+        expect(events[2][1].result).toEqual({ error: expect.objectContaining({ message: 'boom' }) })
     })
 
     it('sends one pair for an overwritten registered command', async () => {

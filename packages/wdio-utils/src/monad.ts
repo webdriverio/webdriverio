@@ -4,7 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
-import { runNested } from './userCommands.js'
+import { currentUserCommandId, registerUserCommands, runCustomCommand, runNested } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -343,6 +343,8 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                // no lift for an element command: its command wrapper sends the user command events
+                registerUserCommands([name])
                 if (disableElementImplicitWait && elementCmdImplicitWaitExclusionList && !elementCmdImplicitWaitExclusionList.includes(name)) {
                     elementCmdImplicitWaitExclusionList.push(name)
                 }
@@ -443,8 +445,15 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
         setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
+            return runCustomCommand(this, name, args, () => liftedCall.call(this, args))
+        })
+
+        function liftedCall(this: { emit: (event: string, payload: unknown) => unknown }, args: unknown[]) {
+            // the old events of a custom command inside a user command get its id, so opt-in reporters hide them
+            const parentId = currentUserCommandId()
+            const parent = parentId === undefined ? {} : { parent: parentId }
             log.info('COMMAND', commandCallStructure(name, args))
-            this.emit('command', { command: name, body: args })
+            this.emit('command', { command: name, body: args, ...parent })
 
             /**
              * set name of function for better error stack
@@ -472,24 +481,25 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                         log.info('RESULT', resultLog)
                         this.emit('result', {
                             command: name,
-                            result: { value: res }
+                            result: { value: res },
+                            ...parent
                         })
                     }).catch((error: Error) => {
-                        this.emit('result', { command: name, result: { error } })
+                        this.emit('result', { command: name, result: { error }, ...parent })
                     })
                 } else {
                     // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
                     // When a function we can emit the result immediately
-                    this.emit('result', { command: name, result: { value: result } })
+                    this.emit('result', { command: name, result: { value: result }, ...parent })
                 }
 
                 return result
             } catch (error) {
                 // The function should always be a promise and not trigger this error but for the sake of being bullet proof let's do it
-                this.emit('result', { command: name, result: { error } })
+                this.emit('result', { command: name, result: { error }, ...parent })
                 throw error
             }
-        })
+        }
     }
 
     /**
