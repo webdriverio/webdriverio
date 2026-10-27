@@ -697,6 +697,51 @@ describe('setup', () => {
             await hooks.aroundEach(vi.fn(async () => {}), { task: { ...task(false, { state: 'skip' }).task, mode: 'skip' } })
             expect(afterTestResult()).toMatchObject({ skipped: true })
         })
+
+        it('reports passed: true for a test.fails test that failed as expected', async () => {
+            const context = { task: { ...task(false, {}).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {
+                soft.failures.set('/repo/a.spec.ts::t', 'x')
+                Object.assign(context.task.result, { state: 'fail', errors: [new Error('expected boom')] })
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            expect(soft.failures.has('/repo/a.spec.ts::t')).toBe(false)
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'passed' })
+            expect(attempt?.payload).not.toHaveProperty('error')
+        })
+
+        it('reports passed: false for a test.fails test that did not fail', async () => {
+            const context = { task: { ...task(false, { state: 'pass' }).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {}), context)
+            expect(afterTestResult()).toMatchObject({
+                passed: false,
+                status: 'failed',
+                exception: 'Expect test to fail',
+                error: expect.objectContaining({ message: 'Expect test to fail' })
+            })
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'failed', error: expect.objectContaining({ message: 'Expect test to fail' }) })
+        })
+
+        it('reports passed: false for a test.fails test that failed with a Vitest syntax error', async () => {
+            const syntaxError = Object.assign(new Error('invalid test syntax'), { __vitest_test_syntax_error__: true })
+            const context = { task: { ...task(false, {}).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {
+                Object.assign(context.task.result, { state: 'fail', errors: [syntaxError] })
+            }), context)
+            expect(afterTestResult()).toMatchObject({
+                passed: false,
+                status: 'failed',
+                exception: 'invalid test syntax',
+                error: syntaxError
+            })
+        })
+
+        it('marks a skipped test.fails test as passed and skipped', async () => {
+            await hooks.aroundEach(vi.fn(async () => {}), { task: { ...task(false, { state: 'skip' }).task, mode: 'skip', fails: true } })
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', skipped: true, error: undefined })
+        })
     })
 
     it('stores the session id and capabilities on the file meta for the reporter', () => {

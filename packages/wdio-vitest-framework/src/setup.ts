@@ -303,6 +303,25 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
+function attemptOutcome(task: RunnerTestCase, errorsBefore: number): { error: unknown, expectedFailure: boolean } {
+    const attemptErrors = task.result?.errors?.slice(errorsBefore)
+    if (!task.fails) {
+        return {
+            error: task.result?.state === 'fail' ? attemptErrors?.[0] ?? new Error('test failed') : undefined,
+            expectedFailure: false
+        }
+    }
+    if (task.result?.state === 'fail') {
+        const syntaxError = attemptErrors?.find((err) => (err as { __vitest_test_syntax_error__?: boolean })?.__vitest_test_syntax_error__)
+        return { error: syntaxError, expectedFailure: syntaxError === undefined }
+    }
+    const skipped = task.mode === 'skip' || task.result?.state === 'skip' || Boolean((task.result as { pending?: boolean } | undefined)?.pending)
+    return {
+        error: skipped ? undefined : new Error('Expect test to fail'),
+        expectedFailure: false
+    }
+}
+
 /**
  * Vitest parses the source of a hook's second parameter for fixture names and rejects
  * anything but object destructuring without rest, so the context is read from `args`
@@ -317,6 +336,7 @@ aroundEach(async (...args) => {
     let error: unknown
     let serviceError: unknown
     let testRan = false
+    let expectedFailure = false
     const runAttempt = async () => {
         try {
             await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
@@ -328,11 +348,15 @@ aroundEach(async (...args) => {
             testRan = true
             await runTest()
             // runTest() resolves even when the test fails; the outcome is on the task
-            error = task.result?.state === 'fail' ? task.result.errors?.slice(errorsBefore)[0] ?? new Error('test failed') : undefined
+            // and Vitest only flips task.result.state for test.fails after aroundEach returns
+            ;({ error, expectedFailure } = attemptOutcome(task, errorsBefore))
         } catch (err) {
             error = err
             throw err
         } finally {
+            if (expectedFailure && softAssertions) {
+                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+            }
             const report = {
                 error,
                 result: undefined,
