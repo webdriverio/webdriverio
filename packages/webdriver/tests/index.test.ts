@@ -99,7 +99,7 @@ describe('WebDriver', () => {
                         alwaysMatch: {
                             browserName: 'firefox',
                             webSocketUrl: true,
-                            unhandledPromptBehavior: 'ignore'
+                            unhandledPromptBehavior: { default: 'ignore' }
                         },
                         firstMatch: [{}]
                     }
@@ -123,7 +123,7 @@ describe('WebDriver', () => {
                         alwaysMatch: {
                             browserName: 'firefox',
                             webSocketUrl: true,
-                            unhandledPromptBehavior: 'ignore'
+                            unhandledPromptBehavior: { default: 'ignore' }
                         },
                         firstMatch: [{}]
                     }

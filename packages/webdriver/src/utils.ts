@@ -87,7 +87,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         /**
          * allow WebdriverIO to handle alerts
          */
-        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        capabilities.alwaysMatch.unhandledPromptBehavior = { default: 'ignore' }
     }
 
     validateCapabilities(capabilities.alwaysMatch)
