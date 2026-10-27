@@ -6,6 +6,8 @@ import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
+const MAX_ITEMS = 50
+const MAX_DEPTH = 4
 // a copy never makes the command fail
 const UNREADABLE = '<unreadable>'
 // their result is base64 and reporters get them from the protocol events
@@ -209,6 +211,11 @@ function byteLength (text: string) {
     return buffer ? buffer.byteLength(text) : text.length
 }
 
+function isBuffer (value: unknown) {
+    const buffer = (globalThis as { Buffer?: { isBuffer(value: unknown): boolean } }).Buffer
+    return Boolean(buffer?.isBuffer(value))
+}
+
 function wdioLabel (value: object, name: string, ref: unknown) {
     // a chainable element gives a promise for each property
     if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
@@ -219,18 +226,19 @@ function wdioLabel (value: object, name: string, ref: unknown) {
 
 /**
  * A copy of `value` that is small and safe to send: no binary data, long
- * strings cut, WebdriverIO objects and functions as a name, cycles as `[Circular]`.
+ * strings cut, at most 50 items and 4 levels, WebdriverIO objects and functions
+ * as a name, cycles as `[Circular]`.
  * @experimental
  */
 export function shortCopy (value: unknown): unknown {
     try {
-        return copyValue(value, new Set())
+        return copyValue(value, new Set(), 0)
     } catch {
         return UNREADABLE
     }
 }
 
-function copyValue (value: unknown, ancestors: Set<object>): unknown {
+function copyValue (value: unknown, ancestors: Set<object>, depth: number): unknown {
     if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
         return value
     }
@@ -264,8 +272,14 @@ function copyValue (value: unknown, ancestors: Set<object>): unknown {
     if (typeof value === 'function') {
         return `[Function ${value.name || 'anonymous'}]`
     }
-    if (value instanceof Uint8Array) {
-        return `<Buffer ${value.byteLength} bytes>`
+    if (isBuffer(value)) {
+        return `<Buffer ${(value as Uint8Array).byteLength} bytes>`
+    }
+    if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) {
+        return `<${Object.prototype.toString.call(value).slice(8, -1)} ${value.byteLength} bytes>`
+    }
+    if (value instanceof Map || value instanceof Set) {
+        return `${value instanceof Map ? 'Map' : 'Set'}(${value.size})`
     }
     if (value instanceof Date) {
         return isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString()
@@ -279,11 +293,25 @@ function copyValue (value: unknown, ancestors: Set<object>): unknown {
     if (ancestors.has(value as object)) {
         return '[Circular]'
     }
+    if (depth >= MAX_DEPTH) {
+        return '[…]'
+    }
 
     ancestors.add(value as object)
-    const copy = Array.isArray(value)
-        ? value.map((item) => copyValue(item, ancestors))
-        : Object.fromEntries(Object.entries(value as object).map(([key, item]) => [key, copyValue(item, ancestors)]))
+    const copyItem = (item: unknown) => copyValue(item, ancestors, depth + 1)
+    let copy: unknown
+    if (Array.isArray(value)) {
+        copy = value.slice(0, MAX_ITEMS).map(copyItem)
+        if (value.length > MAX_ITEMS) {
+            (copy as unknown[]).push(`… [${value.length - MAX_ITEMS} more]`)
+        }
+    } else {
+        const entries = Object.entries(value as object)
+        copy = Object.fromEntries(entries.slice(0, MAX_ITEMS).map(([key, item]) => [key, copyItem(item)]))
+        if (entries.length > MAX_ITEMS) {
+            (copy as Record<string, unknown>)['…'] = `[${entries.length - MAX_ITEMS} more]`
+        }
+    }
     ancestors.delete(value as object)
     return copy
 }
