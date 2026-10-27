@@ -1,3 +1,4 @@
+import vm from 'node:vm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import WDIOJunitReporter from '../src/index.js'
@@ -39,6 +40,14 @@ describe('JUnit user commands', () => {
             ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
         ])
         expect(xml).toContain('RESULT: {"error":{"name":"Error","message":"boom"}}')
+    })
+
+    it('writes the message of an error from another realm', () => {
+        const xml = xmlOf([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: vm.runInNewContext('new TypeError("boom")') } }]
+        ])
+        expect(xml).toContain('RESULT: {"error":{"name":"TypeError","message":"boom"}}')
     })
 
     it('does not write a protocol command of a user command', () => {

@@ -1,3 +1,4 @@
+import vm from 'node:vm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import SumoLogicReporter from '../src/index.js'
@@ -39,6 +40,14 @@ describe('Sumo Logic user commands', () => {
             ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
         ])
         expect(data.output[1].result).toEqual({ error: { name: 'Error', message: 'boom' } })
+    })
+
+    it('sends the message of an error from another realm', () => {
+        const data = payloadOf([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: vm.runInNewContext('new TypeError("boom")') } }]
+        ])
+        expect(data.output[1].result).toEqual({ error: { name: 'TypeError', message: 'boom' } })
     })
 
     it('sends the protocol commands of a run with no user command', () => {

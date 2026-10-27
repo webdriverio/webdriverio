@@ -1,7 +1,8 @@
+import vm from 'node:vm'
 import { describe, expect, it, vi } from 'vitest'
 import tmp from 'tmp'
 
-import WDIOReporter from '../src/index.js'
+import WDIOReporter, { userCommandError } from '../src/index.js'
 import type { AfterUserCommandArgs, BeforeUserCommandArgs } from '../src/index.js'
 
 const runnerSpecs = ['/path/to/fileA.js']
@@ -161,5 +162,18 @@ describe('user command events', () => {
         expect(reporter.tests.A.output.map((entry: any) => [entry.command, entry.type])).toEqual([['getTitle', 'command']])
         onBeforeUserCommand.mockRestore()
         onAfterUserCommand.mockRestore()
+    })
+})
+
+describe('userCommandError', () => {
+    it('keeps the name and the message of an error, also from another realm', () => {
+        expect(userCommandError(new Error('boom'))).toEqual({ name: 'Error', message: 'boom' })
+        expect(userCommandError(vm.runInNewContext('new TypeError("boom")'))).toEqual({ name: 'TypeError', message: 'boom' })
+    })
+
+    it('keeps a value with no message as it is', () => {
+        expect(userCommandError('boom')).toBe('boom')
+        expect(userCommandError(undefined)).toBe(undefined)
+        expect(userCommandError({ code: 1 })).toEqual({ code: 1 })
     })
 })
