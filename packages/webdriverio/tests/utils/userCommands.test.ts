@@ -96,6 +96,40 @@ describe('user command events', () => {
         expect(events).toEqual([])
     })
 
+    it('sends one actions pair with the action types of each builder', async () => {
+        const browser = await bidiSession()
+        const events = recordEvents(browser)
+        await browser.actions([
+            browser.action('pointer').move({ x: 1, y: 2 }).down(),
+            browser.action('key').down('a').up('a')
+        ])
+        const event = { id: expect.any(Number), command: 'actions', body: [[['pointerMove', 'pointerDown'], ['keyDown', 'keyUp']]], protocol: 'bidi' }
+        expect(events).toEqual([
+            ['userCommand', event],
+            ['userResult', { ...event, result: { value: undefined } }]
+        ])
+    })
+
+    it('sends no actions pair inside another user command', async () => {
+        const browser = await bidiSession()
+        const events = recordEvents(browser)
+        await browser.waitUntil(async () => {
+            await browser.actions([browser.action('key').down('a').up('a')])
+            return true
+        })
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', 'waitUntil'],
+            ['userResult', 'waitUntil']
+        ])
+    })
+
+    it('sends nothing for actions in a Classic session', async () => {
+        const browser = await remote({ capabilities: { browserName: 'foobar' } })
+        const events = recordEvents(browser)
+        await browser.actions([browser.action('key').down('a').up('a')])
+        expect(events).toEqual([])
+    })
+
     it('sends the name of the function that execute runs', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
