@@ -681,6 +681,10 @@ export default class CucumberFormatter extends Formatter {
     onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
         const start = this._openRunHooks.get(testRunHookStartedId)
         if (!start) {
+            // a WebdriverIO run hook (beforeFeature / afterFeature, only on a Cucumber timeout): no event, but a failure
+            if (result.status === Status.FAILED) {
+                this.failedCount++
+            }
             return
         }
         this._openRunHooks.delete(testRunHookStartedId)

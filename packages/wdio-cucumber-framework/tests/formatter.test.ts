@@ -610,6 +610,17 @@ describe('CucumberFormatter', () => {
             expect(events()).toEqual([])
         })
 
+        // a WebdriverIO run hook fails only on a Cucumber timeout: it sends no event, but fails the run
+        it('counts a failed WDIO run hook as a failure of the run', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            runHook(eventBroadcaster, 'h-wdio', 'FAILED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:end'])
+            expect(failedCount).toBe(1)
+        })
+
         it('sends every BeforeAll, also after a failed one', () => {
             const eventBroadcaster = formatterFor()
             startRun(eventBroadcaster)
