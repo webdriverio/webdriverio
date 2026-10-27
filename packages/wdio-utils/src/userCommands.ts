@@ -28,6 +28,7 @@ type UserCommandEventsOption = boolean | { exclude?: string[] }
 
 interface EventBrowser {
     isBidi?: boolean
+    isMultiRemote?: boolean
     options?: { userCommandEvents?: UserCommandEventsOption }
     emit?: (event: string, payload: unknown) => unknown
 }
@@ -58,11 +59,11 @@ export function registerUserCommands (names: string[]) {
 
 /**
  * The id of the outer user command that sends events, for the `parent` of a
- * protocol event.
+ * protocol event. A command hook has no parent.
  * @experimental
  */
 export function currentUserCommandId (): number | undefined {
-    return userCommandStore?.getStore()?.id
+    return isInCommandHook() ? undefined : userCommandStore?.getStore()?.id
 }
 
 /**
@@ -76,6 +77,19 @@ export function runNested<T> (fn: () => T): T {
     }
     const frame = userCommandStore.getStore()
     return userCommandStore.run({ depth: frame ? frame.depth + 1 : 0, id: frame?.id }, fn)
+}
+
+/**
+ * Run `fn` so that no command in it sends events and has a parent id, for
+ * example the commands of a reporter.
+ * @experimental
+ */
+export function runWithoutUserCommands<T> (fn: () => T): T {
+    if (!userCommandStore) {
+        return fn()
+    }
+    const frame = userCommandStore.getStore()
+    return userCommandStore.run({ depth: (frame?.depth ?? 0) + 1 }, fn)
 }
 
 function sendsEvents (browser: EventBrowser | undefined, command: string) {
@@ -104,23 +118,31 @@ export async function runUserCommand<T> (scope: unknown, command: string, args: 
         return userCommandStore.run({ depth: parent.depth + 1, id: parent.id }, run)
     }
 
-    // an outer call that sends nothing still is depth 0, so its nested calls send nothing
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
+    // each instance of a multi-remote command is the outer call of its own session
+    if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
+        return run()
+    }
+
+    // an outer call that sends nothing still is depth 0, so its nested calls send nothing
     if (!sendsEvents(browser, command)) {
         return userCommandStore.run({ depth: 0 }, run)
     }
 
     const emit = browser!.emit!.bind(browser)
     const event = { id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const }
-    emit('userCommand', event)
-    try {
-        const value = await userCommandStore.run({ depth: 0, id: event.id }, run)
-        emit('userResult', { ...event, result: { value: shortCopy(value) } })
-        return value
-    } catch (error) {
-        emit('userResult', { ...event, result: { error } })
-        throw error
-    }
+    // the events are sent in the frame, so a listener that runs a command does not loop
+    return userCommandStore.run({ depth: 0, id: event.id }, async () => {
+        emit('userCommand', event)
+        try {
+            const value = await run()
+            emit('userResult', { ...event, result: { value: shortCopy(value) } })
+            return value
+        } catch (error) {
+            emit('userResult', { ...event, result: { error } })
+            throw error
+        }
+    })
 }
 
 const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'object' && (value as { mask?: unknown }).mask === true
