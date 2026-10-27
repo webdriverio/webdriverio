@@ -684,10 +684,21 @@ class JunitReporter extends WDIOReporter {
             case 'result':
                 standardOutput.push(`RESULT: ${this._format(data.body)}`)
                 break
+            case 'userCommand':
+                standardOutput.push(`COMMAND: ${data.command} - ${this._format(data.body)}`)
+                break
+            case 'userResult': {
+                const { result } = data as unknown as { result: { value: unknown } | { error: unknown } }
+                standardOutput.push(`RESULT: ${this._format('error' in result ? result : result.value)}`)
+                break
+            }
             }
         })
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
+
+    // an empty override opts in to the user commands of WebDriver BiDi sessions
+    onBeforeUserCommand() { }
 
     private _format(val: any) {
         return JSON.stringify(limit(val))
