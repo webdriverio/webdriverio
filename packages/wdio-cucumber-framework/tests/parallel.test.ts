@@ -1467,6 +1467,12 @@ describe('runParallelCucumber run-level behavior', () => {
             expect(ends.map((hook) => [hook.hookKind, hook.hookSuiteUid])).toEqual([['beforeAll', features[0]], ['afterAll', features[1]]])
         })
 
+        test('logs the error of a failed WDIO run hook', async () => {
+            const errorLog = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'error').mockClear()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [async function wdioHookBeforeFeature () { throw new Error('beforeFeature timeout') }] }))
+            expect(errorLog.mock.calls.map(([message]) => String(message)).some((message) => message.includes('beforeFeature timeout'))).toBe(true)
+        })
+
         test('sends nothing for WDIO run hooks', async () => {
             const events = record()
             await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [async function wdioHookBeforeFeature () {}], afterTestRunHooks: [async function wdioHookAfterFeature () {}] }))

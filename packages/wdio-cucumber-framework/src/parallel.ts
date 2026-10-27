@@ -1051,12 +1051,13 @@ async function runParallel(params: {
             reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
         }
         const finished = envelope.testRunHookFinished
+        // also a WebdriverIO run hook (beforeFeature / afterFeature): its error is only in this log
+        if (finished?.result.status === 'FAILED') {
+            log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
+        }
         const start = finished && openRunHooks.get(finished.testRunHookStartedId)
         if (finished && start) {
             openRunHooks.delete(finished.testRunHookStartedId)
-            if (finished.result.status === 'FAILED') {
-                log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
-            }
             reporter.emit('hook:end', formatMessage({ payload: { ...testRunHookEnd(start, finished.result), cid, specs } }))
         }
     })
