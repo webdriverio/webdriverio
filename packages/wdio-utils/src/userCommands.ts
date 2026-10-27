@@ -76,11 +76,12 @@ export function currentUserCommandId (): number | undefined {
  * @experimental
  */
 export function runNested<T> (fn: () => T): T {
-    if (!userCommandStore) {
+    const frame = userCommandStore?.getStore()
+    // no frame (a multi-remote custom command): the instance commands send their own events
+    if (!userCommandStore || !frame) {
         return fn()
     }
-    const frame = userCommandStore.getStore()
-    return userCommandStore.run({ depth: frame ? frame.depth + 1 : 0, id: frame?.id }, fn)
+    return userCommandStore.run({ depth: frame.depth + 1, id: frame.id }, fn)
 }
 
 /**
