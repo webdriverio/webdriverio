@@ -236,16 +236,19 @@ export default class HtmlReporter extends WDIOReporter {
             // the first parallel test that starts also takes the events from before any context (the config `before` hook)
             if (started && !this.#contextTestStarted) {
                 this.#contextTestStarted = true
-                events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
-                this.#waitingSuites = []
+                this.#takeWaitingEvents(events)
             }
             this.#contextTests.set(test.contextId, test.uid)
             events.push(...this.#earlyEvents.get(test.contextId) ?? [])
             this.#earlyEvents.delete(test.contextId)
         } else {
-            events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
-            this.#waitingSuites = []
+            this.#takeWaitingEvents(events)
         }
+    }
+
+    #takeWaitingEvents(events: ReportEvent[]) {
+        events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
+        this.#waitingSuites = []
     }
 
     onTestPass(theTest: TestStats) {
