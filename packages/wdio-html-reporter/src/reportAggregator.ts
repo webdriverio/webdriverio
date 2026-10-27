@@ -12,7 +12,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import JsonGenerator from './jsonGenerator.js'
 import { emptyDir } from './files.js'
-import { withExtension } from './fileNames.js'
+import { firstAttemptFile, withExtension } from './fileNames.js'
 import { headerBrowserName } from './browserName.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -131,15 +131,19 @@ class ReportAggregator {
         const notStarted: string[] = []
         const workerOf = (report: { info?: { cid?: string, specs?: string[] } }) =>
             `${report.info?.cid} (${(report.info?.specs ?? []).map((spec: string) => path.basename(spec)).join(', ')})`
-        for (let i = 0; i < files.length; i++) {
+        /**
+         * a worker report, the file of its first attempt (each run, each CI job and each configuration
+         * with its own file name starts its cids at 0-0: `specFileRetries` attempts share this file), and its order
+         */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type Attempt = { report: any, group: string, start: number, retry: number, retried?: boolean }
+        const attempts: Attempt[] = []
+        for (const filename of files) {
             try {
-                const filename = files[i]
-                let report
-                try {
-                    report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
-                } catch (ex) {
-                    inputFailed = true
-                    console.error(`Cannot read the report file ${filename}: ${ex}`)
+                const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
+                // a valid JSON file of another tool is only skipped
+                if (!report || typeof report !== 'object') {
+                    this.LOG.info(`Skip ${filename}: not a report`)
                     continue
                 }
                 // a master report of another name (for example from the command line)
@@ -147,11 +151,39 @@ class ReportAggregator {
                     this.LOG.info(`Skip the master report ${filename}`)
                     continue
                 }
-                if (report.incomplete) {
-                    incomplete.push(workerOf(report))
+                attempts.push({
+                    report,
+                    group: firstAttemptFile(path.resolve(filename)),
+                    start: report.info?.start ? dayjs.utc(report.info.start).valueOf() : 0,
+                    retry: report.info?.retry ?? 0
+                })
+            } catch (ex) {
+                inputFailed = true
+                console.error(`Cannot read the report file ${filename}: ${ex}`)
+            }
+        }
+        // by start, then the attempts of a spec file retry in order: the last attempt of a group is its result
+        attempts.sort((attempt1, attempt2) => attempt1.start - attempt2.start || attempt1.retry - attempt2.retry)
+        const lastAttempts = new Map(attempts.map((attempt) => [attempt.group, attempt]))
+        const specsOf = (attempt: Attempt) => JSON.stringify(attempt.report.info?.specs ?? [])
+        const listed: Attempt[] = []
+        for (const attempt of attempts) {
+            try {
+                const { report } = attempt
+                const lastAttempt = lastAttempts.get(attempt.group)!
+                const isLastAttempt = lastAttempt === attempt
+                // a file of an earlier run (no clean) for another spec file is not an attempt of this one
+                if (!isLastAttempt && specsOf(attempt) !== specsOf(lastAttempt)) {
+                    this.LOG.info(`Skip ${workerOf(report)}: an old file of another spec file`)
                     continue
                 }
-                if (report.info?.sessionFailed) {
+                if (report.incomplete) {
+                    if (isLastAttempt) {
+                        incomplete.push(workerOf(report))
+                    }
+                    continue
+                }
+                if (report.info?.sessionFailed && isLastAttempt) {
                     notStarted.push(workerOf(report))
                 }
                 if (!report.info || !report.info.specs) {
@@ -159,36 +191,28 @@ class ReportAggregator {
                     this.LOG.debug('report content: ', JSON.stringify(report))
                     continue
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                report.info.specs.forEach((spec: any) => {
-                    specs.push(spec)
-                })
+                specs.push(...report.info.specs)
+                attempt.retried = !isLastAttempt
+                listed.push(attempt)
                 this.reports.push(report)
             } catch (ex) {
                 console.error(ex)
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this.reports.sort((report1:any, report2:any) => {
-            const first = dayjs.utc(report1.info.start)
-            const second = dayjs.utc(report2.info.start)
-            if (first.isAfter(second)) {
-                return 1
-            } else if (first.isBefore(second)) {
-                return -1
-            }
-            return  0
-        })
-        for (let j = 0; j < this.reports.length; j++) {
+        // the report shows each attempt of a spec file, and counts only the last one
+        for (const { report, retried } of listed) {
             try {
-                const report = this.reports[j]
-                metrics.passed += report.metrics.passed
-                metrics.failed += report.metrics.failed
-                metrics.skipped += report.metrics.skipped
+                if (!retried) {
+                    metrics.passed += report.metrics.passed
+                    metrics.failed += report.metrics.failed
+                    metrics.skipped += report.metrics.skipped
+                }
                 removeMissingVideos(report.suites)
-                for (let k = 0; k < report.suites.length; k++) {
-                    const suiteInfo = report.suites[k]
+                for (const suiteInfo of report.suites) {
+                    if (retried) {
+                        suiteInfo.title = `${suiteInfo.title} (spec file attempt ${(report.info.retry ?? 0) + 1}, retried)`
+                    }
                     this.updateSuiteMetrics(metrics, suiteInfo)
                     suites.push(suiteInfo)
                 }

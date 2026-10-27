@@ -21,6 +21,8 @@ import util from 'node:util'
 import logger from '@wdio/logger'
 
 type ReportEvent = InternalReportEvent | { type: string, value: unknown }
+/** sequential mode: a suite whose first test did not start yet, and the events of its before hooks */
+type WaitingSuite = { uid?: string, events: ReportEvent[] }
 
 const reportProxy = new ReportEvents()
 const TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -39,6 +41,17 @@ const REPORT_CAPABILITIES = [
 function reportCapabilities (capabilities: unknown) {
     const caps = (capabilities ?? {}) as Record<string, unknown>
     return Object.fromEntries(REPORT_CAPABILITIES.filter((name) => caps[name] !== undefined).map((name) => [name, caps[name]]))
+}
+
+/**
+ * The attempt of a spec file with `specFileRetries`: 0 for the first one. The runner gives
+ * the first attempt `specFileRetries + 1` (the launcher does not know the retries yet),
+ * and 1 when there are no retries
+ */
+function specFileAttempt (runner: RunnerStats) {
+    const specFileRetries = (runner.config as { specFileRetries?: number } | undefined)?.specFileRetries ?? 0
+    const retry = runner.retry ?? 0
+    return specFileRetries && retry <= specFileRetries ? retry : 0
 }
 
 /**
@@ -62,7 +75,7 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         end: runner.end,
         _duration: runner._duration,
         isMultiRemote: runner.isMultiRemote,
-        retry: runner.retry,
+        retry: specFileAttempt(runner),
         capabilities,
         // the names of the full capabilities: the reduced copy above cannot name an app
         browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
@@ -99,6 +112,14 @@ export default class HtmlReporter extends WDIOReporter {
     #contextTests = new Map<string, string>()
     /** parallel mode: the events of a context before its test starts (a before hook) */
     #earlyEvents = new Map<string, ReportEvent[]>()
+    /**
+     * sequential mode: the open suites whose first test did not start yet, the outer one first
+     * (the first one is for the events before any suite). An event with no test context (a
+     * `before all` or Cucumber `Before` hook) waits in the innermost one for the next test
+     */
+    #waitingSuites: WaitingSuite[] = [{ events: [] }]
+    /** parallel mode: a test of a context started (a skipped test never starts); until then, events with no context wait */
+    #contextTestStarted = false
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
     /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
@@ -151,7 +172,13 @@ export default class HtmlReporter extends WDIOReporter {
         })
         this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
         // a Cucumber retry runs in the same context: its Before hook events are for the first step of the retry
-        this.on('suite:retry', ({ contextId }: { contextId?: string }) => contextId && this.#contextTests.delete(contextId))
+        this.on('suite:retry', ({ uid, contextId }: { uid: string, contextId?: string }) => {
+            if (contextId) {
+                this.#contextTests.delete(contextId)
+            } else {
+                this.#waitingSuites = [{ uid, events: [] }]
+            }
+        })
     }
 
     get isSynchronised() : boolean {
@@ -176,6 +203,9 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
+        if (!this.#contextTestStarted) {
+            this.#waitingSuites.push({ uid: suite.uid, events: [] })
+        }
         suite.start = new Date()
         this.LOG.info(`onSuiteStart: ${suite.cid}:${suite.uid}`)
     }
@@ -183,26 +213,42 @@ export default class HtmlReporter extends WDIOReporter {
     onTestStart(theTest: TestStats) {
         this.LOG.info(`onTestStart: ${theTest.cid}:${theTest.uid}`)
         this._currentTestUid = theTest.uid
+        this.#registerTest(theTest)
+        this.#takeEarlyEvents(theTest, true)
+    }
+
+    #registerTest(test: TestStats) {
         //@ts-ignore
-        theTest.events = []
+        test.events = []
         //@ts-ignore
-        theTest.errorIndex = 0
-        this._testUids.set(theTest.uid, theTest)
-        this.#takeEarlyEvents(theTest)
+        test.errorIndex = 0
+        this._testUids.set(test.uid, test)
     }
 
     /**
-     * parallel mode: the test is the test of its context, and it takes the events
-     * that its context sent before (a before hook)
+     * The test takes the events that came before it (a before hook): in parallel mode
+     * the events of its context, in sequential mode those of all the waiting suites
      */
-    #takeEarlyEvents(test: TestStats) {
-        if (!test.contextId) {
-            return
-        }
-        this.#contextTests.set(test.contextId, test.uid)
+    #takeEarlyEvents(test: TestStats, started = false) {
         //@ts-ignore
-        test.events.push(...this.#earlyEvents.get(test.contextId) ?? [])
-        this.#earlyEvents.delete(test.contextId)
+        const events: ReportEvent[] = test.events
+        if (test.contextId) {
+            // the first parallel test that starts also takes the events from before any context (the config `before` hook)
+            if (started && !this.#contextTestStarted) {
+                this.#contextTestStarted = true
+                this.#takeWaitingEvents(events)
+            }
+            this.#contextTests.set(test.contextId, test.uid)
+            events.push(...this.#earlyEvents.get(test.contextId) ?? [])
+            this.#earlyEvents.delete(test.contextId)
+        } else {
+            this.#takeWaitingEvents(events)
+        }
+    }
+
+    #takeWaitingEvents(events: ReportEvent[]) {
+        events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
+        this.#waitingSuites = []
     }
 
     onTestPass(theTest: TestStats) {
@@ -236,14 +282,12 @@ export default class HtmlReporter extends WDIOReporter {
     onTestSkip(test: TestStats) {
         this.LOG.info(`onTestSkip: ${test.cid}:${test.uid}`)
         this.#keepEventsOfStartedTest(test)
-        // parallel mode: a test that a before hook skips (`this.skip()`) never starts, it takes the events of its context
-        if (test.contextId && !this._testUids.has(test.uid)) {
-            //@ts-ignore
-            test.events = []
-            //@ts-ignore
-            test.errorIndex = 0
-            this._testUids.set(test.uid, test)
-            this.#takeEarlyEvents(test)
+        // a test that a before hook skips (`this.skip()`) never starts: in parallel mode it takes the events of its context
+        if (!this._testUids.has(test.uid)) {
+            this.#registerTest(test)
+            if (test.contextId) {
+                this.#takeEarlyEvents(test)
+            }
         }
         if (!this.#countScenarios) {
             this.metrics.skipped++
@@ -288,12 +332,17 @@ export default class HtmlReporter extends WDIOReporter {
      */
     #addEvent(event: ReportEvent, { contextId, moveErrors = true }: { contextId?: string, moveErrors?: boolean } = {}) {
         const id = contextId ?? this.getContextId()
-        if (!id && this.#contextTests.size && !this.#noContextWarned) {
+        if (!id && this.#contextTestStarted && !this.#noContextWarned) {
             this.#noContextWarned = true
             const message = 'An event with no parallel-mode test context (from code that runs outside a test, such as ' +
                 'an `AfterAll` hook or a `browser.on()` callback) goes to the test that started last.'
             this.LOG.warn(message)
             console.warn(`[@wdio/html-reporter] ${message}`)
+        }
+        const waiting = !id && !this.#contextTestStarted ? this.#waitingSuites.at(-1) : undefined
+        if (waiting) {
+            waiting.events.push(event)
+            return
         }
         const uid = id ? this.#contextTests.get(id) : this._currentTestUid
         const test = uid ? this.getTest(uid) : undefined
@@ -311,6 +360,37 @@ export default class HtmlReporter extends WDIOReporter {
                 this.#earlyEvents.set(id, [event])
             }
         }
+    }
+
+    /**
+     * sequential mode: no test of the suite started (`this.skip()` or `it.skip`, a failed
+     * before hook with `failHookAffectedTests: false`): its events go to the first test of
+     * the suite or of its child suites, else to the test before, else to nothing (not to a
+     * test of the next suite). The events of its parent suite still wait for the parent's next test
+     */
+    #endWaiting(suite: SuiteStats) {
+        if (this.#contextTestStarted) {
+            return
+        }
+        const waiting = this.#waitingSuites.at(-1)
+        if (!waiting || waiting.uid !== suite.uid) {
+            return
+        }
+        this.#waitingSuites.pop()
+        const firstTest = this.#firstTest(suite)
+        if (firstTest) {
+            // the events of a child suite are already there: the outer events come first
+            //@ts-ignore
+            firstTest.events.unshift(...waiting.events)
+        } else {
+            //@ts-ignore
+            this.getTest(this._currentTestUid)?.events.push(...waiting.events)
+        }
+    }
+
+    #firstTest(suite: SuiteStats): TestStats | undefined {
+        const test = suite.tests?.find((test) => this._testUids.get(test.uid) === test)
+        return test ?? suite.suites?.reduce<TestStats | undefined>((found, child) => found ?? this.#firstTest(child), undefined)
     }
 
     onHookStart(hook: HookStats) {
@@ -356,6 +436,7 @@ export default class HtmlReporter extends WDIOReporter {
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
+        this.#endWaiting(suite)
         this.#countOpenHookFailures()
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)

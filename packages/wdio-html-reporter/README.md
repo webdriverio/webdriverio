@@ -64,6 +64,8 @@ In a CommonJS configuration (`wdio.conf.cjs`), load the package with `const { Re
 
 When a worker stops before it writes its results (for example it is killed), or cannot write them, the master report says so and `reportAggregator.failed` is `true`. It is also `true` when no worker wrote a JSON file.
 
+With [`specFileRetries`](https://webdriver.io/docs/retry#add-retries-on-a-per-specfile-basis), each attempt of a spec file writes its own file (`report-0-0.json`, `report-0-0-retry1.json`). The master report shows every attempt that wrote its results, with `(spec file attempt 1, retried)` after the suite titles of an earlier attempt, and counts only the last attempt. Only files with the same name except `-retry<n>` are attempts of one spec file (2 configurations with another `filename` stay separate); an old file of another spec file is left out, and a stopped attempt that a later attempt replaced does not make the report incomplete.
+
 The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
 
 ## Options
@@ -100,6 +102,8 @@ it('logs in', async () => {
     reportEvents.logScreenshot(file)
 })
 ```
+
+An event from a hook that runs before the tests of a suite (Mocha and Jasmine `before`/`beforeAll`, a Cucumber `BeforeAll` or `Before` hook) goes to the first test of the suite or scenario. When no test of the suite starts, it goes to the first test of the suite or of its child suites (a skipped one), else to the test before; the events of a parent suite still wait for its next test.
 
 `ReportEvents` sends the same events as [`@rpii/wdio-report-events`](https://www.npmjs.com/package/@rpii/wdio-report-events), so tests that use that package still work.
 
