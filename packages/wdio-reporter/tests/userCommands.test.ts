@@ -131,6 +131,20 @@ describe('user command events', () => {
         expect(execute.body).toEqual(['return document.title', 1])
     })
 
+    it('keeps the function label of execute in the output', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const execute = { ...userCommand, command: 'executeAsync', body: ['[Function getTitle]', 1], contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', execute)
+        reporter.emit('client:afterUserCommand', { ...execute, result: { value: 'title' } })
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.body)).toEqual([
+            ['[Function getTitle]', 1],
+            ['[Function getTitle]', 1]
+        ])
+    })
+
     it('changes nothing for a reporter that does not override the user command methods', () => {
         const reporter = new CommandReporter({ logFile: tmp.fileSync().name })
         const onBeforeUserCommand = vi.spyOn(WDIOReporter.prototype, 'onBeforeUserCommand')
