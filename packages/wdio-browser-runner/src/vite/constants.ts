@@ -3,7 +3,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import type { InlineConfig } from 'vite'
 
-import { codeFrameFix } from './plugins/esbuild.js'
+import { codeFrameFix, pathPolyfill } from './plugins/esbuild.js'
 import type { FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner:vite')
@@ -55,6 +55,8 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             // Node.js global to browser globalThis
             define: {
                 global: 'globalThis',
+                // jest-message-util >= 30.5 reads `__dirname` when it loads
+                __dirname: '"/"',
             },
             // Enable esbuild polyfill plugins
             plugins: [
@@ -64,7 +66,9 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
                  * may differ and cause type issues here.
                  */
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                codeFrameFix() as any
+                codeFrameFix() as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                pathPolyfill() as any
             ],
         },
     },
