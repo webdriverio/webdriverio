@@ -10,7 +10,7 @@ import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, importTsx, TSX_NODE18_POLYFILL, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
@@ -211,14 +211,15 @@ class Launcher {
             const moduleLoaderFlag = nodeVersion('major') >= 21 ||
                 (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
                 (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
+            const polyfillFlag = nodeVersion('major') < 20 ? ` --import ${TSX_NODE18_POLYFILL}` : ''
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''}${polyfillFlag} ${moduleLoaderFlag} ${tsxPath}`
         }
 
         /**
          * load tsx in the main process if config file is a .ts file to allow config parser to load it
          */
         if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
-            await import(tsxPath)
+            await importTsx(tsxPath)
         }
 
         this.#isInitialized = true

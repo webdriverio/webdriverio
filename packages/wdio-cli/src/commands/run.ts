@@ -5,7 +5,7 @@ import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
-import { coerceOptsFor, } from '../utils.js'
+import { coerceOptsFor, importTsx } from '../utils.js'
 import { CLI_EPILOGUE, TS_FILE_EXTENSIONS } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
@@ -228,7 +228,7 @@ export async function handler(argv: RunCommandArguments) {
     if (TS_FILE_EXTENSIONS.some((ext) => confAccess.endsWith(ext))) {
         const { resolve } = await import('import-meta-resolve')
         const tsxPath = resolve('tsx', import.meta.url)
-        await import(tsxPath)
+        await importTsx(tsxPath)
     }
 
     const localTSConfigPath = (

@@ -15,6 +15,8 @@ import {
     getRunnerName,
     findInConfig,
     getCapabilities,
+    importTsx,
+    TSX_NODE18_POLYFILL,
 } from '../src/utils.js'
 
 vi.mock('recursive-readdir', () => ({
@@ -357,6 +359,42 @@ describe('getCapabilities', () => {
 
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 'myChromeBrowser' } as any))
             .toMatchSnapshot()
+    })
+})
+
+describe('importTsx', () => {
+    const nodeVersionDescriptor = Object.getOwnPropertyDescriptor(process.versions, 'node')!
+    const toReversedDescriptor = Object.getOwnPropertyDescriptor(Array.prototype, 'toReversed')!
+
+    afterEach(() => {
+        Object.defineProperty(process.versions, 'node', nodeVersionDescriptor)
+        Object.defineProperty(Array.prototype, 'toReversed', toReversedDescriptor)
+    })
+
+    it('adds a non-enumerable Array.prototype.toReversed on Node.js 18', async () => {
+        Object.defineProperty(process.versions, 'node', { ...nodeVersionDescriptor, value: '18.20.8' })
+        delete (Array.prototype as { toReversed?: unknown }).toReversed
+
+        await importTsx('tsx')
+
+        const list = [1, 2, 3]
+        expect(list.toReversed()).toEqual([3, 2, 1])
+        expect(list).toEqual([1, 2, 3])
+        expect(Object.getOwnPropertyDescriptor(Array.prototype, 'toReversed')?.enumerable).toBe(false)
+    })
+
+    it('does not add the polyfill on Node.js 20', async () => {
+        Object.defineProperty(process.versions, 'node', { ...nodeVersionDescriptor, value: '20.20.2' })
+        delete (Array.prototype as { toReversed?: unknown }).toReversed
+
+        await importTsx('tsx')
+
+        expect('toReversed' in Array.prototype).toBe(false)
+    })
+
+    it('keeps a native Array.prototype.toReversed', async () => {
+        await import(TSX_NODE18_POLYFILL)
+        expect(Object.getOwnPropertyDescriptor(Array.prototype, 'toReversed')).toEqual(toReversedDescriptor)
     })
 })
 
