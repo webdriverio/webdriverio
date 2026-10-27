@@ -687,11 +687,9 @@ class JunitReporter extends WDIOReporter {
             case 'userCommand':
                 standardOutput.push(`COMMAND: ${data.command} - ${this._format(data.body)}`)
                 break
-            case 'userResult': {
-                const { result } = data as unknown as { result: { value: unknown } | { error: unknown } }
-                standardOutput.push(`RESULT: ${this._format('error' in result ? { error: userCommandError(result.error) } : result.value)}`)
+            case 'userResult':
+                standardOutput.push(`RESULT: ${this._format('error' in data.result ? { error: userCommandError(data.result.error) } : data.result.value)}`)
                 break
-            }
             }
         })
         return standardOutput.length ? standardOutput.join('\n') : ''
