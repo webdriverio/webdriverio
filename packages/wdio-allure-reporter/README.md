@@ -153,7 +153,7 @@ export const config = {
 
 - `outputDir` - defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.json` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 
-- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter.
+- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter. In WebDriver BiDi sessions, the WebDriver steps are the user commands (`url`, `$`, `getText`, …), see [User commands](https://webdriver.io/docs/customreporter#user-commands).
 
 - `issueLinkTemplate` - optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder with value specified in `addIssue(value)` call parameter. The same logic is applied if Cucumber is used and tag `issue` is set at any level, it will be converted to the link in the report. The parameter value example:
   ```

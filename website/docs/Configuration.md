@@ -571,7 +571,7 @@ Determines the maximum time reporters have to finish uploading all their logs un
 
 <Option type="Boolean|Object" default="true">
 
-Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. Set `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to not send the commands in the list. The commands that an excluded command runs are not sent either. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
+Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. Set `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to not send the commands in the list. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
 
 </Option>
 
