@@ -93,8 +93,8 @@ export class CucumberAdapter {
     private _configurationError?: unknown
     /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
     private _cucumberOutput = new Set<string>()
-    private _warnedProfileValues = new Set<string>()
-    private _warnedFolders = new Set<string>()
+    /** the warnings that the worker already gave */
+    private _warned = new Set<string>()
     private _browser?: WebdriverIO.Browser
 
     // set in the constructor and again in init(), with the language that Cucumber runs with
@@ -257,6 +257,7 @@ export class CucumberAdapter {
         }
         // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
         this._warnProfileValue('requireModule', configuration.requireModule, 'Set "cucumberOpts.requireModule" to load a module.')
+        this._warnProfileValue('loader', configuration.loader, 'WebdriverIO loads the support code with its own TypeScript loader.')
         this._cucumberOpts.requireModule = (this._config.cucumberOpts?.requireModule ?? []) as string[]
     }
 
@@ -516,11 +517,17 @@ export class CucumberAdapter {
      * would add them to the specs of each worker, #13562) and the requireModule; one warning per worker
      */
     private _warnProfileValue(key: string, values: string[], advice: string) {
-        if (this._warnedProfileValues.has(key) || values.length === 0) {
+        if (values.length > 0) {
+            this._warnOnce(`profile:${key}`, `The "${key}" of the Cucumber configuration are not used: ${values.join(', ')}. ${advice}`)
+        }
+    }
+
+    /** a warning in the worker log and on the terminal, one time for each key */
+    private _warnOnce(key: string, message: string) {
+        if (this._warned.has(key)) {
             return
         }
-        this._warnedProfileValues.add(key)
-        const message = `The "${key}" of the Cucumber configuration are not used: ${values.join(', ')}. ${advice}`
+        this._warned.add(key)
         log.warn(message)
         console.warn(`[@wdio/cucumber-framework] ${message}`)
     }
@@ -648,24 +655,26 @@ export class CucumberAdapter {
         // a folder: its script files, sorted, as Cucumber loads them (a profile often lists `features/support`)
         const folderFiles = (folder: string) => {
             const cwd = path.resolve(folder)
-            const typeScript = globSync('**/*.{ts,cts,mts}', { cwd, ignore: '**/*.d.{ts,cts,mts}' })
-            if (typeScript.length > 0 && !this._warnedFolders.has(cwd)) {
-                this._warnedFolders.add(cwd)
-                const message = `The folder "${folder}" loads its .js, .cjs and .mjs files only, as in Cucumber, not: ` +
-                    `${typeScript.sort().join(', ')}. Use a glob such as "${folder.split(path.sep).join('/')}/**/*.ts".`
-                log.warn(message)
-                console.warn(`[@wdio/cucumber-framework] ${message}`)
+            const warnKey = `folder:${cwd}`
+            const typeScript = this._warned.has(warnKey) ? [] : globSync('**/*.{ts,cts,mts}', { cwd, ignore: '**/*.d.{ts,cts,mts}' })
+            if (typeScript.length > 0) {
+                this._warnOnce(warnKey, `The folder "${folder}" loads its .js, .cjs and .mjs files only, as in Cucumber, not: ` +
+                    `${typeScript.sort().join(', ')}. Use a glob such as "${folder.split(path.sep).join('/')}/**/*.ts".`)
             }
             return globSync('**/*.{js,cjs,mjs}', { cwd, absolute: true }).sort()
         }
+        const windows = os.platform() === 'win32'
         // paths, not file:// URLs (glob finds nothing for a URL); loadAndRefreshModule makes the URL to import
         const files = fileList.flatMap((file: string) => {
-            if (!isGlob(file)) {
+            // path.join on Windows gives `steps\*.js`: is-glob reads `\*` as an escaped `*`
+            if (!isGlob(windows ? file.split('\\').join('/') : file)) {
                 return fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory() ? folderFiles(file) : [file]
             }
-            const matches = globSync(file, { windowsPathsNoEscape: os.platform() === 'win32', withFileTypes: true })
-                .sort((a, b) => a.fullpath().localeCompare(b.fullpath()))
-            return matches.flatMap((match) => match.isDirectory() ? folderFiles(match.fullpath()) : [match.fullpath()])
+            // sorted by code unit, as Cucumber
+            const matches = globSync(file, { windowsPathsNoEscape: windows, withFileTypes: true })
+                .map((match) => ({ file: match.fullpath(), folder: match.isDirectory() }))
+                .sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0)
+            return matches.flatMap((match) => match.folder ? folderFiles(match.file) : [match.file])
         })
         return [...new Set(files)]
     }

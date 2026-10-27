@@ -578,6 +578,18 @@ describe('CucumberAdapter', () => {
             expect(configuration.sources.tagExpression).toBe('(@smoke) and ((@a) or (@b))')
         })
 
+        it('warns once that the loader of a profile is not used', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                await resolve({ profiles: ['withLoader'], file })
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('coffee-loader'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('"loader"')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
         it('keeps the user retryTagFilter in parentheses when Cucumber joins it with the profile one', async () => {
             const { configuration } = await resolve({ profiles: ['retried'], file, retry: 2, retryTagFilter: '(@x) or (@y)' })
             expect(configuration.runtime.retryTagFilter).toBe('(@flaky) and ((@x) or (@y))')
@@ -655,6 +667,41 @@ describe('CucumberAdapter', () => {
             const files = (await adapter.loadFilesWithType([folder, folder])).map((file: string) => path.relative(folder, file))
             // sorted and once, as Cucumber: the order of the hooks does not depend on the file system
             expect(files).toEqual(['a.js', 'b.cjs', path.join('nested', 'hooks.mjs'), 'steps.js'])
+        } finally {
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    // path.join on Windows gives `steps\*.js`: is-glob reads `\*` as an escaped `*`, glob (windowsPathsNoEscape) as a wildcard
+    it('finds the files of a path.join glob on Windows', async () => {
+        const fs = await import('node:fs')
+        const nodeOs = (await import('node:os')).default
+        const folder = fs.mkdtempSync(path.join(nodeOs.tmpdir(), 'wdio-support-'))
+        const platform = vi.spyOn(nodeOs, 'platform').mockReturnValue('win32')
+        try {
+            fs.mkdirSync(path.join(folder, 'steps'))
+            fs.writeFileSync(path.join(folder, 'steps', 'a.js'), '')
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([`${folder}\\steps\\*.js`])
+            expect(files.map((file: string) => path.relative(folder, file))).toEqual([path.join('steps', 'a.js')])
+        } finally {
+            platform.mockRestore()
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    // the order of Cucumber (code unit), so that the hooks of the files register in the same order
+    it('loads the files of a glob in the order of Cucumber', async () => {
+        const fs = await import('node:fs')
+        const nodeOs = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(nodeOs.tmpdir(), 'wdio-support-'))
+        try {
+            for (const file of ['hooks.js', 'World.js']) {
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([`${folder.split(path.sep).join('/')}/*.js`])
+            expect(files.map((file: string) => path.basename(file))).toEqual(['World.js', 'hooks.js'])
         } finally {
             fs.rmSync(folder, { recursive: true, force: true })
         }
