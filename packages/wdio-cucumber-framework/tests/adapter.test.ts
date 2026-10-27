@@ -501,6 +501,38 @@ describe('CucumberAdapter', () => {
             expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
         })
 
+        // the WebdriverIO specs choose the features (#13562): Cucumber would add the paths of the profile in each worker
+        it('runs only the worker specs and warns once about the paths of the profile', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                const { configuration } = await resolve({ profiles: ['withPaths'], file })
+                expect(configuration.sources.paths).toEqual([path.resolve(feature)])
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('test_danish.feature'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('specs')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // Cucumber's errors and warnings reach the user; its advice for its own CLI (support code, paths) does not
+        it('forwards the output of Cucumber to stderr, once, without its CLI advice', async () => {
+            const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+            try {
+                const { adapter } = await resolve({})
+                const { stderr, stdout } = adapter._cucumberEnvironment()
+                stderr.write('Error: ENOTDIR: not a directory\n')
+                stderr.write('Error: ENOTDIR: not a directory\n')
+                stderr.write('Use of `require-module` option normally means you should specify your support code paths with `require`\n')
+                stderr.write('Use of `loader` option normally means you should specify your support code paths with `import`\n')
+                stderr.write('You have specified paths in both your configuration file and as CLI arguments.\n')
+                stdout.write('progress output\n')
+                expect(write.mock.calls.map(([chunk]) => String(chunk))).toEqual(['Error: ENOTDIR: not a directory\n'])
+            } finally {
+                write.mockRestore()
+            }
+        })
+
         it('does not send requireModule to Cucumber', async () => {
             const userModule = () => {}
             const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })

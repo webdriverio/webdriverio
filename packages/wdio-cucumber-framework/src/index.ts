@@ -45,13 +45,14 @@ const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
 
 /**
- * Cucumber writes its warnings (for example about `requireModule`) for its own CLI: WebdriverIO loads the
- * support code itself, so they would be wrong in every worker
+ * Cucumber's advice for its own CLI: WebdriverIO loads the support code and chooses the features (`specs`),
+ * so it would be wrong in every worker
  */
-const discardedOutput = (cwd: string): IRunEnvironment => {
-    const discarded = new Writable({ write(_chunk, _encoding, callback) { callback() } })
-    return { cwd, stderr: discarded, stdout: discarded }
-}
+const CUCUMBER_CLI_ADVICE = [
+    'Use of `require-module` option',
+    'Use of `loader` option',
+    'You have specified paths in both your configuration file',
+]
 
 // the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
 const CUCUMBER_VALUES = [
@@ -83,6 +84,9 @@ export class CucumberAdapter {
     private _seededOrder?: string
     /** a profile or config file error: run() throws it, after the `after` hook, as Cucumber's own errors */
     private _configurationError?: unknown
+    /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
+    private _cucumberOutput = new Set<string>()
+    private _profilePathsWarned = false
     private _browser?: WebdriverIO.Browser
 
     // set in the constructor and again in init(), with the language that Cucumber runs with
@@ -247,10 +251,12 @@ export class CucumberAdapter {
      * the values that Cucumber runs with (cucumberOpts, profiles, config file), and the Gherkin parser of its language
      */
     private async _resolveCucumberValues() {
+        const provided = this._providedConfiguration()
         const { useConfiguration } = await loadConfiguration(
-            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
-            discardedOutput(this._cwd)
+            { profiles: this._cucumberOpts.profiles, provided, file: this._cucumberOpts.file },
+            this._cucumberEnvironment()
         )
+        this._warnProfilePaths(useConfiguration.paths, provided.paths ?? [])
         this._useCucumberValues(useConfiguration)
         this._createGherkinParser()
     }
@@ -428,7 +434,7 @@ export class CucumberAdapter {
         // its line numbers in `specs` for Cucumber's line filter
         const featurePaths = [...new Set(this._specs.map((spec) => spec.replace(/(:\d+)+$/, '')))]
         const gherkinDocuments = this.getGherkinDocuments([featurePaths])
-        const { sources, runtime } = await this._loadRunConfiguration(discardedOutput(this._cwd))
+        const { sources, runtime } = await this._loadRunConfiguration(this._cucumberEnvironment())
 
         try {
             return await runParallelCucumber({
@@ -477,6 +483,40 @@ export class CucumberAdapter {
     }
 
     /**
+     * the paths of a profile or config file: Cucumber adds them to the specs of each worker (#13562)
+     */
+    private _warnProfilePaths(paths: string[], providedPaths: string[]) {
+        const ignored = paths.filter((featurePath) => !providedPaths.includes(featurePath))
+        if (this._profilePathsWarned || ignored.length === 0) {
+            return
+        }
+        this._profilePathsWarned = true
+        const message = `The "paths" of the Cucumber configuration are not used: ${ignored.join(', ')}. ` +
+            'WebdriverIO runs the feature files of "specs".'
+        log.warn(message)
+        console.warn(`[@wdio/cucumber-framework] ${message}`)
+    }
+
+    /**
+     * Cucumber's errors and warnings go to the worker stderr, each one time; its stdout (formatters) is not used
+     */
+    private _cucumberEnvironment(): IRunEnvironment {
+        const written = this._cucumberOutput
+        const stderr = new Writable({
+            write(chunk, _encoding, callback) {
+                const text = String(chunk)
+                if (!CUCUMBER_CLI_ADVICE.some((advice) => text.startsWith(advice)) && !written.has(text)) {
+                    written.add(text)
+                    process.stderr.write(text)
+                }
+                callback()
+            },
+        })
+        const stdout = new Writable({ write(_chunk, _encoding, callback) { callback() } })
+        return { cwd: this._cwd, stderr, stdout }
+    }
+
+    /**
      * Resolve `cucumberOpts` merged with `profiles` / `file` the way Cucumber does.
      */
     private async _loadRunConfiguration(environment: IRunEnvironment) {
@@ -484,6 +524,8 @@ export class CucumberAdapter {
             { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._cucumberOpts.file },
             environment
         )
+        // the WebdriverIO specs choose the features, also in parallel mode: not the paths of the profile
+        runConfiguration.sources.paths = this._cucumberOpts.paths
         return runConfiguration
     }
 
@@ -496,24 +538,12 @@ export class CucumberAdapter {
         supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
     ): Promise<number> {
         let failedCount: number | undefined
-        let outStream: Writable | undefined
+        const environment = this._cucumberEnvironment()
 
         try {
-            outStream = new Writable({
-                write(chunk, encoding, callback) {
-                    callback()
-                },
-            })
-
             this._eventEmitter.on('getFailedCount', (payload) => {
                 failedCount = payload
             })
-
-            const environment: IRunEnvironment = {
-                cwd: this._cwd,
-                stderr: outStream,
-                stdout: outStream,
-            }
 
             const runConfiguration = await this._loadRunConfiguration(environment)
             const { runtime, formats } = runConfiguration
@@ -539,7 +569,8 @@ export class CucumberAdapter {
 
             return result
         } finally {
-            outStream?.end()
+            environment.stdout?.end()
+            environment.stderr?.end()
         }
     }
 

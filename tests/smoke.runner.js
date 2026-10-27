@@ -951,10 +951,9 @@ const cucumberFileOption = async () => {
     )
     assert.strictEqual(passed, 1)
     const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
-    assert.ok(
-        specLogs.includes('test-skipped.feature'),
-        'scenario not included according to cucumber config'
-    )
+    assert.ok(specLogs.includes('Sync Execution'), 'the name filter of the cucumber config is not used')
+    assert.ok(!specLogs.includes('Retry Check'), 'a scenario that the name filter of the cucumber config excludes ran')
+    assert.ok(!specLogs.includes('test-skipped.feature'), 'a feature of the paths of the cucumber config ran')
 }
 
 /**
