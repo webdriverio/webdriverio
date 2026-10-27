@@ -483,6 +483,49 @@ describe('custom commands', () => {
         ])
     })
 
+    it('sends no pair for an overwritten takeScreenshot and keeps its result', async () => {
+        const base64 = 'iVBORw0KGgo'.repeat(200)
+        const { browser, events } = client({ takeScreenshot: { value: async () => base64, writable: true, configurable: true } })
+        browser.overwriteCommand('takeScreenshot', (origTakeScreenshot: Function) => origTakeScreenshot())
+        expect(await browser.takeScreenshot()).toBe(base64)
+        expect(names(events)).toEqual([
+            ['command', 'takeScreenshot', undefined],
+            ['result', 'takeScreenshot', undefined]
+        ])
+    })
+
+    it('sends no pair for takeElementScreenshot of an element', async () => {
+        const base64 = 'iVBORw0KGgo'.repeat(200)
+        const { browser } = client()
+        browser.addCommand('takeElementScreenshot', async () => base64, { attachToElement: true })
+        const takeElementScreenshot = (browser.__propertiesObject__ as Record<string, PropertyDescriptor>).takeElementScreenshot.value as Function
+        const element = { selector: 'a', options: {}, parent: browser }
+        const userEvents = vi.spyOn(browser, 'emit')
+        expect(await takeElementScreenshot.call(element)).toBe(base64)
+        expect(userEvents).not.toHaveBeenCalled()
+    })
+
+    it('sends one pair for an overwritten getTitle', async () => {
+        const { browser, events } = client({ getTitle: { value: async () => 'title', writable: true, configurable: true } })
+        browser.overwriteCommand('getTitle', (origGetTitle: Function) => origGetTitle())
+        expect(await browser.getTitle()).toBe('title')
+        expect(names(events).filter(([event]) => event.startsWith('user'))).toEqual([
+            ['userCommand', 'getTitle', undefined],
+            ['userResult', 'getTitle', undefined]
+        ])
+    })
+
+    it('sends one pair for saveScreenshot with a short copy of the Buffer', async () => {
+        mod.registerUserCommands(['saveScreenshot'])
+        const browser = fakeBrowser()
+        const saveScreenshot = shim.wrapCommand('saveScreenshot', async () => Buffer.alloc(2048))
+        expect((await saveScreenshot.call(browser, './shot.png') as Buffer).byteLength).toBe(2048)
+        expect(pairs(browser)).toEqual([
+            ['userCommand', { id: 1, command: 'saveScreenshot', body: ['./shot.png'], protocol: 'bidi' }],
+            ['userResult', { id: 1, command: 'saveScreenshot', body: ['./shot.png'], protocol: 'bidi', result: { value: '<Buffer 2048 bytes>' } }]
+        ])
+    })
+
     it.each([
         ['a Classic session', { isBidi: { value: false } }, () => {}],
         ['userCommandEvents false', {}, (browser: Record<string, unknown>) => { (browser.options as Record<string, unknown>).userCommandEvents = false }]
