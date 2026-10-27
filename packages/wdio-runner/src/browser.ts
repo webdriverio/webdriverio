@@ -80,6 +80,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ...this._config.mochaOpts,
                 timeout: Math.max(Number(this._config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
             }
+            this._config.connectionRetryTimeout = Math.max(
+                Number(this._config.connectionRetryTimeout) || 0,
+                DEBUG_TIMEOUT
+            )
         }
     }
 
@@ -137,6 +141,18 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         const configuredTimeout = Number(this._config.mochaOpts?.timeout) || DEFAULT_TIMEOUT
         const timeout = this.#isInspecting() ? Math.max(configuredTimeout, DEBUG_TIMEOUT) : configuredTimeout
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
+
+        if (this.#isInspecting()) {
+            if (browser.options) {
+                browser.options.connectionRetryTimeout = Math.max(
+                    Number(browser.options.connectionRetryTimeout) || 0,
+                    timeout
+                )
+            }
+            if (typeof browser.setTimeout === 'function') {
+                await browser.setTimeout({ script: timeout }).catch(() => undefined)
+            }
+        }
 
         /**
          * create promise to resolve test state which is being sent through the socket
@@ -531,8 +547,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }).catch((err) => {
                 /**
                  * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+                 * or script/command timeouts when paused at a breakpoint during inspection
                  */
-                if (err.message.includes('Cannot find context with specified id')) {
+                if (
+                    err.message.includes('Cannot find context with specified id') ||
+                    (this.#isInspecting() && (err.name === 'TimeoutError' || /timed?\s*out/i.test(err.message)))
+                ) {
                     return
                 }
 

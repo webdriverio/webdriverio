@@ -227,6 +227,7 @@ describe('BrowserFramework browser errors', () => {
         browser = {
             url: vi.fn().mockResolvedValue(undefined),
             setCookies: vi.fn().mockResolvedValue(undefined),
+            setTimeout: vi.fn().mockResolvedValue(undefined),
             execute: vi.fn(),
             getLogs: vi.fn(),
             refresh: vi.fn().mockResolvedValue(undefined)
@@ -381,11 +382,14 @@ describe('BrowserFramework browser errors', () => {
         const inspectHandler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
         on.mockRestore()
 
-        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.execute
+            .mockRejectedValueOnce(new Error('script timeout'))
+            .mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
         browser.getLogs.mockResolvedValue([])
 
         const result = inspectFramework.run()
         await vi.advanceTimersByTimeAsync(120_000)
+        expect(browser.setTimeout).toHaveBeenCalledWith({ script: 24 * 60 * 60 * 1000 })
         expect(sentErrors()).toEqual([])
 
         await inspectHandler({

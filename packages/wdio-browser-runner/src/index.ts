@@ -64,6 +64,10 @@ export default class BrowserRunner extends LocalRunner {
                 ...this.#config.mochaOpts,
                 timeout: Math.max(Number(this.#config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
             }
+            this.#config.connectionRetryTimeout = Math.max(
+                Number(this.#config.connectionRetryTimeout) || 0,
+                DEBUG_TIMEOUT
+            )
         }
     }
 
