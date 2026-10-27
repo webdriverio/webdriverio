@@ -195,6 +195,28 @@ describe('runUserCommand', () => {
 })
 
 describe('runUserCommand with listeners and multi-remote', () => {
+    it('sends the session of the browser in both events', async () => {
+        const browser = fakeBrowser({ sessionId: 'session-1' })
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        expect(pairs(browser).map(([event, payload]) => [event, payload.sessionId])).toEqual([
+            ['userCommand', 'session-1'],
+            ['userResult', 'session-1']
+        ])
+    })
+
+    it('sends the session of each instance of a multi-remote browser', async () => {
+        const instanceA = fakeBrowser({ sessionId: 'session-a' })
+        const instanceB = fakeBrowser({ sessionId: 'session-b' })
+        const multiRemote = fakeBrowser({ isBidi: undefined, isMultiRemote: true, sessionId: undefined })
+        const instanceGetText = shim.wrapCommand('getText', async () => 'hello')
+        const getText = shim.wrapCommand('getText', () => Promise.all(
+            [instanceA, instanceB].map((instance) => instanceGetText.call(instance))
+        ))
+        await getText.call(multiRemote)
+        expect(pairs(instanceA).map(([, payload]) => payload.sessionId)).toEqual(['session-a', 'session-a'])
+        expect(pairs(instanceB).map(([, payload]) => payload.sessionId)).toEqual(['session-b', 'session-b'])
+    })
+
     it('sends nothing for a command that a listener of the events runs', async () => {
         const browser = fakeBrowser()
         const spawned: Promise<unknown>[] = []
@@ -480,6 +502,41 @@ describe('custom commands', () => {
         expect(userEvents.mock.calls.map(([event, payload]) => [event, payload.command])).toEqual([
             ['userCommand', 'myElementCmd'],
             ['userResult', 'myElementCmd']
+        ])
+    })
+
+    it('sends only the arguments of the caller for an element overwrite', async () => {
+        mod.registerUserCommands(['click'])
+        const { browser } = client()
+        browser.overwriteCommand('click', async function (origClick: Function, options?: unknown) {
+            return origClick(options)
+        }, { attachToElement: true })
+        const overrides = (browser.__propertiesObject__ as Record<string, PropertyDescriptor>).__elementOverrides__
+        const element = monad.default({}, (c: unknown) => c, {
+            click: { value: async (options?: unknown) => ['clicked', options] },
+            __elementOverrides__: overrides
+        })('sessionId', shim.wrapCommand) as Record<string, unknown> & { click: Function }
+        element.parent = browser
+        element.selector = '#btn'
+        const userEvents = vi.spyOn(browser, 'emit')
+
+        expect(await element.click()).toEqual(['clicked', undefined])
+        expect(await element.click({ button: 'left' })).toEqual(['clicked', { button: 'left' }])
+        expect(userEvents.mock.calls.map(([event, payload]) => [event, payload.command, payload.body])).toEqual([
+            ['userCommand', 'click', []],
+            ['userResult', 'click', []],
+            ['userCommand', 'click', [{ button: 'left' }]],
+            ['userResult', 'click', [{ button: 'left' }]]
+        ])
+    })
+
+    it('sends only the arguments of the caller for a browser overwrite', async () => {
+        const { browser, events } = client({ url: { value: async (path: string) => path, writable: true, configurable: true } })
+        browser.overwriteCommand('url', (origUrl: Function, path: string) => origUrl(path))
+        expect(await browser.url('https://a.b')).toBe('https://a.b')
+        expect(events.filter(([event]) => event.startsWith('user')).map(([event, payload]) => [event, payload.body])).toEqual([
+            ['userCommand', ['https://a.b']],
+            ['userResult', ['https://a.b']]
         ])
     })
 
