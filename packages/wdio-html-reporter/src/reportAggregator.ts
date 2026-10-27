@@ -12,7 +12,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import JsonGenerator from './jsonGenerator.js'
 import { emptyDir } from './files.js'
-import { withExtension } from './fileNames.js'
+import { firstAttemptFile, withExtension } from './fileNames.js'
 import { headerBrowserName } from './browserName.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -140,13 +140,18 @@ class ReportAggregator {
         for (const filename of files) {
             try {
                 const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
+                // a valid JSON file of another tool is only skipped
+                if (!report || typeof report !== 'object') {
+                    this.LOG.info(`Skip ${filename}: not a report`)
+                    continue
+                }
                 // a master report of another name (for example from the command line)
                 if (report.master) {
                     this.LOG.info(`Skip the master report ${filename}`)
                     continue
                 }
                 workerReports.push(report)
-                workerOfRun.set(report, path.resolve(filename).replace(/-retry\d+(\.json)$/, '$1'))
+                workerOfRun.set(report, firstAttemptFile(path.resolve(filename)))
             } catch (ex) {
                 inputFailed = true
                 console.error(`Cannot read the report file ${filename}: ${ex}`)
@@ -156,12 +161,15 @@ class ReportAggregator {
          * `specFileRetries` runs a spec file again with the same cid in the same folder: the
          * attempt that started last is the result (also when old files of an earlier run are there)
          */
-        const startOf = (report: { info?: { start?: string } }) => dayjs.utc(report.info?.start).valueOf() || 0
+        const startOf = (report: { info?: { start?: string } }) => report.info?.start ? dayjs.utc(report.info.start).valueOf() : 0
+        // the order of the reports: by start, then the attempts of a spec file retry in order
+        const byStart = (report1: { info?: { start?: string, retry?: number } }, report2: { info?: { start?: string, retry?: number } }) =>
+            startOf(report1) - startOf(report2) || (report1.info?.retry ?? 0) - (report2.info?.retry ?? 0)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lastAttempts = new Map<string, any>()
         for (const report of workerReports) {
             const last = lastAttempts.get(workerOfRun.get(report)!)
-            if (!last || startOf(report) > startOf(last) || (startOf(report) === startOf(last) && (report.info?.retry ?? 0) > (last.info?.retry ?? 0))) {
+            if (!last || byStart(report, last) > 0) {
                 lastAttempts.set(workerOfRun.get(report)!, report)
             }
         }
@@ -205,18 +213,7 @@ class ReportAggregator {
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this.reports.sort((report1:any, report2:any) => {
-            const first = dayjs.utc(report1.info.start)
-            const second = dayjs.utc(report2.info.start)
-            if (first.isAfter(second)) {
-                return 1
-            } else if (first.isBefore(second)) {
-                return -1
-            }
-            // the attempts of a spec file retry, in order
-            return (report1.info.retry ?? 0) - (report2.info.retry ?? 0)
-        })
+        this.reports.sort(byStart)
         // the report shows each attempt of a spec file, and counts only the last one
         for (let j = 0; j < this.reports.length; j++) {
             try {

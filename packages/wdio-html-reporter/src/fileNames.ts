@@ -18,3 +18,10 @@ export function workerFile (file: string, cid: string, retry = 0) {
     const { dir, name, ext } = path.parse(file)
     return path.join(dir, `${name}-${cid}${retry ? `-retry${retry}` : ''}${ext || '.html'}`)
 }
+
+/**
+ * The worker file of the first attempt: all the attempts of a spec file (`workerFile` with a retry) have it
+ */
+export function firstAttemptFile (file: string) {
+    return file.replace(/-retry\d+(\.[^./\\]+)$/, '$1')
+}
