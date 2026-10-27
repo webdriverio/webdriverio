@@ -130,6 +130,18 @@ describe('user command events', () => {
         expect(events).toEqual([])
     })
 
+    it('sends no call pair, and the commands in call send their own pairs', async () => {
+        const browser = await bidiSession()
+        const events = recordEvents(browser)
+        await browser.call(async () => browser.$('#foo').getText())
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', '$'],
+            ['userResult', '$'],
+            ['userCommand', 'getText'],
+            ['userResult', 'getText']
+        ])
+    })
+
     it('sends the name of the function that execute runs', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)

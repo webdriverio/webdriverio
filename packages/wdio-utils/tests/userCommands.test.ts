@@ -180,6 +180,27 @@ describe('runUserCommand', () => {
         ])
     })
 
+    it('sends no pair for call, and its commands are outer commands', async () => {
+        mod.registerUserCommands(['call'])
+        const browser = fakeBrowser()
+        const call = shim.wrapCommand('call', (fn: () => unknown) => fn())
+        const getText = shim.wrapCommand('getText', async () => 'hello')
+        expect(await call.call(browser, () => getText.call(browser))).toBe('hello')
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'getText'],
+            ['userResult', 'getText']
+        ])
+
+        // in another user command, the commands in call stay nested
+        browser.emit.mockClear()
+        const waitUntil = shim.wrapCommand('waitUntil', (fn: () => unknown) => fn())
+        await waitUntil.call(browser, () => call.call(browser, () => getText.call(browser)))
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'waitUntil'],
+            ['userResult', 'waitUntil']
+        ])
+    })
+
     it('sends the events of an element list query', async () => {
         const browser = fakeBrowser()
         let wrapper: ((load: () => Promise<unknown>) => Promise<unknown>) | undefined
