@@ -47,6 +47,21 @@ describe('ConciseReporter', () => {
             ))
         })
 
+        // Mocha `failHookAffectedTests: false`: a failed root before() reports no test
+        it('prints only the failed hook when a hook failed and no test ran', () => {
+            printReporter.onHookEnd({ uid: 'h1', title: '"before all" hook in "{root}"', error: { type: 'Error', message: 'before fails' } } as any)
+            printReporter.onRunnerEnd(RUNNER as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'chrome',
+                [
+                    '❌ Hook failed (1):',
+                    '  Fail : red "before all" hook in "{root}"',
+                    '    Error : yellow before fails'
+                ].join('\n')
+            ))
+        })
+
         it('names the browser of each instance of a multi-remote run', () => {
             printReporter.onRunnerEnd({
                 ...RUNNER,
