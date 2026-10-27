@@ -1,4 +1,3 @@
-import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -7,7 +6,6 @@ import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
 
-import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
@@ -43,6 +41,18 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+
+type ResolvePaths = (
+    logger: { debug: (message: string) => void, info: (message: string) => void, warn: (message: string) => void, error: (message: string) => void },
+    cwd: string,
+    sources: { paths: string[] },
+    support: { requireModules: string[], requirePaths: string[], importPaths: string[], loaders: string[] }
+) => Promise<{ requirePaths: string[], importPaths: string[] }>
+/**
+ * Cucumber's own expansion of the support paths: an internal module (`@cucumber/cucumber/lib/*`, as parallel.ts
+ * loads them), loaded when it is used
+ */
+const resolveSupportPaths = () => (require('@cucumber/cucumber/lib/paths/paths') as { resolvePaths: ResolvePaths }).resolvePaths
 
 /**
  * Cucumber's advice for its own CLI: WebdriverIO loads the support code itself, so it would be wrong in every worker
@@ -651,32 +661,51 @@ export class CucumberAdapter {
         }
     }
 
-    async loadFilesWithType(fileList: string[]) {
-        // a folder: its script files, sorted, as Cucumber loads them (a profile often lists `features/support`)
-        const folderFiles = (folder: string) => {
-            const cwd = path.resolve(folder)
-            const warnKey = `folder:${cwd}`
-            const typeScript = this._warned.has(warnKey) ? [] : globSync('**/*.{ts,cts,mts}', { cwd, ignore: '**/*.d.{ts,cts,mts}' })
-            if (typeScript.length > 0) {
-                this._warnOnce(warnKey, `The folder "${folder}" loads its .js, .cjs and .mjs files only, as in Cucumber, not: ` +
-                    `${typeScript.sort().join(', ')}. Use a glob such as "${folder.split(path.sep).join('/')}/**/*.ts".`)
+    /**
+     * the files of the `require` or `import` entries, with the rules of Cucumber (its own `resolvePaths`): globs,
+     * a folder (its `.js` files for `require`, `.js` / `.cjs` / `.mjs` for `import`), sorted, each file once
+     */
+    async loadFilesWithType(fileList: string[] = [], kind: 'require' | 'import' = 'require') {
+        const files: string[] = []
+        for (const entry of fileList) {
+            // a file:// URL or an existing file as it is: Cucumber would read `[ ]` in a path as a glob
+            if (entry.startsWith(FILE_PROTOCOL) || fs.statSync(path.resolve(entry), { throwIfNoEntry: false })?.isFile()) {
+                files.push(entry)
+                continue
             }
-            return globSync('**/*.{js,cjs,mjs}', { cwd, absolute: true }).sort()
+            const resolved = await this._resolveSupportPaths(entry, kind)
+            // a folder: the TypeScript warning tells why it loads no file
+            const folder = fs.statSync(path.resolve(this._cwd, entry), { throwIfNoEntry: false })?.isDirectory()
+            if (resolved.length === 0 && !folder) {
+                this._warnOnce(`entry:${kind}:${entry}`, `"${entry}" in the "${kind}" option matches no file.`)
+            }
+            if (folder) {
+                this._warnTypeScriptFolder(entry, resolved)
+            }
+            files.push(...resolved)
         }
-        const windows = os.platform() === 'win32'
-        // paths, not file:// URLs (glob finds nothing for a URL); loadAndRefreshModule makes the URL to import
-        const files = fileList.flatMap((file: string) => {
-            // path.join on Windows gives `steps\*.js`: is-glob reads `\*` as an escaped `*`
-            if (!isGlob(windows ? file.split('\\').join('/') : file)) {
-                return fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory() ? folderFiles(file) : [file]
-            }
-            // sorted by code unit, as Cucumber
-            const matches = globSync(file, { windowsPathsNoEscape: windows, withFileTypes: true })
-                .map((match) => ({ file: match.fullpath(), folder: match.isDirectory() }))
-                .sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0)
-            return matches.flatMap((match) => match.folder ? folderFiles(match.file) : [match.file])
-        })
         return [...new Set(files)]
+    }
+
+    private async _resolveSupportPaths(entry: string, kind: 'require' | 'import') {
+        const support = { requireModules: [], requirePaths: kind === 'require' ? [entry] : [], importPaths: kind === 'import' ? [entry] : [], loaders: [] }
+        const cucumberLogger = { debug: () => {}, info: () => {}, warn: (message: string) => log.warn(message), error: (message: string) => log.error(message) }
+        const { requirePaths, importPaths } = await resolveSupportPaths()(cucumberLogger, this._cwd, { paths: this._specs }, support)
+        return kind === 'require' ? requirePaths : importPaths
+    }
+
+    /**
+     * a folder loads no TypeScript file in Cucumber: a WebdriverIO project often has its steps in .ts files
+     */
+    private _warnTypeScriptFolder(entry: string, resolved: string[]) {
+        const folder = path.resolve(this._cwd, entry)
+        const typeScript = globSync('**/*.{ts,cts,mts}', { cwd: folder, ignore: '**/*.d.{ts,cts,mts}', absolute: true })
+            .filter((file) => !resolved.includes(file))
+        if (typeScript.length > 0) {
+            this._warnOnce(`folder:${folder}`, `The folder "${entry}" loads its JavaScript files only, as in Cucumber, not: ` +
+                `${typeScript.map((file) => path.relative(folder, file)).sort().join(', ')}. ` +
+                `Use a glob such as "${entry.split(path.sep).join('/')}/**/*.ts".`)
+        }
     }
 
     async loadAndRefreshModule(modules: string[]) {
@@ -706,14 +735,9 @@ export class CucumberAdapter {
     }
 
     async loadFiles() {
-        await Promise.all([
-            this.loadAndRefreshModule(
-                await this.loadFilesWithType(this._cucumberOpts.require)
-            ),
-            this.loadAndRefreshModule(
-                await this.loadFilesWithType(this._cucumberOpts.import)
-            ),
-        ])
+        // as Cucumber: the require files, then the import files, so that their hooks register in the same order
+        await this.loadAndRefreshModule(await this.loadFilesWithType(this._cucumberOpts.require, 'require'))
+        await this.loadAndRefreshModule(await this.loadFilesWithType(this._cucumberOpts.import, 'import'))
     }
 
     /**

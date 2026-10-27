@@ -1,8 +1,9 @@
 import path from 'node:path'
+import type * as nodeFs from 'node:fs'
 import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { describe, expect, it, vi, beforeEach, beforeAll, afterEach } from 'vitest'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -664,12 +665,94 @@ describe('CucumberAdapter', () => {
                 fs.writeFileSync(path.join(folder, file), '')
             }
             const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
-            const files = (await adapter.loadFilesWithType([folder, folder])).map((file: string) => path.relative(folder, file))
+            const files = (await adapter.loadFilesWithType([folder, folder], 'import')).map((file: string) => path.relative(folder, file))
             // sorted and once, as Cucumber: the order of the hooks does not depend on the file system
             expect(files).toEqual(['a.js', 'b.cjs', path.join('nested', 'hooks.mjs'), 'steps.js'])
         } finally {
             fs.rmSync(folder, { recursive: true, force: true })
         }
+    })
+
+    // Cucumber's own rules (resolvePaths): the cases where a copy of them differed
+    describe('support files with the rules of Cucumber', () => {
+        let fs: typeof nodeFs
+        let folder: string
+        const write = (...files: string[]) => {
+            for (const file of files) {
+                fs.mkdirSync(path.dirname(path.join(folder, file)), { recursive: true })
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+        }
+        const posix = (file: string) => file.split(path.sep).join('/')
+        const load = async (entries: string[], kind?: 'require' | 'import') => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            return ((await adapter.loadFilesWithType(entries, kind)) as string[]).map((file) => posix(path.relative(folder, file)))
+        }
+        beforeEach(async () => {
+            fs = await import('node:fs')
+            const os = await import('node:os')
+            folder = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-')))
+        })
+        afterEach(() => {
+            fs.rmSync(folder, { recursive: true, force: true })
+        })
+
+        it('uses an existing file as it is, also with [ ] in its path', async () => {
+            write('[app]/a.js')
+            expect(await load([path.join(folder, '[app]', 'a.js')])).toEqual(['[app]/a.js'])
+        })
+
+        it('sorts the files of a glob after it expands its folders', async () => {
+            write('support/b/x.js', 'support/b-a.js')
+            expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/b-a.js', 'support/b/x.js'])
+        })
+
+        it('expands a glob match that is a link to a folder', async () => {
+            write('shared/steps.js')
+            fs.mkdirSync(path.join(folder, 'support'))
+            fs.symlinkSync(path.join(folder, 'shared'), path.join(folder, 'support', 'linked'), 'dir')
+            expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/linked/steps.js'])
+        })
+
+        it('loads the .js files of a require folder and the .js, .cjs and .mjs files of an import folder', async () => {
+            write('support/a.js', 'support/b.mjs', 'support/c.cjs')
+            expect(await load([path.join(folder, 'support')], 'require')).toEqual(['support/a.js'])
+            expect(await load([path.join(folder, 'support')], 'import')).toEqual(['support/a.js', 'support/b.mjs', 'support/c.cjs'])
+        })
+
+        it('does not warn about TypeScript files that a glob loads', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                write('features/support/world.ts', 'features/steps/a.ts')
+                await load([`${posix(folder)}/features/**`])
+                expect(warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('.ts'))).toEqual([])
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        it('warns about an entry that matches no file', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                expect(await load([path.join(folder, 'steps', 'missing.js')])).toEqual([])
+                expect(warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('missing.js'))).toHaveLength(1)
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        it('loads the require files before the import files', async () => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { require: ['r.js'], import: ['i.mjs'] } }, [], {}, {}, {}, false)
+            const order: string[] = []
+            adapter.loadFilesWithType = vi.fn(async (files: string[]) => files)
+            adapter.loadAndRefreshModule = vi.fn(async (files: string[]) => {
+                order.push(`start ${files[0]}`)
+                await new Promise((resolve) => setTimeout(resolve, files[0] === 'r.js' ? 20 : 0))
+                order.push(`end ${files[0]}`)
+            })
+            await adapter.loadFiles()
+            expect(order).toEqual(['start r.js', 'end r.js', 'start i.mjs', 'end i.mjs'])
+        })
     })
 
     // path.join on Windows gives `steps\*.js`: is-glob reads `\*` as an escaped `*`, glob (windowsPathsNoEscape) as a wildcard
@@ -755,7 +838,7 @@ describe('CucumberAdapter', () => {
                 fs.writeFileSync(path.join(folder, file), '')
             }
             const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
-            const files = (await adapter.loadFilesWithType([path.join(folder, '*', 'support').split(path.sep).join('/')])).map((file: string) => path.relative(folder, file))
+            const files = (await adapter.loadFilesWithType([path.join(folder, '*', 'support').split(path.sep).join('/')], 'import')).map((file: string) => path.relative(folder, file))
             expect(files).toEqual([path.join('a', 'support', 'one.js'), path.join('b', 'support', 'two.mjs')])
         } finally {
             fs.rmSync(folder, { recursive: true, force: true })
