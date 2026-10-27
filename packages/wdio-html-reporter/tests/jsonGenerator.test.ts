@@ -6,6 +6,7 @@ import WDIOReporter from '@wdio/reporter'
 import type { SuiteStats } from '@wdio/reporter'
 
 import JsonGenerator from '../src/jsonGenerator.js'
+import HtmlReporter from '../src/htmlReporter.js'
 import { HtmlReporterOptions, ReportData } from '../src/types.js'
 
 describe('JsonGenerator.removeOutput', () => {
@@ -161,5 +162,44 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
             emit('suite:end', { uid: 'S', title: 'S', fullTitle: 'S' })
         })
         expect(roots[0].hooks[0]).not.toHaveProperty('output')
+    })
+})
+
+describe('JsonGenerator.jsonOutput, user commands', () => {
+    const write = async (events: [string, Record<string, unknown>][], extra: Record<string, unknown> = {}) => {
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-json-'))
+        const base = new HtmlReporter({ stdout: true, writeStream: { write: () => true }, outputDir, ...extra } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => base.emit(event, { cid: '0-0', file: '/spec.js', ...payload })
+        emit('runner:start', { specs: ['/spec.js'], config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        emit('suite:start', { uid: 's1', title: 'A', fullTitle: 'A', type: 'suite' })
+        const test = { uid: 't1', title: 't1', fullTitle: 'A t1', type: 'test', parent: 'A' }
+        emit('test:start', test)
+        events.forEach(([name, payload]) => emit(name, { sessionId: 's', ...payload }))
+        emit('test:pass', test)
+        emit('test:end', test)
+        emit('suite:end', { uid: 's1', title: 'A', fullTitle: 'A' })
+        const reportFile = path.join(outputDir, 'report-0-0.html')
+        const options = Object.assign(new HtmlReporterOptions(), { outputDir, removeOutput: false, produceJson: true })
+        await JsonGenerator.jsonOutput(options, new ReportData('t', {} as never, [base.suites.s1], {} as never, reportFile, 'chrome'))
+        const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf8'))
+        fs.rmSync(outputDir, { recursive: true, force: true })
+        return json.suites[0].tests[0].output as Record<string, unknown>[]
+    }
+
+    it('writes the user command and its result in the output of the test', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi' }],
+            ['client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi', result: { value: null } }]
+        ])
+        expect(output.map((entry) => entry.type)).toEqual(['userCommand', 'userResult'])
+    })
+
+    it('writes the message of an Error from a user command', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
+        ])
+        expect(output[1].result).toEqual({ error: { name: 'Error', message: 'boom' } })
     })
 })

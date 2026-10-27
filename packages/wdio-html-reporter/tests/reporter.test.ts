@@ -60,6 +60,23 @@ describe('HtmlReporter', () => {
         expect(fs.readFileSync(shots[0].value as string, 'utf8')).toBe('png')
     })
 
+    it('writes one screenshot for a user saveScreenshot and its protocol takeScreenshot', () => {
+        const reporter = new HtmlReporter({
+            logFile: path.join(outputRoot, 'user-shot.log'),
+            outputDir: path.join(outputRoot, 'user-shot') + path.sep,
+            filename: 'report.html',
+            useOnAfterCommandForScreenshot: true
+        } as never)
+        const test = { ...SUITES[0].tests[0], uid: 'user-shot-test' } as TestStats
+        reporter.onRunnerStart(RUNNER)
+        reporter.onTestStart(test)
+        reporter.emit('client:beforeUserCommand', { sessionId: 's', id: 1, command: 'saveScreenshot', body: ['a.png'], protocol: 'bidi' })
+        reporter.emit('client:beforeCommand', { sessionId: 's', command: 'takeScreenshot', body: {}, parent: 1 })
+        reporter.emit('client:afterCommand', { sessionId: 's', command: 'takeScreenshot', body: {}, parent: 1, result: { value: Buffer.from('png').toString('base64') } })
+        reporter.emit('client:afterUserCommand', { sessionId: 's', id: 1, command: 'saveScreenshot', body: ['a.png'], protocol: 'bidi', result: { value: '<Buffer 3 bytes>' } })
+        expect(eventsOf(test).filter((event) => event.type === 'screenshot')).toHaveLength(1)
+    })
+
     afterAll(() => {
         process.removeAllListeners('test:log')
         process.removeAllListeners('test:screenshot')
