@@ -6,6 +6,8 @@ import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
+// a copy never makes the command fail
+const UNREADABLE = '<unreadable>'
 // their result is base64 and reporters get them from the protocol events
 const NO_EVENT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
 
@@ -187,7 +189,13 @@ const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'obj
  * @experimental
  */
 export function userCommandBody (args: unknown[]): unknown[] {
-    const masked = isMaskOption(args[args.length - 1])
+    let masked: boolean
+    try {
+        masked = isMaskOption(args[args.length - 1])
+    } catch {
+        // the mask option is unknown, so no value is sent
+        return args.map(() => UNREADABLE)
+    }
     return args.map((arg, i) => masked && i < args.length - 1 && (typeof arg === 'string' || typeof arg === 'number')
         ? SENSITIVE_DATA_REPLACER
         : shortCopy(arg))
@@ -212,7 +220,11 @@ function wdioLabel (value: object, name: string, ref: unknown) {
  * @experimental
  */
 export function shortCopy (value: unknown): unknown {
-    return copyValue(value, new Set())
+    try {
+        return copyValue(value, new Set())
+    } catch {
+        return UNREADABLE
+    }
 }
 
 function copyValue (value: unknown, ancestors: Set<object>): unknown {
@@ -253,7 +265,7 @@ function copyValue (value: unknown, ancestors: Set<object>): unknown {
         return `<Buffer ${value.byteLength} bytes>`
     }
     if (value instanceof Date) {
-        return value.toISOString()
+        return isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString()
     }
     if (value instanceof Error) {
         return { name: value.name, message: value.message }
