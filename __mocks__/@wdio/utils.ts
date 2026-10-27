@@ -88,6 +88,7 @@ export const initializeLauncherService = vi.fn().mockReturnValue({
 export const isValidParameter = isValidParameterOrig
 export const commandCallStructure = commandCallStructureOrig
 export const currentUserCommandId = () => undefined
+export const runWithoutUserCommands = <T>(fn: () => T): T => fn()
 export const isFunctionAsync = isFnAsync
 export const safeRequire = vi.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig

@@ -17,6 +17,11 @@ export interface CommandArgs {
     command?: string
     params?: unknown
     contextId?: string
+    /**
+     * Id of the user command that runs this protocol command, in WebDriver BiDi sessions only
+     * @experimental
+     */
+    parent?: number
 }
 
 export interface BeforeCommandArgs extends CommandArgs {
@@ -25,6 +30,29 @@ export interface BeforeCommandArgs extends CommandArgs {
 
 export interface AfterCommandArgs extends CommandArgs {
     result: unknown
+}
+
+/**
+ * Payload of `client:beforeUserCommand`: a command that the test code calls directly (a WebdriverIO
+ * command or a custom command), sent in WebDriver BiDi sessions only. The body is masked and short.
+ * @experimental the name and the fields may change
+ */
+export interface BeforeUserCommandArgs {
+    /** The `parent` of the protocol commands that this user command runs */
+    id: number
+    command: string
+    body: unknown[]
+    protocol: 'bidi'
+    sessionId: string
+    contextId?: string
+}
+
+/**
+ * Payload of `client:afterUserCommand`
+ * @experimental the name and the fields may change
+ */
+export interface AfterUserCommandArgs extends BeforeUserCommandArgs {
+    result: { value: unknown } | { error: unknown }
 }
 
 /**

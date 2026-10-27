@@ -86,6 +86,11 @@ export default class WDIOReporter extends EventEmitter {
         return 0
     }
 
+    protected get showsUserCommands (): boolean {
+        return this.onBeforeUserCommand !== WDIOReporter.prototype.onBeforeUserCommand
+            || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
+    }
+
     getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
         return undefined
     }
@@ -123,6 +128,10 @@ export default class WDIOReporter extends EventEmitter {
     onBeforeCommand () {}
     /* istanbul ignore next */
     onAfterCommand () {}
+    /* istanbul ignore next */
+    onBeforeUserCommand (_payload: ReporterModule.BeforeUserCommandArgs) {}
+    /* istanbul ignore next */
+    onAfterUserCommand (_payload: ReporterModule.AfterUserCommandArgs) {}
     /* istanbul ignore next */
     onSuiteStart () {}
     /* istanbul ignore next */

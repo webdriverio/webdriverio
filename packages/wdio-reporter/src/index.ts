@@ -11,10 +11,13 @@ import type { Hook } from './stats/hook.js'
 import HookStats, { isSkippedHook } from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, AfterUserCommandArgs, BeforeUserCommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
 import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
+
+const SCREENSHOT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
+const EXECUTE_COMMANDS = ['execute', 'executeAsync']
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -149,8 +152,26 @@ export default class WDIOReporter extends EventEmitter {
         rootSuite.isRoot = true
         this.currentSuites.push(rootSuite)
 
-        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => this.#callForCommand(payload, () => this.onBeforeCommand(payload)))
-        this.on('client:afterCommand', (payload: AfterCommandArgs) => this.#callForCommand(payload, () => this.onAfterCommand(payload)))
+        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => {
+            if (!this.#hidesCommand(payload)) {
+                this.#callForCommand(payload, () => this.onBeforeCommand(payload))
+            }
+        })
+        this.on('client:afterCommand', (payload: AfterCommandArgs) => {
+            if (!this.#hidesCommand(payload)) {
+                this.#callForCommand(payload, () => this.onAfterCommand(payload))
+            }
+        })
+        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => {
+            if (this.showsUserCommands) {
+                this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            }
+        })
+        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => {
+            if (this.showsUserCommands) {
+                this.#callForCommand(payload, () => this.onAfterUserCommand(payload))
+            }
+        })
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
@@ -509,7 +530,7 @@ export default class WDIOReporter extends EventEmitter {
          */
         this.on('client:beforeCommand', (payload) => {
             const target = getCommandTarget(payload)
-            if (!target) {
+            if (!target || this.#hidesCommand(payload)) {
                 return
             }
             if (payload.body?.script) {
@@ -522,7 +543,7 @@ export default class WDIOReporter extends EventEmitter {
         })
         this.on('client:afterCommand', (payload) => {
             const target = getCommandTarget(payload)
-            if (!target) {
+            if (!target || this.#hidesCommand(payload)) {
                 return
             }
             if (payload.body?.script) {
@@ -533,6 +554,35 @@ export default class WDIOReporter extends EventEmitter {
             }
             (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
         })
+        const addUserCommand = (payload: BeforeUserCommandArgs | AfterUserCommandArgs, type: 'userCommand' | 'userResult') => {
+            const target = this.showsUserCommands ? getCommandTarget(payload) : undefined
+            if (!target) {
+                return
+            }
+            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body)
+                ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
+                : payload.body
+            // a copy: the runner sends the same payload to every reporter
+            const entry = { ...payload, body, type } as unknown as TestStats['output'][number]
+            ;(target.output ??= []).push(entry)
+        }
+        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => addUserCommand(payload, 'userCommand'))
+        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => addUserCommand(payload, 'userResult'))
+    }
+
+    /**
+     * `true` when the reporter overrides `onBeforeUserCommand` or `onAfterUserCommand`: it then gets the user
+     * commands, and the protocol commands that a user command runs (except screenshots) are hidden from it.
+     * @experimental the name and the rule may change
+     */
+    protected get showsUserCommands(): boolean {
+        return this.onBeforeUserCommand !== WDIOReporter.prototype.onBeforeUserCommand
+            || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
+    }
+
+    // reporters take screenshots from the protocol events
+    #hidesCommand(payload: CommandArgs) {
+        return payload.parent !== undefined && !SCREENSHOT_COMMANDS.includes(payload.command!) && this.showsUserCommands
     }
 
     /**
@@ -810,6 +860,17 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerStart(_runnerStats: RunnerStats) { }
     onBeforeCommand(_commandArgs: BeforeCommandArgs) { }
     onAfterCommand(_commandArgs: AfterCommandArgs) { }
+    /**
+     * A user command starts: a command that the test code calls directly (a WebdriverIO command or a custom
+     * command). WebDriver BiDi sessions only. Override it or `onAfterUserCommand` to get user commands.
+     * @experimental the name and the payload may change
+     */
+    onBeforeUserCommand(_payload: BeforeUserCommandArgs) { }
+    /**
+     * A user command ends, with its `result`: `{ value }` or `{ error }`. WebDriver BiDi sessions only.
+     * @experimental the name and the payload may change
+     */
+    onAfterUserCommand(_payload: AfterUserCommandArgs) { }
     onBeforeAssertion(_assertionArgs: unknown) { }
     onAfterAssertion(_assertionArgs: unknown) { }
     onSuiteStart(_suiteStats: SuiteStats) { }
@@ -921,5 +982,5 @@ function getSessionNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
 }
