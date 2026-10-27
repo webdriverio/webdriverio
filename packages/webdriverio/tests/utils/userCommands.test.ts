@@ -5,6 +5,7 @@ import type * as Utils from '@wdio/utils'
 
 import { remote } from '../../src/node.js'
 import { getContextManager } from '../../src/session/context.js'
+import { getPrototype } from '../../src/utils/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -45,6 +46,15 @@ describe('user command events', () => {
         const names = new Set(vi.mocked(registerUserCommands).mock.calls.flatMap(([commands]) => commands))
         expect(['saveScreenshot', 'url', '$', 'action', 'getText'].filter((name) => !names.has(name))).toEqual([])
         expect(['takeScreenshot', 'navigateTo', 'SESSION_MOCKS', 'CDP_SESSIONS'].filter((name) => names.has(name))).toEqual([])
+    })
+
+    it('registers the commands of a scope once', () => {
+        getPrototype('browser')
+        getPrototype('element')
+        vi.mocked(registerUserCommands).mockClear()
+        getPrototype('browser')
+        getPrototype('element')
+        expect(registerUserCommands).not.toHaveBeenCalled()
     })
 
     it('sends a pair for url and for $ called from a test', async () => {
