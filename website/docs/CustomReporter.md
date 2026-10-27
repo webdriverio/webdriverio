@@ -305,7 +305,7 @@ The payload has these fields:
 | `command` | The name of the command, for example `click` or the name of a custom command. |
 | `body` | The arguments of the command. |
 | `protocol` | `'bidi'` |
-| `sessionId` | The session of the command. |
+| `sessionId` | The session of the command. In a multi-remote run, the session of the instance. |
 | `contextId` | The parallel-mode context of the command, as for `onBeforeCommand`. |
 | `result` | `onAfterUserCommand` only: `{ value }` when the command passed, `{ error }` when it failed. |
 

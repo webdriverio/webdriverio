@@ -384,8 +384,8 @@ describe('custom commands', () => {
             ['result', 'myCmd', 1],
             ['userResult', 'myCmd', undefined]
         ])
-        expect(events[0][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi' })
-        expect(events[3][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', result: { value: 'secret!' } })
+        expect(events[0][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 'sessionId' })
+        expect(events[3][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 'sessionId', result: { value: 'secret!' } })
     })
 
     it('sends the error of a custom command', async () => {

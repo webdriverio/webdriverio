@@ -45,6 +45,13 @@ function composeElementOverrides(previousCommand: Function | undefined, nextComm
     }
 }
 
+// the user command of an element overwrite has the arguments of the caller, not the original command
+function elementOverride(name: string, command: Function) {
+    return function (this: WebdriverIO.Element, origCommand: Function, ...args: unknown[]) {
+        return runCustomCommand(this, name, args, () => command.call(this, origCommand, ...args))
+    }
+}
+
 function setElementOverride(overrides: Record<string, Function>, name: string, command: Function): void {
     overrides[name] = composeElementOverrides(overrides[name], command)
 }
@@ -410,18 +417,19 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                const elementCommand = elementOverride(name, customCommand)
                 if (instances) {
                     /**
                      * add command to every multi-remote instance
                      */
                     Object.values(instances).forEach((instance: { __propertiesObject__: { __elementOverrides__: { value: Record<string, Function> } } }) => {
-                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)
+                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, elementCommand)
                     })
                 } else {
                     /**
                      * regular mode
                      */
-                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, customCommand)
+                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, elementCommand)
                 }
             } else if (client[name]) {
                 const origCommand = client[name]
