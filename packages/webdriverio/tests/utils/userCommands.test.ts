@@ -58,7 +58,7 @@ describe('user command events', () => {
             ['userCommand', '$'],
             ['userResult', '$']
         ])
-        expect(events[0][1]).toEqual({ id: expect.any(Number), command: 'url', body: ['https://example.com'], protocol: 'bidi' })
+        expect(events[0][1]).toEqual({ id: expect.any(Number), command: 'url', body: ['https://example.com'], protocol: 'bidi', sessionId: 'foobar-123' })
         expect(events[2][1].body).toEqual(['#foo'])
         expect(events[1][1].id).toBe(events[0][1].id)
         expect(events[3][1].id).toBe(events[2][1].id)
@@ -68,7 +68,7 @@ describe('user command events', () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
         await browser.action('pointer').move({ x: 1, y: 2 }).down().up().perform()
-        const event = { id: expect.any(Number), command: 'action', body: [['pointerMove', 'pointerDown', 'pointerUp']], protocol: 'bidi' }
+        const event = { id: expect.any(Number), command: 'action', body: [['pointerMove', 'pointerDown', 'pointerUp']], protocol: 'bidi', sessionId: 'foobar-123' }
         expect(events).toEqual([
             ['userCommand', event],
             ['userResult', { ...event, result: { value: undefined } }]
@@ -81,7 +81,7 @@ describe('user command events', () => {
         const error = new Error('no such window')
         vi.spyOn(browser, 'performActions').mockRejectedValue(error)
         await expect(browser.action('key').down('a').perform()).rejects.toBe(error)
-        const event = { id: expect.any(Number), command: 'action', body: [['keyDown']], protocol: 'bidi' }
+        const event = { id: expect.any(Number), command: 'action', body: [['keyDown']], protocol: 'bidi', sessionId: 'foobar-123' }
         expect(events).toEqual([
             ['userCommand', event],
             ['userResult', { ...event, result: { error } }]
@@ -103,7 +103,7 @@ describe('user command events', () => {
             browser.action('pointer').move({ x: 1, y: 2 }).down(),
             browser.action('key').down('a').up('a')
         ])
-        const event = { id: expect.any(Number), command: 'actions', body: [[['pointerMove', 'pointerDown'], ['keyDown', 'keyUp']]], protocol: 'bidi' }
+        const event = { id: expect.any(Number), command: 'actions', body: [[['pointerMove', 'pointerDown'], ['keyDown', 'keyUp']]], protocol: 'bidi', sessionId: 'foobar-123' }
         expect(events).toEqual([
             ['userCommand', event],
             ['userResult', { ...event, result: { value: undefined } }]
