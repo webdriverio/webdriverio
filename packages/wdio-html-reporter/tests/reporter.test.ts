@@ -622,6 +622,57 @@ describe('tests with no describe()', () => {
         expect(json.metrics.failed).toBe(1)
         expect(json.suites.flatMap((suite: { tests: { title: string }[] }) => suite.tests.map((t) => t.title))).toEqual(['a top-level test'])
     })
+
+    type JsonSuite = { title: string, hooks: { title: string, output?: { type: string, body?: { url?: string } }[] }[] }
+    // Mocha before() / after() outside every describe(), Jasmine top-level beforeAll / afterAll
+    const rootHooks = async (name: string, options: object, commands = true) => {
+        const dir = path.join(outputRoot, name) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Root hooks', ...options } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs: ['/spec.js'], file: '/spec.js', ...payload })
+        emit('runner:start', { config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        const hook = (uid: string, kind: 'before' | 'after') => {
+            const payload = { uid, title: `"${kind} all" hook in "{root}"`, parent: '', hookKind: `${kind}All` }
+            emit('hook:start', payload)
+            if (commands) {
+                const command = { sessionId: 's', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: `${kind}-url` } }
+                reporter.emit('client:beforeCommand', command)
+                reporter.emit('client:afterCommand', { ...command, result: { value: null } })
+            }
+            emit('hook:end', payload)
+        }
+        const test = { uid: 't1', title: 'o1', fullTitle: 'outer o1', parent: 'outer' }
+        hook('root-before', 'before')
+        emit('suite:start', { uid: 'outer', title: 'outer', fullTitle: 'outer', parent: '' })
+        emit('test:start', test)
+        emit('test:pass', test)
+        emit('test:end', test)
+        emit('suite:end', { uid: 'outer', title: 'outer', fullTitle: 'outer', parent: '' })
+        hook('root-after', 'after')
+        await reporter.onRunnerEnd(reporter.runnerStat!)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as JsonSuite[]
+    }
+
+    it('writes the root suite with the commands of its hooks, removeOutput: false', async () => {
+        const suites = await rootHooks('root-hooks-output', { removeOutput: false })
+        expect(suites.map((suite) => suite.title)).toEqual(['(root)', 'outer'])
+        expect(suites[0].hooks.map((hook) => [hook.title, hook.output?.filter((o) => o.type === 'command').map((o) => o.body?.url)])).toEqual([
+            ['"before all" hook in "{root}"', ['before-url']],
+            ['"after all" hook in "{root}"', ['after-url']],
+        ])
+    })
+
+    it('does not write a root suite with only passed hooks, removeOutput: true', async () => {
+        const suites = await rootHooks('root-hooks-no-output', {})
+        expect(suites.map((suite) => suite.title)).toEqual(['outer'])
+    })
+
+    it('does not write a root suite with passed hooks that have no command, removeOutput: false', async () => {
+        const suites = await rootHooks('root-hooks-no-command', { removeOutput: false }, false)
+        expect(suites.map((suite) => suite.title)).toEqual(['outer'])
+    })
 })
 
 describe('suite state', () => {
