@@ -191,7 +191,7 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/cucumberjs-json-reporter` supports parallel mode: each scenario keeps its own steps, hooks, step lines and attachments. An attachment from code that runs outside a scenario, such as the WebdriverIO `after` hook, goes to the scenario that started last. A failed `BeforeAll` or `AfterAll` hook is not in the JSON, because it has no scenario to attach to.
 
-`@wdio/html-reporter` supports parallel mode with Mocha and Cucumber. It shows each log, screenshot and video under the test that sent it, also when it comes from a hook or after the test ends. An event from code that runs outside a test, such as an `AfterAll` hook or a `browser.on()` callback (a listener is for the whole session and gets the events of all test windows), goes to the test that started last, and the reporter logs a warning.
+`@wdio/html-reporter` supports parallel mode with Mocha and Cucumber. It shows each log, screenshot and video under the test that sent it, also when it comes from a hook or after the test ends. An event from code that runs outside a test, such as an `AfterAll` hook or a `browser.on()` callback (a listener is for the whole session and gets the events of all test windows), goes to the test that started last, and the reporter logs a warning. An event from before the first test (for example the `before` hook of the configuration) goes to the first test that starts.
 
 `@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
 
