@@ -600,7 +600,7 @@ Report an ambiguous step (a step that matches more than one step definition) as 
 The profiles of the Cucumber configuration file to use.
 
 </Option>
-Cucumber merges the values in this order: Cucumber's defaults, then the profiles or the configuration file (without [`file`](#file), Cucumber's default file in the working folder, for example `cucumber.js`), then `cucumberOpts`. So a value in `cucumberOpts` wins over the profile, and a profile value wins over Cucumber's default. `tags` and `retryTagFilter` of both are joined with `and`, and lists (for example `require`, `import`, `name`) are added together. The `paths` of a profile or configuration file are not used: the feature files come from `specs`, and the worker logs a warning. `parallel` and `shard` of a profile are not used either (WebdriverIO runs the workers), and a profile does not turn on `publish`: set it in `cucumberOpts`.
+Cucumber merges the values in this order: Cucumber's defaults, then the profiles or the configuration file (without [`file`](#file), Cucumber's default file in the working folder, for example `cucumber.js`), then `cucumberOpts`. So a value in `cucumberOpts` wins over the profile, and a profile value wins over Cucumber's default. `tags` and `retryTagFilter` of both are joined with `and`, and lists (for example `require`, `import`, `name`) are added together. The `paths` and `requireModule` of a profile or configuration file are not used: the feature files come from `specs`, the modules from `cucumberOpts.requireModule`, and the worker logs a warning. `parallel` and `shard` of a profile are not used either (WebdriverIO runs the workers), and a profile does not turn on `publish`: set it in `cucumberOpts`.
 
 #### file
 

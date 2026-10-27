@@ -80,7 +80,7 @@ Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAl
 
 `cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
 
-Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. The `require`, `import` and `requireModule` lists of the profile are loaded too, together with the ones in `cucumberOpts`. The `paths` of the profile are not used: before, each sequential worker also ran those feature files; use `specs`. Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
+Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. The `require` and `import` lists of the profile are loaded too, together with the ones in `cucumberOpts`. The `paths` and `requireModule` of the profile are not used, and the worker logs a warning: use `specs` and `cucumberOpts.requireModule` (WebdriverIO has its own TypeScript loader). Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
 
 ### `BeforeAll` and `AfterAll` hooks
 

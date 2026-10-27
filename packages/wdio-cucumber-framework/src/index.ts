@@ -84,7 +84,7 @@ export class CucumberAdapter {
     private _configurationError?: unknown
     /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
     private _cucumberOutput = new Set<string>()
-    private _profilePathsWarned = false
+    private _warnedProfileValues = new Set<string>()
     private _browser?: WebdriverIO.Browser
 
     // set in the constructor and again in init(), with the language that Cucumber runs with
@@ -222,7 +222,8 @@ export class CucumberAdapter {
         // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
         // the specs are the paths of the run (_loadRunConfiguration): Cucumber gives the paths of the profile only
         const { tags, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
-        const userTags = this._generatedTags ?? tags
+        // Cucumber wraps the tags that it joins, but not `(@a) or (@b)`: its `or` would escape the `and` with the profile tags
+        const userTags = this._generatedTags ?? (tags && /^\(.*\)$/s.test(tags) ? `(${tags})` : tags)
         return {
             ...user,
             // WebdriverIO runs the workers and shards the specs, and publishes no report unless cucumberOpts asks
@@ -244,9 +245,9 @@ export class CucumberAdapter {
         for (const key of CUCUMBER_VALUES) {
             (this._cucumberOpts as Record<string, unknown>)[key] = configuration[key as keyof IConfiguration]
         }
-        // the modules of the profile, then the ones of cucumberOpts in all the WebdriverIO forms
-        const userModules = (this._config.cucumberOpts?.requireModule ?? []) as unknown[]
-        this._cucumberOpts.requireModule = [...configuration.requireModule, ...userModules] as string[]
+        // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
+        this._warnProfileValue('requireModule', configuration.requireModule, 'Set "cucumberOpts.requireModule" to load a module.')
+        this._cucumberOpts.requireModule = (this._config.cucumberOpts?.requireModule ?? []) as string[]
     }
 
     /**
@@ -257,7 +258,7 @@ export class CucumberAdapter {
             { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._configurationFile() },
             this._cucumberEnvironment()
         )
-        this._warnProfilePaths(useConfiguration.paths)
+        this._warnProfileValue('paths', useConfiguration.paths, 'WebdriverIO runs the feature files of "specs".')
         this._useCucumberValues(useConfiguration)
         this._createGherkinParser()
     }
@@ -271,8 +272,9 @@ export class CucumberAdapter {
                 const skipTags = this.generateDynamicSkipTags()
                 if (skipTags.length > 0) {
                     const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
+                    // the run: Cucumber joins the profile tags again; init: the tags that the first load resolved
                     this._generatedTags = [...skipTags, ...userTags].join(' and ')
-                    await this._resolveCucumberValues()
+                    this._cucumberOpts.tags = [...skipTags, ...(this._cucumberOpts.tags ? [`(${this._cucumberOpts.tags})`] : [])].join(' and ')
                 }
             }
         } catch (err) {
@@ -361,10 +363,6 @@ export class CucumberAdapter {
             setDefaultTimeout(this._cucumberOpts.timeout)
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
-            // the formatter sends the user BeforeAll / AfterAll as hooks, not the WDIO ones
-            if (supportCodeLibrary) {
-                (this._cucumberOpts.formatOptions as Record<string, unknown>)._userRunHooks = userRunHooks(supportCodeLibrary)
-            }
 
             const { parallelMode } = this._cucumberOpts
             result = parallelMode === 'contexts' || parallelMode === 'userContexts'
@@ -506,15 +504,15 @@ export class CucumberAdapter {
     }
 
     /**
-     * the paths of a profile or config file: Cucumber adds them to the specs of each worker (#13562)
+     * a value of a profile or config file for the Cucumber CLI that WebdriverIO does not use: the paths (Cucumber
+     * would add them to the specs of each worker, #13562) and the requireModule; one warning per worker
      */
-    private _warnProfilePaths(paths: string[]) {
-        if (this._profilePathsWarned || paths.length === 0) {
+    private _warnProfileValue(key: string, values: string[], advice: string) {
+        if (this._warnedProfileValues.has(key) || values.length === 0) {
             return
         }
-        this._profilePathsWarned = true
-        const message = `The "paths" of the Cucumber configuration are not used: ${paths.join(', ')}. ` +
-            'WebdriverIO runs the feature files of "specs".'
+        this._warnedProfileValues.add(key)
+        const message = `The "${key}" of the Cucumber configuration are not used: ${values.join(', ')}. ${advice}`
         log.warn(message)
         console.warn(`[@wdio/cucumber-framework] ${message}`)
     }
@@ -574,11 +572,7 @@ export class CucumberAdapter {
                 {
                     ...runConfiguration,
                     support: supportCodeLibrary || runConfiguration.support,
-                    // the values that Cucumber runs with (profiles, file): a retried attempt, a pending step under strict
-                    formats: {
-                        ...formats,
-                        options: { ...formats.options, _retry: runtime.retry, _retryTagFilter: runtime.retryTagFilter, _strict: runtime.strict },
-                    },
+                    formats: this._runFormats(formats, runtime, supportCodeLibrary),
                 },
                 environment
             )
@@ -621,21 +615,39 @@ export class CucumberAdapter {
         )
     }
 
-    async loadFilesWithType(fileList: string[]) {
-        return fileList.reduce(
-            (files: string[], file: string) => {
-                // a folder: its script files, as Cucumber loads them (a profile often lists `features/support`)
-                if (!isGlob(file) && fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory()) {
-                    const folderFiles = globSync('**/*.{js,cjs,mjs}', { cwd: path.resolve(file), absolute: true }).sort()
-                    return [...new Set([...files, ...folderFiles])]
-                }
-                const filePath = os.platform() === 'win32'
-                    ? url.pathToFileURL(file).href
-                    : file
-                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+    /**
+     * the formatter options of a run: the values that Cucumber runs with (profiles, file) for a retried attempt and a
+     * pending step under strict, and the user BeforeAll / AfterAll that the formatter sends as hooks (not the WDIO ones)
+     */
+    private _runFormats<T extends { options: object }>(
+        formats: T,
+        runtime: { retry: number, retryTagFilter: string, strict: boolean },
+        supportCodeLibrary: Parameters<typeof userRunHooks>[0]
+    ): T {
+        return {
+            ...formats,
+            options: {
+                ...formats.options,
+                _retry: runtime.retry,
+                _retryTagFilter: runtime.retryTagFilter,
+                _strict: runtime.strict,
+                _userRunHooks: supportCodeLibrary ? userRunHooks(supportCodeLibrary) : {},
             },
-            []
-        )
+        }
+    }
+
+    async loadFilesWithType(fileList: string[]) {
+        // a folder: its script files, sorted, as Cucumber loads them (a profile often lists `features/support`)
+        const isFolder = (file: string) => Boolean(fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory())
+        const folderFiles = (folder: string) => globSync('**/*.{js,cjs,mjs}', { cwd: path.resolve(folder), absolute: true }).sort()
+        const files = fileList.flatMap((file: string) => {
+            if (!isGlob(file)) {
+                return isFolder(file) ? folderFiles(file) : [os.platform() === 'win32' ? url.pathToFileURL(file).href : file]
+            }
+            const filePath = os.platform() === 'win32' ? url.pathToFileURL(file).href : file
+            return globSync(filePath).sort().flatMap((match) => isFolder(match) ? folderFiles(match) : [match])
+        })
+        return [...new Set(files)]
     }
 
     async loadAndRefreshModule(modules: string[]) {

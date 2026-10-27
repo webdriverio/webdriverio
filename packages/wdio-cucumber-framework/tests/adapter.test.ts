@@ -228,18 +228,6 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
-    it('gives the formatter the user run hooks', async () => {
-        const { supportCodeLibraryBuilder } = await import('@cucumber/cucumber')
-        vi.mocked(supportCodeLibraryBuilder.finalize).mockReturnValueOnce({
-            beforeTestRunHookDefinitions: [{ id: 'b1', code: function userHookAsyncFn () {} }, { id: 'w1', code: function wdioHookBeforeFeature () {} }],
-            afterTestRunHookDefinitions: [{ id: 'w2', code: function wdioHookAfterFeature () {} }],
-        } as any)
-        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false, 'progress')
-        ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
-        await adapter.run()
-        expect((adapter as any)._cucumberOpts.formatOptions._userRunHooks).toEqual({ b1: { kind: 'BeforeAll' } })
-    })
-
     it('gives the rootDir of the config to the parallel run', async () => {
         vi.mocked(runParallelCucumber).mockResolvedValue(0)
         ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
@@ -492,13 +480,22 @@ describe('CucumberAdapter', () => {
             }
         })
 
-        // the WebdriverIO forms (a function, [module, options]) fail Cucumber's schema: they stay out of `provided`
-        it('loads the requireModule of a profile with the WebdriverIO forms of cucumberOpts', async () => {
-            const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: [() => { global.MODULE_FN_WAS_LOADED = true }, ['moduleB', { from: 'cucumberOpts' }]] })
-            await adapter.registerRequiredModules()
-            expect(global.MODULE_PROFILE_WAS_LOADED).toBe(true)
-            expect(global.MODULE_FN_WAS_LOADED).toBe(true)
-            expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
+        // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
+        it('does not load the requireModule of a profile, and warns once', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            global.MODULE_PROFILE_WAS_LOADED = false
+            try {
+                const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: [() => { global.MODULE_FN_WAS_LOADED = true }, ['moduleB', { from: 'cucumberOpts' }]] })
+                await adapter.registerRequiredModules()
+                expect(global.MODULE_PROFILE_WAS_LOADED).toBe(false)
+                expect(global.MODULE_FN_WAS_LOADED).toBe(true)
+                expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('moduleProfile'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('cucumberOpts.requireModule')
+            } finally {
+                warn.mockRestore()
+            }
         })
 
         // the WebdriverIO specs choose the features (#13562): Cucumber would add the paths of the profile in each worker
@@ -548,22 +545,6 @@ describe('CucumberAdapter', () => {
             expect(published.formats.publish).toBeTruthy()
         })
 
-        // as on main: a configuration error of the skip tag load also comes from run()
-        it('reports a configuration error of the second load from run()', async () => {
-            const resolveValues = (packageExports.CucumberAdapter.prototype as any)._resolveCucumberValues
-            const spy = vi.spyOn(packageExports.CucumberAdapter.prototype as any, '_resolveCucumberValues')
-                .mockImplementationOnce(function (this: unknown) { return resolveValues.call(this) })
-                .mockRejectedValueOnce(new Error('second load fails'))
-            try {
-                const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
-                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [skipFeature], { browserName: 'chrome' }, {}, {}, true)
-                expect(spy).toHaveBeenCalledTimes(2)
-                await expect(adapter.run()).rejects.toThrow('second load fails')
-            } finally {
-                spy.mockRestore()
-            }
-        })
-
         it('reports a bad tag expression of a profile from run()', async () => {
             const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['badTags'], file } }, [feature], {}, {}, {}, false)
             expect(adapter.hasTests()).toBe(true)
@@ -576,21 +557,40 @@ describe('CucumberAdapter', () => {
             expect(adapter._providedConfiguration()).not.toHaveProperty('paths')
         })
 
-        it('loads the configuration again only for generated skip tags', async () => {
+        // the skip tags join the tags that the first load resolved: no second load
+        it('loads the configuration one time in init, also with skip tags', async () => {
             const spy = vi.spyOn(packageExports.CucumberAdapter.prototype as any, '_resolveCucumberValues')
             try {
-                await CucumberAdapter.init!('0-0', { cucumberOpts: { tags: '@user' } }, [feature], { browserName: 'chrome' }, {}, {}, true)
+                const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
+                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['smoke'], file, tags: '@user' } }, [skipFeature], { browserName: 'chrome' }, {}, {}, true)
                 expect(spy).toHaveBeenCalledTimes(1)
+                expect(adapter._cucumberOpts.tags).toContain('@smoke')
+                expect(adapter._cucumberOpts.tags).toContain('@user')
+                expect(adapter._cucumberOpts.tags).toContain('@skip')
             } finally {
                 spy.mockRestore()
             }
+        })
+
+        // Cucumber does not wrap an expression that starts with ( and ends with ): an `or` would escape the `and`
+        it('keeps the user tags in parentheses when Cucumber joins them with the profile tags', async () => {
+            const { configuration } = await resolve({ profiles: ['smoke'], file, tags: '(@a) or (@b)' })
+            expect(configuration.sources.tagExpression).toBe('(@smoke) and ((@a) or (@b))')
+        })
+
+        it('builds the format options of the run with the user run hooks', async () => {
+            const { adapter } = await resolve({})
+            const library = { beforeTestRunHookDefinitions: [{ id: 'b1', code: function userHookFn () {} }, { id: 'w1', code: function wdioHookBeforeFeature () {} }], afterTestRunHookDefinitions: [] }
+            const { options } = adapter._runFormats({ options: { mine: 1 } }, { retry: 2, retryTagFilter: '@flaky', strict: true }, library)
+            expect(options).toMatchObject({ mine: 1, _retry: 2, _retryTagFilter: '@flaky', _strict: true, _userRunHooks: { b1: { kind: 'BeforeAll' } } })
+            expect(adapter._cucumberOpts.formatOptions).not.toHaveProperty('_userRunHooks')
         })
 
         it('does not send requireModule to Cucumber', async () => {
             const userModule = () => {}
             const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })
             expect(adapter._providedConfiguration()).not.toHaveProperty('requireModule')
-            expect(adapter._cucumberOpts.requireModule).toEqual(['moduleProfile', 'moduleA', userModule])
+            expect(adapter._cucumberOpts.requireModule).toEqual(['moduleA', userModule])
         })
 
         // the cucumberjs-json reporter reads cucumberOpts.language of the config (onRunnerStart)
@@ -650,6 +650,23 @@ describe('CucumberAdapter', () => {
             const files = (await adapter.loadFilesWithType([folder, folder])).map((file: string) => path.relative(folder, file))
             // sorted and once, as Cucumber: the order of the hooks does not depend on the file system
             expect(files).toEqual(['a.js', 'b.cjs', path.join('nested', 'hooks.mjs'), 'steps.js'])
+        } finally {
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    it('loads the script files of the folders that a glob matches', async () => {
+        const fs = await import('node:fs')
+        const os = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
+        try {
+            for (const file of ['a/support/one.js', 'b/support/two.mjs']) {
+                fs.mkdirSync(path.dirname(path.join(folder, file)), { recursive: true })
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = (await adapter.loadFilesWithType([path.join(folder, '*', 'support').split(path.sep).join('/')])).map((file: string) => path.relative(folder, file))
+            expect(files).toEqual([path.join('a', 'support', 'one.js'), path.join('b', 'support', 'two.mjs')])
         } finally {
             fs.rmSync(folder, { recursive: true, force: true })
         }
