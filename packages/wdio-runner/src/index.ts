@@ -542,6 +542,20 @@ export default class Runner extends EventEmitter {
             Object.assign(result, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
+        /**
+         * register user command events (WebDriver BiDi sessions only); a copy, as other listeners get the same object
+         */
+        // the user command events are not in the typed events of the browser
+        const events = browser as unknown as Pick<EventEmitter, 'on'>
+        events.on('userCommand', (event: any) => this._reporter?.emit(
+            'client:beforeUserCommand',
+            { ...event, sessionId: browser.sessionId, ...getContextIdPayload(browser) }
+        ))
+        events.on('userResult', (event: any) => this._reporter?.emit(
+            'client:afterUserCommand',
+            { ...event, sessionId: browser.sessionId, ...getContextIdPayload(browser) }
+        ))
+
         return browser
     }
 

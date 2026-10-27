@@ -332,6 +332,16 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     reporterSyncTimeout?: number
     /**
+     * Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command
+     * is a command that your test code calls directly: a WebdriverIO command or a custom command.
+     * Set `false` to send none, or `{ exclude: ['waitUntil'] }` to not send the named commands
+     * (the commands that an excluded command runs are not sent either).
+     *
+     * @default true
+     * @experimental
+     */
+    userCommandEvents?: boolean | { exclude?: string[] }
+    /**
      * Node arguments to specify when launching child processes.
      */
     execArgv?: string[]

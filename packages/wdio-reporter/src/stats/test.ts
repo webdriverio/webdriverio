@@ -48,7 +48,11 @@ interface Output {
     }
     sessionId: string
     cid: string
-    type: 'command' | 'result'
+    type: 'command' | 'result' | 'userCommand' | 'userResult'
+    /** Id of the user command that runs this protocol command, in WebDriver BiDi sessions only */
+    parent?: number
+    /** Id of a `userCommand` / `userResult` entry */
+    id?: number
 }
 
 /**
