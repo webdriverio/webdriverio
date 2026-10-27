@@ -710,7 +710,8 @@ describe('CucumberAdapter', () => {
         it('expands a glob match that is a link to a folder', async () => {
             write('shared/steps.js')
             fs.mkdirSync(path.join(folder, 'support'))
-            fs.symlinkSync(path.join(folder, 'shared'), path.join(folder, 'support', 'linked'), 'dir')
+            // a junction needs no rights on Windows; macOS and Linux ignore the type
+            fs.symlinkSync(path.join(folder, 'shared'), path.join(folder, 'support', 'linked'), 'junction')
             expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/linked/steps.js'])
         })
 
@@ -731,14 +732,41 @@ describe('CucumberAdapter', () => {
             }
         })
 
-        it('warns about an entry that matches no file', async () => {
+        // the loader resolves it (steps -> steps.ts with the TypeScript loader), or the import fails with its name
+        it('keeps an entry that is not a glob, a file or a folder as it is', async () => {
+            expect(await load([path.join(folder, 'steps', 'steps')])).toEqual(['steps/steps'])
+            expect(await load([path.join(folder, 'steps', 'missing.js')])).toEqual(['steps/missing.js'])
+        })
+
+        it('warns about a glob or a folder that matches no file', async () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
             try {
-                expect(await load([path.join(folder, 'steps', 'missing.js')])).toEqual([])
-                expect(warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('missing.js'))).toHaveLength(1)
+                fs.mkdirSync(path.join(folder, 'empty'))
+                expect(await load([`${posix(folder)}/steps/*.js`, path.join(folder, 'empty')])).toEqual([])
+                const warnings = warn.mock.calls.map(([message]) => String(message))
+                expect(warnings.filter((message) => message.includes('steps/*.js'))).toHaveLength(1)
+                expect(warnings.filter((message) => message.includes('empty'))).toHaveLength(1)
             } finally {
                 warn.mockRestore()
             }
+        })
+
+        it('does not name the TypeScript files of node_modules', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                write('support/steps.ts', 'support/node_modules/dep/index.ts')
+                await load([path.join(folder, 'support')])
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('steps.ts'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).not.toContain('node_modules')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        it('loads a file one time when a path and a glob name it', async () => {
+            write('steps/a.js')
+            expect(await load([path.relative(process.cwd(), path.join(folder, 'steps', 'a.js')), `${posix(folder)}/steps/*.js`])).toEqual(['steps/a.js'])
         })
 
         it('loads the require files before the import files', async () => {
