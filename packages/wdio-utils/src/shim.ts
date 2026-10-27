@@ -4,6 +4,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
+import { runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -50,7 +51,7 @@ export function setCommandHookStore (store: CommandHookStore) {
     commandHookScope = store
 }
 
-const isInCommandHook = () => commandHookScope.getStore() === true
+export const isInCommandHook = () => commandHookScope.getStore() === true
 const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
@@ -513,7 +514,7 @@ function attachElementArrayHooks (
 
         let commandError: unknown
         try {
-            await load()
+            await runUserCommand(self, commandName, args, () => load())
         } catch (err) {
             commandError = err
         }
@@ -545,7 +546,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         let commandResult
         let commandError
         try {
-            commandResult = await fn.apply(this, args)
+            commandResult = await runUserCommand(this, commandName, args, () => fn.apply(this, args))
         } catch (err) {
             commandError = err
         }
