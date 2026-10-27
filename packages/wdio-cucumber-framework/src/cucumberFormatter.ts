@@ -46,7 +46,6 @@ import type { HookParams, ReporterScenario } from './types.js'
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
     private _hookEvent: Hook[] = []
-    // the hook of each started BeforeAll / AfterAll
     /** the open BeforeAll / AfterAll by `testRunHookStarted.id` */
     private _openRunHooks = new Map<string, TestRunHookStart>()
     private _scenarios: Pickle[] = []
