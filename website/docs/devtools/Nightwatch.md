@@ -12,7 +12,7 @@ Nightwatch adapter for [WebdriverIO DevTools](https://github.com/webdriverio/dev
 npm install @wdio/nightwatch-devtools
 ```
 
-Requires Nightwatch 3 or later. For Cucumber, `@cucumber/cucumber` must be installed in your project; the adapter uses your copy rather than bundling one.
+Requires Node.js 22.23.4+, 24.22.1+ or 26.12.1+ and Nightwatch 3 or later. For Cucumber, `@cucumber/cucumber` must be installed in your project; the adapter uses your copy rather than bundling one.
 
 ## Setup
 

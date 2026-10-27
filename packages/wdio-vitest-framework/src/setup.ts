@@ -151,7 +151,11 @@ const toRuntimeMessage: Record<RelayedReporterEvent, (payload: unknown) => Conve
     'allure:startStep': (name) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: name as string, start: Date.now() } } }),
     'allure:endStep': (arg) => ({ event: 'allure:runtimeMessage', payload: { type: 'step_stop', data: { ...(typeof arg === 'string' ? { status: arg } : arg as object), stop: Date.now() } } }),
     'allure:runtimeMessage': toAllureMessage,
-    'junit:addProperty': (payload) => ({ event: 'junit:addProperty', payload })
+    'junit:addProperty': (payload) => ({ event: 'junit:addProperty', payload }),
+    // wrapped because BaseReporter.emit sets `cid` on the payload, which throws for the string and undefined values of the html reporter events
+    'test:log': (payload) => ({ event: 'test:log', payload: { value: cloneable(payload) } }),
+    'test:screenshot': (payload) => ({ event: 'test:screenshot', payload: { value: cloneable(payload) } }),
+    'test:video-capture': (payload) => ({ event: 'test:video-capture', payload: { value: cloneable(payload) } })
 }
 
 // converted at call time so step timestamps are the worker's, not the replay's

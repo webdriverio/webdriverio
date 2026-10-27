@@ -1142,6 +1142,15 @@ describe('launcher', () => {
                 expect(config.onPrepare![0]).not.toBeCalled()
             })
 
+            it('rejects --repeat before starting the launcher services', async () => {
+                mockFramework(async () => ({ launch }))
+                ;(config as { repeat?: number }).repeat = 3
+
+                await expect(launcher.run()).rejects.toThrow('--repeat is not supported by the vitest framework yet')
+                expect(launch).not.toBeCalled()
+                expect(config.onPrepare![0]).not.toBeCalled()
+            })
+
             it.each([
                 ['flat', 'wdio:specs', { 'wdio:specs': ['a.ts'] }],
                 ['flat', 'wdio:exclude', { 'wdio:exclude': ['a.ts'] }],

@@ -754,6 +754,24 @@ describe('WdioBridgeReporter', () => {
             expect(emitted[start + 2][1]).toEqual({ name: 'k', value: 'v' })
         })
 
+        it('replays the html reporter log and screenshot calls between test:start and test:pass', async () => {
+            const module = makeModule()
+            const meta = runtimeMeta(
+                { event: 'test:log', payload: { value: 'a log line' }, retry: 0 },
+                { event: 'test:screenshot', payload: { value: 'shot.png' }, retry: 0 }
+            )
+            reporter.onTestModuleStart(module)
+            const test = makeTest(module, module, 'replayed', passed, 1, { meta: () => meta })
+            await reporter.onTestCaseReady(test)
+            await reporter.onTestCaseResult(test)
+
+            const emitted = emittedOf()
+            const start = emitted.findIndex(([name]) => name === 'test:start')
+            expect(emitted.slice(start, start + 5).map(([name]) => name)).toEqual(['test:start', 'test:log', 'test:screenshot', 'test:pass', 'test:end'])
+            expect(emitted[start + 1][1]).toEqual({ value: 'a log line' })
+            expect(emitted[start + 2][1]).toEqual({ value: 'shot.png' })
+        })
+
         describe('pending attachment files', () => {
             let dir: string
             beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-vitest-pending-')) })
@@ -1001,7 +1019,7 @@ describe('WdioBridgeReporter', () => {
                     const [start, end] = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
                     expect(start).toEqual({
                         type: 'hook:start', cid: '0-0', specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', uid: 'test-0-0-0-beforeEach',
-                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), retried: true
+                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true
                     })
                     expect(end).toEqual({ ...start, type: 'hook:end', duration: 0, state: 'pass' })
                     const after = emittedOf().filter(([name]) => name === 'hook:start').map(([, payload]) => payload.title)

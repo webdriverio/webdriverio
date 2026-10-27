@@ -109,6 +109,34 @@ describe('HtmlReporter', () => {
         ])
     })
 
+    it('adds logs, screenshots and videos that the Vitest framework replays on the reporter to the current test', () => {
+        const test = SUITES[0].tests[2]
+        htmlReporter.emit('test:log', { value: 'a replayed log' })
+        htmlReporter.emit('test:screenshot', { value: 'replayed.png' })
+        htmlReporter.emit('test:video-capture', { value: 'replayed.webm' })
+        expect(eventsOf(test).slice(-3).map((event) => [event.type, event.value])).toEqual([
+            ['log', 'a replayed log'],
+            ['screenshot', 'replayed.png'],
+            ['video-capture', 'replayed.webm']
+        ])
+    })
+
+    it('removes the replay listeners on runner end, together with the process ones', async () => {
+        const reporter = new HtmlReporter({
+            logFile: path.join(outputRoot, 'replay-listeners.log'),
+            outputDir: path.join(outputRoot, 'replay-listeners') + path.sep,
+            filename: 'report.html'
+        } as never)
+        const events = ['test:log', 'test:screenshot', 'test:video-capture']
+        const counts = () => events.map((event) => [reporter.listenerCount(event), process.listenerCount(event)])
+        const before = counts()
+        reporter.onRunnerStart(RUNNER)
+        await reporter.onRunnerEnd(RUNNER)
+        expect(before.every(([own, onProcess]) => own === 1 && onProcess > 0)).toBe(true)
+        expect(counts().map(([own]) => own)).toEqual([0, 0, 0])
+        expect(counts().map(([, onProcess]) => onProcess)).toEqual(before.map(([, onProcess]) => onProcess - 1))
+    })
+
     it('keeps a log value that is not a string as readable text (#105)', () => {
         const test = SUITES[0].tests[2]
         new ReportEvents().logMessage({ foobar: 'object', count: NaN } as never)

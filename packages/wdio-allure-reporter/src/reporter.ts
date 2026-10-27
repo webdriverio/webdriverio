@@ -617,7 +617,7 @@ export default class AllureReporter extends WDIOReporter {
     private _registerListeners(): void {
         setGlobalTestRuntime(new WdioTestRuntime())
 
-        process.on(events.addTestInfo, (payload: AddTestInfoEventArgs) => {
+        this.onProcess(events.addTestInfo, (payload: AddTestInfoEventArgs) => {
             const { file, testPath, cid = DEFAULT_CID } = payload
 
             if (file) {
@@ -672,11 +672,12 @@ export default class AllureReporter extends WDIOReporter {
             if (this._tpSkipActive(this._currentCid())) { return }
             this._pushRuntimeMessage(payload as WDIORuntimeMessage)
         }
-        for (const emitter of [process, this]) {
-            emitter.on(events.startStep, onStartStep)
-            emitter.on(events.endStep, onEndStep)
-            emitter.on(events.runtimeMessage, onRuntimeMessage)
-        }
+        this.onProcess(events.startStep, onStartStep)
+        this.onProcess(events.endStep, onEndStep)
+        this.onProcess(events.runtimeMessage, onRuntimeMessage)
+        this.on(events.startStep, onStartStep)
+        this.on(events.endStep, onEndStep)
+        this.on(events.runtimeMessage, onRuntimeMessage)
     }
 
     onRunnerStart(runner: RunnerStats): void {

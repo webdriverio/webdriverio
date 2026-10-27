@@ -118,7 +118,8 @@ class Launcher {
         // Rejecting here keeps every hook, service and runner shutdown from running for a run that never starts
         const framework = await this.#loadFrameworkLauncher(config)
         if (framework) {
-            this.#assertFrameworkSupportsRun(config.framework, caps)
+            // ConfigParser keeps the --repeat CLI flag on the config, outside of its declared type
+            this.#assertFrameworkSupportsRun(config.framework, caps, (config as { repeat?: number }).repeat)
         }
 
         try {
@@ -235,9 +236,13 @@ class Launcher {
         return exitCode
     }
 
-    #assertFrameworkSupportsRun(framework: string, caps: Capabilities.TestrunnerCapabilities) {
+    #assertFrameworkSupportsRun(framework: string, caps: Capabilities.TestrunnerCapabilities, repeat?: number) {
         if (this._isWatchMode) {
             throw new Error(`--watch is not supported by the ${framework} framework yet`)
+        }
+        // the framework gets the specs as a set of files, so the copies --repeat adds would run once
+        if (repeat) {
+            throw new Error(`--repeat is not supported by the ${framework} framework yet`)
         }
         const capList = (Array.isArray(caps) ? caps : [caps]) as unknown as Record<string, unknown>[]
         for (const cap of capList) {

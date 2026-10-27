@@ -21,7 +21,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "6.0.3",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -45,13 +45,16 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "expect-webdriverio": "^8.0.0",
-    "vitest": "^5.0.2",
     "webdriverio": "workspace:*"
+  },
+  "devDependencies": {
+    "@wdio/allure-reporter": "workspace:*",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "vitest": "^5.0.2"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@wdio/allure-reporter": "workspace:*"
   }
 }

@@ -299,6 +299,8 @@ export class WdioBridgeReporter implements Reporter {
         const testParent = test.fullTitle === test.title ? '' : test.fullTitle.slice(0, -(test.title.length + 1))
         const base = {
             uid: `${test.uid}-${kind}`, title, fullTitle: join(testParent, title), parent: test.parent, parentUid: test.parentUid,
+            // HookStats links a hook to its test by title, e.g. for the JSON reporter's associatedTest
+            currentTest: test.title,
             ...(test.contextId !== undefined && { contextId: test.contextId }),
             ...(retried && { retried }),
             // the test (attempt) failed with this error: reporters show the hook, but do not count it again

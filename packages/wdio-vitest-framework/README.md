@@ -5,10 +5,10 @@ Run specs written in Vitest syntax (`describe`, `test`, `test.concurrent`) with 
 ## Installation
 
 ```sh
-npm install @wdio/vitest-framework --save-dev
+npm install @wdio/vitest-framework vitest --save-dev
 ```
 
-`vitest` and `expect-webdriverio` are installed with the package.
+`vitest` is a peer dependency, so install it next to the package. `expect-webdriverio` is installed with the package.
 
 ## Usage
 
@@ -113,7 +113,8 @@ Each test opens its own window, and every command in the test targets it. The wi
 - The `cid` passed to `beforeSession` is `<capability index>-<Vitest pool id>`; `WDIO_WORKER_ID` is not set, because the Vitest worker has an IPC channel to Vitest.
 - When `vitestOpts` sets no `reporters`, Vitest's `default` reporter is used instead of Vitest's environment-dependent default. Add others, such as `github-actions` annotations, explicitly.
 - Top-level config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again.
-- `--watch` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
+- `--watch`, `--repeat` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
+- WebDriver commands are not sent to the WDIO reporters, because the reporters run in the launcher and the commands run in the Vitest workers. Allure therefore shows no WebDriver steps and no automatic screenshots (`disableWebdriverStepsReporting` and `disableWebdriverScreenshotsReporting` have no effect), the video reporter records nothing, and the HTML reporter shows no automatic screenshots. Attach screenshots explicitly, for example `allure.addAttachment('screenshot', Buffer.from(await browser.takeScreenshot(), 'base64'), 'image/png')` in `afterTest` or `afterEach`. The `beforeCommand` / `afterCommand` hooks of `wdio.conf.ts` and of worker services still run. Calls of the HTML reporter (`ReportEvents.logMessage`, `logScreenshot` and `videoCapture`) are relayed, so their logs, screenshots and videos reach the report; WebDriver commands still do not.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
 - Hook results of `beforeAll` and `afterAll` are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook in "<suite>"`) so that the JUnit reporter adds a failing testcase for it.
 - Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
