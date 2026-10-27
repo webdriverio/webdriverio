@@ -1,3 +1,4 @@
+import { userCommandError } from '@wdio/reporter'
 import type { SuiteStats } from '@wdio/reporter'
 import type { HtmlReporterOptions, ReportData } from './types.js'
 import logger from '@wdio/logger'
@@ -54,9 +55,8 @@ class JsonGenerator {
                          * suite, which the report does not use
                          */
                         const stringified = JSON.stringify(reportData, function (this: { type?: unknown }, key, value) {
-                            // an Error has no own enumerable keys: it would be written as {}
-                            if (this.type === 'userResult' && key === 'result' && value?.error instanceof Error) {
-                                return { error: { name: value.error.name, message: value.error.message } }
+                            if (this.type === 'userResult' && key === 'result' && value && 'error' in value) {
+                                return { error: userCommandError(value.error) }
                             }
                             return key === 'hooksAndTests' ||
                                 (this.type === 'test' && BASE_ONLY_TEST_KEYS.has(key)) ||

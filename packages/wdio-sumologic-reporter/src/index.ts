@@ -1,16 +1,15 @@
 import stringify from 'json-stringify-safe'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { userCommandError } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types.js'
 
-// an Error has no own enumerable keys: `stringify` would write {}
 function stringifyEvent(event: object) {
     return stringify(event, function (this: { type?: unknown }, key, value) {
-        return this.type === 'userResult' && key === 'result' && value?.error instanceof Error
-            ? { error: { name: value.error.name, message: value.error.message } }
+        return this.type === 'userResult' && key === 'result' && value && 'error' in value
+            ? { error: userCommandError(value.error) }
             : value
     })
 }
