@@ -110,8 +110,8 @@ export default class HtmlReporter extends WDIOReporter {
     #contextTestStarted = false
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
-    /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
-    #attemptEnds = new WeakMap<SuiteStats, Date>()
+    /** the failed attempts of a retried scenario (the suite keeps the start of its first attempt) */
+    #failedAttempts = new WeakMap<SuiteStats, SuiteStats[]>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
@@ -420,7 +420,9 @@ export default class HtmlReporter extends WDIOReporter {
      * times, before the base clears the suite for the next attempt. Only the last attempt counts
      */
     onSuiteRetry(suite: SuiteStats) {
+        const failedAttempts = this.#failedAttempts.get(suite) ?? []
         const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
+            title: `${suite.title} (attempt ${failedAttempts.length + 1}, retried)`,
             tests: [...suite.tests],
             hooks: [...suite.hooks],
             hooksAndTests: [...suite.hooksAndTests],
@@ -428,9 +430,9 @@ export default class HtmlReporter extends WDIOReporter {
             // its retried step is its failure (retried attempts are skipped only in the last attempt)
             retriedAttempt: true
         })
-        attempt.start = this.#attemptEnds.get(suite) ?? suite.start
+        attempt.start = failedAttempts.at(-1)?.end ?? suite.start
         attempt.complete()
-        this.#attemptEnds.set(suite, attempt.end!)
+        this.#failedAttempts.set(suite, [...failedAttempts, attempt])
         // a Cucumber scenario is always in its feature
         const siblings = this.parentOf(suite)?.suites
         const index = siblings?.indexOf(suite) ?? -1
@@ -528,7 +530,11 @@ export default class HtmlReporter extends WDIOReporter {
         if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
+        // a passed hook with no command (the framework adapter adds such hooks) would list the root hook two times
+        const shown = (hook: HookStats) => hook.error || hook.output?.length
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
+            hooks: root.hooks.filter(shown),
+            hooksAndTests: root.hooksAndTests.filter((item) => item.type !== 'hook' || shown(item as HookStats)),
             suites: [],
             file: root.file || runner.specs[0],
             end: new Date()
