@@ -118,6 +118,8 @@ export default class HtmlReporter extends WDIOReporter {
      * `before all` or Cucumber `Before` hook) waits in the innermost one for the next test
      */
     #waitingSuites: WaitingSuite[] = [{ events: [] }]
+    /** parallel mode: a test of a context started (a skipped test never starts); until then, events with no context wait */
+    #contextTestStarted = false
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
     /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
@@ -201,7 +203,7 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
-        if (!this.#contextTests.size) {
+        if (!this.#contextTestStarted) {
             this.#waitingSuites.push({ uid: suite.uid, events: [] })
         }
         suite.start = new Date()
@@ -212,7 +214,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.LOG.info(`onTestStart: ${theTest.cid}:${theTest.uid}`)
         this._currentTestUid = theTest.uid
         this.#registerTest(theTest)
-        this.#takeEarlyEvents(theTest)
+        this.#takeEarlyEvents(theTest, true)
     }
 
     #registerTest(test: TestStats) {
@@ -227,12 +229,13 @@ export default class HtmlReporter extends WDIOReporter {
      * The test takes the events that came before it (a before hook): in parallel mode
      * the events of its context, in sequential mode those of all the waiting suites
      */
-    #takeEarlyEvents(test: TestStats) {
+    #takeEarlyEvents(test: TestStats, started = false) {
         //@ts-ignore
         const events: ReportEvent[] = test.events
         if (test.contextId) {
-            // the first parallel test also takes the events from before any context (the config `before` hook)
-            if (!this.#contextTests.size) {
+            // the first parallel test that starts also takes the events from before any context (the config `before` hook)
+            if (started && !this.#contextTestStarted) {
+                this.#contextTestStarted = true
                 events.push(...this.#waitingSuites.flatMap((suite) => suite.events))
                 this.#waitingSuites = []
             }
@@ -326,14 +329,14 @@ export default class HtmlReporter extends WDIOReporter {
      */
     #addEvent(event: ReportEvent, { contextId, moveErrors = true }: { contextId?: string, moveErrors?: boolean } = {}) {
         const id = contextId ?? this.getContextId()
-        if (!id && this.#contextTests.size && !this.#noContextWarned) {
+        if (!id && this.#contextTestStarted && !this.#noContextWarned) {
             this.#noContextWarned = true
             const message = 'An event with no parallel-mode test context (from code that runs outside a test, such as ' +
                 'an `AfterAll` hook or a `browser.on()` callback) goes to the test that started last.'
             this.LOG.warn(message)
             console.warn(`[@wdio/html-reporter] ${message}`)
         }
-        const waiting = !id && !this.#contextTests.size ? this.#waitingSuites.at(-1) : undefined
+        const waiting = !id && !this.#contextTestStarted ? this.#waitingSuites.at(-1) : undefined
         if (waiting) {
             waiting.events.push(event)
             return
@@ -363,9 +366,7 @@ export default class HtmlReporter extends WDIOReporter {
      * test of the next suite). The events of its parent suite still wait for the parent's next test
      */
     #endWaiting(suite: SuiteStats) {
-        if (this.#contextTests.size) {
-            // parallel mode: an event with no context before the first test has no test
-            this.#waitingSuites = []
+        if (this.#contextTestStarted) {
             return
         }
         const waiting = this.#waitingSuites.at(-1)
