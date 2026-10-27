@@ -336,7 +336,7 @@ describe('runWithoutUserCommands', () => {
 describe('runNested', () => {
     it('sends nothing for the commands that a custom command runs', async () => {
         const browser = fakeBrowser()
-        await mod.runNested(() => mod.runUserCommand(browser, 'getText', [], async () => 'hello'))
+        await store.run({ depth: 0 }, () => mod.runNested(() => mod.runUserCommand(browser, 'getText', [], async () => 'hello')))
         expect(browser.emit).not.toHaveBeenCalled()
         await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
         expect(browser.emit).toHaveBeenCalledTimes(2)
@@ -350,6 +350,37 @@ describe('runNested', () => {
                 expect(mod.currentUserCommandId()).toBe(1)
             })
         })
+    })
+
+    it('adds no frame when there is no outer frame', async () => {
+        const browser = fakeBrowser()
+        await mod.runNested(async () => {
+            expect(store.getStore()).toBeUndefined()
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        })
+        expect(browser.emit).toHaveBeenCalledTimes(2)
+    })
+
+    it('sends one pair for each instance command of a multi-remote custom command', async () => {
+        const instanceA = fakeBrowser({ sessionId: 'session-a' })
+        const instanceB = fakeBrowser({ sessionId: 'session-b' })
+        const instanceGetText = shim.wrapCommand('getText', async () => 'hello')
+        const getText = shim.wrapCommand('getText', () => Promise.all(
+            [instanceA, instanceB].map((instance) => instanceGetText.call(instance))
+        ))
+        const multiRemote = monad.default({}, (c: unknown) => c, { isMultiRemote: { value: true } })('multiRemote', shim.wrapCommand) as Record<string, Function>
+        multiRemote.addCommand('myCmd', function (this: unknown) {
+            return getText.call(this)
+        })
+        expect(await multiRemote.myCmd()).toEqual(['hello', 'hello'])
+        expect(pairs(instanceA).map(([event, payload]) => [event, payload.command, payload.sessionId])).toEqual([
+            ['userCommand', 'getText', 'session-a'],
+            ['userResult', 'getText', 'session-a']
+        ])
+        expect(pairs(instanceB).map(([event, payload]) => [event, payload.command, payload.sessionId])).toEqual([
+            ['userCommand', 'getText', 'session-b'],
+            ['userResult', 'getText', 'session-b']
+        ])
     })
 
     it('is used by a custom command of the monad', async () => {
