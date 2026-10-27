@@ -42,17 +42,6 @@ function reportCapabilities (capabilities: unknown) {
 }
 
 /**
- * The attempt of a spec file with `specFileRetries`: 0 for the first one. The runner gives
- * the first attempt `specFileRetries + 1` (the launcher does not know the retries yet),
- * and 1 when there are no retries
- */
-function specFileAttempt (runner: RunnerStats) {
-    const specFileRetries = (runner.config as { specFileRetries?: number } | undefined)?.specFileRetries ?? 0
-    const retry = runner.retry ?? 0
-    return specFileRetries && retry <= specFileRetries ? retry : 0
-}
-
-/**
  * The runner data for the report files, which are often shared (for example as CI
  * artifacts): only the fields that the report uses, and no configuration, session
  * options or capabilities with credentials (`user`, `key`, `accessKey`, a URL with a
@@ -73,7 +62,7 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         end: runner.end,
         _duration: runner._duration,
         isMultiRemote: runner.isMultiRemote,
-        retry: specFileAttempt(runner),
+        retry: runner.specFileAttempt,
         capabilities,
         // the names of the full capabilities: the reduced copy above cannot name an app
         browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
