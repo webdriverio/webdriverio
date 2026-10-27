@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import vm from 'node:vm'
 import { describe, expect, it } from 'vitest'
 import WDIOReporter from '@wdio/reporter'
 import type { SuiteStats } from '@wdio/reporter'
@@ -201,5 +202,13 @@ describe('JsonGenerator.jsonOutput, user commands', () => {
             ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
         ])
         expect(output[1].result).toEqual({ error: { name: 'Error', message: 'boom' } })
+    })
+
+    it('writes the message of an error from another realm', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: vm.runInNewContext('new TypeError("boom")') } }]
+        ])
+        expect(output[1].result).toEqual({ error: { name: 'TypeError', message: 'boom' } })
     })
 })
