@@ -158,7 +158,8 @@
       "webdriver@9.16.2>ws": "8.21.0",
       "puppeteer-core>ws": "8.21.0",
       "conventional-changelog-writer@6.0.1>handlebars": "4.7.9",
-      "get-uri@6.0.5>basic-ftp": "5.3.1"
+      "get-uri@6.0.5>basic-ftp": "5.3.1",
+      "dts-bundle-generator>typescript": "^5.8.3"
     }
   }
 }

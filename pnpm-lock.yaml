@@ -32,6 +32,7 @@ overrides:
   puppeteer-core>ws: 8.21.0
   conventional-changelog-writer@6.0.1>handlebars: 4.7.9
   get-uri@6.0.5>basic-ftp: 5.3.1
+  dts-bundle-generator>typescript: ^5.8.3
 
 importers:
 
@@ -344,6 +345,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
       vite:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@25.3.5)(jiti@2.7.0)(terser@5.43.1)(tsx@4.21.0)(yaml@2.8.2)
@@ -503,6 +507,10 @@ importers:
       type-fest:
         specifier: ^4.24.0
         version: 4.41.0
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   infra/lernaPatch: {}
 
@@ -581,6 +589,9 @@ importers:
       globals:
         specifier: ^17.7.0
         version: 17.7.0
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
       typescript-eslint:
         specifier: ^8.54.0
         version: 8.56.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)

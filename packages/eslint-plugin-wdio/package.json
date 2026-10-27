@@ -40,6 +40,7 @@
     "eslint": "^9.39.2",
     "expect-webdriverio": "^7.0.1",
     "globals": "^17.7.0",
+    "typescript": "^5.8.3",
     "typescript-eslint": "^8.54.0"
   },
   "peerDependencies": {
