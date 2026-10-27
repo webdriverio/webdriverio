@@ -8,9 +8,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 vi.mock('../src/launcher', () => ({
     default: class MockLauncher {
-        constructor (configPath: string, public params: any) {
-            this.configPath = configPath
-        }
+        constructor (public configPath: string, public params: any) {}
         run () {
             return ({
                 then: () => ({
