@@ -24,16 +24,17 @@ describe('HtmlGenerator.htmlOutput', () => {
         expect(fs.existsSync(path.join(outputDir, 'glyphicons-halflings-regular.woff'))).toBe(true)
     })
 
-    // Windows: a copy fails with EBUSY while another worker copies the same file
+    // Windows: a copy fails with EBUSY while the file is locked, for example while another worker copies it
     it.each([
-        ['passes when another worker copies the file', true, true],
-        ['fails when the file is not there', false, false]
-    ])('a busy copy of the styles %s', async (_name, otherWorkerCopies, expected) => {
+        ['passes when another worker writes the same file', 'same', true],
+        ['fails when an old file stays locked', 'old', false],
+        ['fails when the file is not there', 'none', false]
+    ])('a busy copy of the styles %s', async (_name, file, expected) => {
         const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-busy-'))
         const options = { outputDir, filename: 'report.html', reportTitle: 'Busy', produceHtml: true } as HtmlReporterOptions
-        const copyFile = vi.spyOn(fsp, 'copyFile').mockImplementation(async (_from, to) => {
-            if (otherWorkerCopies) {
-                fs.writeFileSync(to as string, 'partial')
+        const copyFile = vi.spyOn(fsp, 'copyFile').mockImplementation(async (from, to) => {
+            if (file !== 'none') {
+                fs.writeFileSync(to as string, file === 'same' ? fs.readFileSync(from as string) : 'old styles')
             }
             throw Object.assign(new Error('EBUSY: resource busy or locked, copyfile'), { code: 'EBUSY' })
         })

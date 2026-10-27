@@ -15,19 +15,22 @@ dayjs.extend(duration)
 
 /**
  * The workers of a run copy the same styles and font next to their reports, at the same time on parallel
- * workers. Windows locks a file during its copy (EBUSY / EPERM): the other copy writes the same file
+ * workers. Windows locks a file during its copy (EBUSY / EPERM): wait for the other copy, then check the file
  */
 async function copyAsset (from: string, to: string) {
     const content = await fsp.readFile(from)
-    if (await fsp.readFile(to).then((existing) => existing.equals(content), () => false)) {
-        return
-    }
-    try {
-        await fsp.copyFile(from, to)
-    } catch (err) {
-        const code = (err as NodeJS.ErrnoException).code
-        if (!(code === 'EBUSY' || code === 'EPERM') || !fs.existsSync(to)) {
-            throw err
+    for (let attempt = 1; ; attempt++) {
+        if (await fsp.readFile(to).then((existing) => existing.equals(content), () => false)) {
+            return
+        }
+        try {
+            return await fsp.copyFile(from, to)
+        } catch (err) {
+            const code = (err as NodeJS.ErrnoException).code
+            if (!(code === 'EBUSY' || code === 'EPERM') || attempt === 5) {
+                throw err
+            }
+            await new Promise((resolve) => setTimeout(resolve, attempt * 50))
         }
     }
 }
