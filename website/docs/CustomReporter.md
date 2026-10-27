@@ -309,7 +309,7 @@ The payload has these fields:
 | `contextId` | The parallel-mode context of the command, as for `onBeforeCommand`. |
 | `result` | `onAfterUserCommand` only: `{ value }` when the command passed, `{ error }` when it failed. |
 
-WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is `<Buffer n bytes>`. A string that is longer than 1024 characters is cut. An element is a short label, for example `WebdriverIO.Element<elementId>`, and a function is `[Function name]`.
+WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is a label, for example `<Buffer n bytes>` or `<Uint8Array n bytes>`, and a `Map` or a `Set` is `Map(n)` or `Set(n)`. A string that is longer than 1024 characters is cut. An array or an object keeps 50 items and a `… [n more]` marker, and a value that is deeper than 4 levels is `[…]`. An element is a short label, for example `WebdriverIO.Element<elementId>`, and a function is `[Function name]`.
 
 The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values.
 
