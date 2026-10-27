@@ -201,6 +201,16 @@ describe('runUserCommand', () => {
         ])
     })
 
+    it('sends no pair for an overwritten call, and its commands are outer commands', async () => {
+        const browser = fakeBrowser()
+        const getText = shim.wrapCommand('getText', async () => 'hello')
+        expect(await mod.runCustomCommand(browser, 'call', [], () => getText.call(browser))).toBe('hello')
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'getText'],
+            ['userResult', 'getText']
+        ])
+    })
+
     it('sends the events of an element list query', async () => {
         const browser = fakeBrowser()
         let wrapper: ((load: () => Promise<unknown>) => Promise<unknown>) | undefined
