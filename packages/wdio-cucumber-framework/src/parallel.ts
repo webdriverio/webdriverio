@@ -1037,14 +1037,16 @@ async function runParallel(params: {
 
     const testRunStartedId = uuidFn()
     const runBroadcaster = new EventEmitter()
-    // a user BeforeAll / AfterAll is a hook of the first feature, sent live as in a sequential run (cucumberFormatter.ts)
+    // a user BeforeAll / AfterAll is a hook of a feature, sent live as in a sequential run (cucumberFormatter.ts)
     const runHooks = userRunHooks(supportCodeLibrary)
     const openRunHooks = new Map<string, TestRunHookStart>()
     runBroadcaster.on('envelope', (envelope: messages.Envelope) => {
         const started = envelope.testRunHookStarted
         const hook = started && runHooks[started.hookId]
         if (started && hook) {
-            const start = testRunHookStart({ uid: started.id, hook, featureUid: featureGroups[0].uid, uri: featureGroups[0].uri })
+            // as in a sequential run: BeforeAll under the first feature, AfterAll under the last one
+            const group = hook.kind === 'AfterAll' ? featureGroups[featureGroups.length - 1] : featureGroups[0]
+            const start = testRunHookStart({ uid: started.id, hook, featureUid: group.uid, uri: group.uri })
             openRunHooks.set(started.id, start)
             reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
         }

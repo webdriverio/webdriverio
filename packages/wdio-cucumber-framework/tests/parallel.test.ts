@@ -1356,14 +1356,14 @@ describe('runParallelCucumber run-level behavior', () => {
             stepDefinitions: [makeStepDefinition('something', async function () {})],
         })
 
-    function run(browser: ReturnType<typeof mockBrowser>, supportCodeLibrary: ReturnType<typeof mockSupportCodeLibrary>, cucumberOpts = defaultCucumberOpts(), runner: typeof runParallelCucumber = runParallelCucumber) {
+    function run(browser: ReturnType<typeof mockBrowser>, supportCodeLibrary: ReturnType<typeof mockSupportCodeLibrary>, cucumberOpts = defaultCucumberOpts(), runner: typeof runParallelCucumber = runParallelCucumber, gherkinDocuments = [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])]) {
         return runner({
             browser: browser as unknown as WebdriverIO.Browser,
             reporter,
             eventEmitter,
             cid: '0-0',
-            specs: ['/test/foo.feature'],
-            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])],
+            specs: gherkinDocuments.map((doc) => doc.uri as string),
+            gherkinDocuments,
             supportCodeLibrary,
             cucumberOpts,
         })
@@ -1455,6 +1455,16 @@ describe('runParallelCucumber run-level behavior', () => {
             const events = record()
             await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => { events.push({ event: 'body', payload: {} }) }] }))
             expect(events.map(({ event }) => event).filter((event) => event !== 'suite:start').slice(0, 3)).toEqual(['hook:start', 'body', 'hook:end'])
+        })
+
+        test('sends an AfterAll under the last feature, as a sequential run with grouped specs', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}], afterTestRunHooks: [() => {}] }), defaultCucumberOpts(), runParallelCucumber, [
+                makeFeatureDoc('/test/a.feature', 'A', ['a1']), makeFeatureDoc('/test/b.feature', 'B', ['b1']),
+            ])
+            const features = events.filter(({ event, payload }) => event === 'suite:start' && payload.type === 'feature').map(({ payload }) => payload.uid)
+            const ends = events.filter(({ event }) => event === 'hook:end').map(({ payload }) => payload)
+            expect(ends.map((hook) => [hook.hookKind, hook.hookSuiteUid])).toEqual([['beforeAll', features[0]], ['afterAll', features[1]]])
         })
 
         test('sends nothing for WDIO run hooks', async () => {
