@@ -3,7 +3,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import process from 'node:process'
 
-import { setCommandHookStore } from '@wdio/utils'
+import { setCommandHookStore, setUserCommandStore } from '@wdio/utils'
 
 import { downloadFile } from './node/downloadFile.js'
 import { extensionDataFromPath } from './node/extensionArchive.js'
@@ -19,6 +19,7 @@ import { setParallelContextStore } from './session/context.js'
 
 setParallelContextStore(new AsyncLocalStorage<string>())
 setCommandHookStore(new AsyncLocalStorage<true>())
+setUserCommandStore(new AsyncLocalStorage())
 
 environment.value = {
     osType: () => os.type(),
