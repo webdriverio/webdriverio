@@ -18,6 +18,8 @@ type CustomWriteStream = { write: (content: unknown) => boolean }
 
 const SCREENSHOT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
 const EXECUTE_COMMANDS = ['execute', 'executeAsync']
+// the producer sends a function script as its name only
+const isFunctionLabel = (value: unknown) => typeof value === 'string' && /^\[Function [^\]]*\]$/.test(value)
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -559,7 +561,7 @@ export default class WDIOReporter extends EventEmitter {
             if (!target) {
                 return
             }
-            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body)
+            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && !isFunctionLabel(payload.body[0])
                 ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
                 : payload.body
             // a copy: the runner sends the same payload to every reporter
