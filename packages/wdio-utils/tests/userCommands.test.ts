@@ -412,6 +412,61 @@ describe('custom commands', () => {
         ])
     })
 
+    it('keeps the chainable result of a custom element query', async () => {
+        const { browser, events } = client()
+        browser.addCommand('byTestId$', async (selector: string) => ({ elementId: `el-${selector}`, getText: async () => 'text' }))
+        const element = browser.byTestId$('a')
+        expect(typeof element.getText).toBe('function')
+        expect(await element.getText()).toBe('text')
+        expect(names(events).filter(([event]) => event.startsWith('user'))).toEqual([
+            ['userCommand', 'byTestId$', undefined],
+            ['userResult', 'byTestId$', undefined]
+        ])
+        expect(events.at(-1)![1].result).toEqual({ value: { elementId: 'el-a', getText: '[Function getText]' } })
+    })
+
+    it('keeps the chainable result of a custom element query that fails, with no unhandled rejection', async () => {
+        const { browser, events } = client()
+        browser.addCommand('missing$', async () => {
+            throw new Error('not found')
+        })
+        await expect(browser.missing$('a')).rejects.toThrow('not found')
+        const userEvents = events.filter(([event]) => event.startsWith('user'))
+        expect(userEvents.map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+        expect(userEvents[1][1].result).toEqual({ error: expect.objectContaining({ message: 'not found' }) })
+    })
+
+    it('keeps the element list of an overwritten $$', async () => {
+        const items = ['a', 'b']
+        let wrapper = (load: () => Promise<unknown>) => load()
+        const list = Object.assign([...items], {
+            [shim.ELEMENT_ARRAY_WRAP]: (fn: typeof wrapper) => { wrapper = fn },
+            then (resolve: (value: unknown) => unknown, reject: (error: unknown) => unknown) {
+                return wrapper(async () => [...items]).then(() => [...items]).then(resolve, reject)
+            },
+            async *[Symbol.asyncIterator] () {
+                yield* items
+            }
+        })
+        const { browser, events } = client({ $$: { value: shim.wrapCommand('$$', () => list), writable: true, configurable: true } })
+        browser.overwriteCommand('$$', (orig$$: Function, selector: string) => orig$$(selector))
+
+        const result = browser.$$('a')
+        expect(result).toBe(list)
+        expect(result.map((item: string) => item.toUpperCase())).toEqual(['A', 'B'])
+        const iterated: string[] = []
+        for await (const item of result) {
+            iterated.push(item)
+        }
+        expect(iterated).toEqual(items)
+        await result
+        expect(names(events).filter(([event]) => event.startsWith('user'))).toEqual([
+            ['userCommand', '$$', undefined],
+            ['userResult', '$$', undefined]
+        ])
+        expect(events.find(([event]) => event === 'userResult')![1].result).toEqual({ value: items })
+    })
+
     it('sends one pair for a custom command of an element', async () => {
         const { browser } = client()
         browser.addCommand('myElementCmd', async () => 'done', { attachToElement: true })
