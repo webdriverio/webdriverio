@@ -13,7 +13,9 @@ import { expectType } from 'tsd'
             return res
         },
         capabilities: {
-            alwaysMatch: {},
+            alwaysMatch: {
+                unhandledPromptBehavior: { default: 'ignore' }
+            },
             firstMatch: [{
                 'sauce:options': {
                     name: 'foo'
@@ -21,6 +23,14 @@ import { expectType } from 'tsd'
                 'appium:autoWebview': true,
                 // @ts-expect-error unprefixed capability
                 platform: 'foo'
+            }, {
+                unhandledPromptBehavior: 'dismiss and notify'
+            }, {
+                // @ts-expect-error the object form is the one WebdriverIO sends for BiDi
+                unhandledPromptBehavior: { default: 'accept' }
+            }, {
+                // @ts-expect-error the object form is the one WebdriverIO sends for BiDi
+                unhandledPromptBehavior: { beforeUnload: 'accept' }
             }],
             browserName: 'foo'
         }
