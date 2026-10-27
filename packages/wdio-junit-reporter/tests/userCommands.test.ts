@@ -34,6 +34,17 @@ describe('JUnit user commands', () => {
         expect(xml).toContain('RESULT: {"title":"Home"}')
     })
 
+    it('writes no result for a user command with no value', () => {
+        const xml = xmlOf([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { value: undefined } }],
+            ['client:beforeUserCommand', { id: 2, command: 'getText', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 2, command: 'getText', body: [], protocol: 'bidi', result: { value: null } }]
+        ])
+        expect(xml).toContain('COMMAND: click - []\nCOMMAND: getText - []\nRESULT: null')
+        expect(xml).not.toContain('RESULT: undefined')
+    })
+
     it('writes the error of a user command', () => {
         const xml = xmlOf([
             ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
