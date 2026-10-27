@@ -439,10 +439,13 @@ describe('custom commands', () => {
     it('keeps the element list of an overwritten $$', async () => {
         const items = ['a', 'b']
         let wrapper = (load: () => Promise<unknown>) => load()
+        // as an ElementArray, the list loads once
+        let loaded: Promise<string[]> | undefined
         const list = Object.assign([...items], {
             [shim.ELEMENT_ARRAY_WRAP]: (fn: typeof wrapper) => { wrapper = fn },
             then (resolve: (value: unknown) => unknown, reject: (error: unknown) => unknown) {
-                return wrapper(async () => [...items]).then(() => [...items]).then(resolve, reject)
+                loaded ??= wrapper(async () => [...items]).then(() => [...items])
+                return loaded.then(resolve, reject)
             },
             async *[Symbol.asyncIterator] () {
                 yield* items
