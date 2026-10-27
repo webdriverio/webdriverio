@@ -1104,6 +1104,33 @@ describe('parallel mode', () => {
         expect(eventsOf(reporter, 'b')).toEqual([])
     })
 
+    it('keeps an event from before the first test for the first test that starts, not for a skipped test', () => {
+        const reporter = start()
+        const suite = (uid: string) => reporter.emit('suite:start', { type: 'suite:start', uid, title: uid, fullTitle: uid, cid: '0-0', parent: '', file: 'spec.js' })
+        const pending = (uid: string, contextId: string) => reporter.emit('test:pending', { type: 'test:pending', title: uid, fullTitle: uid, uid, cid: '0-0', parent: '', contextId })
+        suite('A')
+        new ReportEvents().logMessage('config before')
+        // `it.skip`: a pending test with a context, which never starts
+        pending('s0', 'context-s0')
+        startTest(reporter, 'a', 'context-a')
+        expect(eventsOf(reporter, 's0')).toEqual([])
+        expect(eventsOf(reporter, 'a')).toEqual([{ type: 'log', value: 'config before' }])
+    })
+
+    it('keeps an event from before the first test across a suite that its before hook skips', () => {
+        const reporter = start()
+        const suite = (uid: string) => reporter.emit('suite:start', { type: 'suite:start', uid, title: uid, fullTitle: uid, cid: '0-0', parent: '', file: 'spec.js' })
+        new ReportEvents().logMessage('config before')
+        suite('B')
+        // `this.skip()` in the before hook of B
+        reporter.emit('test:pending', { type: 'test:pending', title: 'b0', fullTitle: 'b0', uid: 'b0', cid: '0-0', parent: 'B', contextId: 'context-b0' })
+        reporter.emit('suite:end', { type: 'suite:end', uid: 'B', title: 'B', fullTitle: 'B', cid: '0-0', file: 'spec.js' })
+        suite('C')
+        startTest(reporter, 'c1', 'context-c1')
+        expect(eventsOf(reporter, 'b0')).toEqual([])
+        expect(eventsOf(reporter, 'c1')).toEqual([{ type: 'log', value: 'config before' }])
+    })
+
     it('warns one time for events with no test context while parallel tests run', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
         try {
