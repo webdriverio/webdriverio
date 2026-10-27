@@ -45,6 +45,9 @@ const scopes = {
     element: elementCommands
 }
 
+// each session and each element gets a prototype: register the names once
+const registeredScopes = new Set<'browser' | 'element'>()
+
 const applyScopePrototype = (
     prototype: Record<string, PropertyDescriptor>,
     scope: 'browser' | 'element') => {
@@ -54,7 +57,10 @@ const applyScopePrototype = (
         prototype[commandName] = { value: command }
     })
     // the protocol commands are not added here, so they send no user command events
-    registerUserCommands(commands.map(([commandName]) => commandName))
+    if (!registeredScopes.has(scope)) {
+        registeredScopes.add(scope)
+        registerUserCommands(commands.map(([commandName]) => commandName))
+    }
 }
 
 /**
