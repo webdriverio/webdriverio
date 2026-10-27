@@ -329,6 +329,21 @@ describe('currentUserCommandId', () => {
         await mod.runUserCommand(browser, 'waitUntil', [], () => getText.call(browser))
         expect(ids).toEqual({ before: undefined, command: 1, after: undefined })
     })
+
+    it('is undefined inside a command hook of an outer command', async () => {
+        const browser = fakeBrowser()
+        const ids: Record<string, number | undefined> = {}
+        browser.options = {
+            beforeCommand: () => { ids.before = mod.currentUserCommandId() },
+            afterCommand: () => { ids.after = mod.currentUserCommandId() }
+        }
+        const getText = shim.wrapCommand('getText', async () => { ids.command = mod.currentUserCommandId() })
+        await getText.call(browser)
+        // toEqual ignores a missing key: check that the hooks ran
+        expect(Object.keys(ids).sort()).toEqual(['after', 'before', 'command'])
+        expect(ids).toEqual({ before: undefined, command: 1, after: undefined })
+        expect(pairs(browser).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+    })
 })
 
 describe('runWithoutUserCommands', () => {
