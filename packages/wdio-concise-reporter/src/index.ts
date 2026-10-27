@@ -77,11 +77,12 @@ export default class ConciseReporter extends WDIOReporter {
      */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
+        // failed hooks have their own part, also when no test ran
         return failedTestsCount > 0
             ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
-            : this.counts.tests === 0
-                ? '❌ Failed to setup tests, no tests found'
-                : this._failedHooks.length ? '' : '✅ All went well!'
+            : this._failedHooks.length
+                ? ''
+                : this.counts.tests === 0 ? '❌ Failed to setup tests, no tests found' : '✅ All went well!'
     }
 
     /**
