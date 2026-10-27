@@ -443,6 +443,7 @@ export function testRunHookEnd(start: TestRunHookStart, result: TestStepResult):
     if (result.status === 'FAILED') {
         const message = result.message ?? ''
         const error = new Error(result.exception?.message ?? message.split('\n')[0])
+        error.name = result.exception?.type ?? 'Error'
         error.stack = message
         return { ...start, duration, state: 'failed', error }
     }

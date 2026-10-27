@@ -133,6 +133,11 @@ describe('utils', () => {
             expectNoRunFields(payload)
         })
 
+        it('keeps the error type of a failed run hook', () => {
+            const payload = testRunHookEnd(start(), { ...failed, exception: { type: 'AssertionError', message: 'BeforeAll fails' } } as unknown as TestStepResult)
+            expect(payload.error?.name).toBe('AssertionError')
+        })
+
         it('ends a skipped run hook (dry run)', () => {
             const payload = testRunHookEnd(start(), { status: 'SKIPPED', duration: { seconds: 0, nanos: 0 } } as unknown as TestStepResult)
             expect(payload.state).toBe('skipped')
