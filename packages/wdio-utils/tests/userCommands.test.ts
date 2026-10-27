@@ -194,6 +194,44 @@ describe('runUserCommand', () => {
     })
 })
 
+describe('runUserCommand with listeners and multi-remote', () => {
+    it('sends nothing for a command that a listener of the events runs', async () => {
+        const browser = fakeBrowser()
+        const spawned: Promise<unknown>[] = []
+        let calls = 0
+        // bounded, so a loop fails the test and does not overflow the stack
+        browser.emit.mockImplementation(() => {
+            if (++calls <= 10) {
+                spawned.push(mod.runUserCommand(browser, 'getTitle', [], async () => 'title'))
+            }
+        })
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        await Promise.all(spawned)
+        expect(spawned).toHaveLength(2)
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'getText'],
+            ['userResult', 'getText']
+        ])
+    })
+
+    it.each([
+        ['browser', (mr: Record<string, unknown>) => mr],
+        ['element', (mr: Record<string, unknown>) => ({ selector: 'a', options: {}, parent: mr })]
+    ])('sends one pair for each instance of a multi-remote %s', async (_, scopeOf) => {
+        const instanceA = fakeBrowser()
+        const instanceB = fakeBrowser()
+        const multiRemote = fakeBrowser({ isBidi: undefined, isMultiRemote: true })
+        const instanceGetText = shim.wrapCommand('getText', async () => 'hello')
+        const getText = shim.wrapCommand('getText', () => Promise.all(
+            [instanceA, instanceB].map((instance) => instanceGetText.call(instance))
+        ))
+        expect(await getText.call(scopeOf(multiRemote))).toEqual(['hello', 'hello'])
+        expect(multiRemote.emit).not.toHaveBeenCalled()
+        expect(pairs(instanceA).map(([event, payload]) => [event, payload.id])).toEqual([['userCommand', 1], ['userResult', 1]])
+        expect(pairs(instanceB).map(([event, payload]) => [event, payload.id])).toEqual([['userCommand', 2], ['userResult', 2]])
+    })
+})
+
 describe('currentUserCommandId', () => {
     it('is the id of the outer call that sends events, also in a nested call', async () => {
         const browser = fakeBrowser()
@@ -226,6 +264,50 @@ describe('currentUserCommandId', () => {
             })
         })
         expect(browser.emit).not.toHaveBeenCalled()
+    })
+    it('is undefined inside a command hook of a nested command', async () => {
+        const browser = fakeBrowser()
+        const ids: Record<string, number | undefined> = {}
+        browser.options = {
+            beforeCommand: () => { ids.before = mod.currentUserCommandId() },
+            afterCommand: () => { ids.after = mod.currentUserCommandId() }
+        }
+        const getText = shim.wrapCommand('getText', async () => { ids.command = mod.currentUserCommandId() })
+        await mod.runUserCommand(browser, 'waitUntil', [], () => getText.call(browser))
+        expect(ids).toEqual({ before: undefined, command: 1, after: undefined })
+    })
+})
+
+describe('runWithoutUserCommands', () => {
+    it('sends nothing for a registered command in a BiDi session', async () => {
+        const browser = fakeBrowser()
+        await mod.runWithoutUserCommands(() => mod.runUserCommand(browser, 'getText', [], async () => {
+            expect(mod.currentUserCommandId()).toBeUndefined()
+            return 'hello'
+        }))
+        expect(browser.emit).not.toHaveBeenCalled()
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        expect(browser.emit).toHaveBeenCalledTimes(2)
+    })
+
+    it('hides the id of the outer call', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            await mod.runWithoutUserCommands(async () => {
+                expect(store.getStore()?.depth).toBeGreaterThanOrEqual(1)
+                expect(mod.currentUserCommandId()).toBeUndefined()
+            })
+            expect(mod.currentUserCommandId()).toBe(1)
+        })
+    })
+
+    it('sends nothing for the instances of a multi-remote command', async () => {
+        const instance = fakeBrowser()
+        const multiRemote = fakeBrowser({ isBidi: undefined, isMultiRemote: true })
+        const instanceGetText = shim.wrapCommand('getText', async () => 'hello')
+        const getText = shim.wrapCommand('getText', () => instanceGetText.call(instance))
+        await mod.runWithoutUserCommands(() => getText.call(multiRemote))
+        expect(instance.emit).not.toHaveBeenCalled()
     })
 })
 
