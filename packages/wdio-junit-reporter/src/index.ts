@@ -688,7 +688,12 @@ class JunitReporter extends WDIOReporter {
                 standardOutput.push(`COMMAND: ${data.command} - ${this._format(data.body)}`)
                 break
             case 'userResult':
-                standardOutput.push(`RESULT: ${this._format('error' in data.result ? { error: userCommandError(data.result.error) } : data.result.value)}`)
+                if ('error' in data.result) {
+                    standardOutput.push(`RESULT: ${this._format({ error: userCommandError(data.result.error) })}`)
+                } else if (data.result.value !== undefined) {
+                    // no line for a command with no value (click, actions)
+                    standardOutput.push(`RESULT: ${this._format(data.result.value)}`)
+                }
                 break
             }
         })
