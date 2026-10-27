@@ -248,13 +248,14 @@ describe('Bidi Node.js implementation', () => {
         noProxyValueFn.mockReturnValue(undefined)
 
         const wsPromise = createBidiConnection('ws://foo/bar')
-        vi.runAllTimersAsync()
+        await vi.runAllTimersAsync()
         expect(await wsPromise).toBeUndefined()
         expect(log.error).toHaveBeenCalledWith(
             'Could not connect to Bidi protocol of any candidate url within 10000ms: ' +
             '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://[::1]/bar". ' +
             'If the browser is slow to accept the connection, increase the "bidiConnectTimeout" option.'
         )
+        vi.useRealTimers()
     })
 
     it('createBidiConnection waits for a slow browser up to the connect timeout', async () => {
