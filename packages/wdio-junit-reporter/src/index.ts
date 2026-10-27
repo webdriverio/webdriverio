@@ -3,7 +3,7 @@ import path from 'node:path'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, specFilePath } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, specFilePath } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -689,11 +689,7 @@ class JunitReporter extends WDIOReporter {
                 break
             case 'userResult': {
                 const { result } = data as unknown as { result: { value: unknown } | { error: unknown } }
-                // an Error has no own enumerable keys: `limit` would write {}
-                const error = 'error' in result && result.error instanceof Error
-                    ? { error: { name: result.error.name, message: result.error.message } }
-                    : result
-                standardOutput.push(`RESULT: ${this._format('error' in error ? error : error.value)}`)
+                standardOutput.push(`RESULT: ${this._format('error' in result ? { error: userCommandError(result.error) } : result.value)}`)
                 break
             }
             }

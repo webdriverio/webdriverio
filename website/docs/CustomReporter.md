@@ -311,6 +311,8 @@ The payload has these fields:
 
 WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is `<Buffer n bytes>`. A string that is longer than 1024 characters is cut. An element is a short label, for example `WebdriverIO.Element<elementId>`, and a function is `[Function name]`.
 
+The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values.
+
 When your reporter overrides one of these methods, the base reporter does these steps:
 
 - It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
@@ -323,7 +325,7 @@ Only the outer user command sends events. The commands that a custom command or 
 
 :::warning Experimental
 
-`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `userCommandError`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 

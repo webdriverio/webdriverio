@@ -8,6 +8,19 @@ import type { HookKind } from './types.js'
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
 /**
+ * The `error` of a `userResult` for a JSON report: `{ name, message }` for an object with a string `message`
+ * (also an error from another realm, which `JSON.stringify` writes as `{}`), else the value as it is.
+ * @experimental the name and the rule may change
+ */
+export function userCommandError(error: unknown): unknown {
+    if (error && typeof error === 'object' && typeof (error as { message?: unknown }).message === 'string') {
+        const { name, message } = error as { name?: unknown, message: string }
+        return { name, message }
+    }
+    return error
+}
+
+/**
  * @experimental a failed hook that is a failure of its own: its error is not already the failure of a test
  * (`failedTestUid`, e.g. a Vitest `beforeEach`) or of an attempt that the framework ran again (`retried`)
  */
