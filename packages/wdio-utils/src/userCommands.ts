@@ -10,6 +10,8 @@ const MAX_STRING_LENGTH = 1024
 const UNREADABLE = '<unreadable>'
 // their result is base64 and reporters get them from the protocol events
 const NO_EVENT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
+// they only run the code of the caller, so the commands in it are outer commands
+const TRANSPARENT_COMMANDS = ['call']
 
 /**
  * The user command that the calling code runs in. `depth` is 0 for the outer
@@ -114,7 +116,7 @@ function sendsEvents (browser: EventBrowser | undefined, command: string) {
  * @experimental
  */
 export async function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>): Promise<T> {
-    if (!userCommandStore || !userCommandNames.has(command)) {
+    if (!userCommandStore || !userCommandNames.has(command) || TRANSPARENT_COMMANDS.includes(command)) {
         return run()
     }
 
