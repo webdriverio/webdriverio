@@ -1248,15 +1248,17 @@ export default class WebDriverInterception {
     }
 
     /**
-     * Whether this mock was registered on the given browser session. `SESSION_MOCKS`
-     * is shared by all instances of a multiremote browser. Compares session ids
-     * rather than objects so that a client attached to the same session via
-     * `attach()` still owns mocks created by another client of that session.
+     * Whether this mock belongs to the given browser session, and to the given context
+     * if one is passed. `SESSION_MOCKS` is shared by all instances of a multi-remote
+     * browser. Compares session ids rather than objects so that a client attached to
+     * the same session via `attach()` still owns mocks created by another client of that session.
      * @param browser  browser instance to check
-     * @returns        `true` if this mock belongs to that browser's session
+     * @param context  a tab or a parallel test's window: only mocks made for that context match
+     * @returns        `true` if this mock belongs to that browser's session (and context)
      */
-    isOwnedBy(browser: WebdriverIO.Browser) {
-        return this.#browser.sessionId === browser.sessionId
+    isOwnedBy(browser: WebdriverIO.Browser, context?: string) {
+        return this.#browser.sessionId === browser.sessionId &&
+            (context === undefined || Boolean(this.#contexts?.includes(context)))
     }
 
     isSameDefinition(url: string | URLPattern | globalThis.URLPattern, filterOptions: MockFilterOptions = {}) {

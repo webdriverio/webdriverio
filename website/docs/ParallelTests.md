@@ -124,6 +124,7 @@ Inside a parallel test, these commands act on the test's own window:
 - `execute`, `actions`, `addInitScript`
 - cookies: `getCookies`, `setCookies`, `deleteCookies` use the test's cookie partition
 - `mock()`: a mock created in a parallel test only intercepts and records requests of that test's window and its frames, so two tests can mock the same URL
+- `mockClearAll()`, `mockRestoreAll()`: only the mocks of that test's window, also the ones that its `before()` hook created. Mocks created in the `beforeSuite` hook in `wdio.conf.ts`, outside the test windows, stay
 - screenshots: `saveScreenshot`, `takeElementScreenshot`
 
 ## Commands that throw in parallel mode

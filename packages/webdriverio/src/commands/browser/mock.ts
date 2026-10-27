@@ -3,7 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
-import { getParallelContextStore } from '../../session/context.js'
+import { isContextScoped } from '../../utils/interception/scope.js'
 import { assertTopLevel, contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
@@ -177,7 +177,7 @@ export async function mock(
      * session-wide intercept would catch other tests' traffic.
      */
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
-        contexts: isBrowsingContext(this) || getParallelContextStore().getStore() ? [context] : undefined,
+        contexts: isContextScoped(this) ? [context] : undefined,
         sessionKey: context
     })
     SESSION_MOCKS[context].add(networkInterception)
