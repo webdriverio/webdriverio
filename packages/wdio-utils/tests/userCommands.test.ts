@@ -379,6 +379,25 @@ describe('runWithoutUserCommands', () => {
     })
 })
 
+describe('runOutsideUserCommands', () => {
+    it('runs a callback with no user command, also inside one', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            expect(mod.currentUserCommandId()).toBe(1)
+            await mod.runOutsideUserCommands(async () => {
+                expect(mod.currentUserCommandId()).toBeUndefined()
+                await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            })
+        })
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'waitUntil'],
+            ['userCommand', 'getText'],
+            ['userResult', 'getText'],
+            ['userResult', 'waitUntil']
+        ])
+    })
+})
+
 describe('runNested', () => {
     it('sends nothing for the commands that a custom command runs', async () => {
         const browser = fakeBrowser()
