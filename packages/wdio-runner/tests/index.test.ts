@@ -652,6 +652,27 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
+        it('should forward user command events with the session and the parallel context id', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi' }
+
+            store.run('ctx-1', () => listener('userCommand')(event))
+            store.run('ctx-1', () => listener('userResult')({ ...event, result: { value: 'foo' } }))
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'fakeid', contextId: 'ctx-1' })
+            // other listeners of the browser event get it as it was sent
+            expect(event).toEqual({ id: 1, command: 'getTitle', body: [], protocol: 'bidi' })
+        })
+
         it('should return null if initiating session fails', async () => {
             // @ts-ignore test scenario
             global.throwRemoteCall = true

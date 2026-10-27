@@ -4,6 +4,7 @@ import path from 'node:path'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
+import type * as ConfigModule from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiRemote, attach, Key, SevereServiceError, deviceDescriptorsSource } from '../src/index.js'
@@ -141,6 +142,25 @@ describe('WebdriverIO module interface', () => {
             expect(browser.sessionId).toBe('foobar-123')
             // @ts-ignore mock feature
             expect(browser.foobar).toBe('barfoo')
+        })
+
+        it('keeps the testrunner option userCommandEvents in the options of a worker session', async () => {
+            const { validateConfig: actualValidateConfig } = await vi.importActual<typeof ConfigModule>('@wdio/config')
+            vi.mocked(validateConfig).mockImplementationOnce(actualValidateConfig)
+            process.env.WDIO_WORKER_ID = '0-0'
+            try {
+                await remote({
+                    capabilities: { browserName: 'chrome' },
+                    userCommandEvents: { exclude: ['pause'] }
+                } as any)
+            } finally {
+                delete process.env.WDIO_WORKER_ID
+            }
+
+            const modifier = vi.mocked(WebDriver.newSession).mock.calls.at(-1)![1] as Function
+            const options: Record<string, unknown> = {}
+            modifier({}, options)
+            expect(options.userCommandEvents).toEqual({ exclude: ['pause'] })
         })
 
         it('should try to detect the backend', async () => {
