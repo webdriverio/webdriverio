@@ -1281,6 +1281,23 @@ describe('wdio-runner', () => {
             expect(event).toEqual({ id: 1, command: 'getTitle', body: [], protocol: 'bidi' })
         })
 
+        it('should keep the session of the instance that sends the user command events', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi', sessionId: 'instance-a' }
+
+            listener('userCommand')(event)
+            listener('userResult')({ ...event, result: { value: 'foo' } })
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'instance-a' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'instance-a' })
+        })
+
         it('should return null if initiating session fails', async () => {
             // @ts-ignore test scenario
             global.throwRemoteCall = true
