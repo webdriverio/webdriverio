@@ -27,10 +27,11 @@ interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     mochaOpts: MochaOptsImport
 }
 
-/** The reporter fields of a root-suite hook in a sequential run (Mocha's setHookTitle) */
+/** The reporter fields of the root-suite hook of the config hooks in a sequential run (Mocha's setHookTitle) */
 function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
     const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
-    const title = test ? `"${kind}" hook for "${test.title}"` : `"${kind}" hook in "{root}"`
+    const hook = `"${kind}" hook: ${kind === 'before all' ? 'beforeSuite' : 'afterSuite'}`
+    const title = test ? `${hook} for "${test.title}"` : `${hook} in "{root}"`
     return { title, fullTitle: title, parent: '', hookKind: kind === 'before all' ? 'beforeAll' as const : 'afterAll' as const }
 }
 
@@ -257,8 +258,9 @@ class MochaAdapter {
             Object.keys(EVENTS).forEach((e: keyof typeof EVENTS) =>
                 this._runner!.on(e, this.emit.bind(this, EVENTS[e])))
 
-            this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            this._runner.suite.afterAll(this.wrapHook('afterSuite'))
+            // a title of their own: a user root hook has the title `"before all" hook in "{root}"`
+            this._runner.suite.beforeAll('beforeSuite', this.wrapHook('beforeSuite'))
+            this._runner.suite.afterAll('afterSuite', this.wrapHook('afterSuite'))
         })
         return this._finalize(result, runtimeError)
     }

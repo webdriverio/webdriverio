@@ -67,10 +67,11 @@ test('should properly set up mocha', async () => {
     // @ts-ignore outdated types
     const runner = adapter['_mocha']!['runner']
     expect(runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
-    expect(runner.suite.beforeAll).toBeCalled()
+    // the root hooks of the config hooks have their own title, not the title of a user root hook
+    expect(runner.suite.beforeAll).toBeCalledWith('beforeSuite', expect.any(Function))
     expect(runner.suite.beforeEach).not.toBeCalled()
     expect(runner.suite.afterEach).not.toBeCalled()
-    expect(runner.suite.afterAll).toBeCalled()
+    expect(runner.suite.afterAll).toBeCalledWith('afterSuite', expect.any(Function))
 
     expect(adapter['_mocha']!.addFile).toBeCalledWith('/foo/bar.test.js')
 })
@@ -223,9 +224,9 @@ describe('parallel mode config hooks', () => {
         expect(hookStarts.length).toBe(2)
         expect(hookEnds.length).toBe(2)
         // the titles of the root-suite hooks of a sequential run
-        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
-        expect(hookEnds.map((c) => c[1].title)).toEqual(['"before all" hook in "{root}"', '"after all" hook in "{root}"'])
-        expect(hookStarts[0][1].fullTitle).toBe('"before all" hook in "{root}"')
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook: beforeSuite in "{root}"', '"after all" hook: afterSuite in "{root}"'])
+        expect(hookEnds.map((c) => c[1].title)).toEqual(['"before all" hook: beforeSuite in "{root}"', '"after all" hook: afterSuite in "{root}"'])
+        expect(hookStarts[0][1].fullTitle).toBe('"before all" hook: beforeSuite in "{root}"')
         expect(hookStarts[0][1].parent).toBe('')
         expect(hookStarts[0][1].type).toBe('hook:start')
         // start/end share a uid; afterSuite end carries duration + state
@@ -281,7 +282,7 @@ describe('parallel mode config hooks', () => {
         }
 
         const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
-        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook for "first"', '"after all" hook for "last"'])
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"before all" hook: beforeSuite for "first"', '"after all" hook: afterSuite for "last"'])
     })
 
     test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
