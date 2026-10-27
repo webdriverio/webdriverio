@@ -314,7 +314,7 @@ WebdriverIO masks and shortens the `body` and the `value` before it sends the ev
 When your reporter overrides one of these methods, the base reporter does these steps:
 
 - It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
-- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. For `execute` and `executeAsync`, the first value of `body` is shortened as the script of a protocol command.
+- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. For `execute` and `executeAsync`, a script string in the first value of `body` is shortened as the script of a protocol command. A function stays `[Function name]`.
 - It hides the protocol commands that a user command runs: these have a `parent` field. It does not call `onBeforeCommand` and `onAfterCommand` for them, and it does not add them to `output`. `takeScreenshot` and `takeElementScreenshot` are not hidden, so you can get the screenshots from them as before. These two commands never send user command events, because their result is a base64 screenshot.
 
 A reporter that overrides neither method gets no user commands, and it gets all protocol commands as before.
