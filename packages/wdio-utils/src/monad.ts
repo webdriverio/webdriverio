@@ -4,6 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
+import { runNested } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -457,7 +458,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             })
 
             try {
-                const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
+                const result = runNested(() => func.apply(this, origCommand ? [origCommand, ...args] : args))
 
                 // When the result is a promise, we want to emit on then & catch
                 if (isPromiseLike(result)) {

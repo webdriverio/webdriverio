@@ -1,0 +1,217 @@
+import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+
+import { getBrowserObject } from './utils.js'
+import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
+import { isInCommandHook } from './shim.js'
+
+const MAX_STRING_LENGTH = 1024
+
+/**
+ * The user command that the calling code runs in. `depth` is 0 for the outer
+ * call. `id` is set only when the outer call sends events.
+ * @experimental
+ */
+export interface UserCommandFrame {
+    depth: number
+    id?: number
+}
+
+/**
+ * @experimental
+ */
+export interface UserCommandStore {
+    getStore(): UserCommandFrame | undefined
+    run<T>(frame: UserCommandFrame, fn: () => T): T
+}
+
+type UserCommandEventsOption = boolean | { exclude?: string[] }
+
+interface EventBrowser {
+    isBidi?: boolean
+    options?: { userCommandEvents?: UserCommandEventsOption }
+    emit?: (event: string, payload: unknown) => unknown
+}
+
+// no store (browser bundles): no events
+let userCommandStore: UserCommandStore | undefined
+const userCommandNames = new Set<string>()
+let lastUserCommandId = 0
+
+/**
+ * Node entry points register an `AsyncLocalStorage`, so each concurrent test
+ * has its own outer user command.
+ * @experimental
+ */
+export function setUserCommandStore (store: UserCommandStore) {
+    userCommandStore = store
+}
+
+/**
+ * The commands that send `userCommand` / `userResult` events.
+ * @experimental
+ */
+export function registerUserCommands (names: string[]) {
+    for (const name of names) {
+        userCommandNames.add(name)
+    }
+}
+
+/**
+ * The id of the outer user command that sends events, for the `parent` of a
+ * protocol event.
+ * @experimental
+ */
+export function currentUserCommandId (): number | undefined {
+    return userCommandStore?.getStore()?.id
+}
+
+/**
+ * Run `fn` one level deeper with no event: the user commands that a custom
+ * command runs send nothing.
+ * @experimental
+ */
+export function runNested<T> (fn: () => T): T {
+    if (!userCommandStore) {
+        return fn()
+    }
+    const frame = userCommandStore.getStore()
+    return userCommandStore.run({ depth: frame ? frame.depth + 1 : 0, id: frame?.id }, fn)
+}
+
+function sendsEvents (browser: EventBrowser | undefined, command: string) {
+    if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook()) {
+        return false
+    }
+    const option = browser.options?.userCommandEvents
+    if (option === false) {
+        return false
+    }
+    return !(typeof option === 'object' && option.exclude?.includes(command))
+}
+
+/**
+ * Run a user command. The outer call of a registered command sends a
+ * `userCommand` and a `userResult` event in a WebDriver BiDi session.
+ * @experimental
+ */
+export async function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>): Promise<T> {
+    if (!userCommandStore || !userCommandNames.has(command)) {
+        return run()
+    }
+
+    const parent = userCommandStore.getStore()
+    if (parent) {
+        return userCommandStore.run({ depth: parent.depth + 1, id: parent.id }, run)
+    }
+
+    // an outer call that sends nothing still is depth 0, so its nested calls send nothing
+    const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
+    if (!sendsEvents(browser, command)) {
+        return userCommandStore.run({ depth: 0 }, run)
+    }
+
+    const emit = browser!.emit!.bind(browser)
+    const event = { id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const }
+    emit('userCommand', event)
+    try {
+        const value = await userCommandStore.run({ depth: 0, id: event.id }, run)
+        emit('userResult', { ...event, result: { value: shortCopy(value) } })
+        return value
+    } catch (error) {
+        emit('userResult', { ...event, result: { error } })
+        throw error
+    }
+}
+
+const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'object' && (value as { mask?: unknown }).mask === true
+
+/**
+ * The arguments of a user command for an event: masked text and short copies.
+ * @experimental
+ */
+export function userCommandBody (args: unknown[]): unknown[] {
+    const masked = isMaskOption(args[args.length - 1])
+    return args.map((arg, i) => masked && i < args.length - 1 && (typeof arg === 'string' || typeof arg === 'number')
+        ? SENSITIVE_DATA_REPLACER
+        : shortCopy(arg))
+}
+
+function byteLength (text: string) {
+    const buffer = (globalThis as { Buffer?: { byteLength(text: string): number } }).Buffer
+    return buffer ? buffer.byteLength(text) : text.length
+}
+
+function wdioLabel (value: object, name: string, ref: unknown) {
+    // a chainable element gives a promise for each property
+    if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
+        return `WebdriverIO.${name}`
+    }
+    return typeof ref === 'string' && ref ? `WebdriverIO.${name}<${ref}>` : `WebdriverIO.${name}`
+}
+
+/**
+ * A copy of `value` that is small and safe to send: no binary data, long
+ * strings cut, WebdriverIO objects and functions as a name, cycles as `[Circular]`.
+ * @experimental
+ */
+export function shortCopy (value: unknown): unknown {
+    return copyValue(value, new Set())
+}
+
+function copyValue (value: unknown, ancestors: Set<object>): unknown {
+    if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
+        return value
+    }
+    if (typeof value === 'string') {
+        return value.length > MAX_STRING_LENGTH
+            ? `${value.slice(0, MAX_STRING_LENGTH)}… [${byteLength(value)} bytes]`
+            : value
+    }
+    if (typeof value === 'bigint' || typeof value === 'symbol') {
+        return String(value)
+    }
+
+    const kind = getWdioKind(value)
+    if (kind === 'element') {
+        const elem = value as { elementId?: unknown, selector?: unknown }
+        return wdioLabel(value as object, 'Element', elem.elementId || elem.selector)
+    }
+    if (kind === 'element-array') {
+        return wdioLabel(value as object, 'ElementArray', (value as { selector?: unknown }).selector)
+    }
+    if (kind === 'browser') {
+        return 'WebdriverIO.Browser'
+    }
+    if (kind === 'mock') {
+        return 'WebdriverIO.Mock'
+    }
+    if (kind === 'browsing-context') {
+        return 'WebdriverIO.BrowsingContext'
+    }
+
+    if (typeof value === 'function') {
+        return `[Function ${value.name || 'anonymous'}]`
+    }
+    if (value instanceof Uint8Array) {
+        return `<Buffer ${value.byteLength} bytes>`
+    }
+    if (value instanceof Date) {
+        return value.toISOString()
+    }
+    if (value instanceof Error) {
+        return { name: value.name, message: value.message }
+    }
+    if (typeof (value as { then?: unknown }).then === 'function') {
+        return '[Promise]'
+    }
+    if (ancestors.has(value as object)) {
+        return '[Circular]'
+    }
+
+    ancestors.add(value as object)
+    const copy = Array.isArray(value)
+        ? value.map((item) => copyValue(item, ancestors))
+        : Object.fromEntries(Object.entries(value as object).map(([key, item]) => [key, copyValue(item, ancestors)]))
+    ancestors.delete(value as object)
+    return copy
+}
