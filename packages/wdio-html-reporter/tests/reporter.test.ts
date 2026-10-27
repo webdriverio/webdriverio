@@ -1407,6 +1407,22 @@ describe('sequential mode: events of a before hook', () => {
         expect(logsOf(reporter, 'B1')).toEqual(['before all of A', 'before all of B'])
     })
 
+    it('takes the suite of a before all hook from the hook owner of the base reporter (hookKind, hookSuiteUid)', () => {
+        const reporter = start()
+        const kindHook = (uid: string, parent: string, body: () => void) => {
+            const payload = { uid, title: `"before all" hook for ${parent}`, parent, cid: '0-0', hookKind: 'beforeAll', hookSuiteUid: parent }
+            reporter.emit('hook:start', payload)
+            body()
+            reporter.emit('hook:end', payload)
+        }
+        suite(reporter, 'A')
+        kindHook('hA', 'A', () => log('before all of A'))
+        suite(reporter, 'B', 'A')
+        kindHook('hB', 'B', () => log('before all of B'))
+        runTest(reporter, 'B1', 'B')
+        expect(logsOf(reporter, 'B1')).toEqual(['before all of A', 'before all of B'])
+    })
+
     it('adds the log of a suite with no test to the test before, as before', () => {
         const reporter = start()
         suite(reporter, 'A')
