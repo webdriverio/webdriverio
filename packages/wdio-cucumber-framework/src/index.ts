@@ -45,13 +45,11 @@ const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
 
 /**
- * Cucumber's advice for its own CLI: WebdriverIO loads the support code and chooses the features (`specs`),
- * so it would be wrong in every worker
+ * Cucumber's advice for its own CLI: WebdriverIO loads the support code itself, so it would be wrong in every worker
  */
 const CUCUMBER_CLI_ADVICE = [
     'Use of `require-module` option',
     'Use of `loader` option',
-    'You have specified paths in both your configuration file',
 ]
 
 // the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
@@ -222,7 +220,8 @@ export class CucumberAdapter {
      */
     _providedConfiguration(): Partial<IConfiguration> {
         // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
-        const { tags, requireModule: _requireModule, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
+        // the specs are the paths of the run (_loadRunConfiguration): Cucumber gives the paths of the profile only
+        const { tags, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
         const userTags = this._generatedTags ?? tags
         return {
             ...user,
@@ -235,7 +234,6 @@ export class CucumberAdapter {
             ...(this._seededOrder ? { order: this._seededOrder } : {}),
             format: this._cucumberOpts.format,
             formatOptions: this._cucumberOpts.formatOptions,
-            ...(this._cucumberOpts.paths?.length ? { paths: this._cucumberOpts.paths } : {}),
         } as Partial<IConfiguration>
     }
 
@@ -255,12 +253,11 @@ export class CucumberAdapter {
      * the values that Cucumber runs with (cucumberOpts, profiles, config file), and the Gherkin parser of its language
      */
     private async _resolveCucumberValues() {
-        const provided = this._providedConfiguration()
         const { useConfiguration } = await loadConfiguration(
-            { profiles: this._cucumberOpts.profiles, provided, file: this._configurationFile() },
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._configurationFile() },
             this._cucumberEnvironment()
         )
-        this._warnProfilePaths(useConfiguration.paths, provided.paths ?? [])
+        this._warnProfilePaths(useConfiguration.paths)
         this._useCucumberValues(useConfiguration)
         this._createGherkinParser()
     }
@@ -271,16 +268,15 @@ export class CucumberAdapter {
             await this._resolveCucumberValues()
             if (this._generateSkipTags) {
                 // wrap the user expression so an `or` in it can't escape the generated `and` conditions
-                const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
-                this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
-                if (this._generatedTags) {
+                const skipTags = this.generateDynamicSkipTags()
+                if (skipTags.length > 0) {
+                    const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
+                    this._generatedTags = [...skipTags, ...userTags].join(' and ')
                     await this._resolveCucumberValues()
                 }
             }
         } catch (err) {
-            this._configurationError = err
-            this._hasTests = this._specs.length > 0
-            return this
+            return this._deferConfigurationError(err)
         }
 
         // the reporters (cucumberjs-json) read the language of the config: the one of the profile too;
@@ -299,13 +295,19 @@ export class CucumberAdapter {
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
-        const { plan } = await loadSources({
-            paths: this._specs,
-            defaultDialect: this._cucumberOpts.language,
-            order: this._cucumberOpts.order,
-            names: this._cucumberOpts.name,
-            tagExpression: this._cucumberOpts.tags,
-        })
+        let plan: Awaited<ReturnType<typeof loadSources>>['plan']
+        try {
+            ({ plan } = await loadSources({
+                paths: this._specs,
+                defaultDialect: this._cucumberOpts.language,
+                order: this._cucumberOpts.order,
+                names: this._cucumberOpts.name,
+                tagExpression: this._cucumberOpts.tags,
+            }))
+        } catch (err) {
+            // a bad tag expression or name of the profile: as a configuration error
+            return this._deferConfigurationError(err)
+        }
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
         // Filter features (of which at least some have line numbers) against the already filtered specs
@@ -319,6 +321,15 @@ export class CucumberAdapter {
         this._specs = [...new Set(this._specs)]
 
         this._cucumberOpts.paths = this._specs
+        this._hasTests = this._specs.length > 0
+        return this
+    }
+
+    /**
+     * a configuration error: run() throws it, after the `after` hook, as Cucumber's own errors
+     */
+    private _deferConfigurationError(err: unknown) {
+        this._configurationError = err
         this._hasTests = this._specs.length > 0
         return this
     }
@@ -497,13 +508,12 @@ export class CucumberAdapter {
     /**
      * the paths of a profile or config file: Cucumber adds them to the specs of each worker (#13562)
      */
-    private _warnProfilePaths(paths: string[], providedPaths: string[]) {
-        const ignored = paths.filter((featurePath) => !providedPaths.includes(featurePath))
-        if (this._profilePathsWarned || ignored.length === 0) {
+    private _warnProfilePaths(paths: string[]) {
+        if (this._profilePathsWarned || paths.length === 0) {
             return
         }
         this._profilePathsWarned = true
-        const message = `The "paths" of the Cucumber configuration are not used: ${ignored.join(', ')}. ` +
+        const message = `The "paths" of the Cucumber configuration are not used: ${paths.join(', ')}. ` +
             'WebdriverIO runs the feature files of "specs".'
         log.warn(message)
         console.warn(`[@wdio/cucumber-framework] ${message}`)
@@ -616,7 +626,8 @@ export class CucumberAdapter {
             (files: string[], file: string) => {
                 // a folder: its script files, as Cucumber loads them (a profile often lists `features/support`)
                 if (!isGlob(file) && fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory()) {
-                    return files.concat(globSync('**/*.{js,cjs,mjs,ts,cts,mts}', { cwd: path.resolve(file), absolute: true }))
+                    const folderFiles = globSync('**/*.{js,cjs,mjs}', { cwd: path.resolve(file), absolute: true }).sort()
+                    return [...new Set([...files, ...folderFiles])]
                 }
                 const filePath = os.platform() === 'win32'
                     ? url.pathToFileURL(file).href

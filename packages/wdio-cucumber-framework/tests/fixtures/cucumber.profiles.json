@@ -6,6 +6,7 @@
     "randomOrder": { "order": "random" },
     "strictOnly": { "strict": true },
     "requires": { "requireModule": ["moduleProfile"] },
+    "badTags": { "tags": "@a and" },
     "cliOnly": { "parallel": 2, "shard": "1/2", "publish": true },
     "withPaths": { "paths": ["packages/wdio-cucumber-framework/tests/fixtures/test_danish.feature"] }
 }

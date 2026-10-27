@@ -515,7 +515,7 @@ describe('CucumberAdapter', () => {
             }
         })
 
-        // Cucumber's errors and warnings reach the user; its advice for its own CLI (support code, paths) does not
+        // Cucumber's errors and warnings reach the user; its advice for its own CLI (support code) does not
         it('forwards the output of Cucumber to stderr, once, without its CLI advice', async () => {
             const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
             try {
@@ -525,7 +525,6 @@ describe('CucumberAdapter', () => {
                 stderr.write('Error: ENOTDIR: not a directory\n')
                 stderr.write('Use of `require-module` option normally means you should specify your support code paths with `require`\n')
                 stderr.write('Use of `loader` option normally means you should specify your support code paths with `import`\n')
-                stderr.write('You have specified paths in both your configuration file and as CLI arguments.\n')
                 stdout.write('progress output\n')
                 expect(write.mock.calls.map(([chunk]) => String(chunk))).toEqual(['Error: ENOTDIR: not a directory\n'])
             } finally {
@@ -560,6 +559,28 @@ describe('CucumberAdapter', () => {
                 const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [skipFeature], { browserName: 'chrome' }, {}, {}, true)
                 expect(spy).toHaveBeenCalledTimes(2)
                 await expect(adapter.run()).rejects.toThrow('second load fails')
+            } finally {
+                spy.mockRestore()
+            }
+        })
+
+        it('reports a bad tag expression of a profile from run()', async () => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['badTags'], file } }, [feature], {}, {}, {}, false)
+            expect(adapter.hasTests()).toBe(true)
+            await expect(adapter.run()).rejects.toThrow()
+        })
+
+        // the paths of the run are the specs (_loadRunConfiguration): Cucumber gets only the paths of the profile
+        it('does not send paths to Cucumber', async () => {
+            const { adapter } = await resolve({})
+            expect(adapter._providedConfiguration()).not.toHaveProperty('paths')
+        })
+
+        it('loads the configuration again only for generated skip tags', async () => {
+            const spy = vi.spyOn(packageExports.CucumberAdapter.prototype as any, '_resolveCucumberValues')
+            try {
+                await CucumberAdapter.init!('0-0', { cucumberOpts: { tags: '@user' } }, [feature], { browserName: 'chrome' }, {}, {}, true)
+                expect(spy).toHaveBeenCalledTimes(1)
             } finally {
                 spy.mockRestore()
             }
@@ -621,12 +642,14 @@ describe('CucumberAdapter', () => {
         const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
         try {
             fs.mkdirSync(path.join(folder, 'nested'))
-            for (const file of ['steps.js', 'world.ts', 'nested/hooks.mjs', 'README.md']) {
+            // the extensions of Cucumber: not a TypeScript file next to its compiled copy, not a .d.ts
+            for (const file of ['steps.js', 'steps.ts', 'world.d.ts', 'nested/hooks.mjs', 'b.cjs', 'a.js', 'README.md']) {
                 fs.writeFileSync(path.join(folder, file), '')
             }
             const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
-            const files = (await adapter.loadFilesWithType([folder])).map((file: string) => path.relative(folder, url.fileURLToPath(new URL(file, 'file://'))))
-            expect(files.sort()).toEqual([path.join('nested', 'hooks.mjs'), 'steps.js', 'world.ts'])
+            const files = (await adapter.loadFilesWithType([folder, folder])).map((file: string) => path.relative(folder, file))
+            // sorted and once, as Cucumber: the order of the hooks does not depend on the file system
+            expect(files).toEqual(['a.js', 'b.cjs', path.join('nested', 'hooks.mjs'), 'steps.js'])
         } finally {
             fs.rmSync(folder, { recursive: true, force: true })
         }
