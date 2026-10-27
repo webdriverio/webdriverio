@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -695,39 +694,49 @@ describe('deleteSession clean up', () => {
         expect(environment.value.killDriverProcess).not.toHaveBeenCalled()
         expect(client._bidiHandler.close).not.toHaveBeenCalled()
     })
+})
 
-    describe('user command parent', () => {
-        const bidiScope = Object.assign(new FakeClient(), { isBidi: true })
+describe('user command parent', () => {
+    const bidiScope = Object.assign(new FakeClient(), { isBidi: true })
 
-        beforeEach(() => {
-            setUserCommandStore(new AsyncLocalStorage())
-            registerUserCommands(['getText'])
-            vi.mocked(bidiScope.emit).mockClear()
-        })
+    beforeEach(() => {
+        setUserCommandStore(new AsyncLocalStorage())
+        registerUserCommands(['getText'])
+        vi.mocked(bidiScope.emit).mockClear()
+    })
 
-        it('should add the id of the user command to "command" and "result"', async () => {
-            const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-            await runUserCommand(bidiScope, 'getText', [], () => commandFn.call(bidiScope, '123', 'css selector', '#body'))
-            const calls = vi.mocked(bidiScope.emit).mock.calls
-            const id = (calls.find(([name]) => name === 'userCommand')![1] as { id: number }).id
-            const protocolCall = (name: string) => calls.find(([event]) => event === name)![1] as { parent?: number }
-            expect(protocolCall('command').parent).toBe(id)
-            const thenCallback = thenMock.mock.calls.at(-1)[0]
-            thenCallback({ value: 14 })
-            expect(vi.mocked(bidiScope.emit).mock.calls.find(([event]) => event === 'result')![1]).toMatchObject({ parent: id })
-        })
+    it('should add the id of the user command to "command" and "result"', async () => {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        await runUserCommand(bidiScope, 'getText', [], () => commandFn.call(bidiScope, '123', 'css selector', '#body'))
+        const calls = vi.mocked(bidiScope.emit).mock.calls
+        const id = (calls.find(([name]) => name === 'userCommand')![1] as { id: number }).id
+        const protocolCall = (name: string) => calls.find(([event]) => event === name)![1] as { parent?: number }
+        expect(protocolCall('command').parent).toBe(id)
+        const thenCallback = thenMock.mock.calls.at(-1)[0]
+        thenCallback({ value: 14 })
+        expect(vi.mocked(bidiScope.emit).mock.calls.find(([event]) => event === 'result')![1]).toMatchObject({ parent: id })
+    })
 
-        it('should not add a parent outside of a user command', async () => {
-            const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-            await commandFn.call(bidiScope, '123', 'css selector', '#body')
-            thenMock.mock.calls.at(-1)[0]({ value: 14 })
-            const payloads = vi.mocked(bidiScope.emit).mock.calls
-                .filter(([name]) => name === 'command' || name === 'result')
-                .map(([, payload]) => payload)
-            expect(payloads).toHaveLength(2)
-            for (const payload of payloads) {
-                expect(payload).not.toHaveProperty('parent')
-            }
-        })
+    it('should add the id of the user command to the "result" of a request that throws', async () => {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        await runUserCommand(bidiScope, 'getText', [], () => commandFn.call(bidiScope, '123', 'css selector', '#body'))
+        const calls = vi.mocked(bidiScope.emit).mock.calls
+        const id = (calls.find(([name]) => name === 'userCommand')![1] as { id: number }).id
+        const error = new Error('Request failed')
+        expect(() => catchMock.mock.calls.at(-1)[0](error)).toThrow(error)
+        expect(vi.mocked(bidiScope.emit).mock.calls.find(([event]) => event === 'result')![1]).toMatchObject({ result: { error }, parent: id })
+    })
+
+    it('should not add a parent outside of a user command', async () => {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        await commandFn.call(bidiScope, '123', 'css selector', '#body')
+        thenMock.mock.calls.at(-1)[0]({ value: 14 })
+        const payloads = vi.mocked(bidiScope.emit).mock.calls
+            .filter(([name]) => name === 'command' || name === 'result')
+            .map(([, payload]) => payload)
+        expect(payloads).toHaveLength(2)
+        for (const payload of payloads) {
+            expect(payload).not.toHaveProperty('parent')
+        }
     })
 })

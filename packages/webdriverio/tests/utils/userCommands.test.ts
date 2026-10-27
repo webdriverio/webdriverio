@@ -133,6 +133,19 @@ describe('user command events', () => {
         ])
     })
 
+    it('sends no action pair for a perform inside another user command', async () => {
+        const browser = await bidiSession()
+        const events = recordEvents(browser)
+        await browser.waitUntil(async () => {
+            await browser.action('key').down('a').up('a').perform()
+            return true
+        })
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', 'waitUntil'],
+            ['userResult', 'waitUntil']
+        ])
+    })
+
     it('sends nothing for actions in a Classic session', async () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const events = recordEvents(browser)
