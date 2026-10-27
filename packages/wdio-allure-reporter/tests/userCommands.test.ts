@@ -42,7 +42,7 @@ const userCommand = (emit: Parameters<Play>[0], id: number, command: string, bod
     emit('client:afterUserCommand', { ...user(id, command, body), result })
 }
 const protocol = (emit: Parameters<Play>[0], command: string, result: unknown, parent?: number) => {
-    const payload = { command, method: 'POST', endpoint: '/x', body: { a: 1 }, sessionId: 's', ...(parent === undefined ? {} : { parent }) }
+    const payload = { command, method: 'POST', endpoint: '/x', body: {}, sessionId: 's', ...(parent === undefined ? {} : { parent }) }
     emit('client:beforeCommand', payload)
     emit('client:afterCommand', { ...payload, result })
 }
@@ -64,7 +64,7 @@ describe('user commands of WebDriver BiDi sessions', () => {
 
         expect(result.steps.map((s: Result) => [s.name, s.status, s.steps.length])).toEqual([['getText', 'passed', 0]])
         const [step] = result.steps
-        expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'application/json', '"hello"']])
+        expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'application/json', 'hello']])
     })
 
     it('attaches the short body of a user command as the request', async () => {
