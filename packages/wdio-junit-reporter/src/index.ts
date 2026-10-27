@@ -689,7 +689,11 @@ class JunitReporter extends WDIOReporter {
                 break
             case 'userResult': {
                 const { result } = data as unknown as { result: { value: unknown } | { error: unknown } }
-                standardOutput.push(`RESULT: ${this._format('error' in result ? result : result.value)}`)
+                // an Error has no own enumerable keys: `limit` would write {}
+                const error = 'error' in result && result.error instanceof Error
+                    ? { error: { name: result.error.name, message: result.error.message } }
+                    : result
+                standardOutput.push(`RESULT: ${this._format('error' in error ? error : error.value)}`)
                 break
             }
             }
