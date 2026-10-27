@@ -694,7 +694,7 @@ describe('userCommandBody', () => {
 describe('shortCopy', () => {
     it('makes short copies', () => {
         expect(mod.shortCopy(Buffer.from('abc'))).toBe('<Buffer 3 bytes>')
-        expect(mod.shortCopy(new Uint8Array(5))).toBe('<Buffer 5 bytes>')
+        expect(mod.shortCopy(new Uint8Array(5))).toBe('<Uint8Array 5 bytes>')
 
         const long = mod.shortCopy('a'.repeat(2000)) as string
         expect(long).toBe('a'.repeat(1024) + '… [2000 bytes]')
@@ -714,6 +714,38 @@ describe('shortCopy', () => {
     it('keeps a shared value that is not a cycle', () => {
         const shared = { x: 1 }
         expect(mod.shortCopy([shared, shared])).toEqual([{ x: 1 }, { x: 1 }])
+    })
+
+    it('keeps at most 50 items of an array', () => {
+        const items = Array.from({ length: 60 }, (_, i) => i)
+        expect(mod.shortCopy(items)).toEqual([...items.slice(0, 50), '… [10 more]'])
+        expect(mod.shortCopy(items.slice(0, 50))).toEqual(items.slice(0, 50))
+    })
+
+    it('keeps at most 50 keys of an object', () => {
+        const entries = Array.from({ length: 60 }, (_, i) => [`k${i}`, i])
+        expect(mod.shortCopy(Object.fromEntries(entries))).toEqual({ ...Object.fromEntries(entries.slice(0, 50)), '…': '[10 more]' })
+        expect(mod.shortCopy(Object.fromEntries(entries.slice(0, 50)))).toEqual(Object.fromEntries(entries.slice(0, 50)))
+    })
+
+    it('keeps at most 4 levels', () => {
+        expect(mod.shortCopy({ a: { b: { c: { d: { e: 1 } } } } })).toEqual({ a: { b: { c: { d: '[…]' } } } })
+        expect(mod.shortCopy([[[[[1]]]]])).toEqual([[[['[…]']]]])
+        expect(mod.shortCopy({ a: { b: { c: { d: 1 } } } })).toEqual({ a: { b: { c: { d: 1 } } } })
+    })
+
+    it('gives a label for a Map and a Set', () => {
+        expect(mod.shortCopy(new Map([['a', 1], ['b', 2]]))).toBe('Map(2)')
+        expect(mod.shortCopy(new Set([1, 2, 3]))).toBe('Set(3)')
+        expect(mod.shortCopy({ list: new Set() })).toEqual({ list: 'Set(0)' })
+    })
+
+    it('gives a label for binary data', () => {
+        expect(mod.shortCopy(new ArrayBuffer(8))).toBe('<ArrayBuffer 8 bytes>')
+        expect(mod.shortCopy(new Uint16Array(4))).toBe('<Uint16Array 8 bytes>')
+        expect(mod.shortCopy(new Float32Array(2))).toBe('<Float32Array 8 bytes>')
+        expect(mod.shortCopy(new DataView(new ArrayBuffer(3)))).toBe('<DataView 3 bytes>')
+        expect(mod.shortCopy(Buffer.alloc(2))).toBe('<Buffer 2 bytes>')
     })
 
     it('copies the result of a call', async () => {
