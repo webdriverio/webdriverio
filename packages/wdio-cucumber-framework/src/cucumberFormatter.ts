@@ -5,8 +5,8 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 
-import type { Payload } from './types.js'
-import { getFeatureStack, getStepResult, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
+import type { HookKind, Payload } from './types.js'
+import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -208,7 +208,8 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: TestStep,
-        result: TestStepResult
+        result: TestStepResult,
+        hookKind?: HookKind
     ) {
         let error
         if (result.message) {
@@ -230,7 +231,7 @@ export default class CucumberFormatter extends Formatter {
                 : 0,
         })
 
-        this.emit('hook:end', payload)
+        this.emit('hook:end', { ...payload, ...(hookKind && { hookKind }) })
     }
 
     /**
@@ -503,13 +504,17 @@ export default class CucumberFormatter extends Formatter {
 
             this._testStart = new Date()
             const type = getStepType(step)
-            const payload = buildStepPayload(
-                uri as string,
-                feature as Feature,
-                scenario as Pickle,
-                step as PickleStep,
-                { type }
-            )
+            const hookKind = hookKindOf(hook)
+            const payload = {
+                ...buildStepPayload(
+                    uri as string,
+                    feature as Feature,
+                    scenario as Pickle,
+                    step as PickleStep,
+                    { type }
+                ),
+                ...(hookKind && { hookKind })
+            }
 
             this.emit(`${type}:start`, payload)
         }
@@ -567,7 +572,8 @@ export default class CucumberFormatter extends Formatter {
                 feature as Feature,
                 scenario as Pickle,
                 step,
-                result
+                result,
+                hookKindOf(this._hookEvent.find((h) => h.id === teststep?.hookId))
             )
         }
 

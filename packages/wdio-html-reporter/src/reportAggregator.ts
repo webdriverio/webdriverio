@@ -13,6 +13,7 @@ import logger from '@wdio/logger'
 import JsonGenerator from './jsonGenerator.js'
 import { emptyDir } from './files.js'
 import { withExtension } from './fileNames.js'
+import { headerBrowserName } from './browserName.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
@@ -60,10 +61,12 @@ class ReportAggregator {
             filename: 'master-report.html',
             reportTitle: 'Test Master Report'
         }, opts)
+        this.#configuredBrowserName = opts.browserName
 
         this.reports = []
     }
     public options: HtmlReporterOptions
+    #configuredBrowserName: string | undefined
     public reportFile : string = ''
     /**
      * true when the last createReport failed for a part of the report (it logs the errors)
@@ -236,7 +239,7 @@ class ReportAggregator {
             suites,
             metrics,
             this.reportFile,
-            this.options.browserName)
+            headerBrowserName(this.#configuredBrowserName, this.reports.map((report) => report?.info), this.options.browserName))
         reportData.master = true
         const problems = [
             ...(incomplete.length ? [`worker ${incomplete.join(', ')} stopped before it wrote its results, or could not write them`] : []),

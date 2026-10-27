@@ -2,7 +2,7 @@ import type { HtmlReporterOptions, ReportData } from './types.js'
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
-import type { SuiteStats, TestStats } from '@wdio/reporter'
+import { hookCountsAsFailure, type SuiteStats, type TestStats } from '@wdio/reporter'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -156,8 +156,10 @@ class HtmlGenerator {
                 if (!suiteInfo || !suiteInfo.tests) {
                     return 'suite-unknown'
                 }
-                let numTests = Object.keys(suiteInfo.tests).length
-                const tests = suiteInfo.tests
+                // the last attempt of a retried test decides; the entry of a failed attempt keeps it
+                const counts = (suite: SuiteStats) => (test: TestStats) => !test.retried || Boolean((suite as { retriedAttempt?: boolean }).retriedAttempt)
+                const tests = Object.values(suiteInfo.tests).filter(counts(suiteInfo))
+                let numTests = tests.length
 
                 Object.values(tests).find((test: TestStats) => {
                     if (test.state === 'pending') {
@@ -170,8 +172,8 @@ class HtmlGenerator {
                  * filters must not hide a suite with a failure inside
                  */
                 const hasFailure = (suite: SuiteStats): boolean =>
-                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed') ||
-                    (suite.hooks ?? []).some((hook) => hook.error) ||
+                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed' && counts(suite)(test)) ||
+                    (suite.hooks ?? []).some(hookCountsAsFailure) ||
                     (suite.suites ?? []).some(hasFailure)
                 if (hasFailure(suiteInfo)) {
                     return 'suite-fail'

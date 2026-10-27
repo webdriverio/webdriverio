@@ -241,3 +241,24 @@ test('cleanStack should return if no stack is given', () => {
 afterEach(() => {
     vi.mocked(runnerReporter.emit).mockClear()
 })
+
+test('emit: a hook event keeps its hookKind and gets the uid of its suite as hookSuiteUid', () => {
+    const hook = { id: '', type: 'hook', description: '"before all" hook', fullName: '"before all" hook', hookKind: 'beforeAll' } as any
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.emit('hook:end', { ...hook, description: '"after all" hook', hookKind: 'afterAll' })
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar' } as any)
+
+    const calls = vi.mocked(runnerReporter.emit).mock.calls
+    expect(calls.map(([event, p]) => [event, p.hookKind, p.hookSuiteUid])).toEqual([
+        ['hook:start', 'beforeAll', undefined],
+        ['suite:start', undefined, undefined],
+        ['hook:start', 'beforeAll', 'some test suite23'],
+        ['hook:end', 'afterAll', 'some test suite23'],
+        ['test:start', undefined, undefined]
+    ])
+    expect(calls[0][1]).not.toHaveProperty('hookSuiteUid')
+    expect(calls[1][1]).not.toHaveProperty('hookKind')
+    expect(calls[4][1]).not.toHaveProperty('hookKind')
+})

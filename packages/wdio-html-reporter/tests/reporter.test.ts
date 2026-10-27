@@ -622,6 +622,57 @@ describe('tests with no describe()', () => {
         expect(json.metrics.failed).toBe(1)
         expect(json.suites.flatMap((suite: { tests: { title: string }[] }) => suite.tests.map((t) => t.title))).toEqual(['a top-level test'])
     })
+
+    type JsonSuite = { title: string, hooks: { title: string, output?: { type: string, body?: { url?: string } }[] }[] }
+    // Mocha before() / after() outside every describe(), Jasmine top-level beforeAll / afterAll
+    const rootHooks = async (name: string, options: object, commands = true) => {
+        const dir = path.join(outputRoot, name) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Root hooks', ...options } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs: ['/spec.js'], file: '/spec.js', ...payload })
+        emit('runner:start', { config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        const hook = (uid: string, kind: 'before' | 'after') => {
+            const payload = { uid, title: `"${kind} all" hook in "{root}"`, parent: '', hookKind: `${kind}All` }
+            emit('hook:start', payload)
+            if (commands) {
+                const command = { sessionId: 's', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: `${kind}-url` } }
+                reporter.emit('client:beforeCommand', command)
+                reporter.emit('client:afterCommand', { ...command, result: { value: null } })
+            }
+            emit('hook:end', payload)
+        }
+        const test = { uid: 't1', title: 'o1', fullTitle: 'outer o1', parent: 'outer' }
+        hook('root-before', 'before')
+        emit('suite:start', { uid: 'outer', title: 'outer', fullTitle: 'outer', parent: '' })
+        emit('test:start', test)
+        emit('test:pass', test)
+        emit('test:end', test)
+        emit('suite:end', { uid: 'outer', title: 'outer', fullTitle: 'outer', parent: '' })
+        hook('root-after', 'after')
+        await reporter.onRunnerEnd(reporter.runnerStat!)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as JsonSuite[]
+    }
+
+    it('writes the root suite with the commands of its hooks, removeOutput: false', async () => {
+        const suites = await rootHooks('root-hooks-output', { removeOutput: false })
+        expect(suites.map((suite) => suite.title)).toEqual(['(root)', 'outer'])
+        expect(suites[0].hooks.map((hook) => [hook.title, hook.output?.filter((o) => o.type === 'command').map((o) => o.body?.url)])).toEqual([
+            ['"before all" hook in "{root}"', ['before-url']],
+            ['"after all" hook in "{root}"', ['after-url']],
+        ])
+    })
+
+    it('does not write a root suite with only passed hooks, removeOutput: true', async () => {
+        const suites = await rootHooks('root-hooks-no-output', {})
+        expect(suites.map((suite) => suite.title)).toEqual(['outer'])
+    })
+
+    it('does not write a root suite with passed hooks that have no command, removeOutput: false', async () => {
+        const suites = await rootHooks('root-hooks-no-command', { removeOutput: false }, false)
+        expect(suites.map((suite) => suite.title)).toEqual(['outer'])
+    })
 })
 
 describe('suite state', () => {
@@ -658,6 +709,157 @@ describe('suite state', () => {
         expect(classOf('child suite')).toBe('suite-fail')
         expect(classOf('parent suite')).toBe('suite-fail')
         expect(classOf('suite with a failed after hook')).toBe('suite-fail')
+    })
+})
+
+describe('retries and hooks of a feature', () => {
+    const common = { cid: '0-0', specs: [], file: 'spec.js' }
+    const suite = (uid: string, type = 'suite:start', parent = '') => ({ ...common, type, uid, title: uid, fullTitle: uid, parent, parentUid: parent || null })
+    const test = (uid: string, title: string, parent: string) => ({ ...common, type: 'test:start', uid, title, fullTitle: `${parent} ${title}`, parent, parentUid: parent })
+    const cucumber = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, { config: { framework: 'cucumber' } })
+    const run = async (name: string, events: (reporter: HtmlReporter) => void, runner = RUNNER) => {
+        const dir = path.join(outputRoot, name) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Retries', produceHtml: true } as never)
+        reporter.onRunnerStart(runner)
+        events(reporter)
+        await reporter.onRunnerEnd(runner)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const html = fs.readFileSync(path.join(dir, 'report-0-0.html'), 'utf-8')
+        const classOf = (title: string) => html.slice(0, html.indexOf(`&nbsp;</span>${title}`)).match(/suite-(pass|fail|pending|unknown)/g)?.pop()
+        // the class of each entry with this title, in report order
+        const classesOf = (title: string) => html.split(`&nbsp;</span>${title}`).slice(0, -1).map((before) => before.match(/suite-(pass|fail|pending|unknown)/g)?.pop())
+        return { reporter, classOf, classesOf, json: JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')) }
+    }
+
+    // Mocha `retries`, a failed attempt ends with test:retry and the next attempt has a new uid
+    it('shows a suite with a test that passed on retry as passed', async () => {
+        const { classOf } = await run('k24-flaky', (reporter) => {
+            reporter.emit('suite:start', suite('flaky suite'))
+            reporter.emit('test:start', test('t1', 'flaky', 'flaky suite'))
+            reporter.emit('test:retry', { ...test('t1', 'flaky', 'flaky suite'), error: { message: 'first attempt' } })
+            reporter.emit('test:start', { ...test('t1-retry', 'flaky', 'flaky suite'), retries: 1 })
+            reporter.emit('test:pass', test('t1-retry', 'flaky', 'flaky suite'))
+            reporter.emit('test:end', test('t1-retry', 'flaky', 'flaky suite'))
+            reporter.emit('suite:end', suite('flaky suite'))
+        })
+        expect(classOf('flaky suite')).toBe('suite-pass')
+    })
+
+    // @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
+    it('shows a suite with a failed hook of a retried attempt as passed when the test passed on retry', async () => {
+        const { classOf } = await run('k24-hook', (reporter) => {
+            const hook = { ...common, type: 'hook:start', uid: 't1-beforeEach', title: '"beforeEach" hook for "flaky"', parent: 'hook suite', parentUid: 'hook suite' }
+            reporter.emit('suite:start', suite('hook suite'))
+            reporter.emit('test:start', test('t1', 'flaky', 'hook suite'))
+            reporter.emit('hook:start', hook)
+            reporter.emit('hook:end', { ...hook, retried: true, error: { message: 'beforeEach fails' } })
+            reporter.emit('test:retry', { ...test('t1', 'flaky', 'hook suite'), error: { message: 'beforeEach fails' } })
+            reporter.emit('test:start', { ...test('t1-retry-1', 'flaky', 'hook suite'), retries: 1 })
+            reporter.emit('test:pass', test('t1-retry-1', 'flaky', 'hook suite'))
+            reporter.emit('test:end', test('t1-retry-1', 'flaky', 'hook suite'))
+            reporter.emit('suite:end', suite('hook suite'))
+        })
+        expect(classOf('hook suite')).toBe('suite-pass')
+    })
+
+    // Cucumber `retry` (step level) ends the failed step with test:retry, then sends suite:retry in place of the suite:start of the next attempt
+    it.each([
+        ['', []],
+        [' and skipped steps after the failed step', ['skipped']]
+    ])('keeps the failed attempt of a retried Cucumber scenario as its own failed entry, with its own times%s', async (_name, after) => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        const at = (time: string) => vi.setSystemTime(new Date(`2026-10-25T10:00:${time}.000Z`))
+        try {
+            const { json, reporter, classesOf } = await run(`k12-retry-${after.length}`, (reporter) => {
+                at('00')
+                reporter.emit('suite:start', suite('F', 'feature'))
+                reporter.emit('suite:start', suite('S', 'scenario', 'F'))
+                reporter.emit('test:start', test('step', 'a step', 'S'))
+                at('02')
+                reporter.emit('test:retry', { ...test('step', 'a step', 'S'), error: { message: 'first attempt' } })
+                reporter.emit('test:end', test('step', 'a step', 'S'))
+                if (after.length) {
+                    reporter.emit('test:start', test('step-2', 'next step', 'S'))
+                    reporter.emit('test:skip', test('step-2', 'next step', 'S'))
+                    reporter.emit('test:end', test('step-2', 'next step', 'S'))
+                }
+                at('03')
+                reporter.emit('suite:retry', suite('S', 'scenario', 'F'))
+                for (const [uid, title] of [['step', 'a step'], ...(after.length ? [['step-2', 'next step']] : [])]) {
+                    reporter.emit('test:start', test(uid, title, 'S'))
+                    at('07')
+                    reporter.emit('test:pass', test(uid, title, 'S'))
+                    reporter.emit('test:end', test(uid, title, 'S'))
+                }
+                reporter.emit('suite:end', suite('S', 'scenario', 'F'))
+                reporter.emit('suite:end', suite('F', 'feature'))
+            }, cucumber)
+            const [feature] = json.suites
+            const attempts = feature.suites.map((entry: { title: string, start: string, end: string, _duration: number, tests: { state: string }[] }) => ({
+                title: entry.title, start: entry.start, end: entry.end, duration: entry._duration, states: entry.tests.map((step) => step.state)
+            }))
+            expect(attempts).toEqual([
+                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
+                // the scenario keeps the start of its first attempt and the duration of all attempts, as main
+                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:07.000Z', duration: 7000, states: ['passed', ...after.map(() => 'passed')] }
+            ])
+            // the failed attempt shows as failed, the scenario as its last attempt
+            expect(classesOf('S')).toEqual(['suite-fail', 'suite-pass'])
+            // the scenario counts one time, as its last attempt
+            expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    it('gives the second failed attempt of a Cucumber scenario its own times', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        const at = (time: string) => vi.setSystemTime(new Date(`2026-10-25T10:00:${time}.000Z`))
+        try {
+            const { json } = await run('k12-retry-twice', (reporter) => {
+                at('00')
+                reporter.emit('suite:start', suite('F', 'feature'))
+                reporter.emit('suite:start', suite('S', 'scenario', 'F'))
+                for (const [retryAt, endAt] of [['02', '03'], ['05', '06']]) {
+                    reporter.emit('test:start', test('step', 'a step', 'S'))
+                    at(retryAt)
+                    reporter.emit('test:retry', { ...test('step', 'a step', 'S'), error: { message: 'failed attempt' } })
+                    reporter.emit('test:end', test('step', 'a step', 'S'))
+                    at(endAt)
+                    reporter.emit('suite:retry', suite('S', 'scenario', 'F'))
+                }
+                reporter.emit('test:start', test('step', 'a step', 'S'))
+                at('08')
+                reporter.emit('test:pass', test('step', 'a step', 'S'))
+                reporter.emit('test:end', test('step', 'a step', 'S'))
+                reporter.emit('suite:end', suite('S', 'scenario', 'F'))
+                reporter.emit('suite:end', suite('F', 'feature'))
+            }, cucumber)
+            const times = json.suites[0].suites.map((entry: { start: string, end: string }) => [entry.start.slice(17, 19), entry.end.slice(17, 19)])
+            expect(times).toEqual([['00', '03'], ['03', '06'], ['00', '08']])
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    // a failed Cucumber BeforeAll is a hook of the feature, and Cucumber runs no scenario after it
+    it('shows and counts a failed Cucumber BeforeAll of the feature', async () => {
+        const hook = { ...common, type: 'hook:start', uid: 'run-hook', title: 'BeforeAll', parent: 'F', parentUid: 'F', hookKind: 'beforeAll' }
+        const { json, reporter } = await run('k26-before-all', (reporter) => {
+            reporter.emit('suite:start', suite('F', 'feature'))
+            reporter.emit('hook:start', hook)
+            reporter.emit('hook:end', { ...hook, error: { message: 'BeforeAll fails' } })
+            reporter.emit('suite:start', suite('S', 'scenario', 'F'))
+            reporter.emit('test:start', test('step', 'a step', 'S'))
+            reporter.emit('test:skip', test('step', 'a step', 'S'))
+            reporter.emit('test:end', test('step', 'a step', 'S'))
+            reporter.emit('suite:end', suite('S', 'scenario', 'F'))
+            reporter.emit('suite:end', suite('F', 'feature'))
+        }, cucumber)
+        expect(json.suites[0].hooks.map((entry: { error?: { message: string } }) => entry.error?.message)).toEqual(['BeforeAll fails'])
+        expect(reporter.metrics).toMatchObject({ passed: 0, skipped: 1, failed: 1 })
     })
 })
 

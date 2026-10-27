@@ -1,5 +1,6 @@
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
+import type { HookKind } from './types.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
@@ -9,6 +10,19 @@ const FIRST_FUNCTION_REGEX = /function (\w+)/
  */
 export function hookCountsAsFailure(hook: { error?: unknown, retried?: boolean, failedTestUid?: string }): boolean {
     return Boolean(hook.error) && !hook.retried && !hook.failedTestUid
+}
+
+/**
+ * @experimental a `beforeAll` / `afterAll` hook with `hookKind` and no context: it belongs to its suite, not to a unit.
+ * A hook with no `hookKind` keeps the owner of today
+ */
+export function isContextlessAllHook(hook: { contextId?: string, hookKind?: HookKind }): boolean {
+    return !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
+}
+
+// a hook with no hookKind: the Mocha title rule (`"after each" hook ...`)
+export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): boolean {
+    return hook.hookKind ? hook.hookKind === 'afterEach' : /^"after each" hook/.test(hook.title ?? '')
 }
 
 /**
@@ -38,8 +52,32 @@ export function sanitizeString (str?: string) {
         .toLowerCase()
 }
 
+// an app URL can hold credentials or a token: only its file name stays, else its host
+export function appFileName<T> (app: T): T | string {
+    if (typeof app !== 'string') {
+        return app
+    }
+    try {
+        const url = new URL(app)
+        if (['http:', 'https:', 'ftp:'].includes(url.protocol)) {
+            const file = url.pathname.split('/').filter(Boolean).pop()
+            if (!file) {
+                return url.hostname
+            }
+            try {
+                return decodeURIComponent(file)
+            } catch {
+                return file
+            }
+        }
+    } catch {
+        // not a URL
+    }
+    return app
+}
+
 /**
- * formats capability object into sanitized string for e.g.filenames
+ * @experimental formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
  */
 export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
@@ -59,7 +97,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             // @ts-expect-error legacy capability names
             sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(appFileName(caps['appium:app']))
         ]
         : [
             sanitizeString(caps.browserName),
@@ -67,7 +105,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             sanitizeString(caps.version || caps.browserVersion),
             // @ts-expect-error legacy capability names
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(appFileName(caps['appium:app']))
         ]
 
     result = result.filter(n => n !== undefined && n !== '')

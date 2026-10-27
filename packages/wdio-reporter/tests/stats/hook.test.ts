@@ -86,3 +86,25 @@ test('keeps failedTestUid only when the payload has it', () => {
     expect('failedTestUid' in new HookStats(payload)).toBe(false)
     expect(new HookStats({ ...payload, failedTestUid: 'test-1' }).failedTestUid).toBe('test-1')
 })
+
+test('keeps hookKind / hookSuiteUid only when the payload has them', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    const plain = new HookStats(payload)
+    expect('hookKind' in plain).toBe(false)
+    expect('hookSuiteUid' in plain).toBe(false)
+    expect(new HookStats({ ...payload, hookKind: 'afterAll', hookSuiteUid: 'suite-0-0-0' }))
+        .toMatchObject({ hookKind: 'afterAll', hookSuiteUid: 'suite-0-0-0' })
+})
+
+test('a skipped hook gets the state skipped, unless it has errors', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    const skipped = new HookStats(payload)
+    skipped.complete([], true)
+    expect(skipped.state).toBe('skipped')
+    const failed = new HookStats(payload)
+    failed.complete([new Error('boom')], true)
+    expect(failed.state).toBe('failed')
+    const ran = new HookStats(payload)
+    ran.complete([])
+    expect(ran.state).toBeUndefined()
+})

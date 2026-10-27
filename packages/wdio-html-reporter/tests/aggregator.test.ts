@@ -331,4 +331,113 @@ describe('ReportAggregator', () => {
             error.mockRestore()
         }
     })
+
+    describe('browser of the report header', () => {
+        const header = (file: string) => fs.readFileSync(file, 'utf-8').match(/<td>Browser<\/td>\s*<td>([^<]*)<\/td>/)?.[1]
+        const runWorker = async (outputDir: string, runnerData: Record<string, unknown>, options: Record<string, unknown> = {}) => {
+            const { HtmlReporter } = await import('../src/index.js')
+            const { RUNNER, SUITES } = await import('./testdata.js')
+            const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, runnerData)
+            const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Browser', produceHtml: true, ...options } as never)
+            reporter.onRunnerStart(runner)
+            reporter.onSuiteStart(SUITES[0])
+            reporter.onSuiteEnd(SUITES[0])
+            await reporter.onRunnerEnd(runner)
+            process.removeAllListeners('test:log')
+            process.removeAllListeners('test:screenshot')
+            process.removeAllListeners('test:video-capture')
+            return path.join(outputDir, `report-${runner.cid}.html`)
+        }
+
+        it('the report of a worker shows the browser of the session when no browserName is set', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            expect(header(await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome', browserVersion: '130' } }))).toBe('chrome')
+            expect(header(await runWorker(outputDir, { cid: '0-1', capabilities: { platformName: 'iOS', deviceName: 'iPhone 17' } }))).toBe('iPhone 17 (iOS)')
+            expect(header(await runWorker(outputDir, {
+                cid: '0-2',
+                isMultiRemote: true,
+                capabilities: { myChrome: { browserName: 'chrome' }, myFirefox: { browserName: 'firefox' }, otherChrome: { browserName: 'chrome' } }
+            }))).toBe('chrome, firefox')
+        })
+
+        it('the report of a worker shows the browserName option when it is set, and the default when no browser is known', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            expect(header(await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } }, { browserName: 'my browser' }))).toBe('my browser')
+            expect(header(await runWorker(outputDir, { cid: '0-1', capabilities: { platformName: 'linux' } }))).toBe('not specified')
+        })
+
+        it('the master report shows the browsers of the worker reports when no browserName is set', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
+            await runWorker(outputDir, { cid: '1-0', capabilities: { browserName: 'firefox' } })
+            await runWorker(outputDir, { cid: '0-1', capabilities: { browserName: 'chrome' } })
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            expect(header(reportAggregator.reportFile)).toBe('chrome, firefox')
+            const configured = new ReportAggregator({ outputDir, filename: 'configured.html', reportTitle: 'Browser', browserName: 'my browser' })
+            await configured.createReport()
+            expect(header(configured.reportFile)).toBe('my browser')
+        })
+
+        it('the worker and the master report show the app, the device and the platform of a mobile session', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            const workerFile = await runWorker(outputDir, {
+                cid: '0-0',
+                capabilities: { platformName: 'iOS', deviceName: 'iPhone 17', platformVersion: '18.2', app: '/Users/me/MyApp.app' }
+            })
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            expect(header(workerFile)).toBe('MyApp.app on iPhone 17 (iOS 18.2)')
+            expect(header(reportAggregator.reportFile)).toBe('MyApp.app on iPhone 17 (iOS 18.2)')
+            const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8'))
+            expect(json.info.browserNames).toEqual(['MyApp.app on iPhone 17 (iOS 18.2)'])
+        })
+
+        it('the worker and the master header name a remote app by its file name, without the credentials and the token', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            const workerFile = await runWorker(outputDir, {
+                cid: '0-0',
+                capabilities: {
+                    platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15',
+                    'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123'
+                }
+            })
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            for (const file of [workerFile, reportAggregator.reportFile]) {
+                expect(header(file)).toBe('app.apk on Pixel 9 (Android 15)')
+                expect(fs.readFileSync(file, 'utf-8')).not.toMatch(/secret|token/)
+            }
+            const json = fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')
+            expect(JSON.parse(json).info.browserNames).toEqual(['app.apk on Pixel 9 (Android 15)'])
+        })
+
+        it('the master report falls back to the capabilities for a worker file with no browser names', async () => {
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
+            const file = path.join(outputDir, 'report-0-0.json')
+            const json = JSON.parse(fs.readFileSync(file, 'utf-8'))
+            delete json.info.browserNames
+            fs.writeFileSync(file, JSON.stringify(json))
+            const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Browser' })
+            await reportAggregator.createReport()
+            expect(header(reportAggregator.reportFile)).toBe('chrome')
+        })
+
+        it('the master report from the command line shows not specified when no worker file names a browser', async () => {
+            const { makeReport } = await import('../src/makeReportCli.js')
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { platformName: 'linux' } })
+            expect(header(await makeReport(['from-cli.html', outputDir, 'Title'], { CI: 'true' }))).toBe('not specified')
+        })
+
+        it('the master report from the command line shows TEST_BROWSER, else the browsers of the worker reports', async () => {
+            const { makeReport } = await import('../src/makeReportCli.js')
+            const outputDir = path.join(tempDir(), 'out')
+            await runWorker(outputDir, { cid: '0-0', capabilities: { browserName: 'chrome' } })
+            await runWorker(outputDir, { cid: '1-0', isMultiRemote: true, capabilities: { a: { browserName: 'firefox' }, b: { platformName: 'iOS', deviceName: 'iPhone 17' } } })
+            expect(header(await makeReport(['from-cli.html', outputDir, 'Title'], { CI: 'true' }))).toBe('chrome, firefox, iPhone 17 (iOS)')
+            expect(header(await makeReport(['from-env.html', outputDir, 'Title'], { CI: 'true', TEST_BROWSER: 'edge' }))).toBe('edge')
+        })
+    })
 })

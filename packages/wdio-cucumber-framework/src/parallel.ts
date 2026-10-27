@@ -42,7 +42,7 @@ import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
 
-import type { CucumberOptions, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
+import type { CucumberOptions, HookKind, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
 import {
     addKeywordToStep,
     getFeatureId,
@@ -54,6 +54,7 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    hookKindOf,
     scenarioLabel,
     strictPendingWarning,
     withAmbiguousMessage,
@@ -445,6 +446,8 @@ interface SupportCodeMessages {
     stepDefinitions: Map<string, messages.StepDefinition>
     /** hook id → the hook title of the sequential formatter */
     hookTitles: Map<string, string>
+    /** hook id → the kind of its Cucumber hook type */
+    hookKinds: Map<string, HookKind>
 }
 
 /**
@@ -453,6 +456,7 @@ interface SupportCodeMessages {
 function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): SupportCodeMessages {
     const stepDefinitions = new Map<string, messages.StepDefinition>()
     const hookTitles = new Map<string, string>()
+    const hookKinds = new Map<string, HookKind>()
     const eventBroadcaster = new EventEmitter()
     eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
         if (envelope.stepDefinition) {
@@ -461,10 +465,14 @@ function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): Sup
         if (envelope.hook) {
             const { id, name, tagExpression } = envelope.hook
             hookTitles.set(id, `${name || ''} ${tagExpression || ''}`.trim())
+            const kind = hookKindOf(envelope.hook)
+            if (kind) {
+                hookKinds.set(id, kind)
+            }
         }
     })
     emitSupportCodeMessages({ eventBroadcaster, supportCodeLibrary, newId: uuidFn })
-    return { stepDefinitions, hookTitles }
+    return { stepDefinitions, hookTitles, hookKinds }
 }
 
 interface ScenarioTranslator {
@@ -531,6 +539,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         pickleStep?: messages.PickleStep
         isHook: boolean
         hookTitle: string
+        hookKind?: HookKind
         stepDefinitionIds: readonly string[]
     }>()
     for (const ts of testCase.testSteps) {
@@ -538,6 +547,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             pickleStep: ts.pickleStepId ? pickleStepById.get(ts.pickleStepId) : undefined,
             isHook: !!ts.hookId,
             hookTitle: (ts.hookId && supportCode.hookTitles.get(ts.hookId)) || '',
+            hookKind: ts.hookId ? supportCode.hookKinds.get(ts.hookId) : undefined,
             stepDefinitionIds: ts.stepDefinitionIds ?? [],
         })
     }
@@ -580,7 +590,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         // Per-step anchor so step/hook durations don't accumulate from scenario start
         stepStart = new Date()
 
-        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
+        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) }
         if (!info.isHook) {
             openStep = payload
             lastTestUid = String(payload.uid)
@@ -613,7 +623,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                 error,
                 duration,
             })
-            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID } }))
+            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) } }))
             return
         }
 

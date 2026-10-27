@@ -44,7 +44,6 @@ export const config: WebdriverIO.Config = {
             outputDir: './reports/html-reports/',
             filename: 'master-report.html',
             reportTitle: 'Master Report',
-            browserName: 'chrome',
             linkScreenshots: true,
             collapseTests: true,
             // show the report in a browser when it is done
@@ -80,7 +79,7 @@ The master report uses the options of the `ReportAggregator`: set `linkScreensho
 | `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. With `@wdio/video-reporter` in a WebDriver Classic session, the video frames also become screenshots: keep it `false`. |
 | `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
 | `linkUrls` | `false` | Make the `http` and `https` URLs in log messages links. The rest of the message stays escaped: HTML in a log message shows as text. |
-| `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |
+| `browserName` | the browser of the session | Browser name to show in the report. Without it, the report shows the browser of the session, else the Appium app or device (in a multi-remote run, the names of the instances). The master report shows the browsers of the worker reports, for example `chrome, firefox`. When no name is known, it shows `not specified`. |
 | `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
 | `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |
 | `produceHtml` | `false` | Also write an HTML report for each worker, next to its JSON file. |
@@ -117,7 +116,8 @@ node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html rep
 The arguments are the file name of the report, the folder of the JSON files (default `reports/html-reports/`) and
 the title (default `Master Report`). The script opens the report in a browser, except when the `CI` environment
 variable is set. It ends with exit code 1 when the folder does not exist, has no JSON file of a worker, or when it
-cannot make the report, so a CI step fails.
+cannot make the report, so a CI step fails. The `TEST_BROWSER` environment variable sets the browser of the report
+header; without it, the header shows the browsers of the JSON files.
 
 The script reads all JSON files in the folder. Empty the folder before each test run (for example remove it, or call
 `new ReportAggregator({ outputDir }).clean()` in `onPrepare`), or the results of an earlier run are in the report.

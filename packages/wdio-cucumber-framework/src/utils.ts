@@ -19,7 +19,7 @@ import type {
 } from '@cucumber/messages'
 import { getWorstTestStepResult } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
-import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
+import type { HookKind, ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
 import { AMBIGUOUS_STEP_MESSAGE, CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 const require_ = createRequire(import.meta.url)
@@ -66,6 +66,22 @@ export function formatMessage ({ payload = {} }: { payload: Payload }): Payload 
     }
 
     return content
+}
+
+const HOOK_KINDS: Record<string, HookKind> = {
+    BEFORE_TEST_CASE: 'beforeEach',
+    AFTER_TEST_CASE: 'afterEach',
+    BEFORE_TEST_STEP: 'beforeStep',
+    AFTER_TEST_STEP: 'afterStep',
+    BEFORE_TEST_RUN: 'beforeAll',
+    AFTER_TEST_RUN: 'afterAll'
+}
+
+/**
+ * The hook kind of a Cucumber hook message; `undefined` when the Cucumber version sends no `type`
+ */
+export function hookKindOf(hook?: { type?: string }): HookKind | undefined {
+    return hook?.type ? HOOK_KINDS[hook.type] : undefined
 }
 
 enum StepType {

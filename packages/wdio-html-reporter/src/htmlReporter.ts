@@ -6,13 +6,14 @@ import type {
     SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
 import { writeFile } from './files.js'
+import { headerBrowserName } from './browserName.js'
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -63,6 +64,8 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         isMultiRemote: runner.isMultiRemote,
         retry: runner.retry,
         capabilities,
+        // the names of the full capabilities: the reduced copy above cannot name an app
+        browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
         // the runner gives the error of a session that did not start; its text can have credentials
         ...(runner.error ? { sessionFailed: true } : {})
     } as unknown as RunnerStats
@@ -98,6 +101,8 @@ export default class HtmlReporter extends WDIOReporter {
     #earlyEvents = new Map<string, ReportEvent[]>()
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
+    /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
+    #attemptEnds = new WeakMap<SuiteStats, Date>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
@@ -107,6 +112,7 @@ export default class HtmlReporter extends WDIOReporter {
     #onMessageEvent = ({ value }: { value: unknown }) => this.saveMessage(value)
     #onScreenshotEvent = ({ value }: { value: string }) => this.saveScreenshot(value)
     #onVideoEvent = ({ value }: { value: string }) => this.saveVideo(value)
+    #configuredBrowserName: string | undefined
 
     constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
@@ -117,6 +123,7 @@ export default class HtmlReporter extends WDIOReporter {
         const opts = new HtmlReporterOptions()
         opts.stdout = true
         this.options = Object.assign(opts, options)
+        this.#configuredBrowserName = options.browserName
         const dir = path.join(this.options.outputDir, 'screenshots')
 
         fs.mkdirSync(dir, { recursive: true })
@@ -135,7 +142,9 @@ export default class HtmlReporter extends WDIOReporter {
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid] && hookCountsAsFailure(this.hooks[hook.uid]) && !this.#countScenarios) {
+            const stats = this.hooks[hook.uid]
+            // a failed Cucumber BeforeAll / AfterAll fails no scenario
+            if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.isFeatureHook(stats))) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
@@ -320,6 +329,30 @@ export default class HtmlReporter extends WDIOReporter {
         this.#openHookFailures.clear()
     }
 
+    /**
+     * Cucumber `retry` (step level): the failed attempt stays in the report as its own entry, with its own
+     * times, before the base clears the suite for the next attempt. Only the last attempt counts
+     */
+    onSuiteRetry(suite: SuiteStats) {
+        const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
+            tests: [...suite.tests],
+            hooks: [...suite.hooks],
+            hooksAndTests: [...suite.hooksAndTests],
+            suites: [...suite.suites],
+            // its retried step is its failure (retried attempts are skipped only in the last attempt)
+            retriedAttempt: true
+        })
+        attempt.start = this.#attemptEnds.get(suite) ?? suite.start
+        attempt.complete()
+        this.#attemptEnds.set(suite, attempt.end!)
+        // a Cucumber scenario is always in its feature
+        const siblings = this.parentOf(suite)?.suites
+        const index = siblings?.indexOf(suite) ?? -1
+        if (siblings && index >= 0) {
+            siblings.splice(index, 0, attempt)
+        }
+    }
+
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
@@ -393,7 +426,7 @@ export default class HtmlReporter extends WDIOReporter {
             suites,
             this.metrics,
             reportFile,
-            this.options.browserName)
+            headerBrowserName(this.#configuredBrowserName, [runner], this.options.browserName))
     }
 
     /**
@@ -403,7 +436,9 @@ export default class HtmlReporter extends WDIOReporter {
      */
     rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
         const root = this.currentSuites[0]
-        if (!root || (!root.tests.length && !root.hooks.some((hook) => hook.error))) {
+        // a root hook keeps its commands in its own output, which only `removeOutput: false` writes
+        const keep = (hook: HookStats) => hook.error || (!this.options.removeOutput && hook.output?.length)
+        if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {

@@ -350,4 +350,8 @@ export interface Payload {
     passed?: boolean
     contextId?: string
     parentUid?: string | null
+    hookKind?: HookKind
 }
+
+/** The kind of a hook, as `@wdio/reporter` reads it */
+export type HookKind = Frameworks.HookKind

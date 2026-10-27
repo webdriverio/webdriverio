@@ -70,10 +70,6 @@ export default class VideoReporter extends WdioReporter {
      * (key `MAIN`) outside parallel mode
      */
     #recordings = new Map<string, Recording>()
-    /**
-     * parallel mode: the title and the parent of each suite, for the file names
-     */
-    #suites = new Map<string, { title: string, parentUid?: string | null }>()
     #takenNames = new Set<string>()
     /**
      * parallel mode: the last frame of each test window, until the window closes
@@ -438,9 +434,6 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        if (suite.uid) {
-            this.#suites.set(suite.uid, { title: suite.title, parentUid: suite.parentUid })
-        }
         const key = this.#keyOf(suite.contextId)
         // parallel mode names its videos from the suite chain (`#nameParts`)
         if (key === MAIN && ((this.isCucumberFramework && suite.type === 'scenario') || this.options.filenamePrefixSource === 'suite')) {
@@ -1082,7 +1075,7 @@ export default class VideoReporter extends WdioReporter {
     /**
      * @param owner  the test (with Cucumber step reporting: the scenario) of the recording
      */
-    #setRecordingPath (key: string, owner: { title: string, parentUid?: string | null, type?: string }) {
+    #setRecordingPath (key: string, owner: SuiteStats | TestStats) {
         // parallel mode: tests overlap, so the name comes from the suites of the test, not from the open suites
         const nameParts = key === MAIN ? this.testNameStructure : this.#nameParts(owner)
         const fullName = nameParts.slice(1)
@@ -1120,13 +1113,8 @@ export default class VideoReporter extends WdioReporter {
     /**
      * the same parts as `testNameStructure` in sequential mode, from the suite chain of the owner
      */
-    #nameParts (owner: { title: string, parentUid?: string | null, type?: string }) {
-        const parts: string[] = []
-        if (this.options.filenamePrefixSource === 'suite') {
-            for (let suite = owner.parentUid ? this.#suites.get(owner.parentUid) : undefined; suite; suite = suite.parentUid ? this.#suites.get(suite.parentUid) : undefined) {
-                parts.unshift(getNamePart(suite.title))
-            }
-        }
+    #nameParts (owner: SuiteStats | TestStats) {
+        const parts = this.options.filenamePrefixSource === 'suite' ? this.pathOf(owner).map((suite) => getNamePart(suite.title)) : []
         if (this.options.filenamePrefixSource === 'test' || owner.type === 'scenario') {
             parts.push(getNamePart(owner.title))
         }

@@ -524,6 +524,37 @@ describe('Mocha parallel mode', () => {
         })
     })
 
+    describe('root before all hook with a hook kind', () => {
+        it('keeps the commands of a contextless root before all hook in its fixture, not in a test', async () => {
+            const h = createHarness('parallel', [A1, B1])
+            h.emit('runner:start', {
+                cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {},
+            })
+            const title = '"before all" hook in "{root}"'
+            const rootHook = { cid: CID, specs: [SPEC], uid: 'root-hook', title, fullTitle: title, parent: '', file: SPEC, hookKind: 'beforeAll' }
+            h.emit('hook:start', { ...rootHook, type: 'hook:start' })
+            h.emit('client:beforeCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session' })
+            h.emit('client:afterCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session', result: undefined })
+            h.emit('hook:end', { ...rootHook, type: 'hook:end', state: 'pass' })
+            const keys = [...h.uids.keys()]
+            keys.forEach((key) => h.emit('suite:start', h.suiteMessage('suite:start', key)))
+            interleave([A1, B1].map((test) => scriptOf(h, test)))
+            keys.reverse().forEach((key) => h.emit('suite:end', h.suiteMessage('suite:end', key)))
+            h.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
+            await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
+            const { results, containers } = getResults(h.outputDir)
+
+            const rootFixtures = containers.flatMap((c: Result) => fixtures(c, 'befores')).filter((f: Result) => f.name === title)
+            expect(rootFixtures.map((f: Result) => stepNames(f.steps))).toEqual([['rootCommand']])
+            for (const test of [A1, B1]) {
+                const result = byName(results, test.title)
+                expect(stepNames(result.steps)).not.toContain('rootCommand')
+                expect(childrenOf(containers, result).flatMap((c) => fixtures(c, 'befores')).map((f: Result) => f.name)).toContain(title)
+            }
+        })
+    })
+
     describe('result timing and console logs', () => {
         const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
 
@@ -586,7 +617,7 @@ describe('Mocha parallel mode', () => {
         ]
 
         // the sequence a Mocha run with this.retries(2) sends, which the Vitest bridge reproduces in one lane
-        async function playRetried(mode: Mode) {
+        async function playRetried(mode: Mode, endEachAttempt = false) {
             const h = createHarness(mode, [RETRIED])
             const { emit, message } = h
             emit('runner:start', {
@@ -600,12 +631,17 @@ describe('Mocha parallel mode', () => {
                 process.emit(events.startStep as any, `step-${attempt}` as any)
                 h.reporter.addAttachment({ name: `attachment-${attempt}`, content: `content ${attempt}`, type: 'text/plain' })
                 process.emit(events.endStep as any, 'passed' as any)
+                process.stdout.write(`log ${attempt}\n`)
                 if (final) {
                     emit('test:pass', message('test:pass', RETRIED, uid, { duration: 1, passed: true }))
                     emit('test:end', message('test:end', RETRIED, uid, { duration: 1, passed: true }))
                 } else {
                     const error = { name: 'AssertionError', message: `fail ${attempt}`, stack: `AssertionError: fail ${attempt}` }
                     emit('test:retry', message('test:retry', RETRIED, uid, { duration: 1, error, pending: false }))
+                    // test:start, test:end, test:start in one context
+                    if (endEachAttempt) {
+                        emit('test:end', message('test:end', RETRIED, uid, { duration: 1, error, pending: false }))
+                    }
                 }
             }))
             if (mode === 'parallel') {
@@ -623,6 +659,10 @@ describe('Mocha parallel mode', () => {
                 steps: stepNames(r.steps).filter((name) => name.startsWith('step-')),
                 attachments: [...r.attachments ?? [], ...r.steps.flatMap((s: Result) => s.attachments ?? [])]
                     .filter((a: Result) => a.name.startsWith('attachment-')).map((a: Result) => attachmentText(h.outputDir, a)),
+                logs: (r.attachments ?? []).filter((a: Result) => a.name === 'Console Logs')
+                    .map((a: Result) => attachmentText(h.outputDir, a).replace('.........Console Logs.........\n\n', '')),
+                historyId: r.historyId,
+                fullName: r.fullName,
             }))
             .sort((a, b) => a.steps[0]?.localeCompare(b.steps[0]))
 
@@ -633,6 +673,17 @@ describe('Mocha parallel mode', () => {
             expect(sequential.map((r) => r.status)).toEqual(['failed', 'failed', 'passed'])
             expect(sequential.map((r) => r.steps)).toEqual([['step-0'], ['step-1'], ['step-2']])
             expect(sequential.map((r) => r.attachments)).toEqual([['content 0'], ['content 1'], ['content 2']])
+            expect(parallel).toEqual(sequential)
+        })
+
+        it('keeps the console logs of each attempt when a failed attempt sends test:end, and one historyId for all attempts', async () => {
+            const sequential = attempts(await playRetried('sequential', true))
+            const parallel = attempts(await playRetried('parallel', true))
+
+            expect(sequential.map((r) => r.logs)).toEqual([['log 0\n'], ['log 1\n'], ['log 2\n']])
+            expect(new Set(sequential.map((r) => r.historyId)).size).toBe(1)
+            // md5('R flaky#chrome'): no uuid, context, cid or attempt in it
+            expect(sequential[0].historyId).toBe('7b360d3d5d9819a0e2dd8ef5dd11de41')
             expect(parallel).toEqual(sequential)
         })
     })

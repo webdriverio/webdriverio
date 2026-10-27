@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, type HookStats } from '@wdio/reporter'
 import type { Reporters } from '@wdio/types'
 
 /**
@@ -29,5 +29,15 @@ export default class DotReporter extends WDIOReporter {
      */
     onTestFail(): void {
         this.write(chalk.redBright('F'))
+    }
+
+    /**
+     * a failed hook that fails no test, in any framework
+     */
+    onHookEnd(hook: HookStats): void {
+        // as Mocha dot and Cucumber progress: one F for each failed hook
+        if (hookCountsAsFailure(hook)) {
+            this.write(chalk.redBright('F'))
+        }
     }
 }

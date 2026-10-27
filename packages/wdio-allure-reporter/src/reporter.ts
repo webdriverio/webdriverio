@@ -81,6 +81,8 @@ type ReportLane = {
 }
 
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
+// the Cucumber scenario that runs in a parallel unit
+const CUCUMBER_UNIT = Symbol('allure cucumber unit')
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -253,7 +255,8 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _laneKey(): string | undefined {
-        const key = this._laneMode ? this.getContextId?.() : undefined
+        // the unit of the event (a Cucumber hook end has no contextId), else the context of the calling code
+        const key = this._laneMode ? this.getContextUnit?.()?.contextId ?? this.getContextId?.() : undefined
         if (key && !this._lanesSeen) {
             this._lanesSeen = true
             this._consoleOutput = ''
@@ -336,6 +339,40 @@ export default class AllureReporter extends WDIOReporter {
             return undefined
         }
         return find(this.currentSuites[0], [])
+    }
+
+    /** the feature of a parallel Cucumber unit: parallel mode starts every feature first */
+    private _unitFeature(): SuiteStats | undefined {
+        const stats = this._laneKey() ? this.getContextUnit?.()?.stats : undefined
+        return stats && this.pathOf(stats).findLast((suite) => suite.type === 'feature')
+    }
+
+    /** the spec file of the unit, else the one that started last */
+    private _pkg(cid: string): string | undefined {
+        const file = this._unitFeature()?.file
+        return file && isFeatureFilePath(file) ? absPosix(file) : this._pkgByCid.get(cid)
+    }
+
+    /** the state of a Cucumber scenario in a parallel unit; `undefined` in a sequential run */
+    private _cukeUnit(): { scenario: boolean, tpSkip: boolean } | undefined {
+        return this._framework === 'cucumber' && this.getContextUnit?.()?.contextId
+            ? this.unitState?.(CUCUMBER_UNIT, () => ({ scenario: false, tpSkip: false }))
+            : undefined
+    }
+
+    private _cukeScenarioActive(cid: string): boolean {
+        return this._cukeUnit()?.scenario ?? Boolean(this._cukeScenarioActiveByCid.get(cid))
+    }
+
+    private _setCukeScenarioActive(cid: string, active: boolean): void {
+        const unit = this._cukeUnit()
+        if (unit) {
+            unit.scenario = active
+        } else if (active) {
+            this._cukeScenarioActiveByCid.set(cid, true)
+        } else {
+            this._cukeScenarioActiveByCid.delete(cid)
+        }
     }
 
     private _activeSuitePath(cid: string): string[] {
@@ -456,7 +493,7 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    private _startTest(payload: { name: string; start: number; uuid?: string }): void {
+    private _startTest(payload: { name: string; start: number; uuid?: string; standalone?: boolean }): void {
         this._pushRuntimeMessage({ type: 'allure:test:start', data: payload })
         this._setTestParameters()
         /**
@@ -489,8 +526,9 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'step_stop', data: payload })
     }
 
-    private _startHook(payload: { name: string; type: 'before' | 'after'; start: number }): void {
-        this._pushRuntimeMessage({ type: 'allure:hook:start', data: payload })
+    private _startHook(payload: { name: string; type: 'before' | 'after'; start: number; scope?: 'root' | 'all' | 'each' }): void {
+        const { scope, ...data } = payload
+        this._pushRuntimeMessage({ type: 'allure:hook:start', data: scope ? payload : data })
     }
     private _endHook(payload: { status: AllureStatus; statusDetails?: StatusDetails; stop?: number; duration?: number }): void {
         const { status, statusDetails, stop = Date.now(), duration } = payload
@@ -604,7 +642,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const st = this._ensureState(this._currentCid())
-        const feat = st.currentFeature
+        const feat = this._unitFeature()?.title ?? st.currentFeature
         if (feat) {
             this._pushRuntimeMessage({
                 type: 'metadata',
@@ -685,8 +723,10 @@ export default class AllureReporter extends WDIOReporter {
         this._framework = knownFramework(runner.config?.framework)
         this._capabilities = runner.capabilities
         this._isMultiRemote = runner.isMultiRemote || false
-        const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
-        this._laneMode = this._framework === 'vitest' || (this._framework === 'mocha' && Boolean(mochaOpts?.parallelMode))
+        const { mochaOpts, cucumberOpts } = (runner.config ?? {}) as { mochaOpts?: { parallelMode?: boolean }, cucumberOpts?: { parallelMode?: boolean } }
+        this._laneMode = this._framework === 'vitest' ||
+            (this._framework === 'mocha' && Boolean(mochaOpts?.parallelMode)) ||
+            (this._framework === 'cucumber' && Boolean(cucumberOpts?.parallelMode))
         this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
@@ -736,7 +776,10 @@ export default class AllureReporter extends WDIOReporter {
             break
         }
         case 'scenario': {
-            this._cukeScenarioActiveByCid.set(cid, true)
+            this._setCukeScenarioActive(cid, true)
+            // a parallel scenario keeps the path of its own feature
+            const lane = this._openLane()
+            if (lane) { lane.suitePath = this.pathOf(suite).map((parent) => parent.title) }
 
             this._ensureSuitesStarted(cid)
 
@@ -751,15 +794,15 @@ export default class AllureReporter extends WDIOReporter {
             const fullTitleForHash = this._mochaFullTitle(cid, suite.title)
             this._emitHistoryIdsFrom(fullTitleForHash)
 
-            const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
+            const fullName = toFullName(this._pkg(cid)!, fullTitleForHash)
             this._pushRuntimeMessage({
                 type: 'allure:test:info',
-                data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid, this._suiteStack(cid)) }
+                data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid, this._activeSuitePath(cid)) }
             })
 
             applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
                 fullTitle: fullTitleForHash,
-                file: this._pkgByCid.get(cid),
+                file: this._pkg(cid),
             })
 
             this._emitBaseLabels(cid)
@@ -781,7 +824,7 @@ export default class AllureReporter extends WDIOReporter {
             }
 
             if (mustSkip) {
-                this._tpSkipByCid.set(cid, true)
+                this._setTpSkip(cid, true)
                 this._pushRuntimeMessage({
                     type: 'attachment_content',
                     data: {
@@ -810,13 +853,14 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onSuiteEnd(suite: SuiteStats & { end: Date }): void {
-        this._closeEndedLanes()
+        // a Cucumber scenario ends while other scenarios run: their lanes close at their context:end
+        if (this._framework !== 'cucumber') { this._closeEndedLanes() }
         const isScenario = suite.type === 'scenario'
         const cid = this._currentCid()
 
         if (isScenario && this._tpSkipActive(cid)) {
-            this._tpSkipByCid.delete(cid)
-            this._cukeScenarioActiveByCid.delete(cid)
+            this._setTpSkip(cid, false)
+            this._setCukeScenarioActive(cid, false)
             return
         }
 
@@ -842,7 +886,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this._cukeScenarioActiveByCid.delete(cid)
+        this._setCukeScenarioActive(cid, false)
 
         suite.hooks = suite.hooks!.map((h: HookStats) => {
             h.state = h.state || AllureStatusEnum.PASSED
@@ -929,7 +973,7 @@ export default class AllureReporter extends WDIOReporter {
         const fullTitleForHash = this._mochaFullTitle(cid, suite.title)
         this._emitHistoryIdsFrom(fullTitleForHash)
 
-        const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
+        const fullName = toFullName(this._pkg(cid)!, fullTitleForHash)
         this._pushRuntimeMessage({
             type: 'allure:test:info',
             data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid) }
@@ -975,7 +1019,11 @@ export default class AllureReporter extends WDIOReporter {
         const lane = this._openLane()
         if (lane) {
             lane.console = ''
-            lane.suitePath = this._suitePathOf(test)
+            // a new test in the context (an attempt, a Cucumber step): the lane is no longer after its test
+            lane.endedTitle = undefined
+            lane.inTail = false
+            // a Cucumber step keeps the path of its scenario
+            if (!this._inCucumberStepMode(test)) { lane.suitePath = this._suitePathOf(test) }
         } else {
             this._consoleOutput = ''
         }
@@ -1002,14 +1050,15 @@ export default class AllureReporter extends WDIOReporter {
         const testCaseTitle = ft || fullTitle
         if (testCaseTitle) { this._emitHistoryIdsFrom(testCaseTitle) }
 
-        const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
+        const fullName = toFullName(this._pkg(cid)!, fullTitle || test.title)
         this._pushRuntimeMessage({
             type: 'allure:test:info',
             data: { fullName: fullName, titlePath: this._titlePath(cid) }
         })
 
         const suitePath = [...this._activeSuitePath(cid)]
-        const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
+        const specFile = this._pkg(cid)
+        const pkg = isFeatureFilePath(specFile) ? toPackageLabelCucumber(specFile || '') : toPackageLabel(specFile || '')
         const labels = [
             ...getSuiteLabels(suitePath),
             ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
@@ -1112,7 +1161,7 @@ export default class AllureReporter extends WDIOReporter {
         const cid = this._currentCid()
         const lane = this._lane()
         if (lane) { lane.suitePath = this._suitePathOf(test) }
-        const fullName = toFullName(this._pkgByCid.get(cid)!, test.fullTitle || test.title)
+        const fullName = toFullName(this._pkg(cid)!, test.fullTitle || test.title)
         this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, titlePath: this._titlePath(cid) } })
         this._attachLogs()
         this._skipTest()
@@ -1193,34 +1242,31 @@ export default class AllureReporter extends WDIOReporter {
     onHookStart(hook: HookStats): void {
         const cid = this._currentCid()
         const lane = this._lane()
-        if (lane && !lane.inTail && AFTER_HOOK_PATTERN.test(hook.title ?? '') && isOpen(lane.main, 'allure:test:start', 'allure:test:end')) {
+        if (lane && !lane.inTail && this._isAfterHook(hook) && !this._cukeScenarioActive(cid) && isOpen(lane.main, 'allure:test:start', 'allure:test:end')) {
             lane.inTail = true
         }
         if (this._tpSkipActive(cid)) { return }
         const { disableMochaHooks } = this._options
         if (disableMochaHooks) { return }
 
-        if (!hook.parent && !this._isGlobalHook(hook)) { return }
-
         const isCucumber = this._isCucumberHook(hook)
-        const hookType = this._deriveHookType(hook)
+        const hookType = this._hookType(hook)
 
         if (isCucumber && hookType === 'before' && this._decideCucumberSkipForHook(hook)) {
-            this._tpSkipByCid.set(cid, true)
+            this._setTpSkip(cid, true)
             return
         }
 
         if (isCucumber) { return }
-        if (this._cukeScenarioActiveByCid.get(cid)) { return }
+        if (this._cukeScenarioActive(cid)) { return }
         const start = AllureReporter.getTimeOrNow(hook.start)
-        this._startHook({ name: hook.title ?? 'Hook', type: hookType, start })
+        this._startHook({ name: hook.title ?? 'Hook', type: hookType, start, scope: this._hookScope(hook) })
     }
 
     onHookEnd(hook: HookStats): void {
         const cid = this._currentCid()
         if (this._tpSkipActive(cid)) { return }
         const { disableMochaHooks } = this._options
-        if (!hook.parent && !this._isGlobalHook(hook)) { return }
         if (disableMochaHooks && !hook.error) { return }
         const hadPendingTest = this._hasPendingTest
         const hadPendingHook = this._hasPendingHook
@@ -1241,7 +1287,7 @@ export default class AllureReporter extends WDIOReporter {
 
         const isCucumber = this._isCucumberHook(hook)
 
-        if (this._cukeScenarioActiveByCid.get(cid) && !isCucumber) { return }
+        if (this._cukeScenarioActive(cid) && !isCucumber) { return }
 
         if (isCucumber && !hook.error) { return }
 
@@ -1251,13 +1297,15 @@ export default class AllureReporter extends WDIOReporter {
             if (this._tpSkipActive(cid) || this._decideCucumberSkipForHook(hook)) { return }
         }
 
-        const hookType = this._deriveHookType(hook)
+        const hookType = this._hookType(hook)
+        const scope = this._hookScope(hook)
 
         if (hook.error && !hadPendingTest && !hadPendingHook) {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
-            this._startHook({ name: hook.title || 'Hook', type: hookType, start })
+            // the hook of its own result is a fixture of that result only
+            this._startHook({ name: hook.title || 'Hook', type: hookType, start, scope: scope === 'root' ? 'all' : scope })
             this._endHook({
                 status: AllureStatusEnum.BROKEN,
                 statusDetails: getMessageAndTraceFromError(hook.error),
@@ -1275,7 +1323,16 @@ export default class AllureReporter extends WDIOReporter {
 
         if (hook.error && hadPendingTest && !hadPendingHook) {
             const start = AllureReporter.getTimeOrNow(hook.start)
-            this._startHook({ name: hook.title ?? 'Hook', type: hookType, start })
+            this._startHook({ name: hook.title ?? 'Hook', type: hookType, start, scope })
+        }
+
+        // a failed afterEach of a test that ended: its fixture and the next afterEach hooks stay on that test
+        if (hook.error && !hadPendingTest && hadPendingHook && hook.hookKind === 'afterEach') {
+            const stop = AllureReporter.getTimeOrNow(hook.end)
+            this._endHook({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stop, duration: hook.duration })
+            this._startTest({ name: hook.title || 'Hook failure', start: AllureReporter.getTimeOrNow(hook.start), standalone: true })
+            this._endTest({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stage: AllureStage.FINISHED, duration: hook.duration, stop })
+            return
         }
 
         if (hook.error && !hadPendingTest && hadPendingHook) {
@@ -1332,7 +1389,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _emitBaseLabels(cid: string): void {
-        const suitePath = [...this._suiteStack(cid)]
+        const suitePath = [...this._activeSuitePath(cid)]
         const labels = [
             ...getSuiteLabels(suitePath),
             { name: LabelName.LANGUAGE, value: 'javascript' },
@@ -1360,13 +1417,25 @@ export default class AllureReporter extends WDIOReporter {
         return this._decideCucumberSkip(this._currentCid(), scenarioTitle)
     }
 
+    // a parallel scenario keeps its own test plan skip; the cid map is the sequential fallback
     private _tpSkipActive(cid: string): boolean {
-        return Boolean(this._tpSkipByCid.get(cid))
+        return this._cukeUnit()?.tpSkip ?? Boolean(this._tpSkipByCid.get(cid))
+    }
+
+    private _setTpSkip(cid: string, skip: boolean): void {
+        const unit = this._cukeUnit()
+        if (unit) {
+            unit.tpSkip = skip
+        } else if (skip) {
+            this._tpSkipByCid.set(cid, true)
+        } else {
+            this._tpSkipByCid.delete(cid)
+        }
     }
 
     private _decideCucumberSkip(cid: string, scenarioTitle: string): boolean {
         if (!this._testPlan) { return false }
-        const filePath = (this._pkgByCid.get(cid) || '').replace(/\\/g, '/')
+        const filePath = (this._pkg(cid) || '').replace(/\\/g, '/')
         if (!filePath) { return false }
         const fullTitle = this._mochaFullTitle(cid, scenarioTitle)
         const fullNameDot = (() => {
@@ -1403,7 +1472,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _titlePath(cid: string, cucumberPath?: string[]): string[] {
-        const file = this._titlePathFileByCid.get(cid) ?? this._pkgByCid.get(cid)
+        const file = this._unitFeature()?.file ?? this._titlePathFileByCid.get(cid) ?? this._pkgByCid.get(cid)
         const relativeFilePath = relNoSlash(file)
         const fileParts = splitTitlePathPart(relativeFilePath)
         const suitePath = this._activeSuitePath(cid).map(String).map((s) => s.trim()).filter(Boolean)
@@ -1419,19 +1488,30 @@ export default class AllureReporter extends WDIOReporter {
         return [...fileParts, ...suitePath]
     }
 
+    // the hook kind of the framework; with no kind, the hook title
+    private _hookType(hook: HookStats): 'before' | 'after' {
+        const kind = hook.hookKind
+        if (kind) { return kind.startsWith('before') ? 'before' : 'after' }
+        return this._deriveHookType(hook)
+    }
+
+    private _isAfterHook(hook: HookStats): boolean {
+        return hook.hookKind ? hook.hookKind === 'afterEach' || hook.hookKind === 'afterAll' : AFTER_HOOK_PATTERN.test(hook.title ?? '')
+    }
+
+    // an all-hook of the root suite is a fixture of every test of the run
+    private _hookScope(hook: HookStats): 'root' | 'all' | 'each' | undefined {
+        const kind = hook.hookKind
+        if (!kind) { return undefined }
+        if (kind !== 'beforeAll' && kind !== 'afterAll') { return 'each' }
+        return !hook.contextId && !hook.hookSuiteUid && !this.parentOf?.(hook) ? 'root' : 'all'
+    }
+
     private _deriveHookType(hook: HookStats): 'before' | 'after' {
         const title = hook.title ?? ''
         if (/before\s+each/i.test(title) || (/before/i.test(title))) { return 'before' }
         if (/after\s+each/i.test(title) || (/after/i.test(title))) { return 'after' }
         return this._hasPendingTest && !this._hasPendingHook ? 'before' : 'after'
-    }
-
-    private _isGlobalHook(hook: HookStats): boolean {
-        const title = hook.title ?? ''
-        return !hook.parent ||
-            /^(before|after)\s+each/i.test(title) ||
-            /global/i.test(title) ||
-            title.includes('global')
     }
 
     private _formatLink(tpl: string, id: string): string {

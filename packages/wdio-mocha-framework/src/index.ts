@@ -31,7 +31,7 @@ interface ParsedConfiguration extends Required<WebdriverIO.Config> {
 function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
     const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
     const title = test ? `"${kind}" hook for "${test.title}"` : `"${kind}" hook in "{root}"`
-    return { title, fullTitle: title, parent: '' }
+    return { title, fullTitle: title, parent: '', hookKind: kind === 'before all' ? 'beforeAll' as const : 'afterAll' as const }
 }
 
 /**
@@ -51,6 +51,8 @@ class MochaAdapter {
     private _testCnt: Map<string, number> = new Map()
     /** Mocha test and its uid between its test:start and its test:end */
     private _openTest?: { payload: Record<string, unknown>, uid: string }
+    /** Mocha suite → the uid of its suite:start */
+    private _suiteUids = new WeakMap<object, string>()
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -233,10 +235,10 @@ class MochaAdapter {
         this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
         try {
             await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
         } catch (err) {
             log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
         }
 
         return this._finalize(failures, runtimeError)
@@ -344,6 +346,14 @@ class MochaAdapter {
             this._openTest = { payload, uid: message.uid }
         } else if (event === 'test:end') {
             this._openTest = undefined
+        }
+        if (event === 'suite:start') {
+            this._suiteUids.set(payload, message.uid)
+        }
+        // the root suite has no suite:start, so its all-hooks have no hookSuiteUid
+        const hookSuiteUid = (message.hookKind === 'beforeAll' || message.hookKind === 'afterAll') && this._suiteUids.get(payload.parent as object)
+        if (hookSuiteUid) {
+            message.hookSuiteUid = hookSuiteUid
         }
 
         this._reporter.emit(message.type, message)

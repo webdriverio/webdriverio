@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" preserve="true" />
 import type { InlineConfig } from 'vitest/node'
+import type { Frameworks } from '@wdio/types'
 import type { ParallelMode } from '@wdio/utils'
 
 /** Key on the Vitest file task meta, which carries the session from the worker to the reporter in the launcher process. */
@@ -17,9 +18,9 @@ export const ATTEMPT_EVENT = 'wdio:attempt'
 
 export type AttemptError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 
-export const ATTEMPT_HOOK_KINDS = ['beforeEach', 'afterEach'] as const
+export type AttemptHookKind = Extract<Frameworks.HookKind, 'beforeEach' | 'afterEach'>
 
-export type AttemptHookKind = typeof ATTEMPT_HOOK_KINDS[number]
+export const ATTEMPT_HOOK_KINDS: readonly AttemptHookKind[] = ['beforeEach', 'afterEach']
 
 // isAttemptError: the hook error is the error of the attempt (the same object in the worker)
 export type AttemptHook = { state: 'pass' | 'fail', error?: AttemptError, isAttemptError?: boolean }
