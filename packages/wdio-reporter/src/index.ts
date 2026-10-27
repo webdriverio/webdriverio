@@ -562,7 +562,7 @@ export default class WDIOReporter extends EventEmitter {
             if (!target) {
                 return
             }
-            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && !isFunctionLabel(payload.body[0])
+            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
                 ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
                 : payload.body
             ;(target.output ??= []).push(entryOf(body))
