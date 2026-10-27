@@ -670,3 +670,41 @@ describe('shortCopy', () => {
         expect(pairs(browser)[1][1].result.value).toBe('a'.repeat(1024) + '… [2000 bytes]')
     })
 })
+
+describe('values that cannot be copied', () => {
+    const unreadable = () => ({ get value () { throw new Error('getter') } })
+
+    it('gives a label for an invalid date', () => {
+        expect(mod.shortCopy(new Date(NaN))).toBe('Invalid Date')
+        expect(mod.shortCopy(new Date(0))).toBe('1970-01-01T00:00:00.000Z')
+    })
+
+    it('gives a placeholder for a value with a getter that throws', () => {
+        expect(mod.shortCopy(unreadable())).toBe('<unreadable>')
+        expect(mod.userCommandBody(['x', unreadable()])).toEqual(['x', '<unreadable>'])
+        const option = { get mask () { throw new Error('getter') } }
+        expect(mod.userCommandBody(['secret', option])).toEqual(['<unreadable>', '<unreadable>'])
+    })
+
+    it.each([
+        ['an invalid date', () => new Date(NaN), 'Invalid Date'],
+        ['a getter that throws', unreadable, '<unreadable>']
+    ])('runs the command with %s in its arguments', async (_, arg, label) => {
+        const browser = fakeBrowser()
+        const run = vi.fn(async () => 'done')
+        expect(await mod.runUserCommand(browser, 'getText', ['x', arg()], run)).toBe('done')
+        expect(run).toHaveBeenCalledTimes(1)
+        expect(pairs(browser).map(([, payload]) => payload.body)).toEqual([['x', label], ['x', label]])
+    })
+
+    it('keeps the result of a command when its copy fails', async () => {
+        const browser = fakeBrowser()
+        const result = unreadable()
+        expect(await mod.runUserCommand(browser, 'getText', [], async () => result)).toBe(result)
+        expect(pairs(browser)[1][1].result).toEqual({ value: '<unreadable>' })
+
+        const syncBrowser = fakeBrowser()
+        expect(mod.runCustomCommand(syncBrowser, 'myCmd', [], () => result)).toBe(result)
+        expect(pairs(syncBrowser)[1][1].result).toEqual({ value: '<unreadable>' })
+    })
+})
