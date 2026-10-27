@@ -539,6 +539,32 @@ describe('CucumberAdapter', () => {
             expect(configuration.sources.defaultDialect).toBe('da')
         })
 
+        // WebdriverIO runs the workers, shards the specs and publishes nothing by default: not the Cucumber CLI values
+        it('keeps parallel, shard and publish of a profile out of the run', async () => {
+            const { configuration } = await resolve({ profiles: ['cliOnly'], file })
+            expect(configuration.runtime.parallel).toBe(0)
+            expect(configuration.sources.shard).toBeFalsy()
+            expect(configuration.formats.publish).toBe(false)
+            const { configuration: published } = await resolve({ profiles: ['cliOnly'], file, publish: true })
+            expect(published.formats.publish).toBeTruthy()
+        })
+
+        // as on main: a configuration error of the skip tag load also comes from run()
+        it('reports a configuration error of the second load from run()', async () => {
+            const resolveValues = (packageExports.CucumberAdapter.prototype as any)._resolveCucumberValues
+            const spy = vi.spyOn(packageExports.CucumberAdapter.prototype as any, '_resolveCucumberValues')
+                .mockImplementationOnce(function (this: unknown) { return resolveValues.call(this) })
+                .mockRejectedValueOnce(new Error('second load fails'))
+            try {
+                const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
+                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [skipFeature], { browserName: 'chrome' }, {}, {}, true)
+                expect(spy).toHaveBeenCalledTimes(2)
+                await expect(adapter.run()).rejects.toThrow('second load fails')
+            } finally {
+                spy.mockRestore()
+            }
+        })
+
         it('does not send requireModule to Cucumber', async () => {
             const userModule = () => {}
             const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })
@@ -586,6 +612,24 @@ describe('CucumberAdapter', () => {
             const { configuration } = await resolve({ tags: '@a', name: ['n'], language: 'en' })
             expect(configuration.sources).toMatchObject({ names: ['n'], order: 'defined', defaultDialect: 'en', tagExpression: '@a' })
         })
+    })
+
+    // Cucumber loads the script files of a folder in `require` / `import` (a profile often lists `features/support`)
+    it('loads the script files of a folder', async () => {
+        const fs = await import('node:fs')
+        const os = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
+        try {
+            fs.mkdirSync(path.join(folder, 'nested'))
+            for (const file of ['steps.js', 'world.ts', 'nested/hooks.mjs', 'README.md']) {
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = (await adapter.loadFilesWithType([folder])).map((file: string) => path.relative(folder, url.fileURLToPath(new URL(file, 'file://'))))
+            expect(files.sort()).toEqual([path.join('nested', 'hooks.mjs'), 'steps.js', 'world.ts'])
+        } finally {
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
     })
 
     it('registerRequiredModules', async () => {

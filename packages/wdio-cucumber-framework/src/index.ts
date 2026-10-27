@@ -226,6 +226,10 @@ export class CucumberAdapter {
         const userTags = this._generatedTags ?? tags
         return {
             ...user,
+            // WebdriverIO runs the workers and shards the specs, and publishes no report unless cucumberOpts asks
+            parallel: 0,
+            shard: '',
+            publish: (user as { publish?: boolean }).publish ?? false,
             // an empty value would replace the tags of the profile
             ...(userTags ? { tags: userTags } : {}),
             ...(this._seededOrder ? { order: this._seededOrder } : {}),
@@ -265,18 +269,18 @@ export class CucumberAdapter {
         // first: the skip tags parse the feature files in the language of the profile
         try {
             await this._resolveCucumberValues()
+            if (this._generateSkipTags) {
+                // wrap the user expression so an `or` in it can't escape the generated `and` conditions
+                const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
+                this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
+                if (this._generatedTags) {
+                    await this._resolveCucumberValues()
+                }
+            }
         } catch (err) {
             this._configurationError = err
             this._hasTests = this._specs.length > 0
             return this
-        }
-        if (this._generateSkipTags) {
-            // wrap the user expression so an `or` in it can't escape the generated `and` conditions
-            const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
-            this._generatedTags = this.generateDynamicSkipTags().concat(userTags).join(' and ') || undefined
-            if (this._generatedTags) {
-                await this._resolveCucumberValues()
-            }
         }
 
         // the reporters (cucumberjs-json) read the language of the config: the one of the profile too;
@@ -610,6 +614,10 @@ export class CucumberAdapter {
     async loadFilesWithType(fileList: string[]) {
         return fileList.reduce(
             (files: string[], file: string) => {
+                // a folder: its script files, as Cucumber loads them (a profile often lists `features/support`)
+                if (!isGlob(file) && fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory()) {
+                    return files.concat(globSync('**/*.{js,cjs,mjs,ts,cts,mts}', { cwd: path.resolve(file), absolute: true }))
+                }
                 const filePath = os.platform() === 'win32'
                     ? url.pathToFileURL(file).href
                     : file
