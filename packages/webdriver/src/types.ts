@@ -44,6 +44,8 @@ export interface WebDriverCommandEvent {
     method: string
     endpoint: string
     body: unknown
+    /** id of the `userCommand` event that ran this command, in a WebDriver BiDi session */
+    parent?: number
 }
 export interface WebDriverResultEvent {
     command: string
@@ -51,6 +53,8 @@ export interface WebDriverResultEvent {
     endpoint: string
     body: unknown
     result: unknown
+    /** id of the `userCommand` event that ran this command, in a WebDriver BiDi session */
+    parent?: number
 }
 type WebDriverClassicEvents = {
     command: WebDriverCommandEvent
