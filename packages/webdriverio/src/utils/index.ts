@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement, registerUserCommands } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -48,11 +48,13 @@ const scopes = {
 const applyScopePrototype = (
     prototype: Record<string, PropertyDescriptor>,
     scope: 'browser' | 'element') => {
-    Object.entries(scopes[scope])
+    const commands = Object.entries(scopes[scope])
         .filter(([exportName]) => !IGNORED_COMMAND_FILE_EXPORTS.includes(exportName))
-        .forEach(([commandName, command]) => {
-            prototype[commandName] = { value: command }
-        })
+    commands.forEach(([commandName, command]) => {
+        prototype[commandName] = { value: command }
+    })
+    // the protocol commands are not added here, so they send no user command events
+    registerUserCommands(commands.map(([commandName]) => commandName))
 }
 
 /**
