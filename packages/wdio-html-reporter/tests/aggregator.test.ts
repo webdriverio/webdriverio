@@ -511,6 +511,15 @@ describe('ReportAggregator', () => {
         expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
     })
 
+    it('skips a JSON file that is not a report object, and the report stays complete', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 1, { specFileRetries: 0 })
+        fs.writeFileSync(path.join(outputDir, 'other.json'), 'null')
+        const master = await masterOf(outputDir)
+        expect(master.failed).toBe(false)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
+
     it('counts the reports of 2 configurations with another file name in one folder, which both have the cid 0-0', async () => {
         const outputDir = path.join(tempDir(), 'out')
         await runAttempt(outputDir, 1, { specFileRetries: 0, filename: 'report-chrome.html', passed: false })

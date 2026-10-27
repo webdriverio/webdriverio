@@ -1094,6 +1094,16 @@ describe('parallel mode', () => {
         expect(eventsOf(reporter, 'b')).toEqual([{ type: 'log', value: 'before hook of b' }, { type: 'log', value: 'after hook of b' }])
     })
 
+    it('adds an event from before the first test with no context (the config before hook) to the first test', () => {
+        const reporter = start()
+        reporter.emit('suite:start', { type: 'suite:start', uid: 'A', title: 'A', fullTitle: 'A', cid: '0-0', parent: '', file: 'spec.js' })
+        new ReportEvents().logMessage('config before')
+        startTest(reporter, 'a', 'context-a')
+        startTest(reporter, 'b', 'context-b')
+        expect(eventsOf(reporter, 'a')).toEqual([{ type: 'log', value: 'config before' }])
+        expect(eventsOf(reporter, 'b')).toEqual([])
+    })
+
     it('warns one time for events with no test context while parallel tests run', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
         try {
