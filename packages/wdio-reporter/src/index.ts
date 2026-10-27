@@ -556,7 +556,8 @@ export default class WDIOReporter extends EventEmitter {
             }
             (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
         })
-        const addUserCommand = (payload: BeforeUserCommandArgs | AfterUserCommandArgs, type: 'userCommand' | 'userResult') => {
+        // a copy: the runner sends the same payload to every reporter
+        const addUserCommand = (payload: BeforeUserCommandArgs, entryOf: (body: unknown[]) => TestStats['output'][number]) => {
             const target = this.showsUserCommands ? getCommandTarget(payload) : undefined
             if (!target) {
                 return
@@ -564,12 +565,10 @@ export default class WDIOReporter extends EventEmitter {
             const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && !isFunctionLabel(payload.body[0])
                 ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
                 : payload.body
-            // a copy: the runner sends the same payload to every reporter
-            const entry = { ...payload, body, type } as unknown as TestStats['output'][number]
-            ;(target.output ??= []).push(entry)
+            ;(target.output ??= []).push(entryOf(body))
         }
-        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => addUserCommand(payload, 'userCommand'))
-        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => addUserCommand(payload, 'userResult'))
+        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userCommand' })))
+        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userResult' })))
     }
 
     /**

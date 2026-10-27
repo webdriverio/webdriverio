@@ -37,7 +37,7 @@ export interface Test {
     parentUid?: string | null
 }
 
-interface Output {
+interface ProtocolOutput {
     command: string
     params: unknown[]
     method: 'PUT' | 'POST' | 'GET' | 'DELETE'
@@ -48,12 +48,37 @@ interface Output {
     }
     sessionId: string
     cid: string
-    type: 'command' | 'result' | 'userCommand' | 'userResult'
+    type: 'command' | 'result'
     /** Id of the user command that runs this protocol command, in WebDriver BiDi sessions only */
     parent?: number
-    /** Id of a `userCommand` / `userResult` entry */
-    id?: number
 }
+
+/**
+ * A user command of a WebDriver BiDi session
+ * @experimental the name and the fields may change
+ */
+interface UserCommandOutput {
+    type: 'userCommand'
+    /** The `parent` of the protocol commands that this user command runs */
+    id: number
+    command: string
+    body: unknown[]
+    protocol: 'bidi'
+    sessionId?: string
+    cid?: string
+    contextId?: string
+}
+
+/**
+ * The end of a user command of a WebDriver BiDi session
+ * @experimental the name and the fields may change
+ */
+interface UserResultOutput extends Omit<UserCommandOutput, 'type'> {
+    type: 'userResult'
+    result: { value: unknown } | { error: unknown }
+}
+
+type Output = ProtocolOutput | UserCommandOutput | UserResultOutput
 
 /**
  * TestStats class
