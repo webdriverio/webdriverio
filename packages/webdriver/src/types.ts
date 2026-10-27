@@ -56,11 +56,34 @@ export interface WebDriverResultEvent {
     /** id of the `userCommand` event that ran this command, in a WebDriver BiDi session */
     parent?: number
 }
+/**
+ * A command that the test code calls directly (a WebdriverIO command or a custom command), sent in a
+ * WebDriver BiDi session. The body is masked and short.
+ * @experimental the name and the fields may change
+ */
+export interface UserCommandEvent {
+    /** the `parent` of the protocol commands that this user command runs */
+    id: number
+    command: string
+    body: unknown[]
+    protocol: 'bidi'
+}
+/**
+ * The end of a user command
+ * @experimental the name and the fields may change
+ */
+export interface UserResultEvent extends UserCommandEvent {
+    result: { value: unknown } | { error: unknown }
+}
 type WebDriverClassicEvents = {
     command: WebDriverCommandEvent
     result: WebDriverResultEvent
     bidiCommand: CommandData,
     bidiResult: CommandResponse,
+    /** @experimental */
+    userCommand: UserCommandEvent
+    /** @experimental */
+    userResult: UserResultEvent
     'request.performance': RequestPerformanceEvent
     'request.retry': RequestRetryEvent
     'request.start': RequestStartEvent

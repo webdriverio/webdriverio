@@ -116,7 +116,23 @@ export async function runUserCommand<T> (scope: unknown, command: string, args: 
     if (parent) {
         return userCommandStore.run({ depth: parent.depth + 1, id: parent.id }, run)
     }
+    return runOuterCommand(userCommandStore, scope, command, args, run)
+}
 
+/**
+ * Run a custom command of `addCommand` / `overwriteCommand`. Its outer call is
+ * a user command, and `run` is in its frame, so the old events of the custom
+ * command get its id as `parent`.
+ * @experimental
+ */
+export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: () => T): T {
+    if (!userCommandStore || userCommandStore.getStore()) {
+        return run()
+    }
+    return runOuterCommand(userCommandStore, scope, command, args, run)
+}
+
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -125,24 +141,39 @@ export async function runUserCommand<T> (scope: unknown, command: string, args: 
 
     // an outer call that sends nothing still is depth 0, so its nested calls send nothing
     if (!sendsEvents(browser, command)) {
-        return userCommandStore.run({ depth: 0 }, run)
+        return store.run({ depth: 0 }, run)
     }
 
     const emit = browser!.emit!.bind(browser)
     const event = { id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const }
+    const sendValue = (value: unknown) => emit('userResult', { ...event, result: { value: shortCopy(value) } })
+    const sendError = (error: unknown) => emit('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
-    return userCommandStore.run({ depth: 0, id: event.id }, async () => {
+    return store.run({ depth: 0, id: event.id }, () => {
         emit('userCommand', event)
+        let result: T
         try {
-            const value = await run()
-            emit('userResult', { ...event, result: { value: shortCopy(value) } })
-            return value
+            result = run()
         } catch (error) {
-            emit('userResult', { ...event, result: { error } })
+            sendError(error)
             throw error
         }
+        if (!isPromiseLike(result)) {
+            sendValue(result)
+            return result
+        }
+        return result.then((value) => {
+            sendValue(value)
+            return value
+        }, (error) => {
+            sendError(error)
+            throw error
+        }) as T
     })
 }
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
+    Boolean(value) && typeof (value as { then?: unknown }).then === 'function'
 
 const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'object' && (value as { mask?: unknown }).mask === true
 
