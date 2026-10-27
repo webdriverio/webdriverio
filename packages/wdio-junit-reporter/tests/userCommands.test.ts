@@ -36,9 +36,9 @@ describe('JUnit user commands', () => {
     it('writes the error of a user command', () => {
         const xml = xmlOf([
             ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
-            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: 'boom' } }]
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
         ])
-        expect(xml).toContain('RESULT: {"error":"boom"}')
+        expect(xml).toContain('RESULT: {"error":{"name":"Error","message":"boom"}}')
     })
 
     it('does not write a protocol command of a user command', () => {
