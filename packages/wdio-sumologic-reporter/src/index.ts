@@ -6,6 +6,15 @@ import logger from '@wdio/logger'
 
 import type { Options } from './types.js'
 
+// an Error has no own enumerable keys: `stringify` would write {}
+function stringifyEvent(event: object) {
+    return stringify(event, function (this: { type?: unknown }, key, value) {
+        return this.type === 'userResult' && key === 'result' && value?.error instanceof Error
+            ? { error: { name: value.error.name, message: value.error.message } }
+            : value
+    })
+}
+
 const log = logger('@wdio/sumologic-reporter')
 
 const MAX_LINES = 100
@@ -80,12 +89,15 @@ export default class SumoLogicReporter extends WDIOReporter {
         return this._isDisabled || this._unsynced.length === 0
     }
 
+    // an empty override opts in to the user commands of WebDriver BiDi sessions
+    onBeforeUserCommand() { }
+
     onRunnerStart(runner: RunnerStats) {
         if (this._isDisabled) {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'runner:start',
             data: runner
@@ -97,7 +109,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'suite:start',
             data: suite
@@ -109,7 +121,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'test:start',
             data: test
@@ -121,7 +133,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'test:skip',
             data: test
@@ -133,7 +145,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'test:pass',
             data: test
@@ -145,7 +157,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'test:fail',
             data: test
@@ -157,7 +169,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'test:end',
             data: test
@@ -169,7 +181,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'suite:end',
             data: suite
@@ -182,7 +194,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        this._unsynced.push(stringify({
+        this._unsynced.push(stringifyEvent({
             time: formatDate(new Date()),
             event: 'runner:end',
             data: runner
