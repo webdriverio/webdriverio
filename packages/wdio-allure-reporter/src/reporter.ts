@@ -5,8 +5,10 @@ import { stringify } from 'csv-stringify/sync'
 
 import type {
     AfterCommandArgs,
+    AfterUserCommandArgs,
     Argument,
     BeforeCommandArgs,
+    BeforeUserCommandArgs,
     ContextEnd,
     HookStats,
     RunnerStats,
@@ -1168,60 +1170,81 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs): void {
-        const cid = this._currentCid()
-        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(cid)
-        if (!allow) { return }
+    // test or hook open, not skipped by the test plan, steps enabled
+    private _commandStepsAllowed(): boolean {
+        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
+        return allow && !this._options.disableWebdriverStepsReporting && !this._isMultiRemote
+    }
 
-        const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiRemote) { return }
-
-        const { method, endpoint } = command
-        const named = typeof command.command === 'string' && command.command.length > 0
-        const httpNamed = method && endpoint
-        const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
-        const body = (command as unknown as MaybeBody).body
-
-        this._startStep({ name: stepName, start: Date.now() })
+    private _startCommandStep(name: string, body: unknown): void {
+        this._startStep({ name, start: Date.now() })
         if (body !== undefined && !(isObject(body) && isEmptyObject(body))) {
             this._attachJSON({ name: 'Request', json: body })
         }
     }
 
-    onAfterCommand(command: AfterCommandArgs): void {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
-        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
-        const resUnknown: unknown = (command as unknown as MaybeResult).result
-        const resObj = isObject(resUnknown) ? (resUnknown as Record<string, unknown>) : undefined
+    private _attachCommandResponse(result: unknown): void {
+        const resObj = isObject(result) ? (result as Record<string, unknown>) : undefined
         const errVal = resObj?.error
-
-        const isShot = isScreenshotCommand(command)
-        if (!disableWebdriverScreenshotsReporting && isShot && allow) {
-            const res: unknown = (command as unknown as MaybeResult).result
-            const val =
-                isObject(res) && 'value' in (res as Record<string, unknown>)
-                    ? (res as Record<string, unknown>)['value']
-                    : res
-            if (typeof val === 'string') {
-                this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(val, 'base64') })
-            }
-        }
-
-        if (disableWebdriverStepsReporting || this._isMultiRemote || !allow) { return }
-
-        const commandResult = resObj && 'value' in resObj ? resObj['value'] : resUnknown
-
-        if (!isShot && errVal instanceof Error) {
+        if (errVal instanceof Error) {
             this._attachFile({
                 name: 'Response',
                 content: Buffer.from(String(errVal), 'utf8'),
                 contentType: AllureContentType.TEXT
             })
-        } else if (!isShot) {
-            const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
-            if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+            return
+        }
+        const commandResult = resObj && 'value' in resObj ? resObj['value'] : result
+        const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
+        if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+    }
+
+    onBeforeCommand(command: BeforeCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
+
+        const { method, endpoint } = command
+        const named = typeof command.command === 'string' && command.command.length > 0
+        const httpNamed = method && endpoint
+        const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
+        this._startCommandStep(stepName, (command as unknown as MaybeBody).body)
+    }
+
+    onAfterCommand(command: AfterCommandArgs): void {
+        const { disableWebdriverScreenshotsReporting } = this._options
+        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
+        const resUnknown: unknown = (command as unknown as MaybeResult).result
+
+        const isShot = isScreenshotCommand(command)
+        if (!disableWebdriverScreenshotsReporting && isShot && allow) {
+            const val =
+                isObject(resUnknown) && 'value' in (resUnknown as Record<string, unknown>)
+                    ? (resUnknown as Record<string, unknown>)['value']
+                    : resUnknown
+            if (typeof val === 'string') {
+                this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(val, 'base64') })
+            }
         }
 
+        if (!this._commandStepsAllowed()) { return }
+        if (!isShot) { this._attachCommandResponse(resUnknown) }
+        this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
+    }
+
+    // WebDriver BiDi sessions: the base hides the protocol commands of a user command, except screenshots
+    onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
+        this._startCommandStep(payload.command, payload.body)
+    }
+
+    onAfterUserCommand(payload: AfterUserCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
+        const { result } = payload
+        this._attachCommandResponse(result)
+        if ('error' in result) {
+            const statusDetails = result.error instanceof Error ? getMessageAndTraceFromError(result.error) : undefined
+            this._endStep({ status: AllureStatusEnum.FAILED, stop: Date.now(), statusDetails })
+            return
+        }
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
     }
 
