@@ -711,6 +711,18 @@ describe('setup', () => {
             expect(attempt?.payload).not.toHaveProperty('error')
         })
 
+        it('settles soft failures for a test.fails test that only failed via expect.soft', async () => {
+            const context = { task: { ...task(false, { state: 'pass' }).task, fails: true } }
+            await expect(hooks.aroundEach(vi.fn(async () => {
+                soft.failures.set('/repo/a.spec.ts::t', 'x')
+            }), context)).rejects.toBe(softFailure)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            expect(soft.failures.has('/repo/a.spec.ts::t')).toBe(false)
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'passed' })
+            expect(attempt?.payload).not.toHaveProperty('error')
+        })
+
         it('reports passed: false for a test.fails test that did not fail', async () => {
             const context = { task: { ...task(false, { state: 'pass' }).task, fails: true } }
             await hooks.aroundEach(vi.fn(async () => {}), context)
