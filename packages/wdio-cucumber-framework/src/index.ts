@@ -290,16 +290,17 @@ export class CucumberAdapter {
         // first: the skip tags parse the feature files in the language of the profile
         try {
             await this._resolveCucumberValues()
-            if (this._generateSkipTags) {
-                const skipTags = this.generateDynamicSkipTags()
-                if (skipTags.length > 0) {
-                    // the run: Cucumber joins the profile tags again; init: the tags that the first load resolved
-                    this._generatedTags = withSkipTags(skipTags, this._config.cucumberOpts?.tags)
-                    this._cucumberOpts.tags = withSkipTags(skipTags, this._cucumberOpts.tags)
-                }
-            }
         } catch (err) {
             return this._deferConfigurationError(err)
+        }
+        // outside of the try: a feature file that does not parse fails init, with no session (only configuration errors wait)
+        if (this._generateSkipTags) {
+            const skipTags = this.generateDynamicSkipTags()
+            if (skipTags.length > 0) {
+                // the run: Cucumber joins the profile tags again; init: the tags that the first load resolved
+                this._generatedTags = withSkipTags(skipTags, this._config.cucumberOpts?.tags)
+                this._cucumberOpts.tags = withSkipTags(skipTags, this._cucumberOpts.tags)
+            }
         }
 
         // the reporters (cucumberjs-json) read the language of the config: the one of the profile too;

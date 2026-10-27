@@ -546,6 +546,20 @@ describe('CucumberAdapter', () => {
             expect(published.formats.publish).toBeTruthy()
         })
 
+        // as on main: no session for a feature file that does not parse (only configuration errors wait for run())
+        it('fails init for a feature file with a Gherkin error', async () => {
+            const fs = await import('node:fs')
+            const os = await import('node:os')
+            const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-gherkin-'))
+            const broken = path.join(folder, 'broken.feature')
+            fs.writeFileSync(broken, 'Feature: a\n  Scenario: s\n    Given x\n    """\n    an open doc string\n')
+            try {
+                await expect(CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [broken], { browserName: 'chrome' }, {}, {}, true)).rejects.toThrow('Parser errors')
+            } finally {
+                fs.rmSync(folder, { recursive: true, force: true })
+            }
+        })
+
         it('reports a bad tag expression of a profile from run()', async () => {
             const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['badTags'], file } }, [feature], {}, {}, {}, false)
             expect(adapter.hasTests()).toBe(true)
