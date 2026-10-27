@@ -541,11 +541,7 @@ export default class HtmlReporter extends WDIOReporter {
         if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
-        // a passed hook with no command (the framework adapter adds such hooks) would list the root hook two times
-        const shown = (hook: HookStats) => hook.error || hook.output?.length
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
-            hooks: root.hooks.filter(shown),
-            hooksAndTests: root.hooksAndTests.filter((item) => item.type !== 'hook' || shown(item as HookStats)),
             suites: [],
             file: root.file || runner.specs[0],
             end: new Date()
