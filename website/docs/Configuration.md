@@ -126,6 +126,15 @@ Timeout (in ms) for a WebDriver Bidi command to receive a response from the brow
 Type: `Number`<br />
 Default: `180000`
 
+### bidiConnectTimeout
+
+Type: `Number`<br />
+Default: `10000`
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic, and Bidi-only commands such as [`mock`](/docs/api/browser/mock) fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](/docs/runner#browser-runner), the connection waits until it opens or fails.
+
 ### agent
 
 Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.

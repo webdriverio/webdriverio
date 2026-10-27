@@ -7,15 +7,19 @@ import { type ClientRequestArgs } from 'node:http'
 import logger from '@wdio/logger'
 
 import { environment } from '../environment.js'
+import { DEFAULT_CONNECT_TIMEOUT } from '../constants.js'
 import WebSocket, { type ClientOptions } from 'ws'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 
 const log = logger('webdriver')
-const CONNECTION_TIMEOUT = 10000
 
-export async function createBidiConnection(webSocketUrl: string, options?: ClientOptions): Promise<WebSocket | undefined> {
+/**
+ * @param connectTimeout the `bidiConnectTimeout` option: how long to wait for the browser
+ *                       to accept the connection
+ */
+export async function createBidiConnection(webSocketUrl: string, options?: ClientOptions, connectTimeout?: number): Promise<WebSocket | undefined> {
     const candidateUrls = await listWebsocketCandidateUrls(webSocketUrl)
-    return connectWebsocket(candidateUrls, options)
+    return connectWebsocket(candidateUrls, options, connectTimeout)
 }
 
 /**
@@ -72,7 +76,7 @@ interface ConnectionPromise {
  * @param candidateUrls - list of websocket urls to try
  * @returns true if the connection was successful
  */
-export async function connectWebsocket(candidateUrls: string[], options?: ClientOptions): Promise<WebSocket | undefined> {
+export async function connectWebsocket(candidateUrls: string[], options?: ClientOptions, connectTimeout = DEFAULT_CONNECT_TIMEOUT): Promise<WebSocket | undefined> {
     const websockets: WebSocket[] = candidateUrls.map((candidateUrl) => {
         log.debug(`Attempt to connect to webSocketUrl ${candidateUrl}`)
         try {
@@ -115,9 +119,12 @@ export async function connectWebsocket(candidateUrls: string[], options?: Client
 
     const connectionTimeoutPromise = new Promise<undefined>((resolve) => {
         timeoutId = setTimeout(() => {
-            log.error(`Could not connect to Bidi protocol of any candidate url in time: "${candidateUrls.join('", "')}"`)
+            log.error(
+                `Could not connect to Bidi protocol of any candidate url within ${connectTimeout}ms: "${candidateUrls.join('", "')}". ` +
+                'If the browser is slow to accept the connection, increase the "bidiConnectTimeout" option.'
+            )
             return resolve(undefined)
-        }, CONNECTION_TIMEOUT)
+        }, connectTimeout)
     })
 
     const wsInfo = await Promise.race([

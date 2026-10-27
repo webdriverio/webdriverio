@@ -248,12 +248,45 @@ describe('Bidi Node.js implementation', () => {
         noProxyValueFn.mockReturnValue(undefined)
 
         const wsPromise = createBidiConnection('ws://foo/bar')
-        vi.runAllTimersAsync()
+        await vi.runAllTimersAsync()
         expect(await wsPromise).toBeUndefined()
         expect(log.error).toHaveBeenCalledWith(
-            'Could not connect to Bidi protocol of any candidate url in time: ' +
-            '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://[::1]/bar"'
+            'Could not connect to Bidi protocol of any candidate url within 10000ms: ' +
+            '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://[::1]/bar". ' +
+            'If the browser is slow to accept the connection, increase the "bidiConnectTimeout" option.'
         )
+        vi.useRealTimers()
+    })
+
+    it('createBidiConnection waits for a slow browser up to the connect timeout', async () => {
+        vi.useFakeTimers()
+        proxyUrlValueFn.mockReturnValue(undefined)
+        noProxyValueFn.mockReturnValue(undefined)
+
+        const wsPromise = createBidiConnection('ws://127.0.0.1/bar', undefined, 30000)
+        await vi.advanceTimersByTimeAsync(12500)
+        instances[0].once.mock.calls[0][1]() // success callback
+
+        expect((await wsPromise as any).wsUrl).toBe('ws://127.0.0.1/bar')
+        expect(log.error).not.toHaveBeenCalled()
+        vi.useRealTimers()
+    })
+
+    it('createBidiConnection times out after the connect timeout', async () => {
+        vi.useFakeTimers()
+        proxyUrlValueFn.mockReturnValue(undefined)
+        noProxyValueFn.mockReturnValue(undefined)
+
+        let settled = false
+        const wsPromise = createBidiConnection('ws://127.0.0.1/bar', undefined, 30000)
+        wsPromise.finally(() => { settled = true })
+        await vi.advanceTimersByTimeAsync(29999)
+        expect(settled).toBe(false)
+
+        await vi.advanceTimersByTimeAsync(1)
+        expect(await wsPromise).toBeUndefined()
+        expect(log.error).toHaveBeenCalledWith(expect.stringContaining('within 30000ms: "ws://127.0.0.1/bar"'))
+        vi.useRealTimers()
     })
 
     it('should not fail if WebSocket url is invalid', async () => {

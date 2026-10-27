@@ -182,7 +182,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         if (TS_FILE_EXTENSIONS.some((ext) => arg.option.endsWith(ext))) {
             const { resolve } = await import('import-meta-resolve')
             const tsxPath = resolve('tsx', import.meta.url)
-            await import(tsxPath)
+            await importTsx(tsxPath)
         }
 
         const config = new ConfigParser(arg.option)
@@ -317,4 +317,29 @@ enum NodeVersion {
 
 export function nodeVersion(type: keyof typeof NodeVersion): number {
     return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+}
+
+const toDataUrl = (source: string) => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`
+
+/**
+ * tsx >= 4.21.1 calls `Array.prototype.toReversed` (Node.js 20+) to resolve a tsconfig `extends`
+ */
+const TO_REVERSED_POLYFILL = 'if (!Array.prototype.toReversed) Object.defineProperty(Array.prototype, "toReversed", ' +
+    '{ value: function () { return Array.from(this).reverse() }, writable: true, configurable: true })'
+
+/**
+ * also registered as a loader module: Node.js 18 runs the tsx ESM hooks in a separate thread
+ */
+export const TSX_NODE18_POLYFILL = toDataUrl(
+    `import { register } from 'node:module'\n${TO_REVERSED_POLYFILL}\nregister(${JSON.stringify(toDataUrl(TO_REVERSED_POLYFILL))})`
+)
+
+/**
+ * load tsx in the current process, with the polyfill it needs on Node.js 18
+ */
+export async function importTsx(tsxPath: string) {
+    if (nodeVersion('major') < 20) {
+        await import(TSX_NODE18_POLYFILL)
+    }
+    await import(tsxPath)
 }
