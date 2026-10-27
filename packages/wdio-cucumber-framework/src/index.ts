@@ -52,6 +52,15 @@ const CUCUMBER_CLI_ADVICE = [
     'Use of `loader` option',
 ]
 
+/**
+ * Cucumber puts the tag expressions that it joins in parentheses, but not `(@a) or (@b)`: its `or` would escape the
+ * `and` with the profile value
+ */
+const forCucumberMerge = (expression?: string) => expression && /^\(.*\)$/s.test(expression) ? `(${expression})` : expression
+
+/** the generated skip tags `and` the tags, in parentheses so that an `or` in them can not escape */
+const withSkipTags = (skipTags: string[], tags?: string) => [...skipTags, ...(tags ? [`(${tags})`] : [])].join(' and ')
+
 // the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
 const CUCUMBER_VALUES = [
     'backtrace', 'dryRun', 'failFast', 'forceExit', 'import', 'language', 'name', 'order',
@@ -85,6 +94,7 @@ export class CucumberAdapter {
     /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
     private _cucumberOutput = new Set<string>()
     private _warnedProfileValues = new Set<string>()
+    private _warnedFolders = new Set<string>()
     private _browser?: WebdriverIO.Browser
 
     // set in the constructor and again in init(), with the language that Cucumber runs with
@@ -222,8 +232,7 @@ export class CucumberAdapter {
         // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
         // the specs are the paths of the run (_loadRunConfiguration): Cucumber gives the paths of the profile only
         const { tags, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
-        // Cucumber wraps the tags that it joins, but not `(@a) or (@b)`: its `or` would escape the `and` with the profile tags
-        const userTags = this._generatedTags ?? (tags && /^\(.*\)$/s.test(tags) ? `(${tags})` : tags)
+        const userTags = this._generatedTags ?? forCucumberMerge(tags)
         return {
             ...user,
             // WebdriverIO runs the workers and shards the specs, and publishes no report unless cucumberOpts asks
@@ -232,6 +241,7 @@ export class CucumberAdapter {
             publish: (user as { publish?: boolean }).publish ?? false,
             // an empty value would replace the tags of the profile
             ...(userTags ? { tags: userTags } : {}),
+            ...(user.retryTagFilter ? { retryTagFilter: forCucumberMerge(user.retryTagFilter) } : {}),
             ...(this._seededOrder ? { order: this._seededOrder } : {}),
             format: this._cucumberOpts.format,
             formatOptions: this._cucumberOpts.formatOptions,
@@ -268,13 +278,11 @@ export class CucumberAdapter {
         try {
             await this._resolveCucumberValues()
             if (this._generateSkipTags) {
-                // wrap the user expression so an `or` in it can't escape the generated `and` conditions
                 const skipTags = this.generateDynamicSkipTags()
                 if (skipTags.length > 0) {
-                    const userTags = this._config.cucumberOpts?.tags ? [`(${this._config.cucumberOpts.tags})`] : []
                     // the run: Cucumber joins the profile tags again; init: the tags that the first load resolved
-                    this._generatedTags = [...skipTags, ...userTags].join(' and ')
-                    this._cucumberOpts.tags = [...skipTags, ...(this._cucumberOpts.tags ? [`(${this._cucumberOpts.tags})`] : [])].join(' and ')
+                    this._generatedTags = withSkipTags(skipTags, this._config.cucumberOpts?.tags)
+                    this._cucumberOpts.tags = withSkipTags(skipTags, this._cucumberOpts.tags)
                 }
             }
         } catch (err) {
@@ -638,15 +646,26 @@ export class CucumberAdapter {
 
     async loadFilesWithType(fileList: string[]) {
         // a folder: its script files, sorted, as Cucumber loads them (a profile often lists `features/support`)
-        const isFolder = (file: string) => Boolean(fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory())
-        const folderFiles = (folder: string) => globSync('**/*.{js,cjs,mjs}', { cwd: path.resolve(folder), absolute: true }).sort()
+        const folderFiles = (folder: string) => {
+            const cwd = path.resolve(folder)
+            const typeScript = globSync('**/*.{ts,cts,mts}', { cwd, ignore: '**/*.d.{ts,cts,mts}' })
+            if (typeScript.length > 0 && !this._warnedFolders.has(cwd)) {
+                this._warnedFolders.add(cwd)
+                const message = `The folder "${folder}" loads its .js, .cjs and .mjs files only, as in Cucumber, not: ` +
+                    `${typeScript.sort().join(', ')}. Use a glob such as "${path.join(folder, '**/*.ts')}".`
+                log.warn(message)
+                console.warn(`[@wdio/cucumber-framework] ${message}`)
+            }
+            return globSync('**/*.{js,cjs,mjs}', { cwd, absolute: true }).sort()
+        }
         // paths, not file:// URLs (glob finds nothing for a URL); loadAndRefreshModule makes the URL to import
         const files = fileList.flatMap((file: string) => {
             if (!isGlob(file)) {
-                return isFolder(file) ? folderFiles(file) : [file]
+                return fs.statSync(path.resolve(file), { throwIfNoEntry: false })?.isDirectory() ? folderFiles(file) : [file]
             }
-            const matches = globSync(file, { windowsPathsNoEscape: os.platform() === 'win32' }).sort()
-            return matches.flatMap((match) => isFolder(match) ? folderFiles(match) : [match])
+            const matches = globSync(file, { windowsPathsNoEscape: os.platform() === 'win32', withFileTypes: true })
+                .sort((a, b) => a.fullpath().localeCompare(b.fullpath()))
+            return matches.flatMap((match) => match.isDirectory() ? folderFiles(match.fullpath()) : [match.fullpath()])
         })
         return [...new Set(files)]
     }

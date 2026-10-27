@@ -578,6 +578,11 @@ describe('CucumberAdapter', () => {
             expect(configuration.sources.tagExpression).toBe('(@smoke) and ((@a) or (@b))')
         })
 
+        it('keeps the user retryTagFilter in parentheses when Cucumber joins it with the profile one', async () => {
+            const { configuration } = await resolve({ profiles: ['retried'], file, retry: 2, retryTagFilter: '(@x) or (@y)' })
+            expect(configuration.runtime.retryTagFilter).toBe('(@flaky) and ((@x) or (@y))')
+        })
+
         it('builds the format options of the run with the user run hooks', async () => {
             const { adapter } = await resolve({})
             const library = { beforeTestRunHookDefinitions: [{ id: 'b1', code: function userHookFn () {} }, { id: 'w1', code: function wdioHookBeforeFeature () {} }], afterTestRunHookDefinitions: [] }
@@ -666,6 +671,29 @@ describe('CucumberAdapter', () => {
             expect(files.every((file: string) => !file.startsWith('file:'))).toBe(true)
         } finally {
             platform.mockRestore()
+        }
+    })
+
+    // as Cucumber, a folder loads its script files; its TypeScript files need a glob, so the user gets a warning
+    it('warns once about the TypeScript files of a support folder', async () => {
+        const fs = await import('node:fs')
+        const os = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            for (const file of ['steps.ts', 'types.d.ts']) {
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            expect(await adapter.loadFilesWithType([folder, folder])).toEqual([])
+            const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes(folder))
+            expect(warnings).toHaveLength(1)
+            expect(warnings[0]).toContain('steps.ts')
+            expect(warnings[0]).not.toContain('types.d.ts')
+            expect(warnings[0]).toContain('**/*.ts')
+        } finally {
+            warn.mockRestore()
+            fs.rmSync(folder, { recursive: true, force: true })
         }
     })
 
