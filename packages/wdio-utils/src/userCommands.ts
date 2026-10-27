@@ -6,6 +6,8 @@ import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
+// their result is base64 and reporters get them from the protocol events
+const NO_EVENT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
 
 /**
  * The user command that the calling code runs in. `depth` is 0 for the outer
@@ -92,7 +94,7 @@ export function runWithoutUserCommands<T> (fn: () => T): T {
 }
 
 function sendsEvents (browser: EventBrowser | undefined, command: string) {
-    if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook()) {
+    if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return false
     }
     const option = browser.options?.userCommandEvents
