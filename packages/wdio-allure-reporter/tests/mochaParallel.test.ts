@@ -98,6 +98,8 @@ function createHarness(mode: Mode, tests: PlannedTest[], options: Record<string,
         ...message(type, test, uid, extra),
         title: `"${kind}" hook for ${test.suites.at(-1)}`,
         fullTitle: `${test.suites.at(-1)}.${kind} hook`,
+        // a failed each-hook is reported once per test with the same title, so the id needs the test
+        ...(kind === 'before each' || kind === 'after each' ? { currentTest: test.title } : {}),
     })
     const command = (type: 'client:beforeCommand' | 'client:afterCommand', test: PlannedTest, name: string) => ({
         command: name,
@@ -568,6 +570,36 @@ describe('Mocha parallel mode', () => {
                 'before all exploded',
             ])
             const historyIds = hookResults.map((r) => r.historyId)
+            expect(historyIds.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
+            expect(new Set(historyIds).size).toBe(2)
+        })
+
+        it('gives a hook the same history id in sequential and parallel mode', async () => {
+            const tests: PlannedTest[] = [
+                { id: 's1', title: 'first', suites: ['Outer', 'Inner'], outcome: 'hook-fail' },
+                { id: 's2', title: 'second', suites: ['Outer', 'Inner'], outcome: 'hook-fail' },
+            ]
+            const sequential = await play('sequential', tests)
+            const parallel = await play('parallel', tests)
+            const ids = (results: Result[]) =>
+                [...new Set(results.filter((r) => r.name === '"before all" hook for Inner').map((r) => r.historyId))]
+
+            // the suite path does not depend on which lane happened to be open
+            expect(ids(sequential.results)).toEqual(ids(parallel.results))
+            expect(ids(parallel.results)).toHaveLength(1)
+        })
+    })
+
+    describe('failed each hooks', () => {
+        it('keeps a distinct history id per test when one afterEach fails for both', async () => {
+            const first: PlannedTest = { id: 'e1', title: 'first', suites: ['Shared'], outcome: 'pass', afterEachFails: true }
+            const second: PlannedTest = { id: 'e2', title: 'second', suites: ['Shared'], outcome: 'pass', afterEachFails: true }
+            const { results } = await play('parallel', [first, second])
+
+            const hookResults = results.filter((r) => r.name === '"after each" hook for Shared')
+            expect(hookResults).toHaveLength(2)
+            const historyIds = hookResults.map((r) => r.historyId)
+            // one id would make Allure read the two failures as retries of a single result
             expect(historyIds.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
             expect(new Set(historyIds).size).toBe(2)
         })
