@@ -416,6 +416,17 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     /**
+     * A retried test (Mocha `retries`, Cucumber scenario level, Vitest): the failed attempt stays in the report
+     * as its own entry. A failed step of a Cucumber scenario attempt has no label: its scenario has it
+     */
+    onTestRetry(test: TestStats) {
+        const unit = this.unitOf(test)
+        if (!(unit?.stats instanceof Suite)) {
+            test.title = `${test.title} (attempt ${(unit?.attempt ?? 0) + 1}, retried)`
+        }
+    }
+
+    /**
      * Cucumber `retry` (step level): the failed attempt stays in the report as its own entry, with its own
      * times, before the base clears the suite for the next attempt. Only the last attempt counts
      */

@@ -775,6 +775,29 @@ describe('retries and hooks of a feature', () => {
         expect(classOf('flaky suite')).toBe('suite-pass')
     })
 
+    // Mocha `retries`, Cucumber scenario level and Vitest retry a test: each failed attempt is its own entry
+    it.each([
+        ['a new uid for each attempt (Mocha)', (attempt: number) => attempt ? `t1-retry${attempt}` : 't1'],
+        ['the same uid for each attempt (Cucumber scenario level)', () => 't1']
+    ])('labels the failed attempts of a retried test, %s', async (_name, uid) => {
+        const { json } = await run(`retried-test-${uid(1)}`, (reporter) => {
+            reporter.emit('suite:start', suite('flaky suite'))
+            for (const attempt of [0, 1]) {
+                reporter.emit('test:start', { ...test(uid(attempt), 'flaky', 'flaky suite'), retries: attempt })
+                reporter.emit('test:retry', { ...test(uid(attempt), 'flaky', 'flaky suite'), error: { message: `attempt ${attempt + 1}` } })
+            }
+            reporter.emit('test:start', { ...test(uid(2), 'flaky', 'flaky suite'), retries: 2 })
+            reporter.emit('test:pass', test(uid(2), 'flaky', 'flaky suite'))
+            reporter.emit('test:end', test(uid(2), 'flaky', 'flaky suite'))
+            reporter.emit('suite:end', suite('flaky suite'))
+        })
+        expect(json.suites[0].tests.map((entry: { title: string, state: string }) => [entry.title, entry.state])).toEqual([
+            ['flaky (attempt 1, retried)', 'failed'],
+            ['flaky (attempt 2, retried)', 'failed'],
+            ['flaky', 'passed']
+        ])
+    })
+
     // @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
     it('shows a suite with a failed hook of a retried attempt as passed when the test passed on retry', async () => {
         const { classOf } = await run('k24-hook', (reporter) => {
@@ -828,6 +851,8 @@ describe('retries and hooks of a feature', () => {
             const attempts = feature.suites.map((entry: { title: string, start: string, end: string, _duration: number, tests: { state: string }[] }) => ({
                 title: entry.title, start: entry.start, end: entry.end, duration: entry._duration, states: entry.tests.map((step) => step.state)
             }))
+            // the scenario has the label, not its failed step
+            expect(feature.suites[0].tests[0].title).toBe('a step')
             expect(attempts).toEqual([
                 { title: 'S (attempt 1, retried)', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
                 // the scenario keeps the start of its first attempt and the duration of all attempts, as main
