@@ -89,6 +89,7 @@ export const isValidParameter = isValidParameterOrig
 export const commandCallStructure = commandCallStructureOrig
 export const currentUserCommandId = () => undefined
 export const runWithoutUserCommands = <T>(fn: () => T): T => fn()
+export const runOutsideUserCommands = <T>(fn: () => T): T => fn()
 export const setUserCommandStore = vi.fn()
 export const registerUserCommands = vi.fn()
 export const runUserCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()
