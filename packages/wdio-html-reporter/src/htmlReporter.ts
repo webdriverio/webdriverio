@@ -483,6 +483,9 @@ export default class HtmlReporter extends WDIOReporter {
 
     }
 
+    // an empty override opts in to the user commands of WebDriver BiDi sessions
+    onBeforeUserCommand() { }
+
     //this is a hack to get around lack of onScreenshot event
     onAfterCommand(command: AfterCommandArgs) {
         if (this.options.useOnAfterCommandForScreenshot) {
