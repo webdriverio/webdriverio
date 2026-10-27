@@ -67,6 +67,8 @@ export interface UserCommandEvent {
     command: string
     body: unknown[]
     protocol: 'bidi'
+    /** the session of the browser (of the multi-remote instance) that runs the command */
+    sessionId?: string
 }
 /**
  * The end of a user command

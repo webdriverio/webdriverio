@@ -547,11 +547,11 @@ export default class Runner extends EventEmitter {
          */
         browser.on('userCommand', (event) => this._reporter?.emit(
             'client:beforeUserCommand',
-            { ...event, sessionId: browser.sessionId, ...getContextIdPayload(browser) }
+            { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
         ))
         browser.on('userResult', (event) => this._reporter?.emit(
             'client:afterUserCommand',
-            { ...event, sessionId: browser.sessionId, ...getContextIdPayload(browser) }
+            { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
         ))
 
         return browser

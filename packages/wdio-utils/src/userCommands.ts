@@ -28,6 +28,7 @@ export interface UserCommandStore {
 }
 
 interface EventBrowser {
+    sessionId?: string
     isBidi?: boolean
     isMultiRemote?: boolean
     options?: Pick<Options.Testrunner, 'userCommandEvents'>
@@ -147,7 +148,11 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     }
 
     const emit = browser!.emit!.bind(browser)
-    const event = { id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const }
+    const event = {
+        id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const,
+        // a multi-remote browser has no session: each instance sends its own
+        ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
+    }
     const sendValue = (value: unknown) => emit('userResult', { ...event, result: { value: shortCopy(value) } })
     const sendError = (error: unknown) => emit('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
