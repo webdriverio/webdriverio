@@ -1,4 +1,5 @@
 import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { Options } from '@wdio/types'
 
 import { getBrowserObject } from './utils.js'
 import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
@@ -24,12 +25,10 @@ export interface UserCommandStore {
     run<T>(frame: UserCommandFrame, fn: () => T): T
 }
 
-type UserCommandEventsOption = boolean | { exclude?: string[] }
-
 interface EventBrowser {
     isBidi?: boolean
     isMultiRemote?: boolean
-    options?: { userCommandEvents?: UserCommandEventsOption }
+    options?: Pick<Options.Testrunner, 'userCommandEvents'>
     emit?: (event: string, payload: unknown) => unknown
 }
 

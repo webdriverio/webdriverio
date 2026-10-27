@@ -1,7 +1,7 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
 import DotReporter from '@wdio/dot-reporter'
-import { initializePlugin } from '@wdio/utils'
+import { initializePlugin, runWithoutUserCommands } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
 const log = logger('@wdio/runner')
@@ -77,7 +77,8 @@ export default class BaseReporter {
             })
         }
 
-        this._reporters.forEach((reporter) => {
+        // the commands that a reporter runs are no user commands
+        runWithoutUserCommands(() => this._reporters.forEach((reporter) => {
             try {
                 reporter.emit(e, payload)
             } catch (err) {
@@ -97,7 +98,7 @@ export default class BaseReporter {
                     }
                 })
             }
-        })
+        }))
     }
 
     setContextIdResolver (resolver: () => string | undefined) {

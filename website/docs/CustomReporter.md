@@ -73,6 +73,8 @@ export default class CustomReporter extends WDIOReporter {
     onRunnerStart() {}
     onBeforeCommand() {}
     onAfterCommand() {}
+    onBeforeUserCommand() {} // experimental, see "User commands"
+    onAfterUserCommand() {} // experimental, see "User commands"
     onSuiteStart() {}
     onHookStart() {}
     onHookEnd() {}
@@ -273,6 +275,55 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 :::warning Experimental
 
 The unit API, `getBrowserNames`, `getSessionNames`, `getSessions` and `sanitizeCaps` are experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `suite.isRoot`, `test.file`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
+
+:::
+
+## User commands
+
+A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. In a WebDriver BiDi session, WebdriverIO sends an event before and after each user command. WebDriver Classic and Appium sessions do not send these events.
+
+To get the user commands, override `onBeforeUserCommand`, `onAfterUserCommand` or both:
+
+```js
+import WDIOReporter from '@wdio/reporter'
+
+export default class CustomReporter extends WDIOReporter {
+    onBeforeUserCommand(command) {
+        this.write(`${command.command}(${JSON.stringify(command.body)})\n`)
+    }
+    onAfterUserCommand(command) {
+        this.write('error' in command.result ? `${command.command} failed\n` : `${command.command} passed\n`)
+    }
+}
+```
+
+The payload has these fields:
+
+| Field | Description |
+|-------|-------------|
+| `id` | A number for each user command. The protocol commands that the user command runs have this number in their `parent` field. |
+| `command` | The name of the command, for example `click` or the name of a custom command. |
+| `body` | The arguments of the command. |
+| `protocol` | `'bidi'` |
+| `sessionId` | The session of the command. |
+| `contextId` | The parallel-mode context of the command, as for `onBeforeCommand`. |
+| `result` | `onAfterUserCommand` only: `{ value }` when the command passed, `{ error }` when it failed. |
+
+WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is `<Buffer n bytes>`. A string that is longer than 1024 characters is cut. An element is a short label, for example `WebdriverIO.Element<elementId>`, and a function is `[Function name]`.
+
+When your reporter overrides one of these methods, the base reporter does these steps:
+
+- It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
+- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. For `execute` and `executeAsync`, the first value of `body` is shortened as the script of a protocol command.
+- It hides the protocol commands that a user command runs: these have a `parent` field. It does not call `onBeforeCommand` and `onAfterCommand` for them, and it does not add them to `output`. `takeScreenshot` and `takeElementScreenshot` are not hidden, so you can get the screenshots from them as before.
+
+A reporter that overrides neither method gets no user commands, and it gets all protocol commands as before.
+
+Only the outer user command sends events. The commands that a custom command or `waitUntil` runs send no events. The commands that a `beforeCommand` or `afterCommand` hook runs, and the commands that a reporter runs, send no events. An excluded command (see [`userCommandEvents`](./Configuration.md#usercommandevents)) is still the outer command, so the commands that it runs send no events. For example, when you exclude `waitUntil`, its polls are hidden too. When you overwrite a command with `overwriteCommand` (for example `click`), that command sends no user command events. It sends the `command` and `result` events of a custom command as before.
+
+:::warning Experimental
+
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 
