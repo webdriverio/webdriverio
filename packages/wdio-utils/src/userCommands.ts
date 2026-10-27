@@ -136,7 +136,7 @@ export async function runUserCommand<T> (scope: unknown, command: string, args: 
  * @experimental
  */
 export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: () => T): T {
-    if (!userCommandStore || userCommandStore.getStore()) {
+    if (!userCommandStore || userCommandStore.getStore() || TRANSPARENT_COMMANDS.includes(command)) {
         return run()
     }
     return runOuterCommand(userCommandStore, scope, command, args, run)
