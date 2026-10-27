@@ -88,6 +88,33 @@ describe('user command events', () => {
         ])
     })
 
+    it('shows a custom command once: as a user command, not with its old events', () => {
+        const optIn = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        const optOut = new CommandReporter({ logFile: tmp.fileSync().name })
+        const myCmd = { id: 2, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
+        // the events in the order that a custom command sends them in a WebDriver BiDi session
+        const events: [string, Record<string, unknown>][] = [
+            ['client:beforeUserCommand', myCmd],
+            ['client:beforeCommand', { command: 'myCmd', body: ['secret', { mask: true }], parent: 2, sessionId: 's', contextId: 'ctx-a' }],
+            ['client:afterCommand', { command: 'myCmd', result: { value: 'done' }, parent: 2, sessionId: 's', contextId: 'ctx-a' }],
+            ['client:afterUserCommand', { ...myCmd, result: { value: 'done' } }]
+        ]
+        for (const reporter of [optIn, optOut]) {
+            start(reporter)
+            for (const [event, payload] of events) {
+                reporter.emit(event, { ...payload })
+            }
+        }
+
+        expect(optIn.tests.A.output.map((entry: any) => [entry.command, entry.type, entry.body])).toEqual([
+            ['myCmd', 'userCommand', ['**MASKED**', { mask: true }]],
+            ['myCmd', 'userResult', ['**MASKED**', { mask: true }]]
+        ])
+        expect(optIn.commands).toEqual([])
+        expect(optOut.tests.A.output.map((entry: any) => [entry.command, entry.type])).toEqual([['myCmd', 'command'], ['myCmd', 'result']])
+        expect(optOut.commands).toEqual(['before myCmd'])
+    })
+
     it('shortens the script of execute in the output', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)

@@ -339,6 +339,126 @@ describe('runNested', () => {
     })
 })
 
+describe('custom commands', () => {
+    const EVENTS = ['command', 'result', 'userCommand', 'userResult']
+
+    function client (props: Record<string, PropertyDescriptor> = {}) {
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, ...props })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const events: [string, Record<string, unknown>][] = []
+        for (const event of EVENTS) {
+            browser.on(event, (payload: Record<string, unknown>) => events.push([event, payload]))
+        }
+        return { browser, events }
+    }
+    const names = (events: [string, Record<string, unknown>][]) => events.map(([event, payload]) => [event, payload.command, payload.parent])
+
+    it('sends one pair for a custom command, and its old events get the id as parent', async () => {
+        const { browser, events } = client()
+        browser.addCommand('myCmd', async (text: string) => `${text}!`)
+        expect(await browser.myCmd('secret', { mask: true })).toBe('secret!')
+        expect(names(events)).toEqual([
+            ['userCommand', 'myCmd', undefined],
+            ['command', 'myCmd', 1],
+            ['result', 'myCmd', 1],
+            ['userResult', 'myCmd', undefined]
+        ])
+        expect(events[0][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi' })
+        expect(events[3][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', result: { value: 'secret!' } })
+    })
+
+    it('sends the error of a custom command', async () => {
+        const { browser, events } = client()
+        browser.addCommand('myCmd', async () => {
+            throw new Error('boom')
+        })
+        await expect(browser.myCmd()).rejects.toThrow('boom')
+        expect(names(events).map(([event]) => event)).toEqual(['userCommand', 'command', 'result', 'userResult'])
+        expect(events[3][1].result).toEqual({ error: expect.objectContaining({ message: 'boom' }) })
+    })
+
+    it('sends one pair for an overwritten registered command', async () => {
+        mod.registerUserCommands(['click'])
+        const { browser, events } = client({ click: { value: shim.wrapCommand('click', async () => 'clicked'), writable: true, configurable: true } })
+        browser.overwriteCommand('click', async (origClick: Function) => origClick())
+        expect(await browser.click()).toBe('clicked')
+        expect(names(events)).toEqual([
+            ['userCommand', 'click', undefined],
+            ['command', 'click', 1],
+            ['result', 'click', 1],
+            ['userResult', 'click', undefined]
+        ])
+    })
+
+    it('sends no pair for a nested custom command, and its old events get the outer id as parent', async () => {
+        const { browser, events } = client()
+        browser.addCommand('inner', async () => 'inner')
+        browser.addCommand('outer', async function (this: Record<string, Function>) {
+            return this.inner()
+        })
+        expect(await browser.outer()).toBe('inner')
+        expect(names(events)).toEqual([
+            ['userCommand', 'outer', undefined],
+            ['command', 'outer', 1],
+            ['command', 'inner', 1],
+            ['result', 'inner', 1],
+            ['result', 'outer', 1],
+            ['userResult', 'outer', undefined]
+        ])
+    })
+
+    it('sends one pair for a custom command of an element', async () => {
+        const { browser } = client()
+        browser.addCommand('myElementCmd', async () => 'done', { attachToElement: true })
+        const myElementCmd = (browser.__propertiesObject__ as Record<string, PropertyDescriptor>).myElementCmd.value as Function
+        const element = { selector: 'a', options: {}, parent: browser }
+        const userEvents = vi.spyOn(browser, 'emit')
+        expect(await myElementCmd.call(element)).toBe('done')
+        expect(userEvents.mock.calls.map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'myElementCmd'],
+            ['userResult', 'myElementCmd']
+        ])
+    })
+
+    it.each([
+        ['a Classic session', { isBidi: { value: false } }, () => {}],
+        ['userCommandEvents false', {}, (browser: Record<string, unknown>) => { (browser.options as Record<string, unknown>).userCommandEvents = false }]
+    ])('keeps the old events as they are in %s', async (_, props, setup) => {
+        const { browser, events } = client(props)
+        setup(browser)
+        browser.addCommand('inner', async () => 'inner')
+        browser.addCommand('outer', async function (this: Record<string, Function>) {
+            return this.inner()
+        })
+        await browser.outer('a')
+        expect(events).toEqual([
+            ['command', { command: 'outer', body: ['a'] }],
+            ['command', { command: 'inner', body: [] }],
+            ['result', { command: 'inner', result: { value: 'inner' } }],
+            ['result', { command: 'outer', result: { value: 'inner' } }]
+        ])
+    })
+
+    it('keeps the old events as they are with no store, in a command hook and without user commands', async () => {
+        const expected = [
+            ['command', { command: 'myCmd', body: [] }],
+            ['result', { command: 'myCmd', result: { value: 'x' } }]
+        ]
+        const run = async (wrap: (browser: Record<string, Function>) => Promise<unknown>) => {
+            const { browser, events } = client()
+            browser.addCommand('myCmd', async () => 'x')
+            await wrap(browser)
+            expect(events.filter(([, payload]) => payload.command === 'myCmd')).toEqual(expected)
+        }
+        await run((browser) => mod.runWithoutUserCommands(() => browser.myCmd()))
+        await run((browser) => {
+            (browser.options as unknown as Record<string, unknown>).beforeCommand = () => browser.myCmd()
+            return shim.wrapCommand('getText', async () => 'hello').call(browser)
+        })
+        mod.setUserCommandStore(undefined as unknown as UserCommands.UserCommandStore)
+        await run((browser) => browser.myCmd())
+    })
+})
+
 describe('userCommandBody', () => {
     it('masks the text of a masked value', () => {
         expect(mod.userCommandBody(['secret', { mask: true }])).toEqual(['**MASKED**', { mask: true }])
