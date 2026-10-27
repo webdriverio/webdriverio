@@ -181,6 +181,10 @@ export default class WebDriverInterception {
     #browser: WebdriverIO.Browser
     #contexts?: string[]
     /**
+     * The window of the parallel test that created this mock
+     */
+    #test?: string
+    /**
      * Iframes below an owned context. Their non-blocked events carry the iframe's
      * id, so ownership can't be read off `#contexts` alone.
      */
@@ -253,7 +257,7 @@ export default class WebDriverInterception {
         url: string | URLPattern | globalThis.URLPattern,
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser,
-        scope: { contexts?: string[], sessionKey?: string } = {}
+        scope: { contexts?: string[], sessionKey?: string, test?: string } = {}
     ) {
         const pattern = parseUrlPattern(url)
         const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
@@ -301,6 +305,7 @@ export default class WebDriverInterception {
         })
 
         const mock = new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
+        mock.#test = scope.test
         await mock.#seedDescendantContexts()
         return mock
     }
@@ -1248,17 +1253,19 @@ export default class WebDriverInterception {
     }
 
     /**
-     * Whether this mock belongs to the given browser session, and to the given context
-     * if one is passed. `SESSION_MOCKS` is shared by all instances of a multi-remote
-     * browser. Compares session ids rather than objects so that a client attached to
-     * the same session via `attach()` still owns mocks created by another client of that session.
-     * @param browser  browser instance to check
-     * @param context  a tab or a parallel test's window: only mocks made for that context match
-     * @returns        `true` if this mock belongs to that browser's session (and context)
+     * Whether this mock belongs to the given browser session, and to the given tab or
+     * parallel test if one is passed. `SESSION_MOCKS` is shared by all instances of a
+     * multi-remote browser. Compares session ids rather than objects so that a client attached
+     * to the same session via `attach()` still owns mocks created by another client of that session.
+     * @param browser        browser instance to check
+     * @param scope.context  a tab: only mocks made for that tab match
+     * @param scope.test     the window of a parallel test: only mocks that test created match, also on tabs it opened
+     * @returns              `true` if this mock belongs to that browser's session (and scope)
      */
-    isOwnedBy(browser: WebdriverIO.Browser, context?: string) {
+    isOwnedBy(browser: WebdriverIO.Browser, { context, test }: { context?: string, test?: string } = {}) {
         return this.#browser.sessionId === browser.sessionId &&
-            (context === undefined || Boolean(this.#contexts?.includes(context)))
+            (context === undefined || Boolean(this.#contexts?.includes(context))) &&
+            (test === undefined || this.#test === test)
     }
 
     isSameDefinition(url: string | URLPattern | globalThis.URLPattern, filterOptions: MockFilterOptions = {}) {

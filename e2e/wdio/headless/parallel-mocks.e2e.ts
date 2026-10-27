@@ -7,7 +7,7 @@ import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
  * second called `mockClearAll()` and `mockRestoreAll()`. `wdio.parallel.conf.ts`
  * mocks `/api/suite-wide` in `beforeSuite`, outside the test windows.
  */
-const fetchText = (endpoint: string) => browser.execute(
+const fetchText = (endpoint: string, scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext = browser) => scope.execute(
     (url) => fetch(url, { cache: 'no-store' }).then((response) => response.text()),
     `${PARALLEL_FIXTURE_ORIGIN}/api/${endpoint}`
 )
@@ -35,9 +35,12 @@ describe('mocks in parallel mode', () => {
     it('keeps its mocks when another test clears and restores all mocks', async () => {
         const own = await browser.mock('**/api/own')
         own.respond('mocked', respondOptions)
-        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
-        expect(await fetchText('own')).toBe('mocked')
-        mocked.resolve()
+        try {
+            await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+            expect(await fetchText('own')).toBe('mocked')
+        } finally {
+            mocked.resolve()
+        }
 
         await restored.wait()
         expect(await fetchText('own')).toBe('mocked')
@@ -46,18 +49,27 @@ describe('mocks in parallel mode', () => {
         expect(own.calls.length).toBe(2)
     })
 
-    it('clears and restores only the mocks of its window', async () => {
+    it('clears and restores only its own mocks, also on a tab it opened', async () => {
         try {
             const own = await browser.mock('**/api/own')
             own.respond('other', respondOptions)
             await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+            const tab = await browser.newWindow(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+            if (!('contextId' in tab)) {
+                throw new Error('expected newWindow() to return a browsing context')
+            }
+            const onTab = await tab.mock('**/api/tab')
+            onTab.respond('mocked', respondOptions)
+            expect(await fetchText('tab', tab)).toBe('mocked')
             await mocked.wait()
 
             await browser.mockClearAll()
             await browser.mockRestoreAll()
             expect(await fetchText('own')).toBe('Not found')
             expect(await fetchText('hook')).toBe('Not found')
+            expect(await fetchText('tab', tab)).toBe('Not found')
             expect(await fetchText('suite-wide')).toBe('mocked')
+            await tab.closeWindow()
         } finally {
             restored.resolve()
         }

@@ -29,7 +29,7 @@ const log = logger('webdriverio:mockRestoreAll')
  * @alias browser.mockRestoreAll
  */
 export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
-    const mocks = await mocksOf(this)
+    const mocks = mocksOf(this)
     log.trace(`Restoring ${mocks.length} mock(s)`)
     for (const mock of mocks) {
         await mock.restore()

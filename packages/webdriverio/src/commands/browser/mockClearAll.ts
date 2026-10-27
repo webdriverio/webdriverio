@@ -32,7 +32,7 @@ const log = logger('webdriverio:mockClearAll')
  * @alias browser.mockClearAll
  */
 export async function mockClearAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
-    const mocks = await mocksOf(this)
+    const mocks = mocksOf(this)
     log.trace(`Clearing ${mocks.length} mock(s)`)
     for (const mock of mocks) {
         mock.clear()

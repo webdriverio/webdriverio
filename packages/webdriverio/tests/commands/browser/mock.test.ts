@@ -81,7 +81,7 @@ describe('mock', () => {
         const initiateSpy = vi.spyOn(WebDriverInterception, 'initiate').mockResolvedValue({ restore: vi.fn(), isSameDefinition: vi.fn().mockReturnValue(false) } as any)
         try {
             await store.run('ctx-1', () => browser.mock('**/scoped'))
-            expect(initiateSpy).toHaveBeenLastCalledWith('**/scoped', {}, browser, { contexts: ['ctx-1'], sessionKey: 'ctx-1' })
+            expect(initiateSpy).toHaveBeenLastCalledWith('**/scoped', {}, browser, { contexts: ['ctx-1'], sessionKey: 'ctx-1', test: 'ctx-1' })
 
             await browser.mock('**/global')
             expect(initiateSpy).toHaveBeenLastCalledWith('**/global', {}, browser, expect.objectContaining({ contexts: undefined }))

@@ -3,7 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type WebDriverInterception from './index.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
 import { getParallelContextStore } from '../../session/context.js'
-import { contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
+import { isBrowsingContext } from '../../session/browsingContext.js'
 
 /**
  * A mock made on a held context or in a parallel test belongs to that context,
@@ -14,14 +14,17 @@ export function isContextScoped (scope: WebdriverIO.Browser | WebdriverIO.Browsi
 }
 
 /**
- * The mocks `mockClearAll()` and `mockRestoreAll()` act on: every mock of the session
- * for `browser`, only the mocks made for the context on a tab or in a parallel test.
- * `SESSION_MOCKS` also holds the mocks of the other instances of a multi-remote browser.
+ * The mocks `mockClearAll()` and `mockRestoreAll()` act on: on a tab, the mocks made
+ * for that tab; in a parallel test, the mocks that test created, also on tabs it opened;
+ * otherwise every mock of the session. `SESSION_MOCKS` also holds the mocks of the other
+ * instances of a multi-remote browser.
  */
-export async function mocksOf (scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<WebDriverInterception[]> {
+export function mocksOf (scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext): WebDriverInterception[] {
     const browser = getBrowserObject(scope)
-    const context = isContextScoped(scope) ? await contextIdOf(scope) : undefined
+    const filter = isBrowsingContext(scope)
+        ? { context: scope.contextId }
+        : { test: getParallelContextStore().getStore() }
     return Object.values(SESSION_MOCKS)
         .flatMap((mocks) => Array.from(mocks))
-        .filter((mock) => mock.isOwnedBy(browser, context))
+        .filter((mock) => mock.isOwnedBy(browser, filter))
 }
