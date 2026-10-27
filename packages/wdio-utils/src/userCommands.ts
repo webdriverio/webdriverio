@@ -30,7 +30,7 @@ export interface UserCommandFrame {
  */
 export interface UserCommandStore {
     getStore(): UserCommandFrame | undefined
-    run<T>(frame: UserCommandFrame, fn: () => T): T
+    run<T>(frame: UserCommandFrame | undefined, fn: () => T): T
 }
 
 interface EventBrowser {
@@ -99,6 +99,19 @@ export function runWithoutUserCommands<T> (fn: () => T): T {
     }
     const frame = userCommandStore.getStore()
     return userCommandStore.run({ depth: (frame?.depth ?? 0) + 1 }, fn)
+}
+
+/**
+ * Run `fn` with no user command, also inside one: a command in it is an outer
+ * call. For callbacks that a user command did not start, for example the
+ * events of a socket that it opened.
+ * @experimental
+ */
+export function runOutsideUserCommands<T> (fn: () => T): T {
+    if (!userCommandStore?.getStore()) {
+        return fn()
+    }
+    return userCommandStore.run(undefined, fn)
 }
 
 function sendsEvents (browser: EventBrowser | undefined, command: string) {
