@@ -24,9 +24,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for PR CI
-        # Don't merge updates to GitHub Actions versions automatically.
-        # (Some repos may wish to limit by version range (major/minor/patch), or scope (dep vs dev-dep), too.)
-        if: contains(steps.metadata.outputs.package-ecosystem, 'npm')
+        # npm minor and patch only; update-type is the highest update of a group, and empty when unknown
+        if: >-
+          contains(steps.metadata.outputs.package-ecosystem, 'npm') &&
+          contains(fromJSON('["version-update:semver-minor","version-update:semver-patch"]'), steps.metadata.outputs.update-type)
         uses: lewagon/wait-on-check-action@369769072fe522a3a8a85c03c96af1e5242a1994 # v1.9.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -38,9 +39,10 @@ jobs:
           allowed-conclusions: success,skipped,neutral
 
       - name: Auto-merge dependabot PRs
-        # Don't merge updates to GitHub Actions versions automatically.
-        # (Some repos may wish to limit by version range (major/minor/patch), or scope (dep vs dev-dep), too.)
-        if: contains(steps.metadata.outputs.package-ecosystem, 'npm')
+        # npm minor and patch only; update-type is the highest update of a group, and empty when unknown
+        if: >-
+          contains(steps.metadata.outputs.package-ecosystem, 'npm') &&
+          contains(fromJSON('["version-update:semver-minor","version-update:semver-patch"]'), steps.metadata.outputs.update-type)
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
