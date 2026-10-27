@@ -436,7 +436,9 @@ export default class HtmlReporter extends WDIOReporter {
      */
     rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
         const root = this.currentSuites[0]
-        if (!root || (!root.tests.length && !root.hooks.some((hook) => hook.error))) {
+        // a root hook keeps its commands in its own output, which only `removeOutput: false` writes
+        const keep = (hook: HookStats) => hook.error || (!this.options.removeOutput && hook.output?.length)
+        if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
