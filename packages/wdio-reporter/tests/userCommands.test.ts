@@ -132,6 +132,17 @@ describe('user command events', () => {
         expect(execute.body).toEqual(['return document.title', 1])
     })
 
+    it('keeps the empty body of execute in the output', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const execute = { ...userCommand, command: 'execute', body: [], contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', execute)
+        reporter.emit('client:afterUserCommand', { ...execute, result: { error: new Error('no script') } })
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.body)).toEqual([[], []])
+    })
+
     it('keeps the function label of execute in the output', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
