@@ -690,7 +690,8 @@ describe('CucumberAdapter', () => {
             expect(warnings).toHaveLength(1)
             expect(warnings[0]).toContain('steps.ts')
             expect(warnings[0]).not.toContain('types.d.ts')
-            expect(warnings[0]).toContain('**/*.ts')
+            // a glob with / on every system, as the user writes it in wdio.conf
+            expect(warnings[0]).toContain(`${folder.split(path.sep).join('/')}/**/*.ts`)
         } finally {
             warn.mockRestore()
             fs.rmSync(folder, { recursive: true, force: true })

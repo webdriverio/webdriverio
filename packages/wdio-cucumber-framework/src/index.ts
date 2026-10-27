@@ -652,7 +652,7 @@ export class CucumberAdapter {
             if (typeScript.length > 0 && !this._warnedFolders.has(cwd)) {
                 this._warnedFolders.add(cwd)
                 const message = `The folder "${folder}" loads its .js, .cjs and .mjs files only, as in Cucumber, not: ` +
-                    `${typeScript.sort().join(', ')}. Use a glob such as "${path.join(folder, '**/*.ts')}".`
+                    `${typeScript.sort().join(', ')}. Use a glob such as "${folder.split(path.sep).join('/')}/**/*.ts".`
                 log.warn(message)
                 console.warn(`[@wdio/cucumber-framework] ${message}`)
             }
