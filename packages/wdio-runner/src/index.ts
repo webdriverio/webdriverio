@@ -359,16 +359,19 @@ export default class Runner extends EventEmitter {
         ))
 
         /**
-         * register user command events (WebDriver BiDi sessions only); a copy, as other listeners get the same object
+         * register user command events (WebDriver BiDi sessions only); a copy, as other listeners get the same object.
+         * With no listener, the browser makes no copies of the values.
          */
-        browser.on('userCommand', (event) => this._reporter?.emit(
-            'client:beforeUserCommand',
-            { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
-        ))
-        browser.on('userResult', (event) => this._reporter?.emit(
-            'client:afterUserCommand',
-            { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
-        ))
+        if (this._reporter?.showsUserCommands !== false) {
+            browser.on('userCommand', (event) => this._reporter?.emit(
+                'client:beforeUserCommand',
+                { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
+            ))
+            browser.on('userResult', (event) => this._reporter?.emit(
+                'client:afterUserCommand',
+                { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
+            ))
+        }
 
         return browser
     }
