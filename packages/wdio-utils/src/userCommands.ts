@@ -33,12 +33,20 @@ export interface UserCommandStore {
     run<T>(frame: UserCommandFrame | undefined, fn: () => T): T
 }
 
+/**
+ * Internal: the monad sets it on a client, as `true` when the client has a listener of a user command event.
+ */
+export const HAS_USER_COMMAND_LISTENERS = Symbol('wdio.hasUserCommandListeners')
+const USER_COMMAND_EVENTS = ['userCommand', 'userResult']
+
 interface EventBrowser {
     sessionId?: string
     isBidi?: boolean
     isMultiRemote?: boolean
     options?: Pick<Options.Testrunner, 'userCommandEvents'>
     emit?: (event: string, payload: unknown) => unknown
+    listenerCount?: (event: string) => number
+    [HAS_USER_COMMAND_LISTENERS]?: () => boolean
 }
 
 // no store (browser bundles): no events
@@ -114,7 +122,7 @@ export function runOutsideUserCommands<T> (fn: () => T): T {
     return userCommandStore.run(undefined, fn)
 }
 
-// 'hide': an id but no events, so opt-in reporters hide the protocol commands of an excluded command
+// 'hide': an id but no events (an excluded command, no listener), so opt-in reporters hide its protocol commands
 function eventMode (browser: EventBrowser | undefined, command: string): 'send' | 'hide' | undefined {
     if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return undefined
@@ -123,7 +131,17 @@ function eventMode (browser: EventBrowser | undefined, command: string): 'send' 
     if (option === false) {
         return undefined
     }
-    return typeof option === 'object' && option.exclude?.includes(command) ? 'hide' : 'send'
+    return (typeof option === 'object' && option.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
+}
+
+// with no listener, no copy is made
+function hasListeners (browser: EventBrowser) {
+    const check = browser[HAS_USER_COMMAND_LISTENERS]
+    if (typeof check === 'function') {
+        return check.call(browser)
+    }
+    const count = browser.listenerCount
+    return typeof count !== 'function' || USER_COMMAND_EVENTS.some((event) => count.call(browser, event) > 0)
 }
 
 /**
@@ -316,8 +334,10 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
     if (depth >= MAX_DEPTH) {
         return '[…]'
     }
-    // the same placeholders as the command log
-    const source = isPlainObject(value) ? transformCommandLogResult(value) : value
+    // the same placeholders as the command log; only these keys can change the object
+    const source = isPlainObject(value) && (Object.hasOwn(value as object, 'file') || Object.hasOwn(value as object, 'script'))
+        ? transformCommandLogResult(value)
+        : value
     if (typeof source === 'string') {
         return source
     }
@@ -331,10 +351,12 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
             (copy as unknown[]).push(`… [${value.length - MAX_ITEMS} more]`)
         }
     } else {
-        const entries = Object.entries(source as object)
-        copy = Object.fromEntries(entries.slice(0, MAX_ITEMS).map(([key, item]) => [key, copyItem(item)]))
-        if (entries.length > MAX_ITEMS) {
-            (copy as Record<string, unknown>)['…'] = `[${entries.length - MAX_ITEMS} more]`
+        // keys first: a getter of a key that is not kept does not run
+        const keys = Object.keys(source as object)
+        const object = source as Record<string, unknown>
+        copy = Object.fromEntries(keys.slice(0, MAX_ITEMS).map((key) => [key, copyItem(object[key])]))
+        if (keys.length > MAX_ITEMS) {
+            (copy as Record<string, unknown>)['…'] = `[${keys.length - MAX_ITEMS} more]`
         }
     }
     ancestors.delete(value as object)

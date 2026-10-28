@@ -4,7 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
-import { currentUserCommandId, registerUserCommands, runCustomCommand, runNested } from './userCommands.js'
+import { HAS_USER_COMMAND_LISTENERS, currentUserCommandId, registerUserCommands, runCustomCommand, runNested } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -542,6 +542,10 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             return this
         })
     }
+    Object.defineProperty(prototype, HAS_USER_COMMAND_LISTENERS, {
+        configurable: true,
+        value: () => Boolean(mittInstance.all.get('userCommand')?.length || mittInstance.all.get('userResult')?.length)
+    })
 
     return unit
 }
