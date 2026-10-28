@@ -85,6 +85,9 @@ type ReportLane = {
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 // the Cucumber scenario that runs in a parallel unit
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
+const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
+// the result of a user command, until the steps that started after it end
+type UserStep = { done?: { result: AfterUserCommandArgs['result']; stop: number } }
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -173,6 +176,9 @@ export default class AllureReporter extends WDIOReporter {
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
     private _closedLaneKeys = new Set<string>()
+    // the open user command steps of each test, hook or Cucumber step, in start order
+    private _userSteps = new Map<string, UserStep[]>()
+    private _userStepOf = new Map<number, { scope: string, open: UserStep[], step: UserStep }>()
 
     allureStatesByCid: Map<string, AllureReportState> = new Map()
 
@@ -281,7 +287,19 @@ export default class AllureReporter extends WDIOReporter {
         return lane
     }
 
+    private _userStepScope(key = this._laneKey()): string {
+        return key ? `lane:${key}` : `cid:${this._currentCid()}`
+    }
+
+    // a new test or hook: a later user command result does not close its steps
+    private _resetUserSteps(key = this._laneKey()): void {
+        this._userSteps.delete(this._userStepScope(key))
+    }
+
     private _pushRuntimeMessage(message: WDIORuntimeMessage, key = this._laneKey()): void {
+        if (EXECUTABLE_BOUNDARIES.has(message.type)) {
+            this._resetUserSteps(key)
+        }
         if (!key) {
             this._ensureState(this._currentCid()).pushRuntimeMessage(message)
             return
@@ -432,6 +450,7 @@ export default class AllureReporter extends WDIOReporter {
 
     private _handleCucumberStepStart(t: TestStats): void {
         if (!this._hasPendingTest) { return }
+        this._resetUserSteps()
 
         const start = AllureReporter.getTimeOrNow(t.start)
         this._startStep({ name: t.title, start })
@@ -455,6 +474,7 @@ export default class AllureReporter extends WDIOReporter {
         details?: StatusDetails
     ): void {
         this._attachLogs()
+        this._resetUserSteps()
         const stop = AllureReporter.getTimeOrNow((t as TestStats).end)
         this._endStep({ status, stop, statusDetails: details })
     }
@@ -1234,18 +1254,34 @@ export default class AllureReporter extends WDIOReporter {
     onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
         if (!this._commandStepsAllowed()) { return }
         this._startCommandStep(payload.command, payload.body)
+        const scope = this._userStepScope()
+        const open = this._userSteps.get(scope) ?? []
+        this._userSteps.set(scope, open)
+        const step: UserStep = {}
+        open.push(step)
+        this._userStepOf.set(payload.id, { scope, open, step })
     }
 
     onAfterUserCommand(payload: AfterUserCommandArgs): void {
-        if (!this._commandStepsAllowed()) { return }
-        const { result } = payload
+        const entry = this._userStepOf.get(payload.id)
+        this._userStepOf.delete(payload.id)
+        // no step, or its test ended: the end of the test closed the step
+        if (!entry || this._userSteps.get(entry.scope) !== entry.open) { return }
+        entry.step.done = { result: payload.result, stop: Date.now() }
+        // the runtime ends the last open step: overlapping commands end their steps from the top
+        while (entry.open.at(-1)?.done) {
+            this._endUserStep(entry.open.pop()!.done!)
+        }
+    }
+
+    private _endUserStep({ result, stop }: NonNullable<UserStep['done']>): void {
         this._attachCommandResponse(result)
         if ('error' in result) {
             const statusDetails = result.error instanceof Error ? getMessageAndTraceFromError(result.error) : undefined
-            this._endStep({ status: AllureStatusEnum.FAILED, stop: Date.now(), statusDetails })
+            this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails })
             return
         }
-        this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
+        this._endStep({ status: AllureStatusEnum.PASSED, stop })
     }
 
     onTestEnd(test: TestStats): void {
