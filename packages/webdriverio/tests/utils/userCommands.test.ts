@@ -6,6 +6,7 @@ import type * as Utils from '@wdio/utils'
 import { remote } from '../../src/node.js'
 import { getContextManager } from '../../src/session/context.js'
 import { getPrototype } from '../../src/utils/index.js'
+import { getBrowsingContext } from '../../src/browsingContext.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -211,5 +212,74 @@ describe('user command events', () => {
             ['userCommand', 'execute', ['[Function anonymous]']],
             ['userResult', 'execute', ['[Function anonymous]']]
         ])
+    })
+})
+
+describe('user command events of a browsing context', () => {
+    const topContext = (browser: WebdriverIO.Browser) => getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>
+
+    it('sends one pair for a custom command of a context, and its commands are nested', async () => {
+        const browser = await bidiSession()
+        browser.addCommand('login', async function (this: WebdriverIO.BrowsingContext) {
+            await this.pause(1)
+            await this.pause(2)
+            return 'ok'
+        }, { attachToBrowsingContext: true })
+        const page = topContext(browser)
+        // a custom command added after the context was made
+        browser.addCommand('logout', async function (this: WebdriverIO.BrowsingContext) {
+            await this.pause(1)
+        }, { attachToBrowsingContext: true })
+        const events = recordEvents(browser)
+        expect(await page.login()).toBe('ok')
+        await page.logout()
+        await topContext(browser).logout()
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', 'login'],
+            ['userResult', 'login'],
+            ['userCommand', 'logout'],
+            ['userResult', 'logout'],
+            ['userCommand', 'logout'],
+            ['userResult', 'logout']
+        ])
+        expect(events[1][1].result).toEqual({ value: 'ok' })
+    })
+
+    it('sends one pair with the name of an overwritten context command', async () => {
+        const browser = await bidiSession()
+        browser.overwriteCommand('getUrl', async function (this: WebdriverIO.BrowsingContext, origGetUrl: () => Promise<string>) {
+            return `${await origGetUrl()}#x`
+        }, { attachToBrowsingContext: true })
+        vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({ type: 'success', realm: 'realm-1', result: { type: 'string', value: 'https://example.com/' } } as never)
+        const events = recordEvents(browser)
+        expect(await topContext(browser).getUrl()).toBe('https://example.com/#x')
+        expect(commandsOf(events)).toEqual([['userCommand', 'getUrl'], ['userResult', 'getUrl']])
+    })
+
+    it('sends one pair with the name of a built-in context command', async () => {
+        const browser = await bidiSession()
+        const page = topContext(browser)
+        vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({ type: 'success', realm: 'realm-1', result: { type: 'string', value: 'Title' } } as never)
+        const events = recordEvents(browser)
+        expect(await page.getTitle()).toBe('Title')
+        await page.navigate('https://example.com/x')
+        await page.pause(1)
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', 'getTitle'],
+            ['userResult', 'getTitle'],
+            ['userCommand', 'navigate'],
+            ['userResult', 'navigate'],
+            ['userCommand', 'pause'],
+            ['userResult', 'pause']
+        ])
+        expect(events[2][1].body).toEqual(['https://example.com/x'])
+    })
+
+    it('keeps the protocol commands of the browser as they are', async () => {
+        const browser = await bidiSession()
+        topContext(browser)
+        const events = recordEvents(browser)
+        expect(typeof await browser.getTitle()).toBe('string')
+        expect(events).toEqual([])
     })
 })
