@@ -316,7 +316,7 @@ The `error` of a `result` is the value that the command threw. To write it as JS
 When your reporter overrides one of these methods, the base reporter does these steps:
 
 - It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
-- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. For `execute` and `executeAsync`, a script string in the first value of `body` is shortened as the script of a protocol command. A function stays `[Function name]`.
+- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. The type of an `output` entry is `'command' | 'result' | 'userCommand' | 'userResult'` and the other fields keep the types of a protocol entry. Call `isUserCommandOutput(entry)` or `isUserResultOutput(entry)` to get the fields of a user entry (`UserCommandOutput`, `UserResultOutput`). For `execute` and `executeAsync`, a script string in the first value of `body` is shortened as the script of a protocol command. A function stays `[Function name]`.
 - It hides the protocol commands that a user command runs: these have a `parent` field. It does not call `onBeforeCommand` and `onAfterCommand` for them, and it does not add them to `output`. `takeScreenshot` and `takeElementScreenshot` are not hidden, so you can get the screenshots from them as before. These two commands never send user command events, because their result is a base64 screenshot.
 
 A reporter that overrides neither method gets no user commands, and it gets all protocol commands as before.
@@ -325,7 +325,7 @@ Only the outer user command sends events. The commands that a custom command or 
 
 :::warning Experimental
 
-`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `userCommandError`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `userCommandError`, `isUserCommandOutput`, `isUserResultOutput`, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 
