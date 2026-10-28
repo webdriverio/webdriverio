@@ -1,7 +1,7 @@
 {% from "tests.njk" import renderTests %}
 {% macro renderSuite(suite) %}
 
-{% if suite.type %}
+{% if suite.type and showSuite(suite) %}
 {% if suite.type.includes('suite') or suite.type.includes('feature') or suite.type.includes('scenario') %}
 <table class="table table-bordered table-suite">
     <tr class="suite-header">

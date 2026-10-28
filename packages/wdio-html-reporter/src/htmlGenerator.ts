@@ -11,6 +11,9 @@ import { writeFile } from './files.js'
 import logger from '@wdio/logger'
 import url from 'node:url'
 
+/** the uid of the root suite of the base reporter (Mocha `it()` and hooks outside every `describe()`) */
+const ROOT_SUITE = '(root)'
+
 dayjs.extend(duration)
 
 /** Windows: a file that another worker copies, or that an antivirus scans, is locked for a short time */
@@ -131,6 +134,10 @@ class HtmlGenerator {
                 return path.extname(videoCaptureFile).toLowerCase() === '.webm' ? 'video/webm' : 'video/mp4'
             })
             environment.addGlobal('displaySpecFile', (suiteInfo:SuiteStats) => {
+                // a filter can hide the root box: the first suite of the file keeps its own row
+                if (suiteInfo?.file && suiteInfo.uid === ROOT_SUITE) {
+                    return true
+                }
                 if (suiteInfo && suiteInfo.file) {
                     if (specFileReferences && !specFileReferences.includes(suiteInfo.file)) {
                         specFileReferences.push(suiteInfo.file)
@@ -227,6 +234,10 @@ class HtmlGenerator {
 
                 return 'suite-unknown'
             })
+
+            // the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
+            environment.addGlobal('showSuite', (suite: SuiteStats) =>
+                suite.uid !== ROOT_SUITE || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
 
             environment.addGlobal('humanizeDuration', (duration:number) => {
                 return dayjs.duration(duration, 'milliseconds').format('HH:mm:ss.SSS')

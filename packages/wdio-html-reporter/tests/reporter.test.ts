@@ -625,10 +625,11 @@ describe('tests with no describe()', () => {
 
     type JsonSuite = { title: string, hooks: { title: string, output?: { type: string, body?: { url?: string } }[] }[] }
     // Mocha before() / after() outside every describe(), Jasmine top-level beforeAll / afterAll
-    const rootHooks = async (name: string, options: object, commands = true) => {
+    type RootRun = { commands?: boolean, specs?: string[], file?: string, rootError?: boolean }
+    const rootHooks = async (name: string, options: object, { commands = true, specs = ['/spec.js'], file = '/spec.js', rootError = false }: RootRun = {}) => {
         const dir = path.join(outputRoot, name) + path.sep
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Root hooks', ...options } as never)
-        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs: ['/spec.js'], file: '/spec.js', ...payload })
+        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs, file, ...payload })
         emit('runner:start', { config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
         const hook = (uid: string, kind: 'before' | 'after') => {
             const payload = { uid, title: `"${kind} all" hook in "{root}"`, parent: '', hookKind: `${kind}All` }
@@ -638,7 +639,7 @@ describe('tests with no describe()', () => {
                 reporter.emit('client:beforeCommand', command)
                 reporter.emit('client:afterCommand', { ...command, result: { value: null } })
             }
-            emit('hook:end', payload)
+            emit('hook:end', rootError && kind === 'before' ? { ...payload, error: { message: 'root setup failed', stack: 'Error: root setup failed' } } : payload)
         }
         const test = { uid: 't1', title: 'o1', fullTitle: 'outer o1', parent: 'outer' }
         hook('root-before', 'before')
@@ -654,6 +655,7 @@ describe('tests with no describe()', () => {
         process.removeAllListeners('test:video-capture')
         return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as JsonSuite[]
     }
+    const htmlOf = (name: string) => fs.readFileSync(path.join(outputRoot, name, 'report-0-0.html'), 'utf-8')
 
     it('writes the root suite with the commands of its hooks, removeOutput: false', async () => {
         const suites = await rootHooks('root-hooks-output', { removeOutput: false })
@@ -664,13 +666,70 @@ describe('tests with no describe()', () => {
         ])
     })
 
+    it('does not show a root suite with only passed hooks, but keeps their commands in the JSON file', async () => {
+        const suites = await rootHooks('root-hooks-hidden', { removeOutput: false, produceHtml: true })
+        expect(suites.map((suite) => suite.title)).toEqual(['(root)', 'outer'])
+        const html = htmlOf('root-hooks-hidden')
+        expect(html).toContain('&nbsp;</span>outer')
+        expect(html).not.toContain('&nbsp;</span>(root)')
+    })
+
+    it('shows a root suite with a failed hook', async () => {
+        await rootHooks('root-hook-failed', { produceHtml: true }, { rootError: true })
+        const html = htmlOf('root-hook-failed')
+        expect(html).toContain('&nbsp;</span>(root)')
+        expect(html).toContain('Hook failed: &quot;before all&quot; hook in &quot;{root}&quot;: root setup failed')
+    })
+
+    // the runner gives the spec files as URLs, the framework gives each suite the path of its spec file
+    it('shows the spec file of the root suite as a path, and keeps the row of the first suite', async () => {
+        const spec = path.resolve('project', 'spec.js')
+        const suites = await rootHooks('root-spec-path', { produceHtml: true }, { specs: [url.pathToFileURL(spec).href], file: spec, rootError: true }) as (JsonSuite & { file: string })[]
+        expect(suites[0].file).toBe(spec)
+        const [root, outer] = htmlOf('root-spec-path').split('&nbsp;</span>outer')
+        expect(root + outer).not.toContain('file://')
+        // a filter can hide the (root) box: the first suite of the file keeps its own row
+        expect(root).toContain(`<td>${spec.replace(process.cwd(), '')}</td>`)
+        expect(outer).toContain(`<td>${spec.replace(process.cwd(), '')}</td>`)
+    })
+
+    it('shows no spec file on the root suite of a worker with several spec files', async () => {
+        // grouped spec files: the root tests and hooks can come from any of them
+        const [first, second] = ['first.spec.js', 'second.spec.js'].map((name) => path.resolve('project', name))
+        const suites = await rootHooks('root-grouped-specs', { produceHtml: true }, { specs: [first, second].map((spec) => url.pathToFileURL(spec).href), file: first, rootError: true }) as (JsonSuite & { file: string })[]
+        expect(suites[0].file).toBe('')
+        const [root, outer] = htmlOf('root-grouped-specs').split('&nbsp;</span>outer')
+        expect(root).toContain('&nbsp;</span>(root)')
+        expect(root).not.toContain('<td>Spec File</td>')
+        expect(outer).toContain('<td>Spec File</td>')
+    })
+
+    it('shows a suite with no test that is not the root suite', async () => {
+        const dir = path.join(outputRoot, 'empty-suite') + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Empty', produceHtml: true } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs: ['/spec.feature'], file: '/spec.feature', ...payload })
+        emit('runner:start', { config: { framework: 'cucumber' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        // a Cucumber scenario with no step
+        const feature = { uid: 'feature', title: 'Feature', fullTitle: 'Feature', parent: '' }
+        const scenario = { uid: 'scenario', title: 'Has no step', fullTitle: 'Feature: Has no step', parent: 'feature' }
+        emit('suite:start', feature)
+        emit('suite:start', scenario)
+        emit('suite:end', scenario)
+        emit('suite:end', feature)
+        await reporter.onRunnerEnd(reporter.runnerStat!)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        expect(htmlOf('empty-suite')).toContain('&nbsp;</span>Has no step')
+    })
+
     it('does not write a root suite with only passed hooks, removeOutput: true', async () => {
         const suites = await rootHooks('root-hooks-no-output', {})
         expect(suites.map((suite) => suite.title)).toEqual(['outer'])
     })
 
     it('does not write a root suite with passed hooks that have no command, removeOutput: false', async () => {
-        const suites = await rootHooks('root-hooks-no-command', { removeOutput: false }, false)
+        const suites = await rootHooks('root-hooks-no-command', { removeOutput: false }, { commands: false })
         expect(suites.map((suite) => suite.title)).toEqual(['outer'])
     })
 })

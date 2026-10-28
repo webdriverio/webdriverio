@@ -16,6 +16,7 @@ import { headerBrowserName } from './browserName.js'
 
 import fs from 'node:fs'
 import path from 'node:path'
+import url from 'node:url'
 import util from 'node:util'
 import logger from '@wdio/logger'
 
@@ -544,9 +545,12 @@ export default class HtmlReporter extends WDIOReporter {
         if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
+        // with grouped spec files the root tests and hooks can come from any of them; the runner gives URLs, the suites paths
+        const [spec, ...others] = runner.specs
+        const file = !spec || others.length ? '' : spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
             suites: [],
-            file: root.file || runner.specs[0],
+            file,
             end: new Date()
         })]
     }
