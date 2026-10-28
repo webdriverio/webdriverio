@@ -17,7 +17,7 @@ const TRANSPARENT_COMMANDS = ['call']
 
 /**
  * The user command that the calling code runs in. `depth` is 0 for the outer
- * call. `id` is set only when the outer call sends events.
+ * call. `id` is set only when the outer call sends events or is excluded.
  * @experimental
  */
 export interface UserCommandFrame {
@@ -66,7 +66,7 @@ export function registerUserCommands (names: string[]) {
 }
 
 /**
- * The id of the outer user command that sends events, for the `parent` of a
+ * The id of the outer user command that sends events or is excluded, for the `parent` of a
  * protocol event. A command hook has no parent.
  * @experimental
  */
@@ -114,15 +114,16 @@ export function runOutsideUserCommands<T> (fn: () => T): T {
     return userCommandStore.run(undefined, fn)
 }
 
-function sendsEvents (browser: EventBrowser | undefined, command: string) {
+// 'hide': an id but no events, so opt-in reporters hide the protocol commands of an excluded command
+function eventMode (browser: EventBrowser | undefined, command: string): 'send' | 'hide' | undefined {
     if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
-        return false
+        return undefined
     }
     const option = browser.options?.userCommandEvents
     if (option === false) {
-        return false
+        return undefined
     }
-    return !(typeof option === 'object' && option.exclude?.includes(command))
+    return typeof option === 'object' && option.exclude?.includes(command) ? 'hide' : 'send'
 }
 
 /**
@@ -163,8 +164,9 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     }
 
     // an outer call that sends nothing still is depth 0, so its nested calls send nothing
-    if (!sendsEvents(browser, command)) {
-        return store.run({ depth: 0 }, run)
+    const mode = eventMode(browser, command)
+    if (mode !== 'send') {
+        return store.run(mode === 'hide' ? { depth: 0, id: ++lastUserCommandId } : { depth: 0 }, run)
     }
 
     const emit = browser!.emit!.bind(browser)
