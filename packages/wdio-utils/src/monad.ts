@@ -4,7 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
-import { HAS_USER_COMMAND_LISTENERS, currentUserCommandId, registerUserCommands, runCustomCommand } from './userCommands.js'
+import { HAS_USER_COMMAND_LISTENERS, registerUserCommands, runCustomCommand, userCommandParent } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -458,8 +458,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
 
         function liftedCall(this: { emit: (event: string, payload: unknown) => unknown }, args: unknown[]) {
             // the old events of a custom command inside a user command get its id, so opt-in reporters hide them
-            const parentId = currentUserCommandId()
-            const parent = parentId === undefined ? {} : { parent: parentId }
+            const parent = userCommandParent(name)
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args, ...parent })
 
