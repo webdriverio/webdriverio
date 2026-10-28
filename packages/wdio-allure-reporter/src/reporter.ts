@@ -15,7 +15,7 @@ import type {
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, knownFramework, userCommandError } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -1275,13 +1275,23 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _endUserStep({ result, stop }: NonNullable<UserStep['done']>): void {
-        this._attachCommandResponse(result)
-        if ('error' in result) {
-            const statusDetails = result.error instanceof Error ? getMessageAndTraceFromError(result.error) : undefined
-            this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails })
+        if (!('error' in result)) {
+            this._attachCommandResponse(result)
+            this._endStep({ status: AllureStatusEnum.PASSED, stop })
             return
         }
-        this._endStep({ status: AllureStatusEnum.PASSED, stop })
+        if (result.error instanceof Error) {
+            this._attachCommandResponse(result)
+            this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails: getMessageAndTraceFromError(result.error) })
+            return
+        }
+        // an error from another realm or a thrown value
+        const error = userCommandError(result.error)
+        const fields = isObject(error) ? error as { name?: unknown, message?: unknown } : {}
+        const message = typeof fields.message === 'string' ? fields.message : typeof error === 'string' ? error : String(JSON.stringify(error))
+        const text = typeof fields.name === 'string' && fields.name ? `${fields.name}: ${message}` : message
+        this._attachFile({ name: 'Response', content: Buffer.from(text, 'utf8'), contentType: AllureContentType.TEXT })
+        this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails: { message } })
     }
 
     onTestEnd(test: TestStats): void {
