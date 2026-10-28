@@ -322,6 +322,44 @@ describe('user command events of a browsing context', () => {
         expect(events[2][1].body).toEqual(['https://example.com/x'])
     })
 
+    it('runs the command hooks of $$ of a context, and loads the list when it is awaited', async () => {
+        const calls: string[] = []
+        const browser = await remote({
+            capabilities: { browserName: 'bidi' },
+            beforeCommand: [(name: string) => { calls.push(`before ${name}`) }],
+            afterCommand: [(name: string) => { calls.push(`after ${name}`) }]
+        })
+        vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('top-context')
+        vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue(undefined as never)
+        const events = recordEvents(browser)
+        const page = topContext(browser)
+        calls.length = 0
+        const list = page.$$('#foo')
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        expect(calls).toEqual([])
+        await list
+        expect([calls[0], calls.at(-1)]).toEqual(['before $$', 'after $$'])
+        expect(commandsOf(events)).toEqual([['userCommand', '$$'], ['userResult', '$$']])
+    })
+
+    it('sends one action pair for perform of a context', async () => {
+        const browser = await bidiSession()
+        for (const command of ['inputPerformActions', 'inputReleaseActions'] as const) {
+            vi.spyOn(browser, command).mockResolvedValue(undefined as never)
+        }
+        const page = topContext(browser) as unknown as WebdriverIO.Browser
+        const events = recordEvents(browser)
+        await page.action('key').down('a').up('a').perform()
+        await page.actions([page.action('key').down('b')])
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', 'action'],
+            ['userResult', 'action'],
+            ['userCommand', 'actions'],
+            ['userResult', 'actions']
+        ])
+        expect(events[0][1].body).toEqual([['keyDown', 'keyUp']])
+    })
+
     it('keeps the protocol commands of the browser as they are', async () => {
         const browser = await bidiSession()
         topContext(browser)
