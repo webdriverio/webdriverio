@@ -7,6 +7,7 @@ import { remote } from '../../src/node.js'
 import { getContextManager } from '../../src/session/context.js'
 import { getPrototype } from '../../src/utils/index.js'
 import { getBrowsingContext } from '../../src/browsingContext.js'
+import { applyBidiBrowserOverwrites } from '../../src/utils/bidi/browserOverwrites.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -202,6 +203,52 @@ describe('user command events', () => {
             ['command', 'getTitle', true],
             ['result', 'getTitle', true]
         ])
+    })
+
+    it('gives no parent to the screenshot of a protocol takeScreenshot inside a user command', async () => {
+        const browser = await bidiSession()
+        browser.addCommand('shot', async function (this: WebdriverIO.Browser) {
+            return this.takeScreenshot()
+        })
+        const events = recordEvents(browser)
+        const protocol: [string, string, string | undefined, number | undefined][] = []
+        browser.on('command', (payload) => protocol.push(['command', payload.command, payload.endpoint, payload.parent]))
+        browser.on('result', (payload) => protocol.push(['result', payload.command, payload.endpoint, payload.parent]))
+        await (browser as unknown as { shot(): Promise<string> }).shot()
+        expect(commandsOf(events)).toEqual([['userCommand', 'shot'], ['userResult', 'shot']])
+        expect(protocol.filter(([, command]) => command === 'takeScreenshot')).toEqual([
+            ['command', 'takeScreenshot', '/session/:sessionId/screenshot', undefined],
+            ['result', 'takeScreenshot', '/session/:sessionId/screenshot', undefined]
+        ])
+    })
+
+    it('gives no parent to the screenshot of the BiDi takeScreenshot overwrite inside a user command', async () => {
+        const browser = await bidiSession()
+        ;(browser as unknown as { __bidiCommandsEnabled: boolean }).__bidiCommandsEnabled = true
+        vi.spyOn(getContextManager(browser), 'getCurrentTopLevelContext').mockResolvedValue('top-context')
+        vi.spyOn(browser, 'browsingContextCaptureScreenshot').mockResolvedValue({ data: 'iVBORw0KGgo=' })
+        // the overwrites are off in unit tests
+        const unitTests = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        try {
+            applyBidiBrowserOverwrites(browser)
+        } finally {
+            process.env.WDIO_UNIT_TESTS = unitTests
+        }
+        browser.addCommand('shot', async function (this: WebdriverIO.Browser) {
+            return this.takeScreenshot()
+        })
+        const protocol: [string, string, number | undefined][] = []
+        browser.on('command', (payload) => protocol.push(['command', payload.command, payload.parent]))
+        browser.on('result', (payload) => protocol.push(['result', payload.command, payload.parent]))
+        recordEvents(browser)
+        expect(await (browser as unknown as { shot(): Promise<string> }).shot()).toBe('iVBORw0KGgo=')
+        expect(protocol.filter(([, command]) => command === 'takeScreenshot')).toEqual([
+            ['command', 'takeScreenshot', undefined],
+            ['result', 'takeScreenshot', undefined]
+        ])
+        // the old events of the custom command keep its id
+        expect(protocol.filter(([, command]) => command === 'shot').map(([, , parent]) => parent)).toEqual([expect.any(Number), expect.any(Number)])
     })
 
     it('sends the name of the function that execute runs', async () => {

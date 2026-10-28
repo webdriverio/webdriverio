@@ -393,6 +393,18 @@ describe('currentUserCommandId', () => {
     })
 })
 
+describe('userCommandParent', () => {
+    it('is the id of the outer call, except for a screenshot', async () => {
+        const browser = fakeBrowser()
+        expect(mod.userCommandParent('getElementText')).toEqual({})
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            expect(mod.userCommandParent('getElementText')).toEqual({ parent: 1 })
+            expect(mod.userCommandParent('takeScreenshot')).toEqual({})
+            expect(mod.userCommandParent('takeElementScreenshot')).toEqual({})
+        })
+    })
+})
+
 describe('runWithoutUserCommands', () => {
     it('sends nothing for a registered command in a BiDi session', async () => {
         const browser = fakeBrowser()
