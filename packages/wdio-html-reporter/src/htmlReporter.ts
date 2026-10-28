@@ -420,6 +420,8 @@ export default class HtmlReporter extends WDIOReporter {
      * as its own entry. A failed step of a Cucumber scenario attempt has no label: its scenario has it
      */
     onTestRetry(test: TestStats) {
+        // no test:end comes for a retried Mocha attempt: show its error now
+        this.moveErrorsToEvents(test)
         const unit = this.unitOf(test)
         if (!(unit?.stats instanceof Suite)) {
             test.title = `${test.title} (attempt ${(unit?.attempt ?? 0) + 1}, retried)`

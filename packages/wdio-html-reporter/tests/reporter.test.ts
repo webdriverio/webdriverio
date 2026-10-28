@@ -768,6 +768,12 @@ describe('retries and hooks of a feature', () => {
             ['flaky (attempt 2, retried)', 'failed'],
             ['flaky', 'passed']
         ])
+        // the page shows the error of each failed attempt
+        expect(json.suites[0].tests.map((entry: { events: { type: string, value: { message: string } }[] }) => entry.events.filter((event) => event.type === 'Error').map((event) => event.value.message))).toEqual([
+            ['attempt 1'],
+            ['attempt 2'],
+            []
+        ])
     })
 
     // @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
