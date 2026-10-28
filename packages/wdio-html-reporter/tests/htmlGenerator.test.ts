@@ -1,0 +1,50 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import { describe, expect, it, vi } from 'vitest'
+
+import HtmlGenerator from '../src/htmlGenerator.js'
+import { Metrics, ReportData } from '../src/types.js'
+import type { HtmlReporterOptions } from '../src/types.js'
+import { RUNNER } from './testdata.js'
+
+describe('HtmlGenerator.htmlOutput', () => {
+    // the workers of a run write their reports to the same folder, and each copies the styles and the font
+    it('copies the styles and the font when several reports in one folder end at the same time', async () => {
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-assets-'))
+        const options = { outputDir, filename: 'report.html', reportTitle: 'Assets', produceHtml: true } as HtmlReporterOptions
+        for (let round = 0; round < 5; round++) {
+            const results = await Promise.all(Array.from({ length: 16 }, (_, worker) => HtmlGenerator.htmlOutput(options,
+                new ReportData('Assets', RUNNER, [], new Metrics(), path.join(outputDir, `report-${round}-${worker}.html`), 'chrome'))))
+            expect(results.every(Boolean)).toBe(true)
+        }
+        const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'report-styles.css'))
+        expect(fs.readFileSync(path.join(outputDir, 'report-styles.css')).equals(css)).toBe(true)
+        expect(fs.existsSync(path.join(outputDir, 'glyphicons-halflings-regular.woff'))).toBe(true)
+    })
+
+    // Windows: a copy fails with EBUSY while the file is locked, for example while another worker copies it
+    it.each([
+        ['passes when another worker writes the same file', 'same', 1, true],
+        ['passes when another worker writes the same file after 9 busy copies (an antivirus scan)', 'same', 10, true],
+        ['fails when an old file stays locked', 'old', 1, false],
+        ['fails when the file is not there', 'none', 1, false]
+    ])('a busy copy of the styles %s', async (_name, file, writtenAtCall, expected) => {
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-busy-'))
+        const options = { outputDir, filename: 'report.html', reportTitle: 'Busy', produceHtml: true } as HtmlReporterOptions
+        let calls = 0
+        const copyFile = vi.spyOn(fsp, 'copyFile').mockImplementation(async (from, to) => {
+            if (file !== 'none' && ++calls >= writtenAtCall) {
+                fs.writeFileSync(to as string, file === 'same' ? fs.readFileSync(from as string) : 'old styles')
+            }
+            throw Object.assign(new Error('EBUSY: resource busy or locked, copyfile'), { code: 'EBUSY' })
+        })
+        try {
+            const result = await HtmlGenerator.htmlOutput(options, new ReportData('Busy', RUNNER, [], new Metrics(), path.join(outputDir, 'report.html'), 'chrome'))
+            expect(result).toBe(expected)
+        } finally {
+            copyFile.mockRestore()
+        }
+    })
+})

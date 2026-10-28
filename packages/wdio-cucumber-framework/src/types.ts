@@ -122,13 +122,16 @@ export interface CucumberOptions {
      */
     retry?: number;
     /**
-     * Only retries the features or scenarios with tags matching the expression (repeatable).
-     * This option requires 'retry' to be specified.
+     * Only retry the scenarios with tags matching the tag expression.
+     * Requires `retry`.
      */
     retryTagFilter?: string;
     /**
-     * Fail if there are any undefined or pending steps
-     * @default false
+     * Fail the run on a pending step. As in Cucumber, the reporters still show the
+     * step as pending, and the worker logs a warning that names the scenarios with
+     * a pending step or hook. An undefined step fails the run also without `strict`,
+     * unless `ignoreUndefinedDefinitions` is `true`.
+     * @default true
      */
     strict?: boolean;
     /**
@@ -146,8 +149,7 @@ export interface CucumberOptions {
      */
     timeout?: number;
     /**
-     * Enable this to make webdriver.io behave as if scenarios
-     * and not steps were the tests.
+     * Report each scenario as one test. Its steps and hooks are not reported.
      * @default false
      */
     scenarioLevelReporter?: boolean;
@@ -157,7 +159,8 @@ export interface CucumberOptions {
      */
     tagsInTitle?: boolean;
     /**
-     * Treat undefined definitions as warnings.
+     * Report an undefined step as pending, with ` (undefined step)` at the end
+     * of its title, and do not fail the run for it.
      * Please note that this is a @wdio/cucumber-framework specific option and
      * not recognized by cucumber-js itself.
      * @default false
@@ -176,7 +179,8 @@ export interface CucumberOptions {
      */
     failAmbiguousDefinitions?: boolean;
     /**
-     * Profiles from which to include configuration.
+     * Profiles from which to include configuration. A value in `cucumberOpts`
+     * wins over the profile, and the profile wins over Cucumber's defaults.
      * @default []
      */
     profiles?: string[];
@@ -347,4 +351,28 @@ export interface Payload {
     passed?: boolean
     contextId?: string
     parentUid?: string | null
+    hookKind?: HookKind
+}
+
+/** The kind of a hook, as `@wdio/reporter` reads it */
+export type HookKind = Frameworks.HookKind
+
+/** a user BeforeAll / AfterAll of the support code library (WDIO's own run hooks are left out) */
+export interface UserRunHook {
+    kind: 'BeforeAll' | 'AfterAll'
+    name?: string
+    uri?: string
+    line?: number
+}
+
+/** the `hook:start` payload of a run hook: a hook of the feature, with no context */
+export interface TestRunHookStart {
+    type: 'hook'
+    uid: string
+    title: string
+    parent: string
+    parentUid: string
+    hookKind: HookKind
+    hookSuiteUid: string
+    file: string
 }

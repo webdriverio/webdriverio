@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
@@ -6,13 +7,15 @@ import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdi
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Frameworks, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError, shouldEnableTsx, enableTsx } from './utils.js'
 import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
+
+const LAUNCHER_FRAMEWORKS = new Set(['vitest', '@wdio/vitest-framework'])
 
 interface Schedule {
     cid: number
@@ -26,6 +29,18 @@ interface WorkerSpecs {
     files: string[]
     retries: number
     rid?: string
+}
+
+/** Vitest `provide` structured-clones the args into forked workers, and programmatic callers may pass functions or classes */
+function cloneableEntries<T extends object>(args: T): Partial<T> {
+    return Object.fromEntries(Object.entries(args).filter(([, value]) => {
+        try {
+            structuredClone(value)
+            return true
+        } catch {
+            return false
+        }
+    })) as Partial<T>
 }
 
 export interface EndMessage {
@@ -59,6 +74,8 @@ class Launcher {
 
     private _launcher?: Services.ServiceInstance[]
     private _resolve?: Function
+    #frameworkAbort = new AbortController()
+    #frameworkLaunch?: Promise<number>
 
     constructor(
         private _configFilePath: string,
@@ -98,6 +115,13 @@ class Launcher {
         let error: HookError | undefined = undefined
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
 
+        // Rejecting here keeps every hook, service and runner shutdown from running for a run that never starts
+        const framework = await this.#loadFrameworkLauncher(config)
+        if (framework) {
+            // ConfigParser keeps the --repeat CLI flag on the config, outside of its declared type
+            this.#assertFrameworkSupportsRun(config.framework, caps, (config as { repeat?: number }).repeat)
+        }
+
         try {
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
@@ -134,7 +158,11 @@ class Launcher {
                     .reduce((a, b) => a + b, 0)
                 : 1
 
-            this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
+            if (framework && config.specFileRetries > 0) {
+                log.warn('specFileRetries is not supported with this framework and is ignored')
+            }
+            // The framework schedules specs itself, so no spec file is ever retried
+            this.interface = new CLInterface(framework ? { ...config, specFileRetries: 0 } : config, totalWorkerCnt, this._isWatchMode)
             config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
 
             /**
@@ -145,7 +173,34 @@ class Launcher {
                 setupBrowser(config, caps)
             ])
 
-            exitCode = await this._runMode(config, caps)
+            const cliInterface = this.interface
+            if (framework) {
+                this.#frameworkLaunch = framework.launch({
+                    // ConfigParser keeps capabilities outside of getConfig()
+                    config: { ...config, capabilities: caps } as WebdriverIO.Config,
+                    specs: this.configParser.getSpecs().flat().map((spec) => spec.startsWith('file://') ? fileURLToPath(spec) : spec),
+                    configFile: this._configFilePath,
+                    args: cloneableEntries(this._args),
+                    signal: this.#frameworkAbort.signal,
+                    onEvent: (event) => {
+                        if (event.type === 'job:start') {
+                            const { cid, caps, specs } = event
+                            cliInterface.emit('job:start', { cid, caps, specs, hasTests: true })
+                        } else if (event.type === 'job:end') {
+                            cliInterface.emit('job:end', { cid: event.cid, passed: event.passed, retries: 0 })
+                        } else {
+                            cliInterface.onMessage(event.message as Parameters<CLInterface['onMessage']>[0])
+                        }
+                    }
+                })
+            }
+            exitCode = this.#frameworkLaunch
+                ? Number(await this.#frameworkLaunch.catch((err) => {
+                    // onComplete hooks must not see a green exit code for a crashed run
+                    exitCode = 1
+                    throw err
+                }) > 0)
+                : await this._runMode(config, caps)
             await logger.waitForBuffer()
             this.interface.finalise()
         } catch (err) {
@@ -179,6 +234,42 @@ class Launcher {
         }
 
         return exitCode
+    }
+
+    #assertFrameworkSupportsRun(framework: string, caps: Capabilities.TestrunnerCapabilities, repeat?: number) {
+        if (this._isWatchMode) {
+            throw new Error(`--watch is not supported by the ${framework} framework yet`)
+        }
+        // the framework gets the specs as a set of files, so the copies --repeat adds would run once
+        if (repeat) {
+            throw new Error(`--repeat is not supported by the ${framework} framework yet`)
+        }
+        const capList = (Array.isArray(caps) ? caps : [caps]) as unknown as Record<string, unknown>[]
+        for (const cap of capList) {
+            const matches = cap && 'alwaysMatch' in cap
+                ? [cap.alwaysMatch, ...(Array.isArray(cap.firstMatch) ? cap.firstMatch : [])]
+                : [cap]
+            for (const match of matches as (Record<string, unknown> | undefined)[]) {
+                for (const key of ['wdio:specs', 'wdio:exclude']) {
+                    if (match && key in match) {
+                        throw new Error(`Capability "${key}" is set, but per-capability specs are not supported by the ${framework} framework yet`)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Only frameworks in {@link LAUNCHER_FRAMEWORKS} may export `launch` to
+     * schedule specs themselves; all others run in WDIO workers and are never
+     * imported here. A listed framework that fails to load is a hard error.
+     */
+    async #loadFrameworkLauncher(config: Required<WebdriverIO.Config>) {
+        if (!config.framework || !LAUNCHER_FRAMEWORKS.has(config.framework)) {
+            return
+        }
+        const plugin = await initializePlugin(config.framework, 'framework') as Partial<Frameworks.FrameworkLauncher>
+        return typeof plugin.launch === 'function' ? plugin as Frameworks.FrameworkLauncher : undefined
     }
 
     /**
@@ -489,8 +580,8 @@ class Launcher {
 
         const config = this.configParser.getConfig()
 
-        // wait before retrying the spec file
-        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
+        // wait before retrying the spec file, first attempts start with retries=-1 ("unknown") and must not wait
+        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && !this._isWatchMode && retries >= 0) {
             await sleep(config.specFileRetriesDelay * 1000)
         }
 
@@ -723,6 +814,7 @@ class Launcher {
      * session first before killing
      */
     private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
+        this.#frameworkAbort.abort()
         if (!callback || !this.runner || !this.interface) {
             return
         }
@@ -733,6 +825,10 @@ class Launcher {
 
         this._hasTriggeredExitRoutine = true
         this.interface.sigintTrigger()
+        if (this.#frameworkLaunch) {
+            const runner = this.runner
+            return this.#frameworkLaunch.then(() => undefined, () => undefined).then(() => runner.shutdown()).then(callback)
+        }
         return this.runner.shutdown().then(callback) // no dispose(): the process exits next, and that kills the display server
     }
 

@@ -358,7 +358,7 @@ export class BidiCore {
         const logged = maskBidiCommand(params)
         log.info('BIDI COMMAND', ...parseBidiCommand(logged))
         const id = ++this.#id
-        this.client?.emit('bidiCommand', logged)
+        this.client?.emit('bidiCommand', { ...logged, id })
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }

@@ -82,7 +82,7 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`) and the `tags`, `name`, `strict`, `dryRun`, `failFast`, `retry` and `retryTagFilter` options work like in a sequential run.
+Every scenario of a feature file runs in its own window. Profiles (`cucumberOpts.profiles`, `cucumberOpts.file`), specs with line numbers (`--spec ./features/login.feature:5`) and the `tags`, `name`, `order`, `strict`, `dryRun`, `failFast`, `retry` and `retryTagFilter` options work like in a sequential run. Features, scenarios, steps and hooks are reported like in a sequential run, also with `ignoreUndefinedDefinitions`, `failAmbiguousDefinitions`, `tagsInTitle` and `scenarioLevelReporter`.
 
 ## Options
 
@@ -106,7 +106,14 @@ Set both in `mochaOpts` or in `cucumberOpts`.
 
 Pick `'contexts'` by default. Pick `'userContexts'` when tests must not see each other's cookies or storage, for example tests that log in as different users. Like `'contexts'`, `'userContexts'` falls back to a sequential run with a warning when the session is not WebDriver BiDi or `'wdio:experimentalBiDiCommands'` is missing from the capabilities. If the driver does not support `browser.createUserContext`, the run fails rather than falling back.
 
-`browser.newWindow()` opens the window in the default user context, so a window opened that way is outside the test's cookie and storage isolation.
+A tab or window that a test opens with `browser.newWindow(url)` opens from the window of the test, so it has the cookies and storage of the test. To open a window outside the test's cookie and storage isolation, create it with `browser.browsingContextCreate()`, and get its browsing context from `browser.browsingContexts()`:
+
+```js
+const { context } = await browser.browsingContextCreate({ type: 'window' })
+await browser.browsingContextNavigate({ context, url: 'https://example.com', wait: 'complete' })
+const outside = (await browser.browsingContexts()).find((c) => c.contextId === context)
+await outside.$('h1').getText()
+```
 
 ## What each test owns
 
@@ -143,15 +150,22 @@ Every other WebDriver Classic command also throws. Only `status`, `getTimeouts` 
 ### Mocha
 
 - `before()` and `after()` in a spec file run **once per test**, not once per `describe`, because every test has its own window. Each test runs `before`, `beforeEach`, the test, `afterEach` and `after` in its window. Put setup that should run once per spec file in the `beforeSuite` / `afterSuite` hooks in `wdio.conf.ts`. These run once, outside any test window.
+- Because each test runs its own hooks, a failing hook only affects its own test. A failing `before()` or `after()` is reported one time for each test, not one time for the `describe`, because parallel mode runs it once for each test. A failing `beforeEach()` or `afterEach()` does not stop the other tests of the `describe`. In a sequential run, Mocha skips them. With `failHookAffectedTests` (the default), the test that a failed `before()` or `beforeEach()` skips fails with the same text as in a sequential run. Only the hook title can differ: a failed `beforeEach()` names the test of its own window (`"before each" hook for "t2"`), while a sequential run names the first test for all of them.
 - Only `mochaOpts.timeout` applies. `this.timeout()` in a test or hook throws, and `it(...).timeout()` or a `describe` timeout is ignored with a warning. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
-- `mochaOpts.bail` and `mochaOpts.retries` are not supported and fail the run. `this.retries()` throws.
+- `mochaOpts.bail` and Mocha retries are not supported and fail the run: `mochaOpts.retries`, `this.retries(n)` in a `describe` and `it(...).retries(n)`. `this.retries()` in a test or hook throws. The [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`) work in parallel mode.
 - `.only()`, `this.skip()`, `grep`, `fgrep` and `invert` work like in a sequential run.
+- An error that no test awaits (for example a timer that throws) fails the test or hook of the window it comes from, and the other tests go on. As in a sequential run, an unhandled rejection does not fail a test, and with `mochaOpts.allowUncaught` the error ends the worker. An error that comes after its test ended, while other tests still run, fails the run and is logged, but no test shows it (a sequential run shows it on the test that runs at that time). After the last window closed, such an error ends the worker, as in a sequential run. The same is true for an error from an event emitter that your code made outside a test, and on Node.js 22 for an error from `queueMicrotask()`, because the window of the test is not known there.
+- `mochaOpts.dryRun`, `forbidPending` and `checkLeaks` do not apply in parallel mode yet: the tests run, a pending test does not fail, and a global leak is not reported.
 
 ### Cucumber
 
-- `BeforeAll` / `AfterAll` and the `beforeFeature` / `afterFeature` hooks in `wdio.conf.ts` run once per worker, not once per feature. `beforeFeature` / `afterFeature` receive the uri and feature of the first feature file only, which matters when one worker runs several feature files, for example grouped specs. They run outside any scenario's window, so they must not use commands that need one.
+- `BeforeAll` / `AfterAll` and the `beforeFeature` / `afterFeature` hooks in `wdio.conf.ts` run once per worker, not once per feature. A `BeforeAll` / `AfterAll` is reported once, when it starts and when it ends: a `BeforeAll` as a hook of the first feature, an `AfterAll` as a hook of the last feature, as in a sequential run. `beforeFeature` / `afterFeature` receive the uri and feature of the first feature file only, which matters when one worker runs several feature files, for example grouped specs. They run outside any scenario's window, so they must not use commands that need one.
 - `Before` / `After`, `BeforeStep` / `AfterStep` and the scenario and step hooks in `wdio.conf.ts` run for every scenario, in that scenario's window.
-- `cucumberOpts.strict` defaults to `false` in WebdriverIO. A pending step fails the scenario only with `strict: true`.
+- `cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run. Set `strict: false` to let it pass.
+- With `failFast`, the scenarios that already run in other windows finish after the first failure. The scenarios that did not start are reported as skipped, as in a sequential run.
+- With `ignoreUndefinedDefinitions: true`, an ambiguous step (with `failAmbiguousDefinitions: false`) fails the run. A sequential run then passes.
+- Cucumber formatters (`format`, `formatOptions`, `publish`) don't run, so they write no file.
+- An error that no step awaits (for example a timer that throws, or an unhandled rejection) fails the step or hook of the window it comes from, as in a sequential run, and the other scenarios go on. An error that comes after its scenario ended, while other scenarios still run, fails the run and is logged, but no step shows it (a sequential run shows it on the step that runs at that time). The same is true for an error from an event emitter that your code made outside a scenario, and on Node.js 22 for an error from `queueMicrotask()`, because the window of the scenario is not known there. An error in `BeforeAll` / `AfterAll` fails that hook, as in a sequential run.
 
 ### Both frameworks
 
@@ -171,9 +185,15 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
+`@wdio/allure-reporter` supports parallel mode with Mocha and Cucumber. With Mocha, it writes a test's result when the test and its `afterEach()` and `after()` hooks end. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, each scenario keeps its own result, steps and attachments.
 
-`@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
+`@wdio/spec-reporter` supports parallel mode: each Mocha `describe` block and each Cucumber scenario is shown under its own parent, also when tests run at the same time.
+
+`@wdio/cucumberjs-json-reporter` supports parallel mode: each scenario keeps its own steps, hooks, step lines and attachments. An attachment from code that runs outside a scenario, such as the WebdriverIO `after` hook, goes to the scenario that started last. A failed `BeforeAll` or `AfterAll` hook is not in the JSON, because it has no scenario to attach to.
+
+`@wdio/html-reporter` supports parallel mode with Mocha and Cucumber. It shows each log, screenshot and video under the test that sent it, also when it comes from a hook or after the test ends. An event from code that runs outside a test, such as an `AfterAll` hook or a `browser.on()` callback (a listener is for the whole session and gets the events of all test windows), goes to the test that started last, and the reporter logs a warning. An event from before the first test (for example the `before` hook of the configuration) goes to the first test that starts.
+
+`@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
@@ -203,7 +223,7 @@ The test called a command from [Commands that throw in parallel mode](#commands-
 
 ### `bail is not supported in parallel mode` / `retries is not supported in parallel mode`
 
-Remove `mochaOpts.bail` or `mochaOpts.retries`, or run the spec file without `parallelMode`.
+Remove `mochaOpts.bail` or `mochaOpts.retries`, or the `this.retries(n)` / `.retries(n)` of the test that the error names, or run the spec file without `parallelMode`. To retry a test in parallel mode, use the [WebdriverIO retries](./Retry.md) (`it(title, fn, retries)`).
 
 ### `Suite-level hooks (before()/after()) run once per test in parallel mode`
 

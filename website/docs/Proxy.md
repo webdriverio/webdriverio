@@ -80,7 +80,7 @@ WebdriverIO downloads the browser and the driver it needs when they are not inst
     npm install --save-dev proxy-agent
     ```
 
-  - Node.js runs with its built-in proxy support (Node.js 22.21.0 / 24.5.0 or later):
+  - Node.js runs with its built-in proxy support:
 
     ```bash
     NODE_USE_ENV_PROXY=1 npx wdio run ./wdio.conf.ts

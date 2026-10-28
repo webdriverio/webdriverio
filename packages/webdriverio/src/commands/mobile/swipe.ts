@@ -17,7 +17,7 @@ const SWIPE_DEFAULTS = {
  * :::info
  *
  * Swiping for Mobile Native Apps is based on the W3C-actions protocol, simulating a finger press and movement.
- * This is different from the [`mobile: scrollGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-scrollgesture) for Android
+ * This is different from the [`mobile: scrollGesture`](https://appium.github.io/appium-uiautomator2-driver/latest/reference/execute-methods/#mobile-scrollgesture) for Android
  * or [`mobile: scroll`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-scroll) for iOS command which is based on the Appium Driver protocol and is
  * only available for mobile platforms in the NATIVE context.
  *

@@ -1,4 +1,6 @@
 import RunnableStats from './runnable.js'
+import type { HookKind } from '../types.js'
+import type TestStats from './test.js'
 
 export interface Hook {
     type?: string
@@ -17,6 +19,26 @@ export interface Hook {
     currentTest?: string
     /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
     parentUid?: string | null
+    /** the browsing context of a parallel hook (Vitest: the id of the test) */
+    contextId?: string
+    /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
+    retried?: boolean
+    /**
+     * @experimental the uid of the test that failed with the error of this hook: the framework counts the
+     * error one time, as the failure of that test (Vitest `beforeEach` / `afterEach`)
+     */
+    failedTestUid?: string
+    /** @experimental the kind of the hook; without it the base keeps its owner rule of today */
+    hookKind?: HookKind
+    /** @experimental the uid of the suite that declares an all-hook (`beforeAll` / `afterAll`) */
+    hookSuiteUid?: string
+    /** @experimental the result that the framework sends at the hook end (Mocha config hooks `'pass'` / `'fail'`, Cucumber `'SKIPPED'`, ...) */
+    state?: string
+}
+
+/** a hook that the framework skipped: Mocha `this.skip()` (`pending` with no state), a Cucumber hook with the result `SKIPPED` */
+export function isSkippedHook(hook: Pick<Hook, 'pending' | 'state'>): boolean {
+    return (hook.pending === true && hook.state === undefined) || hook.state?.toLowerCase() === 'skipped'
 }
 
 export default class HookStats extends RunnableStats {
@@ -28,8 +50,29 @@ export default class HookStats extends RunnableStats {
     body?: string
     errors?: Error[]
     error?: Error
-    state?: 'failed' | 'passed'
+    /**
+     * The base reporter sets `'failed'` or `'skipped'` (the framework skipped the hook: Mocha `this.skip()`, a Cucumber
+     * hook result `SKIPPED`); a passed hook keeps `undefined`. A reporter can set `'passed'` on its own stats
+     * (`AllureReporter` does); each reporter has its own `HookStats`.
+     * @experimental the `'skipped'` value
+     */
+    state?: 'failed' | 'passed' | 'skipped'
     currentTest?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the browsing context of a parallel hook (Vitest: the id of the test) */
+    declare contextId?: string
+    /** the uid of the suite of the hook */
+    declare parentUid?: string | null
+    /** hook of an attempt that was retried; the attempt's error is reported on its `test:retry` */
+    declare retried?: boolean
+    /** @experimental the uid of the test that failed with the error of this hook; do not count the hook as another failure */
+    declare failedTestUid?: string
+    /** @experimental the kind of the hook */
+    declare hookKind?: HookKind
+    /** @experimental the uid of the suite that declares an all-hook */
+    declare hookSuiteUid?: string
+    /** @experimental the commands of a `beforeAll` / `afterAll` with `hookKind` and no context, or of a hook of a parallel context before its test; made at the first command */
+    declare output?: TestStats['output']
 
     constructor (runner: Hook) {
         super('hook')
@@ -39,13 +82,28 @@ export default class HookStats extends RunnableStats {
         this.parent = runner.parent
         this.currentTest = runner.currentTest
         this.body = runner.body
+        this.keepParallelFields(runner)
+        if (runner.retried !== undefined) {
+            this.retried = runner.retried
+        }
+        if (runner.failedTestUid !== undefined) {
+            this.failedTestUid = runner.failedTestUid
+        }
+        if (runner.hookKind !== undefined) {
+            this.hookKind = runner.hookKind
+        }
+        if (runner.hookSuiteUid !== undefined) {
+            this.hookSuiteUid = runner.hookSuiteUid
+        }
     }
 
-    complete (errors?: Error[]) {
+    complete (errors?: Error[], skipped = false) {
         this.errors = errors
         if (errors && errors.length) {
             this.error = errors[0]
             this.state = 'failed'
+        } else if (skipped) {
+            this.state = 'skipped'
         }
 
         super.complete()

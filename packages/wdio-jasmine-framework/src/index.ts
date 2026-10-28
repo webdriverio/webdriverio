@@ -5,7 +5,7 @@ import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
-import type { Services, Capabilities } from '@wdio/types'
+import type { Services, Capabilities, Frameworks } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
@@ -340,7 +340,8 @@ class JasmineAdapter {
                 status: '',
                 debugLogs: null,
                 filename: '',
-                ...(error ? { error } : {})
+                ...(error ? { error } : {}),
+                hookKind: fnName as Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
             }
 
             this._reporter.emit('hook:' + eventType, hook)

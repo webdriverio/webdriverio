@@ -13,6 +13,7 @@ import {
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
+import { TestStats } from '@wdio/reporter'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 
@@ -42,7 +43,6 @@ describe('SpecReporter', () => {
     describe('on create', () => {
         it('should verify initial properties', () => {
             expect(reporter['_suiteUids'].size).toBe(0)
-            expect(reporter['_indents']).toBe(0)
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
@@ -77,6 +77,12 @@ describe('SpecReporter', () => {
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
             expect(tmpReporter['_stateCounts'].failed).toBe(1)
         })
+
+        it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
+            tmpReporter.onHookEnd({ error: new Error('boom!'), failedTestUid: 'test-1' } as any)
+            tmpReporter.onHookEnd({ error: new Error('boom!'), retried: true } as any)
+            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+        })
     })
 
     describe('getEventsToReport', () => {
@@ -91,6 +97,33 @@ describe('SpecReporter', () => {
                 hooks: [{ error: 1 }, {}, { error: 2 }],
                 hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
             } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+        })
+
+        // a Scenario Outline whose name has no <placeholder>: its example rows have the same title
+        it('keeps a test of the same title when a later test of that title passes on retry', () => {
+            const stat = (uid: string, state: string, retries: number) =>
+                Object.assign(new TestStats({ type: 'test:start', uid, title: 'outline', fullTitle: 'f: outline', cid: '0-0', specs: [] }), { state, retries })
+            const row1 = stat('row1', 'failed', 0)
+            const row2Attempt = stat('row2', 'failed', 0)
+            const row2Retry = stat('row2', 'passed', 1)
+            const events = tmpReporter.getEventsToReport({
+                tests: [row1, row2Attempt, row2Retry], hooks: [], hooksAndTests: [row1, row2Attempt, row2Retry]
+            } as any)
+            expect(events).toEqual([row1, row2Retry])
+        })
+
+        // parallel mode: the attempts of the two rows come interleaved; a Cucumber scenario keeps its uid on a retry
+        it('pairs a retry with the earlier attempt of the same uid when tests of the same title overlap', () => {
+            const stat = (uid: string, state: string, retries: number) =>
+                Object.assign(new TestStats({ type: 'test:start', uid, title: 'outline', fullTitle: 'f: outline', cid: '0-0', specs: [] }), { state, retries })
+            const a0 = stat('row-a', 'failed', 0)
+            const b0 = stat('row-b', 'failed', 0)
+            const a1 = stat('row-a', 'failed', 1)
+            const b1 = stat('row-b', 'passed', 1)
+            const events = tmpReporter.getEventsToReport({
+                tests: [a0, b0, a1, b1], hooks: [], hooksAndTests: [a0, b0, a1, b1]
+            } as any)
+            expect(events).toEqual([a1, b1])
         })
     })
 
@@ -137,6 +170,42 @@ describe('SpecReporter', () => {
         })
     })
 
+    // Cucumber at step level: the step that fails in an attempt that is retried sends test:retry, not test:fail
+    it('removes the counts of every retried attempt, and only those', () => {
+        const step = (uid: string) => ({ uid }) as any
+        tmpReporter.onSuiteStart({ uid: 'scenario', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onTestSkip(step('a3'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('b1'))
+        tmpReporter.onHookEnd({ error: new Error('After hook fails') } as any)
+        tmpReporter.onTestPending(step('b2'))
+        tmpReporter.onSuiteRetry()
+        tmpReporter.onTestPass(step('c1'))
+        tmpReporter.onTestFail(step('c2'))
+        tmpReporter.onSuiteEnd()
+
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 1 passing ', 'red 1 failing', 'yellow 2 retried'])
+    })
+
+    // parallel mode: the events of scenarios in other windows come between the events of the retried scenario
+    it('removes only the counts of the retried scenario when scenarios overlap', () => {
+        const step = (uid: string, parentUid: string) => ({ uid, parentUid }) as any
+        tmpReporter.onSuiteStart({ uid: 'A', type: 'scenario' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onSuiteStart({ uid: 'B', type: 'scenario' } as any)
+        tmpReporter.onTestFail(step('b1', 'B'))
+        // a2 fails and sends test:retry: the spec reporter counts nothing for it
+        tmpReporter.onSuiteRetry({ uid: 'A' } as any)
+        tmpReporter.onSuiteEnd({ uid: 'B' } as any)
+        tmpReporter.onTestPass(step('a1', 'A'))
+        tmpReporter.onTestPass(step('a2', 'A'))
+        tmpReporter.onSuiteEnd({ uid: 'A' } as any)
+
+        expect(tmpReporter.getCountDisplay('')).toEqual(['green 2 passing ', 'red 1 failing', 'yellow 1 retried'])
+    })
+
     it('should retain a passed test when another test with the same UID fails', () => {
         const passedTest = { uid: 'same-title' } as any
         const failedTest = { uid: 'same-title' } as any
@@ -174,16 +243,6 @@ describe('SpecReporter', () => {
 
         it('should increase stateCounts.skipped by 1', () => {
             expect(reporter['_stateCounts'].skipped).toBe(1)
-        })
-    })
-
-    describe('onSuiteEnd', () => {
-        beforeAll(() => {
-            reporter.onSuiteEnd()
-        })
-
-        it('should decrease indents', () => {
-            expect(reporter['_indents']).toBe(0)
         })
     })
 
@@ -618,6 +677,21 @@ describe('SpecReporter', () => {
             expect(result[0].hooks.length).toBe(1)
             expect(result[3].hooks.length).toBe(1)
         })
+
+        it('does not show a root suite hook that the framework skipped', () => {
+            tmpReporter['_suiteUids'] = new Set(['5'])
+            tmpReporter.suites = { '5': { uid: 5 } } as any
+            tmpReporter.currentSuites = [{
+                hooks: [{
+                    type: 'hook',
+                    title: '"before all" hook in "{root}"',
+                    state: 'skipped'
+                }]
+            }] as any
+            const result = tmpReporter.getOrderedSuites()
+            expect(result[0].hooks).toEqual([])
+            expect(result.at(-1)!.hooks).toEqual([])
+        })
     })
 
     describe('indent', () => {
@@ -709,16 +783,14 @@ describe('SpecReporter', () => {
 
         it('should add pending reason to report for skipped tests', () => {
             tmpReporter = new SpecReporter(options)
-            tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter.onTestSkip({
-                title:'test1',
-                state:State.SKIPPED,
-                pendingReason:'some random Reasons'
-            } as any)
-            const result = tmpReporter.getResultDisplay().toString()
-            expect(result).toContain('Pending Reasons')
-            expect(result).toContain('some random Reasons')
+            const suite = Object.values(SUITES)[2] as any
+            tmpReporter.onSuiteStart(suite)
+            const skipped = { ...suite.tests[1], pendingReason: 'some random Reasons' }
+            tmpReporter['_orderedSuites'] = [{ ...suite, tests: [suite.tests[0], skipped], hooksAndTests: [suite.tests[0], skipped] }] as any
+            tmpReporter.onTestSkip(skipped)
+            const result = tmpReporter.getResultDisplay().join('\n')
+            // under its own test, not under the first printed test
+            expect(result).toMatch(/foo bar baz\n.*a skipped test\n\n.*Pending Reasons.*\n\s+some random Reasons/)
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -944,6 +1016,15 @@ describe('SpecReporter', () => {
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
+        it('names a remote app URL by its file name, without credentials and token', () => {
+            const app = 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            expect(tmpReporter.getEnviromentCombo({
+                a: { platformName: 'Android', 'appium:app': app },
+                b: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on my.apk and chrome')
+            expect(tmpReporter.getEnviromentCombo({ platformName: 'Android', 'appium:app': app } as any)).toBe('my.apk on Android')
+        })
+
         it('should not throw if mutliremote name is "app"', () => {
             expect(tmpReporter.getEnviromentCombo({
                 app: {
@@ -951,6 +1032,19 @@ describe('SpecReporter', () => {
                     platform: 'Windows 8.1'
                 }
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
+        })
+
+        it('names an Appium device of a multi-remote run, and a session that did not start', () => {
+            // Appium returns its capabilities without the `appium:` prefix
+            expect(tmpReporter.getEnviromentCombo({
+                myPhone: { platformName: 'iOS', deviceName: 'iPhone 17' },
+                myBrowser: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on iPhone 17 and chrome')
+            expect(tmpReporter.getEnviromentCombo({
+                myBrowser: { capabilities: { browserName: 'chrome' } },
+                myOther: { capabilities: { browserName: 'firefox' } }
+            } as any, false, true)).toBe('MultiRemoteBrowser on chrome and firefox')
+            expect(tmpReporter.getEnviromentCombo({ a: { platformName: 'linux' } } as any, true, true)).toBe('MultiRemoteBrowser')
         })
 
         it('should return verbose desktop combo', () => {
@@ -1189,6 +1283,17 @@ describe('SpecReporter', () => {
                 const beforeEmptyHook = sent.length
                 realtime.onHookEnd({ type: 'hook', title: '' } as any)
                 expect(sent.length).toBe(beforeEmptyHook)
+            })
+        })
+
+        // a Cucumber step that fails in an attempt that Cucumber retries, a Mocha test that runs again
+        it('sends a line with the retry symbol for a retried test', () => {
+            withRunnerSend((sent) => {
+                const realtime = new SpecReporter({ realtimeReporting: true })
+                realtime.onRunnerStart(getRunnerConfig() as any)
+                realtime.onTestRetry({ type: 'test', title: 'Then I fail once', state: State.FAILED, uid: 'step-2' } as any)
+
+                expect(sent.map((message) => message.content).some((line) => line?.includes('↻') && line.includes('Then I fail once'))).toBe(true)
             })
         })
 

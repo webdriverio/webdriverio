@@ -1,7 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { TestStats } from '@wdio/reporter'
+import { TestStats, sanitizeCaps } from '@wdio/reporter'
 
 import WDIOJunitReporter, { addProperty } from '../src/index.js'
 import type { SuiteStats } from '@wdio/reporter'
@@ -19,6 +19,7 @@ const featuresLog = (await vi.importActual('./__fixtures__/cucumber-features.jso
 const featuresWithFailingThenSkipStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-then-skipped-steps.json') as any).default
 const featuresWithPendingStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-pending-step.json') as any).default
 const featuresWithErrorStepAndNoErrorObjectLog = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object.json') as any).default
+const featuresWithFailedHooksLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-hooks.json') as any).default
 const featuresScenarioLevelLog = (await vi.importActual('./__fixtures__/cucumber-features-scenario-level.json') as any).default
 const nestedSuites = (await vi.importActual('./__fixtures__/nested-suites.json') as any).default
 const nestedArrayOfSuites = (await vi.importActual('./__fixtures__/nested-array-suites.json') as any).default
@@ -41,7 +42,7 @@ if (os.platform() === 'win32') {
     cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackAndroidLog.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackIosLog.specs = ['file:///C:/features/sample_feature.feature']
-    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog, featuresScenarioLevelLog]) {
+    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog, featuresScenarioLevelLog, featuresWithFailedHooksLog]) {
         for (const [, suite] of Object.entries(fixture) as any) {
             suite.file = 'C:\\features\\sample_feature.feature'
         }
@@ -75,6 +76,20 @@ describe('wdio-junit-reporter', () => {
         expect(written).toContain('<?xml version="1.0" encoding="UTF-8"?>')
         expect(written).toContain('<testsuites')
         expect(written).not.toContain('<testcase')
+    })
+
+    it('adds the failed hooks of a suite as testcases, except those of a retried attempt', () => {
+        const hook = (title: string, retried?: boolean) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(retried && { retried }) })
+        const suite = { tests: [], hooks: [hook('"before each" hook for "a"', true), hook('"before each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"before each" hook for "b"'])
+    })
+
+    it('does not add a failed hook whose error is the failure of a test', () => {
+        const hook = (title: string, failedTestUid?: string) => ({ title, error: new Error('boom'), state: 'failed', _duration: 1, ...(failedTestUid && { failedTestUid }) })
+        const suite = { tests: [], hooks: [hook('"after each" hook for "a"', 'test-a'), hook('"after each" hook for "b"')] }
+        const { tests } = reporter['_addFailedHooks'](suite as any)
+        expect(tests.map(({ title }) => title)).toEqual(['"after each" hook for "b"'])
     })
 
     it('should prepare name', () => {
@@ -179,6 +194,88 @@ describe('wdio-junit-reporter', () => {
         expect(output).toMatchSnapshot()
     })
 
+    describe('package of a run with a remote app', () => {
+        const phone = {
+            platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15',
+            'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123'
+        }
+
+        it('does not write the query of the app URL in a single run', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: false, sanitizedCapabilities: sanitizeCaps(phone as any) } as any)
+            expect(output).toContain('<property name="capabilities" value="android.pixel9.15.app_apk"/>')
+            expect(output).toContain('classname="android.pixel9.15.app_apk.')
+            expect(output).not.toContain('token')
+        })
+
+        it('does not write the query of the app URL in a multi-remote run', () => {
+            reporter.suites = suitesLog as any
+            const capabilities = { mrA: { browserName: 'chrome', platformName: 'mac' }, mrB: phone }
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: true, capabilities, sanitizedCapabilities: '' } as any)
+            expect(output).toContain('value="mrA-chrome_mac+mrB-android_pixel9_15_app_apk"/>')
+            expect(output).not.toContain('token')
+        })
+    })
+
+    describe('package of a multi-remote run', () => {
+        const chrome = { browserName: 'chrome', browserVersion: '155.0.8059.85', platformName: 'mac' }
+        const multiRemoteRunner = (extra: Record<string, unknown> = {}) => ({
+            ...mochaRunnerLog,
+            isMultiRemote: true,
+            capabilities: { mrA: chrome, mrB: chrome },
+            sanitizedCapabilities: '',
+            ...extra
+        })
+
+        it('names each instance and its browser in the classname and the capabilities property', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            const name = 'mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac'
+            expect(output).toContain(`<property name="capabilities" value="${name}"/>`)
+            expect(output).toContain(`classname="${name}.`)
+            expect(output).not.toContain('classname=".')
+        })
+
+        it('names an instance without usable capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: {} } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
+        it('names an instance with no capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: null } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
+        it('reads the requested capabilities of an instance that did not start', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: { capabilities: { alwaysMatch: { browserName: 'chrome' } } }, mrB: chrome } }) as any)
+            expect(output).toContain('value="mrA-chrome+mrB-chrome_155_0_8059_85_mac"/>')
+        })
+
+        it('keeps the packageName option first', () => {
+            reporter.options.packageName = 'custom'
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            expect(output).toContain('classname="custom.')
+            expect(output).toContain('<property name="capabilities" value="mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac"/>')
+        })
+
+        it('keeps the Cucumber prefix', () => {
+            reporter.suites = featuresLog as any
+            const output = reporter['_buildJunitXml']({ ...cucumberRunnerMultiRemoteLog, capabilities: { mrA: chrome, mrB: chrome }, sanitizedCapabilities: '' } as any)
+            expect(output).toContain('classname="CucumberJUnitReport-mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac.')
+        })
+
+        it('does not change the package of a single browser run', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: false } as any)
+            expect(output).toContain(`value="${mochaRunnerLog.sanitizedCapabilities}"`)
+            expect(output).toContain(`classname="${mochaRunnerLog.sanitizedCapabilities}.`)
+        })
+    })
+
     it('generates xml output (Cucumber-style) with cucumberOpts.scenarioLevelReporter', () => {
         reporter.suites = featuresScenarioLevelLog as any
 
@@ -203,6 +300,37 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
+    })
+
+    it('reports failed Cucumber hooks as failures of the scenario', () => {
+        // the report adds the failed hooks to the steps, keep the fixture as it is for the next test
+        reporter.suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+        expect(output).toContain('<testsuites tests="1" failures="1" errors="0" skipped="0">')
+        expect(output).toContain('<failure message="Error: After hook failed"/>')
+        expect(output).not.toContain('<skipped/>')
+        // unnamed hooks get a title, hooks that ran before the steps come first
+        const stdout = output.slice(output.indexOf('<system-out>'))
+        expect(stdout.indexOf('❗ Before hook')).toBeGreaterThan(-1)
+        expect(stdout.indexOf('❗ Before hook')).toBeLessThan(stdout.indexOf('Given a passing step'))
+        expect(stdout.indexOf('❗ After hook')).toBeGreaterThan(stdout.indexOf('Given a passing step'))
+        // passing hooks are not added
+        expect(stdout.match(/❗/g)).toHaveLength(2)
+    })
+
+    it('places failed Cucumber hooks by their start time if the order was not recorded', () => {
+        const suites = JSON.parse(JSON.stringify(featuresWithFailedHooksLog))
+        const scenario = suites['hooks-scenario']
+        expect(scenario.tests.map((test: { title: string }) => test.title)).toEqual(['Given a passing step'])
+        scenario.hooksAndTests = []
+        scenario.hooks[1].start = '2026-10-22T18:00:00.015Z'
+        reporter.suites = suites
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+        const stdout = output.slice(output.indexOf('<system-out>'))
+        expect(stdout.indexOf('❗ Before hook')).toBeLessThan(stdout.indexOf('Given a passing step'))
+        expect(stdout.indexOf('❗ After hook')).toBeGreaterThan(stdout.indexOf('Given a passing step'))
     })
 
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
@@ -617,6 +745,17 @@ describe('wdio-junit-reporter', () => {
         }
     })
 
+    it('attributes properties emitted on the reporter instance to the current test', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const [testA] = (Object.values(suitesLog)[0] as SuiteStats).tests
+        reporter.onTestStart(testA)
+        vi.spyOn(reporter, 'getContextTest').mockReturnValue(testA)
+
+        reporter.emit('junit:addProperty', { name: 'a-prop', value: 'a-value' })
+
+        expect(reporter['_testToAdditionalInformation'][testA.uid].properties).toEqual({ 'a-prop': 'a-value' })
+    })
+
     it('skips attribution for a context test that never started, e.g. a skipped test', () => {
         const originalWrite = process.stdout.write
         try {
@@ -634,6 +773,28 @@ describe('wdio-junit-reporter', () => {
         } finally {
             process.stdout.write = originalWrite
         }
+    })
+
+    it('addWorkerLogs: writes each Cucumber step on its own line, followed by its output (Cucumber-style)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+        reporter.suites = featuresLog as any
+        reporter['_testToAdditionalInformation']['step has passed6'] = {
+            uid: 'step has passed6',
+            workerConsoleLog: 'output of the first step',
+            properties: {}
+        }
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any).toString()
+        const systemOut = /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(output)?.[1]
+        expect(systemOut).toBe([
+            '',
+            '✅ Given step has passed',
+            'output of the first step',
+            '✅ When step has passed',
+            '❗ Then step has failed',
+            '',
+            ''
+        ].join('\n'))
     })
 
     it('addProperty adds a property to currently running testcase', () => {

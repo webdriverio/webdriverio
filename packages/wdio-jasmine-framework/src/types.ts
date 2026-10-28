@@ -1,3 +1,5 @@
+import type { Frameworks } from '@wdio/types'
+
 export interface ReporterOptions {
     cid: string
     specs: string[]
@@ -25,6 +27,8 @@ export interface TestEvent extends jasmine.SpecResult {
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation,
+    /** the kind of a beforeAll / afterAll hook event, as `@wdio/reporter` reads it. @experimental */
+    hookKind?: Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
 }
 
 export interface ResultHandlerPayload {

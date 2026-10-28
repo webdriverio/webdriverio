@@ -79,9 +79,10 @@ describe('snapshot selector candidates', () => {
         expect(payNow[0].candidates).toContainEqual({ kind: 'role', selector: 'role/button[name="Pay now"]' })
     })
 
-    it('escapes quotes and backslashes in the name', () => {
+    it('escapes quotes and backslashes in role/ names, keeping aria/ unescaped', () => {
         const candidates = candidatesOf('<button>Say "hi" \\ bye</button>')
         expect(candidates('button', 'Say "hi" \\ bye')).toContain('role/button[name="Say \\"hi\\" \\\\ bye"]')
+        expect(candidates('button', 'Say "hi" \\ bye')).toContain('aria/Say "hi" \\ bye')
     })
 
     it('has no tag=text candidate for identical buttons and falls back to the positional path', () => {
@@ -175,5 +176,118 @@ describe('snapshot selector candidates', () => {
         expect(taggedCandidatesOf(twinned('Don\'t'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., "Don\'t")]' })
         expect(taggedCandidatesOf(twinned('Say "hi"'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., \'Say "hi"\')]' })
         expect(taggedCandidatesOf(twinned('It\'s "x"'), 'generic', 'Go', true)?.some((c) => c.kind === 'xpath-text')).toBe(false)
+    })
+
+    it('skips role/ and aria/ candidate when content has leading or trailing whitespace or icon/svg to avoid BiDi mismatch', () => {
+        // Leading icon markup
+        const linkHtml = '<a href="/logout" class="button"><i class="icon-signout" style="display:inline-block;width:10px;height:10px;background:#000"></i> Logout</a>'
+        const linkCandidates = candidatesOf(linkHtml)('link', 'Logout')
+        expect(linkCandidates).toBeDefined()
+        expect(linkCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(linkCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+        expect(linkCandidates).toContain('a=Logout')
+
+        // Trailing whitespace from following icon/svg (docs footer case from #16095)
+        const trailHtml = '<a href="#">Trail <svg width="10" height="10" aria-hidden="true"></svg></a>'
+        const trailCandidates = candidatesOf(trailHtml)('link', 'Trail')
+        expect(trailCandidates).toBeDefined()
+        expect(trailCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(trailCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+        expect(trailCandidates).toContain('a=Trail')
+
+        // Non-breaking space (&nbsp;) skips role/, aria/, and text locators
+        const nbspHtml = '<a href="#">&nbsp;Nbsp lead</a>'
+        const nbspCandidates = candidatesOf(nbspHtml)('link', 'Nbsp lead')
+        expect(nbspCandidates).toBeDefined()
+        expect(nbspCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(nbspCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+        expect(nbspCandidates?.some((c) => c.startsWith('a='))).toBe(false)
+
+        // Empty aria-label falls back to content with leading whitespace and still skips role/ and aria/
+        const emptyLabelHtml = '<a href="/logout" class="button" aria-label=""><i class="icon-signout" style="display:inline-block;width:10px;height:10px;background:#000"></i> Logout</a>'
+        const emptyLabelCandidates = candidatesOf(emptyLabelHtml)('link', 'Logout')
+        expect(emptyLabelCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(emptyLabelCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+
+        // Unresolved aria-labelledby falls back to content and still skips role/ and aria/
+        const unresolvedByHtml = '<a href="/logout" class="button" aria-labelledby="nonexistent"><i class="icon-signout" style="display:inline-block;width:10px;height:10px;background:#000"></i> Logout</a>'
+        const unresolvedCandidates = candidatesOf(unresolvedByHtml)('link', 'Logout')
+        expect(unresolvedCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(unresolvedCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+
+        // Non-empty aria-label without leading whitespace allows role/ and aria/
+        const validLabelHtml = '<a href="/logout" class="button" aria-label="Logout"><i class="icon-signout" style="display:inline-block;width:10px;height:10px;background:#000"></i> Logout</a>'
+        const validLabelCandidates = candidatesOf(validLabelHtml)('link', 'Logout')
+        expect(validLabelCandidates).toContain('role/link[name="Logout"]')
+        expect(validLabelCandidates).toContain('aria/Logout')
+
+        // Resolved aria-labelledby without leading whitespace allows role/ and aria/
+        const resolvedByHtml = '<span id="logout-lbl">Logout</span><a href="/logout" class="button" aria-labelledby="logout-lbl"><i class="icon-signout" style="display:inline-block;width:10px;height:10px;background:#000"></i></a>'
+        const resolvedCandidates = candidatesOf(resolvedByHtml)('link', 'Logout')
+        expect(resolvedCandidates).toContain('role/link[name="Logout"]')
+        expect(resolvedCandidates).toContain('aria/Logout')
+
+        // Wrapped label where browser trims edge space allows role/
+        const wrappedLabelHtml = '<label>Remember me <input type="checkbox"></label>'
+        const wrappedCandidates = candidatesOf(wrappedLabelHtml)('checkbox', 'Remember me')
+        expect(wrappedCandidates).toContain('role/checkbox[name="Remember me"]')
+
+        const btnHtml = '<button><svg width="10" height="10"></svg> Submit</button>'
+        const btnCandidates = candidatesOf(btnHtml)('button', 'Submit')
+        expect(btnCandidates).toBeDefined()
+        expect(btnCandidates?.some((c) => c.startsWith('role/'))).toBe(false)
+        expect(btnCandidates?.some((c) => c.startsWith('aria/'))).toBe(false)
+        expect(btnCandidates).toContain('button=Submit')
+    })
+
+    it('anchors positional css-path to body when the relative path is ambiguous', () => {
+        document.body.innerHTML = `
+            <section aria-label="Billing"><button aria-label=""></button><div><button><svg width="10" height="10"></svg></button></div></section>
+            <div><h2>Shipping</h2><button><svg width="10" height="10"></svg></button></div>
+        `
+        const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const { refs, tree } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        attachSelectors(tree, refs)
+
+        // Find the nameless button in Shipping div
+        const shippingButtonEl = document.querySelector('div:not(section div) > button')
+        expect(shippingButtonEl).not.toBeNull()
+
+        const shippingRef = refs.find((ref) => {
+            const candidate = ref.candidates.find((c) => c.kind === 'css-path')
+            return candidate && candidate.selector.startsWith('body > ')
+        })
+        expect(shippingRef).toBeDefined()
+
+        const cssCandidate = shippingRef!.candidates.find((c) => c.kind === 'css-path')!
+        expect(cssCandidate.selector).toBe('body > div > button')
+        const matched = document.querySelectorAll(cssCandidate.selector)
+        expect(matched).toHaveLength(1)
+        expect(matched[0]).toBe(shippingButtonEl)
+
+        // Multiple sibling divs under body get nth-of-type
+        document.body.innerHTML = `
+            <div><button><svg width="10" height="10"></svg></button></div>
+            <div><button><svg width="10" height="10"></svg></button></div>
+        `
+        const { refs: multiRefs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        const multiCss = multiRefs.map((r) => r.candidates.find((c) => c.kind === 'css-path')?.selector)
+        expect(multiCss).toEqual(['div:nth-of-type(1) > button', 'div:nth-of-type(2) > button'])
+    })
+
+    it('drops css-path candidate when neither relative path nor anchored path is unique', () => {
+        document.body.innerHTML = ''
+        const host1 = document.createElement('div')
+        const host2 = document.createElement('div')
+        document.body.appendChild(host1)
+        document.body.appendChild(host2)
+        host1.attachShadow({ mode: 'open' }).innerHTML = '<button></button>'
+        host2.attachShadow({ mode: 'open' }).innerHTML = '<button></button>'
+        const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        expect(refs).toHaveLength(2)
+        for (const ref of refs) {
+            expect(ref.candidates.some((c) => c.kind === 'css-path')).toBe(false)
+        }
     })
 })

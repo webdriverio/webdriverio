@@ -29,6 +29,10 @@ export interface Test {
     argument?: string | Argument
     state?: string
     contextId?: string
+    /** Epoch ms of the real test start; applied only together with `end`, for frameworks that report after the fact */
+    start?: number
+    /** Epoch ms of the completion, used instead of the receipt time when set */
+    end?: number
     /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
     parentUid?: string | null
 }
@@ -60,6 +64,9 @@ export default class TestStats extends RunnableStats {
     output: Output[]
     argument?: string | Argument
     retries?: number
+    // `declare`: no own property until `test:retry` sets it, so the stats of other tests stay the same
+    /** @experimental a failed attempt that the framework ran again (`test:retry`): only the last attempt counts */
+    declare retried?: boolean
     parent: string
     /**
      * initial test state is pending
@@ -70,6 +77,11 @@ export default class TestStats extends RunnableStats {
     errors?: Error[]
     error?: Error
     body?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the browsing context of a parallel test (Vitest: the id of the test) */
+    declare contextId?: string
+    /** the uid of the suite of the test (`null` for a top-level test) */
+    declare parentUid?: string | null
 
     constructor(test: Test) {
         super('test')
@@ -83,6 +95,7 @@ export default class TestStats extends RunnableStats {
         this.parent = test.parent
         // Mocha only
         this.body = test.body
+        this.keepParallelFields(test)
 
         /**
          * initial test state is pending
@@ -91,8 +104,13 @@ export default class TestStats extends RunnableStats {
         this.state = 'pending'
     }
 
-    pass() {
-        this.complete()
+    complete(end = new Date()) {
+        this.end = end
+        this._duration = end.getTime() - this.start.getTime()
+    }
+
+    pass(end?: Date) {
+        this.complete(end)
         this.state = 'passed'
     }
 
@@ -101,8 +119,8 @@ export default class TestStats extends RunnableStats {
         this.state = 'skipped'
     }
 
-    fail(errors?: Error[]) {
-        this.complete()
+    fail(errors?: Error[], end?: Date) {
+        this.complete(end)
         this.state = 'failed'
 
         /**

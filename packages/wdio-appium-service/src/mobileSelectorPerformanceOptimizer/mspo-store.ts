@@ -6,6 +6,35 @@ let currentTestName: string | undefined
 let currentDeviceName: string | undefined
 let performanceData: SelectorPerformanceData[] = []
 
+export interface ContextNames {
+    suiteName?: string
+    testFile?: string
+    testName?: string
+}
+let contextNames: (() => ContextNames | undefined) | undefined
+
+/**
+ * Set how to find the names of the test of the calling code (parallel mode); `undefined` from it keeps the
+ * names that the events set last
+ */
+export function setContextNamesResolver(resolver?: () => ContextNames | undefined): void {
+    contextNames = resolver
+}
+
+/**
+ * Clear the resolver, only when it is still this one (a later reporter keeps its own)
+ */
+export function clearContextNamesResolver(resolver: () => ContextNames | undefined): void {
+    if (contextNames === resolver) {
+        contextNames = undefined
+    }
+}
+
+function namesOf<K extends keyof ContextNames>(key: K, fallback: ContextNames[K]): ContextNames[K] {
+    const names = contextNames?.()
+    return names ? names[key] : fallback
+}
+
 /**
  * Update current suite name
  */
@@ -17,7 +46,7 @@ export function setCurrentSuiteName(suiteName: string): void {
  * Get current suite name
  */
 export function getCurrentSuiteName(): string | undefined {
-    return currentSuiteName
+    return namesOf('suiteName', currentSuiteName)
 }
 
 /**
@@ -31,7 +60,7 @@ export function setCurrentTestFile(testFile: string): void {
  * Get current test file
  */
 export function getCurrentTestFile(): string | undefined {
-    return currentTestFile
+    return namesOf('testFile', currentTestFile)
 }
 
 /**
@@ -45,7 +74,7 @@ export function setCurrentTestName(testName: string): void {
  * Get current test name
  */
 export function getCurrentTestName(): string | undefined {
-    return currentTestName
+    return namesOf('testName', currentTestName)
 }
 
 /**

@@ -8,7 +8,7 @@ When a test fails, the usual debugging loop is: rerun it, then compare two walls
 
 This is the fastest way to diagnose a flaky test: the command that behaved differently between the pass and the fail is highlighted for you, along with the assertion that broke.
 
-Available across all three adapters - **WebdriverIO**, **[Selenium WebDriver](/docs/devtools/selenium)**, and **[Nightwatch.js](/docs/devtools/nightwatch)**.
+Available on every adapter - **WebdriverIO**, **[Selenium WebDriver](/docs/devtools/selenium)** (Node.js and Python), and **[Nightwatch.js](/docs/devtools/nightwatch)**. The rerun filter differs per framework (WebdriverIO `--spec` plus a grep, Selenium `--grep` / `--testNamePattern`, Nightwatch `DEVTOOLS_RERUN_LABEL`, pytest node ids); the dashboard is identical.
 
 ## Demo
 

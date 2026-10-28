@@ -834,6 +834,47 @@ describe('webdriver request', () => {
             expect(Agent).toHaveBeenCalledTimes(1) // Once for global dispatcher mock, once for actual dispatcher
         })
 
+        it('should not verify certificates if strictSSL is disabled', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(Agent).toHaveBeenCalledWith(expect.objectContaining({
+                connect: { rejectUnauthorized: false }
+            }))
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(ProxyAgent).toHaveBeenCalledWith(expect.objectContaining({
+                requestTls: { rejectUnauthorized: false },
+                proxyTls: { rejectUnauthorized: false }
+            }))
+        })
+
+        it('should verify certificates by default', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: true })
+            expect(vi.mocked(Agent).mock.calls[0][0]).not.toHaveProperty('connect')
+
+            // the option is not set at all
+            expect(defaultOptions).not.toHaveProperty('strictSSL')
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(Agent).mock.calls[1][0]).not.toHaveProperty('connect')
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('requestTls')
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('proxyTls')
+        })
+
         it('should handle getGlobalDispatcher errors gracefully', async () => {
             // Mock getGlobalDispatcher to throw an error
             vi.mocked(getGlobalDispatcher).mockImplementation(() => {

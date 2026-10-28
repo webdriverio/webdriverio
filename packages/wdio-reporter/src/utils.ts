@@ -1,7 +1,39 @@
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
+import type { HookKind } from './types.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
+
+/**
+ * @experimental a failed hook that is a failure of its own: its error is not already the failure of a test
+ * (`failedTestUid`, e.g. a Vitest `beforeEach`) or of an attempt that the framework ran again (`retried`)
+ */
+export function hookCountsAsFailure(hook: { error?: unknown, retried?: boolean, failedTestUid?: string }): boolean {
+    return Boolean(hook.error) && !hook.retried && !hook.failedTestUid
+}
+
+/**
+ * @experimental a `beforeAll` / `afterAll` hook with `hookKind` and no context: it belongs to its suite, not to a unit.
+ * A hook with no `hookKind` keeps the owner of today
+ */
+export function isContextlessAllHook(hook: { contextId?: string, hookKind?: HookKind }): boolean {
+    return !hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')
+}
+
+// a hook with no hookKind: the Mocha title rule (`"after each" hook ...`)
+export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): boolean {
+    return hook.hookKind ? hook.hookKind === 'afterEach' : /^"after each" hook/.test(hook.title ?? '')
+}
+
+/**
+ * the framework of a runner config, from its short name in any case or its scoped package, as
+ * `initializePlugin` loads them (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for another
+ * framework, and for a path or a `file://` URL (the name of the framework is not known there)
+ */
+export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | 'vitest' | undefined {
+    const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
+    return short === 'cucumber' || short === 'mocha' || short === 'jasmine' || short === 'vitest' ? short : undefined
+}
 
 /**
  * replaces whitespaces with underscore and removes dots
@@ -20,8 +52,32 @@ export function sanitizeString (str?: string) {
         .toLowerCase()
 }
 
+// an app URL can hold credentials or a token: only its file name stays, else its host
+export function appFileName<T> (app: T): T | string {
+    if (typeof app !== 'string') {
+        return app
+    }
+    try {
+        const url = new URL(app)
+        if (['http:', 'https:', 'ftp:'].includes(url.protocol)) {
+            const file = url.pathname.split('/').filter(Boolean).pop()
+            if (!file) {
+                return url.hostname
+            }
+            try {
+                return decodeURIComponent(file)
+            } catch {
+                return file
+            }
+        }
+    } catch {
+        // not a URL
+    }
+    return app
+}
+
 /**
- * formats capability object into sanitized string for e.g.filenames
+ * @experimental formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
  */
 export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
@@ -41,7 +97,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             // @ts-expect-error legacy capability names
             sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(appFileName(caps['appium:app']))
         ]
         : [
             sanitizeString(caps.browserName),
@@ -49,7 +105,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
             sanitizeString(caps.version || caps.browserVersion),
             // @ts-expect-error legacy capability names
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps['appium:app'])
+            sanitizeString(appFileName(caps['appium:app']))
         ]
 
     result = result.filter(n => n !== undefined && n !== '')

@@ -33,4 +33,15 @@ export default class RunnerStats extends RunnableStats {
         this.instanceOptions = runner.instanceOptions
         this.retry = runner.retry
     }
+
+    /**
+     * The attempt of the spec file with `specFileRetries`: 0 for the first one. `retry` is the runner value:
+     * `specFileRetries + 1` for the first attempt (the launcher does not know the retries yet), and 1 with
+     * no retries. In watch mode (retries 0) the only run gets `specFileRetries`.
+     */
+    get specFileAttempt (): number {
+        const specFileRetries = this.config?.specFileRetries ?? 0
+        const retry = this.retry ?? 0
+        return specFileRetries && retry <= specFileRetries ? retry : 0
+    }
 }

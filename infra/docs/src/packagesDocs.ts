@@ -10,6 +10,7 @@ import { getSubPackages, buildPreface, getRootDir } from '@wdio/repo-utils'
 const WORDS: Record<string, string> = {
     ai: 'AI',
     cucumberjs: 'CucumberJS',
+    html: 'HTML',
     json: 'JSON'
 }
 

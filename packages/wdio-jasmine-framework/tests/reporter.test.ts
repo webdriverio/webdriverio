@@ -180,6 +180,41 @@ test('getFailedCount', () => {
     expect(jasmineReporter.getFailedCount()).toBe(1)
 })
 
+test('getFailedCount counts a failing afterAll of a suite with specs', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar' } as any)
+    jasmineReporter.specDone({ id: '24', description: 'some test spec', failedExpectations: [], status: 'passed', fullName: 'foobar' } as any)
+    jasmineReporter.suiteDone({
+        id: '23',
+        description: 'some test suite',
+        failedExpectations: [new Error('afterAll failed') as any],
+        fullName: 'foobar'
+    } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+    // the failure is not reported as an extra test, the hook event covers it
+    expect(vi.mocked(runnerReporter.emit).mock.calls.map(([event]) => event)).toEqual([
+        'suite:start', 'test:start', 'test:pass', 'test:end', 'suite:end'
+    ])
+})
+
+test('getFailedCount counts a failure of a suite without specs once', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.suiteDone({
+        id: '23',
+        description: 'some test suite',
+        failedExpectations: [new Error('afterAll failed') as any],
+        fullName: 'foobar'
+    } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+})
+
+test('getFailedCount counts failures outside of a suite', () => {
+    jasmineReporter.jasmineDone({ failedExpectations: [new Error('top level afterAll failed')] } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+    jasmineReporter.jasmineDone({ failedExpectations: [] } as any)
+    expect(jasmineReporter.getFailedCount()).toBe(1)
+})
+
 test('do not clean stack option', () => {
     const error = new Error('foobar')
     error.stack += '\n\tat foobar (/foo/bar/node_modules/package/test.js)'
@@ -205,4 +240,25 @@ test('cleanStack should return if no stack is given', () => {
 
 afterEach(() => {
     vi.mocked(runnerReporter.emit).mockClear()
+})
+
+test('emit: a hook event keeps its hookKind and gets the uid of its suite as hookSuiteUid', () => {
+    const hook = { id: '', type: 'hook', description: '"before all" hook', fullName: '"before all" hook', hookKind: 'beforeAll' } as any
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.suiteStarted({ id: '23', description: 'some test suite', fullName: 'foobar' } as any)
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.emit('hook:end', { ...hook, description: '"after all" hook', hookKind: 'afterAll' })
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar' } as any)
+
+    const calls = vi.mocked(runnerReporter.emit).mock.calls
+    expect(calls.map(([event, p]) => [event, p.hookKind, p.hookSuiteUid])).toEqual([
+        ['hook:start', 'beforeAll', undefined],
+        ['suite:start', undefined, undefined],
+        ['hook:start', 'beforeAll', 'some test suite23'],
+        ['hook:end', 'afterAll', 'some test suite23'],
+        ['test:start', undefined, undefined]
+    ])
+    expect(calls[0][1]).not.toHaveProperty('hookSuiteUid')
+    expect(calls[1][1]).not.toHaveProperty('hookKind')
+    expect(calls[4][1]).not.toHaveProperty('hookKind')
 })

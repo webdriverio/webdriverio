@@ -204,17 +204,10 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.value).toBe('//html/body/section/div[6]/div/span')
     })
 
-    it('transforms classic link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('link text', 'GitHub Repo')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('GitHub Repo')
-    })
-
-    it('transforms classic partial link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('new')
-        expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
+    it('transforms classic link text selectors into a locator for all links', () => {
+        // the text of the links is compared after they were located
+        expect(transformClassicToBidiSelector('link text', 'GitHub Repo')).toEqual({ type: 'css', value: 'a' })
+        expect(transformClassicToBidiSelector('partial link text', 'new')).toEqual({ type: 'css', value: 'a' })
     })
 
     it('transforms aria selector to BiDi accessibility locator', () => {

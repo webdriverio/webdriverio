@@ -6,6 +6,8 @@ description: Turn the steps you ran in wdio session into a spec, page objects an
 
 `export` writes a spec from the recorded steps. Refs are replaced with stable selectors. For a web page, the first of these that matches exactly one element is used: a test id (`data-testid`, `data-test`, `data-qa`), a [role selector](/docs/selectors#role-selector) such as `role/button[name="Add to cart"]`, an accessible name (`aria/Add to cart`), an id, the text of a button or link, a form field name, and finally a CSS path.
 
+A role selector or accessible name is skipped when the name the snapshot computed may not be the one the driver computes, for example a name next to an icon, with a non-breaking space or spread over block elements. This happens in WebDriver BiDi and in classic sessions, and the text or CSS path is used instead. When the element has no selector at all, such as one of several nameless buttons inside shadow roots, the action still runs on the ref. The step is recorded as `ref('e12')` with a comment: it replays in the session, but `export` stops with `Step N still contains ref()` until the step is removed or rewritten with a selector.
+
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio run wdio.conf.ts --spec test/specs/cart.e2e.ts

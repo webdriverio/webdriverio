@@ -43,7 +43,7 @@ Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberGroupedSpecsRandomOrderHistory`, `cucumberSameFeatureFileName`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
-`jasmineAfterAll`, `jasmineFailSpecWithNoExpectations`,
+`jasmineAfterAll`, `jasmineFailingAfterAll`, `jasmineFailSpecWithNoExpectations`,
 `jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`
 
 CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,

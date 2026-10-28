@@ -55,7 +55,7 @@ export interface WebDriverResultEvent {
 type WebDriverClassicEvents = {
     command: WebDriverCommandEvent
     result: WebDriverResultEvent
-    bidiCommand: Omit<CommandData, 'id'>,
+    bidiCommand: CommandData,
     bidiResult: CommandResponse,
     'request.performance': RequestPerformanceEvent
     'request.retry': RequestRetryEvent
