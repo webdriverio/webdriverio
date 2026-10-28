@@ -405,11 +405,21 @@ export default class ConfigParser {
             filteredFile = removeLineNumbers(filteredFile)
             // Send wildcard or single file glob to getFilePaths
             // Return value will always be string[] or string [][]
-            const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
+            let globMatchedFiles = <string[]>ConfigParser.getFilePaths(
                 group ? [[filteredFile]] : [filteredFile],
                 this._config.rootDir,
                 this._pathService
             )
+            if (globMatchedFiles.length === 0) {
+                const cwdFile = makeRelativeToCWD([filteredFile])[0] as string
+                if (cwdFile !== filteredFile) {
+                    globMatchedFiles = <string[]>ConfigParser.getFilePaths(
+                        group ? [[cwdFile]] : [cwdFile],
+                        this._config.rootDir,
+                        this._pathService
+                    )
+                }
+            }
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
