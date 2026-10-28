@@ -275,6 +275,17 @@ describe('async stack of a command that fails', () => {
         expect(events).toEqual(['userCommand', 'command', 'result', 'userResult'])
     })
 
+    it('keeps the result of a custom command when a listener of its old events throws', async () => {
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        browser.on('result', () => {
+            throw new Error('listener')
+        })
+        browser.addCommand('myCmd', async () => 'done')
+        browser.addCommand('failingCmd', () => failing())
+        expect(await browser.myCmd()).toBe('done')
+        await expect(browser.failingCmd()).rejects.toThrow('Hello Bidi')
+    })
+
     it('keeps the result of a command when a listener throws', async () => {
         const browser = fakeBrowser()
         browser.emit.mockImplementation((event: string) => {
@@ -603,14 +614,13 @@ describe('custom commands', () => {
             throw new Error('boom')
         })
         await expect(browser.myCmd()).rejects.toThrow('boom')
-        // the old code sends its error result one tick later than the user result
         expect(names(events)).toEqual([
             ['userCommand', 'myCmd', undefined],
             ['command', 'myCmd', 1],
-            ['userResult', 'myCmd', undefined],
-            ['result', 'myCmd', 1]
+            ['result', 'myCmd', 1],
+            ['userResult', 'myCmd', undefined]
         ])
-        expect(events[2][1].result).toEqual({ error: expect.objectContaining({ message: 'boom' }) })
+        expect(events[3][1].result).toEqual({ error: expect.objectContaining({ message: 'boom' }) })
     })
 
     it('sends one pair for an overwritten registered command', async () => {
