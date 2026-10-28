@@ -451,6 +451,40 @@ describe('Video Reporter', () => {
             expect(addAttachmentMock.mock.calls[1]).toEqual(addAttachmentMock.mock.calls[0])
         })
 
+        // Mocha `retries`, Vitest `retry`, Cucumber scenario level: a failed attempt ends with test:retry and no test:end
+        it('makes a video of each failed attempt of a retried test, and records the next attempt again', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                const reporter = new VideoReporter({ saveAllVideos: true })
+                reporter.addFrame = vi.fn() as any
+                const videos: (string | undefined)[] = []
+                reporter.generateVideo = vi.fn((recording?: { path?: string }) => { videos.push(recording?.path) }) as any
+                reporter.onTestStart({ uid: 'flaky-0', title: 'flaky' } as any)
+                reporter.onTestRetry({ uid: 'flaky-0', title: 'flaky', state: 'failed' } as any)
+                expect(videos).toHaveLength(1)
+                vi.advanceTimersByTime(1000)
+                reporter.onTestStart({ uid: 'flaky-1', title: 'flaky' } as any)
+                reporter.onTestEnd({ uid: 'flaky-1', title: 'flaky', state: 'passed' } as any)
+                expect(videos).toHaveLength(2)
+                expect(videos[1]).not.toBe(videos[0])
+                expect(reporter.testNameStructure).toEqual([])
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('keeps one recording for the attempts of a Cucumber scenario (step reporting): test:end follows the test:retry of a step', () => {
+            const reporter = new VideoReporter({ saveAllVideos: true })
+            reporter.isCucumberFramework = true
+            reporter.addFrame = vi.fn() as any
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
+            reporter.onTestStart({ uid: 'step', title: 'a step' } as any)
+            reporter.onTestRetry({ uid: 'step', title: 'a step', state: 'failed' } as any)
+            reporter.onTestEnd({ uid: 'step', title: 'a step', state: 'failed' } as any)
+            expect(reporter.generateVideo).not.toBeCalled()
+        })
+
         it('keeps one recording when Mocha reports a test as started again after its beforeEach hook failed', () => {
             vi.useFakeTimers()
             try {
