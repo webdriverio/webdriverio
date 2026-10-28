@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import vm from 'node:vm'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { temporaryDirectory } from 'tempy'
@@ -83,6 +84,19 @@ describe('user commands of WebDriver BiDi sessions', () => {
         const [step] = result.steps
         expect([step.name, step.status, step.statusDetails?.message]).toEqual(['getText', 'failed', 'element not found'])
         expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'text/plain', 'Error: element not found']])
+    })
+
+    it.each([
+        ['an error from another realm', () => vm.runInNewContext('new TypeError("boom")'), 'TypeError: boom'],
+        ['an object with a name and a message', () => ({ name: 'Error', message: 'boom' }), 'Error: boom'],
+        ['an object with a message', () => ({ message: 'boom' }), 'boom'],
+        ['a string', () => 'boom', 'boom']
+    ])('fails the step of a user command that throws %s, with its message', async (_, error, response) => {
+        const { result, attachment } = await run((emit) => userCommand(emit, 1, 'getText', [], { error: error() }))
+
+        const [step] = result.steps
+        expect([step.status, step.statusDetails?.message]).toEqual(['failed', 'boom'])
+        expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'text/plain', response]])
     })
 
     it('gives no step with disableWebdriverStepsReporting, and keeps the screenshot of the user command', async () => {
