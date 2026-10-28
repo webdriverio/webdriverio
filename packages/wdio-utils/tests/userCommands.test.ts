@@ -308,15 +308,30 @@ describe('currentUserCommandId', () => {
         })
     })
 
-    it('is undefined inside an excluded outer call', async () => {
+    it('is the id of an excluded outer call, which sends no events', async () => {
         const browser = fakeBrowser({ options: { userCommandEvents: { exclude: ['waitUntil'] } } })
+        const ids: (number | undefined)[] = []
         await mod.runUserCommand(browser, 'waitUntil', [], async () => {
-            expect(mod.currentUserCommandId()).toBeUndefined()
+            ids.push(mod.currentUserCommandId())
             await mod.runUserCommand(browser, 'isDisplayed', [], async () => {
-                expect(mod.currentUserCommandId()).toBeUndefined()
+                ids.push(mod.currentUserCommandId())
             })
         })
+        expect(ids).toEqual([1, 1])
         expect(browser.emit).not.toHaveBeenCalled()
+        // the next outer call gets its own id
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        expect(pairs(browser).map(([event, payload]) => [event, payload.id])).toEqual([['userCommand', 2], ['userResult', 2]])
+    })
+
+    it.each([
+        ['userCommandEvents false', { options: { userCommandEvents: false } }],
+        ['a Classic session', { isBidi: false }]
+    ])('is undefined inside an outer call with %s', async (_, props) => {
+        const browser = fakeBrowser(props)
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            expect(mod.currentUserCommandId()).toBeUndefined()
+        })
     })
     it('is undefined inside a command hook of a nested command', async () => {
         const browser = fakeBrowser()

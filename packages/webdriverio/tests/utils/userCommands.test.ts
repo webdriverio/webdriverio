@@ -178,6 +178,31 @@ describe('user command events', () => {
         ])
     })
 
+    it('sends no pair for an excluded waitUntil, and its polls get its id as parent', async () => {
+        const browser = await bidiSession()
+        browser.options.userCommandEvents = { exclude: ['waitUntil'] }
+        const events = recordEvents(browser)
+        const protocol: [string, string, number | undefined][] = []
+        browser.on('command', (payload) => protocol.push(['command', payload.command, payload.parent]))
+        browser.on('result', (payload) => protocol.push(['result', payload.command, payload.parent]))
+        let polls = 0
+        await browser.waitUntil(async () => Boolean(await browser.getTitle()) && ++polls === 3, { interval: 1 })
+        expect(events).toEqual([])
+        expect(protocol).toHaveLength(6)
+        const parents = new Set(protocol.map(([, , parent]) => parent))
+        expect(parents.size).toBe(1)
+        expect([...parents][0]).toEqual(expect.any(Number))
+
+        // the next user command sends its pair, and its protocol commands get its own id
+        protocol.length = 0
+        await browser.getTitle().then(() => browser.url('https://example.com'))
+        expect(commandsOf(events)).toEqual([['userCommand', 'url'], ['userResult', 'url']])
+        expect(protocol.map(([event, command, parent]) => [event, command, parent === undefined])).toEqual([
+            ['command', 'getTitle', true],
+            ['result', 'getTitle', true]
+        ])
+    })
+
     it('sends the name of the function that execute runs', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
