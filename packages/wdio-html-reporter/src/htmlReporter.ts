@@ -109,8 +109,8 @@ export default class HtmlReporter extends WDIOReporter {
     #contextTestStarted = false
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
-    /** the failed attempts of a retried scenario (the suite keeps the start of its first attempt) */
-    #failedAttempts = new WeakMap<SuiteStats, SuiteStats[]>()
+    /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
+    #attemptEnds = new WeakMap<SuiteStats, Date>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
@@ -434,9 +434,9 @@ export default class HtmlReporter extends WDIOReporter {
      * times, before the base clears the suite for the next attempt. Only the last attempt counts
      */
     onSuiteRetry(suite: SuiteStats) {
-        const failedAttempts = this.#failedAttempts.get(suite) ?? []
         const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
-            title: `${suite.title} (attempt ${failedAttempts.length + 1}, retried)`,
+            // the base counts the retry before this call
+            title: `${suite.title} (attempt ${suite.retries}, retried)`,
             tests: [...suite.tests],
             hooks: [...suite.hooks],
             hooksAndTests: [...suite.hooksAndTests],
@@ -444,9 +444,9 @@ export default class HtmlReporter extends WDIOReporter {
             // its retried step is its failure (retried attempts are skipped only in the last attempt)
             retriedAttempt: true
         })
-        attempt.start = failedAttempts.at(-1)?.end ?? suite.start
+        attempt.start = this.#attemptEnds.get(suite) ?? suite.start
         attempt.complete()
-        this.#failedAttempts.set(suite, [...failedAttempts, attempt])
+        this.#attemptEnds.set(suite, attempt.end!)
         // a Cucumber scenario is always in its feature
         const siblings = this.parentOf(suite)?.suites
         const index = siblings?.indexOf(suite) ?? -1
