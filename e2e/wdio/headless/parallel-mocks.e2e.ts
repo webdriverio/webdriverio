@@ -50,14 +50,16 @@ describe('mocks in parallel mode', () => {
     })
 
     it('clears and restores only its own mocks, also on a tab it opened', async () => {
+        let tab: WebdriverIO.BrowsingContext | undefined
         try {
             const own = await browser.mock('**/api/own')
             own.respond('other', respondOptions)
             await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
-            const tab = await browser.newWindow(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
-            if (!('contextId' in tab)) {
+            const opened = await browser.newWindow(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+            if (!('contextId' in opened)) {
                 throw new Error('expected newWindow() to return a browsing context')
             }
+            tab = opened
             const onTab = await tab.mock('**/api/tab')
             onTab.respond('mocked', respondOptions)
             expect(await fetchText('tab', tab)).toBe('mocked')
@@ -69,9 +71,9 @@ describe('mocks in parallel mode', () => {
             expect(await fetchText('hook')).toBe('Not found')
             expect(await fetchText('tab', tab)).toBe('Not found')
             expect(await fetchText('suite-wide')).toBe('mocked')
-            await tab.closeWindow()
         } finally {
             restored.resolve()
+            await tab?.closeWindow().catch(() => {})
         }
     })
 })

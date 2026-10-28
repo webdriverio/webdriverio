@@ -5,8 +5,9 @@ const log = logger('webdriverio:mockClearAll')
 
 /**
  * Resets all information stored in all registered mocks of the session. On a
- * browsing context, or inside a parallel test, it resets only the mocks made
- * for that tab or window.
+ * browsing context, it resets only the mocks made for that tab or window.
+ * Inside a parallel test, it resets only the mocks that the test created, also
+ * on tabs it opened.
  *
  * <example>
     :mockClearAll.js

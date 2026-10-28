@@ -6,14 +6,6 @@ import { getParallelContextStore } from '../../session/context.js'
 import { isBrowsingContext } from '../../session/browsingContext.js'
 
 /**
- * A mock made on a held context or in a parallel test belongs to that context,
- * any other `browser.mock()` belongs to the whole session.
- */
-export function isContextScoped (scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext) {
-    return isBrowsingContext(scope) || Boolean(getParallelContextStore().getStore())
-}
-
-/**
  * The mocks `mockClearAll()` and `mockRestoreAll()` act on: on a tab, the mocks made
  * for that tab; in a parallel test, the mocks that test created, also on tabs it opened;
  * otherwise every mock of the session. `SESSION_MOCKS` also holds the mocks of the other

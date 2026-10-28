@@ -5,8 +5,9 @@ const log = logger('webdriverio:mockRestoreAll')
 
 /**
  * Restores all mock information and behavior stored in all registered
- * mocks of the session. On a browsing context, or inside a parallel test, it
- * restores only the mocks made for that tab or window.
+ * mocks of the session. On a browsing context, it restores only the mocks made
+ * for that tab or window. Inside a parallel test, it restores only the mocks
+ * that the test created, also on tabs it opened.
  *
  * <example>
     :mockRestoreAll.js
