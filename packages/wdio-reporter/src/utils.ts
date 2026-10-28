@@ -4,6 +4,7 @@ import url from 'node:url'
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
+import type { UserCommandOutput, UserResultOutput } from './stats/test.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
@@ -234,4 +235,20 @@ export function transformCommandScript (script?: string|Function) {
         return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
     }
     return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+}
+
+/**
+ * `true` for a user command entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserCommandOutput(entry: { type: string }): entry is UserCommandOutput {
+    return entry.type === 'userCommand'
+}
+
+/**
+ * `true` for a user command result entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserResultOutput(entry: { type: string }): entry is UserResultOutput {
+    return entry.type === 'userResult'
 }

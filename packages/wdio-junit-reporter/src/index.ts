@@ -3,7 +3,7 @@ import path from 'node:path'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, specFilePath } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, isUserCommandOutput, isUserResultOutput, specFilePath } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -684,17 +684,16 @@ class JunitReporter extends WDIOReporter {
             case 'result':
                 standardOutput.push(`RESULT: ${this._format(data.body)}`)
                 break
-            case 'userCommand':
+            }
+            if (isUserCommandOutput(data)) {
                 standardOutput.push(`COMMAND: ${data.command} - ${this._format(data.body)}`)
-                break
-            case 'userResult':
+            } else if (isUserResultOutput(data)) {
                 if ('error' in data.result) {
                     standardOutput.push(`RESULT: ${this._format({ error: userCommandError(data.result.error) })}`)
                 } else if (data.result.value !== undefined) {
                     // no line for a command with no value (click, actions)
                     standardOutput.push(`RESULT: ${this._format(data.result.value)}`)
                 }
-                break
             }
         })
         return standardOutput.length ? standardOutput.join('\n') : ''
