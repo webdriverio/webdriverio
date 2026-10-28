@@ -3,10 +3,9 @@ import type {
     CommandArgs,
     HookStats,
     RunnerStats,
-    SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats as Suite } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
@@ -254,7 +253,7 @@ export default class HtmlReporter extends WDIOReporter {
                 return undefined
             }
             const hookOwner = unit?.stats ?? this.hookOwner(owner as HookStats)
-            suite = hookOwner instanceof Suite ? hookOwner : undefined
+            suite = hookOwner instanceof SuiteStats ? hookOwner : undefined
         }
         suite ??= this.currentSuites.at(-1)
         return suite && !this.#startedSuites.has(suite) ? suite : undefined
@@ -350,7 +349,9 @@ export default class HtmlReporter extends WDIOReporter {
         }
         const waitingSuite = !id && !this.#contextTestStarted ? this.#waitingSuite() : undefined
         if (waitingSuite) {
-            this.#suiteEvents.set(waitingSuite, [...this.#suiteEvents.get(waitingSuite) ?? [], event])
+            const waiting = this.#suiteEvents.get(waitingSuite) ?? []
+            waiting.push(event)
+            this.#suiteEvents.set(waitingSuite, waiting)
             return
         }
         const uid = id ? this.#contextTests.get(id) : this._currentTestUid
@@ -423,7 +424,7 @@ export default class HtmlReporter extends WDIOReporter {
         // no test:end comes for a retried Mocha attempt: show its error now
         this.moveErrorsToEvents(test)
         const unit = this.unitOf(test)
-        if (!(unit?.stats instanceof Suite)) {
+        if (!(unit?.stats instanceof SuiteStats)) {
             test.title = `${test.title} (attempt ${(unit?.attempt ?? 0) + 1}, retried)`
         }
     }
