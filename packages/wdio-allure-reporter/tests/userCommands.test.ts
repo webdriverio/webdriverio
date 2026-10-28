@@ -121,3 +121,66 @@ describe('user commands of WebDriver BiDi sessions', () => {
         expect(ids(without).every(Boolean)).toBe(true)
     })
 })
+
+describe('user commands that overlap or end after their test', () => {
+    async function runTests(play: Play) {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir, writeStream: { write: () => true } } as any)
+        const emit = (type: string, payload: Record<string, unknown>) => reporter.emit(type, { cid: CID, specs: [SPEC], ...payload })
+        emit('runner:start', { capabilities: { browserName: 'chrome' }, config: { framework: 'mocha' }, isMultiRemote: false, sessionId: 's', instanceOptions: {} })
+        emit('suite:start', { uid: 'suite-A', title: 'A', fullTitle: 'A', parentUid: null, file: SPEC })
+        play(emit)
+        emit('suite:end', { uid: 'suite-A', title: 'A', fullTitle: 'A', parentUid: null, file: SPEC })
+        emit('runner:end', { failures: 0, retries: 0 })
+        await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+        const { results } = getResults(outputDir)
+        const attachment = (a: Result) => fs.readFileSync(path.join(outputDir, a.source), 'utf8')
+        const byName = (name: string) => (results as Result[]).find((r) => r.name === name)!
+        return { byName, attachment }
+    }
+    const test = (title: string) => ({ uid: `test-${title}`, title, fullTitle: `A ${title}`, parent: 'A', parentUid: 'suite-A', file: SPEC })
+    const steps = (r: Result, attachment: (a: Result) => string): unknown[] => r.steps.map((s: Result) => [
+        s.name, s.status, s.statusDetails?.message, s.attachments.map((a: Result) => attachment(a)), steps(s, attachment)
+    ])
+
+    it('closes each step of overlapping user commands with its own status and response', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // Promise.all([pause(), execute()]): the pause ends first
+            emit('client:beforeUserCommand', user(1, 'pause', []))
+            emit('client:beforeUserCommand', user(2, 'execute', []))
+            emit('client:afterUserCommand', { ...user(1, 'pause', []), result: { value: 'paused' } })
+            emit('client:afterUserCommand', { ...user(2, 'execute', []), result: { error: new Error('boom') } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['pause', 'passed', undefined, ['paused'], [
+                ['execute', 'failed', 'boom', ['Error: boom'], []]
+            ]]
+        ])
+    })
+
+    it('does not close a step of the next test with a result that comes after the end of its test', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(3, 'waitForDisplayed', []))
+            // the Mocha timeout ends t1 before its waitForDisplayed ends
+            emit('test:fail', { ...test('t1'), error: new Error('Timeout of 5000ms exceeded') })
+            emit('test:end', test('t1'))
+            emit('test:start', test('t2'))
+            emit('client:beforeUserCommand', user(6, 'pause', [7000]))
+            emit('client:afterUserCommand', { ...user(3, 'waitForDisplayed', []), result: { error: new Error('still not displayed') } })
+            emit('client:afterUserCommand', { ...user(6, 'pause', [7000]), result: { value: null } })
+            emit('test:pass', { ...test('t2'), passed: true })
+            emit('test:end', test('t2'))
+        })
+
+        expect(byName('t1').steps.map((s: Result) => s.name)).toEqual(['waitForDisplayed'])
+        expect(byName('t1').steps[0].status).not.toBe('passed')
+        expect(steps(byName('t2'), attachment)).toEqual([
+            ['pause', 'passed', undefined, ['[\n  7000\n]'], []]
+        ])
+    })
+})
