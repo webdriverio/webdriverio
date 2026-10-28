@@ -110,6 +110,16 @@ export default class BaseReporter {
         }))
     }
 
+    /**
+     * `true` when a reporter gets user commands: it overrides a user command method, or it is no `WDIOReporter`
+     */
+    get showsUserCommands () {
+        return this._reporters.some((reporter) => {
+            const shows = (reporter as { showsUserCommands?: unknown }).showsUserCommands
+            return typeof shows === 'boolean' ? shows : true
+        })
+    }
+
     setContextIdResolver (resolver: () => string | undefined) {
         this._reporters.forEach((reporter) => {
             if (typeof reporter.setContextIdResolver === 'function') {
