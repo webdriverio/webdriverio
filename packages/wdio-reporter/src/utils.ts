@@ -22,6 +22,18 @@ export function userCommandError(error: unknown): unknown {
 }
 
 /**
+ * A `JSON.stringify` replacer for a report of `TestStats.output`: the error of a `userResult` gets its name and
+ * message (see `userCommandError`). Other values stay as they are.
+ * @experimental the name and the rule may change
+ */
+export function userOutputReplacer(this: unknown, key: string, value: unknown): unknown {
+    if ((this as { type?: unknown } | undefined)?.type === 'userResult' && key === 'result' && value && typeof value === 'object' && 'error' in value) {
+        return { error: userCommandError((value as { error: unknown }).error) }
+    }
+    return value
+}
+
+/**
  * @experimental a failed hook that is a failure of its own: its error is not already the failure of a test
  * (`failedTestUid`, e.g. a Vitest `beforeEach`) or of an attempt that the framework ran again (`retried`)
  */
