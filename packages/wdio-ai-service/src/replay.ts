@@ -115,6 +115,14 @@ export function roleSelector (role: string, name: string) {
 }
 
 /**
+ * A positional `css-path` candidate from `@wdio/snapshot` (`cssPath()`): tags
+ * with an optional `:nth-of-type(n)` and an optional `data-test*` or `#id`
+ * anchor, joined by ` > ` and ending with a tag. On a changed page another
+ * element can sit at that position, so healing skips it.
+ */
+const POSITIONAL_PATH = /^(?:(?:#(?:\\.|[^>\s])+|\[data-(?:testid|test-id|test|cy|qa)="(?:\\.|[^"\\])*"\]|[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?) > )*[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?$/
+
+/**
  * Other ways to find the target of a step, without the model: the other
  * recorded selector candidates, then role and accessible name through the
  * `role/` selector, which uses the browser's accessibility engine on BiDi
@@ -125,7 +133,9 @@ export function alternativeSelectors (step: ActStep): string[] {
     if (!target) {
         return []
     }
-    const alternatives = target.candidates.filter((candidate) => candidate !== target.selector)
+    const alternatives = target.candidates.filter(
+        (candidate) => candidate !== target.selector && !POSITIONAL_PATH.test(candidate)
+    )
     if (target.role && target.name) {
         const byRole = roleSelector(target.role, target.name)
         if (!alternatives.includes(byRole) && byRole !== target.selector) {

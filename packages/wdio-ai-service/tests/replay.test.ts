@@ -81,6 +81,93 @@ describe('healing without the model', () => {
         expect(roleSelector('button', 'Say "hi" \\ bye')).toBe('role/button[name="Say \\"hi\\" \\\\ bye"]')
     })
 
+    it('skips positional css-path candidates while keeping stable selectors', () => {
+        const withPositional: ActStep = {
+            ...recorded,
+            target: {
+                selector: 'role/button[name="Pay now"]',
+                role: 'button',
+                name: 'Pay now',
+                candidates: [
+                    'role/button[name="Pay now"]',
+                    'button',
+                    'my-button',
+                    'main > button',
+                    'main > button:nth-of-type(2)',
+                    '[data-testid="cart"] > button',
+                    '#checkout > div:nth-of-type(1) > button:nth-of-type(2)',
+                    '#add',
+                    'a=Home > Products',
+                    'button.primary',
+                    'button[type="submit"]',
+                    'input[name="email"]',
+                    '[aria-label="Close"]',
+                    '//button[contains(., "Pay now")]'
+                ]
+            }
+        }
+        expect(alternativeSelectors(withPositional)).toEqual([
+            '#add',
+            'a=Home > Products',
+            'button.primary',
+            'button[type="submit"]',
+            'input[name="email"]',
+            '[aria-label="Close"]',
+            '//button[contains(., "Pay now")]'
+        ])
+    })
+
+    it('does not heal with a positional css-path candidate that matches an unrelated element (#15932)', async () => {
+        const payStep: ActStep = {
+            action: 'click',
+            args: { target: 'role/button[name="Pay now"]' },
+            code: 'await $(\'role/button[name="Pay now"]\').click()',
+            target: {
+                selector: 'role/button[name="Pay now"]',
+                role: 'button',
+                name: 'Pay now',
+                candidates: [
+                    'role/button[name="Pay now"]',
+                    'aria/Pay now',
+                    'button=Pay now',
+                    'button',
+                    'main > button:nth-of-type(2)',
+                    '[data-testid="cart"] > button'
+                ]
+            }
+        }
+        const { agent, run, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('button', 1)
+        matches.set('main > button:nth-of-type(2)', 1)
+        matches.set('[data-testid="cart"] > button', 1)
+
+        const failedResult = await replaySteps(agent, [payStep], {}, 100)
+        expect(failedResult.healed).toEqual([])
+        expect(failedResult.failed).toMatchObject({ index: 0, error: 'still not existing' })
+        expect(run).not.toHaveBeenCalled()
+
+        const movedStep: ActStep = {
+            ...payStep,
+            args: { target: '[data-testid="pay"]' },
+            code: 'await $(\'[data-testid="pay"]\').click()',
+            target: {
+                selector: '[data-testid="pay"]',
+                role: 'button',
+                name: 'Pay now',
+                candidates: ['[data-testid="pay"]', 'main > button']
+            }
+        }
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('main > button', 1)
+        matches.set('role/button[name="Pay now"]', 1)
+
+        const healedResult = await replaySteps(agent, [movedStep], {}, 100)
+        expect(healedResult.failed).toBeUndefined()
+        expect(healedResult.healed).toEqual([{ index: 0, from: '[data-testid="pay"]', to: 'role/button[name="Pay now"]' }])
+        expect(run).toHaveBeenCalledWith('click', { target: 'role/button[name="Pay now"]' })
+    })
+
     it('runs the step with the first alternative that matches exactly one element', async () => {
         const { agent, run, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
         waitForExist.mockRejectedValueOnce(new Error('still not existing'))
