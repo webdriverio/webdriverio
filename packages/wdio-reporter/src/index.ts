@@ -523,6 +523,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('runner:end', (runner: Options.RunnerEnd) => {
             try {
                 this.#openAllHooks.clear()
+                this.#userCommandOwners.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
