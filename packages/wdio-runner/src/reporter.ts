@@ -56,6 +56,7 @@ export default class BaseReporter {
         instanceOptions?: Options.Testrunner
         capabilities?: unknown
         retry?: number,
+        contextId?: string
     }) {
         payload.cid = this._cid
 
@@ -95,6 +96,14 @@ export default class BaseReporter {
                         fullTitle: `reporter ${reporter.constructor.name}`,
                     }
                 })
+            }
+        })
+    }
+
+    setContextIdResolver (resolver: () => string | undefined) {
+        this._reporters.forEach((reporter) => {
+            if (typeof reporter.setContextIdResolver === 'function') {
+                reporter.setContextIdResolver(resolver)
             }
         })
     }

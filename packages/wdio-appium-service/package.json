@@ -1,12 +1,12 @@
 {
   "name": "@wdio/appium-service",
-  "version": "10.0.1",
+  "version": "10.1.0",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
   "license": "MIT",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
     "get-port": "^7.0.0",
     "tree-kill": "^1.2.2",
     "webdriverio": "workspace:*",
-    "xpath": "^0.0.34"
+    "xpath": "^0.0.35"
   },
   "devDependencies": {
     "import-meta-resolve": "^4.0.0"

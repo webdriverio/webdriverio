@@ -49,6 +49,40 @@ describe('Multi-Remote tests', () => {
             }
         })
 
+        test('gives the entries of a list one set of wrapped commands (#16086)', async () => {
+            const browser = await multiRemote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements[0].getText).toBe(elements[2].getText)
+            expect(Object.prototype.hasOwnProperty.call(elements[1], 'getText')).toBe(false)
+            expect(elements[1].getInstance('browserA').elementId).toBe('some-elem-456')
+            expect(elements[0].getInstance('browserA')).not.toBe(elements[1].getInstance('browserA'))
+        })
+
+        test('keeps a command that one entry adds for the elements that this entry finds (#16086)', async () => {
+            const browser = await multiRemote(caps())
+            const elements = await browser.$$('#foo')
+
+            elements[0].addCommand('entryCommand', function () { return 'x' }, { attachToElement: true })
+
+            expect(typeof (await elements[0].$('.bar') as unknown as Record<string, unknown>).entryCommand).toBe('function')
+            expect((await elements[1].$('.bar') as unknown as Record<string, unknown>).entryCommand).toBeUndefined()
+        })
+
+        test('gives an entry past the end of a list the commands added after the list (#16086)', async () => {
+            const fast = caps()
+            for (const instance of Object.values(fast)) {
+                Object.assign(instance, { waitforTimeout: 100, waitforInterval: 20 })
+            }
+            const browser = await multiRemote(fast)
+            const elements = await browser.$$('#foo')
+
+            browser.addCommand('addedLater', function () { return 'later' }, { attachToElement: true })
+
+            expect(typeof (await elements[5] as unknown as Record<string, unknown>).addedLater).toBe('function')
+        })
+
         test('gives no element to an instance that finds fewer elements (#15845)', async () => {
             const browser = await multiRemote(caps())
             vi.spyOn(browser.getInstance('browserB'), 'findElements')
@@ -208,7 +242,7 @@ describe('Multi-Remote tests', () => {
                 expect(findB.mock.calls).toHaveLength(3)
             })
 
-            test('rejects when the element does not appear', async () => {
+            test('gives a multi-remote element of not found items when the element does not appear', async () => {
                 const browser = await multiRemote(caps())
                 for (const name of ['browserA', 'browserB']) {
                     browser.getInstance(name).options.waitforTimeout = 50
@@ -216,8 +250,18 @@ describe('Multi-Remote tests', () => {
                 growingElements(browser, Number.POSITIVE_INFINITY)
 
                 const elements = await browser.$$('#foo')
+                const element = await elements[2]
 
-                await expect(elements[2]).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
+                expect(element.isMultiRemote).toBe(true)
+                expect(element.instances).toEqual(['browserA', 'browserB'])
+                for (const name of ['browserA', 'browserB']) {
+                    const item = element.getInstance(name)
+                    expect(item.elementId).toBeUndefined()
+                    expect(item.index).toBe(2)
+                    expect(item.error?.message).toBe('Index out of bounds! $$(#foo) returned only 2 elements.')
+                }
+                expect(await element.isExisting()).toEqual([false, false])
+                await expect(element.click()).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
             })
 
             test('waits for every instance with its own timeout', async () => {
@@ -309,7 +353,7 @@ describe('Multi-Remote tests', () => {
                 expect(findB.mock.calls).toHaveLength(1)
             })
 
-            test('rejects when one instance does not find the element', async () => {
+            test('gives the found item of one instance and a not found item of the other', async () => {
                 const browser = await multiRemote(caps())
                 browser.getInstance('browserB').options.waitforTimeout = 50
                 let queriesA = 0
@@ -319,8 +363,29 @@ describe('Multi-Remote tests', () => {
                     .mockResolvedValue(elementRefs(2))
 
                 const elements = await browser.$$('#foo')
+                const element = await elements[2]
 
-                await expect(elements[2]).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBeUndefined()
+                expect(element.getInstance('browserB').error?.message).toBe('Index out of bounds! $$(#foo) returned only 2 elements.')
+                await expect(element.click()).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
+            })
+
+            test('a command uses the not found item of an instance once its list reaches the index', async () => {
+                const browser = await multiRemote(caps())
+                browser.getInstance('browserB').options.waitforTimeout = 50
+                let queriesA = 0
+                vi.spyOn(browser.getInstance('browserA'), 'findElements')
+                    .mockImplementation(async () => elementRefs(++queriesA >= 2 ? 3 : 2))
+                const findB = vi.spyOn(browser.getInstance('browserB'), 'findElements').mockResolvedValue(elementRefs(2))
+
+                const element = await browser.$$('#foo')[2]
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBeUndefined()
+                findB.mockResolvedValue(elementRefs(3))
+
+                await element.click()
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
             })
         })
 

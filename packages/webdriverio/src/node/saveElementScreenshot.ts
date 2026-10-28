@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { getBrowserObject } from '@wdio/utils'
+
 import { assertDirectoryExists } from './utils.js'
+import { isBidiCommandsEnabled } from '../utils/bidi/elementCommands.js'
+import { foreignContext } from '../utils/foreignContext.js'
 
 /**
  *
@@ -35,7 +39,14 @@ export async function saveElementScreenshot (
     const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    const screenBuffer = await this.takeElementScreenshot(this.elementId)
+    /**
+     * The BiDi override lives on the browser-level command. An element of a held
+     * frame keeps its element-bound route, which clips within that frame.
+     */
+    const browser = getBrowserObject(this)
+    const screenBuffer = isBidiCommandsEnabled(browser) && !(await foreignContext(this))
+        ? await browser.takeElementScreenshot(this.elementId)
+        : await this.takeElementScreenshot(this.elementId)
     const screenshot = Buffer.from(screenBuffer, 'base64')
     await fs.writeFile(absoluteFilepath, screenshot)
 

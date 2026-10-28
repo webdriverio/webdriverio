@@ -60,10 +60,12 @@ export const PROGRAM_TITLE = `
                     ${colorIt('test framework for Node.js')}
 `
 
+export const SUPPORTED_NODE_VERSIONS = '>=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1'
+
 export const UNSUPPORTED_NODE_VERSION = (
     '⚠️  Unsupported Node.js Version Error ⚠️\n' +
-    `You are using Node.js ${process.version} which is too old to be used with WebdriverIO.\n` +
-    'Please update to Node.js v22.19.0 to continue.\n'
+    `You are using Node.js ${process.version} which is not supported by WebdriverIO.\n` +
+    'Please update to Node.js v22.23.4, v24.22.1, v26.12.1 or a later release of these lines to continue.\n'
 )
 
 export const INSTALL_COMMAND: Record<PACKAGE_MANAGER, string> = {
@@ -132,13 +134,13 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
         { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
         { name: 'json', value: '@wdio/json-reporter$--$json' },
+        { name: 'cucumber-json', value: '@wdio/cucumberjs-json-reporter$--$cucumberjs-json' },
+        { name: 'video', value: '@wdio/video-reporter$--$video' },
+        { name: 'html', value: '@wdio/html-reporter$--$html' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
-        { name: 'video', value: 'wdio-video-reporter$--$video' },
-        { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
@@ -481,12 +483,12 @@ function prioServiceOrderFor (serviceNamesParam: string | string[]) {
 }
 
 export const QUESTIONNAIRE = [{
-    type: 'list',
+    type: 'select',
     name: 'runner',
     message: 'What type of testing would you like to do?',
     choices: SUPPORTED_PACKAGES.runner
 }, {
-    type: 'list',
+    type: 'select',
     name: 'preset',
     message: 'Which framework do you use for building components?',
     choices: SUPPORTED_BROWSER_RUNNER_PRESETS,
@@ -506,13 +508,13 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
-    type: 'list',
+    type: 'select',
     name: 'desktopFramework',
     message: 'What type of desktop application are you testing?',
     choices: Object.values(DesktopFrameworkChoice),
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'desktop'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'electronBuildTool',
     message: 'Which tool are you using to build your Electron app?',
     choices: Object.values(ElectronBuildToolChoice),
@@ -523,7 +525,7 @@ export const QUESTIONNAIRE = [{
     message: 'What is the path to the binary of your built Electron app?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
 }, {
-    type: 'list',
+    type: 'select',
     name: 'tauriDriverProvider',
     message: 'Which WebDriver provider would you like to use for Tauri?',
     choices: Object.values(TauriDriverProviderChoice),
@@ -540,7 +542,7 @@ export const QUESTIONNAIRE = [{
     message: 'Path to your built Tauri binary (leave blank to use the default `cargo tauri build` output)?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'dioxusDriverProvider',
     message: 'Which WebDriver provider would you like to use for Dioxus?',
     choices: Object.values(DioxusDriverProviderChoice),
@@ -551,20 +553,20 @@ export const QUESTIONNAIRE = [{
     message: 'Path to your built Dioxus debug binary (e.g. ./target/debug/my-app)?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'dioxus'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'backend',
     message: 'Where is your automation backend located?',
     choices: Object.values(BackendChoice),
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'e2eEnvironment',
     message: 'Which environment you would like to automate?',
     choices: E2E_ENVIRONMENTS,
     default: 'web',
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'mobileEnvironment',
     message: 'Which mobile environment you\'d like to automate?',
     choices: MOBILE_ENVIRONMENTS,
@@ -611,7 +613,7 @@ export const QUESTIONNAIRE = [{
     default: '443',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Experitest
 }, {
-    type: 'list',
+    type: 'select',
     name: 'expEnvProtocol',
     message: 'Choose a protocol for environment variable',
     default: ProtocolOptions.HTTPS,
@@ -664,7 +666,7 @@ export const QUESTIONNAIRE = [{
     default: 'SAUCE_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Saucelabs
 }, {
-    type: 'list',
+    type: 'select',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
     choices: Object.values(RegionOptions),
@@ -700,7 +702,7 @@ export const QUESTIONNAIRE = [{
     default: '/',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
-    type: 'list',
+    type: 'select',
     name: 'framework',
     message: 'Which framework do you want to use?',
     choices: /* instanbul ignore next */ (answers: Questionnair) => {

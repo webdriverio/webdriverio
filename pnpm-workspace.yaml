@@ -24,10 +24,28 @@ allowBuilds:
   geckodriver: false
   nx: false
 
-# expect-webdriverio v8 alpha was published inside pnpm's minimumReleaseAge
-# window; allow it until the stable release lands.
+# first-party releases for v10 published inside pnpm's minimumReleaseAge window:
+# expect-webdriverio 8.0.0 and @wdio/visual-service 11.0.0 (with
+# @wdio/image-comparison-core 3.0.0) on 2026-10-10, and the driver majors
+# (2026-10-09). The entries can go once they are older than minimumReleaseAge.
+# first-party packages of webdriverio/desktop-mobile: always excluded.
 minimumReleaseAgeExclude:
-  - expect-webdriverio@8.0.0-alpha.3
+  - '@wdio/electron-service'
+  - '@wdio/native-*'
+  - expect-webdriverio@8.0.0
+  - '@wdio/visual-service@11.0.0'
+  - '@wdio/image-comparison-core@3.0.0'
+  - edgedriver@8.0.0
+  - geckodriver@8.0.0
+  - safaridriver@3.0.0
+
+# security fixes for transitive dependencies (GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f, GHSA-pqg4-j6r4-53mv)
+# undici 7 below 7.30.1 (GHSA-qrxm-fqhp-jwvm, GHSA-2m5v-pch6-74hx and others): nx pins 7.29.0, and pnpm keeps 7.30.0 for @electron/get
+overrides:
+  handlebars: 4.7.10
+  shell-quote: 1.12.0
+  nx>undici: 7.30.1
+  '@electron/get>undici': ^7.30.1
 
 # recast's declared @babel/parser range cannot parse the pipeline operator
 packageExtensions:

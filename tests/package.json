@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "expect-webdriverio": "^8.0.0-alpha.3",
+    "expect-webdriverio": "^8.0.0",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
@@ -17,7 +17,9 @@
     "@wdio/globals": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",
     "@wdio/concise-reporter": "workspace:*",
+    "@wdio/cucumberjs-json-reporter": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
+    "@wdio/html-reporter": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",

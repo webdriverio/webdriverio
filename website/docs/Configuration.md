@@ -136,6 +136,18 @@ Maximum count of request retries to the Selenium server.
 
 Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
 
+`execute` also stops at the `script` timeout of the session (30 seconds by default, see [`setTimeout`](/docs/api/browser/setTimeout)). For a `script` timeout longer than `bidiResponseTimeout`, increase both.
+
+</Option>
+
+### bidiConnectTimeout
+
+<Option type="Number" default="10000">
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic, and Bidi-only commands such as [`mock`](/docs/api/browser/mock) fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](/docs/runner#browser-runner), the connection waits until it opens or fails.
+
 </Option>
 
 ### agent
@@ -790,7 +802,7 @@ Parameters:
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+Runs before a WebdriverIO command gets executed. For an element command, it runs before WebdriverIO waits for the element (see [Auto-waiting](./AutoWait.md)).
 
 Parameters:
 
@@ -799,7 +811,7 @@ Parameters:
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+Runs after a WebdriverIO command gets executed. For an element command, it runs after the wait for the element. When WebdriverIO retries an element command (for example after a stale element), the hook gets the result or the error of the last try.
 
 Parameters:
 
@@ -810,7 +822,7 @@ Parameters:
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Function to be executed after a test (in Mocha/Jasmine) ends. It also runs after a test times out. With Mocha, the next test starts after this hook ends (Mocha waits for it up to one more timeout of the test, see [Timeouts](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks)).
 
 Parameters:
 

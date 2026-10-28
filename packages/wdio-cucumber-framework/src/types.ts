@@ -1,7 +1,46 @@
+import type { AsyncLocalStorage } from 'node:async_hooks'
+
 import type { ITestCaseHookParameter, World } from '@cucumber/cucumber'
 import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 
 import type { Frameworks } from '@wdio/types'
+
+/**
+ * Bidi-aware browser subset. These members are added at runtime by the
+ * webdriverio package and are NOT declared on the minimal Browser stub
+ * in @wdio/types. The cucumber-framework adapter does not import from
+ * webdriverio (to avoid a circular dependency), so we declare the shape
+ * we need here.
+ */
+export interface ParallelBrowser extends WebdriverIO.Browser {
+    isBidi: boolean
+    __parallelContextStore?: AsyncLocalStorage<string>
+    __bidiCommandsEnabled?: boolean
+    /** Set of framework-managed parallel contexts (see session/context.ts). */
+    __parallelContexts?: Set<string>
+    requestedCapabilities: Record<string, unknown>
+    capabilities: Record<string, unknown>
+    browsingContextCreate(params: { type: string; userContext?: string }): Promise<{ context: string }>
+    browsingContextClose(params: { context: string }): Promise<void>
+    browserCreateUserContext?(params: Record<string, never>): Promise<{ userContext: string }>
+    browserRemoveUserContext?(params: { userContext: string }): Promise<void>
+}
+
+export type ParallelMode =
+    /**
+     * Each scenario runs in a window of the default user context. Cookies,
+     * localStorage and service workers are shared across concurrently
+     * running scenarios.
+     */
+    | 'contexts'
+    /**
+     * Each scenario runs in a window of its own BiDi user context (isolated
+     * cookies, localStorage and service workers). Recommended for scenarios
+     * touching auth or storage. Costs a fresh profile per scenario (e.g. a
+     * login per scenario) and requires `browser.createUserContext`;
+     * `browser.mock()` stays session-level and is not isolated per user context.
+     */
+    | 'userContexts'
 
 export interface CucumberOptions {
     /**
@@ -83,13 +122,16 @@ export interface CucumberOptions {
      */
     retry?: number;
     /**
-     * Only retries the features or scenarios with tags matching the expression (repeatable).
-     * This option requires 'retry' to be specified.
+     * Only retry the scenarios with tags matching the tag expression.
+     * Requires `retry`.
      */
     retryTagFilter?: string;
     /**
-     * Fail if there are any undefined or pending steps
-     * @default false
+     * Fail the run on a pending step. As in Cucumber, the reporters still show the
+     * step as pending, and the worker logs a warning that names the scenarios with
+     * a pending step or hook. An undefined step fails the run also without `strict`,
+     * unless `ignoreUndefinedDefinitions` is `true`.
+     * @default true
      */
     strict?: boolean;
     /**
@@ -107,8 +149,7 @@ export interface CucumberOptions {
      */
     timeout?: number;
     /**
-     * Enable this to make webdriver.io behave as if scenarios
-     * and not steps were the tests.
+     * Report each scenario as one test. Its steps and hooks are not reported.
      * @default false
      */
     scenarioLevelReporter?: boolean;
@@ -118,14 +159,19 @@ export interface CucumberOptions {
      */
     tagsInTitle?: boolean;
     /**
-     * Treat undefined definitions as warnings.
+     * Report an undefined step as pending, with ` (undefined step)` at the end
+     * of its title, and do not fail the run for it.
      * Please note that this is a @wdio/cucumber-framework specific option and
      * not recognized by cucumber-js itself.
      * @default false
      */
     ignoreUndefinedDefinitions?: boolean;
     /**
-     * Treat ambiguous definitions as errors.
+     * Report an ambiguous step (a step that matches more than one step definition)
+     * as failed, with the list of the matching step definitions. With `false`, the
+     * step is reported as skipped, with the list as its reason. In both cases, the
+     * run fails. Exception: without `parallelMode`, the run passes with
+     * `ignoreUndefinedDefinitions: true` and `failAmbiguousDefinitions: false`.
      *
      * Please note that this is a @wdio/cucumber-framework specific option
      * and not recognized by cucumber-js itself.
@@ -133,7 +179,8 @@ export interface CucumberOptions {
      */
     failAmbiguousDefinitions?: boolean;
     /**
-     * Profiles from which to include configuration.
+     * Profiles from which to include configuration. A value in `cucumberOpts`
+     * wins over the profile, and the profile wins over Cucumber's defaults.
      * @default []
      */
     profiles?: string[];
@@ -143,6 +190,60 @@ export interface CucumberOptions {
      * @default undefined
      */
     file?: string | false | undefined;
+    /**
+     * Enable parallel scenario execution within a spec file. When set to
+     * `'contexts'` or `'userContexts'`, each scenario runs simultaneously in
+     * its own browsing context (window); `'userContexts'` additionally isolates
+     * storage per scenario. Requires a WebDriver Bidi session AND the
+     * `wdio:experimentalBiDiCommands: true` capability — if either is
+     * missing, parallel mode falls back to sequential execution with a
+     * warning.
+     *
+     * That capability is not parallel-specific: when set, the webdriverio
+     * package swaps element-command implementations for ALL BiDi tests.
+     * Notable behavioral differences: `addValue`/`clearValue` dispatch
+     * untrusted synthetic DOM events (no trusted key events), `getAttribute`
+     * normalizes property/attribute resolution, and `click` is driven via the
+     * Actions API.
+     *
+     * Constraints in parallel mode:
+     * - No window management: `switchWindow`, `closeWindow`,
+     *   `switchToParentFrame`, `getWindowSize`/`setWindowSize` and every
+     *   other WebDriver Classic command throw inside a parallel scenario.
+     *   `refresh` reloads the scenario's own context.
+     * - `'contexts'` shares cookies and storage across all browsing contexts;
+     *   `'userContexts'` isolates them.
+     * - `BeforeAll`/`AfterAll` and the `beforeFeature`/`afterFeature` config
+     *   hooks run once per worker, not per feature; `beforeFeature`/`afterFeature`
+     *   receive the first feature's uri and feature. They run outside any
+     *   scenario's context.
+     * - Do not fire-and-forget timers that outlive the test: the context
+     *   is closed as soon as the scenario finishes.
+     *
+     * @see https://webdriver.io/docs/parallel-tests
+     * @default undefined (sequential execution)
+     */
+    parallelMode?: ParallelMode
+    /**
+     * Maximum number of browsing contexts (windows) to use in parallel.
+     * Runs a pool of this many slots, each running one scenario at a time in its
+     * own window. A slot opens its next window while its scenario runs and
+     * closes the previous one in the background, so up to three times this
+     * many windows can be open briefly.
+     * @default os.cpus().length
+     */
+    maxParallelContexts?: number
+    /**
+     * Snippet interface used when generating step definition snippets for
+     * undefined steps in parallel mode.
+     * @default 'synchronous'
+     */
+    snippetInterface?: 'async-await' | 'callback' | 'promise' | 'synchronous'
+    /**
+     * Snippet syntax (path to a custom snippet syntax module) used when
+     * generating step definition snippets in parallel mode.
+     */
+    snippetSyntax?: string
 }
 
 export interface HookParams {
@@ -247,4 +348,31 @@ export interface Payload {
     parent?: unknown
     title?: string
     fullTitle?: string
+    passed?: boolean
+    contextId?: string
+    parentUid?: string | null
+    hookKind?: HookKind
+}
+
+/** The kind of a hook, as `@wdio/reporter` reads it */
+export type HookKind = Frameworks.HookKind
+
+/** a user BeforeAll / AfterAll of the support code library (WDIO's own run hooks are left out) */
+export interface UserRunHook {
+    kind: 'BeforeAll' | 'AfterAll'
+    name?: string
+    uri?: string
+    line?: number
+}
+
+/** the `hook:start` payload of a run hook: a hook of the feature, with no context */
+export interface TestRunHookStart {
+    type: 'hook'
+    uid: string
+    title: string
+    parent: string
+    parentUid: string
+    hookKind: HookKind
+    hookSuiteUid: string
+    file: string
 }

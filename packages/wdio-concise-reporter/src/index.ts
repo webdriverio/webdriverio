@@ -1,14 +1,21 @@
-import { getBrowserName, type SuiteStats, type RunnerStats } from '@wdio/reporter'
+import { getBrowserName, getBrowserNames, hookCountsAsFailure, type HookStats, type SuiteStats, type RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
 import type { Reporters } from '@wdio/types'
+
+// an error from a framework other than Mocha has no `type`: its name is the prefix
+function errorLine(error?: Error & { type?: string }) {
+    const label = error?.type ?? error?.name
+    return `    ${label ? `${label} : ` : ''}${chalk.yellow(error?.message)}`
+}
 
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
     private _suiteUids: string[] = []
     private _suites: SuiteStats[] = []
     private _stateCounts = { failed: 0 }
+    private _failedHooks: HookStats[] = []
 
     constructor(options: Reporters.Options) {
         // write to output stream by default
@@ -27,6 +34,18 @@ export default class ConciseReporter extends WDIOReporter {
         this._stateCounts.failed++
     }
 
+    // each failed hook that counts as a failure, in any framework: also one that fails no test
+    onHookEnd (hook: HookStats) {
+        if (hookCountsAsFailure(hook) && !this._failedHooks.includes(hook)) {
+            this._failedHooks.push(hook)
+        }
+    }
+
+    // the base clears the hooks of the attempt after this call: the retried attempt does not count
+    onSuiteRetry (suite: SuiteStats) {
+        this._failedHooks = this._failedHooks.filter((hook) => !suite.hooks.includes(hook))
+    }
+
     onRunnerEnd (runner: RunnerStats): void {
         this.printReport(runner)
     }
@@ -38,10 +57,15 @@ export default class ConciseReporter extends WDIOReporter {
     printReport(runner: RunnerStats): void {
         const header = chalk.yellow('========= Your concise report ==========')
 
+        const countDisplay = this.getCountDisplay()
         const output = [
-            this.getEnviromentCombo(runner.capabilities),
-            this.getCountDisplay(),
-            ...this.getFailureDisplay()
+            runner.isMultiRemote
+                ? getBrowserNames(runner.capabilities, true).join(', ') || 'MultiRemoteBrowser'
+                : this.getEnviromentCombo(runner.capabilities),
+            // no count line when only hooks failed: their own part follows
+            ...(countDisplay ? [countDisplay] : []),
+            ...this.getFailureDisplay(),
+            ...this.getHookFailureDisplay()
         ]
 
         this.write(`${header}\n${output.join('\n')}\n`)
@@ -53,11 +77,12 @@ export default class ConciseReporter extends WDIOReporter {
      */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
+        // failed hooks have their own part, also when no test ran
         return failedTestsCount > 0
             ? `❌ Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
-            : this.counts.tests === 0
-                ? '❌ Failed to setup tests, no tests found'
-                : '✅ All went well!'
+            : this._failedHooks.length
+                ? ''
+                : this.counts.tests === 0 ? '❌ Failed to setup tests, no tests found' : '✅ All went well!'
     }
 
     /**
@@ -68,16 +93,34 @@ export default class ConciseReporter extends WDIOReporter {
         const output: string[] = []
 
         this.getOrderedSuites().map(suite => suite.tests.map(test => {
-            if (test.state === 'failed') {
+            // the last attempt of a retried test decides
+            if (test.state === 'failed' && !test.retried) {
                 output.push(
                     `  Fail : ${chalk.red(test.title)}`,
-                    // @ts-ignore
-                    `    ${test.error.type} : ${chalk.yellow(test.error?.message)}`
+                    errorLine(test.error)
                 )
             }
         }))
 
         return output
+    }
+
+    /**
+     * Get display for failed hooks that count as a failure, in the order they ended
+     * @return {Array} Hook failure output
+     */
+    getHookFailureDisplay () {
+        const hooks = this._failedHooks
+        if (!hooks.length) {
+            return []
+        }
+        return [
+            `❌ Hook${hooks.length > 1 ? 's' : ''} failed (${hooks.length}):`,
+            ...hooks.flatMap((hook) => [
+                `  Fail : ${chalk.red(hook.title)}`,
+                errorLine(hook.error)
+            ])
+        ]
     }
 
     /**
@@ -113,7 +156,8 @@ export default class ConciseReporter extends WDIOReporter {
 
         // mobile capabilities
         if (device) {
-            const program = (caps['appium:app'] || '').replace('sauce-storage:', '') || caps.browserName
+            // the app first, as before; a remote app URL or a local path gives only its file name
+            const program = getBrowserName({ 'appium:app': caps['appium:app'] } as WebdriverIO.Capabilities) || caps.browserName
             const executing = program ? `executing ${program}` : ''
 
             return `${device} on ${platform} ${version} ${executing}`.trim()

@@ -7,6 +7,10 @@ export interface Suite {
     type?: string
     title: string
     parent?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
+    /** the browsing context of a parallel Cucumber scenario */
+    contextId?: string
     fullTitle: string
     pending?: boolean
     file: string
@@ -41,6 +45,11 @@ export default class SuiteStats extends RunnableStats {
     hooksAndTests: (HookStats | TestStats)[] = []
     description?: string
     rule?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the uid of the parent suite (`null` for a top-level suite) */
+    declare parentUid?: string | null
+    /** the browsing context of a parallel Cucumber scenario */
+    declare contextId?: string
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
@@ -56,6 +65,7 @@ export default class SuiteStats extends RunnableStats {
          */
         this.description = suite.description
         this.rule = suite.rule
+        this.keepParallelFields(suite)
     }
 
     /**
@@ -63,6 +73,14 @@ export default class SuiteStats extends RunnableStats {
      */
     retry () {
         this.retries++
+        this.clearAttempt()
+    }
+
+    /**
+     * Remove the tests and hooks of the failed attempt; the suite keeps the start of its first attempt, as main.
+     * @experimental the name may change
+     */
+    clearAttempt () {
         this.tests = []
         this.hooks = []
         this.hooksAndTests = []

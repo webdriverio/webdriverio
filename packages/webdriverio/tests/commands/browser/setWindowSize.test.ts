@@ -1,9 +1,13 @@
 import path from 'node:path'
 import { expect, describe, afterEach, it, vi, beforeAll } from 'vitest'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore, getParallelContextStore } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const noopParallelContextStore = getParallelContextStore()
 
 describe('setWindowSize', () => {
     let browser: WebdriverIO.Browser
@@ -24,6 +28,19 @@ describe('setWindowSize', () => {
             expect.objectContaining({ pathname: '/session/foobar-123/window/rect' }),
             expect.objectContaining({ method: 'POST', body: JSON.stringify({ x: null, y: null, width: 777, height: 888 }) })
         )
+    })
+
+    it('throws inside a parallel test scope without touching the window', async () => {
+        const store = new AsyncLocalStorage<string>()
+        setParallelContextStore(store)
+        try {
+            await expect(store.run('ctx-1', () => browser.setWindowSize(777, 888))).rejects.toThrow(
+                '"setWindowSize" is not supported inside parallel mode tests because parallel tests share one OS window, use setViewport to size a test\'s page'
+            )
+            expect(fetch).not.toHaveBeenCalled()
+        } finally {
+            setParallelContextStore(noopParallelContextStore)
+        }
     })
 
     describe('input checks', () => {

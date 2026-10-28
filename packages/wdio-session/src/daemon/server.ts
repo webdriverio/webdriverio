@@ -199,7 +199,7 @@ export class SessionServer {
                         reject(new SessionError(
                             'TIMEOUT',
                             `"${req.action}" did not finish within ${timeout}ms.`,
-                            { hint: 'The session is still usable. Increase --timeout if the action needs longer.' }
+                            { hint: 'The page may be hung, so a longer --timeout will not help. Check that it responds (`snapshot`), then `reload` it or open a new tab (`tabs new <url>`). The session is still usable.' }
                         ))
                     }, timeout)
                 })

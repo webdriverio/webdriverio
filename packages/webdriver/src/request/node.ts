@@ -65,16 +65,23 @@ export class FetchRequest extends WebDriverRequest {
         const shouldUseProxy =
             PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
+        /**
+         * accept self-signed or otherwise invalid certificates if `strictSSL` is disabled
+         */
+        const tlsOptions = options.strictSSL === false ? { rejectUnauthorized: false } : undefined
+
         const dispatcher = shouldUseProxy ? new ProxyAgent({
             uri: PROXY_URL,
             connectTimeout: options.connectionRetryTimeout,
             headersTimeout: options.connectionRetryTimeout,
             bodyTimeout: options.connectionRetryTimeout,
+            ...(tlsOptions ? { requestTls: tlsOptions, proxyTls: tlsOptions } : {})
         }) :
             new Agent({
                 connectTimeout: options.connectionRetryTimeout,
                 headersTimeout: options.connectionRetryTimeout,
                 bodyTimeout: options.connectionRetryTimeout,
+                ...(tlsOptions ? { connect: tlsOptions } : {})
             })
 
         if (sessionId){

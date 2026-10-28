@@ -13,12 +13,14 @@ export function applyHeadlessFlag(caps: WebdriverIO.Capabilities, headless: bool
     const target = (caps as { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch || caps
     const browser = (target.browserName || '').toLowerCase()
 
-    // Multi-remote: object whose values are individual capability objects
+    // Multi-remote: object whose values are the options of each instance,
+    // with the capabilities of the instance under `capabilities`
     if (!browser && !('alwaysMatch' in caps)) {
         for (const key of Object.keys(caps)) {
             const val = (caps as Record<string, unknown>)[key]
-            if (val && typeof val === 'object' && (val as WebdriverIO.Capabilities).browserName) {
-                applyHeadlessFlag(val as WebdriverIO.Capabilities, headless)
+            const instanceCaps = (val as { capabilities?: unknown } | undefined)?.capabilities || val
+            if (instanceCaps && typeof instanceCaps === 'object' && ('alwaysMatch' in instanceCaps || (instanceCaps as WebdriverIO.Capabilities).browserName)) {
+                applyHeadlessFlag(instanceCaps as WebdriverIO.Capabilities, headless)
             }
         }
         return caps

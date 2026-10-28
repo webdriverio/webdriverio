@@ -39,13 +39,14 @@ Frameworks: `mochaTestrunner`, `mochaAsyncTestrunner`, `jasmineTestrunner`,
 Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberTestrunnerMultipleByLineNumber`, `cucumberFailAmbiguousDefinitions`,
 `cucumberPendingTest`, `cucumberReporter`, `cucumberFileOption`,
-`cucumberSkipTag`
+`cucumberSkipTag`, `cucumberGroupedSpecsRandomOrder`,
+`cucumberGroupedSpecsRandomOrderHistory`, `cucumberSameFeatureFileName`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
-`jasmineAfterAll`, `jasmineFailSpecWithNoExpectations`,
+`jasmineAfterAll`, `jasmineFailingAfterAll`, `jasmineFailSpecWithNoExpectations`,
 `jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`
 
-CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`,
+CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
 `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
 `runSpecsWithFlagDirectPath`, `runSpecsWithFlagNoArg`, `headlessFlag`,
 `cliExcludeParamValidation*`, `cliSpecsWithWildCard*`, `cliExclude*WithWildCard*`
@@ -54,7 +55,7 @@ Plugins: `customService`, `customCJSService`, `customReporterString`,
 `customReporterObject`, `reporterTestrunner`, `sharedStoreServiceTest`
 
 Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
-`retryPass`, `severeErrorTest`
+`retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`
 
 Unknown names fail with a list of valid suite names.
 

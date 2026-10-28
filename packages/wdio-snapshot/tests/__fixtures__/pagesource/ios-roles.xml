@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+  <XCUIElementTypeApplication type="XCUIElementTypeApplication" name="Roles" visible="true" x="0" y="0" width="390" height="844">
+    <XCUIElementTypeLink type="XCUIElementTypeLink" name="Docs" label="Docs" visible="true" accessible="true" x="0" y="0" width="80" height="40" />
+    <XCUIElementTypeSearchField type="XCUIElementTypeSearchField" name="Search" label="Search" visible="true" accessible="true" x="0" y="40" width="80" height="40" />
+    <XCUIElementTypeSlider type="XCUIElementTypeSlider" name="Volume" label="Volume" visible="true" accessible="true" x="0" y="80" width="80" height="40" />
+    <XCUIElementTypeSegmentedControl type="XCUIElementTypeSegmentedControl" name="Mode" label="Mode" visible="true" accessible="true" x="0" y="120" width="80" height="40" />
+    <XCUIElementTypeIcon type="XCUIElementTypeIcon" name="Star" label="Star" visible="true" accessible="true" x="0" y="160" width="20" height="20" />
+    <XCUIElementTypeSwitch type="XCUIElementTypeSwitch" name="Wifi" label="Wifi" value="1" visible="true" x="0" y="180" width="50" height="30" />
+    <XCUIElementTypeCell type="XCUIElementTypeCell" name="Row" label="Row" visible="true" x="0" y="210" width="80" height="40" />
+    <XCUIElementTypeDatePicker type="XCUIElementTypeDatePicker" name="When" label="When" visible="true" accessible="true" x="0" y="250" width="80" height="40" />
+  </XCUIElementTypeApplication>
+</AppiumAUT>

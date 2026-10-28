@@ -1,3 +1,5 @@
+import { SnapshotError } from '@wdio/snapshot'
+
 import { ERROR_CODES, type ErrorCode } from './constants.js'
 import type { SerializedError } from './types.js'
 
@@ -59,3 +61,17 @@ export class SessionError extends Error {
 
 export const usage = (message: string, hint?: string) => new SessionError('USAGE', message, { hint })
 export const notSupported = (message: string, hint?: string) => new SessionError('NOT_SUPPORTED', message, { hint })
+
+/**
+ * Run snapshot code, turning its usage errors into the session's `USAGE`.
+ */
+export function asUsage<T> (fn: () => T): T {
+    try {
+        return fn()
+    } catch (err) {
+        if (err instanceof SnapshotError && err.code === 'USAGE') {
+            throw usage(err.message, err.hint)
+        }
+        throw err
+    }
+}

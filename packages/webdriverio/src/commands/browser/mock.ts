@@ -3,6 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
+import { getParallelContextStore } from '../../session/context.js'
 import { assertTopLevel, contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
@@ -36,6 +37,18 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  * The `URLPattern` is an experimental technology and not yet supported in some environments, e.g. Node.js.
  * We recommend to import [a polyfill](https://www.npmjs.com/package/urlpattern-polyfill)
  * until the feature is more widely supported.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * A second `mock` with the same URL pattern and the same filter options replaces the
+ * first one: the first mock is restored, so it no longer changes requests or records
+ * calls. In a URL pattern, `*` already matches any characters, `/` included, and in a
+ * string pattern WebdriverIO changes `**` to `*`: `'**' + '/api'` and `'*' + '/api'`
+ * are the same pattern. To keep both mocks, give them different filter options.
+ * WebdriverIO does not change a `URLPattern` object: use a single `*` in it, as repeated
+ * wildcards before fixed text can make the match very slow and freeze a test.
  *
  * :::
  *
@@ -160,10 +173,11 @@ export async function mock(
 
     /**
      * A mock made on a held context only intercepts that context's requests.
-     * `browser.mock()` stays session-wide.
+     * `browser.mock()` stays session-wide, except in a parallel test, where a
+     * session-wide intercept would catch other tests' traffic.
      */
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
-        contexts: isBrowsingContext(this) ? [context] : undefined,
+        contexts: isBrowsingContext(this) || getParallelContextStore().getStore() ? [context] : undefined,
         sessionKey: context
     })
     SESSION_MOCKS[context].add(networkInterception)

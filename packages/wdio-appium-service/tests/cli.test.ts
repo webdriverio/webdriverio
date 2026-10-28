@@ -76,7 +76,7 @@ describe('cli run', () => {
 
         vi.mocked(cliUtils.extractPortFromCliArgs).mockReturnValue(4723)
         vi.mocked(cliUtils.determineAppiumCliCommand).mockResolvedValue('/path/to/appium')
-        vi.mocked(cliUtils.checkInspectorPluginInstalled).mockResolvedValue(undefined)
+        vi.mocked(cliUtils.ensureInspectorPluginInstalled).mockResolvedValue(undefined)
         vi.mocked(cliUtils.openBrowser).mockResolvedValue()
         vi.mocked(cliUtils.startAppiumForCli).mockResolvedValue(mockProcess as any)
 
@@ -102,7 +102,7 @@ describe('cli run', () => {
 
         expect(cliUtils.extractPortFromCliArgs).toHaveBeenCalled()
         expect(cliUtils.determineAppiumCliCommand).toHaveBeenCalled()
-        expect(cliUtils.checkInspectorPluginInstalled).toHaveBeenCalledWith('/path/to/appium')
+        expect(cliUtils.ensureInspectorPluginInstalled).toHaveBeenCalledWith('/path/to/appium')
         expect(cliUtils.startAppiumForCli).toHaveBeenCalledWith(
             '/path/to/appium',
             expect.arrayContaining([
@@ -202,6 +202,30 @@ describe('cli run', () => {
         })
     })
 
+    it('should not try to kill Appium when it already exited, e.g. after Ctrl+C', async () => {
+        mockProcess.exitCode = 0
+
+        await testCleanup('SIGINT', async (handler) => {
+            await handler()
+            expect(mockPromisifiedTreeKill).not.toHaveBeenCalled()
+            expect(console.error).not.toHaveBeenCalled()
+            expect(process.exit).toHaveBeenCalledWith(0)
+        })
+    })
+
+    it('should not report an error when Appium exited while it was being stopped', async () => {
+        mockPromisifiedTreeKill.mockImplementation(async () => {
+            mockProcess.exitCode = 0
+            throw new Error('process not found')
+        })
+
+        await testCleanup('SIGINT', async (handler) => {
+            await handler()
+            expect(console.error).not.toHaveBeenCalled()
+            expect(process.exit).toHaveBeenCalledWith(0)
+        })
+    })
+
     it('should handle error when determineAppiumCliCommand throws', async () => {
         await testErrorHandling(
             vi.mocked(cliUtils.determineAppiumCliCommand),
@@ -225,14 +249,14 @@ describe('cli run', () => {
         )
     })
 
-    it('should call checkInspectorPluginInstalled with Appium command', async () => {
+    it('should call ensureInspectorPluginInstalled with Appium command', async () => {
         await run()
 
-        expect(cliUtils.checkInspectorPluginInstalled).toHaveBeenCalledWith('/path/to/appium')
+        expect(cliUtils.ensureInspectorPluginInstalled).toHaveBeenCalledWith('/path/to/appium')
         expect(console.log).toHaveBeenCalledWith('⏳ Checking inspector plugin...')
 
         const determineCallOrder = vi.mocked(cliUtils.determineAppiumCliCommand).mock.invocationCallOrder[0]
-        const checkPluginCallOrder = vi.mocked(cliUtils.checkInspectorPluginInstalled).mock.invocationCallOrder[0]
+        const checkPluginCallOrder = vi.mocked(cliUtils.ensureInspectorPluginInstalled).mock.invocationCallOrder[0]
 
         expect(checkPluginCallOrder).toBeGreaterThan(determineCallOrder)
 
@@ -241,13 +265,13 @@ describe('cli run', () => {
         expect(startAppiumCallOrder).toBeGreaterThan(checkPluginCallOrder)
     })
 
-    it('should handle error when checkInspectorPluginInstalled throws', async () => {
+    it('should handle error when ensureInspectorPluginInstalled throws', async () => {
         const error = new Error('Appium Inspector plugin is not installed')
-        vi.mocked(cliUtils.checkInspectorPluginInstalled).mockImplementation(() => {
+        vi.mocked(cliUtils.ensureInspectorPluginInstalled).mockImplementation(() => {
             throw error
         })
         await testErrorHandling(
-            vi.mocked(cliUtils.checkInspectorPluginInstalled),
+            vi.mocked(cliUtils.ensureInspectorPluginInstalled),
             error,
             [cliUtils.startAppiumForCli, cliUtils.openBrowser]
         )

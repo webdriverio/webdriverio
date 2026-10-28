@@ -3,6 +3,7 @@ import { getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 
 import { SessionError, usage } from '../errors.js'
+import { cliCmd, type Cmd } from '../hints.js'
 import { quote } from '../quote.js'
 import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
@@ -82,7 +83,7 @@ export async function describeNewTabs (session: Session, before: string[]): Prom
     }
     return opened.map(({ handle, index }) => {
         const url = urls.get(handle)
-        return `Opened a new tab [${index}]${url ? `: ${url}` : ''}. This tab stays current; \`wdio session tabs switch ${index}\` works in the new one.`
+        return `Opened a new tab [${index}]${url ? `: ${url}` : ''}. This tab stays current; \`${session.cmd('tabs', { sub: 'switch', arg: String(index) }, `wdio session tabs switch ${index}`)}\` works in the new one.`
     }).join('\n')
 }
 
@@ -90,14 +91,14 @@ function formatTabs (tabs: Tab[]) {
     return tabs.map((t) => `[${t.index}]${t.current ? '*' : ' '} ${t.title || '(no title)'} — ${t.url}`).join('\n')
 }
 
-function findTab (tabs: Tab[], arg: unknown) {
+function findTab (session: Session, tabs: Tab[], arg: unknown) {
     const value = String(arg ?? '')
     if (!value) {
-        throw usage('Pass a tab index or handle.', 'Run `wdio session tabs` to list them.')
+        throw usage('Pass a tab index or handle.', `Run \`${session.cmd('tabs', undefined, 'wdio session tabs')}\` to list them.`)
     }
     const tab = /^\d+$/.test(value) ? tabs[Number(value)] : tabs.find((t) => t.handle === value)
     if (!tab) {
-        throw usage(`No tab ${value}.`, 'Run `wdio session tabs` to list them.')
+        throw usage(`No tab ${value}.`, `Run \`${session.cmd('tabs', undefined, 'wdio session tabs')}\` to list them.`)
     }
     return tab
 }
@@ -181,6 +182,9 @@ const switchCode = async (session: Session, tab: Tab) => session.isBidi
 
 const joinCode = (...lines: string[]) => lines.filter(Boolean).join('\n')
 
+const queryOn = (varName: string, code: string) =>
+    code.startsWith(`${varName}.`) || code.startsWith('ref(') ? code : `${varName}.${code}`
+
 function resetFrame (session: Session) {
     session.set('frame', undefined)
     session.set('frameStack', [])
@@ -232,13 +236,13 @@ export const tabs: ActionFn = async (session, args) => {
         return { ...done(`Opened tab [${list.length - 1}] ${url}`, `await browser.newWindow(${quote(url)})`), data: { tabs: list } }
     }
     const list = await listTabs(session)
-    const tab = findTab(list, args.arg)
+    const tab = findTab(session, list, args.arg)
     if (sub === 'switch') {
         await switchTo(session, tab)
         return { ...done(`Switched to tab [${tab.index}] ${tab.title || tab.url}`, await switchCode(session, tab)), data: { tab } }
     }
     if (list.length === 1) {
-        throw usage('Cannot close the last tab.', 'Use `wdio session close` to end the session.')
+        throw usage('Cannot close the last tab.', `Use \`${session.cmd('close', undefined, 'wdio session close')}\` to end the session.`)
     }
     const current = list.find((t) => t.current)!
     /**
@@ -278,7 +282,7 @@ export const tabs: ActionFn = async (session, args) => {
 
 export const windows: ActionFn = async (session, args) => {
     if (args.sub && args.sub !== 'switch') {
-        throw usage(`Unknown windows command "${args.sub}".`, 'Use `wdio session windows` or `wdio session windows switch <index>`.')
+        throw usage(`Unknown windows command "${args.sub}".`, `Use \`${session.cmd('windows', undefined, 'wdio session windows')}\` or \`${session.cmd('windows', { sub: 'switch', arg: '<index>' }, 'wdio session windows switch <index>')}\`.`)
     }
     return tabs(session, args)
 }
@@ -305,7 +309,7 @@ export const frame: ActionFn = async (session, args) => {
     const resolved = await resolveTarget(session, target)
     const tag = await resolved.element.getTagName().catch(() => '')
     if (!['iframe', 'frame'].includes(tag.toLowerCase())) {
-        throw usage(`${resolved.label} is not a frame.`, 'Pass the ref of an iframe from `wdio session snapshot`.')
+        throw usage(`${resolved.label} is not a frame.`, `Pass the ref of an iframe from \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\`.`)
     }
     await browser.switchFrame(resolved.element)
     const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]
@@ -463,8 +467,8 @@ export async function frameContext (session: Session, owner: WebdriverIO.Browsin
                     ? `${label} can't be entered: the browser blocks looking into it, and ${matches.length} frames on the page load ${withoutHash(src)}.`
                     : `${label} can't be entered: the browser blocks looking into it, and no frame on the page has loaded ${withoutHash(src)}.`,
                 matches.length
-                    ? 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
-                    : 'Wait for the frame to load (`wdio session wait`), then try again.'
+                    ? `Run \`${session.cmd('exec', undefined, 'wdio session exec')}\` with \`browser.switchFrame(...)\` on a selector that matches only this frame.`
+                    : `Wait for the frame to load (\`${session.cmd('wait', undefined, 'wdio session wait')}\`), then try again.`
             )
         }
         // by id: a predicate would run in the browser, where the variables here don't exist
@@ -507,7 +511,7 @@ export async function holdFrame (session: Session, frameRef: string) {
         }
     }
     return {
-        lines: [`const page = ${page}`, `const frame = await page.frame(page.${resolved.code})`],
+        lines: [`const page = ${page}`, `const frame = await page.frame(${queryOn('page', resolved.code)})`],
         /**
          * Back to where the session was, without asking the browser, for an
          * action that is given up while the page may not answer at all.
@@ -589,7 +593,7 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
     const resolved = await resolveTarget(session, target)
     const tag = await resolved.element.getTagName().catch(() => '')
     if (!['iframe', 'frame'].includes(tag.toLowerCase())) {
-        throw usage(`${resolved.label} is not a frame.`, 'Pass the ref of an iframe from `wdio session snapshot`.')
+        throw usage(`${resolved.label} is not a frame.`, `Pass the ref of an iframe from \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\`.`)
     }
     const owner = session.get<WebdriverIO.BrowsingContext>('activeContext') ?? await currentPage(session)
     if (!owner) {
@@ -602,7 +606,7 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
      */
     const ownerVar = await declareHeld(session, owner)
     // in a held frame the selector code already queries through its variable
-    const query = ownerVar.name && resolved.code.startsWith(`${ownerVar.name}.`) ? resolved.code : `${ownerVar.name}.${resolved.code}`
+    const query = ownerVar.name && queryOn(ownerVar.name, resolved.code)
     const childVar = ownerVar.name
         ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${query})`)
         : { code: '' }
@@ -618,7 +622,7 @@ export const contexts: ActionFn = async (session, args) => {
     if (args.sub === 'switch') {
         const name = String(args.name ?? '')
         if (!name) {
-            throw usage('Pass a context name.', 'Run `wdio session contexts` to list them.')
+            throw usage('Pass a context name.', `Run \`${session.cmd('contexts', undefined, 'wdio session contexts')}\` to list them.`)
         }
         await browser.switchContext(name)
         return done(`Switched to ${name}`, `await browser.switchContext(${quote(name)})`)
@@ -667,10 +671,10 @@ export function openDialog (session: Session) {
     return session.get<OpenDialog>('dialog')
 }
 
-export function dialogOpenError (dialog: OpenDialog) {
+export function dialogOpenError (dialog: OpenDialog, cmd: Cmd = cliCmd) {
     const article = /^[aeiou]/i.test(dialog.type) ? 'An' : 'A'
     return new SessionError('DIALOG_OPEN', `${article} ${dialog.type} dialog is open: ${JSON.stringify(dialog.message)}`, {
-        hint: `Run \`wdio session dialog accept${dialog.type === 'prompt' ? ' --text <answer>' : ''}\` or \`wdio session dialog dismiss\` first.`
+        hint: `Run \`${dialog.type === 'prompt' ? cmd('dialog', { sub: 'accept', text: '<answer>' }, 'wdio session dialog accept --text <answer>') : cmd('dialog', { sub: 'accept' }, 'wdio session dialog accept')}\` or \`${cmd('dialog', { sub: 'dismiss' }, 'wdio session dialog dismiss')}\` first.`
     })
 }
 

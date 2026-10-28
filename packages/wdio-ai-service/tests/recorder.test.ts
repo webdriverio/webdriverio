@@ -1,9 +1,12 @@
+import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
+import { logMock } from '@wdio/logger'
 
 import { resolveEffectsConfig } from '../src/effects.js'
 import { EffectRecorder, EFFECTS_CHANNEL } from '../src/recorder.js'
 
 vi.mock('webdriverio', () => ({ getContextManager: () => ({ getCurrentContext: vi.fn().mockResolvedValue('page') }) }))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 function bidiBrowser () {
     const handlers = new Map<string, ((params: unknown) => void)[]>()
@@ -78,6 +81,37 @@ describe('EffectRecorder on a BiDi session', () => {
             navigation: '/cart',
             changed: ['status "Cart"']
         })
+    })
+
+    /**
+     * the e2e suite logs these at debug level, so a step that misses a request on CI
+     * shows whether the event came outside the step or was left out, and why
+     */
+    it('logs every request it counts or leaves out, with the reason', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig({ ignore: ['/telemetry'] }))
+        vi.mocked(logMock.debug).mockClear()
+
+        emit('network.beforeRequestSent', request('early', 'https://shop.example/api/early'))
+        await recorder.start()
+        emit('network.beforeRequestSent', { ...request('tab', 'https://shop.example/api/poll'), context: 'other-tab' })
+        emit('network.beforeRequestSent', request('nav', 'https://shop.example/next', { initiatorType: null, destination: 'document' }))
+        emit('network.beforeRequestSent', request('t', 'https://shop.example/telemetry'))
+        emit('network.beforeRequestSent', request('r1', 'https://shop.example/api/cart'))
+        emit('network.responseCompleted', { ...request('r1', 'https://shop.example/api/cart'), response: { status: 201 } })
+        await recorder.settle({ quiet: 10 })
+
+        const messages = vi.mocked(logMock.debug).mock.calls.map(([message]) => String(message))
+        expect(messages).toEqual(expect.arrayContaining([
+            'effects: not counting POST https://shop.example/api/early: no step is recorded',
+            'effects: not counting POST https://shop.example/api/poll: its context other-tab is not the page page',
+            'effects: not counting POST https://shop.example/next: not an effect request (navigation null, initiator null, destination document)',
+            'effects: not counting POST https://shop.example/telemetry: ignored by the effects config',
+            'effects: request started POST https://shop.example/api/cart (r1)',
+            'effects: request finished POST https://shop.example/api/cart (r1): 201'
+        ]))
+        expect(messages.some((message) => message.startsWith('effects: step started on page at https://shop.example/products'))).toBe(true)
+        expect(messages.some((message) => message.startsWith('effects: step settled after') && message.includes('POST /api/cart → 2xx'))).toBe(true)
     })
 
     it('leaves out what other tabs do during the step, and counts frames the step added', async () => {
@@ -165,6 +199,42 @@ describe('EffectRecorder on a BiDi session', () => {
         const effect = await recorder.settle({ quiet: 10 })
         expect(Date.now() - started).toBeGreaterThanOrEqual(140)
         expect(effect.requests).toEqual(['POST /api/checkout → 2xx'])
+    })
+
+    /**
+     * Chrome 152-155 with a data collector: responseStarted can come before
+     * beforeRequestSent, then net::ERR_ABORTED although the page got the response
+     */
+    it('keeps the status of a response that arrived before a fetch error', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        await recorder.start()
+        emit('network.beforeRequestSent', request('aborted', 'https://shop.example/api/cart'))
+        emit('network.responseStarted', { ...request('aborted', 'https://shop.example/api/cart'), response: { status: 201 } })
+        emit('network.fetchError', { ...request('aborted', 'https://shop.example/api/cart'), errorText: 'net::ERR_ABORTED' })
+        emit('network.responseStarted', { ...request('early', 'https://shop.example/api/checkout'), response: { status: 200 } })
+        emit('network.beforeRequestSent', request('early', 'https://shop.example/api/checkout'))
+        emit('network.fetchError', { ...request('early', 'https://shop.example/api/checkout'), errorText: 'net::ERR_ABORTED' })
+        emit('network.beforeRequestSent', request('offline', 'https://shop.example/api/wishlist'))
+        emit('network.fetchError', { ...request('offline', 'https://shop.example/api/wishlist'), errorText: 'net::ERR_CONNECTION_REFUSED' })
+        emit('network.beforeRequestSent', request('moved', 'https://shop.example/api/old'))
+        emit('network.responseStarted', { ...request('moved', 'https://shop.example/api/old'), response: { status: 307 } })
+        emit('network.beforeRequestSent', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1 })
+        emit('network.fetchError', { ...request('moved', 'https://shop.example/api/new'), redirectCount: 1, errorText: 'net::ERR_CONNECTION_REFUSED' })
+        emit('network.beforeRequestSent', request('forwarded', 'https://shop.example/api/promo'))
+        emit('network.responseStarted', { ...request('forwarded', 'https://shop.example/api/promo'), response: { status: 307 } })
+        emit('network.responseStarted', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1, response: { status: 201 } })
+        emit('network.beforeRequestSent', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1 })
+        emit('network.fetchError', { ...request('forwarded', 'https://shop.example/api/promo-new'), redirectCount: 1, errorText: 'net::ERR_ABORTED' })
+
+        expect((await recorder.settle({ quiet: 10 })).requests).toEqual([
+            'POST /api/cart → 2xx',
+            'POST /api/checkout → 2xx',
+            'POST /api/new → failed',
+            'POST /api/promo-new → 2xx',
+            'POST /api/wishlist → failed'
+        ])
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({ events: expect.arrayContaining(['network.responseStarted']) })
     })
 
     it('waits for a navigation to load and stops at the timeout', async () => {

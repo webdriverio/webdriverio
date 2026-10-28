@@ -97,6 +97,7 @@ export const getArgumentType = getArgumentTypeOrig
 export const executeSync = vi.fn()
 export const executeAsync = vi.fn()
 export const wrapCommand = (_: any, origFn: any) => origFn
+export const setCommandHookStore = vi.fn()
 /**
  * Element lists register their constructor at import time. Launcher tests mock
  * this module, so the registration has to exist or loading `webdriverio` throws.

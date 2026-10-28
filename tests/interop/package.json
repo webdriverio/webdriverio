@@ -8,6 +8,7 @@
     "test:webdriver": "node ./webdriver.e2e.js",
     "test:cucumber-framework": "node ./cucumber-framework.e2e.js",
     "test:allure-reporter": "node ./allure-reporter.e2e.js",
+    "test:cucumberjs-json-reporter": "node ./cucumberjs-json-reporter.e2e.js",
     "test:junit-reporter": "node ./junit-reporter.e2e.js",
     "test:share-store-service": "node ./shared-store.e2e.js",
     "test:cli": "node ./wdio-cli.e2e.js",
@@ -17,11 +18,12 @@
     "@wdio/cli": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",
+    "@wdio/cucumberjs-json-reporter": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
-    "npm-run-all2": "^8.0.4",
+    "npm-run-all2": "^9.0.3",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   }

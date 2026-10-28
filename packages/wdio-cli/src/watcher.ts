@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -5,6 +6,7 @@ import chokidar from 'chokidar'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
+import { minimatch } from 'minimatch'
 
 import logger from '@wdio/logger'
 import type { Capabilities, Workers } from '@wdio/types'
@@ -13,6 +15,45 @@ import Launcher from './launcher.js'
 import type { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
+
+/**
+ * characters that make a path segment a glob: `*`, `?`, `[]`, `{}` and extglobs like `@(a|b)`
+ */
+const GLOB_CHARACTERS = /[*?{}[\]]|[@+!]\(/
+
+/**
+ * Split an absolute path into the directory that has to be watched and the glob
+ * pattern (relative to it, with `/` as separator). Segments that exist on disk are
+ * taken literally, e.g. a checkout in `/work/app[1]`. Without a glob the pattern is empty.
+ */
+function splitGlob(absolutePath: string) {
+    const segments = absolutePath.split(path.sep)
+    const pathOf = (count: number) => {
+        const joined = segments.slice(0, count).join(path.sep)
+        return joined === '' || /^[A-Za-z]:$/.test(joined) ? joined + path.sep : joined
+    }
+
+    let literalCount = 1
+    while (
+        literalCount < segments.length &&
+        (!GLOB_CHARACTERS.test(segments[literalCount]) || fs.existsSync(pathOf(literalCount + 1)))
+    ) {
+        literalCount++
+    }
+    if (literalCount >= segments.length) {
+        return { root: absolutePath, pattern: '' }
+    }
+
+    // watch the closest directory that exists
+    let rootCount = literalCount
+    while (rootCount > 1 && !fs.existsSync(pathOf(rootCount))) {
+        rootCount--
+    }
+    return {
+        root: pathOf(rootCount),
+        pattern: segments.slice(rootCount).join('/')
+    }
+}
 
 type Spec = string | string[]
 export default class Watcher {
@@ -30,12 +71,20 @@ export default class Watcher {
     async watch() {
         await this._launcher.initialize()
         const specs = this._launcher.configParser.getSpecs()
+        /**
+         * specs from the `wdio:specs` capability need to be resolved like the launcher does,
+         * so we get file URLs for them rather than the plain paths or globs from the config
+         */
         const capSpecs = this._launcher.isMultiRemote
             ? []
             : union(flattenDeep(
-                (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map(cap => (
-                    'alwaysMatch' in cap ? cap.alwaysMatch['wdio:specs'] : cap['wdio:specs'] || []
-                ) as string[])
+                (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map((cap) => {
+                    const caps = 'alwaysMatch' in cap ? cap.alwaysMatch : cap
+                    const capSpecs = caps['wdio:specs']
+                    return Array.isArray(capSpecs)
+                        ? this._launcher.configParser.getSpecs(capSpecs, caps['wdio:exclude'])
+                        : []
+                }) as Spec[]
             ))
         this._specs = [...specs, ...capSpecs]
 
@@ -53,13 +102,8 @@ export default class Watcher {
         const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
             const rootDir = path.dirname(path.resolve(process.cwd(), this._configFile))
-            const globbedFilesToWatch = filesToWatch.map((file) => {
-                const absolutePath = path.isAbsolute(file)
-                    ? path.normalize(file)
-                    : path.resolve(rootDir, file)
-                return absolutePath
-            })
-            chokidar.watch(globbedFilesToWatch, { ignoreInitial: true })
+            const { paths, ignored } = this.resolveFilesToWatch(filesToWatch, rootDir)
+            chokidar.watch(paths, { ignoreInitial: true, ...(ignored ? { ignored } : {}) })
                 .on('add', this.getFileListener(false))
                 .on('change', this.getFileListener(false))
         }
@@ -83,6 +127,58 @@ export default class Watcher {
 
             this._launcher.interface?.finalise()
         }))
+    }
+
+    /**
+     * chokidar 5 doesn't support glob patterns. Watch the directory a pattern starts in
+     * instead and ignore every file that isn't matched by one of the patterns, so
+     * files created after watch mode started are picked up too.
+     * @param  {string[]} filesToWatch  `filesToWatch` config option
+     * @param  {string}   rootDir       directory of the wdio config file
+     * @return {object}                 paths to watch and chokidar `ignored` callback
+     */
+    private resolveFilesToWatch(filesToWatch: string[], rootDir: string) {
+        const paths = new Set<string>()
+        const literals: string[] = []
+        const globs: { root: string, pattern: string }[] = []
+        for (const file of filesToWatch) {
+            const absolutePath = path.isAbsolute(file)
+                ? path.normalize(file)
+                : path.resolve(rootDir, file)
+            const { root, pattern } = splitGlob(absolutePath)
+            if (!pattern) {
+                paths.add(absolutePath)
+                literals.push(absolutePath)
+                continue
+            }
+            paths.add(root)
+            globs.push({ root, pattern })
+        }
+
+        const isWatched = (file: string, stats?: fs.Stats) => (
+            literals.some((literal) => file === literal || file.startsWith(literal + path.sep)) ||
+            globs.some(({ root, pattern }) => {
+                if (file === root) {
+                    return true
+                }
+                if (!file.startsWith(root.endsWith(path.sep) ? root : root + path.sep)) {
+                    return false
+                }
+                const relativePath = path.relative(root, file).split(path.sep).join('/')
+                /**
+                 * Files have to match the pattern. Everything else (or when chokidar
+                 * doesn't know yet) is kept if it can still lead to a match, so only
+                 * directories that can't contain a match are skipped.
+                 */
+                return minimatch(relativePath, pattern, { dot: true, nonegate: true, partial: !stats?.isFile() })
+            })
+        )
+        return {
+            paths: [...paths],
+            ignored: globs.length === 0
+                ? undefined
+                : (file: string, stats?: fs.Stats) => !isWatched(path.normalize(file), stats) // chokidar passes `/` separators on Windows
+        }
     }
 
     /**

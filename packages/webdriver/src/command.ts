@@ -8,7 +8,7 @@ import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
 import { CommandRuntimeOptions } from './types.js'
 import { mask } from './utils.js'
-import { APPIUM_MASKING_HEADER } from './constants.js'
+import { APPIUM_MASKING_HEADER, SESSION_ENDED_ERROR } from './constants.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -151,7 +151,9 @@ export default function (
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
-            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            const error = new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            error.name = SESSION_ENDED_ERROR
+            throw error
         }
 
         const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {
@@ -170,6 +172,40 @@ export default function (
         const options = isMasked ? { ...this.options,  headers: { ...this.options.headers, ...APPIUM_MASKING_HEADER } } : this.options
 
         /**
+         * After `deleteSession`, close the WebDriver Bidi socket, kill the driver
+         * process and clear the logger stream. This also runs when the command
+         * fails (the session may already be gone after a browser crash, a cloud
+         * timeout or a lost network), so the driver process does not keep running.
+         */
+        let sessionCleanedUp = false
+        const cleanUpSession = async (deleted: boolean) => {
+            if (command !== 'deleteSession' || sessionCleanedUp) {
+                return
+            }
+            sessionCleanedUp = true
+
+            /**
+             * close WebDriver Bidi socket
+             */
+            const browser = this as { _bidiHandler?: BidiHandler }
+            browser._bidiHandler?.close()
+
+            /**
+             * kill driver process if there is one
+             */
+            const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+            // a driver that did not end the session did not delete its profile: no wait for it
+            await environment.value.killDriverProcess(this.capabilities, shutdownDriver, deleted ? this.requestedCapabilities as WebdriverIO.Capabilities : undefined)
+
+            /**
+             * clear logger stream if session has been terminated
+             */
+            if (!environment.value.variables.WDIO_WORKER_ID) {
+                logger.clearLogger()
+            }
+        }
+
+        /**
          * use then here so we can better unit test what happens before and after the request
          */
         return request.makeRequest(options, this.sessionId).then((result) => {
@@ -186,31 +222,14 @@ export default function (
             }
 
             this.emit('result', { command, method, endpoint, body: maskedBody, result })
-
-            if (command === 'deleteSession') {
-                /**
-                 * close WebDriver Bidi socket
-                 */
-                const browser = this as { _bidiHandler?: BidiHandler }
-                browser._bidiHandler?.close()
-
-                /**
-                 * kill driver process if there is one
-                 */
-                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-                environment.value.killDriverProcess(this.capabilities, shutdownDriver)
-
-                /**
-                 * clear logger stream if session has been terminated
-                 */
-                if (!environment.value.variables.WDIO_WORKER_ID) {
-                    logger.clearLogger()
-                }
-            }
-
-            return result.value as WebDriverResponse | BidiResponses
+            const value = result.value as WebDriverResponse | BidiResponses
+            // `deleteSession` resolves once the driver is stopped, if it is shut down
+            return command === 'deleteSession' ? cleanUpSession(true).then(() => value) : value
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
+            if (command === 'deleteSession') {
+                return cleanUpSession(false).then(() => { throw error })
+            }
             throw error
         }).finally(() => {
             cleanup()
@@ -241,7 +260,7 @@ function manageSessionAbortions (this: BaseClient): {
             abortListeners.clear()
             sessionAbortListeners.set(this.sessionId, null)
         }
-
+        this.off('result', abortOnSessionEnd)
     }
 
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
@@ -267,7 +286,10 @@ function manageSessionAbortions (this: BaseClient): {
         isAborted: false,
         abortSignal: abort.signal,
         cleanup: () => {
-            this.off('result', abortOnSessionEnd)
+            /**
+             * only drop this command's controller, the session-wide listener
+             * has to stay registered until the session has been deleted
+             */
             abortListenerForCurrentSession?.delete(abort)
         }
     }

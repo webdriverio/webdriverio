@@ -19,7 +19,7 @@ Names you declare stay available in the next `exec`. A top-level `import` is loa
 
 ## Assertions
 
-Put assertions in `exec` with `expect-webdriverio`:
+Put assertions in `exec` with `expect-webdriverio`. Install it in your project. Without it, `expect(...)` fails with an install hint.
 
 ```sh
 npx wdio session exec -e "await expect($('h1')).toHaveText('Cart')"

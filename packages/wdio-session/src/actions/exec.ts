@@ -131,7 +131,7 @@ export const exec: ActionFn = async (session, args) => {
         const name = e.name && e.name !== 'Error' ? e.name : 'Error'
         const message = e.message.split('\n')[0]
         throw new SessionError('EXEC_ERROR', `${name}: ${message}`, {
-            hint: hintFor(e),
+            hint: hintFor(e, session.cmd),
             details: [...lines, ...(['debug', 'trace'].includes(session.plan.remote.logLevel || '') ? [e.stack || ''] : [])].filter(Boolean).join('\n') || undefined
         })
     }

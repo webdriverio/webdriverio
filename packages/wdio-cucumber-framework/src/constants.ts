@@ -1,6 +1,11 @@
+import os from 'node:os'
+
 import type { CucumberOptions } from './types.js'
 
 export const DEFAULT_TIMEOUT = 60000
+
+// the text of Cucumber 10, which Cucumber 13 no longer sends
+export const AMBIGUOUS_STEP_MESSAGE = 'Multiple step definitions match:'
 
 export const DEFAULT_OPTS: CucumberOptions = {
     paths: [],
@@ -18,7 +23,6 @@ export const DEFAULT_OPTS: CucumberOptions = {
     require: [],
     requireModule: [],
     retry: 0,
-    strict: false,
     tags: '',
     worldParameters: {},
     timeout: DEFAULT_TIMEOUT,
@@ -27,7 +31,9 @@ export const DEFAULT_OPTS: CucumberOptions = {
     ignoreUndefinedDefinitions: false,
     failAmbiguousDefinitions: false,
     profiles: [],
-    file: undefined
+    file: undefined,
+    parallelMode: undefined,
+    maxParallelContexts: os.cpus().length
 }
 
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [

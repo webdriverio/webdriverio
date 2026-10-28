@@ -5,7 +5,7 @@ import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
-import type { Services, Capabilities } from '@wdio/types'
+import type { Services, Capabilities, Frameworks } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
@@ -340,7 +340,8 @@ class JasmineAdapter {
                 status: '',
                 debugLogs: null,
                 filename: '',
-                ...(error ? { error } : {})
+                ...(error ? { error } : {}),
+                hookKind: fnName as Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
             }
 
             this._reporter.emit('hook:' + eventType, hook)
@@ -749,9 +750,9 @@ declare global {
         interface JasmineOpts extends JasmineOptions {}
     }
     /**
-     * The asymmetric matchers that the adapter copies from expect-webdriverio.
-     * They type `expect.stringContaining()` and the others when TypeScript uses
-     * the `expect` function of `@types/jasmine`.
+     * The asymmetric matchers that the adapter copies from expect-webdriverio,
+     * and `expect.extend()` for custom matchers. They type `expect.stringContaining()`
+     * and the others when TypeScript uses the `expect` function of `@types/jasmine`.
      */
     namespace expect {
         const any: ExpectWebdriverIO.Expect['any']
@@ -763,6 +764,7 @@ declare global {
         const oneOf: ExpectWebdriverIO.Expect['oneOf']
         const multiRemote: ExpectWebdriverIO.Expect['multiRemote']
         const not: ExpectWebdriverIO.Expect['not']
+        const extend: ExpectWebdriverIO.Expect['extend']
     }
     namespace jasmine {
         /**

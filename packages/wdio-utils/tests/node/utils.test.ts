@@ -14,6 +14,7 @@ import {
     canAccess, getCacheDir, setupChromedriver, setupGeckodriver, setupEdgedriver
 } from '../../src/node/utils.js'
 import { getElectronVersionForChromium } from '../../src/node/electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from '../../src/node/downloadProxy.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -78,6 +79,16 @@ vi.mock('edgedriver', () => ({
     download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
 }))
 
+/**
+ * the atomic install has its own tests (`atomicInstall.test.ts`) on real files
+ */
+vi.mock('../../src/node/atomicInstall.js', () => ({
+    installAtomically: vi.fn(async (target: { cacheDir: string, executablePath: string }, install: (cacheDir: string) => Promise<void>) => {
+        await install(target.cacheDir)
+        return target.executablePath
+    })
+}))
+
 vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     ElectronChromedriverProvider: vi.fn(function () {
         return { getExecutablePath: () => 'chromedriver' }
@@ -85,12 +96,16 @@ vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     getElectronVersionForChromium: vi.fn()
 }))
 
+vi.mock('../../src/node/downloadProxy.js', () => ({
+    warnIfDownloadProxyIgnored: vi.fn()
+}))
+
 vi.mock('@puppeteer/browsers', async () => ({
     Cache: vi.fn(function () {
         return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
     }),
     getVersionComparator: (await vi.importActual('@puppeteer/browsers')).getVersionComparator,
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     BrowserPlatform: { LINUX: 'linux', LINUX_ARM: 'linux_arm', MAC: 'mac', MAC_ARM: 'mac_arm', WIN32: 'win32', WIN64: 'win64' },
     detectBrowserPlatform: vi.fn(),
@@ -101,6 +116,66 @@ vi.mock('@puppeteer/browsers', async () => ({
 }))
 
 describe('setupChromedriver', () => {
+    /**
+     * `@puppeteer/browsers` can ignore a configured proxy, see `downloadProxy.ts`
+     */
+    it('checks the download proxy before it installs', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+        try {
+            await setupChromedriver('/proxy/cache', '116.0.5845.110')
+
+            expect(warnIfDownloadProxyIgnored).toHaveBeenCalled()
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(install).mock.invocationCallOrder[0])
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
+    /**
+     * without a zip tool the retry fails the same way, so tell how to fix it at once
+     */
+    it('fails with a hint and no retry when the system has no zip tool', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear().mockRejectedValueOnce(new Error(
+            'All providers failed for chromedriver 116.0.5845.110:\n  - DefaultProvider: Extraction failed: no zip archiver is available. ' +
+            'Install `unzip` (or `tar.exe`/Powershell on Windows), or add the optional `yauzl` dependency.'
+        ))
+
+        try {
+            const error = await setupChromedriver('/zip/cache', '116.0.5845.110').catch((err) => err)
+
+            expect(error.message).toContain('no zip archiver is available')
+            expect(error.message).toContain('WebdriverIO extracts browsers and Chromedriver with the system `unzip` command')
+            expect(error.message).toContain('apt-get install -y unzip')
+            expect(install).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
+    /**
+     * behind a proxy-only network the version lookup is the first request that fails,
+     * so the warning must come before it
+     */
+    it('checks the download proxy before it looks up the Chromedriver version', async () => {
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+        vi.mocked(resolveBuildId).mockClear().mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+        await expect(setupChromedriver('/proxy/lookup', 'stable')).rejects.toThrow('ENOTFOUND')
+
+        expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+            .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+    })
+
     /**
      * `chrome` and `chromium` are both in the Chrome browser family, so a config with
      * both asks for Chromedriver twice at the same time. The two installs used to race
@@ -242,7 +317,7 @@ describe('setupChromedriver', () => {
         try {
             await setupChromedriver('/some/cache', 'stable')
 
-            expect(resolveBuildId).toHaveBeenCalledWith('chrome', 'linux', '116')
+            expect(resolveBuildId).toHaveBeenCalledWith('chromedriver', 'linux', '116')
             expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.5845.96' }))
         } finally {
             vi.mocked(resolveBuildId).mockReset()
@@ -303,6 +378,46 @@ describe('setupChromedriver', () => {
             const fsp = (await import('node:fs/promises')).default
             vi.mocked(fsp.access).mockResolvedValue(undefined as never)
             vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+        })
+
+        /**
+         * two workers can resolve a newer build than the launcher and set it up together
+         */
+        it('installs Chromedriver atomically, into a private cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(installAtomically).mockClear()
+
+            await setupChromedriver('/atomic/cache', '116.0.5845.110')
+
+            expect(installAtomically).toHaveBeenCalledWith({
+                cacheDir: '/atomic/cache',
+                buildDir: expect.any(Function),
+                executablePath: '/foo/bar/executable',
+                markerPath: path.join('/atomic/cache', 'chromedriver', 'linux_116.0.5845.110.installing')
+            }, expect.any(Function))
+            vi.mocked(install).mockClear()
+            await vi.mocked(installAtomically).mock.calls[0][1]('/atomic/cache/.wdio-install/i1')
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache/.wdio-install/i1', buildId: '116.0.5845.110' }))
+        })
+
+        /**
+         * `install()` reads the executable path of a custom provider from the cache that it installs into
+         */
+        it('writes the executable path of an Electron Chromedriver into the private cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(installAtomically).mockClear()
+
+            await setupChromedriver('/atomic/cache', undefined, '34.0.0-beta.1')
+
+            expect(vi.mocked(installAtomically).mock.calls[0][0].markerPath)
+                .toBe(path.join('/atomic/cache', 'chromedriver', 'linux_34.0.0_beta.1.installing'))
+            vi.mocked(Cache).mockClear()
+            await vi.mocked(installAtomically).mock.calls[0][1]('/atomic/cache/.wdio-install/i2')
+            const privateCache = vi.mocked(Cache).mock.results[vi.mocked(Cache).mock.calls.findIndex(([dir]) => dir === '/atomic/cache/.wdio-install/i2')]
+            expect(privateCache.value.writeExecutablePath).toHaveBeenCalledWith('chromedriver', 'linux', '34.0.0-beta.1', 'chromedriver')
+            expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache/.wdio-install/i2', buildId: '34.0.0-beta.1' }))
         })
 
         it('installs the Chromedriver of the Electron release set by wdio:electronVersion', async () => {
@@ -560,6 +675,28 @@ describe('driver utils', () => {
             })
         })
 
+        it('checks the download proxy before it looks up the browser version', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+            vi.mocked(resolveBuildId).mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+            await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome', browserVersion: 'stable' }))
+                .rejects.toThrow('ENOTFOUND')
+
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+        })
+
+        it('does not check the download proxy when it uses an installed browser', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+            await setupPuppeteerBrowser('/foo/bar', {})
+
+            expect(warnIfDownloadProxyIgnored).not.toHaveBeenCalled()
+            expect(resolveBuildId).not.toHaveBeenCalled()
+        })
+
         it('should do nothing if browser binary is defined within caps', async () => {
             await expect(setupPuppeteerBrowser('/foo/bar', {
                 'goog:chromeOptions': { binary: '/my/chrome' }
@@ -620,6 +757,70 @@ describe('driver utils', () => {
                 .rejects.toThrow(/Couldn't find a matching chrome browser/)
         })
 
+        it('installs the browser atomically, then lets @puppeteer/browsers finish it in the cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(installAtomically).mockClear()
+            vi.mocked(install).mockClear()
+
+            await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(installAtomically).toHaveBeenCalledWith({
+                cacheDir: '/atomic/cache',
+                buildDir: expect.any(Function),
+                executablePath: '/foo/bar/executable',
+                markerPath: path.join('/atomic/cache', 'chrome', 'linux_116.0.5845.110.installing')
+            }, expect.any(Function))
+            expect(vi.mocked(installAtomically).mock.calls[0][0].buildDir('/atomic/cache/.wdio-install/i3')).toBe('/foo/bar')
+            expect(Cache).toHaveBeenCalledWith('/atomic/cache/.wdio-install/i3')
+            expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache' }))
+        })
+
+        /**
+         * `install()` on the cache would download a missing build in place
+         */
+        it('installs the build atomically again when it is gone before @puppeteer/browsers finishes it', async () => {
+            const fsp = (await import('node:fs/promises')).default
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(installAtomically).mockClear()
+            vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (file === '/foo/bar/executable' && vi.mocked(installAtomically).mock.calls.length < 2) {
+                    throw new Error('ENOENT')
+                }
+            })
+
+            try {
+                await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+            } finally {
+                vi.mocked(fsp.access).mockReset().mockResolvedValue(undefined as never)
+            }
+
+            expect(installAtomically).toHaveBeenCalledTimes(2)
+        })
+
+        /**
+         * the build could not be moved into the cache: this process uses its private build
+         */
+        it('uses the executable that the atomic install resolves', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as any)
+            vi.mocked(installAtomically).mockClear().mockResolvedValueOnce('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            vi.mocked(install).mockClear()
+
+            const result = await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(result.executablePath).toBe('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            expect(install).not.toHaveBeenCalled()
+
+            vi.mocked(installAtomically).mockResolvedValueOnce('/atomic/cache/chromedriver/.wdio_install/i2/chromedriver')
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.access).mockRejectedValueOnce(new Error('ENOENT'))
+            await expect(setupChromedriver('/atomic/cache', '116.0.5845.110'))
+                .resolves.toEqual({ executablePath: '/atomic/cache/chromedriver/.wdio_install/i2/chromedriver' })
+            vi.mocked(detectBrowserPlatform).mockReset()
+        })
+
         it('should install chrome browser with specific version provided', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             await expect(setupPuppeteerBrowser('/foo/bar', { browserVersion: '1.2.3' })).resolves.toEqual({
@@ -638,9 +839,13 @@ describe('driver utils', () => {
                 cacheExecutablePath = () => executablePath
                 vi.mocked(detectBrowserPlatform).mockReturnValue('win64' as any)
                 vi.mocked(resolveBuildId).mockResolvedValueOnce('stable_157.0' as never)
-                vi.mocked(Cache).mockImplementationOnce(function () {
+                /**
+                 * for the whole test: every failed install reads the cache again
+                 */
+                vi.mocked(Cache).mockImplementation(function () {
                     return {
                         installationDir: () => installationDir,
+                        browserRoot: (browser: string) => path.join('/cache', browser),
                         computeExecutablePath: () => cacheExecutablePath()
                     }
                 } as never)
@@ -651,6 +856,9 @@ describe('driver utils', () => {
             })
 
             afterEach(() => {
+                vi.mocked(Cache).mockImplementation(function () {
+                    return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
+                } as never)
                 vi.mocked(detectBrowserPlatform).mockReset()
                 vi.mocked(computeExecutablePath).mockReturnValue('/foo/bar/executable')
                 vi.mocked(fsp.access).mockReset().mockResolvedValue({} as never)
@@ -724,13 +932,128 @@ describe('driver utils', () => {
             })
 
             /**
-             * On Windows the Firefox installer can stay locked after it extracted the
-             * browser, so the install fails when it deletes the installer. The browser
-             * is complete, so the retry uses it. Removing it makes the retry download
-             * and extract it again, and Windows can lock the installer again.
+             * `@puppeteer/browsers` deletes the downloaded archive in a `finally` block,
+             * also when the browser is installed. On Windows that fails while another
+             * worker that installs the same build has the archive open. The message is
+             * the one `install()` throws (`@puppeteer/browsers` 3.2.3).
              */
-            it('keeps the build folder when the executable is there', async () => {
-                vi.mocked(install).mockRejectedValueOnce(new Error('EBUSY: resource busy or locked, unlink \'Firefox Setup 157.0.exe\''))
+            const archive = path.join('/cache', 'firefox', 'stable_157.0-Firefox Setup 157.0.exe')
+            const allProvidersFailed = (...providers: string[]) => new Error(
+                `All providers failed for firefox stable_157.0:\n${providers.map((p) => `  - ${p}`).join('\n')}`
+            )
+            const archiveLocked = (code = 'EBUSY: resource busy or locked') => `DefaultProvider: ${code}, unlink '${archive}'`
+
+            it('uses the installed browser when only the cleanup of its archive fails', async () => {
+                vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(archiveLocked()))
+
+                await expect(setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' }))
+                    .resolves.toEqual(expect.objectContaining({ executablePath }))
+
+                /**
+                 * no retry: the install in the private cache, then the one on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(2)
+                expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining(`Installed firefox vstable_157.0, but couldn't remove its download ${archive}`))
+            })
+
+            it('uses the installed browser when the retry fails only on the cleanup of its archive', async () => {
+                vi.mocked(install).mockClear()
+                    .mockRejectedValueOnce(new Error('download failed'))
+                    .mockRejectedValueOnce(allProvidersFailed(archiveLocked('EPERM: operation not permitted')))
+
+                await expect(setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' }))
+                    .resolves.toEqual(expect.objectContaining({ executablePath }))
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            it('retries when the archive cleanup fails but the browser is missing', async () => {
+                /**
+                 * the retry installs it
+                 */
+                vi.mocked(fsp.access).mockImplementation(async (file) => {
+                    if (file === executablePath && vi.mocked(install).mock.calls.length < 2) {
+                        throw new Error('ENOENT')
+                    }
+                })
+                vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(archiveLocked()))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            it('retries when another provider failed for another reason', async () => {
+                vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed('Mirror: connect ECONNREFUSED', archiveLocked()))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            it('retries when the locked file is not the archive of this build', async () => {
+                const otherFile = path.join('/cache', 'firefox', 'win64-stable_157.0', 'core', 'xul.dll')
+                vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${otherFile}'`))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            /**
+             * Node.js does not escape quotes in `unlink '<path>'`
+             */
+            it('uses the installed browser when the cache path has an apostrophe', async () => {
+                const browserRoot = path.join('/Users', 'O\'Brien', 'cache', 'firefox')
+                vi.mocked(Cache).mockImplementation(function () {
+                    return {
+                        installationDir: () => installationDir,
+                        browserRoot: () => browserRoot,
+                        computeExecutablePath: () => cacheExecutablePath()
+                    }
+                } as never)
+                const archiveInRoot = path.join(browserRoot, 'stable_157.0-Firefox Setup 157.0.exe')
+                vi.mocked(install).mockClear().mockRejectedValueOnce(
+                    allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${archiveInRoot}'`)
+                )
+
+                await expect(setupPuppeteerBrowser(path.dirname(browserRoot), { browserName: 'firefox', browserVersion: 'stable' }))
+                    .resolves.toEqual(expect.objectContaining({ executablePath }))
+                expect(install).toHaveBeenCalledTimes(2)
+            })
+
+            /**
+             * in the private cache of the install (`installBuild()`): the unpack can fail
+             * after the executable was written, and the retry must not use that build
+             */
+            it('removes the build folder of a failed install in its private cache, also when the executable is there', async () => {
+                vi.mocked(install).mockClear().mockRejectedValueOnce(new Error('unzip: invalid compressed data'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
+                expect(logMock.warn).toHaveBeenCalledWith(`Removing ${installationDir} before the retry: the failed install can have left it partly unpacked`)
+                expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('Keeping'))
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            /**
+             * on the cache itself (after the build was published), the build is complete
+             * and other processes can use it
+             */
+            it('keeps the build folder in the cache when the executable is there', async () => {
+                vi.mocked(install).mockClear()
+                    .mockResolvedValueOnce({} as never)
+                    .mockRejectedValueOnce(new Error('spawnSync setup.exe EBUSY'))
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 

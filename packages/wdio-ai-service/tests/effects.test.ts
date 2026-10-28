@@ -20,7 +20,7 @@ describe('requests', () => {
     it('groups status codes', () => {
         expect(statusClass(201)).toBe('2xx')
         expect(statusClass(404)).toBe('4xx')
-        expect(statusClass(undefined, true)).toBe('failed')
+        expect(statusClass(undefined)).toBe('failed')
     })
 
     it('keeps fetch and XHR calls and leaves out documents, assets, websockets and beacons', () => {

@@ -3,7 +3,6 @@ export const STATE_VERSION = 1
 
 export const DEFAULT_SESSION = 'default'
 export const SESSION_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
-export const REF_PATTERN = /^e\d+$/
 
 export const DEFAULT_ACTION_TIMEOUT = 30_000
 export const DEFAULT_EXEC_TIMEOUT = 60_000
@@ -15,7 +14,7 @@ export const MAX_QUEUE_LENGTH = 16
 export const EVENT_BUFFER_SIZE = 1000
 export const WATCHDOG_INTERVAL = 5_000
 export const EXEC_INLINE_LIMIT = 256 * 1024
-export const MIN_NODE_VERSION = '22.19.0'
+export const SUPPORTED_NODE_VERSIONS = '>=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1'
 
 export const EXIT_CODES = {
     OK: 0,
@@ -45,6 +44,7 @@ export const ERROR_CODES = {
     BIDI_REQUIRED: EXIT_CODES.FAILURE,
     VISUAL_MISMATCH: EXIT_CODES.FAILURE,
     NO_MATCH: EXIT_CODES.FAILURE,
+    NOT_EDITABLE: EXIT_CODES.FAILURE,
     CHECK_FAILED: EXIT_CODES.FAILURE,
     DIALOG_OPEN: EXIT_CODES.FAILURE,
     CONTEXT_GONE: EXIT_CODES.FAILURE,

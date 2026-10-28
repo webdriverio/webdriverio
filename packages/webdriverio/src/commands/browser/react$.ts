@@ -64,5 +64,9 @@ export async function react$ (
         react$Script, selector, props, state
     ) as unknown as ElementReference
 
-    return getElement.call(this, selector, res, { isReactElement: true })
+    /**
+     * `react$` never counts matches itself, so a refetch (implicit wait, stale
+     * element) must not suddenly apply the global strict `$` default either
+     */
+    return getElement.call(this, selector, res, { isReactElement: true, strict: false, reactOptions: { props, state } })
 }

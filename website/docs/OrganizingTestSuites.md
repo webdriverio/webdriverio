@@ -35,6 +35,8 @@ export const config = {
 }
 ```
 
+To also run the tests *inside* one spec file at the same time, each in its own browser window, see [Parallel Tests in a Spec File](./ParallelTests.md).
+
 ## Inherit From Main Config File
 
 If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.

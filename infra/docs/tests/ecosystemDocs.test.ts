@@ -32,4 +32,20 @@ describe('generateEcosystemDocs', () => {
         expect(page).toContain('Starts Appium')
         expect(page).toContain('infra/docs/src/3rd-party')
     })
+
+    it('uses the page title of the plugin as its name', () => {
+        const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-eco-'))
+        tempDirs.push(rootDir)
+        const pkgDir = path.join(rootDir, 'packages', 'wdio-cucumberjs-json-reporter')
+        fs.mkdirSync(pkgDir, { recursive: true })
+        fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({
+            name: '@wdio/cucumberjs-json-reporter',
+            description: 'Creates CucumberJS JSON files'
+        }))
+
+        generateEcosystemDocs(rootDir)
+
+        const page = fs.readFileSync(path.join(rootDir, 'website', 'docs', '_ecosystem.md'), 'utf-8')
+        expect(page).toContain('| [CucumberJS JSON](/docs/cucumberjs-json-reporter) |')
+    })
 })

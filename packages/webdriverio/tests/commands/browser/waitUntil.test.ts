@@ -265,6 +265,71 @@ describe('waitUntil', () => {
         }
     })
 
+    /**
+     * a code tells a timeout from a condition that failed, whatever the message (#16077)
+     */
+    describe('the code of a timeout', () => {
+        it.each([
+            ['the default message', undefined],
+            ['a custom message', 'Custom error message'],
+            ['a message function', () => 'deferred timeout message']
+        ])('is WAIT_UNTIL_TIMEOUT with %s', async (_, timeoutMsg) => {
+            const error = await browser.waitUntil(() => false, { timeout: 100, interval: 20, timeoutMsg })
+                .then(() => null, (err: Error) => err)
+            expect(error).toHaveProperty('code', 'WAIT_UNTIL_TIMEOUT')
+        })
+
+        /**
+         * only a timeout of the timer gets the code, not a condition that throws an error with
+         * the message "timeout" (#16077 review)
+         */
+        it('is not on the error of a condition that throws an error with the message "timeout"', async () => {
+            const error = await browser.waitUntil(() => { throw new Error('timeout') }, { timeout: 100, interval: 20, timeoutMsg: 'Custom error message' })
+                .then(() => null, (err: Error) => err)
+            expect(error?.message).toBe('waitUntil condition failed with the following reason: timeout')
+            expect(error).not.toHaveProperty('code')
+        })
+
+        /**
+         * a wait inside the condition times out: the outer wait fails as a condition, with the
+         * error of the inner wait (#16077)
+         */
+        it('is not taken from a wait inside the condition', async () => {
+            const error = await browser.waitUntil(
+                () => browser.waitUntil(() => false, { timeout: 20, interval: 10, timeoutMsg: 'inner wait' }),
+                { timeout: 100, interval: 20, timeoutMsg: 'outer wait' }
+            ).then(() => null, (err: Error) => err)
+            expect(error?.message).toBe('waitUntil condition failed with the following reason: inner wait')
+            expect(error).not.toHaveProperty('code')
+        })
+
+        it('is not on the error of a condition that failed', async () => {
+            const error = await browser.waitUntil(() => { throw new Error('foobar') }, { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.message).toContain('waitUntil condition failed with the following reason: foobar')
+            expect(error).not.toHaveProperty('code')
+        })
+    })
+
+    /**
+     * e.g. the "element wasn't found" error of an element that the page removed, with its code
+     * and its stale element cause (#16077 review)
+     */
+    describe('the error of a condition that failed', () => {
+        it('is the cause of the error of the wait', async () => {
+            const failure = Object.assign(new Error('foobar'), { code: 'ELEMENT_NOT_FOUND_AGAIN' })
+            const error = await browser.waitUntil(() => { throw failure }, { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.cause).toBe(failure)
+        })
+
+        it('is the cause also when it is not an error', async () => {
+            const error = await browser.waitUntil(() => Promise.reject('foobar'), { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.cause).toBe('foobar')
+        })
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })

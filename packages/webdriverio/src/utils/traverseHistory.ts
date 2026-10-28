@@ -1,6 +1,6 @@
 import type { local } from 'webdriver'
 
-import { getContextManager } from '../session/context.js'
+import { getContextManager, getParallelContextStore } from '../session/context.js'
 
 /**
  * WebDriver's default page load timeout.
@@ -130,6 +130,10 @@ export function historyReadiness (strategy: WebdriverIO.Capabilities['pageLoadSt
  * A `switchFrame` updates the current context and must not change this id.
  */
 async function topLevelBrowsingContext (browser: WebdriverIO.Browser): Promise<string> {
+    const parallelContext = getParallelContextStore().getStore()
+    if (parallelContext) {
+        return parallelContext
+    }
     const handle = getContextManager(browser).getCurrentWindowHandle()
     if (handle) {
         return handle

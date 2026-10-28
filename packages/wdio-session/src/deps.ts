@@ -37,7 +37,9 @@ export const PACKAGE_DEPENDENCIES: PackageDependency[] = [
     { package: 'electron', features: ['electron'] },
     { package: '@wdio/tauri-service', features: ['tauri'] },
     { package: '@wdio/dioxus-service', features: ['dioxus'] },
-    { package: '@wdio/visual-service', features: ['visual'] }
+    { package: '@wdio/visual-service', features: ['visual'] },
+    { package: 'expect-webdriverio', features: ['exec'] },
+    { package: 'tsx', features: ['TypeScript config'] }
 ]
 
 export const HINT_DOCTOR = (target?: string) => `Run \`wdio session doctor${target ? ` ${target}` : ''}\` to check your whole setup.`

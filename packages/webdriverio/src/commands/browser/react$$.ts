@@ -57,7 +57,7 @@ export function react$$ (
             react$$Script, selector, props, state
         ) as unknown as ElementReference[]
 
-        return getElements.call(this, selector, res, { isReactElement: true })
+        return getElements.call(this, selector, res, { isReactElement: true, reactOptions: { props, state } })
     }, {
         selector,
         foundWith: 'react$$',

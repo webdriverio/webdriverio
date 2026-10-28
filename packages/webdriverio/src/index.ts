@@ -14,13 +14,16 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
+import { markAttachedSession } from './utils/scriptTimeout.js'
 import { enableBrowsingContextCommands } from './browsingContext.js'
 import { environment } from './environment.js'
 
+import { applyBidiBrowserOverwrites } from './utils/bidi/browserOverwrites.js'
 import type { AttachOptions, CustomCommandOptions } from './types.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
+export { PARALLEL_CONTEXT_STORE_KEY } from './session/context.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 /**
@@ -67,7 +70,10 @@ export const remote = async function (
     const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
-    await enableFileLogging(config.outputDir)
+    /**
+     * in a worker, keep its log file
+     */
+    await enableFileLogging(config.outputDir, { keepLogPath: true })
     logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
     const modifier = (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => {
@@ -109,6 +115,9 @@ export const remote = async function (
     if (!isStub(options.automationProtocol)) {
         await registerSessionManager(instance)
     }
+
+    applyBidiBrowserOverwrites(instance)
+
     return instance
 }
 
@@ -135,6 +144,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     ) as WebdriverIO.Browser
     enableBrowsingContextCommands(driver)
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
+    markAttachedSession(driver)
 
     /**
      * Wait for the Bidi handler to be connected before registering the session manager
@@ -143,6 +153,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         await (driver['_bidiHandler'] as WebDriverTypes.BidiHandler).waitForConnected()
     }
     await registerSessionManager(driver)
+
+    applyBidiBrowserOverwrites(driver)
+
     return driver
 }
 

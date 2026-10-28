@@ -1,14 +1,13 @@
-import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
+import os from 'node:os'
 import { readdir, readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
 
 import isGlob from 'is-glob'
-import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -28,18 +27,56 @@ import type { IConfiguration, IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
 import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
+import { generateSkipTagsFromCapabilities, setUserHookNames, userRunHooks } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
-    StepDefinitionOptions
+    StepDefinitionOptions,
+    ParallelBrowser,
+    ParallelMode,
 } from './types.js'
+import { runParallelCucumber, parallelRunHasStarted } from './parallel.js'
 
 export const FILE_PROTOCOL = 'file://'
 
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+
+type ResolvePaths = (
+    logger: { debug: (message: string) => void, info: (message: string) => void, warn: (message: string) => void, error: (message: string) => void },
+    cwd: string,
+    sources: { paths: string[] },
+    support: { requireModules: string[], requirePaths: string[], importPaths: string[], loaders: string[] }
+) => Promise<{ requirePaths: string[], importPaths: string[] }>
+/**
+ * Cucumber's own expansion of the support paths: an internal module (`@cucumber/cucumber/lib/*`, as parallel.ts
+ * loads them), loaded when it is used
+ */
+const resolveSupportPaths = () => (require('@cucumber/cucumber/lib/paths/paths') as { resolvePaths: ResolvePaths }).resolvePaths
+
+/**
+ * Cucumber's advice for its own CLI: WebdriverIO loads the support code itself, so it would be wrong in every worker
+ */
+const CUCUMBER_CLI_ADVICE = [
+    'Use of `require-module` option',
+    'Use of `loader` option',
+]
+
+/**
+ * Cucumber puts the tag expressions that it joins in parentheses, but not `(@a) or (@b)`: its `or` would escape the
+ * `and` with the profile value
+ */
+const forCucumberMerge = (expression?: string) => expression && /^\(.*\)$/s.test(expression) ? `(${expression})` : expression
+
+/** the generated skip tags `and` the tags, in parentheses so that an `or` in them can not escape */
+const withSkipTags = (skipTags: string[], tags?: string) => [...skipTags, ...(tags ? [`(${tags})`] : [])].join(' and ')
+
+// the values that Cucumber owns: from cucumberOpts, then the profile or config file, then Cucumber's defaults
+const CUCUMBER_VALUES = [
+    'backtrace', 'dryRun', 'failFast', 'forceExit', 'import', 'language', 'name', 'order',
+    'publish', 'require', 'retry', 'retryTagFilter', 'strict', 'tags', 'worldParameters',
+] as const
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
@@ -60,8 +97,21 @@ export class CucumberAdapter {
     private _cucumberOpts: Required<CucumberOptions>
 
     private _hasTests = true
+    // added by WebdriverIO to the values that the user wrote (see `_providedConfiguration`)
+    private _generatedTags?: string
+    private _seededOrder?: string
+    /** a profile or config file error: run() throws it, after the `after` hook, as Cucumber's own errors */
+    private _configurationError?: unknown
+    /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
+    private _cucumberOutput = new Set<string>()
+    /** the `require` / `import` entries that come from a profile or config file, not from cucumberOpts */
+    private _profileSupportEntries = new Set<string>()
+    /** the warnings that the worker already gave */
+    private _warned = new Set<string>()
+    private _browser?: WebdriverIO.Browser
 
-    private gherkinParser: InstanceType<typeof Gherkin.Parser>
+    // set in the constructor and again in init(), with the language that Cucumber runs with
+    private gherkinParser!: InstanceType<typeof Gherkin.Parser>
 
     constructor(
         private _cid: string,
@@ -98,8 +148,9 @@ export class CucumberAdapter {
 
         /**
          * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
+         * A copy: the default list and the list of the config stay the same when watch mode runs the worker again
          */
-        this._cucumberOpts.format.push([this._cucumberFormatter])
+        this._cucumberOpts.format = [...(this._cucumberOpts.format ?? []), [this._cucumberFormatter]]
 
         /**
          * formatting options used by custom cucumberFormatter
@@ -121,14 +172,11 @@ export class CucumberAdapter {
             _scenarioLevelReporter: this._cucumberOpts.scenarioLevelReporter,
             _tagsInTitle: this._cucumberOpts.tagsInTitle,
             _ignoreUndefinedDefinitions: this._cucumberOpts.ignoreUndefinedDefinitions,
-            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions
+            _failAmbiguousDefinitions: this._cucumberOpts.failAmbiguousDefinitions,
+            _rootDir: this._config.rootDir
         }
 
-        const builder = new Gherkin.AstBuilder(uuidFn)
-        const matcher = new Gherkin.GherkinClassicTokenMatcher(
-            this._cucumberOpts.language
-        )
-        this.gherkinParser = new Gherkin.Parser(builder, matcher)
+        this._createGherkinParser()
 
         /**
          * as Cucumber doesn't support file:// formats yet we have to
@@ -182,21 +230,112 @@ export class CucumberAdapter {
             }).flat(1)
     }
 
+    private _createGherkinParser() {
+        const builder = new Gherkin.AstBuilder(uuidFn)
+        const matcher = new Gherkin.GherkinClassicTokenMatcher(
+            this._cucumberOpts.language
+        )
+        this.gherkinParser = new Gherkin.Parser(builder, matcher)
+    }
+
+    /**
+     * Cucumber merges its defaults, then the profile or config file, then `provided`. So `provided` holds
+     * what the user wrote and the values that WebdriverIO adds, not the WebdriverIO defaults
+     */
+    _providedConfiguration(): Partial<IConfiguration> {
+        // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
+        // the specs are the paths of the run (_loadRunConfiguration): Cucumber gives the paths of the profile only
+        const { tags, retryTagFilter, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
+        const userTags = this._generatedTags ?? forCucumberMerge(tags)
+        return {
+            ...user,
+            // WebdriverIO runs the workers and shards the specs; a profile does not turn on publish (CUCUMBER_PUBLISH_* still do)
+            parallel: 0,
+            shard: '',
+            publish: (user as { publish?: boolean }).publish ?? false,
+            // an empty value would replace the value of the profile
+            ...(userTags ? { tags: userTags } : {}),
+            ...(retryTagFilter ? { retryTagFilter: forCucumberMerge(retryTagFilter) } : {}),
+            ...(this._seededOrder ? { order: this._seededOrder } : {}),
+            format: this._cucumberOpts.format,
+            formatOptions: this._cucumberOpts.formatOptions,
+        } as Partial<IConfiguration>
+    }
+
+    /**
+     * the values that Cucumber runs with, for the code that reads them before or outside of Cucumber
+     */
+    private _useCucumberValues(configuration: IConfiguration) {
+        for (const key of CUCUMBER_VALUES) {
+            (this._cucumberOpts as Record<string, unknown>)[key] = configuration[key as keyof IConfiguration]
+        }
+        // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
+        this._warnProfileValue('requireModule', configuration.requireModule, 'Set "cucumberOpts.requireModule" to load a module.')
+        this._warnProfileValue('loader', configuration.loader, 'WebdriverIO loads the support code with its own TypeScript loader.')
+        const userEntries = new Set([...(this._config.cucumberOpts?.require ?? []), ...(this._config.cucumberOpts?.import ?? [])])
+        this._profileSupportEntries = new Set([...configuration.require, ...configuration.import].filter((entry) => !userEntries.has(entry)))
+        this._cucumberOpts.requireModule = (this._config.cucumberOpts?.requireModule ?? []) as string[]
+    }
+
+    /**
+     * the values that Cucumber runs with (cucumberOpts, profiles, config file), and the Gherkin parser of its language
+     */
+    private async _resolveCucumberValues() {
+        const { useConfiguration } = await loadConfiguration(
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._configurationFile() },
+            this._cucumberEnvironment()
+        )
+        this._warnProfileValue('paths', useConfiguration.paths, 'WebdriverIO runs the feature files of "specs".')
+        this._useCucumberValues(useConfiguration)
+        this._createGherkinParser()
+    }
+
     async init() {
+        // first: the skip tags parse the feature files in the language of the profile
+        try {
+            await this._resolveCucumberValues()
+        } catch (err) {
+            return this._deferConfigurationError(err)
+        }
+        // outside of the try: a feature file that does not parse fails init, with no session (only configuration errors wait)
         if (this._generateSkipTags) {
-            this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
+            const skipTags = this.generateDynamicSkipTags()
+            if (skipTags.length > 0) {
+                // the run: Cucumber joins the profile tags again; init: the tags that the first load resolved
+                this._generatedTags = withSkipTags(skipTags, this._config.cucumberOpts?.tags)
+                this._cucumberOpts.tags = withSkipTags(skipTags, this._cucumberOpts.tags)
+            }
+        }
+
+        // the reporters (cucumberjs-json) read the language of the config: the one of the profile too;
+        // not Cucumber's default `en`, which would replace the `language` option of the reporter
+        if (this._cucumberOpts.language && this._cucumberOpts.language !== (this._config.cucumberOpts?.language ?? 'en')) {
+            this._config.cucumberOpts = { ...this._config.cucumberOpts, language: this._cucumberOpts.language }
+        }
+
+        // One seed for loadSources and the run; Cucumber logs the seed of the run to a discarded stream
+        if (this._cucumberOpts.order === 'random') {
+            const seed = Math.floor(Math.random() * 1000 * 1000)
+            this._seededOrder = this._cucumberOpts.order = `random:${seed}`
+            log.warn(`Random order using seed: ${seed}`)
         }
 
         // Filter the specs according to the tag expression
         // Some workers would only spawn to then skip the spec (Feature) file
         // Filtering at this stage can prevent the spawning of a massive number of workers
-        const { plan } = await loadSources({
-            paths: this._specs,
-            defaultDialect: this._cucumberOpts.language,
-            order: this._cucumberOpts.order,
-            names: this._cucumberOpts.name,
-            tagExpression: this._cucumberOpts.tags,
-        })
+        let plan: Awaited<ReturnType<typeof loadSources>>['plan']
+        try {
+            ({ plan } = await loadSources({
+                paths: this._specs,
+                defaultDialect: this._cucumberOpts.language,
+                order: this._cucumberOpts.order,
+                names: this._cucumberOpts.name,
+                tagExpression: this._cucumberOpts.tags,
+            }))
+        } catch (err) {
+            // a bad tag expression or name of the profile: as a configuration error
+            return this._deferConfigurationError(err)
+        }
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
         // Filter features (of which at least some have line numbers) against the already filtered specs
@@ -214,17 +353,27 @@ export class CucumberAdapter {
         return this
     }
 
+    /**
+     * a configuration error: run() throws it, after the `after` hook, as Cucumber's own errors
+     */
+    private _deferConfigurationError(err: unknown) {
+        this._configurationError = err
+        this._hasTests = this._specs.length > 0
+        return this
+    }
+
     hasTests() {
         return this._hasTests
     }
 
     async run() {
-        let runtimeError
-        let result
-        let failedCount
-        let outStream
+        let runtimeError: unknown
+        let result: number
 
         try {
+            if (this._configurationError) {
+                throw this._configurationError
+            }
             await this.registerRequiredModules()
             supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
                 requireModules: this._cucumberOpts.requireModule,
@@ -241,51 +390,19 @@ export class CucumberAdapter {
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
-            outStream = new Writable({
-                write(chunk, encoding, callback) {
-                    callback()
-                },
-            })
-
-            this._eventEmitter.on('getFailedCount', (payload) => {
-                failedCount = payload
-            })
-
-            const environment: IRunEnvironment = {
-                cwd: this._cwd,
-                stderr: outStream,
-                stdout: outStream,
-            }
-
-            const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
-                environment
-            )
-
-            const { success } = await runCucumber(
-                {
-                    ...runConfiguration,
-                    support: supportCodeLibrary || runConfiguration.support,
-                },
-                environment
-            )
-
-            result = success ? 0 : 1
-
-            /**
-             * if we ignore undefined definitions we trust the reporter
-             * with the fail count
-             */
-            if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
-                result = failedCount
-            }
+            const { parallelMode } = this._cucumberOpts
+            result = parallelMode === 'contexts' || parallelMode === 'userContexts'
+                ? await this._runParallelMode(supportCodeLibrary, parallelMode)
+                : await this._runSequential(supportCodeLibrary)
         } catch (err) {
             runtimeError = err
             result = 1
-        } finally {
-            outStream?.end()
         }
 
+        /**
+         * Run after hooks regardless of which path executed or whether
+         * it threw — pass the runtime error so hooks can inspect it.
+         */
         await executeHooksWithArgs('after', this._config.after, [
             runtimeError || result,
             this._capabilities,
@@ -293,13 +410,216 @@ export class CucumberAdapter {
         ])
 
         /**
-         * in case the spec has a runtime error throw after the wdio hook
+         * In case the spec has a runtime error throw after the wdio hook
+         * so the runner can mark the worker as failed.
          */
         if (runtimeError) {
             throw runtimeError
         }
 
         return result
+    }
+
+    /**
+     * Called by the runner once the session browser exists, before `run()`.
+     */
+    setBrowser(browser: WebdriverIO.Browser) {
+        this._browser = browser
+    }
+
+    /**
+     * Run scenarios in parallel within separate BiDi browsing contexts.
+     * Falls back to sequential mode if BiDi is not available.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runParallelMode(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>,
+        mode: ParallelMode
+    ): Promise<number> {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser
+
+        if (!browser) {
+            throw new Error(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                'a browser instance (set via setBrowser or on globalThis).'
+            )
+        }
+
+        const hasBidiCommands = !!(
+            browser.__bidiCommandsEnabled ||
+            (browser.requestedCapabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands'] ||
+            (browser.capabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands']
+        )
+
+        if (!browser.isBidi) {
+            log.warn(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                'a WebDriver Bidi session. Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        if (!hasBidiCommands) {
+            log.warn(
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
+                '"wdio:experimentalBiDiCommands" to be set in capabilities. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        // Parse Gherkin documents from filtered specs; a spec `file.feature:12` keeps
+        // its line numbers in `specs` for Cucumber's line filter
+        const featurePaths = [...new Set(this._specs.map((spec) => spec.replace(/(:\d+)+$/, '')))]
+        const gherkinDocuments = this.getGherkinDocuments([featurePaths])
+        const { sources, runtime } = await this._loadRunConfiguration(this._cucumberEnvironment())
+
+        try {
+            return await runParallelCucumber({
+                browser,
+                reporter: this._reporter,
+                eventEmitter: this._eventEmitter,
+                cid: this._cid,
+                specs: this._specs,
+                gherkinDocuments,
+                supportCodeLibrary,
+                rootDir: this._config.rootDir,
+                cucumberOpts: {
+                    ...this._cucumberOpts,
+                    tags: sources.tagExpression,
+                    name: sources.names,
+                    dryRun: runtime.dryRun,
+                    failFast: runtime.failFast,
+                    retry: runtime.retry,
+                    retryTagFilter: runtime.retryTagFilter,
+                    strict: runtime.strict,
+                    worldParameters: runtime.worldParameters,
+                },
+            })
+        } catch (err) {
+            if (parallelRunHasStarted()) {
+                // BeforeAll may already have run and scenarios may have
+                // executed — re-running them sequentially would double-execute
+                // side effects and duplicate reports.
+                log.error(
+                    `Parallel Cucumber execution failed after execution began: ${(err as Error).message}. ` +
+                    'Not falling back to sequential execution to avoid re-running side effects.'
+                )
+                throw err
+            }
+            if (mode === 'userContexts') {
+                // A sequential fallback would share storage between scenarios
+                // while the config asked for isolation.
+                throw err
+            }
+            log.warn(
+                `Parallel Cucumber execution failed: ${(err as Error).message}. ` +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+    }
+
+    /**
+     * Cucumber joins `file` to the working folder: an absolute path must be relative to it
+     */
+    private _configurationFile() {
+        const { file } = this._cucumberOpts
+        return typeof file === 'string' && path.isAbsolute(file) ? path.relative(this._cwd, file) : file
+    }
+
+    /**
+     * a value of a profile or config file for the Cucumber CLI that WebdriverIO does not use: the paths (Cucumber
+     * would add them to the specs of each worker, #13562) and the requireModule; one warning per worker
+     */
+    private _warnProfileValue(key: string, values: string[], advice: string) {
+        if (values.length > 0) {
+            this._warnOnce(`profile:${key}`, `The "${key}" of the Cucumber configuration are not used: ${values.join(', ')}. ${advice}`)
+        }
+    }
+
+    /** a warning in the worker log and on the terminal, one time for each key */
+    private _warnOnce(key: string, message: string) {
+        if (this._warned.has(key)) {
+            return
+        }
+        this._warned.add(key)
+        log.warn(message)
+        console.warn(`[@wdio/cucumber-framework] ${message}`)
+    }
+
+    /**
+     * Cucumber's errors and warnings go to the worker stderr, each one time; its stdout (formatters) is not used
+     */
+    private _cucumberEnvironment(): IRunEnvironment {
+        const written = this._cucumberOutput
+        const stderr = new Writable({
+            write(chunk, _encoding, callback) {
+                const text = String(chunk)
+                if (!CUCUMBER_CLI_ADVICE.some((advice) => text.startsWith(advice)) && !written.has(text)) {
+                    written.add(text)
+                    process.stderr.write(text)
+                }
+                callback()
+            },
+        })
+        const stdout = new Writable({ write(_chunk, _encoding, callback) { callback() } })
+        return { cwd: this._cwd, stderr, stdout }
+    }
+
+    /**
+     * Resolve `cucumberOpts` merged with `profiles` / `file` the way Cucumber does.
+     */
+    private async _loadRunConfiguration(environment: IRunEnvironment) {
+        const { runConfiguration } = await loadConfiguration(
+            { profiles: this._cucumberOpts.profiles, provided: this._providedConfiguration(), file: this._configurationFile() },
+            environment
+        )
+        // the WebdriverIO specs choose the features, also in parallel mode: not the paths of the profile
+        runConfiguration.sources.paths = this._cucumberOpts.paths
+        return runConfiguration
+    }
+
+    /**
+     * Run Cucumber in sequential mode.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runSequential(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
+    ): Promise<number> {
+        let failedCount: number | undefined
+        const environment = this._cucumberEnvironment()
+
+        try {
+            this._eventEmitter.on('getFailedCount', (payload) => {
+                failedCount = payload
+            })
+
+            const runConfiguration = await this._loadRunConfiguration(environment)
+            const { runtime, formats } = runConfiguration
+
+            const { success } = await runCucumber(
+                {
+                    ...runConfiguration,
+                    support: supportCodeLibrary || runConfiguration.support,
+                    formats: this._runFormats(formats, runtime, supportCodeLibrary),
+                },
+                environment
+            )
+
+            let result = success ? 0 : 1
+
+            if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
+                result = failedCount as number
+            }
+
+            return result
+        } finally {
+            environment.stdout?.end()
+            environment.stderr?.end()
+        }
     }
 
     /**
@@ -327,16 +647,69 @@ export class CucumberAdapter {
         )
     }
 
-    async loadFilesWithType(fileList: string[]) {
-        return fileList.reduce(
-            (files: string[], file: string) => {
-                const filePath = os.platform() === 'win32'
-                    ? url.pathToFileURL(file).href
-                    : file
-                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+    /**
+     * the formatter options of a run: the values that Cucumber runs with (profiles, file) for a retried attempt and a
+     * pending step under strict, and the user BeforeAll / AfterAll that the formatter sends as hooks (not the WDIO ones)
+     */
+    private _runFormats<T extends { options: object }>(
+        formats: T,
+        runtime: { retry: number, retryTagFilter: string, strict: boolean },
+        supportCodeLibrary: Parameters<typeof userRunHooks>[0]
+    ): T {
+        return {
+            ...formats,
+            options: {
+                ...formats.options,
+                _retry: runtime.retry,
+                _retryTagFilter: runtime.retryTagFilter,
+                _strict: runtime.strict,
+                _userRunHooks: supportCodeLibrary ? userRunHooks(supportCodeLibrary) : {},
             },
-            []
-        )
+        }
+    }
+
+    /**
+     * the files of the `require` or `import` entries: a glob with the rules of Cucumber (its own `resolvePaths`),
+     * any other entry as it is (the loader imports it); a folder of a profile is not loaded
+     */
+    async loadFilesWithType(fileList: string[] = [], kind: 'require' | 'import' = 'require') {
+        const files: string[] = []
+        for (const entry of fileList) {
+            if (entry.startsWith(FILE_PROTOCOL)) {
+                files.push(entry)
+                continue
+            }
+            const absolute = path.resolve(this._cwd, entry)
+            const stat = fs.statSync(absolute, { throwIfNoEntry: false })
+            // a profile for the Cucumber CLI often lists a folder: import() can not load it, and main did not use profiles
+            if (stat?.isDirectory() && this._profileSupportEntries.has(entry)) {
+                this._warnOnce(`profile-folder:${absolute}`, `The folder "${entry}" in the "${kind}" option of the Cucumber configuration is not loaded: ` +
+                    `WebdriverIO loads files and globs. Use a glob such as "${entry.split(path.sep).join('/')}/**/*.js" in "cucumberOpts.${kind}".`)
+                continue
+            }
+            // path.join on Windows gives `steps\\*.js`: is-glob reads `\\*` as an escaped `*`
+            const glob = isGlob(os.platform() === 'win32' ? entry.split('\\').join('/') : entry)
+            // as on main: a file (also with `[ ]` in its path), a folder, or a path that the loader resolves or fails on
+            if (stat || !glob) {
+                files.push(absolute)
+                continue
+            }
+            const resolved = await this._resolveSupportPaths(entry, kind)
+            if (resolved.length === 0) {
+                this._warnOnce(`entry:${kind}:${entry}`, `"${entry}" in the "${kind}" option matches no file.`)
+            }
+            files.push(...resolved)
+        }
+        return [...new Set(files)]
+    }
+
+    private async _resolveSupportPaths(entry: string, kind: 'require' | 'import') {
+        const support = { requireModules: [], requirePaths: kind === 'require' ? [entry] : [], importPaths: kind === 'import' ? [entry] : [], loaders: [] }
+        const cucumberLogger = { debug: () => {}, info: () => {}, warn: (message: string) => log.warn(message), error: (message: string) => log.error(message) }
+        // Cucumber also expands its feature paths: a path that matches no file, not the specs for each entry
+        const noFeatures = { paths: [path.join(this._cwd, '.wdio-support-paths-only')] }
+        const { requirePaths, importPaths } = await resolveSupportPaths()(cucumberLogger, this._cwd, noFeatures, support)
+        return kind === 'require' ? requirePaths : importPaths
     }
 
     async loadAndRefreshModule(modules: string[]) {
@@ -366,14 +739,9 @@ export class CucumberAdapter {
     }
 
     async loadFiles() {
-        await Promise.all([
-            this.loadAndRefreshModule(
-                await this.loadFilesWithType(this._cucumberOpts.require)
-            ),
-            this.loadAndRefreshModule(
-                await this.loadFilesWithType(this._cucumberOpts.import)
-            ),
-        ])
+        // as Cucumber: the require files, then the import files, so that their hooks register in the same order
+        await this.loadAndRefreshModule(await this.loadFilesWithType(this._cucumberOpts.require, 'require'))
+        await this.loadAndRefreshModule(await this.loadFilesWithType(this._cucumberOpts.import, 'import'))
     }
 
     /**
@@ -438,6 +806,11 @@ export class CucumberAdapter {
         })
     }
 
+    private _getParallelContextId(): string | undefined {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser | undefined
+        return browser?.__parallelContextStore?.getStore()
+    }
+
     /**
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
@@ -447,11 +820,20 @@ export class CucumberAdapter {
         const cid = this._cid
 
         let params: unknown
+        const paramsByContext = new Map<string, unknown>()
         this._eventEmitter.on('getHookParams', (payload) => {
-            params = payload
+            const contextId = payload?.contextId ?? this._getParallelContextId()
+            if (contextId) {
+                paramsByContext.set(contextId, payload)
+            } else {
+                params = payload
+            }
         })
 
-        const getHookParams = () => params
+        const getHookParams = () => {
+            const contextId = this._getParallelContextId()
+            return contextId && paramsByContext.has(contextId) ? paramsByContext.get(contextId) : params
+        }
 
         setDefinitionFunctionWrapper(
             (fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {

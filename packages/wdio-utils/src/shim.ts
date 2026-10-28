@@ -3,11 +3,55 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
-let inCommandHook = false
+export interface CommandHookStore {
+    getStore(): true | undefined
+    run<T>(value: true, fn: () => T): T
+}
+
+/**
+ * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
+ * flag, so a hook still does not trigger itself via the commands it issues.
+ */
+const flagCommandHookStore: CommandHookStore = (() => {
+    let active = false
+    return {
+        getStore: () => active ? true : undefined,
+        run: <T>(_: true, fn: () => T): T => {
+            const previous = active
+            active = true
+            let result: T
+            try {
+                result = fn()
+            } catch (err) {
+                active = previous
+                throw err
+            }
+            if (result instanceof Promise) {
+                return result.finally(() => { active = previous }) as T
+            }
+            active = previous
+            return result
+        }
+    }
+})()
+
+let commandHookScope: CommandHookStore = flagCommandHookStore
+
+/**
+ * Node entry points register an `AsyncLocalStorage` so a hook running for one
+ * concurrent test (parallel mode) does not suppress hooks of commands issued by
+ * other tests.
+ */
+export function setCommandHookStore (store: CommandHookStore) {
+    commandHookScope = store
+}
+
+const isInCommandHook = () => commandHookScope.getStore() === true
+const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -26,6 +70,17 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
+// marks a function of `wrapCommand` with the command it wraps, see `unwrapCommand`
+const WRAPPED_COMMAND = Symbol.for('webdriverio.wrappedCommand')
+
+/**
+ * The command that `wrapCommand` wrapped, or the value as it is. An element copies the commands
+ * of the browser, which the browser already wrapped: it wraps the command itself, so the command
+ * hooks run once for each command.
+ */
+export function unwrapCommand<T> (value: T): T | Function {
+    return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
+}
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
 
 /**
@@ -273,6 +328,16 @@ function createElementPromiseProxy (
                          */
                         function (this: WebdriverIOInstance, index: number) {
                             /**
+                             * an element list reads its own index: it waits for an index past
+                             * its end and gives a "not found" element when the list never
+                             * reaches it. For example the list of an `async`
+                             * `overwriteCommand('$$')`, which comes here as a promise
+                             */
+                            if (getWdioKind(this) === 'element-array') {
+                                return (this as unknown as Record<number, unknown>)[index]
+                            }
+
+                            /**
                              * if we access an index that is out of bounds we wait for the
                              * array to get that long, and timeout eventually if it doesn't
                              */
@@ -442,10 +507,8 @@ function attachElementArrayHooks (
     const self = this
     wrap(async (load) => {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && self.options?.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(self, 'beforeCommand', self.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && self.options?.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'beforeCommand', self.options!.beforeCommand, beforeHookArgs))
         }
 
         let commandError: unknown
@@ -455,11 +518,9 @@ function attachElementArrayHooks (
             commandError = err
         }
 
-        if (!inCommandHook && self.options?.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && self.options?.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, elementArray, commandError]
-            await executeHooksWithArgs.call(self, 'afterCommand', self.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'afterCommand', self.options!.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -477,10 +538,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && this.options.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && this.options.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
         }
 
         let commandResult
@@ -491,11 +550,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && this.options.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -519,7 +576,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
+    const wrapped = function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
         /**
          * `$$` and the other multi-element queries return an ElementArray, which
          * is itself thenable and async-iterable. Don't wrap that result in
@@ -626,6 +683,80 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
         return command.apply(this, args)
     }
+    Object.defineProperty(wrapped, WRAPPED_COMMAND, { value: fn })
+    return wrapped
+}
+
+/**
+ * the parts of a Mocha runnable (test or hook) that `executeAsync` uses
+ */
+interface FrameworkRunnable {
+    _timeout?: number
+    title?: string
+    fullTitle?: () => string
+    resetTimeout?: (...args: unknown[]) => unknown
+    _timeoutError?: (ms: number) => Error
+}
+
+/**
+ * When Mocha last started the timer of a runnable, and who to tell when it
+ * starts it again
+ */
+interface FrameworkTimer {
+    startedAt: number
+    onRestart?: () => void
+}
+const frameworkTimers = new WeakMap<FrameworkRunnable, FrameworkTimer>()
+
+/**
+ * Follow the timer of a Mocha test or hook. Mocha starts it (`resetTimeout()`)
+ * when our wrapper returns its promise, so before `beforeTest` ends, and starts
+ * it again when `this.timeout()` changes the timeout. It does not start it
+ * again for a WebdriverIO retry. `executeAsync` uses these starts instead of
+ * guessing them. Call this before the wrapper awaits anything.
+ */
+export function followFrameworkTimer (runnable: unknown) {
+    const target = runnable as FrameworkRunnable | undefined
+    if (!target || typeof target.resetTimeout !== 'function') {
+        return
+    }
+    let timer = frameworkTimers.get(target)
+    if (!timer) {
+        const state: FrameworkTimer = { startedAt: Date.now() }
+        const resetTimeout = target.resetTimeout
+        target.resetTimeout = function (this: FrameworkRunnable, ...args: unknown[]) {
+            state.startedAt = Date.now()
+            const result = resetTimeout.apply(this, args)
+            state.onRestart?.()
+            return result
+        }
+        frameworkTimers.set(target, state)
+        timer = state
+    }
+    /**
+     * a hook runs again for each test; Mocha starts its timer right after this
+     */
+    timer.startedAt = Date.now()
+}
+
+/**
+ * Add the WebdriverIO attempt to a framework timeout error, for a test or hook
+ * with WebdriverIO retries
+ */
+function withAttempt (err: Error, attempt: number, totalAttempts: number) {
+    if (totalAttempts < 2) {
+        return err
+    }
+    const message = err.message
+    /**
+     * read the stack first: V8 builds its text on the first read, with the message of that time
+     */
+    const stack = err.stack
+    err.message = `${message} (WDIO attempt ${attempt}/${totalAttempts})`
+    if (typeof stack === 'string') {
+        err.stack = stack.replace(message, () => err.message)
+    }
+    return err
 }
 
 /**
@@ -648,6 +779,11 @@ export async function executeAsync(
 
     let done = false
     let timer: ReturnType<typeof setTimeout> | undefined
+    /**
+     * Mocha fails a test that ran longer than its timeout even when it passes at
+     * last, so a retry after a Mocha timeout can't pass
+     */
+    let mochaTimedOut = false
 
     try {
         /**
@@ -656,12 +792,21 @@ export async function executeAsync(
          * window of time for an operation to complete before triggering a timeout. This approach ensures that test results are handled
          * properly without affecting the overall test execution timing.
          */
-        // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
-        const runnable = this?._runnable
-        const runnableTimeout = runnable?._timeout
-        // @ts-expect-error - jasmine is set by Jasmine at runtime
-        const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
-        const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
+        const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+        /**
+         * The current framework timeout. A Mocha test or hook can change it with
+         * `this.timeout()` while it runs, and `0` turns it off.
+         */
+        const frameworkTimeout = (): number => (
+            // @ts-expect-error - jasmine is set by Jasmine at runtime
+            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        )
+        /**
+         * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
+         */
+        const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
+        const start = Date.now()
+        const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
         const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
@@ -673,16 +818,52 @@ export async function executeAsync(
         const result = await Promise.race([
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
-                timer = setTimeout(() => {
-                    if (done) {
-                        resolve()
-                    } else {
-                        reject(new Error(`Timeout after ${_timeout}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                const check = () => {
+                    if (timer) {
+                        clearTimeout(timer)
+                        timer = undefined
                     }
-                }, _timeout)
+                    if (done) {
+                        return resolve()
+                    }
+                    const current = frameworkTimeout()
+                    /**
+                     * the timeout is off: wait for the function, or for Mocha to start
+                     * its timer again (`this.timeout(ms)`)
+                     */
+                    if (!(current > 0)) {
+                        return
+                    }
+                    const remaining = current - TIME_BUFFER - (Date.now() - timerStart())
+                    if (remaining > 0) {
+                        timer = setTimeout(check, remaining)
+                        return
+                    }
+                    /**
+                     * Mocha would fail the runnable TIME_BUFFER ms later and not wait for it, so
+                     * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
+                     * timer so it waits for them, and fail with Mocha's own timeout error so the
+                     * report stays the same, plus the attempt when the test has WebdriverIO retries.
+                     */
+                    if (frameworkTimer) {
+                        frameworkTimer.onRestart = undefined
+                    }
+                    runnable?.resetTimeout?.()
+                    mochaTimedOut = typeof runnable?._timeoutError === 'function'
+                    reject(typeof runnable?._timeoutError === 'function'
+                        ? withAttempt(runnable._timeoutError(current), attempt, totalAttempts)
+                        : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                }
+                if (frameworkTimer) {
+                    frameworkTimer.onRestart = check
+                }
+                check()
             })
         ])
         done = true
+        if (frameworkTimer) {
+            frameworkTimer.onRestart = undefined
+        }
         if (timer) {
             clearTimeout(timer)
         }
@@ -697,10 +878,15 @@ export async function executeAsync(
         /**
          * ensure we don't leak the timeout timer into follow-up retries
          */
+        const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+        const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
+        if (frameworkTimer) {
+            frameworkTimer.onRestart = undefined
+        }
         if (timer) {
             clearTimeout(timer)
         }
-        if (retries.limit > retries.attempts) {
+        if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args, timeout)
         }

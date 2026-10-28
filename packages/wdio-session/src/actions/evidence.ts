@@ -206,7 +206,7 @@ export const trace: ActionFn = async (session, args) => {
     const sub = String(args.sub || '')
     if (sub === 'start') {
         if (session.get('tracer')) {
-            throw usage('A trace is already running.', 'Stop it with `wdio session trace stop`.')
+            throw usage('A trace is already running.', `Stop it with \`${session.cmd('trace', { sub: 'stop' }, 'wdio session trace stop')}\`.`)
         }
         installProbe(session)
         const dir = session.artifact('trace', session.timestamp())
@@ -256,7 +256,7 @@ export const record: ActionFn = async (session, args) => {
     const sub = String(args.sub || '')
     if (sub === 'start') {
         if (session.get('recorder')) {
-            throw usage('A recording is already running.', 'Stop it with `wdio session record stop`.')
+            throw usage('A recording is already running.', `Stop it with \`${session.cmd('record', { sub: 'stop' }, 'wdio session record stop')}\`.`)
         }
         installProbe(session)
         const fps = typeof args.fps === 'number' && args.fps > 0 ? args.fps : 5

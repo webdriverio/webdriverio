@@ -1,12 +1,12 @@
 {
   "name": "@wdio/firefox-profile-service",
-  "version": "10.0.1",
+  "version": "10.1.0",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service",
   "license": "MIT",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",

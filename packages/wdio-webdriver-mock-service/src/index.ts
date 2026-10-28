@@ -29,6 +29,9 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.deleteSession().times(2).reply(200, deleteSession)
         this._mock.command.getTitle().times(Infinity).reply(200, { value: 'Mock Page Title' })
         this._mock.command.getUrl().times(Infinity).reply(200, { value: 'https://mymockpage.com' })
+        this._mock.command.getPageSource().times(Infinity).reply(200, { value: '<html><head><title>Mock Page Title</title></head><body></body></html>' })
+        this._mock.command.getWindowHandle().times(Infinity).reply(200, { value: 'CDwindow-XXXX-XXXX' })
+        this._mock.command.getWindowHandles().times(Infinity).reply(200, { value: ['CDwindow-XXXX-XXXX'] })
         this._mock.command.getElementRect(ELEMENT_ID).times(2).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this._mock.command.getElementRect(ELEMENT_ALT).times(3).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
         this._mock.command.getElementRect(ELEMENT_REFETCHED).times(1).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
@@ -70,6 +73,18 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('waitForExistScenario', this.waitForExistScenario.bind(this))
         this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
         this._browser.addCommand('requestRetryScenario', this.requestRetryScenario.bind(this))
+        this._browser.addCommand('sessionGoneScenario', this.sessionGoneScenario.bind(this))
+        this._browser.addCommand('elementListScenario', this.elementListScenario.bind(this))
+    }
+
+    /**
+     * Every `findElements` gives `count` elements, e.g. for the element list scenario of the
+     * runner benchmark.
+     */
+    elementListScenario(count: number) {
+        this.nockReset()
+        const elements = Array.from({ length: count }, (_, i) => ({ [ELEM_PROP]: `${ELEMENT_ID}-${i}` }))
+        this._mock.command.findElements().times(Infinity).reply(200, { value: elements })
     }
 
     clickScenario() {
@@ -265,6 +280,25 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.navigateTo().times(3).reply(500, {})
         this._mock.command.navigateTo().reply(200, { value: null })
+    }
+
+    /**
+     * The session is already gone at the end of the run (for example after a
+     * browser crash or a cloud timeout): `DELETE /session/:sessionId` fails
+     * with "invalid session id". Registered before the default stubs, so it
+     * replaces their `deleteSession` reply.
+     */
+    sessionGoneScenario() {
+        WebDriverMock.reset()
+        this._mock = new WebDriverMock()
+        this._mock.command.deleteSession().times(Infinity).reply(404, {
+            value: {
+                error: 'invalid session id',
+                message: 'A session is either terminated or not started',
+                stacktrace: ''
+            }
+        })
+        this.init()
     }
 
     /**

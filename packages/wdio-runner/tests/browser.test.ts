@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
@@ -190,5 +191,167 @@ describe('BrowserFramework assertion subjects', () => {
 
         expect(response).toEqual(expect.objectContaining({ id: 1, pass: true }))
         expect($$).not.toHaveBeenCalled()
+    })
+})
+
+/**
+ * While a spec loads, browser errors and `SEVERE` browser logs end it with a
+ * useful message. Once Mocha runs the tests, they belong to the tests: Mocha
+ * reports the result, so the runner must not end the spec (#14216, #14255).
+ */
+describe('BrowserFramework browser errors', () => {
+    const originalSend = process.send
+    let handler: MessageHandler
+    let framework: BrowserFramework
+    let browser: Record<string, ReturnType<typeof vi.fn>>
+
+    const severeLog = (timestamp: number, message = 'http://localhost/driver.js 297:6 - "an error the test handles"') => ({
+        level: 'SEVERE', source: 'console-api', message, timestamp
+    })
+
+    async function finishSpec (failures: number) {
+        await handler({
+            command: 'workerRequest',
+            args: { id: 1, message: browserChannelMessage(MESSAGE_TYPES.browserTestResult, { failures, events: [] }) }
+        } as unknown as Workers.WorkerCommand)
+    }
+
+    function sentErrors () {
+        return vi.mocked(process.send!).mock.calls
+            .map(([message]) => message as { name?: string, content?: { message: string } })
+            .filter((message) => message.name === 'error')
+    }
+
+    beforeEach(() => {
+        vi.useFakeTimers()
+        browser = {
+            url: vi.fn().mockResolvedValue(undefined),
+            setCookies: vi.fn().mockResolvedValue(undefined),
+            execute: vi.fn(),
+            getLogs: vi.fn(),
+            refresh: vi.fn().mockResolvedValue(undefined)
+        }
+        globals.browser = browser
+        process.send = vi.fn() as unknown as typeof process.send
+
+        const on = vi.spyOn(process, 'on').mockImplementation(() => process)
+        framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
+        handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
+        on.mockRestore()
+    })
+
+    afterEach(() => {
+        vi.useRealTimers()
+        process.send = originalSend
+    })
+
+    it('ignores browser log errors that are logged after the tests started', async () => {
+        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.getLogs.mockResolvedValue([severeLog(1500)])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(browser.getLogs).toHaveBeenCalled()
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(sentErrors()).toEqual([])
+    })
+
+    it('ends the spec on browser log errors that are logged before the tests started', async () => {
+        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 2000 })
+        browser.getLogs.mockResolvedValue([severeLog(1500)])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+
+        expect(await result).toBe(1)
+        expect(sentErrors()[0].content!.message).toContain('"an error the test handles"')
+    })
+
+    it('ends the spec on browser log errors when the tests did not start', async () => {
+        browser.execute.mockResolvedValueOnce({ errors: [], hasViteError: false }).mockResolvedValue(undefined)
+        browser.getLogs.mockResolvedValue([severeLog(1500)])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+
+        expect(await result).toBe(1)
+        expect(sentErrors()).toHaveLength(1)
+    })
+
+    it('ignores test errors when Mocha starts between the state read and getLogs', async () => {
+        browser.execute
+            .mockResolvedValueOnce({ errors: [], hasViteError: false })
+            .mockResolvedValueOnce(1000)
+            .mockResolvedValue(undefined)
+        browser.getLogs.mockResolvedValueOnce([severeLog(1500)]).mockResolvedValue([])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(browser.execute).toHaveBeenCalledTimes(2)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(sentErrors()).toEqual([])
+    })
+
+    it('still retries an outdated optimize dep after the tests started', async () => {
+        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.getLogs.mockResolvedValueOnce([
+            severeLog(1500, 'http://localhost/node_modules/.vite/deps/expect.js?v=1 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)')
+        ]).mockResolvedValue([])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(browser.refresh).toHaveBeenCalledTimes(1)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+    })
+
+    it('ignores a state check that is still running when the session ends', async () => {
+        let rejectState!: (err: Error) => void
+        browser.execute.mockReturnValue(new Promise((_, reject) => {
+            rejectState = reject
+        }))
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            expect(browser.execute).toHaveBeenCalledTimes(1)
+            await finishSpec(0)
+            expect(await result).toBe(0)
+
+            rejectState(Object.assign(new Error('WebDriver Bidi command "script.callFunction" with id 15 got no result: the connection was closed'), { name: 'session ended' }))
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+
+            expect(unhandled).not.toHaveBeenCalled()
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('still surfaces a failed state check while the spec runs', async () => {
+        browser.execute.mockRejectedValueOnce(new Error('browser crashed')).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(expect.objectContaining({ message: 'browser crashed' }), expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
     })
 })

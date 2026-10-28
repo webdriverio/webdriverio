@@ -156,6 +156,11 @@ export class MochaFramework extends HTMLElement {
             spinner.remove()
         }
 
+        /**
+         * from now on Mocha runs the tests and reports their errors (also uncaught
+         * ones), so the runner stops looking at browser errors and logs
+         */
+        window.__wdioTestsStartedAt__ = Date.now()
         const runner = mocha.run(async (failures) => {
             await this.#onFinish(failures)
             for (const teardownScript of globalTeardownScripts) {

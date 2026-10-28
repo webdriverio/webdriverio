@@ -9,7 +9,16 @@ export const config: WebdriverIO.Config = {
      */
     specs: [
         path.join(__dirname, 'headless', 'classic.e2e.ts'),
-        path.join(__dirname, 'headless', 'roleSelector.e2e.ts')
+        path.join(__dirname, 'headless', 'roleSelector.e2e.ts'),
+        /**
+         * in a classic session `$` doesn't look into shadow roots, so finding a
+         * `shadow$` element again must use `shadow$`
+         */
+        path.join(__dirname, 'headless', 'findElementAgain.e2e.ts'),
+        path.join(__dirname, 'headless', 'actionClick.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItem.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItemPaths.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItemOverwrite.e2e.ts')
     ],
 
     /**

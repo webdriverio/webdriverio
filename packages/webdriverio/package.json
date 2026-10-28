@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "10.0.1",
+  "version": "10.1.0",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "tags": [
     "webdriver",
@@ -66,7 +66,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "6.0.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^14.0.0",
+    "@sinonjs/fake-timers": "^15.4.0",
     "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
@@ -80,11 +80,11 @@
     "react-dom-16": "npm:react-dom@16.14.0",
     "react-dom-17": "npm:react-dom@17.0.2",
     "react-dom-19": "npm:react-dom@19.3.0",
-    "safe-stable-stringify": "^2.4.3"
+    "safe-stable-stringify": "^3.0.0"
   },
   "dependencies": {
     "@types/node": "^22.20.4",
-    "@types/sinonjs__fake-timers": "^8.1.5",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",
@@ -103,7 +103,7 @@
     "lodash.clonedeep": "^4.5.0",
     "query-selector-shadow-dom": "^1.0.1",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^12.0.0",
+    "serialize-error": "^13.0.2",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },

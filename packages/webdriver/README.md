@@ -166,6 +166,16 @@ Timeout (in ms) for a WebDriver Bidi command to receive a response from the brow
 
 </Option>
 
+### bidiConnectTimeout
+
+<Option type="Number" default="10000">
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic and Bidi-only commands fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](https://webdriver.io/docs/runner#browser-runner), the connection waits until it opens or fails.
+
+</Option>
+
 ### agent
 
 <Option type="Object" default={`{

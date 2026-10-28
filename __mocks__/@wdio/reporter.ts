@@ -1,6 +1,8 @@
 import { vi } from 'vitest'
 
 import { EventEmitter } from 'node:events'
+import type { Reporters } from '@wdio/types'
+import type * as ReporterModule from '../../packages/wdio-reporter/src/index'
 import HookStats from '../../packages/wdio-reporter/src/stats/hook.ts'
 import RunnerStats from '../../packages/wdio-reporter/src/stats/runner.ts'
 import SuiteStats from '../../packages/wdio-reporter/src/stats/suite.ts'
@@ -25,7 +27,7 @@ export default class WDIOReporter extends EventEmitter {
     retries: number
     _chalk: Chalk
     runnerStat?: RunnerStats
-    constructor (public options: any) {
+    constructor (public options: Partial<Reporters.Options>) {
         super()
         this.options = options
         this.outputStream = { write: vi.fn() }
@@ -50,9 +52,70 @@ export default class WDIOReporter extends EventEmitter {
         return true
     }
 
-    write (content: any) {
+    write (content: unknown) {
         this.outputStream.write(content)
     }
+
+    setContextIdResolver (_resolver: () => string | undefined): void {}
+
+    onProcess<Args extends unknown[]> (event: string, handler: (...args: Args) => void): void {
+        process.on(event, handler as (...args: unknown[]) => void)
+    }
+
+    getContextTest (): TestStats | undefined {
+        return undefined
+    }
+
+    getContextOwner (): TestStats | HookStats | undefined {
+        return this.getContextTest()
+    }
+
+    getContextId (): string | undefined {
+        return undefined
+    }
+
+    parentOf (_stats: unknown): SuiteStats | undefined {
+        return undefined
+    }
+
+    pathOf (_stats: unknown): SuiteStats[] {
+        return []
+    }
+
+    depthOf (_stats: unknown): number {
+        return 0
+    }
+
+    getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    isFeatureHook (hook: unknown): boolean {
+        return this.parentOf(hook)?.type === 'feature'
+    }
+
+    unitOf (_stats: unknown): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    hookOwner (_hook: unknown): ReporterModule.ReporterUnit | SuiteStats | undefined {
+        return undefined
+    }
+
+    unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
+        return undefined
+    }
+
+    attemptState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
+        return undefined
+    }
+
+    /* istanbul ignore next */
+    onUnitStart (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitRetry (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitEnd (_unit: ReporterModule.ReporterUnit) {}
 
     /* istanbul ignore next */
     onRunnerStart () {}
@@ -81,6 +144,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName } = await vi.importActual<typeof import('../../packages/wdio-reporter/src/index')>('../../packages/wdio-reporter/src/index')
+const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook }
