@@ -605,6 +605,12 @@ describe('CucumberAdapter', () => {
             }
         })
 
+        // as an empty `tags`: Cucumber would write '' over the profile value, and retry every failed scenario
+        it('keeps the retryTagFilter of the profile when cucumberOpts has an empty one', async () => {
+            const { configuration } = await resolve({ profiles: ['retried'], file, retryTagFilter: '' })
+            expect(configuration.runtime.retryTagFilter).toBe('@flaky')
+        })
+
         it('keeps the user retryTagFilter in parentheses when Cucumber joins it with the profile one', async () => {
             const { configuration } = await resolve({ profiles: ['retried'], file, retry: 2, retryTagFilter: '(@x) or (@y)' })
             expect(configuration.runtime.retryTagFilter).toBe('(@flaky) and ((@x) or (@y))')

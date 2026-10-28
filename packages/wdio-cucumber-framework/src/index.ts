@@ -243,7 +243,7 @@ export class CucumberAdapter {
     _providedConfiguration(): Partial<IConfiguration> {
         // WebdriverIO loads requireModule itself (all its forms): Cucumber gives the modules of the profile only
         // the specs are the paths of the run (_loadRunConfiguration): Cucumber gives the paths of the profile only
-        const { tags, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
+        const { tags, retryTagFilter, requireModule: _requireModule, paths: _paths, ...user } = (this._config.cucumberOpts ?? {}) as CucumberOptions
         const userTags = this._generatedTags ?? forCucumberMerge(tags)
         return {
             ...user,
@@ -251,9 +251,9 @@ export class CucumberAdapter {
             parallel: 0,
             shard: '',
             publish: (user as { publish?: boolean }).publish ?? false,
-            // an empty value would replace the tags of the profile
+            // an empty value would replace the value of the profile
             ...(userTags ? { tags: userTags } : {}),
-            ...(user.retryTagFilter ? { retryTagFilter: forCucumberMerge(user.retryTagFilter) } : {}),
+            ...(retryTagFilter ? { retryTagFilter: forCucumberMerge(retryTagFilter) } : {}),
             ...(this._seededOrder ? { order: this._seededOrder } : {}),
             format: this._cucumberOpts.format,
             formatOptions: this._cucumberOpts.formatOptions,
