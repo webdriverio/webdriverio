@@ -258,6 +258,23 @@ describe('async stack of a command that fails', () => {
         expect(pairs(browser).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
     })
 
+    it('keeps the async frames of the caller of a custom command of addCommand', async () => {
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const events: string[] = []
+        for (const event of ['command', 'result', 'userCommand', 'userResult']) {
+            browser.on(event, () => events.push(event))
+        }
+        browser.addCommand('myCmd', async () => {
+            await failing()
+        })
+        async function testFrameworkFrame () {
+            await browser.myCmd()
+        }
+        const error = await testFrameworkFrame().catch((err: Error) => err)
+        expect((error as Error).stack).toContain('testFrameworkFrame')
+        expect(events).toEqual(['userCommand', 'command', 'result', 'userResult'])
+    })
+
     it('keeps the result of a command when a listener throws', async () => {
         const browser = fakeBrowser()
         browser.emit.mockImplementation((event: string) => {
