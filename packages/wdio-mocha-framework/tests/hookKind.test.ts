@@ -22,7 +22,7 @@ async function run(build: (root: Mocha.Suite) => void, mochaOpts: Record<string,
     }
     const adapter = new MochaAdapter(
         '0-0',
-        { mochaOpts: { failHookAffectedTests: true, ...mochaOpts }, after: [], beforeSuite: [], afterSuite: [] } as never,
+        { mochaOpts: { failHookAffectedTests: true, ...mochaOpts }, after: [], beforeSuite: [() => {}], afterSuite: [() => {}] } as never,
         ['/spec.js'],
         {},
         reporter

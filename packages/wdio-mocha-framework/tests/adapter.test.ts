@@ -31,6 +31,9 @@ const adapterFactory = (config: any) => new MochaAdapter(
     wdioReporter as any
 )
 
+/** a config with `beforeSuite` and `afterSuite` hooks (of the config or of a service) */
+const SUITE_HOOKS = { beforeSuite: [() => {}], afterSuite: [() => {}] }
+
 beforeEach(() => {
     wdioReporter.write.mockReset()
     wdioReporter.emit.mockReset()
@@ -50,6 +53,21 @@ test('comes with a factory', async () => {
     expect(result).toBe(0)
 })
 
+test.each([
+    ['beforeSuite and afterSuite', SUITE_HOOKS, ['beforeSuite'], ['afterSuite']],
+    ['beforeSuite only', { beforeSuite: [() => {}], afterSuite: [] }, ['beforeSuite'], []],
+    ['afterSuite only', { afterSuite: () => {} }, [], ['afterSuite']]
+])('adds a root hook with its own title for each config hook to run: %s', async (_name, hooks, before, after) => {
+    // @ts-ignore params not needed for test scenario
+    const adapter = adapterFactory(hooks)
+    await adapter.init()
+    await adapter.run()
+    // @ts-ignore outdated types
+    const runner = adapter['_mocha']!['runner']
+    expect(runner.suite.beforeAll.mock.calls.map(([title]: [string]) => title)).toEqual(before)
+    expect(runner.suite.afterAll.mock.calls.map(([title]: [string]) => title)).toEqual(after)
+})
+
 test('should properly set up mocha', async () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
@@ -67,11 +85,11 @@ test('should properly set up mocha', async () => {
     // @ts-ignore outdated types
     const runner = adapter['_mocha']!['runner']
     expect(runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
-    // the root hooks of the config hooks have their own title, not the title of a user root hook
-    expect(runner.suite.beforeAll).toBeCalledWith('beforeSuite', expect.any(Function))
+    // no beforeSuite / afterSuite hook to run: no root hook for them
+    expect(runner.suite.beforeAll).not.toBeCalled()
     expect(runner.suite.beforeEach).not.toBeCalled()
     expect(runner.suite.afterEach).not.toBeCalled()
-    expect(runner.suite.afterAll).toBeCalledWith('afterSuite', expect.any(Function))
+    expect(runner.suite.afterAll).not.toBeCalled()
 
     expect(adapter['_mocha']!.addFile).toBeCalledWith('/foo/bar.test.js')
 })
@@ -203,9 +221,26 @@ describe('prepareMessage', () => {
 })
 
 describe('parallel mode config hooks', () => {
+    test('emits no hook event with no beforeSuite / afterSuite hook to run', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, beforeSuite: [], afterSuite: [] })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            expect(await adapter.run()).toBe(0)
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(wdioReporter.emit.mock.calls.filter((c) => c[0].startsWith('hook:'))).toEqual([])
+        expect(runParallelTests).toBeCalledTimes(1)
+    })
+
     test('emits paired hook events around beforeSuite/afterSuite', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, ...SUITE_HOOKS })
         await adapter.init()
         adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
 
@@ -239,7 +274,7 @@ describe('parallel mode config hooks', () => {
 
     test('sends the kind of the beforeSuite / afterSuite root hooks, and the uid of the hook:start on a failing hook:end', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, ...SUITE_HOOKS })
         await adapter.init()
         adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
         vi.mocked(executeHooksWithArgs).mockImplementation(async (hookName: string) => {
@@ -270,7 +305,7 @@ describe('parallel mode config hooks', () => {
 
     test('titles beforeSuite/afterSuite with the first and the last test of the root suite, as Mocha does', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, ...SUITE_HOOKS })
         await adapter.init()
         adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }], tests: [{ title: 'first' }, { title: 'last' }] } as any
 
@@ -287,7 +322,7 @@ describe('parallel mode config hooks', () => {
 
     test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
         // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, ...SUITE_HOOKS })
         await adapter.init()
         const rootSuite = { title: 'first suite' }
         adapter['_mocha']!.suite = { suites: [rootSuite] } as any

@@ -27,6 +27,11 @@ interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     mochaOpts: MochaOptsImport
 }
 
+/** a hook of the config or of a service to run (the runner adds the service hooks before the framework starts) */
+function hasHooks(hooks: unknown) {
+    return [hooks].flat().some((hook) => typeof hook === 'function')
+}
+
 /** The reporter fields of the root-suite hook of the config hooks in a sequential run (Mocha's setHookTitle) */
 function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
     const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
@@ -196,16 +201,18 @@ class MochaAdapter {
         // sequential mode's root-suite hooks (wrapHook): prepareMessage payloads
         // with Mocha's root hook title. They run against the session-global context (no tab).
         const rootTests = (mocha.suite as unknown as { tests?: { title: string }[] }).tests
-        const beforeSuiteMsg = this.prepareMessage('beforeSuite')
-        const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
-        const beforeSuiteUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-        try {
-            await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-        } catch (err) {
-            log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        if (hasHooks(this._config.beforeSuite)) {
+            const beforeSuiteMsg = this.prepareMessage('beforeSuite')
+            const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
+            const beforeSuiteUid = this.getSyncEventIdStart('hook')
+            this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            try {
+                await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
+                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            } catch (err) {
+                log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            }
         }
 
         let failures: number
@@ -230,16 +237,18 @@ class MochaAdapter {
             failures = 1
         }
 
-        const afterSuiteMsg = this.prepareMessage('afterSuite')
-        const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
-        const afterSuiteStartUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-        try {
-            await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-        } catch (err) {
-            log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+        if (hasHooks(this._config.afterSuite)) {
+            const afterSuiteMsg = this.prepareMessage('afterSuite')
+            const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
+            const afterSuiteStartUid = this.getSyncEventIdStart('hook')
+            this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+            try {
+                await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
+                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+            } catch (err) {
+                log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+            }
         }
 
         return this._finalize(failures, runtimeError)
@@ -258,9 +267,13 @@ class MochaAdapter {
             Object.keys(EVENTS).forEach((e: keyof typeof EVENTS) =>
                 this._runner!.on(e, this.emit.bind(this, EVENTS[e])))
 
-            // a title of their own: a user root hook has the title `"before all" hook in "{root}"`
-            this._runner.suite.beforeAll('beforeSuite', this.wrapHook('beforeSuite'))
-            this._runner.suite.afterAll('afterSuite', this.wrapHook('afterSuite'))
+            // only with hooks to run; a title of their own: a user root hook has the title `"before all" hook in "{root}"`
+            if (hasHooks(this._config.beforeSuite)) {
+                this._runner.suite.beforeAll('beforeSuite', this.wrapHook('beforeSuite'))
+            }
+            if (hasHooks(this._config.afterSuite)) {
+                this._runner.suite.afterAll('afterSuite', this.wrapHook('afterSuite'))
+            }
         })
         return this._finalize(result, runtimeError)
     }
