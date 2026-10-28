@@ -1304,6 +1304,7 @@ export default class AllureReporter extends WDIOReporter {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
+            this._emitHistoryIdsFrom(this._hookFullTitle(hook))
             // the hook of its own result is a fixture of that result only
             this._startHook({ name: hook.title || 'Hook', type: hookType, start, scope: scope === 'root' ? 'all' : scope })
             this._endHook({
@@ -1316,6 +1317,7 @@ export default class AllureReporter extends WDIOReporter {
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
                 duration: hook.duration,
+                statusDetails: getMessageAndTraceFromError(hook.error),
                 stop: AllureReporter.getTimeOrNow(hook.end)
             })
             return
@@ -1331,6 +1333,7 @@ export default class AllureReporter extends WDIOReporter {
             const stop = AllureReporter.getTimeOrNow(hook.end)
             this._endHook({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stop, duration: hook.duration })
             this._startTest({ name: hook.title || 'Hook failure', start: AllureReporter.getTimeOrNow(hook.start), standalone: true })
+            this._emitHistoryIdsFrom(this._hookFullTitle(hook))
             this._endTest({ status: AllureStatusEnum.BROKEN, statusDetails: getMessageAndTraceFromError(hook.error), stage: AllureStage.FINISHED, duration: hook.duration, stop })
             return
         }
@@ -1348,10 +1351,16 @@ export default class AllureReporter extends WDIOReporter {
         })
 
         if (hook.error && !hadPendingTest && hadPendingHook) {
+            /**
+             * the hook fixture has just been closed above, so the metadata lands on the
+             * synthetic hook-failure test instead of on the still-open fixture
+             */
+            this._emitHistoryIdsFrom(this._hookFullTitle(hook))
             this._endTest({
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
                 duration: hook.duration,
+                statusDetails: getMessageAndTraceFromError(hook.error),
                 stop: AllureReporter.getTimeOrNow(hook.end)
             })
         }
@@ -1468,6 +1477,47 @@ export default class AllureReporter extends WDIOReporter {
     private _mochaFullTitle(cid: string, leaf: string): string {
         const parts = [...this._activeSuitePath(cid)]
         if (leaf) { parts.push(leaf) }
+        return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
+    }
+
+    /**
+     * Full title for a synthetic hook-failure result. A hook can fire before any
+     * test sets the lane's suite path (parallel mode), so `_activeSuitePath`
+     * contributes nothing there and hooks with the same title in different
+     * suites would share one history id. `pathOf` reads the base reporter's suite
+     * tree, which links every hook to its declaring suite, so the id no longer
+     * depends on which lane happened to be open.
+     *
+     * A root all-hook has no owning suite, so its path stays empty and the id is
+     * the same in sequential and parallel mode. A failed each-hook is reported
+     * once per test with the same title in parallel mode, so the test title joins
+     * the hash; otherwise Allure would read those failures as retries of one
+     * result.
+     */
+    private _hookFullTitle(hook: HookStats): string {
+        /**
+         * `pathOf` only answers for a hook the base reporter registered from its
+         * own `hook:start`. A hook fed straight into `onHookEnd` has no tree
+         * entry, so fall back to the open suite stack, which is what the id used
+         * before. The distinction matters for a root all-hook: its path is
+         * legitimately empty, and an empty path is what keeps its id identical in
+         * sequential and parallel mode.
+         */
+        const registered = Boolean(hook.uid && this.hooks[hook.uid] === hook)
+        const suitePath = registered
+            ? this.pathOf(hook).map((suite) => String(suite.title).trim()).filter(Boolean)
+            : this._activeSuitePath(this._currentCid()).map((title) => String(title).trim()).filter(Boolean)
+        const parts = [...suitePath]
+        if (hook.title) { parts.push(hook.title) }
+        /**
+         * An each-hook belongs to one test. In parallel mode the same afterEach
+         * fails for every test with the same title, so without the test title the
+         * ids collide and Allure reads the failures as retries of one result.
+         * `hookKind` is absent on older engines, and an all-hook never has a
+         * `currentTest`, so its presence is enough.
+         */
+        const isAllHook = hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll'
+        if (!isAllHook && hook.currentTest) { parts.push(String(hook.currentTest).trim()) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
 
