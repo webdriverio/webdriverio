@@ -199,24 +199,8 @@ class MochaAdapter {
             mochaSuite.filterOnly?.()
         }
 
-        // Config hooks are surfaced as paired hook:start/hook:end events like
-        // sequential mode's root-suite hooks (wrapHook): prepareMessage payloads
-        // with Mocha's root hook title. They run against the session-global context (no tab).
         const rootTests = (mocha.suite as unknown as { tests?: { title: string }[] }).tests
-        if (hasHooks(this._config.beforeSuite)) {
-            const beforeSuiteMsg = this.prepareMessage('beforeSuite')
-            const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
-            const beforeSuiteUid = this.getSyncEventIdStart('hook')
-            const beforeSuiteStart = Date.now()
-            this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-            try {
-                await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - beforeSuiteStart, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-            } catch (err) {
-                log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - beforeSuiteStart, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-            }
-        }
+        await this._runRootHook('beforeSuite', rootTests)
 
         let failures: number
         let runtimeError: Error | undefined
@@ -240,22 +224,32 @@ class MochaAdapter {
             failures = 1
         }
 
-        if (hasHooks(this._config.afterSuite)) {
-            const afterSuiteMsg = this.prepareMessage('afterSuite')
-            const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
-            const afterSuiteStartUid = this.getSyncEventIdStart('hook')
-            const afterSuiteStart = Date.now()
-            this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-            try {
-                await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - afterSuiteStart, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-            } catch (err) {
-                log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - afterSuiteStart, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-            }
-        }
+        await this._runRootHook('afterSuite', rootTests)
 
         return this._finalize(failures, runtimeError)
+    }
+
+    /**
+     * Parallel mode: the config hooks surface as paired hook:start/hook:end events like sequential mode's
+     * root-suite hooks (wrapHook): prepareMessage payloads with Mocha's root hook title. They run against
+     * the session-global context (no tab)
+     */
+    private async _runRootHook(hookName: 'beforeSuite' | 'afterSuite', rootTests?: { title: string }[]) {
+        if (!hasHooks(this._config[hookName])) {
+            return
+        }
+        const message = this.prepareMessage(hookName)
+        const hook = { ...message, ...rootHookMessage(hookName === 'beforeSuite' ? 'before all' : 'after all', rootTests) }
+        const fields = { cid: this._cid, specs: this._specs, uid: this.getSyncEventIdStart('hook') }
+        const start = Date.now()
+        this._reporter.emit('hook:start', { ...hook, type: 'hook:start', ...fields })
+        try {
+            await executeHooksWithArgs(hookName, this._config[hookName] as Function, [message])
+            this._reporter.emit('hook:end', { ...hook, type: 'hook:end', state: 'pass', duration: Date.now() - start, ...fields })
+        } catch (err) {
+            log.error(`Error in ${hookName} hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...hook, type: 'hook:end', state: 'fail', duration: Date.now() - start, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, ...fields })
+        }
     }
 
     private async _runSequential(mocha: Mocha) {
