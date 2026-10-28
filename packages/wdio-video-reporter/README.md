@@ -179,8 +179,6 @@ Most users may want to set these configurations:
 
 Set to true to save videos for passing tests.
 
-Each attempt of a retried test (Mocha `retries`, Vitest `retry`, Cucumber `retry` with `scenarioLevelReporter`) is a test of its own: a failed attempt gets its own video, and a passed attempt gets one only with `saveAllVideos: true`. With Cucumber step reporting, the attempts of a scenario share one video.
-
 Type: `boolean`<br />
 Default: `false`
 

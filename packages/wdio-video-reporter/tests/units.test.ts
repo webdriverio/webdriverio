@@ -139,14 +139,13 @@ describe('video of a retried test (saveAllVideos: false)', () => {
         return reporter
     }
 
-    // each attempt is a test of its own in the reports: a failed attempt gets its video
-    it('makes a video of the failed attempt of a test that passed on retry, and none of the passed attempt', async () => {
+    it('makes no video for a test that passed on retry: its last attempt passed', async () => {
         await retryThen('test:pass')
-        expect(videos()).toHaveLength(1)
+        expect(videos()).toEqual([])
     })
 
-    it('makes one video for each attempt of a test that failed in every attempt', async () => {
+    it('makes one video, with both attempts, for a test that failed in every attempt', async () => {
         await retryThen('test:fail')
-        expect(videos()).toHaveLength(2)
+        expect(videos()).toHaveLength(1)
     })
 })

@@ -594,17 +594,6 @@ export default class VideoReporter extends WdioReporter {
     }
 
     /**
-     * Mocha `retries`, Vitest `retry`, Cucumber scenario level: the failed attempt ends with test:retry and no
-     * test:end, so it gets its own video. A step of a Cucumber scenario gets its test:end, and the attempts of
-     * the scenario share one recording (`onSuiteRetry`)
-     */
-    onTestRetry (test: TestStats) {
-        if (!this.#isCucumberStepReporter) {
-            this.onTestEnd(test)
-        }
-    }
-
-    /**
      * parallel mode: a test with no end event (a failed beforeEach with `failHookAffectedTests: false`)
      * also stops its recording when its window closes
      */
