@@ -94,7 +94,7 @@ These are the [browser commands](/docs/api/browser) of the same name, applied to
 | [`getCookies`](/docs/api/browser/getCookies), [`setCookies`](/docs/api/browser/setCookies), [`deleteCookies`](/docs/api/browser/deleteCookies) | Read and change the cookies of this context's storage partition. |
 | [`setViewport`](/docs/api/browser/setViewport) | Resize the viewport of this tab or window. |
 | [`addInitScript`](/docs/api/browser/addInitScript) | Run a script before the page scripts, in this tab or window only. |
-| [`mock`](/docs/api/browser/mock), [`mockClearAll`](/docs/api/browser/mockClearAll), [`mockRestoreAll`](/docs/api/browser/mockRestoreAll) | Mock the requests of this tab or window only. A mock ends when its tab closes. |
+| [`mock`](/docs/api/browser/mock), [`mockClearAll`](/docs/api/browser/mockClearAll), [`mockRestoreAll`](/docs/api/browser/mockRestoreAll) | Mock the requests of this tab or window only. A mock ends when its tab closes. `mockClearAll` and `mockRestoreAll` only touch the mocks of this tab. |
 | [`emulate`](/docs/api/browser/emulate) | Emulate a device property, e.g. geolocation or the clock, in this tab or window only. |
 | [`restore`](/docs/api/browser/restore) | Restore emulations, the same as `browser.restore()`. |
 | [`waitUntil`](/docs/api/browser/waitUntil), [`pause`](/docs/api/browser/pause) | The same as on the browser. |

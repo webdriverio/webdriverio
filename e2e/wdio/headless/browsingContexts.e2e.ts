@@ -441,20 +441,24 @@ describe('browsing contexts', () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-a')
 
-            const sessionWide = await browser.mock('**/api/session')
-            sessionWide.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
-            const own = await b.mock('**/api/own')
-            own.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+            try {
+                const sessionWide = await browser.mock('**/api/session')
+                sessionWide.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                const own = await b.mock('**/api/own')
+                own.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
 
-            await b.mockRestoreAll()
-            await b.navigate(`${origin}/fetch?endpoint=own`)
-            await expect(b.$('#result')).toHaveText('real')
-            await a.navigate(`${origin}/fetch?endpoint=session`)
-            await expect(a.$('#result')).toHaveText('mocked')
+                await b.mockRestoreAll()
+                await b.navigate(`${origin}/fetch?endpoint=own`)
+                await expect(b.$('#result')).toHaveText('real')
+                await a.navigate(`${origin}/fetch?endpoint=session`)
+                await expect(a.$('#result')).toHaveText('mocked')
 
-            await browser.mockRestoreAll()
-            await a.navigate(`${origin}/fetch?endpoint=session`)
-            await expect(a.$('#result')).toHaveText('real')
+                await browser.mockRestoreAll()
+                await a.navigate(`${origin}/fetch?endpoint=session`)
+                await expect(a.$('#result')).toHaveText('real')
+            } finally {
+                await browser.mockRestoreAll()
+            }
         })
 
         it('shares cookies between tabs of the same origin', async () => {
