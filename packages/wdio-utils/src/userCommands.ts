@@ -1,7 +1,7 @@
 import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
-import { getBrowserObject } from './utils.js'
+import { getBrowserObject, transformCommandLogResult } from './utils.js'
 import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
@@ -229,6 +229,11 @@ function isBuffer (value: unknown) {
     return Boolean(buffer?.isBuffer(value))
 }
 
+function isPlainObject (value: unknown) {
+    const proto = Object.getPrototypeOf(value)
+    return proto === Object.prototype || proto === null
+}
+
 function wdioLabel (value: object, name: string, ref: unknown) {
     // a chainable element gives a promise for each property
     if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
@@ -309,6 +314,11 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
     if (depth >= MAX_DEPTH) {
         return '[…]'
     }
+    // the same placeholders as the command log
+    const source = isPlainObject(value) ? transformCommandLogResult(value) : value
+    if (typeof source === 'string') {
+        return source
+    }
 
     ancestors.add(value as object)
     const copyItem = (item: unknown) => copyValue(item, ancestors, depth + 1)
@@ -319,7 +329,7 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
             (copy as unknown[]).push(`… [${value.length - MAX_ITEMS} more]`)
         }
     } else {
-        const entries = Object.entries(value as object)
+        const entries = Object.entries(source as object)
         copy = Object.fromEntries(entries.slice(0, MAX_ITEMS).map(([key, item]) => [key, copyItem(item)]))
         if (entries.length > MAX_ITEMS) {
             (copy as Record<string, unknown>)['…'] = `[${entries.length - MAX_ITEMS} more]`
