@@ -212,7 +212,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             return result
         }
         // one derived promise: a second reaction on the promise of the command cuts its async stack
-        if (result instanceof Promise && !(result as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
+        if (needsDerivedPromise(result)) {
             return result.then(
                 (value) => {
                     sendValue(value)
@@ -228,6 +228,14 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         result.then(sendValue, sendError)
         return result
     })
+}
+
+/**
+ * Internal: `true` for a native promise that is not a WebdriverIO value. A chainable element or an element list
+ * (also pending) must reach the caller as it is.
+ */
+export function needsDerivedPromise (value: unknown): value is Promise<unknown> {
+    return value instanceof Promise && getWdioKind(value) === undefined && !(value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]
 }
 
 const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
