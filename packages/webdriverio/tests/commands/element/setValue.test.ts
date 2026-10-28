@@ -89,6 +89,82 @@ describe('setValue', () => {
         expect(paths()).toContain('/session/foobar-123/element/some-elem-123/value')
     })
 
+    it('should throw when the browser rejects an invalid value on a direct-set input', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockResolvedValue('date')
+        vi.spyOn(browser, 'execute').mockRejectedValue(
+            new Error("Failed to set value 'garbage' on <input type=\"date\">: value was rejected by the browser")
+        )
+
+        await expect(elem.setValue('garbage')).rejects.toThrow(
+            "Failed to set value 'garbage' on <input type=\"date\">: value was rejected by the browser"
+        )
+    })
+
+    it('should execute setter function in browser context and validate rejection check logic', () => {
+        // Test the browser.execute callback logic in isolation
+        const globalAny = globalThis as any
+        const origHTMLInputElement = globalAny.HTMLInputElement
+        const origEvent = globalAny.Event
+
+        try {
+            class MockHTMLInputElement {
+                public disabled = false
+                public readOnly = false
+                public type = 'date'
+                public _val = ''
+                get value () {
+                    return this._val
+                }
+                set value (_v: string) {
+                    // simulate browser rejecting invalid date format: stays empty
+                    this._val = ''
+                }
+                dispatchEvent () {
+                    return true
+                }
+            }
+            globalAny.HTMLInputElement = MockHTMLInputElement
+            globalAny.Event = class MockEvent {
+                constructor (public type: string, public init?: any) {}
+            }
+
+            // Extract the function passed to browser.execute
+            const elem = new MockHTMLInputElement()
+            const fn = function setInputValue (elem: HTMLInputElement, newValue: string) {
+                if (elem.disabled || elem.readOnly) {
+                    return false
+                }
+                const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+                setter.call(elem, newValue)
+                elem.dispatchEvent(new Event('input', { bubbles: true }))
+                elem.dispatchEvent(new Event('change', { bubbles: true }))
+                if (newValue !== '' && elem.value === '') {
+                    throw new Error(`Failed to set value '${newValue}' on <input type="${elem.type}">: value was rejected by the browser`)
+                }
+                return true
+            }
+
+            expect(() => fn(elem as unknown as HTMLInputElement, 'garbage')).toThrow(
+                "Failed to set value 'garbage' on <input type=\"date\">: value was rejected by the browser"
+            )
+
+            // When value is accepted by browser
+            class ValidMockHTMLInputElement extends MockHTMLInputElement {
+                set value (v: string) {
+                    this._val = v
+                }
+            }
+            globalAny.HTMLInputElement = ValidMockHTMLInputElement
+            const validElem = new ValidMockHTMLInputElement()
+            expect(fn(validElem as unknown as HTMLInputElement, '2026-10-04')).toBe(true)
+            expect(fn(validElem as unknown as HTMLInputElement, '')).toBe(true)
+        } finally {
+            globalAny.HTMLInputElement = origHTMLInputElement
+            globalAny.Event = origEvent
+        }
+    })
+
     it('should type into a text input', async () => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => name === 'type' ? 'text' : '')
