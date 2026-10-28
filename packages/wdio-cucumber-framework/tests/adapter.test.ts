@@ -673,26 +673,6 @@ describe('CucumberAdapter', () => {
         })
     })
 
-    // Cucumber loads the script files of a folder in `require` / `import` (a profile often lists `features/support`)
-    it('loads the script files of a folder', async () => {
-        const fs = await import('node:fs')
-        const os = await import('node:os')
-        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
-        try {
-            fs.mkdirSync(path.join(folder, 'nested'))
-            // the extensions of Cucumber: not a TypeScript file next to its compiled copy, not a .d.ts
-            for (const file of ['steps.js', 'steps.ts', 'world.d.ts', 'nested/hooks.mjs', 'b.cjs', 'a.js', 'README.md']) {
-                fs.writeFileSync(path.join(folder, file), '')
-            }
-            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
-            const files = (await adapter.loadFilesWithType([folder, folder], 'import')).map((file: string) => path.relative(folder, file))
-            // sorted and once, as Cucumber: the order of the hooks does not depend on the file system
-            expect(files).toEqual(['a.js', 'b.cjs', path.join('nested', 'hooks.mjs'), 'steps.js'])
-        } finally {
-            fs.rmSync(folder, { recursive: true, force: true })
-        }
-    })
-
     // Cucumber's own rules (resolvePaths): the cases where a copy of them differed
     describe('support files with the rules of Cucumber', () => {
         let fs: typeof nodeFs
@@ -735,10 +715,10 @@ describe('CucumberAdapter', () => {
             expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/linked/steps.js'])
         })
 
-        it('loads the .js files of a require folder and the .js, .cjs and .mjs files of an import folder', async () => {
-            write('support/a.js', 'support/b.mjs', 'support/c.cjs')
-            expect(await load([path.join(folder, 'support')], 'require')).toEqual(['support/a.js'])
-            expect(await load([path.join(folder, 'support')], 'import')).toEqual(['support/a.js', 'support/b.mjs', 'support/c.cjs'])
+        // as on main: WebdriverIO loads files and globs; the loader gets a folder as it is (tsx loads its index file)
+        it('gives a folder of cucumberOpts to the loader as it is', async () => {
+            write('support/index.js', 'support/a.js')
+            expect(await load([path.join(folder, 'support')], 'require')).toEqual(['support'])
         })
 
         it('does not warn about TypeScript files that a glob loads', async () => {
@@ -758,27 +738,12 @@ describe('CucumberAdapter', () => {
             expect(await load([path.join(folder, 'steps', 'missing.js')])).toEqual(['steps/missing.js'])
         })
 
-        it('warns about a glob or a folder that matches no file', async () => {
+        it('warns about a glob that matches no file', async () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
             try {
-                fs.mkdirSync(path.join(folder, 'empty'))
-                expect(await load([`${posix(folder)}/steps/*.js`, path.join(folder, 'empty')])).toEqual([])
+                expect(await load([`${posix(folder)}/steps/*.js`])).toEqual([])
                 const warnings = warn.mock.calls.map(([message]) => String(message))
                 expect(warnings.filter((message) => message.includes('steps/*.js'))).toHaveLength(1)
-                expect(warnings.filter((message) => message.includes('empty'))).toHaveLength(1)
-            } finally {
-                warn.mockRestore()
-            }
-        })
-
-        it('does not name the TypeScript files of node_modules', async () => {
-            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-            try {
-                write('support/steps.ts', 'support/node_modules/dep/index.ts')
-                await load([path.join(folder, 'support')])
-                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('steps.ts'))
-                expect(warnings).toHaveLength(1)
-                expect(warnings[0]).not.toContain('node_modules')
             } finally {
                 warn.mockRestore()
             }
@@ -852,30 +817,6 @@ describe('CucumberAdapter', () => {
         }
     })
 
-    // as Cucumber, a folder loads its script files; its TypeScript files need a glob, so the user gets a warning
-    it('warns once about the TypeScript files of a support folder', async () => {
-        const fs = await import('node:fs')
-        const os = await import('node:os')
-        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-        try {
-            for (const file of ['steps.ts', 'types.d.ts']) {
-                fs.writeFileSync(path.join(folder, file), '')
-            }
-            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
-            expect(await adapter.loadFilesWithType([folder, folder])).toEqual([])
-            const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes(folder))
-            expect(warnings).toHaveLength(1)
-            expect(warnings[0]).toContain('steps.ts')
-            expect(warnings[0]).not.toContain('types.d.ts')
-            // a glob with / on every system, as the user writes it in wdio.conf
-            expect(warnings[0]).toContain(`${folder.split(path.sep).join('/')}/**/*.ts`)
-        } finally {
-            warn.mockRestore()
-            fs.rmSync(folder, { recursive: true, force: true })
-        }
-    })
-
     it('loads the script files of the folders that a glob matches', async () => {
         const fs = await import('node:fs')
         const os = await import('node:os')
@@ -901,6 +842,26 @@ describe('CucumberAdapter', () => {
         const format = ['progress']
         await CucumberAdapter.init!('0-0', { cucumberOpts: { format } }, [], {}, {}, {}, false)
         expect(format).toEqual(['progress'])
+    })
+
+    // a profile folder was not loaded on main (profiles were not used): WebdriverIO's import() can not load a folder
+    it('does not load a folder of a profile, and warns once', async () => {
+        const fs = await import('node:fs')
+        const supportFolder = path.join(process.cwd(), 'packages', 'wdio-cucumber-framework', 'tests', 'fixtures', 'support-folder')
+        fs.mkdirSync(supportFolder, { recursive: true })
+        fs.writeFileSync(path.join(supportFolder, 'steps.js'), '')
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            const file = 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json'
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['folderRequire'], file } }, [], {}, {}, {}, false)
+            expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require, 'require')).toEqual([])
+            const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('support-folder'))
+            expect(warnings).toHaveLength(1)
+            expect(warnings[0]).toContain('support-folder/**/*.js')
+        } finally {
+            warn.mockRestore()
+            fs.rmSync(supportFolder, { recursive: true, force: true })
+        }
     })
 
     it('registerRequiredModules', async () => {

@@ -8,7 +8,6 @@ import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
 
 import isGlob from 'is-glob'
-import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -105,6 +104,8 @@ export class CucumberAdapter {
     private _configurationError?: unknown
     /** the Cucumber output that the worker already wrote: the configuration loads up to 3 times */
     private _cucumberOutput = new Set<string>()
+    /** the `require` / `import` entries that come from a profile or config file, not from cucumberOpts */
+    private _profileSupportEntries = new Set<string>()
     /** the warnings that the worker already gave */
     private _warned = new Set<string>()
     private _browser?: WebdriverIO.Browser
@@ -271,6 +272,8 @@ export class CucumberAdapter {
         // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
         this._warnProfileValue('requireModule', configuration.requireModule, 'Set "cucumberOpts.requireModule" to load a module.')
         this._warnProfileValue('loader', configuration.loader, 'WebdriverIO loads the support code with its own TypeScript loader.')
+        const userEntries = new Set([...(this._config.cucumberOpts?.require ?? []), ...(this._config.cucumberOpts?.import ?? [])])
+        this._profileSupportEntries = new Set([...configuration.require, ...configuration.import].filter((entry) => !userEntries.has(entry)))
         this._cucumberOpts.requireModule = (this._config.cucumberOpts?.requireModule ?? []) as string[]
     }
 
@@ -666,8 +669,8 @@ export class CucumberAdapter {
     }
 
     /**
-     * the files of the `require` or `import` entries: a glob or a folder with the rules of Cucumber (its own
-     * `resolvePaths`: `.js` files of a `require` folder, `.js` / `.cjs` / `.mjs` of an `import` folder, sorted)
+     * the files of the `require` or `import` entries: a glob with the rules of Cucumber (its own `resolvePaths`),
+     * any other entry as it is (the loader imports it); a folder of a profile is not loaded
      */
     async loadFilesWithType(fileList: string[] = [], kind: 'require' | 'import' = 'require') {
         const files: string[] = []
@@ -678,16 +681,21 @@ export class CucumberAdapter {
             }
             const absolute = path.resolve(this._cwd, entry)
             const stat = fs.statSync(absolute, { throwIfNoEntry: false })
+            // a profile for the Cucumber CLI often lists a folder: import() can not load it, and main did not use profiles
+            if (stat?.isDirectory() && this._profileSupportEntries.has(entry)) {
+                this._warnOnce(`profile-folder:${absolute}`, `The folder "${entry}" in the "${kind}" option of the Cucumber configuration is not loaded: ` +
+                    `WebdriverIO loads files and globs. Use a glob such as "${entry.split(path.sep).join('/')}/**/*.js" in "cucumberOpts.${kind}".`)
+                continue
+            }
             // path.join on Windows gives `steps\\*.js`: is-glob reads `\\*` as an escaped `*`
             const glob = isGlob(os.platform() === 'win32' ? entry.split('\\').join('/') : entry)
-            // a file (also with `[ ]` in its path), or a path that the loader resolves (`steps` -> `steps.ts`) or fails on
-            if (stat?.isFile() || (!stat && !glob)) {
+            // as on main: a file (also with `[ ]` in its path), a folder, or a path that the loader resolves or fails on
+            if (stat || !glob) {
                 files.push(absolute)
                 continue
             }
             const resolved = await this._resolveSupportPaths(entry, kind)
-            const typeScript = stat?.isDirectory() ? this._warnTypeScriptFolder(entry, absolute) : false
-            if (resolved.length === 0 && !typeScript) {
+            if (resolved.length === 0) {
                 this._warnOnce(`entry:${kind}:${entry}`, `"${entry}" in the "${kind}" option matches no file.`)
             }
             files.push(...resolved)
@@ -702,19 +710,6 @@ export class CucumberAdapter {
         const noFeatures = { paths: [path.join(this._cwd, '.wdio-support-paths-only')] }
         const { requirePaths, importPaths } = await resolveSupportPaths()(cucumberLogger, this._cwd, noFeatures, support)
         return kind === 'require' ? requirePaths : importPaths
-    }
-
-    /**
-     * a folder loads no TypeScript file in Cucumber: a WebdriverIO project often has its steps in .ts files
-     * @returns true when the folder has TypeScript files
-     */
-    private _warnTypeScriptFolder(entry: string, folder: string) {
-        const typeScript = globSync('**/*.{ts,cts,mts}', { cwd: folder, ignore: ['**/*.d.{ts,cts,mts}', '**/node_modules/**'] })
-        if (typeScript.length > 0) {
-            this._warnOnce(`folder:${folder}`, `The folder "${entry}" loads its JavaScript files only, as in Cucumber, not: ` +
-                `${typeScript.sort().join(', ')}. Use a glob such as "${entry.split(path.sep).join('/')}/**/*.ts".`)
-        }
-        return typeScript.length > 0
     }
 
     async loadAndRefreshModule(modules: string[]) {
