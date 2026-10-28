@@ -43,7 +43,7 @@ beforeEach(async () => {
 })
 
 describe('runUserCommand', () => {
-    it('sends one userCommand and one userResult with the same id for a depth 0 call', async () => {
+    it('sends one userCommand and one userResult with the same id for an outer call', async () => {
         const browser = fakeBrowser()
         expect(await mod.runUserCommand(browser, 'getText', [], async () => 'hello')).toBe('hello')
         expect(pairs(browser)).toEqual([
@@ -144,7 +144,7 @@ describe('runUserCommand', () => {
         expect(browser.emit).not.toHaveBeenCalled()
     })
 
-    it('sends the error and resets the depth', async () => {
+    it('sends the error, and the next call is an outer call', async () => {
         const browser = fakeBrowser()
         const error = new Error('boom')
         await expect(mod.runUserCommand(browser, 'getText', [], async () => { throw error })).rejects.toBe(error)
@@ -159,10 +159,10 @@ describe('runUserCommand', () => {
 
     it('gives concurrent calls their own ids', async () => {
         const browser = fakeBrowser()
-        const depths: (number | undefined)[] = []
+        const outer: (number | undefined)[] = []
         const inner: (number | undefined)[] = []
         const call = (ms: number) => mod.runUserCommand(browser, 'getText', [], async () => {
-            depths.push(store.getStore()?.depth)
+            outer.push(mod.currentUserCommandId())
             await new Promise((resolve) => setTimeout(resolve, ms))
             await mod.runUserCommand(browser, 'isDisplayed', [], async () => {
                 inner.push(mod.currentUserCommandId())
@@ -170,7 +170,7 @@ describe('runUserCommand', () => {
             return ms
         })
         expect(await Promise.all([call(20), call(5)])).toEqual([20, 5])
-        expect(depths).toEqual([0, 0])
+        expect(outer).toEqual([1, 2])
         // the shorter call ends first, each nested call sees the id of its own outer call
         expect(inner).toEqual([2, 1])
         expect(pairs(browser).map(([event, payload]) => [event, payload.id])).toEqual([
@@ -409,7 +409,7 @@ describe('runWithoutUserCommands', () => {
         const browser = fakeBrowser()
         await mod.runUserCommand(browser, 'waitUntil', [], async () => {
             await mod.runWithoutUserCommands(async () => {
-                expect(store.getStore()?.depth).toBeGreaterThanOrEqual(1)
+                expect(store.getStore()).toEqual({})
                 expect(mod.currentUserCommandId()).toBeUndefined()
             })
             expect(mod.currentUserCommandId()).toBe(1)
@@ -445,32 +445,24 @@ describe('runOutsideUserCommands', () => {
     })
 })
 
-describe('runNested', () => {
-    it('sends nothing for the commands that a custom command runs', async () => {
+describe('nested calls', () => {
+    it('sends nothing for a command in a frame with no id', async () => {
         const browser = fakeBrowser()
-        await store.run({ depth: 0 }, () => mod.runNested(() => mod.runUserCommand(browser, 'getText', [], async () => 'hello')))
+        await store.run({}, () => mod.runUserCommand(browser, 'getText', [], async () => 'hello'))
         expect(browser.emit).not.toHaveBeenCalled()
         await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
         expect(browser.emit).toHaveBeenCalledTimes(2)
     })
 
-    it('keeps the id of the outer call', async () => {
+    it('runs in the frame of the outer call', async () => {
         const browser = fakeBrowser()
         await mod.runUserCommand(browser, 'waitUntil', [], async () => {
-            await mod.runNested(async () => {
-                expect(store.getStore()?.depth).toBe(1)
+            const frame = store.getStore()
+            await mod.runUserCommand(browser, 'isDisplayed', [], async () => {
+                expect(store.getStore()).toBe(frame)
                 expect(mod.currentUserCommandId()).toBe(1)
             })
         })
-    })
-
-    it('adds no frame when there is no outer frame', async () => {
-        const browser = fakeBrowser()
-        await mod.runNested(async () => {
-            expect(store.getStore()).toBeUndefined()
-            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
-        })
-        expect(browser.emit).toHaveBeenCalledTimes(2)
     })
 
     it('sends one pair for each instance command of a multi-remote custom command', async () => {

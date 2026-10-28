@@ -94,7 +94,6 @@ export const setUserCommandStore = vi.fn()
 export const registerUserCommands = vi.fn()
 export const runUserCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()
 export const runCustomCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()
-export const runNested = <T>(fn: () => T): T => fn()
 export const userCommandBody = (args: unknown[]) => args
 export const shortCopy = (value: unknown) => value
 export const isFunctionAsync = isFnAsync
