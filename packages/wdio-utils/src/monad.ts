@@ -4,7 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
-import { HAS_USER_COMMAND_LISTENERS, registerUserCommands, runCustomCommand, userCommandParent } from './userCommands.js'
+import { HAS_USER_COMMAND_LISTENERS, needsDerivedPromise, registerUserCommands, runCustomCommand, userCommandParent } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -473,30 +473,49 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 writable: false,
             })
 
+            const emitValue = (res: unknown) => {
+                const elem = res as { elementId: string, selector?: string }
+                let resultLog = res
+                if (elem instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
+                } else if (res instanceof SCOPE_TYPES.browser) {
+                    resultLog = 'WebdriverIO.Browser'
+                }
+
+                log.info('RESULT', resultLog)
+                this.emit('result', {
+                    command: name,
+                    result: { value: res },
+                    ...parent
+                })
+            }
+            const emitError = (error: unknown) => this.emit('result', { command: name, result: { error }, ...parent })
+
             try {
                 const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
+                // a second reaction on the promise of the command cuts its async stack (the code frame of a BiDi error)
+                if ((this as { isBidi?: boolean }).isBidi && needsDerivedPromise(result)) {
+                    return result.then((res) => {
+                        try {
+                            emitValue(res)
+                        } catch {
+                            // a listener that throws does not change the result
+                        }
+                        return res
+                    }, (error) => {
+                        try {
+                            emitError(error)
+                        } catch {
+                            // ignore
+                        }
+                        throw error
+                    })
+                }
+
                 // When the result is a promise, we want to emit on then & catch
                 if (isPromiseLike(result)) {
-                    result.then((res: unknown) => {
-
-                        const elem = res as { elementId: string, selector?: string }
-                        let resultLog = res
-                        if (elem instanceof SCOPE_TYPES.element) {
-                            resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
-                        } else if (res instanceof SCOPE_TYPES.browser) {
-                            resultLog = 'WebdriverIO.Browser'
-                        }
-
-                        log.info('RESULT', resultLog)
-                        this.emit('result', {
-                            command: name,
-                            result: { value: res },
-                            ...parent
-                        })
-                    }).catch((error: Error) => {
-                        this.emit('result', { command: name, result: { error }, ...parent })
-                    })
+                    result.then(emitValue).catch(emitError)
                 } else {
                     // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
                     // When a function we can emit the result immediately
