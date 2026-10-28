@@ -893,6 +893,16 @@ describe('CucumberAdapter', () => {
         }
     })
 
+    // watch mode runs the same worker again: a second adapter must not add a second WebdriverIO formatter
+    it('adds its formatter to a copy of the format list', async () => {
+        await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+        expect(adapter._cucumberOpts.format).toHaveLength(1)
+        const format = ['progress']
+        await CucumberAdapter.init!('0-0', { cucumberOpts: { format } }, [], {}, {}, {}, false)
+        expect(format).toEqual(['progress'])
+    })
+
     it('registerRequiredModules', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {

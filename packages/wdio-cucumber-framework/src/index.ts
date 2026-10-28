@@ -147,8 +147,9 @@ export class CucumberAdapter {
 
         /**
          * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
+         * A copy: the default list and the list of the config stay the same when watch mode runs the worker again
          */
-        this._cucumberOpts.format.push([this._cucumberFormatter])
+        this._cucumberOpts.format = [...(this._cucumberOpts.format ?? []), [this._cucumberFormatter]]
 
         /**
          * formatting options used by custom cucumberFormatter
@@ -247,7 +248,7 @@ export class CucumberAdapter {
         const userTags = this._generatedTags ?? forCucumberMerge(tags)
         return {
             ...user,
-            // WebdriverIO runs the workers and shards the specs, and publishes no report unless cucumberOpts asks
+            // WebdriverIO runs the workers and shards the specs; a profile does not turn on publish (CUCUMBER_PUBLISH_* still do)
             parallel: 0,
             shard: '',
             publish: (user as { publish?: boolean }).publish ?? false,
