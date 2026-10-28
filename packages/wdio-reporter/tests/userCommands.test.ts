@@ -157,6 +157,53 @@ describe('user command events', () => {
         ])
     })
 
+    it('puts a result that comes after the end of its test in that test, not in the next test', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        const seq = { ...base, contextId: undefined }
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...seq, uid: 't1', title: 't1' })
+        const wait = { ...userCommand, id: 3, command: 'waitForDisplayed' }
+        reporter.emit('client:beforeUserCommand', wait)
+        // the Mocha timeout ends t1 before its waitForDisplayed ends
+        reporter.emit('test:fail', { ...seq, uid: 't1', title: 't1', error: { message: 'Timeout of 5000ms exceeded' } })
+        reporter.emit('test:end', { ...seq, uid: 't1', title: 't1' })
+        reporter.emit('test:start', { ...seq, uid: 't2', title: 't2' })
+        const pause = { ...userCommand, id: 6, command: 'pause', body: [7000] }
+        reporter.emit('client:beforeUserCommand', pause)
+        const error = new Error('element ("#missing") still not displayed after 10000ms')
+        reporter.emit('client:afterUserCommand', { ...wait, result: { error } })
+        reporter.emit('client:afterUserCommand', { ...pause, result: { value: undefined } })
+
+        expect(reporter.tests.t1.output.map((entry: any) => [entry.type, entry.command])).toEqual([
+            ['userCommand', 'waitForDisplayed'],
+            ['userResult', 'waitForDisplayed']
+        ])
+        expect(reporter.tests.t2.output.map((entry: any) => [entry.type, entry.command])).toEqual([
+            ['userCommand', 'pause'],
+            ['userResult', 'pause']
+        ])
+        // the reporter gets the late result in the unit of its own test
+        expect(reporter.calls).toEqual([
+            'before waitForDisplayed -> t1',
+            'before pause -> t2',
+            'after waitForDisplayed -> t1',
+            'after pause -> t2'
+        ])
+    })
+
+    it('puts the result of a parallel user command in its owner, also after the next test of its context started', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        reporter.emit('client:beforeUserCommand', { ...userCommand, id: 4, contextId: 'ctx-a' })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A', contextId: 'ctx-a' })
+        reporter.emit('test:start', { ...base, uid: 'A2', title: 'A2', contextId: 'ctx-a' })
+        reporter.emit('client:afterUserCommand', { ...userResult, id: 4, contextId: 'ctx-a' })
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand', 'userResult'])
+        expect(reporter.tests.A2.output).toEqual([])
+    })
+
     it('changes nothing for a reporter that does not override the user command methods', () => {
         const reporter = new CommandReporter({ logFile: tmp.fileSync().name })
         const onBeforeUserCommand = vi.spyOn(WDIOReporter.prototype, 'onBeforeUserCommand')
