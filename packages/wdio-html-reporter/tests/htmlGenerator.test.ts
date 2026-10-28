@@ -26,14 +26,16 @@ describe('HtmlGenerator.htmlOutput', () => {
 
     // Windows: a copy fails with EBUSY while the file is locked, for example while another worker copies it
     it.each([
-        ['passes when another worker writes the same file', 'same', true],
-        ['fails when an old file stays locked', 'old', false],
-        ['fails when the file is not there', 'none', false]
-    ])('a busy copy of the styles %s', async (_name, file, expected) => {
+        ['passes when another worker writes the same file', 'same', 1, true],
+        ['passes when another worker writes the same file after 9 busy copies (an antivirus scan)', 'same', 10, true],
+        ['fails when an old file stays locked', 'old', 1, false],
+        ['fails when the file is not there', 'none', 1, false]
+    ])('a busy copy of the styles %s', async (_name, file, writtenAtCall, expected) => {
         const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-busy-'))
         const options = { outputDir, filename: 'report.html', reportTitle: 'Busy', produceHtml: true } as HtmlReporterOptions
+        let calls = 0
         const copyFile = vi.spyOn(fsp, 'copyFile').mockImplementation(async (from, to) => {
-            if (file !== 'none') {
+            if (file !== 'none' && ++calls >= writtenAtCall) {
                 fs.writeFileSync(to as string, file === 'same' ? fs.readFileSync(from as string) : 'old styles')
             }
             throw Object.assign(new Error('EBUSY: resource busy or locked, copyfile'), { code: 'EBUSY' })
