@@ -747,6 +747,35 @@ describe('retries and hooks of a feature', () => {
         expect(classOf('flaky suite')).toBe('suite-pass')
     })
 
+    // Mocha `retries`, Cucumber scenario level and Vitest retry a test: each failed attempt is its own entry
+    it.each([
+        ['a new uid for each attempt (Mocha)', (attempt: number) => attempt ? `t1-retry${attempt}` : 't1'],
+        ['the same uid for each attempt (Cucumber scenario level)', () => 't1']
+    ])('labels the failed attempts of a retried test, %s', async (_name, uid) => {
+        const { json } = await run(`retried-test-${uid(1)}`, (reporter) => {
+            reporter.emit('suite:start', suite('flaky suite'))
+            for (const attempt of [0, 1]) {
+                reporter.emit('test:start', { ...test(uid(attempt), 'flaky', 'flaky suite'), retries: attempt })
+                reporter.emit('test:retry', { ...test(uid(attempt), 'flaky', 'flaky suite'), error: { message: `attempt ${attempt + 1}` } })
+            }
+            reporter.emit('test:start', { ...test(uid(2), 'flaky', 'flaky suite'), retries: 2 })
+            reporter.emit('test:pass', test(uid(2), 'flaky', 'flaky suite'))
+            reporter.emit('test:end', test(uid(2), 'flaky', 'flaky suite'))
+            reporter.emit('suite:end', suite('flaky suite'))
+        })
+        expect(json.suites[0].tests.map((entry: { title: string, state: string }) => [entry.title, entry.state])).toEqual([
+            ['flaky (attempt 1, retried)', 'failed'],
+            ['flaky (attempt 2, retried)', 'failed'],
+            ['flaky', 'passed']
+        ])
+        // the page shows the error of each failed attempt
+        expect(json.suites[0].tests.map((entry: { events: { type: string, value: { message: string } }[] }) => entry.events.filter((event) => event.type === 'Error').map((event) => event.value.message))).toEqual([
+            ['attempt 1'],
+            ['attempt 2'],
+            []
+        ])
+    })
+
     // @wdio/vitest-framework sends the failed hook of a retried attempt with `retried: true`
     it('shows a suite with a failed hook of a retried attempt as passed when the test passed on retry', async () => {
         const { classOf } = await run('k24-hook', (reporter) => {
@@ -800,8 +829,10 @@ describe('retries and hooks of a feature', () => {
             const attempts = feature.suites.map((entry: { title: string, start: string, end: string, _duration: number, tests: { state: string }[] }) => ({
                 title: entry.title, start: entry.start, end: entry.end, duration: entry._duration, states: entry.tests.map((step) => step.state)
             }))
+            // the scenario has the label, not its failed step
+            expect(feature.suites[0].tests[0].title).toBe('a step')
             expect(attempts).toEqual([
-                { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
+                { title: 'S (attempt 1, retried)', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:03.000Z', duration: 3000, states: ['failed', ...after] },
                 // the scenario keeps the start of its first attempt and the duration of all attempts, as main
                 { title: 'S', start: '2026-10-25T10:00:00.000Z', end: '2026-10-25T10:00:07.000Z', duration: 7000, states: ['passed', ...after.map(() => 'passed')] }
             ])
@@ -814,7 +845,7 @@ describe('retries and hooks of a feature', () => {
         }
     })
 
-    it('gives the second failed attempt of a Cucumber scenario its own times', async () => {
+    it('gives the second failed attempt of a Cucumber scenario its own times and attempt label', async () => {
         vi.useFakeTimers({ toFake: ['Date'] })
         const at = (time: string) => vi.setSystemTime(new Date(`2026-10-25T10:00:${time}.000Z`))
         try {
@@ -837,8 +868,8 @@ describe('retries and hooks of a feature', () => {
                 reporter.emit('suite:end', suite('S', 'scenario', 'F'))
                 reporter.emit('suite:end', suite('F', 'feature'))
             }, cucumber)
-            const times = json.suites[0].suites.map((entry: { start: string, end: string }) => [entry.start.slice(17, 19), entry.end.slice(17, 19)])
-            expect(times).toEqual([['00', '03'], ['03', '06'], ['00', '08']])
+            const times = json.suites[0].suites.map((entry: { title: string, start: string, end: string }) => [entry.title, entry.start.slice(17, 19), entry.end.slice(17, 19)])
+            expect(times).toEqual([['S (attempt 1, retried)', '00', '03'], ['S (attempt 2, retried)', '03', '06'], ['S', '00', '08']])
         } finally {
             vi.useRealTimers()
         }
@@ -1404,6 +1435,22 @@ describe('sequential mode: events of a before hook', () => {
         reporter.emit('test:pending', { ...test('B1', 'B'), type: 'test:pending' })
         endSuite(reporter, 'B')
         endSuite(reporter, 'A')
+        expect(logsOf(reporter, 'B1')).toEqual(['before all of A', 'before all of B'])
+    })
+
+    it('takes the suite of a before all hook from the hook owner of the base reporter (hookKind, hookSuiteUid)', () => {
+        const reporter = start()
+        const kindHook = (uid: string, parent: string, body: () => void) => {
+            const payload = { uid, title: `"before all" hook for ${parent}`, parent, cid: '0-0', hookKind: 'beforeAll', hookSuiteUid: parent }
+            reporter.emit('hook:start', payload)
+            body()
+            reporter.emit('hook:end', payload)
+        }
+        suite(reporter, 'A')
+        kindHook('hA', 'A', () => log('before all of A'))
+        suite(reporter, 'B', 'A')
+        kindHook('hB', 'B', () => log('before all of B'))
+        runTest(reporter, 'B1', 'B')
         expect(logsOf(reporter, 'B1')).toEqual(['before all of A', 'before all of B'])
     })
 

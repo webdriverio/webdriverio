@@ -66,6 +66,8 @@ When a worker stops before it writes its results (for example it is killed), or 
 
 With [`specFileRetries`](https://webdriver.io/docs/retry#add-retries-on-a-per-specfile-basis), each attempt of a spec file writes its own file (`report-0-0.json`, `report-0-0-retry1.json`). The master report shows every attempt that wrote its results, with `(spec file attempt 1, retried)` after the suite titles of an earlier attempt, and counts only the last attempt. Only files with the same name except `-retry<n>` are attempts of one spec file (2 configurations with another `filename` stay separate); an old file of another spec file is left out, and a stopped attempt that a later attempt replaced does not make the report incomplete.
 
+When a test or a Cucumber scenario runs again (Mocha [`retries`](https://webdriver.io/docs/retry#rerun-suites-in-mocha), the Cucumber [`retry`](https://webdriver.io/docs/retry#rerunning-in-cucumber) option, Vitest `retry`), each failed attempt stays in the report as its own entry, with `(attempt 1, retried)` after its title; only the last attempt counts.
+
 The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
 
 ## Options

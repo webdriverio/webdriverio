@@ -22,7 +22,7 @@ async function run(build: (root: Mocha.Suite) => void, mochaOpts: Record<string,
     }
     const adapter = new MochaAdapter(
         '0-0',
-        { mochaOpts: { failHookAffectedTests: true, ...mochaOpts }, after: [], beforeSuite: [], afterSuite: [] } as never,
+        { mochaOpts: { failHookAffectedTests: true, ...mochaOpts }, after: [], beforeSuite: [() => {}], afterSuite: [() => {}] } as never,
         ['/spec.js'],
         {},
         reporter
@@ -59,14 +59,14 @@ describe('Mocha sequential hook events: hookKind and hookSuiteUid', () => {
         expect(starts).toEqual([
             // the root `before` and WDIO beforeSuite: the root suite has no suite event, so no hookSuiteUid
             ['"before all" hook: root setup in "{root}"', 'beforeAll', undefined],
-            ['"before all" hook in "{root}"', 'beforeAll', undefined],
+            ['"before all" hook: beforeSuite in "{root}"', 'beforeAll', undefined],
             ['"before all" hook for outer', 'beforeAll', suiteUid(events, 'outer')],
             ['"before all" hook for inner', 'beforeAll', suiteUid(events, 'inner')],
             ['"before each" hook for outer', 'beforeEach', undefined],
             ['"after each" hook for outer', 'afterEach', undefined],
             ['"after all" hook for inner', 'afterAll', suiteUid(events, 'inner')],
             ['"after all" hook for outer', 'afterAll', suiteUid(events, 'outer')],
-            ['"after all" hook in "{root}"', 'afterAll', undefined]
+            ['"after all" hook: afterSuite in "{root}"', 'afterAll', undefined]
         ])
         expect(logMock.debug).not.toHaveBeenCalled()
     })

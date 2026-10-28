@@ -23,8 +23,6 @@ onComplete called
 `
 
 export const REPORTER_LOGS = `onRunnerStart
-onHookStart
-onHookEnd
 onSuiteStart
 onTestStart
 onHookStart
@@ -40,8 +38,6 @@ onTestEnd
 onHookStart
 onHookEnd
 onSuiteEnd
-onHookStart
-onHookEnd
 onBeforeCommand
 onAfterCommand
 onRunnerEnd

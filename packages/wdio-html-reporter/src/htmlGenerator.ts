@@ -13,6 +13,37 @@ import url from 'node:url'
 
 dayjs.extend(duration)
 
+/** Windows: a file that another worker copies, or that an antivirus scans, is locked for a short time */
+const BUSY_RETRIES = 20
+const BUSY_RETRY_WAIT = 50
+const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
+
+/**
+ * The workers of a run copy the same styles and font next to their reports, at the same time on parallel
+ * workers: wait for a locked copy, then check the file
+ */
+async function copyAsset (from: string, to: string) {
+    const content = await fsp.readFile(from)
+    const copied = () => fsp.readFile(to).then((existing) => existing.equals(content), () => false)
+    for (let tries = 0; ; tries++) {
+        if (await copied()) {
+            return
+        }
+        try {
+            return await fsp.copyFile(from, to)
+        } catch (err) {
+            if (!BUSY_CODES.has((err as NodeJS.ErrnoException).code ?? '') || tries === BUSY_RETRIES) {
+                // another worker can end its copy during the last try
+                if (await copied()) {
+                    return
+                }
+                throw err
+            }
+            await new Promise((resolve) => setTimeout(resolve, BUSY_RETRY_WAIT))
+        }
+    }
+}
+
 /**
  * The path of a file relative to the report, as a link: the browser reads `#`, `?`
  * and `%` in a file name as URL characters
@@ -277,11 +308,11 @@ class HtmlGenerator {
 
                         const reportCss = rootdirname + '/css/report-styles.css'
                         const destCss = reportOptions.outputDir + '/report-styles.css'
-                        await fsp.copyFile(reportCss, destCss)
+                        await copyAsset(reportCss, destCss)
 
                         const cssFont = rootdirname + '/css/glyphicons-halflings-regular.woff'
                         const fontDest = reportOptions.outputDir + '/glyphicons-halflings-regular.woff'
-                        await fsp.copyFile(cssFont, fontDest)
+                        await copyAsset(cssFont, fontDest)
                     }
                 } catch (error) {
                     failed = true
