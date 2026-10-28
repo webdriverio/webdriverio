@@ -1,17 +1,13 @@
 import stringify from 'json-stringify-safe'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { userCommandError } from '@wdio/reporter'
+import WDIOReporter, { userOutputReplacer } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types.js'
 
 function stringifyEvent(event: object) {
-    return stringify(event, function (this: { type?: unknown }, key, value) {
-        return this.type === 'userResult' && key === 'result' && value && 'error' in value
-            ? { error: userCommandError(value.error) }
-            : value
-    })
+    return stringify(event, userOutputReplacer)
 }
 
 const log = logger('@wdio/sumologic-reporter')

@@ -311,7 +311,7 @@ The payload has these fields:
 
 WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is a label, for example `<Buffer n bytes>` or `<Uint8Array n bytes>`, and a `Map` or a `Set` is `Map(n)` or `Set(n)`. A string that is longer than 1024 characters is cut. An array or an object keeps 50 items and a `… [n more]` marker, and a value that is deeper than 4 levels is `[…]`. An element is a short label, for example `WebdriverIO.Element<elementId>`, and a function is `[Function name]`.
 
-The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values.
+The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values. `userOutputReplacer` is a `JSON.stringify` replacer that does this for each `userResult` entry of `output`.
 
 When your reporter overrides one of these methods, the base reporter does these steps:
 
@@ -325,7 +325,7 @@ Only the outer user command sends events. The commands that a custom command or 
 
 :::warning Experimental
 
-`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `userCommandError`, `isUserCommandOutput`, `isUserResultOutput`, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `userCommandError`, `userOutputReplacer`, `isUserCommandOutput`, `isUserResultOutput`, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` field, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 
