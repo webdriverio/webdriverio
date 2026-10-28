@@ -88,9 +88,9 @@ Example: `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
 
 ### strict
 
-<Option type="Boolean" default="false">
+<Option type="Boolean" default="true">
 
-Fail the run on a pending step. As in Cucumber, the reporters still show the step as pending, and the worker logs a warning that names the scenarios with a pending step or hook. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
+Fail the run on a pending step. The default is `true`, as in Cucumber. The reporters still show the step as pending (Cucumber shows it as a warning), and the worker logs a warning that names the scenarios with a pending step or hook. An undefined step fails the run also without `strict`, unless [`ignoreUndefinedDefinitions`](#ignoreundefineddefinitions) is `true`.
 
 </Option>
 
@@ -197,13 +197,13 @@ Report an ambiguous step (a step that matches more than one step definition) as 
 The profiles of the Cucumber configuration file to use.
 
 </Option>
-***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
+Cucumber merges the values in this order: Cucumber's defaults, then the profiles or the configuration file (without [`file`](#file), Cucumber's default file in the working folder, for example `cucumber.js`), then `cucumberOpts`. So a value in `cucumberOpts` wins over the profile, and a profile value wins over Cucumber's default. `tags` and `retryTagFilter` of both are joined with `and`, and lists (for example `require`, `import`, `name`) are added together. A folder in the `require` or `import` of a profile is not loaded (use a glob). The `paths`, `requireModule` and `loader` of a profile or configuration file are not used: the feature files come from `specs`, the modules from `cucumberOpts.requireModule`, and the worker logs a warning. `parallel` and `shard` of a profile are not used either (WebdriverIO runs the workers), and a profile does not turn on `publish`: set it in `cucumberOpts`.
 
 ### file
 
 <Option type="string | false" default="undefined">
 
-Path of the Cucumber configuration file to load, or `false` to load none. Without it, Cucumber looks for its default configuration files.
+Path of the Cucumber configuration file to load (absolute, or from the working folder), or `false` to load none. Without it, Cucumber looks for its default configuration files.
 
 </Option>
 
@@ -227,7 +227,7 @@ Parameters for your World, as `this.parameters`.
 
 <Option type="Boolean" default="false">
 
-Report each scenario as one test. Its steps and hooks are not reported.
+Report each scenario as one test. Its steps and hooks are not reported. A `BeforeAll` / `AfterAll` is still reported, as a hook of the feature.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
