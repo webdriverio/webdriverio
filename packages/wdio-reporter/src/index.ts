@@ -62,6 +62,8 @@ export default class WDIOReporter extends EventEmitter {
     // the open hooks with hookKind of each sequential unit: a scenario gets their calls before its first step
     #openUnitHooks = new Map<Unit, HookStats[]>()
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
+    // the owner of each open user command, from its start
+    #userCommandOwners = new Map<number, TestStats | HookStats | undefined>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -165,14 +167,29 @@ export default class WDIOReporter extends EventEmitter {
             }
         })
         this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => {
-            if (this.showsUserCommands) {
-                this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            if (!this.showsUserCommands) {
+                return
             }
+            // the owner at the start: a result after the end of its test (a test timeout) stays in that test
+            const owner = getCommandTarget(payload)
+            this.#userCommandOwners.set(payload.id, owner)
+            this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            this.#addUserEntry(owner, payload, 'userCommand')
         })
         this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => {
-            if (this.showsUserCommands) {
+            if (!this.showsUserCommands) {
+                return
+            }
+            const known = this.#userCommandOwners.has(payload.id)
+            const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
+            this.#userCommandOwners.delete(payload.id)
+            const unit = owner && this.#unitOfStats.get(owner)
+            if (unit) {
+                this.#call(unit, () => this.onAfterUserCommand(payload))
+            } else {
                 this.#callForCommand(payload, () => this.onAfterUserCommand(payload))
             }
+            this.#addUserEntry(owner, payload, 'userResult')
         })
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
@@ -556,20 +573,21 @@ export default class WDIOReporter extends EventEmitter {
             }
             (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
         })
-        // a copy: the runner sends the same payload to every reporter
-        const addUserCommand = (payload: BeforeUserCommandArgs, entryOf: (body: unknown[]) => UserCommandOutput | UserResultOutput) => {
-            const target = this.showsUserCommands ? getCommandTarget(payload) : undefined
-            if (!target) {
-                return
-            }
-            const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
-                ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
-                : payload.body
-            // user entries are not protocol entries: reporters narrow them with the guards
-            ;(target.output ??= []).push(entryOf(body) as unknown as Output)
+    }
+
+    // a copy: the runner sends the same payload to every reporter
+    #addUserEntry(owner: TestStats | HookStats | undefined, payload: BeforeUserCommandArgs | AfterUserCommandArgs, type: 'userCommand' | 'userResult') {
+        if (!owner) {
+            return
         }
-        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userCommand' })))
-        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userResult' })))
+        const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
+            ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
+            : payload.body
+        const entry: UserCommandOutput | UserResultOutput = type === 'userCommand'
+            ? { ...payload, body, type }
+            : { ...payload as AfterUserCommandArgs, body, type }
+        // user entries are not protocol entries: reporters narrow them with the guards
+        ;(owner.output ??= []).push(entry as unknown as Output)
     }
 
     /**
