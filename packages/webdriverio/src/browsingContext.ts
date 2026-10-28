@@ -193,11 +193,17 @@ function liveContexts (registry: BrowsingContextCommands): WebdriverIO.BrowsingC
     return contexts
 }
 
+// the command wrapper sends their pair: an element list when it loads, an action at `perform()`
+const COMMAND_WRAPPER_PAIRS = new Set(['$', '$$', 'custom$', 'custom$$', 'react$', 'react$$', 'shadow$', 'shadow$$', 'action', 'actions'])
+
 /**
  * A context command is a user command with its own name, as a custom command. Its names are not
  * registered: several are also protocol commands of the browser (`getTitle`, `refresh`).
  */
 function userCommand (name: string, command: Function) {
+    if (COMMAND_WRAPPER_PAIRS.has(name)) {
+        return command
+    }
     return function (this: WebdriverIO.BrowsingContext, ...args: unknown[]) {
         return runCustomCommand(this, name, args, () => command.apply(this, args))
     }
