@@ -1,25 +1,29 @@
 import { expectTypeOf, test } from 'vitest'
-import type { TestStats } from '../src/index.js'
+import type { TestStats, UserCommandOutput, UserResultOutput } from '../src/index.js'
+import { isUserCommandOutput, isUserResultOutput } from '../src/index.js'
 
 type Output = TestStats['output'][number]
 
-test('the type of an output entry narrows the entry', () => {
+test('the guards narrow an entry to a user entry', () => {
     const narrow = (entry: Output) => {
-        if (entry.type === 'userResult') {
-            expectTypeOf(entry.result).toEqualTypeOf<{ value: unknown } | { error: unknown }>()
+        if (isUserResultOutput(entry)) {
+            expectTypeOf(entry).toExtend<UserResultOutput>()
+            expectTypeOf(entry.result).toExtend<{ value: unknown } | { error: unknown }>()
             expectTypeOf(entry.id).toEqualTypeOf<number>()
-            expectTypeOf(entry.body).toEqualTypeOf<unknown[]>()
             expectTypeOf(entry.protocol).toEqualTypeOf<'bidi'>()
-        } else if (entry.type === 'userCommand') {
+        } else if (isUserCommandOutput(entry)) {
+            expectTypeOf(entry).toExtend<UserCommandOutput>()
             expectTypeOf(entry.command).toEqualTypeOf<string>()
-            expectTypeOf(entry.body).toEqualTypeOf<unknown[]>()
-            expectTypeOf(entry).not.toHaveProperty('result')
+            expectTypeOf(entry.id).toEqualTypeOf<number>()
         } else {
-            expectTypeOf(entry.type).toEqualTypeOf<'command' | 'result'>()
             expectTypeOf(entry.endpoint).toEqualTypeOf<string>()
             expectTypeOf(entry.result).toEqualTypeOf<{ value: string | null }>()
             expectTypeOf(entry.parent).toEqualTypeOf<number | undefined>()
         }
     }
     expectTypeOf(narrow).toBeFunction()
+})
+
+test('the type of an entry has the user types', () => {
+    expectTypeOf<Output['type']>().toEqualTypeOf<'command' | 'result' | 'userCommand' | 'userResult'>()
 })

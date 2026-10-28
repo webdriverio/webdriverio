@@ -4,12 +4,12 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, isUserCommandOutput, isUserResultOutput } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
 import HookStats, { isSkippedHook } from './stats/hook.js'
-import TestStats, { type Test } from './stats/test.js'
+import TestStats, { type Test, type Output, type UserCommandOutput, type UserResultOutput } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, AfterUserCommandArgs, BeforeUserCommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
 import { Unit } from './units.js'
@@ -557,7 +557,7 @@ export default class WDIOReporter extends EventEmitter {
             (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
         })
         // a copy: the runner sends the same payload to every reporter
-        const addUserCommand = (payload: BeforeUserCommandArgs, entryOf: (body: unknown[]) => TestStats['output'][number]) => {
+        const addUserCommand = (payload: BeforeUserCommandArgs, entryOf: (body: unknown[]) => UserCommandOutput | UserResultOutput) => {
             const target = this.showsUserCommands ? getCommandTarget(payload) : undefined
             if (!target) {
                 return
@@ -565,7 +565,8 @@ export default class WDIOReporter extends EventEmitter {
             const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
                 ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
                 : payload.body
-            ;(target.output ??= []).push(entryOf(body))
+            // user entries are not protocol entries: reporters narrow them with the guards
+            ;(target.output ??= []).push(entryOf(body) as unknown as Output)
         }
         this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userCommand' })))
         this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => addUserCommand(payload, (body) => ({ ...payload, body, type: 'userResult' })))
@@ -983,5 +984,6 @@ function getSessionNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, isUserCommandOutput, isUserResultOutput, ReporterUnit, HookKind
 }
+export type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
