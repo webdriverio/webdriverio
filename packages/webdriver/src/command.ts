@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { commandCallStructure, currentUserCommandId, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
+import { commandCallStructure, userCommandParent, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import { environment } from './environment.js'
@@ -169,9 +169,8 @@ export default function (
         if (isMasked) {
             request.maskedBody = maskedBody
         }
-        // set only inside a user command that sends events
-        const parentId = currentUserCommandId()
-        const parent = parentId === undefined ? {} : { parent: parentId }
+        // set only inside a user command, never for a screenshot
+        const parent = userCommandParent(command)
         this.emit('command', { command, method, endpoint, body: maskedBody, ...parent })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 

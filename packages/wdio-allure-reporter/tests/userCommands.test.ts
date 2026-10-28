@@ -102,7 +102,7 @@ describe('user commands of WebDriver BiDi sessions', () => {
     it('gives no step with disableWebdriverStepsReporting, and keeps the screenshot of the user command', async () => {
         const { result } = await run((emit) => {
             userCommand(emit, 1, 'getText', [], { value: 'hello' })
-            userCommand(emit, 2, 'saveScreenshot', ['./a.png'], { value: '<Buffer 8 bytes>' }, () => protocol(emit, 'takeScreenshot', { value: PNG }, 2))
+            userCommand(emit, 2, 'saveScreenshot', ['./a.png'], { value: '<Buffer 8 bytes>' }, () => protocol(emit, 'takeScreenshot', { value: PNG }))
         }, { disableWebdriverStepsReporting: true })
 
         expect(result.steps).toEqual([])
@@ -111,7 +111,8 @@ describe('user commands of WebDriver BiDi sessions', () => {
 
     it('adds the screenshot of a protocol takeScreenshot inside the step of its user command', async () => {
         const { result } = await run((emit) => userCommand(emit, 1, 'saveScreenshot', ['./a.png'], { value: '<Buffer 8 bytes>' }, () => {
-            protocol(emit, 'takeScreenshot', { value: PNG }, 1)
+            // a screenshot event has no parent
+            protocol(emit, 'takeScreenshot', { value: PNG })
         }))
 
         const [step] = result.steps

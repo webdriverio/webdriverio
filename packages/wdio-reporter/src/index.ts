@@ -16,7 +16,6 @@ import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
-const SCREENSHOT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
 const EXECUTE_COMMANDS = ['execute', 'executeAsync']
 // the producer sends a function script as its name only
 const isFunctionLabel = (value: unknown) => typeof value === 'string' && /^\[Function [^\]]*\]$/.test(value)
@@ -592,7 +591,7 @@ export default class WDIOReporter extends EventEmitter {
 
     /**
      * `true` when the reporter overrides `onBeforeUserCommand` or `onAfterUserCommand`: it then gets the user
-     * commands, and the protocol commands that a user command runs (except screenshots) are hidden from it.
+     * commands, and the protocol commands that a user command runs are hidden from it (a screenshot has no `parent`).
      * @experimental the name and the rule may change
      */
     protected get showsUserCommands(): boolean {
@@ -600,9 +599,9 @@ export default class WDIOReporter extends EventEmitter {
             || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
     }
 
-    // reporters take screenshots from the protocol events
+    // a screenshot event has no parent: reporters take screenshots from it
     #hidesCommand(payload: CommandArgs) {
-        return payload.parent !== undefined && !SCREENSHOT_COMMANDS.includes(payload.command!) && this.showsUserCommands
+        return payload.parent !== undefined && this.showsUserCommands
     }
 
     /**
