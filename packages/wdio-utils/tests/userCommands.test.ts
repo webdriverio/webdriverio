@@ -226,6 +226,51 @@ describe('runUserCommand', () => {
     })
 })
 
+describe('async stack of a command that fails', () => {
+    const failing = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1))
+        throw new Error('Hello Bidi')
+    }
+
+    it('keeps the async frames of the caller of a user command', async () => {
+        const browser = fakeBrowser()
+        async function wrapCommandFrame () {
+            return await mod.runUserCommand(browser, 'getText', [], () => failing())
+        }
+        async function testFrameworkFrame () {
+            await wrapCommandFrame()
+        }
+        const error = await testFrameworkFrame().catch((err: Error) => err)
+        expect((error as Error).stack).toContain('testFrameworkFrame')
+        expect(pairs(browser).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+    })
+
+    it('keeps the async frames of the caller of a custom command with a promise result', async () => {
+        const browser = fakeBrowser()
+        async function customCommandFrame () {
+            return await mod.runCustomCommand(browser, 'myCmd', [], () => failing())
+        }
+        async function testFrameworkFrame () {
+            await customCommandFrame()
+        }
+        const error = await testFrameworkFrame().catch((err: Error) => err)
+        expect((error as Error).stack).toContain('testFrameworkFrame')
+        expect(pairs(browser).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+    })
+
+    it('keeps the result of a command when a listener throws', async () => {
+        const browser = fakeBrowser()
+        browser.emit.mockImplementation((event: string) => {
+            if (event === 'userResult') {
+                throw new Error('listener')
+            }
+        })
+        expect(await mod.runUserCommand(browser, 'getText', [], async () => 'hello')).toBe('hello')
+        await expect(mod.runUserCommand(browser, 'getText', [], () => failing())).rejects.toThrow('Hello Bidi')
+        expect(await mod.runCustomCommand(browser, 'myCmd', [], async () => 'done')).toBe('done')
+    })
+})
+
 describe('runUserCommand with no listener', () => {
     const client = () => monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
 
