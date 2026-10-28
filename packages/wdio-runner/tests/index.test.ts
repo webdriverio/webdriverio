@@ -1281,6 +1281,19 @@ describe('wdio-runner', () => {
             expect(event).toEqual({ id: 1, command: 'getTitle', body: [], protocol: 'bidi' })
         })
 
+        it('should not listen to user command events when no reporter gets them', async () => {
+            const runner = new WDIORunner()
+            runner['_reporter'] = { emit: vi.fn(), showsUserCommands: false } as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const events = vi.mocked(browser!.on).mock.calls.map(([event]) => event)
+            expect(events).toContain('command')
+            expect(events).not.toContain('userCommand')
+            expect(events).not.toContain('userResult')
+        })
+
         it('should keep the session of the instance that sends the user command events', async () => {
             const reporter = { emit: vi.fn() }
             const runner = new WDIORunner()

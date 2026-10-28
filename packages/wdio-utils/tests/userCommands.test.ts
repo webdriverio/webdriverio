@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { EventEmitter } from 'node:events'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import type * as UserCommands from '../src/userCommands.js'
@@ -222,6 +223,37 @@ describe('runUserCommand', () => {
             ['userCommand', { id: 1, command: '$$', body: ['a'], protocol: 'bidi' }],
             ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: [] } }]
         ])
+    })
+})
+
+describe('runUserCommand with no listener', () => {
+    const client = () => monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+
+    it('sends nothing and makes no copy, and keeps the id for the parent of its protocol commands', async () => {
+        const browser = client()
+        const emit = vi.spyOn(browser, 'emit')
+        const getText = shim.wrapCommand('getText', async () => mod.currentUserCommandId())
+        expect(await getText.call(browser)).toBe(1)
+        expect(emit).not.toHaveBeenCalled()
+
+        const events: string[] = []
+        browser.on('userResult', (payload: { command: string }) => events.push(payload.command))
+        expect(await getText.call(browser)).toBe(2)
+        expect(events).toEqual(['getText'])
+        browser.off('userResult')
+        emit.mockClear()
+        await getText.call(browser)
+        expect(emit).not.toHaveBeenCalled()
+    })
+
+    it('counts the listeners of an event emitter', async () => {
+        const browser = Object.assign(new EventEmitter(), { isBidi: true, options: {} })
+        const emit = vi.spyOn(browser, 'emit')
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        expect(emit).not.toHaveBeenCalled()
+        browser.on('userCommand', () => {})
+        await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+        expect(emit.mock.calls.map(([event]) => event)).toEqual(['userCommand', 'userResult'])
     })
 })
 
@@ -785,6 +817,18 @@ describe('shortCopy', () => {
         const entries = Array.from({ length: 60 }, (_, i) => [`k${i}`, i])
         expect(mod.shortCopy(Object.fromEntries(entries))).toEqual({ ...Object.fromEntries(entries.slice(0, 50)), '…': '[10 more]' })
         expect(mod.shortCopy(Object.fromEntries(entries.slice(0, 50)))).toEqual(Object.fromEntries(entries.slice(0, 50)))
+    })
+
+    it('reads only the 50 values that it keeps of a large object', () => {
+        let reads = 0
+        const large: Record<string, number> = {}
+        for (let i = 0; i < 100_000; i++) {
+            Object.defineProperty(large, `k${i}`, { enumerable: true, get: () => ++reads })
+        }
+        const copy = mod.shortCopy(large) as Record<string, unknown>
+        expect(reads).toBe(50)
+        expect(Object.keys(copy)).toHaveLength(51)
+        expect(copy['…']).toBe('[99950 more]')
     })
 
     it('keeps at most 4 levels', () => {

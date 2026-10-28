@@ -27,4 +27,14 @@ describe('BaseReporter user command events', () => {
         await getTitle()
         expect(browser.emit).toBeCalledWith('userCommand', expect.objectContaining({ command: 'getTitle' }))
     })
+
+    it.each([
+        ['no reporter gets them', [{ showsUserCommands: false }, { showsUserCommands: false }], false],
+        ['a reporter gets them', [{ showsUserCommands: false }, { showsUserCommands: true }], true],
+        ['a reporter is no WDIOReporter', [{ showsUserCommands: false }, {}], true]
+    ])('knows if a reporter gets user commands: %s', (_, reporters, expected) => {
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', { browserName: 'foo' })
+        reporter['_reporters'] = reporters.map((props) => ({ emit: vi.fn(), ...props })) as any
+        expect(reporter.showsUserCommands).toBe(expected)
+    })
 })
