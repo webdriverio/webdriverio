@@ -1250,7 +1250,7 @@ export default class AllureReporter extends WDIOReporter {
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
     }
 
-    // WebDriver BiDi sessions: the base hides the protocol commands of a user command, except screenshots
+    // WebDriver BiDi sessions: the base hides the protocol commands of a user command (a screenshot has no parent)
     onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
         if (!this._commandStepsAllowed()) { return }
         this._startCommandStep(payload.command, payload.body)

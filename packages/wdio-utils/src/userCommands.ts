@@ -82,6 +82,16 @@ export function currentUserCommandId (): number | undefined {
 }
 
 /**
+ * The `parent` field of a protocol event: the id of the outer user command. A screenshot gets none, because
+ * reporters take screenshots from its event.
+ * @experimental
+ */
+export function userCommandParent (command: string): { parent?: number } {
+    const id = NO_EVENT_COMMANDS.includes(command) ? undefined : currentUserCommandId()
+    return id === undefined ? {} : { parent: id }
+}
+
+/**
  * Run `fn` so that no command in it sends events and has a parent id, for
  * example the commands of a reporter.
  * @experimental

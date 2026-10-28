@@ -88,6 +88,7 @@ export const initializeLauncherService = vi.fn().mockReturnValue({
 export const isValidParameter = isValidParameterOrig
 export const commandCallStructure = commandCallStructureOrig
 export const currentUserCommandId = () => undefined
+export const userCommandParent = () => ({})
 export const runWithoutUserCommands = <T>(fn: () => T): T => fn()
 export const runOutsideUserCommands = <T>(fn: () => T): T => fn()
 export const setUserCommandStore = vi.fn()

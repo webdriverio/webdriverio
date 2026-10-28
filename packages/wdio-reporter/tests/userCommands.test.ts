@@ -68,10 +68,10 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
-    it('hides the protocol events of a user command, except screenshots', () => {
+    it('hides the protocol events of a user command, and keeps a screenshot, which has no parent', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
-        const screenshot = { ...protocolCommand, command: 'takeScreenshot', endpoint: '/session/:sessionId/screenshot', result: { value: 'abc' }, contextId: 'ctx-a' }
+        const screenshot = { ...protocolCommand, parent: undefined, command: 'takeScreenshot', endpoint: '/session/:sessionId/screenshot', result: { value: 'abc' }, contextId: 'ctx-a' }
         const elementScreenshot = { ...screenshot, command: 'takeElementScreenshot' }
 
         reporter.emit('client:beforeCommand', { ...protocolCommand, contextId: 'ctx-a' })
