@@ -684,6 +684,49 @@ describe('custom commands', () => {
         expect(events.find(([event]) => event === 'userResult')![1].result).toEqual({ value: items })
     })
 
+    it('keeps the pending element list of an async custom $$ command', async () => {
+        const { browser, events } = client()
+        browser.addCommand('rows$$', async () => ['a', 'b'])
+        const rows = browser.rows$$()
+        expect(kind.getWdioKind(rows)).toBe('element-array')
+        expect(typeof rows.at).toBe('function')
+        expect(await rows).toEqual(['a', 'b'])
+        const userEvents = events.filter(([event]) => event.startsWith('user'))
+        expect(userEvents.map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', 'rows$$'],
+            ['userResult', 'rows$$']
+        ])
+        expect(userEvents[1][1].result).toEqual({ value: ['a', 'b'] })
+    })
+
+    it('keeps the pending element list of an async custom $$ command that fails', async () => {
+        const { browser, events } = client()
+        browser.addCommand('rows$$', async () => {
+            throw new Error('no rows')
+        })
+        const rows = browser.rows$$()
+        expect(kind.getWdioKind(rows)).toBe('element-array')
+        await expect(rows).rejects.toThrow('no rows')
+        const userEvents = events.filter(([event]) => event.startsWith('user'))
+        expect(userEvents.map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+        expect(userEvents[1][1].result).toEqual({ error: expect.objectContaining({ message: 'no rows' }) })
+    })
+
+    it('keeps the pending element list of an async overwrite of $$', async () => {
+        const { browser, events } = client({ $$: { value: shim.wrapCommand('$$', async () => ['a']), writable: true, configurable: true } })
+        browser.overwriteCommand('$$', async (orig$$: Function, selector: string) => orig$$(selector))
+        const list = browser.$$('a')
+        expect(kind.getWdioKind(list)).toBe('element-array')
+        expect(typeof list.at).toBe('function')
+        expect(await list).toEqual(['a'])
+        const userEvents = events.filter(([event]) => event.startsWith('user'))
+        expect(userEvents.map(([event, payload]) => [event, payload.command])).toEqual([
+            ['userCommand', '$$'],
+            ['userResult', '$$']
+        ])
+        expect(userEvents[1][1].result).toEqual({ value: ['a'] })
+    })
+
     it('sends one pair for a custom command of an element', async () => {
         const { browser } = client()
         browser.addCommand('myElementCmd', async () => 'done', { attachToElement: true })
