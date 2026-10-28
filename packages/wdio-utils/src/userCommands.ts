@@ -187,11 +187,19 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }
-    const sendValue = (value: unknown) => emit('userResult', { ...event, result: { value: shortCopy(value) } })
-    const sendError = (error: unknown) => emit('userResult', { ...event, result: { error } })
+    // a listener that throws does not change the result of the command
+    const send = (name: string, payload: object) => {
+        try {
+            emit(name, payload)
+        } catch {
+            // ignore
+        }
+    }
+    const sendValue = (value: unknown) => send('userResult', { ...event, result: { value: shortCopy(value) } })
+    const sendError = (error: unknown) => send('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
     return store.run({ id: event.id }, () => {
-        emit('userCommand', event)
+        send('userCommand', event)
         let result: T
         try {
             result = run()
@@ -203,10 +211,21 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             sendValue(result)
             return result
         }
+        // one derived promise: a second reaction on the promise of the command cuts its async stack
+        if (result instanceof Promise && !(result as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
+            return result.then(
+                (value) => {
+                    sendValue(value)
+                    return value
+                },
+                (error) => {
+                    sendError(error)
+                    throw error
+                }
+            ) as T
+        }
         // a side chain: the caller keeps the result as it is (a chainable element, an element list)
-        const sent = result.then(sendValue, sendError) as { catch?: (fn: () => void) => unknown }
-        // a listener that throws must not make an unhandled rejection
-        sent.catch?.(() => {})
+        result.then(sendValue, sendError)
         return result
     })
 }
