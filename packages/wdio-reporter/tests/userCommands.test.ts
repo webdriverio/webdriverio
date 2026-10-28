@@ -192,6 +192,18 @@ describe('user command events', () => {
         ])
     })
 
+    it('forgets at runner:end the user commands that got no result', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        reporter.emit('client:beforeUserCommand', { ...userCommand, id: 4, contextId: 'ctx-a' })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A', contextId: 'ctx-a' })
+        reporter.emit('test:start', { ...base, uid: 'A2', title: 'A2', contextId: 'ctx-a' })
+        reporter.emit('runner:end', { cid: '0-0', failures: 0, retries: 0 } as any)
+        reporter.emit('client:afterUserCommand', { ...userResult, id: 4, contextId: 'ctx-a' })
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand'])
+    })
+
     it('puts the result of a parallel user command in its owner, also after the next test of its context started', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)

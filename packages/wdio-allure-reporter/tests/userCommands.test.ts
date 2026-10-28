@@ -151,7 +151,7 @@ describe('user commands that overlap or end after their test', () => {
         const { results } = getResults(outputDir)
         const attachment = (a: Result) => fs.readFileSync(path.join(outputDir, a.source), 'utf8')
         const byName = (name: string) => (results as Result[]).find((r) => r.name === name)!
-        return { byName, attachment }
+        return { byName, attachment, reporter }
     }
     const test = (title: string) => ({ uid: `test-${title}`, title, fullTitle: `A ${title}`, parent: 'A', parentUid: 'suite-A', file: SPEC })
     const steps = (r: Result, attachment: (a: Result) => string): unknown[] => r.steps.map((s: Result) => [
@@ -197,5 +197,17 @@ describe('user commands that overlap or end after their test', () => {
         expect(steps(byName('t2'), attachment)).toEqual([
             ['pause', 'passed', undefined, ['[\n  7000\n]'], []]
         ])
+    })
+
+    it('forgets at the end of the runner the steps of user commands that got no result', async () => {
+        const { reporter } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(3, 'waitForDisplayed', []))
+            emit('test:fail', { ...test('t1'), error: new Error('Timeout of 5000ms exceeded') })
+            emit('test:end', test('t1'))
+        })
+
+        const state = reporter as unknown as { _userStepOf: Map<number, unknown>, _userSteps: Map<string, unknown> }
+        expect([state._userStepOf.size, state._userSteps.size]).toEqual([0, 0])
     })
 })
