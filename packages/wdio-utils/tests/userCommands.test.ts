@@ -792,6 +792,63 @@ describe('shortCopy', () => {
         expect(mod.shortCopy(Buffer.alloc(2))).toBe('<Buffer 2 bytes>')
     })
 
+    describe('placeholders of the command log', () => {
+        const screenshot = Buffer.alloc(1500).toString('base64')
+
+        it('gives the screenshot placeholder for a base64 file', async () => {
+            const { transformCommandLogResult } = await import('../src/utils.js')
+            expect(screenshot).toHaveLength(2000)
+            expect(mod.shortCopy({ file: screenshot })).toBe('"<Screenshot[base64]>"')
+            expect(mod.shortCopy({ file: screenshot })).toBe(transformCommandLogResult({ file: screenshot }))
+            expect(mod.shortCopy({ a: { file: screenshot } })).toEqual({ a: '"<Screenshot[base64]>"' })
+            expect(mod.shortCopy([{ file: screenshot }])).toEqual(['"<Screenshot[base64]>"'])
+        })
+
+        it('gives the script placeholders of the log', async () => {
+            const { transformCommandLogResult } = await import('../src/utils.js')
+            const named = 'return (function myScript () { return 1 }).apply(null, arguments)'
+            const minified = '!function(t,e){return 1}()'
+            const base64 = Buffer.from('some script payload').toString('base64')
+
+            expect(mod.shortCopy({ script: named, args: [1] })).toEqual({ script: `myScript(...) [${named.length} bytes]`, args: [1] })
+            expect(mod.shortCopy({ script: minified })).toEqual({ script: `<minified function> [${minified.length} bytes]` })
+            expect(mod.shortCopy({ script: base64 })).toBe('"<Script[base64]>"')
+            expect(mod.shortCopy({ a: { script: named } })).toEqual({ a: { script: `myScript(...) [${named.length} bytes]` } })
+            for (const script of [named, minified, base64, 'function myScript () { return 1 }']) {
+                expect(mod.shortCopy({ script })).toEqual(transformCommandLogResult({ script }))
+            }
+        })
+
+        it('keeps the other values', () => {
+            expect(mod.shortCopy(undefined)).toBeUndefined()
+            expect(mod.shortCopy({ a: undefined })).toEqual({ a: undefined })
+            expect(mod.shortCopy(screenshot)).toBe('A'.repeat(1024) + '… [2000 bytes]')
+            expect(mod.shortCopy({ file: 'not base64!', script: 'return 1' })).toEqual({ file: 'not base64!', script: 'return 1' })
+            expect(mod.shortCopy({ file: screenshot.slice(0, 1200) + '!' })).toEqual({ file: screenshot.slice(0, 1024) + '… [1201 bytes]' })
+        })
+
+        it('keeps the limits', () => {
+            expect(mod.shortCopy({ a: { b: { c: { d: { file: screenshot } } } } })).toEqual({ a: { b: { c: { d: '[…]' } } } })
+            const longScript = 'return (function myScript () {' + ' '.repeat(2000) + '})'
+            const extra = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`k${i}`, i]))
+            const copy = mod.shortCopy({ script: longScript, ...extra }) as Record<string, unknown>
+            expect(copy.script).toBe(`myScript(...) [${longScript.length} bytes]`)
+            expect(copy['…']).toBe('[11 more]')
+        })
+
+        it('does not use the placeholders for an object that is not plain', () => {
+            class Shot { file = screenshot }
+            expect(mod.shortCopy(new Shot())).toEqual({ file: 'A'.repeat(1024) + '… [2000 bytes]' })
+        })
+
+        it('copies the placeholder in the result of a call', async () => {
+            const browser = fakeBrowser()
+            await mod.runUserCommand(browser, 'getText', [{ file: screenshot }], async () => ({ file: screenshot }))
+            expect(pairs(browser)[0][1].body).toEqual(['"<Screenshot[base64]>"'])
+            expect(pairs(browser)[1][1].result.value).toBe('"<Screenshot[base64]>"')
+        })
+    })
+
     it('copies the result of a call', async () => {
         const browser = fakeBrowser()
         await mod.runUserCommand(browser, 'getText', [], async () => 'a'.repeat(2000))
