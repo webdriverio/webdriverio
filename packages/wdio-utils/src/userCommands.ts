@@ -16,12 +16,11 @@ const NO_EVENT_COMMANDS = ['takeScreenshot', 'takeElementScreenshot']
 const TRANSPARENT_COMMANDS = ['call']
 
 /**
- * The user command that the calling code runs in. `depth` is 0 for the outer
- * call. `id` is set only when the outer call sends events or is excluded.
+ * The outer user command that the calling code runs in. `id` is set only when
+ * the outer call sends events or is excluded.
  * @experimental
  */
 export interface UserCommandFrame {
-    depth: number
     id?: number
 }
 
@@ -83,20 +82,6 @@ export function currentUserCommandId (): number | undefined {
 }
 
 /**
- * Run `fn` one level deeper with no event: the user commands that a custom
- * command runs send nothing.
- * @experimental
- */
-export function runNested<T> (fn: () => T): T {
-    const frame = userCommandStore?.getStore()
-    // no frame (a multi-remote custom command): the instance commands send their own events
-    if (!userCommandStore || !frame) {
-        return fn()
-    }
-    return userCommandStore.run({ depth: frame.depth + 1, id: frame.id }, fn)
-}
-
-/**
  * Run `fn` so that no command in it sends events and has a parent id, for
  * example the commands of a reporter.
  * @experimental
@@ -105,8 +90,7 @@ export function runWithoutUserCommands<T> (fn: () => T): T {
     if (!userCommandStore) {
         return fn()
     }
-    const frame = userCommandStore.getStore()
-    return userCommandStore.run({ depth: (frame?.depth ?? 0) + 1 }, fn)
+    return userCommandStore.run({}, fn)
 }
 
 /**
@@ -154,9 +138,9 @@ export async function runUserCommand<T> (scope: unknown, command: string, args: 
         return run()
     }
 
-    const parent = userCommandStore.getStore()
-    if (parent) {
-        return userCommandStore.run({ depth: parent.depth + 1, id: parent.id }, run)
+    // a nested call runs in the frame of the outer call
+    if (userCommandStore.getStore()) {
+        return run()
     }
     return runOuterCommand(userCommandStore, scope, command, args, run)
 }
@@ -181,10 +165,10 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         return run()
     }
 
-    // an outer call that sends nothing still is depth 0, so its nested calls send nothing
+    // an outer call that sends nothing still has a frame, so its nested calls send nothing
     const mode = eventMode(browser, command)
     if (mode !== 'send') {
-        return store.run(mode === 'hide' ? { depth: 0, id: ++lastUserCommandId } : { depth: 0 }, run)
+        return store.run(mode === 'hide' ? { id: ++lastUserCommandId } : {}, run)
     }
 
     const emit = browser!.emit!.bind(browser)
@@ -196,7 +180,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     const sendValue = (value: unknown) => emit('userResult', { ...event, result: { value: shortCopy(value) } })
     const sendError = (error: unknown) => emit('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
-    return store.run({ depth: 0, id: event.id }, () => {
+    return store.run({ id: event.id }, () => {
         emit('userCommand', event)
         let result: T
         try {
