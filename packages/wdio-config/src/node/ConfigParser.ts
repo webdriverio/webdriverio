@@ -418,6 +418,9 @@ export default class ConfigParser {
                         this._config.rootDir,
                         this._pathService
                     )
+                    if (globMatchedFiles.length > 0 || this._pathService.isFile(cwdFile)) {
+                        filteredFile = cwdFile
+                    }
                 }
             }
             if (this._pathService.isFile(filteredFile)) {
