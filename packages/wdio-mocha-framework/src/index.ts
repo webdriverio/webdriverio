@@ -146,6 +146,8 @@ class MochaAdapter {
 
     async run () {
         const mocha = this._mocha!
+        // the suite duration of afterSuite, also with no beforeSuite hook (which sets it again)
+        this._suiteStartDate = Date.now()
 
         const parallelMode = this._config.mochaOpts?.parallelMode
         if (parallelMode === 'contexts' || parallelMode === 'userContexts') {
@@ -205,13 +207,14 @@ class MochaAdapter {
             const beforeSuiteMsg = this.prepareMessage('beforeSuite')
             const beforeSuiteHook = { ...beforeSuiteMsg, ...rootHookMessage('before all', rootTests) }
             const beforeSuiteUid = this.getSyncEventIdStart('hook')
+            const beforeSuiteStart = Date.now()
             this._reporter.emit('hook:start', { ...beforeSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
             try {
                 await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - beforeSuiteStart, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
             } catch (err) {
                 log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+                this._reporter.emit('hook:end', { ...beforeSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - beforeSuiteStart, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
             }
         }
 
@@ -241,13 +244,14 @@ class MochaAdapter {
             const afterSuiteMsg = this.prepareMessage('afterSuite')
             const afterSuiteHook = { ...afterSuiteMsg, ...rootHookMessage('after all', rootTests) }
             const afterSuiteStartUid = this.getSyncEventIdStart('hook')
+            const afterSuiteStart = Date.now()
             this._reporter.emit('hook:start', { ...afterSuiteHook, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
             try {
                 await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'pass', duration: Date.now() - afterSuiteStart, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
             } catch (err) {
                 log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+                this._reporter.emit('hook:end', { ...afterSuiteHook, type: 'hook:end', state: 'fail', duration: Date.now() - afterSuiteStart, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
             }
         }
 

@@ -349,7 +349,34 @@ describe('parallel mode config hooks', () => {
         const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
         expect(hookEnds[0][1].duration).toBe(500)
         expect(hookStarts[1][1].duration).toBe(8000)
-        expect(hookEnds[1][1].duration).toBe(8000)
+        // the hook:end of afterSuite has the time of the hook, as Mocha gives in sequential mode
+        expect(hookEnds[1][1].duration).toBe(0)
+    })
+
+    test('measures the afterSuite suite duration from the start of the run when there is no beforeSuite hook', async () => {
+        const now = vi.spyOn(Date, 'now').mockReturnValue(1000)
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' }, afterSuite: [() => {}] })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        // the session start and the `before` hook come between the adapter creation and the run
+        now.mockReturnValue(5000)
+        vi.mocked(runParallelTests).mockImplementationOnce(async () => {
+            now.mockReturnValue(9000)
+            return 0
+        })
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+            now.mockRestore()
+        }
+
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        expect(hookStarts.map((c) => c[1].title)).toEqual(['"after all" hook: afterSuite in "{root}"'])
+        expect(hookStarts[0][1].duration).toBe(4000)
     })
 })
 
