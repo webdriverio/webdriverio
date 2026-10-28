@@ -2,7 +2,7 @@ import vm from 'node:vm'
 import { describe, expect, it, vi } from 'vitest'
 import tmp from 'tmp'
 
-import WDIOReporter, { userCommandError } from '../src/index.js'
+import WDIOReporter, { userCommandError, userOutputReplacer } from '../src/index.js'
 import type { AfterUserCommandArgs, BeforeUserCommandArgs } from '../src/index.js'
 
 const runnerSpecs = ['/path/to/fileA.js']
@@ -233,5 +233,20 @@ describe('userCommandError', () => {
         expect(userCommandError('boom')).toBe('boom')
         expect(userCommandError(undefined)).toBe(undefined)
         expect(userCommandError({ code: 1 })).toEqual({ code: 1 })
+    })
+})
+
+describe('userOutputReplacer', () => {
+    it('writes the name and the message of the error of a user result', () => {
+        const output = [
+            { type: 'userResult', command: 'getText', result: { error: vm.runInNewContext('new TypeError("boom")') } },
+            { type: 'userResult', command: 'getText', result: { value: 'hello' } },
+            { type: 'result', command: 'getTitle', result: { error: { code: 1 } } }
+        ]
+        expect(JSON.parse(JSON.stringify(output, userOutputReplacer))).toEqual([
+            { type: 'userResult', command: 'getText', result: { error: { name: 'TypeError', message: 'boom' } } },
+            { type: 'userResult', command: 'getText', result: { value: 'hello' } },
+            { type: 'result', command: 'getTitle', result: { error: { code: 1 } } }
+        ])
     })
 })
