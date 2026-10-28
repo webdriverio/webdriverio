@@ -762,6 +762,9 @@ export default class AllureReporter extends WDIOReporter {
         for (const key of [...this._lanes.keys()]) {
             this._closeLane(key, key)
         }
+        // the steps of user commands that got no result
+        this._userSteps.clear()
+        this._userStepOf.clear()
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
          * cannot report the reporter as synchronised while this pass is still writing
