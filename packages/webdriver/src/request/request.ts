@@ -21,7 +21,33 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'move target out of bounds',
     'element click intercepted',
     'element not interactable',
-    'invalid element state'
+    'invalid element state',
+    /**
+     * Well-formed W3C errors the driver answers deterministically. Repeating
+     * the request gives the same answer and re-runs its side effects.
+     * `unknown error` stays retryable, it is what a Grid or proxy sends when
+     * it hiccups.
+     */
+    'invalid argument',
+    'invalid cookie domain',
+    'invalid selector',
+    'invalid session id',
+    'javascript error',
+    'no such alert',
+    'no such cookie',
+    'no such element',
+    'no such frame',
+    'no such shadow root',
+    'no such window',
+    'script timeout',
+    'session not created',
+    'timeout',
+    'unable to capture screen',
+    'unable to set cookie',
+    'unexpected alert open',
+    'unknown command',
+    'unknown method',
+    'unsupported operation'
 ]
 
 const DEFAULT_HEADERS = {
@@ -235,7 +261,7 @@ export abstract class WebDriverRequest {
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
              */
-            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+            if (retryCount >= totalRetryCount || error.name === 'invalid session id') {
                 log.error(error.message)
                 this.eventHandler.onResponse?.({ error })
                 this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
@@ -334,6 +360,8 @@ export abstract class WebDriverRequest {
          * it likely does not changes anything and the error is handled within the command.
          */
         if (ERRORS_TO_EXCLUDE_FROM_RETRY.includes(error.name)) {
+            this.eventHandler.onResponse?.({ error })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 

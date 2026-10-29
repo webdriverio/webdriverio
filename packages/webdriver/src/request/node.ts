@@ -17,13 +17,17 @@ export const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
  */
 export class FetchRequest extends WebDriverRequest {
     async fetch (url: URL, opts: RequestInit) {
-        const response = await fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
+        const response = await fetch(url, opts as UndiciRequestInit) as unknown as Response
         if (opts.method === 'DELETE') {
             // regex should only target the delete session request, not other
             // delete requests, full list: https://www.w3.org/TR/webdriver2/#endpoints
             const match = url.pathname.match(/\/session\/([^/]+)$/)
             const sessionId = match?.[1]
-            if (sessionId) {
+            /**
+             * a 5xx (e.g. from a Grid) is retried and the retry needs the
+             * dispatcher, so only clean up once the request is settled
+             */
+            if (sessionId && response.status < 500) {
                 this.cleanupSessionDispatcher(sessionId)
             }
         }

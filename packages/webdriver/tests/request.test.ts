@@ -361,6 +361,37 @@ describe('webdriver request', () => {
             expect(calls() - before).toBe(1)
         })
 
+        it('should not retry a well-formed W3C error response', async () => {
+            const onRetry = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/execute/sync', {}, undefined, false, { onRetry })
+            const url = new URL('/session/foobar-123/execute/sync', baseUrl)
+            const fetchMock = vi.mocked(globalThis.fetch)
+            fetchMock.mockClear()
+            fetchMock.mockImplementationOnce(async () => Response.json(
+                { value: { error: 'javascript error', message: 'boom' } },
+                { status: 500 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({ script: 'throw 1' }) }, undefined, 3).catch((err: Error) => err)
+            expect(error.name).toBe('javascript error')
+            expect(onRetry).not.toHaveBeenCalled()
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not retry an invalid session id by error name', async () => {
+            const onRetry = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/url', {}, undefined, false, { onRetry })
+            const url = new URL('/session/foobar-123/url', baseUrl)
+            const fetchMock = vi.mocked(globalThis.fetch)
+            fetchMock.mockClear()
+            fetchMock.mockImplementationOnce(async () => Response.json(
+                { value: { error: 'invalid session id', message: 'gone' } },
+                { status: 404 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({}) }, undefined, 3).catch((err: Error) => err)
+            expect(error.name).toBe('invalid session id')
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
         it('should not fail code due to an empty server response', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
@@ -743,6 +774,28 @@ describe('webdriver request', () => {
             expect(currentDispatcher.close).toHaveBeenCalled()
             expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
             expect(SESSION_DISPATCHERS.size).toBe(0)
+        })
+
+        it('should keep the session dispatcher while a failed DELETE /session/:sessionId can be retried', async () => {
+            const sessionId = 'retry-delete-session-id'
+            const deleteSessionRequest = new FetchRequest('DELETE', `/session/${sessionId}`, {})
+            const { fetch } = vi.mocked(await import('undici'))
+            fetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                text: async () => JSON.stringify({ value: { error: 'unknown error', message: 'grid hiccup' } })
+            } as any)
+            fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                text: async () => JSON.stringify({ value: null })
+            } as any)
+
+            await deleteSessionRequest.makeRequest({ ...defaultOptions, connectionRetryCount: 1 }, sessionId)
+            expect(fetch).toHaveBeenCalledTimes(2)
+            // the retry still reached the server through the same dispatcher
+            expect(fetch.mock.calls[1][1]).toHaveProperty('dispatcher', fetch.mock.calls[0][1]!.dispatcher)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
         })
 
         it('should not cleanup session dispatcher on non delete session DELETE requests', async () => {
