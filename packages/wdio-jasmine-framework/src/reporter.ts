@@ -45,7 +45,8 @@ export default class JasmineReporter {
         this._parent.push({
             description: suite.description,
             id: suite.id,
-            tests: 0
+            tests: 0,
+            file: suite.filename
         })
     }
 
@@ -216,7 +217,8 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            file: payload.filename,
+            // Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper: a test or hook takes the file of its suite
+            file: payload.type === 'suite' ? payload.filename : this._parent.at(-1)?.file,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }

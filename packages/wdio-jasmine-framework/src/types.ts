@@ -11,6 +11,7 @@ export interface ParentSuite {
     description: string
     id: string
     tests: number
+    file?: string
 }
 
 export interface SuiteEvent extends jasmine.SuiteResult {

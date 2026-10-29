@@ -262,3 +262,24 @@ test('emit: a hook event keeps its hookKind and gets the uid of its suite as hoo
     expect(calls[1][1]).not.toHaveProperty('hookKind')
     expect(calls[4][1]).not.toHaveProperty('hookKind')
 })
+
+// Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper, not the spec file
+test('emit: a test or hook gets the spec file of its suite', () => {
+    const wrapper = '/project/node_modules/@wdio/utils/build/index.js'
+    const hook = { id: '', type: 'hook', description: '"before all" hook', fullName: '"before all" hook', hookKind: 'beforeAll', filename: '' } as any
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.specStarted({ id: '20', description: 'top-level spec', fullName: 'top-level spec', filename: wrapper } as any)
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '/project/a.spec.js' } as any)
+    jasmineReporter.emit('hook:start', hook)
+    jasmineReporter.suiteStarted({ id: '25', description: 'inner', fullName: 'inner', filename: '/project/a.spec.js' } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: wrapper } as any)
+
+    expect(vi.mocked(runnerReporter.emit).mock.calls.map(([event, payload]) => [event, payload.file])).toEqual([
+        ['hook:start', undefined],
+        ['test:start', undefined],
+        ['suite:start', '/project/a.spec.js'],
+        ['hook:start', '/project/a.spec.js'],
+        ['suite:start', '/project/a.spec.js'],
+        ['test:start', '/project/a.spec.js']
+    ])
+})
