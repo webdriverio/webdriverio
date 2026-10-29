@@ -609,12 +609,12 @@ export default class WDIOReporter extends EventEmitter {
     }
 
     /**
-     * `true` (the default) hides the protocol commands that a user command runs from a reporter that shows user
-     * commands. `false` keeps them, with their `parent`, so the reporter can show them as children of the user command.
+     * `true` hides the protocol commands that a user command runs from a reporter that shows user commands. By
+     * default they are kept, with their `parent`, so the reporter can show them as children of the user command.
      * @experimental the name and the rule may change
      */
     protected get hidesProtocolCommands(): boolean {
-        return true
+        return false
     }
 
     // a screenshot event has no parent: reporters take screenshots from it
