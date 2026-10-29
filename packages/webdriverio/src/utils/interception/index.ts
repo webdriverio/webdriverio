@@ -1353,6 +1353,30 @@ export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern
     })
 }
 
+/**
+ * A pattern that matches exactly the given URL: the characters that are pattern syntax in
+ * `parseUrlPattern` (`+` and `:` of a query, for example) are matched literally.
+ */
+export function parseLiteralUrlPattern(url: string): URLPattern {
+    const escape = (value: string) => value.replace(/[*:(){}?+\\]/g, '\\$&')
+
+    if (url.startsWith('http')) {
+        const { protocol, username, password, hostname, port, pathname, search, hash } = new URL(url)
+        return new URLPattern({
+            protocol: protocol.slice(0, -1),
+            username: escape(username),
+            password: escape(password),
+            hostname: escape(hostname),
+            port,
+            pathname: escape(pathname),
+            search: escape(search.slice(1)),
+            hash: escape(hash.slice(1))
+        })
+    }
+
+    return new URLPattern({ pathname: escape(url) })
+}
+
 function getPatternId(pattern: URLPattern) {
     return `${pattern.protocol}|${pattern.username}|${pattern.password}|${pattern.hostname}|${pattern.port}|${pattern.pathname}|${pattern.search}|${pattern.hash}`
 }

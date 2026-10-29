@@ -4,6 +4,7 @@ import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager, isTrackedNavigationUrl } from '../../session/networkManager.js'
 import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
+import WebDriverInterception, { parseLiteralUrlPattern } from '../../utils/interception/index.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -98,10 +99,17 @@ export async function navigateInContext (
 
     let navigationError: unknown
     let request: WebdriverIO.Request | undefined = undefined
+    let mock: WebDriverInterception | undefined
     try {
-        let mock: WebdriverIO.Mock | undefined
+        /**
+         * The headers go through a mock of this navigation only: it matches the URL literally,
+         * is not one of the mocks of the user (`browser.mock()` would reuse and later restore
+         * the user's mock of the same URL) and is not registered with them
+         */
         if (options.headers) {
-            mock = await browser.mock(path)
+            mock = await WebDriverInterception.initiate(parseLiteralUrlPattern(path), {}, browser, {
+                contexts: getParallelContextStore().getStore() ? [contextIdValue(context)] : undefined
+            })
             mock.requestOnce({ headers: options.headers })
         }
 
@@ -156,7 +164,9 @@ export async function navigateInContext (
         })
 
         if (mock) {
-            await mock.restore()
+            const headersMock = mock
+            mock = undefined
+            await headersMock.restore()
         }
 
         /**
@@ -202,6 +212,9 @@ export async function navigateInContext (
     } catch (err) {
         navigationError = err
     } finally {
+        if (mock) {
+            await mock.restore().catch(() => { /* the session may be gone */ })
+        }
         if (resetPreloadScript) {
             try {
                 await resetPreloadScript.remove()

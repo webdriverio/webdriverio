@@ -2,6 +2,7 @@ import path from 'node:path'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import WebDriverInterception from '../../../src/utils/interception/index.js'
 import { getNetworkManager } from '../../../src/session/networkManager.js'
 import { getContextManager, getParallelContextStore } from '../../../src/session/context.js'
 
@@ -137,7 +138,7 @@ describe('url', () => {
 
         const mockMock = {
             requestOnce: vi.fn(),
-            restore: vi.fn()
+            restore: vi.fn().mockResolvedValue(undefined)
         }
 
         beforeAll(async () => {
@@ -155,7 +156,7 @@ describe('url', () => {
             addInitScript = vi.spyOn(browser, 'addInitScript').mockImplementation(() => Promise.resolve({
                 remove: vi.fn()
             } as any))
-            mock = vi.spyOn(browser, 'mock').mockImplementation(() => Promise.resolve(mockMock) as any)
+            mock = vi.spyOn(WebDriverInterception, 'initiate').mockImplementation(() => Promise.resolve(mockMock) as any)
             networkManager = getNetworkManager(browser)
         })
 
@@ -227,13 +228,37 @@ describe('url', () => {
                 }
             })
             expect(mock).toBeCalledTimes(1)
-            expect(mock).toBeCalledWith('http://google.com/')
+            const [pattern, filterOptions, mockBrowser, scope] = mock.mock.calls[0]
+            expect(pattern.test('http://google.com/')).toBe(true)
+            expect(filterOptions).toEqual({})
+            expect(mockBrowser).toBe(browser)
+            expect(scope).toEqual({ contexts: undefined })
             expect(mockMock.requestOnce).toBeCalledTimes(1)
             expect(mockMock.requestOnce).toBeCalledWith({
                 headers: {
                     Authorization: 'Basic dGVzdDp0ZXN0'
                 }
             })
+            expect(mockMock.restore).toBeCalledTimes(1)
+        })
+
+        it('should match a url with a pattern character in its query literally and leave the mocks of the user alone', async () => {
+            const userMock = vi.spyOn(browser, 'mock')
+            await browser.url('http://google.com/page?q=a+b&t=10:30', { headers: { 'X-Custom': 'value' } })
+
+            const pattern = mock.mock.calls[0][0]
+            expect(pattern.test('http://google.com/page?q=a+b&t=10:30')).toBe(true)
+            expect(pattern.test('http://google.com/page?q=a&t=10:30')).toBe(false)
+            expect(userMock).not.toBeCalled()
+            expect(mockMock.restore).toBeCalledTimes(1)
+            userMock.mockRestore()
+        })
+
+        it('should restore the headers mock when the navigation fails', async () => {
+            browsingContextNavigate.mockImplementationOnce((async () => {
+                throw new Error('net::ERR_FAILED')
+            }) as any)
+            await expect(browser.url('http://google.com', { headers: { 'X-Custom': 'value' } })).rejects.toThrow('net::ERR_FAILED')
             expect(mockMock.restore).toBeCalledTimes(1)
         })
 
