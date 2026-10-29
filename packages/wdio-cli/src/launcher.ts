@@ -410,7 +410,8 @@ class Launcher {
         /**
          * `shutdown` ends the WebDriver sessions, but a test that does not wait on the
          * browser keeps its worker running. Interrupt the workers the way ctrl+c does and
-         * wait for them to exit, so their reporters are done before `onComplete` runs.
+         * wait for them to exit before `onComplete` runs. As with ctrl+c, a worker that is
+         * not waiting on the browser may exit before its reporters have written a report.
          */
         for (const worker of Object.values<{ kill?: (signal: NodeJS.Signals) => void }>(this.runner?.workerPool || {})) {
             worker.kill?.('SIGINT')
