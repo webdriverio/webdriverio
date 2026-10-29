@@ -122,12 +122,13 @@ export interface CucumberOptions {
      */
     retry?: number;
     /**
-     * Only retries the features or scenarios with tags matching the expression (repeatable).
-     * This option requires 'retry' to be specified.
+     * Only retry the scenarios with tags matching the tag expression.
+     * Requires `retry`.
      */
     retryTagFilter?: string;
     /**
-     * Fail if there are any undefined or pending steps
+     * Fail the run on a pending step. An undefined step fails the run also
+     * without `strict`, unless `ignoreUndefinedDefinitions` is `true`.
      * @default false
      */
     strict?: boolean;
@@ -146,8 +147,7 @@ export interface CucumberOptions {
      */
     timeout?: number;
     /**
-     * Enable this to make webdriver.io behave as if scenarios
-     * and not steps were the tests.
+     * Report each scenario as one test. Its steps and hooks are not reported.
      * @default false
      */
     scenarioLevelReporter?: boolean;
@@ -157,7 +157,8 @@ export interface CucumberOptions {
      */
     tagsInTitle?: boolean;
     /**
-     * Treat undefined definitions as warnings.
+     * Report an undefined step as pending, with ` (undefined step)` at the end
+     * of its title, and do not fail the run for it.
      * Please note that this is a @wdio/cucumber-framework specific option and
      * not recognized by cucumber-js itself.
      * @default false

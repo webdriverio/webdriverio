@@ -91,6 +91,31 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests['step-3'].output.map((entry) => entry.type)).toEqual(['command', 'result'])
         })
 
+        it('keeps the context and the parent of a started parallel test that ends as pending', () => {
+            // Cucumber parallel scenarioLevelReporter: the pending payload has no contextId
+            reporter.emit('test:start', { ...stat, uid: 'scenario-1', contextId: 'ctx-1', parentUid: 'feature-1' })
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-1', state: 'pending' })
+            expect(reporter.tests['scenario-1'].contextId).toBe('ctx-1')
+            expect(reporter.tests['scenario-1'].parentUid).toBe('feature-1')
+        })
+
+        it('gives a parallel test that ends as pending the retries of its context', () => {
+            // Cucumber parallel retry: a failed attempt, then a new attempt that ends as pending
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:retry', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            reporter.emit('test:start', { ...stat, uid: 'scenario-2', contextId: 'ctx-2' })
+            // the pending payload has no contextId
+            reporter.emit('test:pending', { ...stat, uid: 'scenario-2', state: 'pending' })
+            expect(reporter.tests['scenario-2'].retries).toBe(1)
+        })
+
+        it('adds no context or parent property to a sequential test that ends as pending', () => {
+            reporter.emit('test:start', { ...stat, uid: 'step-4' })
+            reporter.emit('test:pending', { ...stat, uid: 'step-4', state: 'pending' })
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('contextId')
+            expect(Object.keys(reporter.tests['step-4'])).not.toContain('parentUid')
+        })
+
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
             vi.useFakeTimers({ toFake: ['Date'] })
             try {
@@ -713,6 +738,20 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests[testEndEvent.uid].retries).toBe(1)
         })
 
+        // a retried attempt has no test:end, so the counter goes on; the final test:end resets it
+        it('counts the retries of a test that keeps its uid, and resets them at test:end', () => {
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:retry', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'S', title: 'scenario' })
+            expect(reporter.tests.S.retries).toBe(1)
+            reporter.emit('test:pass', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:end', { uid: 'S', title: 'scenario' })
+            reporter.emit('test:start', { uid: 'T', title: 'next' })
+            expect(reporter.tests.T.retries).toBe(0)
+            reporter.emit('test:pending', { uid: 'U', title: 'pending' })
+            expect(reporter.tests.U.retries).toBe(0)
+        })
+
         it('should increment the test and passes counts only after test retry', () => {
             emitEventsFirstTry()
             expect(reporter.counts.tests).toBe(0)
@@ -804,13 +843,24 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests.B.output.map((o: any) => [o.command, o.type])).toEqual([['b1', 'command'], ['b1', 'result']])
         })
 
-        it('drops commands for an ended context while other contexts are active', () => {
+        it('routes the commands of an ended context to its last test, as a sequential run routes them to the current test', () => {
             start('A', 'ctx-a')
             start('B', 'ctx-b')
             reporter.emit('test:end', { uid: 'A' })
-            command('client:beforeCommand', 'late', 'ctx-a')
-            expect(reporter.tests.A.output).toHaveLength(0)
+            // afterEach and after hooks run after test:end
+            command('client:beforeCommand', 'teardown', 'ctx-a')
+            command('client:afterCommand', 'teardown', 'ctx-a')
+            expect(reporter.tests.A.output.map((o: any) => [o.command, o.type])).toEqual([['teardown', 'command'], ['teardown', 'result']])
             expect(reporter.tests.B.output).toHaveLength(0)
+        })
+
+        it('routes the commands of a context to the test that started last in it', () => {
+            start('S1', 'ctx-a')
+            reporter.emit('test:end', { uid: 'S1', contextId: 'ctx-a' })
+            start('S2', 'ctx-a')
+            command('client:beforeCommand', 'step 2', 'ctx-a')
+            expect(reporter.tests.S1.output).toHaveLength(0)
+            expect(reporter.tests.S2.output).toHaveLength(1)
         })
 
         it('does not attribute commands from an unstarted context to the last ended test', () => {
@@ -871,12 +921,44 @@ describe('WDIOReporter Listeners', () => {
                 expect(reporter.getContextTest()).toBe(reporter.tests.B)
             })
 
-            it('returns undefined for an ended context', () => {
+            it('returns the last test of an ended context, for output of its afterEach and after hooks', () => {
                 start('A', 'ctx-a')
                 start('B', 'ctx-b')
                 reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
                 reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns undefined for a context after its context:end', () => {
+                const onContextEnd = vi.spyOn(reporter, 'onContextEnd')
+                start('A', 'ctx-a')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                const payload = { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' }
+                reporter.emit('context:end', payload)
+                reporter.setContextIdResolver(() => 'ctx-a')
+
                 expect(reporter.getContextTest()).toBeUndefined()
+                expect(onContextEnd).toHaveBeenCalledWith(payload)
+            })
+
+            it('returns undefined after context:end for a test that never ended', () => {
+                // failHookAffectedTests: false: a failed beforeEach sends no result and no test:end
+                start('A', 'ctx-a')
+                reporter.emit('context:end', { type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBeUndefined()
+                expect(reporter.tests.A.state).toBe('pending')
+            })
+
+            it('returns the pending test after its test:end when the pending payload has no contextId', () => {
+                // Cucumber scenario level: only test:start and test:end have the contextId
+                start('A', 'ctx-a')
+                reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', state: 'pending' })
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
             })
 
             it('returns the current test without a resolver for a sequential test', () => {

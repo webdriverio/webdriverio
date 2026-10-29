@@ -7,12 +7,13 @@ import type {
     AfterCommandArgs,
     Argument,
     BeforeCommandArgs,
+    ContextEnd,
     HookStats,
     RunnerStats,
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -67,12 +68,14 @@ type StepWrapper = { step: StepPayload }
 
 type ReportLane = {
     main: WDIORuntimeMessage[]
-    // after-each/after-all hooks run before test:pass in parallel mode but after test:end in
-    // sequential mode, so they are held back here and replayed after the test's own messages
+    // added for the Mocha framework: a framework that sends the after hooks of a parallel test
+    // before its test:pass gets them held back here and replayed after the test's own messages
     tail: WDIORuntimeMessage[]
     inTail: boolean
     console: string
     suitePath?: string[]
+    // title of the test after its test:end: the lane stays open for the after hooks that follow
+    endedTitle?: string
 }
 
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
@@ -158,6 +161,8 @@ export default class AllureReporter extends WDIOReporter {
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
     private _laneMode = false
+    /** the framework of the run, from its name in any case or its scoped package; `undefined` when not known */
+    private _framework?: ReturnType<typeof knownFramework>
     // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
@@ -228,7 +233,7 @@ export default class AllureReporter extends WDIOReporter {
                     const lane = self._openLane()
                     if (!lane) {
                         if (!self._lanesSeen) { self._consoleOutput += str }
-                    } else if (!lane.inTail) {
+                    } else if (!lane.inTail && lane.endedTitle === undefined) {
                         lane.console += str
                     }
                 }
@@ -277,7 +282,24 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         const lane = this._openLane(key)
-        if (lane) { (lane.inTail ? lane.tail : lane.main).push(message) }
+        if (!lane) { return }
+        // after test:end the context runs only the after hooks of its test: their messages
+        // (also the runtime API of a hook with disableMochaHooks) belong to that test, as in a sequential run
+        (lane.inTail ? lane.tail : lane.main).push(message)
+    }
+
+    /**
+     * In parallel mode every suite:end comes after the last test and its hooks, so a lane
+     * that no context:end closed (older framework) closes there, with its after hooks
+     */
+    private _closeEndedLanes(): void {
+        let closed = false
+        for (const [key, lane] of [...this._lanes]) {
+            if (lane.endedTitle === undefined) { continue }
+            this._closeLane(key, lane.endedTitle)
+            closed = true
+        }
+        if (closed) { this._flushIncrementally() }
     }
 
     /**
@@ -656,10 +678,11 @@ export default class AllureReporter extends WDIOReporter {
         this._cid = runner.cid
         this._ensureState(runner.cid)
         this._config = runner.config
+        this._framework = knownFramework(runner.config?.framework)
         this._capabilities = runner.capabilities
         this._isMultiRemote = runner.isMultiRemote || false
         const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
-        this._laneMode = runner.config?.framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
+        this._laneMode = this._framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
         this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
@@ -783,6 +806,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onSuiteEnd(suite: SuiteStats & { end: Date }): void {
+        this._closeEndedLanes()
         const isScenario = suite.type === 'scenario'
         const cid = this._currentCid()
 
@@ -929,20 +953,18 @@ export default class AllureReporter extends WDIOReporter {
 
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
         const kind = getType(exec)
-        const keyword = getKeyword(exec)
-        const parentType = getParentType(exec)
-        const file = (exec as unknown as MaybeFile).file
-        const title = getTitle(exec)
-        const hasCucumberKeyword = hasCucumberKeywordInTitle(title)
-        const isFeatureFile = isFeatureFilePath(file)
-
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
+        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
+        // framework; another one (a custom framework or adapter) keeps the rules below
+        if (this._framework) {
+            const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts
+            return this._framework === 'cucumber' && !cucumberOpts?.scenarioLevelReporter
+        }
         if (kind === 'step') { return true }
-        if (keyword) { return true }
-        if (parentType === 'scenario') { return true }
-        if (isFeatureFile) { return true }
-        if (hasCucumberKeyword) { return true }
-        return false
+        if (getKeyword(exec)) { return true }
+        if (getParentType(exec) === 'scenario') { return true }
+        if (isFeatureFilePath((exec as unknown as MaybeFile).file)) { return true }
+        return hasCucumberKeywordInTitle(getTitle(exec))
     }
 
     onTestStart(test: TestStats | HookStats): void {
@@ -965,23 +987,6 @@ export default class AllureReporter extends WDIOReporter {
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepStart(test as TestStats)
             return
-        }
-
-        // Detect a scenarioLevelReporter retry: test:start fires again for a scenario while
-        // a previous scenario test is still open (because testCaseFinished was skipped for
-        // the willBeRetried=true attempt).  End the first attempt explicitly so Allure
-        // generates a separate result file for it before opening the retry result.
-        if (getType(test) === 'scenario' && this._hasPendingTest) {
-            this._pushRuntimeMessage({
-                type: 'metadata',
-                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
-            })
-            this._attachLogs()
-            this._endTest({
-                stage: AllureStage.FINISHED,
-                status: AllureStatusEnum.FAILED,
-                stop: Date.now(),
-            })
         }
 
         this._laneKey()
@@ -1034,10 +1039,18 @@ export default class AllureReporter extends WDIOReporter {
             this._handleCucumberStepEnd(test, getTestStatus(test, this._config), getStatusDetailsFromFailedTest(test))
             return
         }
+        // a retried Cucumber scenario attempt keeps its tag, as in onSuiteRetry (its TestStats type is 'test')
+        if (this._framework === 'cucumber') {
+            this._pushRuntimeMessage({
+                type: 'metadata',
+                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
+            })
+        }
         this._attachLogs()
         const status = getTestStatus(test, this._config)
         this._endTest({
             status,
+            stage: AllureStage.FINISHED,
             statusDetails: getStatusDetailsFromFailedTest(test),
             stop: AllureReporter.getTimeOrNow(test.end),
             duration: test.duration,
@@ -1158,7 +1171,15 @@ export default class AllureReporter extends WDIOReporter {
     onTestEnd(test: TestStats): void {
         const key = this._laneKey()
         if (!key) { return }
-        this._closeLane(key, test.title)
+        const lane = this._openLane(key)
+        if (lane) { lane.endedTitle = test.title }
+    }
+
+    // the context runs no more hooks: write its test now, while other tests still run
+    onContextEnd(payload: ContextEnd): void {
+        const lane = this._lanes.get(payload.contextId)
+        if (!lane) { return }
+        this._closeLane(payload.contextId, lane.endedTitle ?? payload.contextId)
         this._flushIncrementally()
     }
 

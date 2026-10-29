@@ -4,7 +4,7 @@ title: Trace Mode
 description: "Capture headless trace artifacts with DevTools trace mode and configure format, granularity, retention, screenshots, video and assertions."
 ---
 
-Headless capture path — no DevTools UI window opens. At session end the adapter writes trace artifacts into a `test-results/` folder next to your spec / config directory. For `session` / `spec` granularity that's a `trace-<sessionId>.zip` (or a `trace-<sessionId>/` directory); for `test` granularity each test gets its own subfolder (see [Trace granularity](#trace-granularity--tracegranularity)). The artifact is portable and ships everything needed for offline replay, AI-agent diffing, or any consumer that prefers a file over a live UI.
+Headless capture path — no DevTools UI window opens. At session end the adapter writes trace artifacts into a `test-results/` folder: under WebdriverIO's `outputDir` (or `rootDir`), and for Selenium and Nightwatch next to the test file, falling back to the config directory, then the current directory. For `session` / `spec` granularity that's a `trace-<sessionId>.zip` (or a `trace-<sessionId>/` directory); for `test` granularity each test gets its own subfolder (see [Trace granularity](#trace-granularity--tracegranularity)). The artifact is portable and ships everything needed for offline replay, AI-agent diffing, or any consumer that prefers a file over a live UI.
 
 Trace mode is **mutually exclusive with live mode**. Pick one per session: humans debugging interactively want live; agents diffing runs or CI bots collecting artifacts want trace.
 
@@ -23,7 +23,9 @@ services: [
 ]
 ```
 
-A complete, copy-pasteable reference config ships at [`examples/wdio/wdio.trace.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/wdio.trace.conf.ts).
+Trace mode needs WebDriver BiDi (Chrome 114+, Firefox 130+), which WebdriverIO enables automatically.
+
+To try it, run the mocha example in trace mode with `DEVTOOLS_MODE=trace pnpm demo:wdio:mocha`; add `DEVTOOLS_TRACE_GRANULARITY=test DEVTOOLS_TRACE_POLICY=retain-on-failure` for per-test retention. The config is [`examples/wdio/mocha/wdio.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/mocha/wdio.conf.ts).
 
 Selenium and Nightwatch ship the same trace pipeline — see their adapter pages for framework-specific enable syntax: [Selenium](/docs/devtools/selenium#trace-mode) · [Nightwatch](/docs/devtools/nightwatch#trace-mode).
 
@@ -32,11 +34,15 @@ Selenium and Nightwatch ship the same trace pipeline — see their adapter pages
 | File | Contents |
 |---|---|
 | `trace.trace` | NDJSON `context-options` + `before` / `after` action events; one line per record |
-| `trace.network` | HAR-style network entries, one per line |
+| `trace.network` | HAR-style network entries, one per line; an entry read from the page's Resource Timing buffer (no BiDi, e.g. Safari or Appium) carries `_source: "resource-timing"` and `_resourceType` |
+| `trace.mutations` | NDJSON DOM mutation stream behind DOM time-travel; omitted when nothing was captured |
 | `transcript.md` | Human/LLM-readable Markdown summary with timing, selectors, value annotations |
 | `resources/page@<id>-<ts>.jpeg` | Screenshot taken at each user-facing action |
 | `resources/page@<id>-<ts>-elements.json` | Flat list of interactable elements at that action |
 | `resources/page@<id>-<ts>-snapshot.txt` | Depth-indented accessibility-tree snapshot (AI-friendly) |
+| `resources/<sha1>.jpeg` | Dense filmstrip frames, content-addressed |
+| `resources/src@<sha1>.txt` | Captured test source for the Source tab |
+| `resources/<sha1>` | Network response bodies, content-addressed |
 
 ### What counts as an "action"
 
@@ -47,7 +53,7 @@ Commands are filtered through an allow-list before they produce trace entries. E
 - `setValue` / `sendKeys` → `Element.fill`
 - `submit`, `clear`, `selectByVisibleText`, …
 
-Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberately excluded — they don't represent user-facing intent and would noise up the timeline. The full allow-list lives in [`@wdio/devtools-core/action-mapping.ts`](https://github.com/webdriverio/devtools/blob/main/packages/core/src/action-mapping.ts).
+Locator resolution (`$`, `$$`, `findElement(s)`), Selenium's `executeScript` polling and the `clearValue` that `setValue` fires internally are deliberately excluded: they don't represent user-facing intent and would noise up the timeline. Explicit waits (`waitFor*`, `waitUntil`, Nightwatch `waitForElement*`), element reads (`getText`, `isDisplayed`, …) and `execute` do appear. The allow-list is `ACTION_MAP` in [`packages/shared/src/trace-actions.ts`](https://github.com/webdriverio/devtools/blob/main/packages/shared/src/trace-actions.ts).
 
 ## Output format — `traceFormat`
 
@@ -61,7 +67,7 @@ Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberat
 - **`zip`** (default) — single archive at `test-results/trace-<sessionId>.zip`.
 - **`ndjson-directory`** — same files unpacked into `test-results/trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-Both formats open in the first-party [`show-trace` player](/docs/devtools/trace-player) and in other compatible trace viewers.
+The `zip` opens in the first-party [`show-trace` player](/docs/devtools/trace-player); an `ndjson-directory` trace opens in other compatible trace viewers, or zip it first to open it in `show-trace`.
 
 ## Trace granularity — `traceGranularity`
 
@@ -77,7 +83,7 @@ How many trace artifacts a run produces:
 | Value | Output |
 |---|---|
 | `session` (default) | One trace per worker/session — `test-results/trace-<sessionId>.zip`. |
-| `spec` | One trace per spec file. Smaller, easier to navigate. |
+| `spec` | One trace per spec file, at `test-results/trace-<spec>-<hash>-<sessionId8>.zip`. Smaller, easier to navigate. |
 | `test` | One trace **per test**, each in its own folder: `test-results/<spec>-<title>-<browser>[-retry<N>]/trace.zip`. |
 
 For `test` granularity the folder name is built from the spec basename, a slug of the test title, the browser, and a `-retry<N>` suffix on retried attempts — e.g. `test-results/login_e2e-logs-in-chrome/trace.zip`, with a first retry at `test-results/login_e2e-logs-in-chrome-retry1/trace.zip`. Per-test traces are the most navigable and pair best with a retention policy so only the traces you care about are written.
@@ -140,7 +146,7 @@ At `traceGranularity: 'test'` each test can also produce a standalone screenshot
 | Option | Values | Behavior |
 |---|---|---|
 | `screenshot` | `'off'` (default) · `'on'` · `'only-on-failure'` | `'on'` captures after every test; `'only-on-failure'` only after a failing test. PNG. |
-| `video` | `'off'` (default) · any `tracePolicy` value | Records the screencast continuously and keeps each test's slice per the same retention semantics as `tracePolicy`. WebM. Setting a non-`off` value starts the recorder on its own — you don't also need `filmstrip` or `screencast.enabled`. |
+| `video` | `'off'` (default) · any `tracePolicy` value | Records the screencast continuously and keeps each test's slice per the same retention semantics as `tracePolicy`. WebM; encoding needs `ffmpeg` on `PATH`. Setting a non-`off` value starts the recorder on its own — you don't also need `filmstrip` or `screencast.enabled`. |
 
 Both are gated to trace mode + `traceGranularity: 'test'` (the per-test scope these attach to). At coarser granularities they no-op.
 
@@ -176,12 +182,13 @@ Passing assertions render green; failing ones render red with the error message.
 
 ## Mobile testing
 
-Trace mode detects mobile sessions via `platformName: 'android' | 'ios'` (case-insensitive) and adjusts:
+Appium sessions are captured in live and trace mode. The discriminator is the **browser name** in the capabilities, not the device:
 
 - **Mobile web** (Chrome on Android, Safari on iOS): same DOM-based snapshot pipeline as desktop.
-- **Native mobile**: the page-injected DOM scripts are guarded off; `getPageSource()` is used to grab the Appium XML tree, which feeds the snapshot serializer instead.
+- **Native app** (no `browserName`): the page-injected DOM scripts are guarded off; the Appium XML tree feeds the snapshot serializer instead.
+- **Hybrid app**: only WebdriverIO follows the session into its webview; the other adapters decide from the startup capabilities.
 
-The trace's `context-options` records `title: 'android — <deviceName>'` / `'ios — <deviceName>'` so the viewer labels frames correctly. A reference WDIO config for Android Chrome via Appium ships at [`examples/wdio/wdio.mobile.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/wdio.mobile.conf.ts).
+The trace's `context-options` records the platform, model and OS version so the viewer labels frames correctly. Run the examples with `pnpm demo:wdio:mobile` (also `:selenium:mobile`, `:nightwatch:mobile`, `:python:mobile`). See **[Mobile Testing](/docs/devtools/mobile)** for the full reference.
 
 ## Viewing the artifact
 
@@ -194,12 +201,15 @@ npx show-trace trace-<sessionId>.zip      # or via npx
 
 The player gives you DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source dock tabs, and a scrubbable timeline. The same portable `.zip` also opens in other standalone trace viewers and inside an Allure report's embedded viewer. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough, features, and keyboard shortcuts.
 
-## Learn more
+## Locators in the A11y tab
+
 The `show-trace` bin shipped by each adapter opens the same archive in the DevTools player, which additionally exposes an **A11y tab**: the accessibility tree captured per action, where clicking a row copies that element's locator.
 
 Those locators are written in the recording runner's own dialect, so they paste straight into the framework that produced the trace. An element identified only by its text is `a*=Logout` under WebdriverIO and `//a[contains(., "Logout")]` under Selenium — captioned with the call that resolves it, `By.xpath()`. Nightwatch prefers a native CSS locator such as `button[type="submit"]`, because it is the only runner that reads a bare selector string under a default CSS strategy, and falls back to XPath (captioned `useXpath()` / `locateStrategy: 'xpath'`) only when no unique CSS locator exists. Every other locator is portable CSS.
 
 For LLM / agent consumption, read `transcript.md` directly — it's a tight Markdown rendering of the actions with selectors and values.
+
+## Learn more
 
 - **[Trace Player](/docs/devtools/trace-player)** — the full `show-trace` player walkthrough, features, and keyboard shortcuts.
 - **[Allure Integration](/docs/devtools/allure)** — how trace / screenshot / video artifacts attach to an Allure report.

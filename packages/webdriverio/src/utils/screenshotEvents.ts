@@ -1,4 +1,11 @@
 /**
+ * the events of a WebDriver BiDi capture: the parallel mode guard lets them pass
+ */
+const bidiCaptureEvents = new WeakSet<object>()
+
+export const isBidiCaptureEvent = (event: object) => bidiCaptureEvents.has(event)
+
+/**
  * Reporters (for example the Allure and HTML reporters) get screenshots from the
  * `command` and `result` events of the WebDriver Classic screenshot commands. A
  * WebDriver BiDi command sends no such event, so send the events of the Classic
@@ -23,6 +30,7 @@ export async function withScreenshotEvents (
             : '/session/:sessionId/screenshot',
         body: {}
     }
+    bidiCaptureEvents.add(event)
     browser.emit('command', event)
     try {
         const data = await capture()

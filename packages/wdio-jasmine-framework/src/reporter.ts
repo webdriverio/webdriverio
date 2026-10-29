@@ -143,7 +143,8 @@ export default class JasmineReporter {
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
          */
-        if (parentSuite.tests === 0 && suite.failedExpectations && suite.failedExpectations.length) {
+        const hasSuiteFailure = Boolean(suite.failedExpectations && suite.failedExpectations.length)
+        if (parentSuite.tests === 0 && hasSuiteFailure) {
             const id = 'spec' + Math.random()
             this.specStarted({
                 id,
@@ -173,10 +174,25 @@ export default class JasmineReporter {
                 debugLogs: null,
                 filename: suite.filename
             })
+        } else if (hasSuiteFailure) {
+            /**
+             * a failing `afterAll` of a suite with specs is reported on the suite only
+             * (the reporters get it as a hook), count it so the run fails
+             */
+            this._failedCount++
         }
 
         this._parent.pop()
         this.emit('suite:end', newSuite)
+    }
+
+    jasmineDone (result: jasmine.JasmineDoneInfo) {
+        /**
+         * failures outside of any suite, e.g. a top level `afterAll`
+         */
+        if (result.failedExpectations && result.failedExpectations.length) {
+            this._failedCount++
+        }
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {

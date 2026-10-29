@@ -13,6 +13,7 @@ import {
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
+import { TestStats } from '@wdio/reporter'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 
@@ -91,6 +92,33 @@ describe('SpecReporter', () => {
                 hooks: [{ error: 1 }, {}, { error: 2 }],
                 hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
             } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+        })
+
+        // a Scenario Outline whose name has no <placeholder>: its example rows have the same title
+        it('keeps a test of the same title when a later test of that title passes on retry', () => {
+            const stat = (uid: string, state: string, retries: number) =>
+                Object.assign(new TestStats({ type: 'test:start', uid, title: 'outline', fullTitle: 'f: outline', cid: '0-0', specs: [] }), { state, retries })
+            const row1 = stat('row1', 'failed', 0)
+            const row2Attempt = stat('row2', 'failed', 0)
+            const row2Retry = stat('row2', 'passed', 1)
+            const events = tmpReporter.getEventsToReport({
+                tests: [row1, row2Attempt, row2Retry], hooks: [], hooksAndTests: [row1, row2Attempt, row2Retry]
+            } as any)
+            expect(events).toEqual([row1, row2Retry])
+        })
+
+        // parallel mode: the attempts of the two rows come interleaved; a Cucumber scenario keeps its uid on a retry
+        it('pairs a retry with the earlier attempt of the same uid when tests of the same title overlap', () => {
+            const stat = (uid: string, state: string, retries: number) =>
+                Object.assign(new TestStats({ type: 'test:start', uid, title: 'outline', fullTitle: 'f: outline', cid: '0-0', specs: [] }), { state, retries })
+            const a0 = stat('row-a', 'failed', 0)
+            const b0 = stat('row-b', 'failed', 0)
+            const a1 = stat('row-a', 'failed', 1)
+            const b1 = stat('row-b', 'passed', 1)
+            const events = tmpReporter.getEventsToReport({
+                tests: [a0, b0, a1, b1], hooks: [], hooksAndTests: [a0, b0, a1, b1]
+            } as any)
+            expect(events).toEqual([a1, b1])
         })
     })
 

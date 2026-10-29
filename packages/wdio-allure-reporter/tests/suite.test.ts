@@ -324,6 +324,54 @@ describe('Failed tests', () => {
         expect(browserParameter!.value).toEqual('default')
     })
 
+    it('ends a retried Mocha attempt as finished, with no "retried" tag (only Cucumber scenarios get it)', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestRetry(testFailed())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const attempt = results.find((r: { status: string }) => r.status === Status.FAILED)
+
+        expect(attempt.stage).toEqual(Stage.FINISHED)
+        expect(attempt.labels.filter((l: Label) => l.name === LabelName.TAG)).toEqual([])
+    })
+
+    // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+    it.each(['mocha', 'Mocha', '@wdio/mocha-framework', 'jasmine', '@wdio/jasmine-framework', 'vitest', '@wdio/vitest-framework'])('reports a %s test titled "When ..." as a test', async (framework) => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+        clean(outputDir)
+    })
+
+    it('reports a Mocha test whose title starts with a Gherkin keyword as a test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework: 'mocha' } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+    })
+
     it('should detect failed test case without start event', async () => {
         const reporter = new AllureReporter({ outputDir })
 
@@ -1202,6 +1250,26 @@ describe('command reporting', () => {
             assertionResults['webdriver'].screenshotTitle,
         )
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(screenshotAttachments).toHaveLength(1)
+    })
+
+    // the events of the WebDriver BiDi override: no endpoint, the base64 image in `result.value`
+    it('should add step with a WebDriver BiDi element screenshot', async () => {
+        const reporter = new AllureReporter({ stdout: true, outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand({ command: 'takeElementScreenshot', body: ['element-1'] } as never)
+        reporter.onAfterCommand({ command: 'takeElementScreenshot', result: { value: Buffer.from('png').toString('base64') } } as never)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const screenshotAttachments = results[0].steps[0].attachments.filter(
+            (attachment: Attachment) => attachment.name === 'Screenshot',
+        )
         expect(screenshotAttachments).toHaveLength(1)
     })
 

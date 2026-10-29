@@ -345,7 +345,12 @@ export default class SpecReporter extends WDIOReporter {
              */
             ...suite.hooksAndTests.reduce((accumulator, currentItem) => {
                 if (currentItem instanceof TestStats) {
-                    const existingTestIndex = accumulator.findIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
+                    // a Cucumber scenario keeps its uid on a retry (Mocha does not): tests of the same title
+                    // (Scenario Outline rows, also interleaved in parallel mode) each keep their row
+                    const sameUid = accumulator.findLastIndex((test) => test instanceof TestStats && test.uid === currentItem.uid)
+                    const existingTestIndex = sameUid !== -1
+                        ? sameUid
+                        : accumulator.findLastIndex((test) => test instanceof TestStats && test.fullTitle === currentItem.fullTitle)
                     if (existingTestIndex === -1) {
                         accumulator.push(currentItem)
                     } else {

@@ -24,7 +24,7 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 ## Node.js
 
-WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
+WebdriverIO v10 requires Node.js 22.23.4, 24.22.1 or 26.12.1, or a later release of these lines. These are the first releases with the [updated CA store](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases) for the eMudhra intermediate CA compromise. Node.js 18 and 20 are no longer supported, and Node.js 23 and 25 are not supported. CI covers Node.js 22, 24, and 26.
 
 ## Component tests
 
@@ -34,7 +34,7 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 ## Mocha
 
-`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
+`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of Node.js 22.23.4.
 
 ```diff
 - mochaOpts: { compilers: ['ts:ts-node/register'] }
@@ -46,6 +46,8 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). The `retry` argument of WebdriverIO does not run a test again after a timeout. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks), also for `mochaOpts.parallelMode`. New in v10: [parallel tests in a spec file](./ParallelTests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`.
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
+
+A hook title has the description or the name of the hook function, as in Mocha: `"before each" hook: login for "my test"` for `beforeEach('login', fn)` or `beforeEach(function login () {})`, or no name for an anonymous hook: `"before each" hook for "my test"`. In v9 it had `wrappedHook`, the name of the WebdriverIO wrapper. You see this title in the error of a test that a failed hook skipped, and in the names of root-level hooks, for example in Allure.
 
 Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
 
@@ -61,7 +63,7 @@ Mocha 12 is ESM-first (`"type": "module"`). Programmatic `require('mocha')` stil
 
 `@wdio/cucumber-framework` depends on [`@cucumber/cucumber` 13](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
-Cucumber 13 requires Node.js 22, 24, or 26 or later. It does not run on Node.js 20, 23, or 25. The framework package declares that same range, starting at the v10 floor of 22.19.0.
+Cucumber 13 requires Node.js 22, 24, or 26 or later. It does not run on Node.js 20, 23, or 25. The framework package declares the v10 range, which also excludes Node.js 23 and 25.
 
 ```diff
 - cucumberOpts: { tagExpression: '@smoke' }
@@ -82,7 +84,7 @@ With `scenarioLevelReporter: true`, the Allure `historyId` comes from `fullTitle
 
 ## Jasmine
 
-`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of 22.19.0 already covers that range.
+`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of Node.js 22.23.4 already covers that range.
 
 `jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws:
 
@@ -196,7 +198,7 @@ The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-ge
 
 In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files itself. In v10 it uses the system `unzip` command on Linux and macOS (`tar.exe` or PowerShell on Windows). Slim Docker images, such as `node:24-slim`, do not have it: install it, see [Docker](/docs/docker#images-where-webdriverio-downloads-the-browser).
 
-In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1` (Node.js 22.21.0 / 24.5.0 or later). WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
+In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1`. WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
 
 ## Multi-remote Global
 
@@ -391,6 +393,61 @@ The options are the same. The JSON files follow the Cucumber JSON format more cl
 - In a multi-remote session, the metadata comes from the first instance.
 
 These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, an object attached as `text/plain` (it is JSON text, not `[object Object]`), and a JSON string attached as `application/json` (it stays as it is, it is not encoded a second time). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language` (the `language` option of the reporter only when `cucumberOpts.language` is not set). With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
+
+### Video reporter
+
+`wdio-video-reporter` moved into the WebdriverIO repository as [`@wdio/video-reporter`](/docs/video-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-video-reporter
+npm install @wdio/video-reporter --save-dev
+```
+
+The community package installed ffmpeg itself. `@wdio/video-reporter` does not: [install ffmpeg](/docs/video-reporter#install-ffmpeg) on each machine that runs the tests, also in CI and in Docker images, or set the `ffmpegPath` option or the `FFMPEG_PATH` environment variable. Without ffmpeg, the reporter logs a warning and makes no video.
+
+```sh
+brew install ffmpeg                                         # macOS
+sudo apt-get update && sudo apt-get install -y ffmpeg       # Ubuntu, Debian
+winget install --id Gyan.FFmpeg -e                          # Windows
+```
+
+`reporters: ['video']` stays the same: WebdriverIO loads `@wdio/video-reporter` for that name. Replace imports from `wdio-video-reporter` with `@wdio/video-reporter`. The options are the same, with these changes:
+
+- `snapshotCommands` uses the last part of the W3C WebDriver endpoints. The old default also listed JSON Wire Protocol names such as `buttonup`, `moveto`, `keys` or `accept_alert`. These names never match a v10 command. Use the names of the [default list](/docs/video-reporter#snapshotcommands), for example `actions`, `value` or `accept`.
+- In a WebDriver BiDi session, the reporter also takes a frame after `url`, `back`, `forward`, `refresh` and `actions`.
+- In a WebDriver BiDi session, the reporter takes the frames with WebDriver BiDi, and the next command waits for the frame of the command before it (about 50 to 70 ms in Chrome), so that each frame shows the page of its command. Before, in Chrome, a screenshot at the start of a WebDriver BiDi navigation could make the test wait 10 seconds.
+- In a multi-remote session, only the commands of the first instance take a frame. Before, the commands of each instance took a frame of the first instance.
+- A `GET` command only reads the page, so it gives no frame, except with `recordAllActions`. Before, `getUrl`, `getSize` or `getValue` gave a frame, because the last part of their endpoint (`url`, `rect`, `value`) is in `snapshotCommands`.
+- The date in the video file names is `YYYY-MM-DD--HH-MM-SS-mmm` on every machine. Before, it used the locale of the machine.
+- `videoFormat` accepts `webm` (the default) and `mp4`. Before, `videoFormat: 'default'` made mp4 videos; now it logs a warning and makes webm videos. Use `videoFormat: 'mp4'`.
+- With the Allure reporter, a test without a video no longer gets an empty video attachment.
+
+### HTML reporter
+
+`wdio-html-nice-reporter` moved into the WebdriverIO repository as [`@wdio/html-reporter`](/docs/html-reporter). The old package is for v9 only.
+
+```sh
+npm uninstall wdio-html-nice-reporter
+npm install @wdio/html-reporter --save-dev
+```
+
+The reporter name is `html`. Change the name in `reporters` and the imports:
+
+```diff
+- import { ReportAggregator } from 'wdio-html-nice-reporter'
++ import { ReportAggregator } from '@wdio/html-reporter'
+
+  reporters: [
+-     ['html-nice', { outputDir: './reports/html-reports/' }]
++     ['html', { outputDir: './reports/html-reports/' }]
+  ]
+```
+
+The options are the same. Also change these:
+
+- `ReportEvents` comes from `@wdio/html-reporter`. Tests that still use `@rpii/wdio-report-events` work, because both send the same events.
+- The command line script is `node_modules/@wdio/html-reporter/build/makeReport.js`. It was `node_modules/wdio-html-nice-reporter/lib/makeReport.js`.
+- With Cucumber, the report counts scenarios, not steps, and counts only the last try of a retried scenario.
 
 ## `$` is strict
 

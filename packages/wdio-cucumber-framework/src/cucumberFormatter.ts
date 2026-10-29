@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { convertStatus, getAmbiguousStepMessage } from './utils.js'
+import { getFeatureStack, getStepResult, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -24,7 +24,6 @@ import type {
     TestStepStarted,
     TestStepFinished,
     TestStepResult,
-    TestCaseFinished,
     Hook,
     StepDefinition
 } from '@cucumber/messages'
@@ -36,7 +35,8 @@ import {
     getRule,
     getStepType,
     buildStepPayload,
-    getScenarioDescription
+    getScenarioDescription,
+    getScenarioResult
 } from './utils.js'
 
 import type { HookParams, ReporterScenario } from './types.js'
@@ -71,6 +71,8 @@ export default class CucumberFormatter extends Formatter {
     private rootDir?: string
 
     private failedCount = 0
+    /** `failedCount` when the attempt started: a retried attempt does not count */
+    private _failedCountAtAttemptStart = 0
 
     private _featureStart?: Date
     private _scenarioStart?: Date
@@ -90,6 +92,7 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
                 results = []
+                this._failedCountAtAttemptStart = this.failedCount
                 this.onTestCaseStarted(envelope.testCaseStarted)
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
@@ -102,9 +105,15 @@ export default class CucumberFormatter extends Formatter {
                  * only store result if step isn't retried
                  */
                 if (envelope.testCaseFinished.willBeRetried) {
-                    return log.debug(
+                    log.debug(
                         `test case with id ${envelope.testCaseFinished.testCaseStartedId} will be retried, ignoring result`
                     )
+                    // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
+                    if (this.scenarioLevelReporter) {
+                        this.onTestCaseFinished(results, true)
+                    }
+                    this.failedCount = this._failedCountAtAttemptStart
+                    return
                 }
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
@@ -221,55 +230,24 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: PickleStep | undefined,
-        result: TestStepResult
+        result: TestStepResult,
+        retried = false
     ) {
-        let state = convertStatus(result.status)
-        let error = result.message ? new Error(result.message) : undefined
         const title = step ? step?.text : this.getTitle(scenario)
-        let titleSuffix = ''
-
-        if (result.status === Status.UNDEFINED) {
-            if (this.ignoreUndefinedDefinitions) {
-                /**
-                 * mark test as pending
-                 */
-                state = 'pending'
-                titleSuffix = ' (undefined step)'
-            } else {
-                /**
-                 * mark test as failed
-                 */
-                state = 'fail'
-                this.failedCount++
-
-                const err = new Error(
-                    (step ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
-                    'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
-                )
-
-                err.stack = `${err.message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
-                error = err
+        const { state, error, pendingReason, titleSuffix, failed } = getStepResult(
+            result,
+            {
+                title,
+                isStep: Boolean(step),
+                ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+                failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+                featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
-        } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
-            state = 'fail'
+        )
+        if (failed) {
             this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
-        } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
-            state = 'fail'
-            this.failedCount++
-            const message = result.message || (
-                (step
-                    ? `Step "${title}" matches multiple step definitions. `
-                    : `Scenario "${title}" contains a step matching multiple step definitions. `) +
-                'Make the step definitions unique by removing duplicate or overlapping expressions.'
-            )
-            error = new Error(message.split('\n')[0])
-            error.stack = `${message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
         }
 
-        // reporters show the reason of a skipped test from `pendingReason`, not from its error
-        const pendingReason = result.status === Status.AMBIGUOUS && state === 'skip' ? result.message : undefined
         const common = {
             title: title,
             state,
@@ -302,26 +280,11 @@ export default class CucumberFormatter extends Formatter {
         if (titleSuffix) {
             payload.title += titleSuffix
         }
-        this.emit('test:' + state, payload)
-    }
-
-    /**
-     * stack lines with the location of the scenario and the step in the feature file
-     */
-    private getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep) {
-        let stack = `\tat Feature(${uri}):1:1\n`
-        const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
-        const featScenario = children.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
-        if (featScenario) {
-            stack += `\tat Scenario(${featScenario.name}):${featScenario.location?.line}:${featScenario.location?.column}\n`
-
-            const steps = [...children.flatMap((c) => c.background?.steps ?? []), ...(featScenario.steps ?? [])]
-            const featStep = steps.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
-            if (featStep) {
-                stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
-            }
+        this.emit(retried ? 'test:retry' : 'test:' + state, payload)
+        // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried attempt has none)
+        if (!retried) {
+            this.emit('test:end', payload)
         }
-        return stack
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
@@ -538,17 +501,12 @@ export default class CucumberFormatter extends Formatter {
      */
     private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
         const result = event.testStepResult
-        if (result?.status !== Status.AMBIGUOUS || result.message) {
-            return event
-        }
-        const testStep = this._testCases
+        const stepDefinitionIds = () => this._testCases
             .find((tc) => tc.id === this._currentTestCase?.testCaseId)
             ?.testSteps.find((step) => step.id === event.testStepId)
-        const stepDefinitions = (testStep?.stepDefinitionIds ?? [])
-            .map((id) => this._stepDefinitions.get(id))
-            .filter((definition): definition is StepDefinition => Boolean(definition))
-        const message = getAmbiguousStepMessage(stepDefinitions)
-        return message ? { ...event, testStepResult: { ...result, message } } : event
+            ?.stepDefinitionIds ?? []
+        const withMessage = result && withAmbiguousMessage(result, stepDefinitionIds, this._stepDefinitions)
+        return withMessage === result ? event : { ...event, testStepResult: withMessage }
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
@@ -603,7 +561,7 @@ export default class CucumberFormatter extends Formatter {
         )
     }
 
-    onTestCaseFinished(results: TestStepResult[]) {
+    onTestCaseFinished(results: TestStepResult[], retried = false) {
         const tc = this._testCases.find(
             (tc) => tc.id === this._currentTestCase?.testCaseId
         )
@@ -616,10 +574,10 @@ export default class CucumberFormatter extends Formatter {
             return
         }
 
-        /**
-         * propagate the first non passing result or the last one
-         */
-        const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
+        const finalResult = getScenarioResult(results, {
+            ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+            failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+        })
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri
@@ -645,7 +603,7 @@ export default class CucumberFormatter extends Formatter {
              * no step: the end event has the title, type and parent of the scenario,
              * as its `test:start` event
              */
-            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult)
+            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult, retried)
         }
         this.emit('suite:end', payload)
     }

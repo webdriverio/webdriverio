@@ -564,8 +564,8 @@ class Launcher {
 
         const config = this.configParser.getConfig()
 
-        // wait before retrying the spec file
-        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
+        // wait before retrying the spec file, first attempts start with retries=-1 ("unknown") and must not wait
+        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && !this._isWatchMode && retries >= 0) {
             await sleep(config.specFileRetriesDelay * 1000)
         }
 

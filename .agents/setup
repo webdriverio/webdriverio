@@ -14,8 +14,9 @@ EXPECTED_NODE="$(tr -d 'v[:space:]' < .nvmrc)"
 ACTUAL_NODE="$(node -p "process.versions.node")"
 ACTUAL_MAJOR="${ACTUAL_NODE%%.*}"
 EXPECTED_MAJOR="${EXPECTED_NODE%%.*}"
-if (( ACTUAL_MAJOR < 18 )); then
-    echo "Node $ACTUAL_NODE is too old. Install Node $EXPECTED_NODE (see .nvmrc) or at least Node 18." >&2
+# Same floor as engines.node in package.json
+if ! node -e 'const [M, m, p] = process.versions.node.split(".").map(Number); const f = { 22: [23, 4], 24: [22, 1], 26: [12, 1] }[M]; process.exit(M > 26 || (f && (m > f[0] || (m === f[0] && p >= f[1]))) ? 0 : 1)'; then
+    echo "Node $ACTUAL_NODE is not supported. Install Node $EXPECTED_NODE (see .nvmrc), or at least 22.23.4, 24.22.1 or 26.12.1." >&2
     exit 1
 fi
 if [[ "$ACTUAL_MAJOR" != "$EXPECTED_MAJOR" ]]; then

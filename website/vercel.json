@@ -56,7 +56,9 @@
         { "source": "/docs/api/element/executeAsync", "destination": "/docs/api/element/execute", "permanent": true },
         { "source": "/docs/api/mjsonwp", "destination": "/docs/api/appium", "permanent": true },
         { "source": "/docs/headless-and-xvfb", "destination": "/docs/headless-and-display-servers", "permanent": true },
-        { "source": "/docs/wdio-cucumberjs-json-reporter", "destination": "/docs/cucumberjs-json-reporter", "permanent": true }
+        { "source": "/docs/wdio-cucumberjs-json-reporter", "destination": "/docs/cucumberjs-json-reporter", "permanent": true },
+        { "source": "/docs/wdio-video-reporter", "destination": "/docs/video-reporter", "permanent": true },
+        { "source": "/docs/wdio-html-nice-reporter", "destination": "/docs/html-reporter", "permanent": true }
     ],
     "headers": [
         {
