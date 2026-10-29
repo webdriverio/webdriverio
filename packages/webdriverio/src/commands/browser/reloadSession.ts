@@ -65,6 +65,16 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
     const shutdownDriver = Boolean(newCapabilities?.browserName)
 
     /**
+     * mocks belong to the session they were made in, the ones of the old session must not
+     * answer in the new one: restore them while the session is still there
+     */
+    try {
+        await this.mockRestoreAll()
+    } catch (err) {
+        log.warn(`Suppressing error restoring the mocks of the session: ${(err as Error).stack}`)
+    }
+
+    /**
      * end current running session, if session already gone suppress exceptions
      */
     try {

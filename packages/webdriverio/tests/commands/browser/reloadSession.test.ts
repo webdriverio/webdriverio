@@ -57,6 +57,24 @@ describe('reloadSession test', () => {
         expect(applyBidiBrowserOverwrites).toHaveBeenCalledWith(browser)
     })
 
+    it('should restore the mocks of the old session before it ends', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' }
+        })
+        const order: string[] = []
+        const mockRestoreAll = vi.fn(async () => { order.push('restore') })
+        const deleteSession = vi.fn(async () => { order.push('delete') })
+        for (const [key, value] of Object.entries({ mockRestoreAll, deleteSession })) {
+            Object.defineProperty(browser, key, { value, configurable: true, writable: true })
+        }
+
+        vi.mocked(fetch).setMockResponse([sessionResponse])
+        await browser.reloadSession()
+
+        expect(order).toEqual(['restore', 'delete'])
+    })
+
     it('should fail when the new session response has no session id', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

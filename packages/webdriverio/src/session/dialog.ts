@@ -1,6 +1,13 @@
 import { type local } from 'webdriver'
 import { SessionManager } from './session.js'
 
+/**
+ * Whether a browser has no `dialog` listener. The browser keeps its listeners when
+ * `reloadSession()` rebuilds the manager, which learns of them only when one is
+ * added or the last one is removed, so a new manager starts from this.
+ */
+const autoHandleByBrowser = new WeakMap<WebdriverIO.Browser, boolean>()
+
 export function getDialogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, DialogManager)
 }
@@ -22,6 +29,7 @@ export class DialogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
+        this.#autoHandleDialog = autoHandleByBrowser.get(browser) ?? true
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
@@ -98,6 +106,7 @@ export class DialogManager extends SessionManager {
      */
     #switchListenerFlag(value: boolean) {
         this.#autoHandleDialog = value
+        autoHandleByBrowser.set(this.#browser, value)
     }
 }
 

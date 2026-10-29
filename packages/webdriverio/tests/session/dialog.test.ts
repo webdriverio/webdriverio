@@ -34,6 +34,20 @@ describe('DialogManager', () => {
         dialogManager = new DialogManager(browser)
     })
 
+    it('should keep a registered dialog listener when the manager is rebuilt for the same browser', async () => {
+        const registered = browser.on.mock.calls.find((call: unknown[]) => call[0] === '_dialogListenerRegistered')?.[1]
+        registered()
+
+        // as after `reloadSession()`: a new manager, the user listener stays on the browser
+        browser.on.mockClear()
+        new DialogManager(browser)
+        const userPromptHandler = browser.on.mock.calls.find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+        await userPromptHandler({ context: 'some-context', message: 'hi', type: 'alert' })
+
+        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+        expect(browser.emit).toHaveBeenCalledWith('dialog', expect.any(Dialog))
+    })
+
     it('should ignore "no such alert" error when auto-handling dialogs', async () => {
         const log = { context: 'some-context' } as any
 
