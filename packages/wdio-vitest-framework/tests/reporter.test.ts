@@ -1217,6 +1217,42 @@ describe('WdioBridgeReporter', () => {
 
             expect(emittedOf().filter(([name]) => name.startsWith('test:')).every(([, payload]) => payload.contextId === undefined)).toBe(true)
         })
+
+        it('ignores duplicate ready and result events emitted by Vitest when bail aborts concurrent tests', async () => {
+            const module = makeModule({ state: () => 'failed' })
+            const suite = makeSuite(module, module, 'concurrent bail')
+            const first = makeTest(module, suite, 'fails fast', { state: 'failed', errors: [{ message: 'bail boom' }] }, 5, { options: { concurrent: true } })
+            const second = makeTest(module, suite, 'skipped 1', { state: 'skipped' }, undefined, { options: { concurrent: true } })
+            const third = makeTest(module, suite, 'skipped 2', { state: 'skipped' }, undefined, { options: { concurrent: true } })
+
+            reporter.onTestModuleStart(module)
+            await reporter.onTestSuiteReady(suite)
+            for (const test of [first, second, third]) {
+                await reporter.onTestCaseReady(test)
+            }
+            for (const test of [first, second, third]) {
+                await reporter.onTestCaseResult(test)
+            }
+            // Vitest re-emits ready and result for the concurrent group when bail settles
+            for (const test of [first, second, third]) {
+                await reporter.onTestCaseReady(test)
+                await reporter.onTestCaseResult(test)
+            }
+            await reporter.onTestSuiteResult(suite)
+            await reporter.onTestModuleEnd(module)
+
+            const emitted = emittedOf()
+            expect(emitted.filter(([name]) => name === 'test:start').map(([, payload]) => payload.uid)).toEqual([
+                'test-0-0-0', 'test-0-0-1', 'test-0-0-2'
+            ])
+            expect(emitted.filter(([name]) => name === 'test:fail')).toHaveLength(1)
+            expect(emitted.filter(([name]) => name === 'test:pending')).toHaveLength(2)
+            expect(emitted.filter(([name]) => name === 'test:end')).toHaveLength(3)
+            expect(emitted.filter(([name]) => name === 'context:end').map(([, payload]) => payload.contextId)).toEqual([
+                first.id, second.id, third.id
+            ])
+            expect(emitted.find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+        })
     })
 
     it('logs and counts module work that rejects in onTestRunEnd', async () => {
