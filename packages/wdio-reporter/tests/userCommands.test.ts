@@ -68,12 +68,18 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
-    it('hides the protocol events of a user command, and keeps a screenshot, which has no parent', () => {
-        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+    it('hides the protocol events of a user command when hidesProtocolCommands is true, and keeps a screenshot, which has no parent', () => {
+        class HidingReporter extends UserCommandReporter {
+            protected get hidesProtocolCommands () {
+                return true
+            }
+        }
+        const reporter = new HidingReporter({ logFile: tmp.fileSync().name })
         start(reporter)
         const screenshot = { ...protocolCommand, parent: undefined, command: 'takeScreenshot', endpoint: '/session/:sessionId/screenshot', result: { value: 'abc' }, contextId: 'ctx-a' }
         const elementScreenshot = { ...screenshot, command: 'takeElementScreenshot' }
 
+        reporter.emit('client:beforeUserCommand', { ...userCommand, contextId: 'ctx-a' })
         reporter.emit('client:beforeCommand', { ...protocolCommand, contextId: 'ctx-a' })
         reporter.emit('client:afterCommand', { ...protocolCommand, result: { value: 'title' }, contextId: 'ctx-a' })
         reporter.emit('client:afterCommand', screenshot)
@@ -82,11 +88,39 @@ describe('user command events', () => {
         reporter.emit('client:beforeCommand', { ...protocolCommand, parent: undefined, command: 'getUrl', contextId: 'ctx-a' })
 
         expect(reporter.commands).toEqual(['after takeScreenshot', 'after takeElementScreenshot', 'before getUrl'])
-        expect(reporter.tests.A.output.map((entry: any) => [entry.command, entry.type])).toEqual([
+        expect(reporter.tests.A.output.filter((entry: any) => entry.type === 'command' || entry.type === 'result').map((entry: any) => [entry.command, entry.type])).toEqual([
             ['takeScreenshot', 'result'],
             ['takeElementScreenshot', 'result'],
             ['getUrl', 'command']
         ])
+    })
+
+    it('hides the protocol events of a user command that sent no user command event (an excluded command)', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+
+        reporter.emit('client:beforeCommand', { ...protocolCommand, parent: 7, contextId: 'ctx-a' })
+        reporter.emit('client:beforeCommand', { ...protocolCommand, parent: 7, contextId: 'ctx-a' })
+        reporter.emit('client:afterCommand', { ...protocolCommand, parent: 7, result: { value: 'title' }, contextId: 'ctx-a' })
+        reporter.emit('client:afterCommand', { ...protocolCommand, parent: 7, result: { value: 'title' }, contextId: 'ctx-a' })
+
+        expect(reporter.commands).toEqual([])
+        expect(reporter.tests.A.output).toEqual([])
+    })
+
+    it('hides the old result of a custom command that comes after the result of its user command', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const myCmd = { id: 3, command: 'myCmd', body: [], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
+        const old = { command: 'myCmd', body: [], parent: 3, sessionId: 's', contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', myCmd)
+        reporter.emit('client:beforeCommand', old)
+        reporter.emit('client:afterUserCommand', { ...myCmd, result: { value: 'done' } })
+        reporter.emit('client:afterCommand', { ...old, result: { value: 'done' } })
+
+        expect(reporter.commands).toEqual([])
+        expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand', 'userResult'])
     })
 
     it('shows a custom command once: as a user command, not with its old events', () => {
