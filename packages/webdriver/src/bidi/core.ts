@@ -126,7 +126,15 @@ export class BidiCore {
         /**
          * try to connect to different websocket urls depending on the protocol
          */
-        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        try {
+            this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        } catch (err) {
+            /**
+             * e.g. an invalid url: `waitForConnected()` must not wait forever
+             */
+            this.#resolveWaitForConnected(false)
+            throw err
+        }
         this._isConnected = Boolean(this.#ws)
         this.#resolveWaitForConnected(this._isConnected)
 
