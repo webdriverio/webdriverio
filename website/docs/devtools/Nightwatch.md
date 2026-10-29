@@ -285,6 +285,7 @@ Nightwatch does not provide the same depth of framework hooks as WebdriverIO, so
 | Per-test trace slicing (BDD `describe/it`) | The BDD interface fires the plugin's per-test hook once per module, so `traceGranularity: 'test'` collapses to one session-scoped slice. The exports-object (mocha-style) and Cucumber interfaces get real per-test slicing. See [Per-test slicing](#per-test-slicing--the-bdd-describeit-caveat). |
 | Retry-aware retention | Only `tracePolicy: 'retain-on-failure'` is reliable; the other retry-aware policies degrade to it. |
 | Element waits show no polls | A `waitForElement*` wait is one row with nothing nested under it: Nightwatch polls for the element through its own transport, which the plugin does not see. A `waitUntil` row nests the commands its condition issued. See [Waits](/docs/devtools/wdio/trace-mode#waits). |
+| A wait that never ran is a failed row | Nightwatch queues every command up front, so a wait queued behind a failing `assert` never runs. Its row is closed at the end of the test as failed, "did not run", rather than left looking like it passed. |
 | Produce-only trace artifacts | Per-test `screenshot` / `video` files are written to the trace output dir (and the manifest when `emitArtifactsManifest: true`) but not attached inline to Allure — Nightwatch has no live Allure attach API. |
 
 Overall feature parity with the WebdriverIO DevTools service is approximately **80-90%**.

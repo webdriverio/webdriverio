@@ -61,6 +61,8 @@ A wait the test wrote is one row, named after what it waited for: `Element.waitF
 
 The commands the wait's condition issued nest under its row, one row per distinct call rather than one per poll, in the live dashboard and the trace player alike. They are collapsed by default, and open by themselves when the wait failed or holds the selected row. The chevron beside a wait is a button of its own, so the keyboard reaches it (`Enter` or `Space` expands or collapses it) while `Enter` on the row still selects the wait. A wait started inside another wait's condition nests under that wait.
 
+A command under a wait that failed before the wait passed, such as a `getText` on an element that appears a moment later, is a poll the wait retried past, not a failure: it shows neutral with its error in a tooltip, does not open the wait, and is left out of the Errors tab, the copied failures and the trace's errors. Under a wait that timed out, the same commands keep their errors, since the last poll is what explains the timeout.
+
 What each adapter shows:
 
 | Adapter | Waits | Nested under the wait |
