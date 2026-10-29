@@ -4,7 +4,7 @@ import url from 'node:url'
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
-import type { UserCommandOutput, UserResultOutput } from './stats/test.js'
+import type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
@@ -23,12 +23,17 @@ export function userCommandError(error: unknown): unknown {
 
 /**
  * A `JSON.stringify` replacer for a report of `TestStats.output`: the error of a `userResult` gets its name and
- * message (see `userCommandError`). Other values stay as they are.
+ * message (see `userCommandError`), and each user command entry and protocol command entry that a user command
+ * runs gets its one-line `text` (see `userCommandTexts`). Other values stay as they are.
  * @experimental the name and the rule may change
  */
 export function userOutputReplacer(this: unknown, key: string, value: unknown): unknown {
     if ((this as { type?: unknown } | undefined)?.type === 'userResult' && key === 'result' && value && typeof value === 'object' && 'error' in value) {
         return { error: userCommandError((value as { error: unknown }).error) }
+    }
+    if (key === 'output' && Array.isArray(value) && value.some((entry) => entry && isUserCommandOutput(entry))) {
+        const texts = userCommandTexts(value)
+        return value.map((entry) => texts.has(entry) ? { ...entry, text: texts.get(entry) } : entry)
     }
     return value
 }
@@ -263,4 +268,171 @@ export function isUserCommandOutput(entry: { type: string }): entry is UserComma
  */
 export function isUserResultOutput(entry: { type: string }): entry is UserResultOutput {
     return entry.type === 'userResult'
+}
+
+// longest arguments in a user command title and longest inline result
+const TITLE_ARGS_LENGTH = 120
+const INLINE_RESULT_LENGTH = 60
+// commands whose result is a handle or a helper, not data
+const NO_DATA_COMMANDS = ['newWindow', 'emulate', 'addInitScript', 'debug', 'getPuppeteer']
+// commands whose result is a window handle: not shown in a title, the id means nothing to a reader
+const HANDLE_COMMANDS = ['getWindowHandle', 'getWindowHandles', 'createWindow', 'closeWindow', 'switchWindow']
+const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+
+function cut(text: string, length: number) {
+    return text.length > length ? `${text.slice(0, length)}…` : text
+}
+
+function resultValue(result: unknown): unknown {
+    return result && typeof result === 'object' && 'value' in result ? (result as { value: unknown }).value : result
+}
+
+function isPlaceholder(value: unknown) {
+    return typeof value === 'string' && value.startsWith('WebdriverIO.') && !value.startsWith('WebdriverIO.Element')
+}
+
+function isElementReference(value: unknown) {
+    return Boolean(value) && typeof value === 'object' && ELEMENT_REFERENCE_KEY in (value as object)
+}
+
+function formatArgument(arg: unknown) {
+    const fn = typeof arg === 'string' && /^\[Function (.*)\]$/.exec(arg)
+    if (fn) {
+        return `function ${fn[1]}`
+    }
+    // an element argument: its query, as in the test code
+    const elem = typeof arg === 'string' && /^WebdriverIO\.Element(Array)?(?:<(.*)>)?(?: \(.*\))?$/.exec(arg)
+    if (elem) {
+        return elem[2] !== undefined ? `$${elem[1] ? '$' : ''}(${JSON.stringify(elem[2])})` : 'Element'
+    }
+    return JSON.stringify(arg)
+}
+
+/**
+ * The title of a user command as in the test code, e.g. `$("#btn")` or `setValue("**MASKED**", {"mask":true})`:
+ * functions as `function name`, element arguments as their query, arguments cut at 120 characters.
+ * @experimental the name and the format may change
+ */
+export function userCommandTitle(command: string, body: unknown): string {
+    if (!Array.isArray(body)) {
+        return command
+    }
+    return `${command}(${cut(body.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
+}
+
+/**
+ * `true` when the title of a user command does not show all its arguments
+ * @experimental the name may change
+ */
+export function userCommandTitleIsCut(title: string): boolean {
+    return title.endsWith('…)')
+}
+
+/**
+ * `true` for a result with no data: none, `null`, `{}`, a tab or mock placeholder, or the handle of
+ * `newWindow`, `emulate`, `addInitScript`, `debug` or `getPuppeteer`
+ * @experimental the name and the rule may change
+ */
+export function isNoDataResult(result: unknown, command?: string): boolean {
+    if (command && NO_DATA_COMMANDS.includes(command)) {
+        return true
+    }
+    const value = resultValue(result)
+    return value === undefined || value === null
+        || (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0)
+        || isPlaceholder(value)
+        || (Array.isArray(value) && value.length > 0 && value.every(isPlaceholder))
+}
+
+/**
+ * The result of a command for its title, e.g. `"Hello"`, `found`, `3 found`, `not found` (cut at 60 characters).
+ * `undefined` for an error, a result with no data or a window handle; a list of tabs gives their number.
+ * @experimental the name and the format may change
+ */
+export function inlineResult(result: unknown, command?: string): string | undefined {
+    if ((result && typeof result === 'object' && 'error' in result) || (command && HANDLE_COMMANDS.includes(command))) {
+        return undefined
+    }
+    const value = resultValue(result)
+    if (Array.isArray(value) && value.length > 0 && value.every((v) => v === 'WebdriverIO.BrowsingContext')) {
+        return String(value.length)
+    }
+    if (isNoDataResult(result, command)) {
+        return undefined
+    }
+    if (isElementReference(value)) {
+        return 'found'
+    }
+    // an empty list is a list of elements only for an element query
+    if (Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) {
+        return `${value.length} found`
+    }
+    if (typeof value === 'string') {
+        if (/^WebdriverIO\.Element(?:<.*>)? \(not found\)$/.test(value)) {
+            return 'not found'
+        }
+        if (/^WebdriverIO\.Element(?:<.*>)? \(id .*\)$/.test(value)) {
+            return 'found'
+        }
+        const many = /^WebdriverIO\.ElementArray(?:<.*>)? \((\d+)\)$/.exec(value)
+        if (many) {
+            return `${many[1]} found`
+        }
+        if (/^<Buffer \d+ bytes>$/.test(value)) {
+            return value
+        }
+    }
+    return cut(JSON.stringify(value), INLINE_RESULT_LENGTH)
+}
+
+/**
+ * A WebDriver request with no session id and no element or shadow root id, e.g. `GET /element/:elementId/text`
+ * @experimental the name and the format may change
+ */
+export function compactRequest(method: string, endpoint: string): string {
+    const path = endpoint.replace(/^\/session\/[^/]+/, '').replace(/\/(element|shadow)\/[^/]+/g, '/$1/:$1Id')
+    return `${method.toUpperCase()} ${path || '/'}`
+}
+
+/**
+ * The path of a WebDriver request with the session id in place of `:sessionId`
+ * @experimental the name may change
+ */
+export function resolvedPath(endpoint: string, sessionId?: string): string {
+    return sessionId ? endpoint.replace(':sessionId', sessionId) : endpoint
+}
+
+/**
+ * The one-line text of each user command entry and of each protocol command entry that a user command runs
+ * (an entry with `parent`): `getText() → "clicked"`, `getElementText → "clicked"  GET /element/:elementId/text`.
+ * Other entries get no text, so a report of a WebDriver Classic session does not change.
+ * @experimental the name and the format may change
+ */
+export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<object, string> {
+    const texts = new Map<object, string>()
+    const used = new Set<object>()
+    output.forEach((entry, index) => {
+        if (isUserCommandOutput(entry)) {
+            const title = userCommandTitle(entry.command, entry.body)
+            const end = output.slice(index + 1).find((e) => isUserResultOutput(e) && e.id === entry.id) as UserResultOutput | undefined
+            const inline = end && inlineResult(end.result, entry.command)
+            texts.set(entry, inline ? `${title} → ${inline}` : title)
+            return
+        }
+        const command = entry as Partial<Output>
+        if (entry.type !== 'command' || command.parent === undefined) {
+            return
+        }
+        const end = output.slice(index + 1).find((e) => {
+            const r = e as Partial<Output>
+            return e.type === 'result' && !used.has(e) && r.parent === command.parent && r.command === command.command
+        })
+        if (end) {
+            used.add(end)
+        }
+        const inline = end && inlineResult((end as Partial<Output>).result, command.command)
+        const request = command.method && command.endpoint ? `  ${compactRequest(command.method, command.endpoint)}` : ''
+        texts.set(entry, `${command.command}${inline ? ` → ${inline}` : ''}${request}`)
+    })
+    return texts
 }

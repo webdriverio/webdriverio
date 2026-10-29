@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -63,6 +63,10 @@ export default class WDIOReporter extends EventEmitter {
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
     // the owner of each open user command, from its start
     #userCommandOwners = new Map<number, TestStats | HookStats | undefined>()
+    // the name of each open user command, the hidden protocol commands that wait for their result, the hidden events
+    #userCommandNames = new Map<number, string>()
+    #hiddenChildren = new Map<string, number>()
+    #hiddenEvents = new WeakSet<object>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -172,6 +176,7 @@ export default class WDIOReporter extends EventEmitter {
             // the owner at the start: a result after the end of its test (a test timeout) stays in that test
             const owner = getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
+            this.#userCommandNames.set(payload.id, payload.command)
             this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
             this.#addUserEntry(owner, payload, 'userCommand')
         })
@@ -182,6 +187,7 @@ export default class WDIOReporter extends EventEmitter {
             const known = this.#userCommandOwners.has(payload.id)
             const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
             this.#userCommandOwners.delete(payload.id)
+            this.#userCommandNames.delete(payload.id)
             const unit = owner && this.#unitOfStats.get(owner)
             if (unit) {
                 this.#call(unit, () => this.onAfterUserCommand(payload))
@@ -524,6 +530,8 @@ export default class WDIOReporter extends EventEmitter {
             try {
                 this.#openAllHooks.clear()
                 this.#userCommandOwners.clear()
+                this.#userCommandNames.clear()
+                this.#hiddenChildren.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
@@ -592,7 +600,7 @@ export default class WDIOReporter extends EventEmitter {
 
     /**
      * `true` when the reporter overrides `onBeforeUserCommand` or `onAfterUserCommand`: it then gets the user
-     * commands, and the protocol commands that a user command runs are hidden from it (a screenshot has no `parent`).
+     * commands, and the protocol commands that a user command runs get its id as `parent` (see `hidesProtocolCommands`).
      * @experimental the name and the rule may change
      */
     protected get showsUserCommands(): boolean {
@@ -600,9 +608,46 @@ export default class WDIOReporter extends EventEmitter {
             || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
     }
 
+    /**
+     * `true` (the default) hides the protocol commands that a user command runs from a reporter that shows user
+     * commands. `false` keeps them, with their `parent`, so the reporter can show them as children of the user command.
+     * @experimental the name and the rule may change
+     */
+    protected get hidesProtocolCommands(): boolean {
+        return true
+    }
+
     // a screenshot event has no parent: reporters take screenshots from it
     #hidesCommand(payload: CommandArgs) {
-        return payload.parent !== undefined && this.showsUserCommands
+        if (payload.parent === undefined || !this.showsUserCommands) {
+            return false
+        }
+        if (this.hidesProtocolCommands || this.#hiddenEvents.has(payload)) {
+            return true
+        }
+        const key = `${payload.parent}:${payload.command}`
+        let hidden: boolean
+        if ('result' in payload) {
+            // the result of a hidden command, also when it comes after the result of the user command
+            const open = this.#hiddenChildren.get(key) ?? 0
+            hidden = open > 0
+            if (open > 1) {
+                this.#hiddenChildren.set(key, open - 1)
+            } else {
+                this.#hiddenChildren.delete(key)
+            }
+        } else {
+            const name = this.#userCommandNames.get(payload.parent)
+            // a user command with no entry (excluded, or sent to no listener), or the old event of a custom command
+            hidden = name === undefined || (!payload.method && name === payload.command)
+            if (hidden) {
+                this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
+            }
+        }
+        if (hidden) {
+            this.#hiddenEvents.add(payload)
+        }
+        return hidden
     }
 
     /**
@@ -1002,6 +1047,6 @@ function getSessionNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, ReporterUnit, HookKind
 }
 export type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
