@@ -798,8 +798,9 @@ export async function executeAsync(
          * `this.timeout()` while it runs, and `0` turns it off.
          */
         const frameworkTimeout = (): number => (
+            // a timeout given to a Jasmine spec or hook wins over its default, as in Jasmine
             // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+            runnable?._timeout ?? (timeout > 0 ? timeout : undefined) ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
         )
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now

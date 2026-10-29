@@ -859,7 +859,11 @@ export class CucumberAdapter {
                     return fn
                 }
 
-                return wrapStep(fn, isStep, config, cid, options, getHookParams, this._cucumberOpts.timeout)
+                /**
+                 * the own timeout of a hook wins over `cucumberOpts.timeout`, `-1` turns it off
+                 */
+                const timeout = (fn as { hookTimeout?: number }).hookTimeout ?? this._cucumberOpts.timeout
+                return wrapStep(fn, isStep, config, cid, options, getHookParams, timeout)
             }
         )
     }
