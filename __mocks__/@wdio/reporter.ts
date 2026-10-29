@@ -91,6 +91,10 @@ export default class WDIOReporter extends EventEmitter {
             || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
     }
 
+    protected get hidesProtocolCommands (): boolean {
+        return false
+    }
+
     getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
         return undefined
     }

@@ -68,6 +68,24 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
+    it('keeps the protocol events of a user command, with their parent, so the reporter can show them as children', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+
+        reporter.emit('client:beforeUserCommand', { ...userCommand, contextId: 'ctx-a' })
+        reporter.emit('client:beforeCommand', { ...protocolCommand, contextId: 'ctx-a' })
+        reporter.emit('client:afterCommand', { ...protocolCommand, result: { value: 'title' }, contextId: 'ctx-a' })
+        reporter.emit('client:afterUserCommand', { ...userResult, contextId: 'ctx-a' })
+
+        expect(reporter.commands).toEqual(['before getTitle', 'after getTitle'])
+        expect(reporter.tests.A.output.map((entry: any) => [entry.command, entry.type, entry.parent])).toEqual([
+            ['getTitle', 'userCommand', undefined],
+            ['getTitle', 'command', 1],
+            ['getTitle', 'result', 1],
+            ['getTitle', 'userResult', undefined]
+        ])
+    })
+
     it('hides the protocol events of a user command when hidesProtocolCommands is true, and keeps a screenshot, which has no parent', () => {
         class HidingReporter extends UserCommandReporter {
             protected get hidesProtocolCommands () {
@@ -106,6 +124,18 @@ describe('user command events', () => {
 
         expect(reporter.commands).toEqual([])
         expect(reporter.tests.A.output).toEqual([])
+    })
+
+    it('keeps a protocol event with no HTTP method and another name than its user command (a WebDriver BiDi overwrite)', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const getUrl = { command: 'getUrl', sessionId: 's', parent: 1, contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', { ...userCommand, command: 'newWindow', contextId: 'ctx-a' })
+        reporter.emit('client:beforeCommand', getUrl)
+        reporter.emit('client:afterCommand', { ...getUrl, result: { value: 'https://webdriver.io' } })
+
+        expect(reporter.commands).toEqual(['before getUrl', 'after getUrl'])
     })
 
     it('hides the old result of a custom command that comes after the result of its user command', () => {
