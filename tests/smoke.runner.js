@@ -1502,20 +1502,22 @@ const sigintGracefulShutdown = async () => {
     const env = { ...process.env }
     delete env.WDIO_UNIT_TESTS
     const spec = path.resolve(__dirname, 'mocha', 'sigint_long_running.js')
-    const child = spawn(process.execPath, [wdio, 'run', baseConfig, '--spec', spec], {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-sigint-'))
+    const child = spawn(process.execPath, [wdio, 'run', baseConfig, '--spec', spec, '--outputDir', outputDir], {
         cwd: __dirname,
         env,
         detached: true,
         stdio: ['ignore', 'pipe', 'pipe']
     })
     let output = ''
+    let forced = false
     const killGroup = () => {
         try {
             process.kill(-child.pid, 'SIGKILL')
         } catch {}
     }
-    const timer = setTimeout(killGroup, 30000)
-    const exited = new Promise((resolve) => child.on('exit', resolve))
+    const timer = setTimeout(() => { forced = true; killGroup() }, 30000)
+    const exited = new Promise((resolve) => child.on('exit', (code, signal) => resolve({ code, signal })))
     const ready = new Promise((resolve) => {
         const onData = (chunk) => {
             output += chunk.toString()
@@ -1528,9 +1530,13 @@ const sigintGracefulShutdown = async () => {
     })
     await Promise.race([ready, exited])
     child.kill('SIGINT')
-    await exited
+    const { code, signal } = await exited
     clearTimeout(timer)
     killGroup()
+    const workerLog = await fs.readFile(path.join(outputDir, 'wdio-0-0.log'), 'utf-8').catch(() => '')
+    await fs.rm(outputDir, { recursive: true, force: true })
+    assert.ok(!forced && signal === null, `the run did not exit on its own (code ${code}, signal ${signal}):\n${output}`)
+    assert.ok(workerLog.includes('COMMAND deleteSession()'), `the worker never deleted the session:\n${workerLog}`)
     assert.ok(output.includes('SIGINT_SMOKE_READY'), `the spec never started:\n${output}`)
     assert.ok(output.includes('Ending WebDriver sessions gracefully'), `expected the graceful shutdown message, got:\n${output}`)
     assert.ok(!output.includes('Goodbye'), `create-wdio exited the process on SIGINT:\n${output}`)
