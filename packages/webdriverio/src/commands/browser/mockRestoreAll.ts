@@ -1,13 +1,13 @@
 import logger from '@wdio/logger'
-import { getBrowserObject } from '@wdio/utils'
-
-import { SESSION_MOCKS } from './mock.js'
+import { mocksOf } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
 /**
  * Restores all mock information and behavior stored in all registered
- * mocks of the session.
+ * mocks of the session. On a browsing context, it restores only the mocks made
+ * for that tab or window. Inside a parallel test, it restores only the mocks
+ * that the test created, also on tabs it opened.
  *
  * <example>
     :mockRestoreAll.js
@@ -30,18 +30,9 @@ const log = logger('webdriverio:mockRestoreAll')
  * @alias browser.mockRestoreAll
  */
 export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
-    /**
-     * only touch mocks of this browser, on a multiremote browser this command
-     * runs once per instance and `SESSION_MOCKS` holds the mocks of all of them
-     */
-    const browser = getBrowserObject(this)
-    for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
-        log.trace(`Clearing mocks for ${handle}`)
-        for (const mock of mocks) {
-            if (!mock.isOwnedBy(browser)) {
-                continue
-            }
-            await mock.restore()
-        }
+    const mocks = mocksOf(this)
+    log.trace(`Restoring ${mocks.length} mock(s)`)
+    for (const mock of mocks) {
+        await mock.restore()
     }
 }

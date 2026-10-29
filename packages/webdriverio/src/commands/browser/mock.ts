@@ -176,9 +176,11 @@ export async function mock(
      * `browser.mock()` stays session-wide, except in a parallel test, where a
      * session-wide intercept would catch other tests' traffic.
      */
+    const test = getParallelContextStore().getStore()
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
-        contexts: isBrowsingContext(this) || getParallelContextStore().getStore() ? [context] : undefined,
-        sessionKey: context
+        contexts: isBrowsingContext(this) || test ? [context] : undefined,
+        sessionKey: context,
+        test
     })
     SESSION_MOCKS[context].add(networkInterception)
 

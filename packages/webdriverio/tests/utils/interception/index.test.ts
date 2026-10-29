@@ -1,13 +1,17 @@
 import { EventEmitter } from 'node:events'
 import { Buffer } from 'node:buffer'
 import { runInNewContext } from 'node:vm'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
+import { setWdioKind } from '@wdio/utils'
 import { type local, SESSION_ENDED_ERROR } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 import { mockRestoreAll } from '../../../src/commands/browser/mockRestoreAll.js'
+import { mockClearAll } from '../../../src/commands/browser/mockClearAll.js'
+import { getParallelContextStore, setParallelContextStore } from '../../../src/session/context.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
 
@@ -1999,7 +2003,7 @@ describe('WebDriverInterception', () => {
             delete SESSION_MOCKS['handle-1']
         })
 
-        describe('mockRestoreAll on a multiremote browser', () => {
+        describe('mockRestoreAll on a multi-remote browser', () => {
             const setup = async () => {
                 const browserA = getRestorableBrowserMock('handle-a', 'intercept-a')
                 const browserB = getRestorableBrowserMock('handle-b', 'intercept-b')
@@ -2039,13 +2043,91 @@ describe('WebDriverInterception', () => {
             it('should restore every mock once when run on all instances in parallel', async () => {
                 const { browserA, browserB } = await setup()
 
-                // a multiremote command runs once per instance, in parallel
+                // a multi-remote command runs once per instance, in parallel
                 await Promise.all([mockRestoreAll.call(browserA), mockRestoreAll.call(browserB)])
 
                 expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
                 expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
                 expect(browserB.networkRemoveIntercept).toHaveBeenCalledTimes(1)
                 expect(browserB.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-b' })
+            })
+        })
+
+        describe('mockRestoreAll and mockClearAll on a tab or in a parallel test', () => {
+            const store = new AsyncLocalStorage<string>()
+            const setup = async () => {
+                const browser = getRestorableBrowserMock('handle-a', 'unused')
+                vi.mocked(browser.networkAddIntercept)
+                    .mockResolvedValueOnce({ intercept: 'session-wide' })
+                    .mockResolvedValueOnce({ intercept: 'tab-a' })
+                    .mockResolvedValueOnce({ intercept: 'tab-b' })
+                    .mockResolvedValueOnce({ intercept: 'opened-by-b' })
+                const sessionWide = await WebDriverInterception.initiate('http://test.com/session', {}, browser, { sessionKey: 'tab-a' })
+                const tabA = await WebDriverInterception.initiate('http://test.com/a', {}, browser, { contexts: ['tab-a'], sessionKey: 'tab-a' })
+                // made in the parallel test of window tab-b, the last one on a tab that test opened
+                const tabB = await WebDriverInterception.initiate('http://test.com/b', {}, browser, { contexts: ['tab-b'], sessionKey: 'tab-b', test: 'tab-b' })
+                const openedByB = await WebDriverInterception.initiate('http://test.com/c', {}, browser, { contexts: ['tab-c'], sessionKey: 'tab-c', test: 'tab-b' })
+                SESSION_MOCKS['tab-a'] = new Set([sessionWide, tabA])
+                SESSION_MOCKS['tab-b'] = new Set([tabB])
+                SESSION_MOCKS['tab-c'] = new Set([openedByB])
+                const tab = setWdioKind({ contextId: 'tab-a', browser, parent: browser }, 'browsing-context') as unknown as WebdriverIO.BrowsingContext
+                return { browser, tab, sessionWide, tabA, tabB, openedByB }
+            }
+            const removedIntercepts = (browser: WebdriverIO.Browser) =>
+                vi.mocked(browser.networkRemoveIntercept).mock.calls.map(([{ intercept }]) => intercept).sort()
+
+            let previousStore: ReturnType<typeof getParallelContextStore>
+            beforeEach(() => {
+                previousStore = getParallelContextStore()
+                setParallelContextStore(store)
+            })
+            afterEach(() => {
+                setParallelContextStore(previousStore)
+                delete SESSION_MOCKS['tab-a']
+                delete SESSION_MOCKS['tab-b']
+                delete SESSION_MOCKS['tab-c']
+            })
+
+            it('should only restore the mocks of the tab, not the session-wide ones', async () => {
+                const { browser, tab } = await setup()
+
+                await mockRestoreAll.call(tab)
+
+                expect(removedIntercepts(browser)).toEqual(['tab-a'])
+                expect(SESSION_MOCKS['tab-a'].size).toBe(1)
+                expect(SESSION_MOCKS['tab-b'].size).toBe(1)
+                expect(SESSION_MOCKS['tab-c'].size).toBe(1)
+            })
+
+            it('should only restore the mocks of the parallel test that calls it, also on a tab it opened', async () => {
+                const { browser } = await setup()
+
+                await store.run('tab-b', () => mockRestoreAll.call(browser))
+
+                expect(removedIntercepts(browser)).toEqual(['opened-by-b', 'tab-b'])
+                expect(SESSION_MOCKS['tab-a'].size).toBe(2)
+            })
+
+            it('should restore every mock of the session outside of a tab or parallel test', async () => {
+                const { browser } = await setup()
+
+                await mockRestoreAll.call(browser)
+
+                expect(removedIntercepts(browser)).toEqual(['opened-by-b', 'session-wide', 'tab-a', 'tab-b'])
+            })
+
+            it('should only clear the mocks of the tab or parallel test', async () => {
+                const { browser, tab, sessionWide, tabA, tabB, openedByB } = await setup()
+                const clears = [sessionWide, tabA, tabB, openedByB].map((mock) => vi.spyOn(mock, 'clear'))
+
+                await mockClearAll.call(tab)
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([0, 1, 0, 0])
+
+                await store.run('tab-b', () => mockClearAll.call(browser))
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([0, 1, 1, 1])
+
+                await mockClearAll.call(browser)
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([1, 2, 2, 2])
             })
         })
     })
