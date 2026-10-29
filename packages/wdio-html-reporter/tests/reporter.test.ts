@@ -710,12 +710,12 @@ describe('tests with no describe()', () => {
         process.removeAllListeners('test:log')
         process.removeAllListeners('test:screenshot')
         process.removeAllListeners('test:video-capture')
-        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as (JsonSuite & { file: string, root?: boolean })[]
+        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as (JsonSuite & { file: string, isRoot?: boolean })[]
     }
 
     it('shows the spec file of the root tests of a worker with several spec files', async () => {
         const [root] = await rootTests('root-tests-grouped', [secondSpec])
-        expect(root.root).toBe(true)
+        expect(root.isRoot).toBe(true)
         expect(root.file).toBe(secondSpec)
         expect(htmlOf('root-tests-grouped')).toContain(`<td>${secondSpec.replace(process.cwd(), '')}</td>`)
     })

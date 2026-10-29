@@ -132,7 +132,7 @@ class HtmlGenerator {
             })
             environment.addGlobal('displaySpecFile', (suiteInfo:SuiteStats) => {
                 // a filter can hide the root box: the first suite of the file keeps its own row
-                if (suiteInfo?.file && suiteInfo.root) {
+                if (suiteInfo?.file && suiteInfo.isRoot) {
                     return true
                 }
                 if (suiteInfo && suiteInfo.file) {
@@ -235,7 +235,7 @@ class HtmlGenerator {
 
             // the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
             environment.addGlobal('showSuite', (suite: SuiteStats) =>
-                !suite.root || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
+                !suite.isRoot || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
 
             environment.addGlobal('humanizeDuration', (duration:number) => {
                 return dayjs.duration(duration, 'milliseconds').format('HH:mm:ss.SSS')

@@ -144,7 +144,7 @@ export default class WDIOReporter extends EventEmitter {
             title: '(root)',
             fullTitle: '(root)',
             file: '',
-            root: true
+            isRoot: true
         })
         this.currentSuites.push(rootSuite)
 
