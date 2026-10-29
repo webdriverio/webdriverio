@@ -20,8 +20,11 @@ let store: AsyncLocalStorage<UserCommandFrame>
 
 const NAMES = ['getText', 'getTitle', 'isDisplayed', 'waitForDisplayed', 'waitUntil', 'pause', 'setValue', '$$']
 
+// a WebDriver BiDi session with the `wdio:experimentalBiDiCommands` capability: user command events are on by default
+const BIDI_COMMANDS = { 'wdio:experimentalBiDiCommands': true }
+
 function fakeBrowser (props: Record<string, unknown> = {}) {
-    return { isBidi: true, options: {}, emit: vi.fn(), ...props } as {
+    return { isBidi: true, options: {}, requestedCapabilities: BIDI_COMMANDS, emit: vi.fn(), ...props } as {
         isBidi: boolean
         options: Record<string, unknown>
         emit: ReturnType<typeof vi.fn>
@@ -88,6 +91,55 @@ describe('runUserCommand', () => {
         const browser = fakeBrowser({ options: { userCommandEvents: true } })
         await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
         expect(browser.emit).toHaveBeenCalledTimes(2)
+    })
+
+    describe('default without userCommandEvents', () => {
+        it('sends nothing in a WebDriver BiDi session with no wdio:experimentalBiDiCommands capability', async () => {
+            const browser = fakeBrowser({ requestedCapabilities: {} })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).not.toHaveBeenCalled()
+        })
+
+        it('sends with the wdio:experimentalBiDiCommands capability of the session', async () => {
+            const browser = fakeBrowser({ requestedCapabilities: {}, capabilities: BIDI_COMMANDS })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).toHaveBeenCalledTimes(2)
+        })
+
+        it('sends nothing for the protocol commands of a command that sends nothing', async () => {
+            const browser = fakeBrowser({ requestedCapabilities: {} })
+            await mod.runUserCommand(browser, 'getText', [], async () => {
+                expect(mod.userCommandParent('getElementText')).toEqual({})
+                return 'hello'
+            })
+        })
+    })
+
+    describe('option set in a session with no wdio:experimentalBiDiCommands capability', () => {
+        it('sends with userCommandEvents true', async () => {
+            const browser = fakeBrowser({ requestedCapabilities: {}, options: { userCommandEvents: true } })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).toHaveBeenCalledTimes(2)
+        })
+
+        it('sends with an exclude list, except for its names', async () => {
+            const browser = fakeBrowser({ requestedCapabilities: {}, options: { userCommandEvents: { exclude: ['pause'] } } })
+            await mod.runUserCommand(browser, 'pause', [1], async () => undefined)
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(pairs(browser).map(([event, payload]) => [event, payload.command])).toEqual([['userCommand', 'getText'], ['userResult', 'getText']])
+        })
+
+        it('sends nothing with userCommandEvents false, also with the capability', async () => {
+            const browser = fakeBrowser({ options: { userCommandEvents: false } })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).not.toHaveBeenCalled()
+        })
+
+        it('sends nothing in a WebDriver Classic session with userCommandEvents true and the capability', async () => {
+            const browser = fakeBrowser({ isBidi: false, options: { userCommandEvents: true } })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).not.toHaveBeenCalled()
+        })
     })
 
     it('sends nothing for an excluded name', async () => {
@@ -218,10 +270,11 @@ describe('runUserCommand', () => {
         const list = { [shim.ELEMENT_ARRAY_WRAP]: (fn: typeof wrapper) => { wrapper = fn } }
         const query = shim.wrapCommand('$$', () => list)
         expect(query.call(browser, 'a')).toBe(list)
-        await wrapper!(async () => [])
+        await wrapper!(async () => [{ elementId: 'x' }, { elementId: 'y' }])
         expect(pairs(browser)).toEqual([
             ['userCommand', { id: 1, command: '$$', body: ['a'], protocol: 'bidi' }],
-            ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: [] } }]
+            // the result is labeled with the number of elements found
+            ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: 'WebdriverIO.ElementArray<a> (2)' } }]
         ])
     })
 })
@@ -259,7 +312,7 @@ describe('async stack of a command that fails', () => {
     })
 
     it('keeps the async frames of the caller of a custom command of addCommand', async () => {
-        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         const events: string[] = []
         for (const event of ['command', 'result', 'userCommand', 'userResult']) {
             browser.on(event, () => events.push(event))
@@ -276,7 +329,7 @@ describe('async stack of a command that fails', () => {
     })
 
     it('keeps the result of a custom command when a listener of its old events throws', async () => {
-        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         browser.on('result', () => {
             throw new Error('listener')
         })
@@ -300,7 +353,7 @@ describe('async stack of a command that fails', () => {
 })
 
 describe('runUserCommand with no listener', () => {
-    const client = () => monad.default({}, (c: unknown) => c, { isBidi: { value: true } })('sessionId', shim.wrapCommand) as Record<string, Function>
+    const client = () => monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
 
     it('sends nothing and makes no copy, and keeps the id for the parent of its protocol commands', async () => {
         const browser = client()
@@ -320,7 +373,7 @@ describe('runUserCommand with no listener', () => {
     })
 
     it('counts the listeners of an event emitter', async () => {
-        const browser = Object.assign(new EventEmitter(), { isBidi: true, options: {} })
+        const browser = Object.assign(new EventEmitter(), { isBidi: true, options: {}, requestedCapabilities: BIDI_COMMANDS })
         const emit = vi.spyOn(browser, 'emit')
         await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
         expect(emit).not.toHaveBeenCalled()
@@ -585,7 +638,7 @@ describe('custom commands', () => {
     const EVENTS = ['command', 'result', 'userCommand', 'userResult']
 
     function client (props: Record<string, PropertyDescriptor> = {}) {
-        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, ...props })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS }, ...props })('sessionId', shim.wrapCommand) as Record<string, Function>
         const events: [string, Record<string, unknown>][] = []
         for (const event of EVENTS) {
             browser.on(event, (payload: Record<string, unknown>) => events.push([event, payload]))
@@ -911,14 +964,31 @@ describe('shortCopy', () => {
         expect(mod.shortCopy('a'.repeat(1024))).toBe('a'.repeat(1024))
 
         expect(mod.shortCopy(function foo () {})).toBe('[Function foo]')
-        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<abc>')
-        expect(mod.shortCopy(kind.setWdioKind({ selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<a>')
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<a> (id abc)')
+        expect(mod.shortCopy(kind.setWdioKind({ selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<a> (not found)')
         expect(mod.shortCopy(kind.setWdioKind({}, 'browser'))).toBe('WebdriverIO.Browser')
 
         const circular: Record<string, unknown> = { a: 1, list: [Buffer.from('x')] }
         circular.self = circular
         expect(() => mod.shortCopy(circular)).not.toThrow()
         expect(mod.shortCopy(circular)).toEqual({ a: 1, list: ['<Buffer 1 bytes>'], self: '[Circular]' })
+    })
+
+    it('labels an element with its selector, then its id or "not found"', () => {
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: '#btn' }, 'element'))).toBe('WebdriverIO.Element<#btn> (id abc)')
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: () => null }, 'element'))).toBe('WebdriverIO.Element (id abc)')
+        expect(mod.shortCopy(kind.setWdioKind({ selector: '#missing', error: new Error('no') }, 'element'))).toBe('WebdriverIO.Element<#missing> (not found)')
+        expect(mod.shortCopy(kind.setWdioKind({}, 'element'))).toBe('WebdriverIO.Element (not found)')
+    })
+
+    it('gives a pending chainable element no id and no "not found"', () => {
+        const chainable = Object.assign(kind.setWdioKind({ selector: '#btn' }, 'element'), { [kind.WDIO_CHAINABLE]: true })
+        expect(mod.shortCopy(chainable)).toBe('WebdriverIO.Element')
+    })
+
+    it('labels an element list with its selector and its number of elements', () => {
+        const list = kind.setWdioKind(Object.assign([{}, {}, {}], { selector: 'li' }), 'element-array')
+        expect(mod.shortCopy(list)).toBe('WebdriverIO.ElementArray<li> (3)')
     })
 
     it('keeps a shared value that is not a cycle', () => {

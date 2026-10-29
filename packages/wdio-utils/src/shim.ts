@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
 import { runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
@@ -514,7 +514,11 @@ function attachElementArrayHooks (
 
         let commandError: unknown
         try {
-            await runUserCommand(self, commandName, args, () => load())
+            // the event gets a labeled list, so reporters can show the count
+            await runUserCommand(self, commandName, args, async () => {
+                const loaded = await load()
+                return Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], { selector: args[0] }), 'element-array') : loaded
+            })
         } catch (err) {
             commandError = err
         }
