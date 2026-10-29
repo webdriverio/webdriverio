@@ -324,6 +324,35 @@ const jasmineAfterAll = async () => {
 }
 
 /**
+ * Jasmine: a failing afterAll fails the run even though all specs passed
+ */
+const jasmineFailingAfterAll = async () => {
+    const logFile = path.resolve(__dirname, 'jasmineFailingAfterAll.spec.log')
+    const error = await launch('jasmineFailingAfterAll', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'afterAll-failing.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine'
+    }).then(() => undefined, (err) => err)
+
+    assert.ok(error, 'run passed although the afterAll hook failed')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    assert.ok(
+        specLogs.includes('✓ Should pass'),
+        'spec did not pass'
+    )
+    assert.ok(
+        specLogs.includes('afterAll failed'),
+        'spec log does not report the afterAll failure'
+    )
+}
+
+/**
  * Jasmine verify failSpecWithNoExpectations support
  */
 const jasmineFailSpecWithNoExpectations = async () => {
@@ -503,7 +532,9 @@ const cucumberPendingTest = async () => {
             ],
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
-                scenarioLevelReporter: true
+                scenarioLevelReporter: true,
+                // a pending step fails the run with the default `strict: true`; this checks how it is reported
+                strict: false
             }
         }
     )
@@ -920,10 +951,9 @@ const cucumberFileOption = async () => {
     )
     assert.strictEqual(passed, 1)
     const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
-    assert.ok(
-        specLogs.includes('test-skipped.feature'),
-        'scenario not included according to cucumber config'
-    )
+    assert.ok(specLogs.includes('Sync Execution'), 'the name filter of the cucumber config is not used')
+    assert.ok(!specLogs.includes('Retry Check'), 'a scenario that the name filter of the cucumber config excludes ran')
+    assert.ok(!specLogs.includes('test-skipped.feature'), 'a feature of the paths of the cucumber config ran')
 }
 
 /**
@@ -1063,6 +1093,51 @@ const reporterTestrunner = async () => {
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(passed, 1)
     assert.strictEqual(failed, 0)
+}
+
+/**
+ * wdio test run with @wdio/html-reporter: each worker writes a JSON file and
+ * the ReportAggregator in `onComplete` creates the HTML report
+ */
+const htmlReporter = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    const { passed } = await launch('htmlReporter', path.resolve(basePath, 'html-reporter.conf.js'))
+    assert.strictEqual(passed, 1)
+    const outDir = path.join(basePath, 'out')
+    const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
+    for (const text of ['Smoke Master Report', 'html reporter', 'reports a passing test with a log line', 'a message from the test', 'as an object']) {
+        assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
+    }
+    await fs.access(path.join(outDir, 'report-styles.css'))
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
+ * @wdio/html-reporter with Cucumber: it counts scenarios, not steps, and a
+ * scenario that passes on retry counts as passed
+ */
+const htmlReporterCucumber = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    await launch('htmlReporterCucumber', path.resolve(basePath, 'html-reporter.cucumber.conf.js'))
+    const outDir = path.join(basePath, 'out-cucumber')
+    const { metrics } = JSON.parse(await fs.readFile(path.join(outDir, 'master-report.json'), 'utf-8'))
+    assert.deepStrictEqual({ passed: metrics.passed, failed: metrics.failed, skipped: metrics.skipped }, { passed: 2, failed: 0, skipped: 0 })
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
+ * @wdio/html-reporter in a CommonJS configuration and test file (`require()`)
+ */
+const htmlReporterCjs = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    const { passed } = await launch('htmlReporterCjs', path.resolve(basePath, 'html-reporter.cjs.conf.cjs'))
+    assert.strictEqual(passed, 1)
+    const outDir = path.join(basePath, 'out-cjs')
+    const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
+    for (const text of ['Smoke CJS Master Report', 'logs with ReportEvents from require()', 'a message from a CommonJS test']) {
+        assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
+    }
+    await fs.rm(outDir, { recursive: true, force: true })
 }
 
 /**
@@ -1803,6 +1878,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineTimeout,
         mochaTimeout,
         jasmineAfterAll,
+        jasmineFailingAfterAll,
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
@@ -1811,6 +1887,9 @@ const jasmineAfterHookArgsValidation = async () => {
         sessionGoneReport,
         commandHookCounts,
         reporterTestrunner,
+        htmlReporter,
+        htmlReporterCucumber,
+        htmlReporterCjs,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

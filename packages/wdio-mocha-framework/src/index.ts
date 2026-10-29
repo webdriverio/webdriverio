@@ -8,13 +8,12 @@ import Mocha from 'mocha'
 import { handleRequires } from 'mocha/lib/cli/run-helpers.cjs'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, type ParallelMode } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
 import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
-import type { ParallelMode } from './parallel.js'
 import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
@@ -26,6 +25,19 @@ type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
 interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     rootDir: string
     mochaOpts: MochaOptsImport
+}
+
+/** a hook of the config or of a service to run (the runner adds the service hooks before the framework starts) */
+function hasHooks(hooks: unknown) {
+    return [hooks].flat().some((hook) => typeof hook === 'function')
+}
+
+/** The reporter fields of the root-suite hook of the config hooks in a sequential run (Mocha's setHookTitle) */
+function rootHookMessage(kind: 'before all' | 'after all', tests: { title: string }[] = []) {
+    const test = kind === 'before all' ? tests[0] : tests[tests.length - 1]
+    const hook = `"${kind}" hook: ${kind === 'before all' ? 'beforeSuite' : 'afterSuite'}`
+    const title = test ? `${hook} for "${test.title}"` : `${hook} in "{root}"`
+    return { title, fullTitle: title, parent: '', hookKind: kind === 'before all' ? 'beforeAll' as const : 'afterAll' as const }
 }
 
 /**
@@ -43,6 +55,10 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
+    /** Mocha test and its uid between its test:start and its test:end */
+    private _openTest?: { payload: Record<string, unknown>, uid: string }
+    /** Mocha suite → the uid of its suite:start */
+    private _suiteUids = new WeakMap<object, string>()
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -130,6 +146,8 @@ class MochaAdapter {
 
     async run () {
         const mocha = this._mocha!
+        // the suite duration of afterSuite, also with no beforeSuite hook (which sets it again)
+        this._suiteStartDate = Date.now()
 
         const parallelMode = this._config.mochaOpts?.parallelMode
         if (parallelMode === 'contexts' || parallelMode === 'userContexts') {
@@ -181,19 +199,8 @@ class MochaAdapter {
             mochaSuite.filterOnly?.()
         }
 
-        // Config hooks are surfaced as paired hook:start/hook:end events like
-        // sequential mode's root-suite hooks (wrapHook), with prepareMessage
-        // payloads. They run against the session-global context (no tab).
-        const beforeSuiteMsg = this.prepareMessage('beforeSuite')
-        const beforeSuiteUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...beforeSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-        try {
-            await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-        } catch (err) {
-            log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
-        }
+        const rootTests = (mocha.suite as unknown as { tests?: { title: string }[] }).tests
+        await this._runRootHook('beforeSuite', rootTests)
 
         let failures: number
         let runtimeError: Error | undefined
@@ -207,7 +214,9 @@ class MochaAdapter {
                     grep: mocha.options?.grep as RegExp | undefined,
                     invert: mocha.options?.invert,
                     timeout: this._config.mochaOpts.timeout,
-                    mode
+                    mode,
+                    failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
+                    allowUncaught: this._config.mochaOpts.allowUncaught
                 }
             )
         } catch (err) {
@@ -215,18 +224,32 @@ class MochaAdapter {
             failures = 1
         }
 
-        const afterSuiteMsg = this.prepareMessage('afterSuite')
-        const afterSuiteStartUid = this.getSyncEventIdStart('hook')
-        this._reporter.emit('hook:start', { ...afterSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
-        try {
-            await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
-            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
-        } catch (err) {
-            log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
-        }
+        await this._runRootHook('afterSuite', rootTests)
 
         return this._finalize(failures, runtimeError)
+    }
+
+    /**
+     * Parallel mode: the config hooks surface as paired hook:start/hook:end events like sequential mode's
+     * root-suite hooks (wrapHook): prepareMessage payloads with Mocha's root hook title. They run against
+     * the session-global context (no tab)
+     */
+    private async _runRootHook(hookName: 'beforeSuite' | 'afterSuite', rootTests?: { title: string }[]) {
+        if (!hasHooks(this._config[hookName])) {
+            return
+        }
+        const message = this.prepareMessage(hookName)
+        const hook = { ...message, ...rootHookMessage(hookName === 'beforeSuite' ? 'before all' : 'after all', rootTests) }
+        const fields = { cid: this._cid, specs: this._specs, uid: this.getSyncEventIdStart('hook') }
+        const start = Date.now()
+        this._reporter.emit('hook:start', { ...hook, type: 'hook:start', ...fields })
+        try {
+            await executeHooksWithArgs(hookName, this._config[hookName] as Function, [message])
+            this._reporter.emit('hook:end', { ...hook, type: 'hook:end', state: 'pass', duration: Date.now() - start, ...fields })
+        } catch (err) {
+            log.error(`Error in ${hookName} hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...hook, type: 'hook:end', state: 'fail', duration: Date.now() - start, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, ...fields })
+        }
     }
 
     private async _runSequential(mocha: Mocha) {
@@ -242,8 +265,13 @@ class MochaAdapter {
             Object.keys(EVENTS).forEach((e: keyof typeof EVENTS) =>
                 this._runner!.on(e, this.emit.bind(this, EVENTS[e])))
 
-            this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            this._runner.suite.afterAll(this.wrapHook('afterSuite'))
+            // only with hooks to run; a title of their own: a user root hook has the title `"before all" hook in "{root}"`
+            if (hasHooks(this._config.beforeSuite)) {
+                this._runner.suite.beforeAll('beforeSuite', this.wrapHook('beforeSuite'))
+            }
+            if (hasHooks(this._config.afterSuite)) {
+                this._runner.suite.afterAll('afterSuite', this.wrapHook('afterSuite'))
+            }
         })
         return this._finalize(result, runtimeError)
     }
@@ -310,11 +338,36 @@ class MochaAdapter {
             return
         }
 
+        /**
+         * Mocha 11.8+ sends a second 'test' event for the open test when a `beforeEach`
+         * hook fails with `failHookAffectedTests` (mochajs/mocha#6442), so ignore it.
+         * TODO: remove when the `mocha` version range of this package includes the fix of
+         * https://github.com/mochajs/mocha/issues/6442
+         */
+        const isOpenTest = payload === this._openTest?.payload
+        if (event === 'test:start' && isOpenTest) {
+            return
+        }
+
         const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
-        message.uid = this.getUID(message)
+        // this.skip() at runtime ends the test that started; it.skip has no test:start
+        message.uid = event === 'test:pending' && isOpenTest ? this._openTest!.uid : this.getUID(message)
+        if (event === 'test:start') {
+            this._openTest = { payload, uid: message.uid }
+        } else if (event === 'test:end') {
+            this._openTest = undefined
+        }
+        if (event === 'suite:start') {
+            this._suiteUids.set(payload, message.uid)
+        }
+        // the root suite has no suite:start, so its all-hooks have no hookSuiteUid
+        const hookSuiteUid = (message.hookKind === 'beforeAll' || message.hookKind === 'afterAll') && this._suiteUids.get(payload.parent as object)
+        if (hookSuiteUid) {
+            message.hookSuiteUid = hookSuiteUid
+        }
 
         this._reporter.emit(message.type, message)
     }
@@ -367,7 +420,7 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (['test:start', 'test:pending'].includes(message.type)) {
+        if (message.type === 'test:start' || message.type === 'test:pending') {
             return this.getSyncEventIdStart('test')
         }
         if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {

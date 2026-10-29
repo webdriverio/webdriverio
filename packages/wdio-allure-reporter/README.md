@@ -382,7 +382,7 @@ As shown in the example above, when this function is called, a screenshot image 
 
 ### Compatibility
 - **Allure**: Compatible with Allure Framework 3.x
-- **Parallel mode**: supported with Mocha [`parallelMode`](https://webdriver.io/docs/parallel-tests). `before()` and `after()` fixtures show once per test, as they run once per test. Not supported with Cucumber `parallelMode` yet.
+- **Parallel mode**: supported with Mocha and Cucumber [`parallelMode`](https://webdriver.io/docs/parallel-tests). With Mocha, `before()` and `after()` fixtures show once per test, as they run once per test.
 
 
 ## Getting Help

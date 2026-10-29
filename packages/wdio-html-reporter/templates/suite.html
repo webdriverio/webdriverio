@@ -1,0 +1,7 @@
+{% from "suite.njk" import renderSuite %}
+
+<tr>
+  <td colspan="2">
+    {% if suite %} {{ renderSuite(suite) }} {% endif %}
+  </td>
+</tr>

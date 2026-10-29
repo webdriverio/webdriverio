@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "tags": [
     "webdriver",
@@ -80,7 +80,7 @@
     "react-dom-16": "npm:react-dom@16.14.0",
     "react-dom-17": "npm:react-dom@17.0.2",
     "react-dom-19": "npm:react-dom@19.3.0",
-    "safe-stable-stringify": "^2.4.3"
+    "safe-stable-stringify": "^3.0.0"
   },
   "dependencies": {
     "@types/node": "^22.20.4",

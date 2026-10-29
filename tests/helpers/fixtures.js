@@ -23,8 +23,6 @@ onComplete called
 `
 
 export const REPORTER_LOGS = `onRunnerStart
-onHookStart
-onHookEnd
 onSuiteStart
 onTestStart
 onHookStart
@@ -40,8 +38,6 @@ onTestEnd
 onHookStart
 onHookEnd
 onSuiteEnd
-onHookStart
-onHookEnd
 onBeforeCommand
 onAfterCommand
 onRunnerEnd
@@ -87,6 +83,8 @@ onRunnerEnd
 
 export const CUCUMBER_REPORTER_LOGS = `onRunnerStart
 onSuiteStart
+onHookStart
+onHookEnd
 onSuiteStart
 onHookStart
 onHookEnd
@@ -98,11 +96,14 @@ onBeforeCommand
 onAfterCommand
 onAfterAssertion
 onTestPass
+onTestEnd
 onHookStart
 onHookEnd
 onHookStart
 onHookEnd
 onSuiteEnd
+onHookStart
+onHookEnd
 onSuiteEnd
 onBeforeCommand
 onAfterCommand

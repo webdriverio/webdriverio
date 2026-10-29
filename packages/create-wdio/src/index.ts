@@ -13,7 +13,7 @@ import {
     ANSWER_FLAGS, ANSWER_FLAGS_HELP, AnswerFlagError, answerFlagUsage, answerFlagsToArgs, describeAnswerFlag, parseAnswerFlags
 } from './answerFlags.js'
 import {
-    ASCII_ROBOT, PROGRAM_TITLE, UNSUPPORTED_NODE_VERSION, DEFAULT_NPM_TAG,
+    ASCII_ROBOT, PROGRAM_TITLE, SUPPORTED_NODE_VERSIONS, UNSUPPORTED_NODE_VERSION, DEFAULT_NPM_TAG,
     INSTALL_COMMAND, DEV_FLAG, SUPPORTED_PACKAGE_MANAGERS, EXECUTER, EXECUTE_COMMAND
 } from './constants.js'
 import type { ProgramOpts } from './types.js'
@@ -34,7 +34,7 @@ export async function run(operation = createWebdriverIO) {
     /**
      * ensure right Node.js version is used
      */
-    const unsupportedNodeVersion = !semver.satisfies(process.version, '>=22.19.0')
+    const unsupportedNodeVersion = !semver.satisfies(process.version, SUPPORTED_NODE_VERSIONS)
     if (unsupportedNodeVersion) {
         console.log(chalk.yellow(UNSUPPORTED_NODE_VERSION))
         return

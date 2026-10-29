@@ -433,6 +433,16 @@ describe('BidiCore', () => {
         })
     })
 
+    describe('connect', () => {
+        it('stops waiting for the connection when it can not connect (#16240)', async () => {
+            vi.mocked(environment.value.createBidiConnection).mockRejectedValueOnce(new TypeError('Invalid URL'))
+            const handler = new BidiCore('not a url')
+            await expect(handler.connect()).rejects.toThrow('Invalid URL')
+            await expect(handler.waitForConnected()).resolves.toBe(false)
+            expect(handler.isConnected).toBe(false)
+        })
+    })
+
     describe('sendAsync', () => {
         beforeAll(() => {
             delete process.env.WDIO_UNIT_TESTS
@@ -476,6 +486,7 @@ describe('BidiCore', () => {
             expect(logged).toContain('**MASKED**')
             expect(logged).not.toContain('"value\\":\\"s')
             expect(emit).toHaveBeenCalledWith('bidiCommand', {
+                id: 1,
                 method: 'input.performActions',
                 params: {
                     context: 'frame-1',

@@ -166,6 +166,9 @@ export default function (
             onRetry: (data) => this.emit('request.retry', data),
             onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data)))
         })
+        if (isMasked) {
+            request.maskedBody = maskedBody
+        }
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
@@ -178,7 +181,7 @@ export default function (
          * timeout or a lost network), so the driver process does not keep running.
          */
         let sessionCleanedUp = false
-        const cleanUpSession = () => {
+        const cleanUpSession = async (deleted: boolean) => {
             if (command !== 'deleteSession' || sessionCleanedUp) {
                 return
             }
@@ -194,7 +197,8 @@ export default function (
              * kill driver process if there is one
              */
             const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-            environment.value.killDriverProcess(this.capabilities, shutdownDriver)
+            // a driver that did not end the session did not delete its profile: no wait for it
+            await environment.value.killDriverProcess(this.capabilities, shutdownDriver, deleted ? this.requestedCapabilities as WebdriverIO.Capabilities : undefined)
 
             /**
              * clear logger stream if session has been terminated
@@ -221,12 +225,14 @@ export default function (
             }
 
             this.emit('result', { command, method, endpoint, body: maskedBody, result })
-            cleanUpSession()
-
-            return result.value as WebDriverResponse | BidiResponses
+            const value = result.value as WebDriverResponse | BidiResponses
+            // `deleteSession` resolves once the driver is stopped, if it is shut down
+            return command === 'deleteSession' ? cleanUpSession(true).then(() => value) : value
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
-            cleanUpSession()
+            if (command === 'deleteSession') {
+                return cleanUpSession(false).then(() => { throw error })
+            }
             throw error
         }).finally(() => {
             cleanup()
@@ -257,7 +263,7 @@ function manageSessionAbortions (this: BaseClient): {
             abortListeners.clear()
             sessionAbortListeners.set(this.sessionId, null)
         }
-
+        this.off('result', abortOnSessionEnd)
     }
 
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
@@ -283,7 +289,10 @@ function manageSessionAbortions (this: BaseClient): {
         isAborted: false,
         abortSignal: abort.signal,
         cleanup: () => {
-            this.off('result', abortOnSessionEnd)
+            /**
+             * only drop this command's controller, the session-wide listener
+             * has to stay registered until the session has been deleted
+             */
             abortListenerForCurrentSession?.delete(abort)
         }
     }

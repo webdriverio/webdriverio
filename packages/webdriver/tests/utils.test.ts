@@ -4,9 +4,13 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import '../src/browser.js'
 
+// @ts-expect-error mock feature
+import { logMock } from '@wdio/logger'
+import { environment } from '../src/environment.js'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    startWebDriverSession, setupDirectConnect, validateCapabilities, getBidiRequestOptions
+    startWebDriverSession, setupDirectConnect, validateCapabilities, getBidiRequestOptions,
+    initiateBidi
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -121,6 +125,28 @@ describe('utils', () => {
                 rejectUnauthorized: false,
                 headers
             })
+        })
+    })
+
+    describe('initiateBidi', () => {
+        it('logs a failed connection instead of an unhandled rejection (#16240)', async () => {
+            const { createBidiConnection } = environment.value
+            const onUnhandledRejection = vi.fn()
+            process.on('unhandledRejection', onUnhandledRejection)
+            environment.value.createBidiConnection = vi.fn().mockRejectedValue(new TypeError('Invalid URL'))
+            try {
+                const { _bidiHandler } = initiateBidi('not a url')
+                await expect(_bidiHandler.value.waitForConnected()).resolves.toBe(false)
+                await new Promise((resolve) => setTimeout(resolve, 10))
+
+                expect(onUnhandledRejection).not.toHaveBeenCalled()
+                expect(logMock.error).toHaveBeenCalledWith(
+                    'Could not connect to WebDriver Bidi interface at not a url: Invalid URL'
+                )
+            } finally {
+                environment.value.createBidiConnection = createBidiConnection
+                process.off('unhandledRejection', onUnhandledRejection)
+            }
         })
     })
 

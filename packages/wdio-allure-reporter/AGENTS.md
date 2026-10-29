@@ -11,7 +11,9 @@ pnpm run test:package wdio-allure-reporter
 
 ## Guardrails
 
-- Hook kind is decided in `AllureReportState` from the leading quoted hook
+- Hook kind comes from `HookStats.hookKind` (the reporter passes it to
+  `AllureReportState` as the hook `scope`). With no `hookKind` (a third-party
+  framework), `AllureReportState` decides it from the leading quoted hook
   phrase (`"before each" hook`, `"before all" hook`). Do not bring back
   `title.includes` classifiers; a suite or test title that contains "all" or
   "each" must not change the hook kind.

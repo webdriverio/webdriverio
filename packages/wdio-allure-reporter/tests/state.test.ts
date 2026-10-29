@@ -168,6 +168,17 @@ describe('state', () => {
         })
     })
 
+    it('moves the test start to the one given when the test ends', async () => {
+        state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'suite' } })
+        state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'late test', start: 9_000 } })
+        state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any, start: 1_000, stop: 1_040, duration: 40 } })
+        state.pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
+
+        await state.processRuntimeMessage()
+
+        expect(getResults(outputDir).results[0]).toMatchObject({ start: 1_000, stop: 1_040 })
+    })
+
     describe('incremental flush', () => {
         it('writes finished tests before the run is finalised and never replays a message', async () => {
             state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'suite' } })

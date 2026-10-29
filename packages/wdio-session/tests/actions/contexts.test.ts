@@ -10,12 +10,14 @@ vi.mock('webdriverio', () => ({
 vi.mock('../../src/snapshot/target.js', () => ({
     resolveTarget: async (_session: Session, target: string) => ({
         element: { getTagName: async () => 'iframe' },
-        code: `$('${target}')`,
+        code: /^e\d+$/.test(target)
+            ? `ref('${target}') /* no selector matches this element, this step only replays in this session */`
+            : `$('${target}')`,
         label: target
     })
 }))
 
-const { frame, tabs } = await import('../../src/actions/contexts.js')
+const { frame, holdFrame, tabs } = await import('../../src/actions/contexts.js')
 
 function harness ({ secondUrl = 'https://b.test/', outerSiblings = ['https://a.test/outer.html'] } = {}) {
     const store = new Map<string, unknown>()
@@ -108,6 +110,22 @@ describe('frame (BiDi)', () => {
             "const page = (await browser.browsingContexts()).find((context) => context.url === 'https://a.test/')!\n" +
             "const frame = await page.frame(page.$('iframe#outer'))"
         )
+    })
+
+    it('passes a ref without a selector to frame() as the exec global, not a page method', async () => {
+        const { session, record } = harness()
+        expect(await record((await frame(session, { target: 'e5', $cwd: '/' })).history)).toBe(
+            "const page = (await browser.browsingContexts()).find((context) => context.url === 'https://a.test/')!\n" +
+            "const frame = await page.frame(ref('e5') /* no selector matches this element, this step only replays in this session */)"
+        )
+    })
+
+    it('holds a frame given by a ref without a selector through the exec global', async () => {
+        const { session } = harness()
+        expect((await holdFrame(session, 'e5')).lines).toEqual([
+            "const page = (await browser.browsingContexts()).find((context) => context.url === 'https://a.test/')!",
+            "const frame = await page.frame(ref('e5') /* no selector matches this element, this step only replays in this session */)"
+        ])
     })
 })
 

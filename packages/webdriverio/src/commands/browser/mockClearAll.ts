@@ -1,11 +1,13 @@
 import logger from '@wdio/logger'
-
-import { SESSION_MOCKS } from './mock.js'
+import { mocksOf } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio:mockClearAll')
 
 /**
- * Resets all information stored in all registered mocks of the session.
+ * Resets all information stored in all registered mocks of the session. On a
+ * browsing context, it resets only the mocks made for that tab or window.
+ * Inside a parallel test, it resets only the mocks that the test created, also
+ * on tabs it opened.
  *
  * <example>
     :mockClearAll.js
@@ -30,11 +32,10 @@ const log = logger('webdriverio:mockClearAll')
  *
  * @alias browser.mockClearAll
  */
-export async function mockClearAll (): Promise<void> {
-    for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
-        log.trace(`Clearing mocks for ${handle}`)
-        for (const mock of mocks) {
-            mock.clear()
-        }
+export async function mockClearAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
+    const mocks = mocksOf(this)
+    log.trace(`Clearing ${mocks.length} mock(s)`)
+    for (const mock of mocks) {
+        mock.clear()
     }
 }

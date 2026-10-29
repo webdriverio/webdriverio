@@ -2,6 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getBrowsingContext } from '../../browsingContext.js'
+import { getParallelContextStore } from '../../session/context.js'
 import { historyReadiness } from '../../utils/traverseHistory.js'
 import type { NewWindowOptions } from '../../types.js'
 
@@ -33,6 +34,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {string}  url      website URL to open
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {string=}           options.type           type of new window: 'tab' or 'window'
+ * @param {string|BrowsingContext=} options.referenceContext  top-level browsing context to open the new tab or window from (BiDi only). In parallel mode, the default is the window of the test
  *
  * @return {BrowsingContext|Object}  In a BiDi session, the new browsing context. In a Classic session, `{handle, type}`.
  *
@@ -89,9 +91,15 @@ export async function newWindow (
         if (reference && typeof reference !== 'string' && reference.isFrame) {
             throw new Error('`referenceContext` must be a top-level browsing context')
         }
+        /**
+         * Parallel mode: a tab or window opens from the window of its test, so it has the
+         * cookies and storage of the test (its user context). Firefox opens a tab with no
+         * reference in the focused window, which can be the new window of another test,
+         * and then returns the id of that window (https://bugzilla.mozilla.org/show_bug.cgi?id=2084843)
+         */
         const referenceContext = typeof reference === 'string'
             ? reference
-            : reference?.contextId
+            : reference?.contextId ?? getParallelContextStore().getStore()
         const { context } = await this.browsingContextCreate({
             type,
             ...(referenceContext ? { referenceContext } : {})
