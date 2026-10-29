@@ -545,9 +545,15 @@ export default class HtmlReporter extends WDIOReporter {
         if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
-        // with grouped spec files the root tests and hooks can come from any of them; the runner gives URLs, the suites paths
+        /**
+         * the spec files of the root tests (Mocha gives each test its file); a root hook runs for all spec
+         * files of the worker and has none, so only the one spec file of a worker names it
+         */
+        const testFiles = [...new Set(root.tests.map((test) => test.file).filter((file): file is string => Boolean(file)))]
         const [spec, ...others] = runner.specs
-        const file = !spec || others.length ? '' : spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
+        const files = testFiles.length ? testFiles : spec && !others.length ? [spec] : []
+        // the runner gives URLs, the suites paths
+        const file = files.map((file) => file.startsWith('file://') ? url.fileURLToPath(file) : file).join(', ')
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
             suites: [],
             file,

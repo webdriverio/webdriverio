@@ -48,6 +48,15 @@ describe('TestStats', () => {
         expect(Object.keys(stat)).not.toContain('parentUid')
     })
 
+    it('keeps the spec file of the test only when the payload has it', () => {
+        expect('file' in stat).toBe(false)
+        const withFile = new TestStats({
+            type: 'test:start', title: 'a', parent: '', fullTitle: 'a', pending: false,
+            cid: '0-0', specs: [], uid: 'test-0-0-2', file: '/specs/b.spec.js'
+        })
+        expect(withFile.file).toBe('/specs/b.spec.js')
+    })
+
     it('completes at a given end instead of now', () => {
         stat.complete(new Date(100))
 

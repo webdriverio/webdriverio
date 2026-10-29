@@ -693,7 +693,40 @@ describe('tests with no describe()', () => {
         expect(outer).toContain(`<td>${spec.replace(process.cwd(), '')}</td>`)
     })
 
-    it('shows no spec file on the root suite of a worker with several spec files', async () => {
+    // grouped spec files: Mocha gives each root test the spec file it comes from
+    const [firstSpec, secondSpec] = ['first.spec.js', 'second.spec.js'].map((name) => path.resolve('project', name))
+    const rootTests = async (name: string, files: string[]) => {
+        const dir = path.join(outputRoot, name) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Root tests', produceHtml: true } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => reporter.emit(event, { type: event, cid: '0-0', specs: [firstSpec, secondSpec].map((spec) => url.pathToFileURL(spec).href), ...payload })
+        emit('runner:start', { config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        files.forEach((file, index) => {
+            const test = { uid: `root-test-${index}`, title: `root test ${index}`, fullTitle: `root test ${index}`, parent: '', file }
+            emit('test:start', test)
+            emit('test:pass', test)
+            emit('test:end', test)
+        })
+        await reporter.onRunnerEnd(reporter.runnerStat!)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as (JsonSuite & { file: string, root?: boolean })[]
+    }
+
+    it('shows the spec file of the root tests of a worker with several spec files', async () => {
+        const [root] = await rootTests('root-tests-grouped', [secondSpec])
+        expect(root.root).toBe(true)
+        expect(root.file).toBe(secondSpec)
+        expect(htmlOf('root-tests-grouped')).toContain(`<td>${secondSpec.replace(process.cwd(), '')}</td>`)
+    })
+
+    it('shows each spec file of root tests that come from several spec files', async () => {
+        await rootTests('root-tests-two-files', [firstSpec, secondSpec, firstSpec])
+        const shown = [firstSpec, secondSpec].map((spec) => spec.replace(process.cwd(), '')).join(', ')
+        expect(htmlOf('root-tests-two-files')).toContain(`<td>${shown}</td>`)
+    })
+
+    it('shows no spec file on a root suite with only hooks in a worker with several spec files', async () => {
         // grouped spec files: the root tests and hooks can come from any of them
         const [first, second] = ['first.spec.js', 'second.spec.js'].map((name) => path.resolve('project', name))
         const suites = await rootHooks('root-grouped-specs', { produceHtml: true }, { specs: [first, second].map((spec) => url.pathToFileURL(spec).href), file: first, rootError: true }) as (JsonSuite & { file: string })[]

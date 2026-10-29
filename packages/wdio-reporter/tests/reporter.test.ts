@@ -19,6 +19,13 @@ vi.mock('node:fs', () => ({
 describe('WDIOReporter', () => {
     const eventsOnSpy = vi.spyOn(EventEmitter.prototype, 'on')
 
+    it('marks its root suite, which has the tests and hooks outside every suite', () => {
+        const reporter = new WDIOReporter({ logFile: '/some/logpath' })
+        expect(reporter.currentSuites[0].root).toBe(true)
+        reporter.emit('suite:start', { type: 'suite:start', uid: 'suite-1', title: '(root)', fullTitle: '(root)', file: '/a.spec.js', cid: '0-0' })
+        expect('root' in reporter.currentSuites[1]).toBe(false)
+    })
+
     it('constructor', () => {
         new WDIOReporter({ logFile: '/some/logpath' })
         expect(eventsOnSpy.mock.calls).toHaveLength(21)

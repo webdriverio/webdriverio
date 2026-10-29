@@ -67,3 +67,8 @@ test('clearAttempt() keeps the start of the first attempt, as main', () => {
     expect(suite.tests).toHaveLength(0)
     expect(suite.retries).toBe(1)
 })
+
+test('keeps the root mark only when the payload has it', () => {
+    expect('root' in new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: '/a.spec.js' })).toBe(false)
+    expect(new SuiteStats({ title: '(root)', fullTitle: '(root)', file: '', root: true }).root).toBe(true)
+})

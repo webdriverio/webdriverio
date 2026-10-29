@@ -11,9 +11,6 @@ import { writeFile } from './files.js'
 import logger from '@wdio/logger'
 import url from 'node:url'
 
-/** the uid of the root suite of the base reporter (Mocha `it()` and hooks outside every `describe()`) */
-const ROOT_SUITE = '(root)'
-
 dayjs.extend(duration)
 
 /** Windows: a file that another worker copies, or that an antivirus scans, is locked for a short time */
@@ -135,7 +132,7 @@ class HtmlGenerator {
             })
             environment.addGlobal('displaySpecFile', (suiteInfo:SuiteStats) => {
                 // a filter can hide the root box: the first suite of the file keeps its own row
-                if (suiteInfo?.file && suiteInfo.uid === ROOT_SUITE) {
+                if (suiteInfo?.file && suiteInfo.root) {
                     return true
                 }
                 if (suiteInfo && suiteInfo.file) {
@@ -149,7 +146,8 @@ class HtmlGenerator {
 
             environment.addGlobal('formatSpecFile', (suiteInfo:SuiteStats) => {
                 // Display file path of spec
-                const specFile = `${suiteInfo.file.replace(process.cwd(), '')}`
+                // the root suite can name several spec files
+                const specFile = suiteInfo.file.replaceAll(process.cwd(), '')
                 return specFile
             })
 
@@ -237,7 +235,7 @@ class HtmlGenerator {
 
             // the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
             environment.addGlobal('showSuite', (suite: SuiteStats) =>
-                suite.uid !== ROOT_SUITE || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
+                !suite.root || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
 
             environment.addGlobal('humanizeDuration', (duration:number) => {
                 return dayjs.duration(duration, 'milliseconds').format('HH:mm:ss.SSS')

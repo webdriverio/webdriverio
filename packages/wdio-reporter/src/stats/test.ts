@@ -82,6 +82,8 @@ export default class TestStats extends RunnableStats {
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null
+    /** @experimental the spec file of the test, when the framework sends it (Mocha) */
+    declare file?: string
 
     constructor(test: Test) {
         super('test')
@@ -96,6 +98,9 @@ export default class TestStats extends RunnableStats {
         // Mocha only
         this.body = test.body
         this.keepParallelFields(test)
+        if (test.file !== undefined) {
+            this.file = test.file
+        }
 
         /**
          * initial test state is pending

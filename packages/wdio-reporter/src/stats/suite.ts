@@ -22,6 +22,8 @@ export interface Suite {
     description?: string
     rule?: string
     retries?: number
+    /** @experimental only the root suite of the reporter */
+    root?: true
 }
 
 /**
@@ -50,6 +52,8 @@ export default class SuiteStats extends RunnableStats {
     declare parentUid?: string | null
     /** the browsing context of a parallel Cucumber scenario */
     declare contextId?: string
+    /** @experimental the root suite of the reporter: the tests and hooks outside every suite (Mocha `it()` / `before()` with no `describe()`) */
+    declare root?: true
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
@@ -66,6 +70,9 @@ export default class SuiteStats extends RunnableStats {
         this.description = suite.description
         this.rule = suite.rule
         this.keepParallelFields(suite)
+        if (suite.root) {
+            this.root = true
+        }
     }
 
     /**
