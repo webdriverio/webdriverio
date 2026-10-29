@@ -40,6 +40,14 @@ function deepEqual(a: unknown, b: unknown): boolean {
     return true
 }
 
+function isIgnorePromptHandler (value: unknown): boolean {
+    if (value === 'ignore') {
+        return true
+    }
+    return typeof value === 'object' && value !== null &&
+        Object.keys(value).length === 1 && (value as { default?: unknown }).default === 'ignore'
+}
+
 const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
     'HTTP method not allowed', // geckodriver
@@ -87,6 +95,10 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         /**
          * allow WebdriverIO to handle alerts
          */
+        const userPromptHandler = capabilities.alwaysMatch.unhandledPromptBehavior
+        if (userPromptHandler !== undefined && !isIgnorePromptHandler(userPromptHandler)) {
+            log.warn("The unhandledPromptBehavior capability is ignored in WebDriver BiDi sessions, prompts must be handled with browser.on('dialog')")
+        }
         capabilities.alwaysMatch.unhandledPromptBehavior = { default: 'ignore' }
     }
 

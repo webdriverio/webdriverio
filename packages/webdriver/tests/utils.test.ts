@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
 import '../src/browser.js'
@@ -13,6 +14,8 @@ import type { Client, RemoteConfig } from '../src/types.js'
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
 vi.mock('fetch')
+
+const log = logger('webdriver')
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -340,6 +343,53 @@ describe('utils', () => {
             await startWebDriverSession(params)
             expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
                 .toBe(undefined)
+        })
+
+        describe('unhandledPromptBehavior warning', () => {
+            const startSession = (capabilities: WebdriverIO.Capabilities) => startWebDriverSession({
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities
+            })
+
+            afterEach(() => {
+                vi.mocked(log.warn).mockClear()
+            })
+
+            it('warns when a classic string value is replaced', async () => {
+                await startSession({ browserName: 'chrome', unhandledPromptBehavior: 'dismiss and notify' })
+                expect(log.warn).toHaveBeenCalledWith("The unhandledPromptBehavior capability is ignored in WebDriver BiDi sessions, prompts must be handled with browser.on('dialog')")
+                expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.unhandledPromptBehavior)
+                    .toEqual({ default: 'ignore' })
+            })
+
+            it('warns when a BiDi handler object other than { default: "ignore" } is replaced', async () => {
+                // @ts-expect-error only the ignore handler is typed
+                await startSession({ browserName: 'chrome', unhandledPromptBehavior: { default: 'accept' } })
+                expect(log.warn).toHaveBeenCalledTimes(1)
+            })
+
+            it.each([
+                ['"ignore"', 'ignore'],
+                ['{ default: "ignore" }', { default: 'ignore' }],
+                ['no value', undefined]
+            ] as const)('does not warn for %s', async (_, unhandledPromptBehavior) => {
+                await startSession({ browserName: 'chrome', unhandledPromptBehavior })
+                expect(log.warn).not.toHaveBeenCalled()
+            })
+
+            it('does not warn when WebDriver Classic is enforced', async () => {
+                await startSession({
+                    browserName: 'chrome',
+                    unhandledPromptBehavior: 'dismiss and notify',
+                    'wdio:enforceWebDriverClassic': true
+                })
+                expect(log.warn).not.toHaveBeenCalled()
+                expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.unhandledPromptBehavior)
+                    .toBe('dismiss and notify')
+            })
         })
 
         it('should handle sessionRequest error', async () => {
