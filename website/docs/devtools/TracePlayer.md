@@ -22,7 +22,7 @@ pnpm show-trace trace-<sessionId>.zip     # from the devtools monorepo
 
 The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/nightwatch-devtools`, `@wdio/selenium-devtools`), so it's available in any project that installs one, with no extra dependency. It is also a bin of `@wdio/devtools-backend` itself, so a project without a JavaScript adapter (for example a Python one) can run `npx -p @wdio/devtools-backend show-trace <trace.zip>`. It boots the same DevTools UI in a dedicated **player** mode and opens it in your browser:
 
-- **Action list** (left) — the captured commands, with a **Metadata** tab alongside.
+- **Action list** (left) — the captured commands, with a **Metadata** tab alongside. A wait is one row with the commands its condition issued nested under it, collapsed unless the wait failed or holds the selected row; see [Waits](/docs/devtools/wdio/trace-mode#waits).
 - **Browser pane** (centre) — the reconstructed page for the selected action (see [DOM time-travel](#trace-player-features) below). When the trace carries a filmstrip/video, a **Snapshot / Screencast** toggle switches to the recorded video.
 - **Timeline strip** (top) — a filmstrip of thumbnails at their wall-clock positions plus a scrub bar with a draggable playhead. Click a thumbnail or drag anywhere to seek.
 - **Controls bar** — play/pause, step, and speed.
