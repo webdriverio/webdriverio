@@ -94,6 +94,10 @@ export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
+    /**
+     * body with sensitive values replaced, shown in errors instead of `body`
+     */
+    maskedBody?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
@@ -116,6 +120,13 @@ export abstract class WebDriverRequest {
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
         this.eventHandler = eventHandler
         this.abortSignal = abortSignal
+    }
+
+    /**
+     * errors carry the request options, they must never expose masked values
+     */
+    private errorOptions (opts: RequestInit): RequestInit {
+        return this.maskedBody ? { ...opts, body: JSON.stringify(this.maskedBody) } : opts
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
@@ -191,11 +202,11 @@ export abstract class WebDriverRequest {
                 throw new WebDriverRequestError(
                     new Error(`Failed to fetch ${url.href}: ${(err as Error).message || err || 'Unknown error'}`),
                     url,
-                    opts
+                    this.errorOptions(opts)
                 )
             }
 
-            throw new WebDriverRequestError(err, url, opts)
+            throw new WebDriverRequestError(err, url, this.errorOptions(opts))
         }
     }
 
@@ -325,7 +336,7 @@ export abstract class WebDriverRequest {
             return response.body as WebDriverResponse<unknown>
         }
 
-        const error = new WebDriverResponseError(response, url, fullRequestOptions)
+        const error = new WebDriverResponseError(response, url, this.errorOptions(fullRequestOptions))
 
         /**
          * hub commands don't follow standard response formats

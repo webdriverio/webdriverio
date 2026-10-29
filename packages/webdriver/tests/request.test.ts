@@ -377,6 +377,19 @@ describe('webdriver request', () => {
             expect(fetchMock).toHaveBeenCalledTimes(1)
         })
 
+        it('should not expose masked values in the error message', async () => {
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element/:elementId/value', {}, undefined, false, {})
+            req.maskedBody = { text: '**MASKED**' }
+            const url = new URL('/session/foobar-123/element/some-elem-123/value', baseUrl)
+            vi.mocked(globalThis.fetch).mockImplementationOnce(async () => Response.json(
+                { value: { error: 'invalid element state', message: 'nope' } },
+                { status: 400 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({ text: 'mySecretPassword' }) }, undefined, 0).catch((err: Error) => err)
+            expect(error.message).toContain('**MASKED**')
+            expect(error.message).not.toContain('mySecretPassword')
+        })
+
         it('should not retry an invalid session id by error name', async () => {
             const onRetry = vi.fn()
             const req = new WebFetchRequest('POST', 'session/:sessionId/url', {}, undefined, false, { onRetry })
@@ -796,6 +809,22 @@ describe('webdriver request', () => {
             // the retry still reached the server through the same dispatcher
             expect(fetch.mock.calls[1][1]).toHaveProperty('dispatcher', fetch.mock.calls[0][1]!.dispatcher)
             expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
+        })
+
+        it('should cleanup the session dispatcher when DELETE /session/:sessionId fails on every attempt', async () => {
+            const sessionId = 'failed-delete-session-id'
+            const deleteSessionRequest = new FetchRequest('DELETE', `/session/${sessionId}`, {})
+            const { fetch } = vi.mocked(await import('undici'))
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                text: async () => JSON.stringify({ value: { error: 'unknown error', message: 'grid hiccup' } })
+            } as any)
+
+            await deleteSessionRequest.makeRequest({ ...defaultOptions, connectionRetryCount: 0 }, sessionId).catch((e) => e)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
+            fetch.mockReset()
+            fetch.mockImplementation((async () => ({ ok: true, status: 200, json: async () => ({}) })) as any)
         })
 
         it('should not cleanup session dispatcher on non delete session DELETE requests', async () => {
