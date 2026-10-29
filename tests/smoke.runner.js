@@ -1533,7 +1533,7 @@ const sigintGracefulShutdown = async () => {
     const { code, signal } = await exited
     clearTimeout(timer)
     killGroup()
-    const workerLog = await fs.readFile(path.join(outputDir, 'wdio-0-0.log'), 'utf-8').catch(() => '')
+    const workerLog = await fs.readFile(path.join(outputDir, 'sigint_long_running-0-0.log'), 'utf-8').catch(() => '')
     await fs.rm(outputDir, { recursive: true, force: true })
     assert.ok(!forced && signal === null, `the run did not exit on its own (code ${code}, signal ${signal}):\n${output}`)
     assert.ok(workerLog.includes('COMMAND deleteSession()'), `the worker never deleted the session:\n${workerLog}`)
