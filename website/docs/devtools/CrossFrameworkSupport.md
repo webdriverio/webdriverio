@@ -18,8 +18,8 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Feature | WebdriverIO | Selenium | Nightwatch | Python |
 |---|---|---|---|---|
 | Trace mode + `show-trace` player | ✅ | ✅ | ✅ | ✅ |
-| DOM time-travel (mutation capture) | ✅ tested | ⚠️ with BiDi ¹ | ⚠️ with BiDi ¹ | ✅ tested |
-| Network requests (browser sessions) | ✅ tested | ⚠️ with BiDi ² | ⚠️ with BiDi ³ | ✅ tested |
+| DOM time-travel (mutation capture) | ✅ | ⚠️ with BiDi ¹ | ⚠️ with BiDi ¹ | ✅ |
+| Network requests (browser sessions) | ✅ | ⚠️ with BiDi ² | ⚠️ with BiDi ³ | ✅ |
 | Screencast (`filmstrip` / video) | ✅ CDP push (Chrome), polling elsewhere | ✅ CDP push (Chromium), polling elsewhere | ⚠️ polling only ⁴ | ✅ CDP push (Chromium), one frame per command elsewhere |
 | Per-test granularity (`traceGranularity: 'test'`) | ✅ | ✅ | ⚠️ ⁵ | ✅ |
 | Retry-aware retention (`tracePolicy`) | ✅ | ✅ | ⚠️ `retain-on-failure` only ⁶ | ⚠️ `retain-on-failure` only ⁷ |
@@ -29,13 +29,13 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | BiDi console / network capture | ✅ auto | ✅ auto | ⚠️ opt-in ¹⁵ | ✅ auto |
 | A11y tab + pick-locator overlay (trace player) | ✅ | ✅ | ✅ | ✅ |
 | Transcript + Copy-for-LLM (trace player) | ✅ | ✅ | ✅ | ✅ |
-| One row per command in the Actions list | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
+| One row per command in the Actions list | ✅ | ✅ | ✅ | ✅ |
 | Screenshot on every command row | ✅ | ✅ | ✅ | ✅ |
 | Browser console logs | ✅ | ✅ | ✅ | ✅ |
-| Source tab opens the test line that ran the command | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
+| Source tab opens the test line that ran the command | ✅ | ✅ | ✅ | ✅ |
 | Metadata tab (session, capabilities, device) | ✅ | ✅ | ✅ | ✅ |
-| Performance timings on navigation rows | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
-| Failed command in the Errors tab, with the browser's message | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
+| Performance timings on navigation rows | ✅ | ✅ | ✅ | ✅ |
+| Failed command in the Errors tab, with the browser's message | ✅ | ✅ | ✅ | ✅ |
 | Run, Rerun and Run all from the dashboard | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ✅ |
 | Preserve & Rerun (compare a failed run with its rerun) | ✅ | ✅ | ✅ | ✅ |
 | Dashboard window opens by itself in live mode, and can be turned off | ⚠️ always opens ¹⁷ | ✅ `openUi: false` | ⚠️ always opens ¹⁸ | ✅ `DEVTOOLS_OPEN=0` |
@@ -46,7 +46,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✅ | ✅ | ⚠️ opt-in ²⁵ | ❌ ²⁶ |
 | Network without BiDi (Safari, Appium mobile browsers) | ⚠️ ²⁷ | ⚠️ ²⁷ | ⚠️ ²⁷ | ⚠️ ²⁷ |
 
-✅ tested: proven for that adapter by the cross-adapter conformance suite. ✅: supported, backed by a named test or a manual check listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
+✅ supported. ⚠️ partial, with the limit in the note below. ❌ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Without BiDi (Safari, Appium) the page collector is injected after each navigation, so a page the test leaves within tens of milliseconds is never captured.
 
