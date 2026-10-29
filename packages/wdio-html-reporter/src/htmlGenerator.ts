@@ -51,6 +51,10 @@ async function copyAsset (from: string, to: string) {
 const linkTo = (outputDir: string, file: string) =>
     path.relative(outputDir, file).split(path.sep).map(encodeURIComponent).join('/')
 
+// the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
+const showSuite = (suite: SuiteStats) =>
+    !suite.isRoot || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error)
+
 /**
  * the escaping of the nunjucks autoescape, except `\` to `&#92;`
  * (`nunjucks.lib.escape` has no types)
@@ -148,7 +152,7 @@ class HtmlGenerator {
                 // Display file path of spec
                 // the root suite can name several spec files; remove the working folder only at the start of each
                 const cwd = process.cwd()
-                return suiteInfo.file.split(', ')
+                return ((suiteInfo as SuiteStats & { files?: string[] }).files ?? [suiteInfo.file])
                     .map((file) => file.startsWith(cwd) ? file.slice(cwd.length) : file)
                     .join(', ')
             })
@@ -235,9 +239,7 @@ class HtmlGenerator {
                 return 'suite-unknown'
             })
 
-            // the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
-            environment.addGlobal('showSuite', (suite: SuiteStats) =>
-                !suite.isRoot || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error))
+            environment.addGlobal('showSuite', showSuite)
 
             environment.addGlobal('humanizeDuration', (duration:number) => {
                 return dayjs.duration(duration, 'milliseconds').format('HH:mm:ss.SSS')
@@ -292,8 +294,7 @@ class HtmlGenerator {
                         return 0
                     })
 
-                    for (let i = 0; i < sortedSuites.length; i++) {
-                        const suite = sortedSuites[i]
+                    for (const suite of sortedSuites.filter(showSuite)) {
 
                         try {
                             const suiteHtml = await new Promise<string>((resolve, reject) => {

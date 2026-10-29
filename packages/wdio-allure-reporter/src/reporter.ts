@@ -1002,7 +1002,7 @@ export default class AllureReporter extends WDIOReporter {
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
         const kind = getType(exec)
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
-        // a TestStats keeps no Cucumber type, keyword or file: the runner config decides for a known
+        // a TestStats keeps no Cucumber type or keyword: the runner config decides for a known
         // framework; another one (a custom framework or adapter) keeps the rules below
         if (this._framework) {
             const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts

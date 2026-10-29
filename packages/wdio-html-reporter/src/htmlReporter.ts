@@ -553,10 +553,12 @@ export default class HtmlReporter extends WDIOReporter {
         const [spec, ...others] = runner.specs
         const files = testFiles.length ? testFiles : spec && !others.length ? [spec] : []
         // the runner gives URLs, the suites paths
-        const file = files.map((file) => file.startsWith('file://') ? url.fileURLToPath(file) : file).join(', ')
+        const paths = files.map((file) => file.startsWith('file://') ? url.fileURLToPath(file) : file)
+        // `file` stays one path, as on the other suites; `files` has all of them when the root tests come from several
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
             suites: [],
-            file,
+            file: paths[0] ?? '',
+            ...(paths.length > 1 && { files: paths }),
             end: new Date()
         })]
     }

@@ -263,7 +263,7 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `this.isFeatureHook(hook)`: `true` for a hook of a Cucumber feature (`BeforeAll` / `AfterAll`): the suite of the hook is a `feature`.
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
 - `suite.isRoot`: `true` only for the root suite of the reporter (`this.currentSuites[0]`). It has the tests and hooks that are in no suite, for example a Mocha `it()` or `before()` with no `describe()`. It gets no `suite:start`. Use this field, not the title `(root)`, to find it.
-- `test.file` and `hook.file`: the spec file of the test or hook, when the framework sends it (Mocha does). With grouped spec files, each root test has its own spec file. A Mocha hook with no `describe()` runs for all spec files of the worker, so it has no file.
+- `test.file` and `hook.file`: the spec file of the test or hook (the feature file for Cucumber), when the framework sends it (Mocha, Jasmine, Cucumber and Vitest do). With grouped spec files, each root test has its own spec file. A Mocha or Jasmine hook outside every suite runs for all spec files of the worker, so it has no file.
 - `hookStats.state`: the base reporter sets `'failed'` when the hook failed, or `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`). A passed hook keeps `undefined`. A reporter can set `'passed'` on its own stats (`AllureReporter` does). Each reporter has its own `HookStats`.
 
 ### Browser name

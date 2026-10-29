@@ -82,7 +82,7 @@ export default class TestStats extends RunnableStats {
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null
-    /** @experimental the spec file of the test, when the framework sends it (Mocha) */
+    /** @experimental the spec file of the test (the feature file for Cucumber), when the framework sends it */
     declare file?: string
 
     constructor(test: Test) {

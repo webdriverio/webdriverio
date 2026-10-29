@@ -73,7 +73,7 @@ export default class HookStats extends RunnableStats {
     declare hookSuiteUid?: string
     /** @experimental the commands of a `beforeAll` / `afterAll` with `hookKind` and no context, or of a hook of a parallel context before its test; made at the first command */
     declare output?: TestStats['output']
-    /** @experimental the spec file of the hook, when the framework sends it (Mocha: none for a hook outside every `describe()`, which runs for all spec files of the worker) */
+    /** @experimental the spec file of the hook, when the framework sends it (Mocha and Jasmine: none for a hook outside every suite, which runs for all spec files of the worker) */
     declare file?: string
 
     constructor (runner: Hook) {
