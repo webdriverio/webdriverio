@@ -108,7 +108,8 @@ export async function navigateInContext (
          */
         if (options.headers) {
             mock = await WebDriverInterception.initiate(parseLiteralUrlPattern(path), {}, browser, {
-                contexts: getParallelContextStore().getStore() ? [contextIdValue(context)] : undefined
+                contexts: getParallelContextStore().getStore() ? [contextIdValue(context)] : undefined,
+                sessionKey: contextIdValue(context)
             })
             mock.requestOnce({ headers: options.headers })
         }

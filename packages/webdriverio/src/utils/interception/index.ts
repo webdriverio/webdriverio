@@ -578,8 +578,12 @@ export default class WebDriverInterception {
             ))
         }
 
+        /**
+         * A plain continue changes nothing, so it does not claim a request that another mock
+         * blocks too: that mock may have an overwrite for it (the headers of `url()`)
+         */
         this.#emit('continue', requestId)
-        return this.#release(request, true, () => this.#withBlockedRequestTracking(
+        return this.#release(request, false, () => this.#withBlockedRequestTracking(
             requestId,
             this.#browser.networkContinueRequest({
                 request: requestId
@@ -1111,12 +1115,15 @@ export default class WebDriverInterception {
 
         // Remove the network intercept BEFORE setting #restored flag
         // This prevents new requests from being blocked while we're cleaning up
-        if (this.#mockId) {
-            await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+        try {
+            if (this.#mockId) {
+                await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+            }
+        } finally {
+            // Now it's safe to mark as restored, also when the intercept could not be removed
+            // (its session is gone): the mock must not answer requests of a later intercept
+            this.#restored = true
         }
-
-        // Now it's safe to mark as restored
-        this.#restored = true
 
         return this
     }

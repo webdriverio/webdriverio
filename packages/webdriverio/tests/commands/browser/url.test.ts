@@ -232,7 +232,7 @@ describe('url', () => {
             expect(pattern.test('http://google.com/')).toBe(true)
             expect(filterOptions).toEqual({})
             expect(mockBrowser).toBe(browser)
-            expect(scope).toEqual({ contexts: undefined })
+            expect(scope).toEqual({ contexts: undefined, sessionKey: expect.any(String) })
             expect(mockMock.requestOnce).toBeCalledTimes(1)
             expect(mockMock.requestOnce).toBeCalledWith({
                 headers: {

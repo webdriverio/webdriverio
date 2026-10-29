@@ -33,6 +33,30 @@ describe('mockClearAll', () => {
         expect(getMockCalls()).toBe(3)
     })
 
+    it('should restore every mock even when one of them fails, and then throw', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'devtools'
+            }
+        })
+        const failing = { restore: vi.fn().mockRejectedValue(new Error('no such intercept')), isOwnedBy: () => true }
+        const other = { restore: vi.fn(), isOwnedBy: () => true }
+        const original = Object.entries(SESSION_MOCKS).map(([key, mocks]) => [key, mocks] as const)
+        for (const [key] of original) {
+            delete SESSION_MOCKS[key]
+        }
+        SESSION_MOCKS.contextC = new Set([failing, other])
+
+        await expect(browser.mockRestoreAll()).rejects.toThrow('no such intercept')
+        expect(other.restore).toHaveBeenCalledTimes(1)
+
+        delete SESSION_MOCKS.contextC
+        for (const [key, mocks] of original) {
+            SESSION_MOCKS[key] = mocks
+        }
+    })
+
     it('should only restore mocks of the calling browser', async () => {
         const [browserA, browserB] = await Promise.all([1, 2].map(() => remote({
             baseUrl: 'http://foobar.com',
