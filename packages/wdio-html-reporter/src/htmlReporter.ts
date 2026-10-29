@@ -486,6 +486,11 @@ export default class HtmlReporter extends WDIOReporter {
     // an empty override opts in to the user commands of WebDriver BiDi sessions
     onBeforeUserCommand() { }
 
+    // the protocol commands of a user command stay in the output, with their parent
+    protected get hidesProtocolCommands(): boolean {
+        return false
+    }
+
     //this is a hack to get around lack of onScreenshot event
     onAfterCommand(command: AfterCommandArgs) {
         if (this.options.useOnAfterCommandForScreenshot) {

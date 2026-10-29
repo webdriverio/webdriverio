@@ -187,13 +187,26 @@ describe('JsonGenerator.jsonOutput, user commands', () => {
         return json.suites[0].tests[0].output as Record<string, unknown>[]
     }
 
-    it('writes the user command and its result in the output of the test', async () => {
+    it('writes the user command, its protocol commands with their parent, and the one-line text of each', async () => {
         const output = await write([
-            ['client:beforeUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi' }],
-            ['client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' }, parent: 1 }],
-            ['client:afterUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi', result: { value: null } }]
+            ['client:beforeUserCommand', { id: 1, command: 'getText', body: [], protocol: 'bidi' }],
+            ['client:beforeCommand', { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', body: {}, parent: 1 }],
+            ['client:afterCommand', { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', body: {}, result: { value: 'clicked' }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'getText', body: [], protocol: 'bidi', result: { value: 'clicked' } }]
         ])
-        expect(output.map((entry) => entry.type)).toEqual(['userCommand', 'userResult'])
+        expect(output.map((entry) => [entry.type, entry.parent, entry.text])).toEqual([
+            ['userCommand', undefined, 'getText() → "clicked"'],
+            ['command', 1, 'getElementText → "clicked"  GET /element/:elementId/text'],
+            ['result', 1, undefined],
+            ['userResult', undefined, undefined]
+        ])
+    })
+
+    it('writes the protocol commands of a run with no user command with no text', async () => {
+        const output = await write([
+            ['client:beforeCommand', { command: 'navigateTo', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' } }]
+        ])
+        expect(output.map((entry) => [entry.type, entry.text])).toEqual([['command', undefined]])
     })
 
     it('writes the message of an Error from a user command', async () => {
