@@ -44,7 +44,6 @@ export const config: WebdriverIO.Config = {
             outputDir: './reports/html-reports/',
             filename: 'master-report.html',
             reportTitle: 'Master Report',
-            browserName: 'chrome',
             linkScreenshots: true,
             collapseTests: true,
             // show the report in a browser when it is done
@@ -65,6 +64,10 @@ In a CommonJS configuration (`wdio.conf.cjs`), load the package with `const { Re
 
 When a worker stops before it writes its results (for example it is killed), or cannot write them, the master report says so and `reportAggregator.failed` is `true`. It is also `true` when no worker wrote a JSON file.
 
+With [`specFileRetries`](https://webdriver.io/docs/retry#add-retries-on-a-per-specfile-basis), each attempt of a spec file writes its own file (`report-0-0.json`, `report-0-0-retry1.json`). The master report shows every attempt that wrote its results, with `(spec file attempt 1, retried)` after the suite titles of an earlier attempt, and counts only the last attempt. Only files with the same name except `-retry<n>` are attempts of one spec file (2 configurations with another `filename` stay separate); an old file of another spec file is left out, and a stopped attempt that a later attempt replaced does not make the report incomplete.
+
+When a test or a Cucumber scenario runs again (Mocha [`retries`](https://webdriver.io/docs/retry#rerun-suites-in-mocha), the Cucumber [`retry`](https://webdriver.io/docs/retry#rerunning-in-cucumber) option, Vitest `retry`), each failed attempt stays in the report as its own entry, with `(attempt 1, retried)` after its title; only the last attempt counts.
+
 The master report uses the options of the `ReportAggregator`: set `linkScreenshots`, `linkUrls`, `collapseTests`, `collapseSuites` and `showInBrowser` there. The options of the reporter are for the JSON files and the report of each worker (`produceHtml`).
 
 ## Options
@@ -80,7 +83,7 @@ The master report uses the options of the `ReportAggregator`: set `linkScreensho
 | `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. With `@wdio/video-reporter` in a WebDriver Classic session, the video frames also become screenshots: keep it `false`. |
 | `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
 | `linkUrls` | `false` | Make the `http` and `https` URLs in log messages links. The rest of the message stays escaped: HTML in a log message shows as text. |
-| `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |
+| `browserName` | the browser of the session | Browser name to show in the report. Without it, the report shows the browser of the session, else the Appium app or device (in a multi-remote run, the names of the instances). The master report shows the browsers of the worker reports, for example `chrome, firefox`. When no name is known, it shows `not specified`. |
 | `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
 | `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |
 | `produceHtml` | `false` | Also write an HTML report for each worker, next to its JSON file. |
@@ -102,6 +105,8 @@ it('logs in', async () => {
 })
 ```
 
+An event from a hook that runs before the tests of a suite (Mocha and Jasmine `before`/`beforeAll`, a Cucumber `BeforeAll` or `Before` hook) goes to the first test of the suite or scenario. When no test of the suite starts, it goes to the first test of the suite or of its child suites (a skipped one), else to the test before; the events of a parent suite still wait for its next test.
+
 `ReportEvents` sends the same events as [`@rpii/wdio-report-events`](https://www.npmjs.com/package/@rpii/wdio-report-events), so tests that use that package still work.
 
 [`@wdio/video-reporter`](https://webdriver.io/docs/video-reporter) sends the video of each test to this reporter. Set the same `outputDir` for both reporters.
@@ -117,7 +122,8 @@ node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html rep
 The arguments are the file name of the report, the folder of the JSON files (default `reports/html-reports/`) and
 the title (default `Master Report`). The script opens the report in a browser, except when the `CI` environment
 variable is set. It ends with exit code 1 when the folder does not exist, has no JSON file of a worker, or when it
-cannot make the report, so a CI step fails.
+cannot make the report, so a CI step fails. The `TEST_BROWSER` environment variable sets the browser of the report
+header; without it, the header shows the browsers of the JSON files.
 
 The script reads all JSON files in the folder. Empty the folder before each test run (for example remove it, or call
 `new ReportAggregator({ outputDir }).clean()` in `onPrepare`), or the results of an earlier run are in the report.

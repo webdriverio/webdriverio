@@ -17,7 +17,10 @@ import {
     getScenarioResult,
     getStepResult,
     scenarioLabel,
-    withAmbiguousMessage
+    withAmbiguousMessage,
+    userRunHooks,
+    testRunHookStart,
+    testRunHookEnd,
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
@@ -35,8 +38,17 @@ describe('utils', () => {
                     name: 'Error',
                     message: 'boom',
                     stack: error.stack,
+                    type: 'Error',
                 }
             })
+        })
+
+        // the concise reporter prints the type: Cucumber errors had none (`undefined : …`)
+        it('keeps the error type, as the Mocha framework', () => {
+            const error = new TypeError('x')
+            expect(formatMessage({ payload: { error } }).error).toEqual({ name: 'TypeError', message: 'x', stack: error.stack, type: 'TypeError' })
+            const assertion = Object.assign(new Error('y'), { type: 'AssertionError' })
+            expect(formatMessage({ payload: { error: assertion } }).error.type).toBe('AssertionError')
         })
 
         it('should not fail if payload was not passed', () => {
@@ -51,6 +63,85 @@ describe('utils', () => {
                 title: 'bar',
                 fullTitle: 'foo: bar',
             })
+        })
+    })
+
+    describe('run hooks', () => {
+        const failed = {
+            status: 'FAILED',
+            message: 'Error: BeforeAll fails\n    at steps.ts:23:9',
+            exception: { type: 'Error', message: 'BeforeAll fails' },
+            duration: { seconds: 0, nanos: 5e6 },
+        } as unknown as TestStepResult
+        const start = () => testRunHookStart({
+            uid: 'r1', hook: { kind: 'BeforeAll', uri: path.join(process.cwd(), 'features', 'steps.ts'), line: 23 },
+            featureUid: 'f:1:1', uri: '/p/f.feature',
+        })
+        const expectNoRunFields = (payload: object) => {
+            for (const field of ['contextId', 'retried', 'failedTestUid']) {
+                expect(payload).not.toHaveProperty(field)
+            }
+        }
+
+        it('userRunHooks keeps the user hooks with their kind and leaves out the WDIO hooks', () => {
+            expect(userRunHooks({
+                beforeTestRunHookDefinitions: [
+                    { id: 'b1', name: 'login', uri: '/p/steps.ts', line: 3, code: function userHookAsyncFn () {} },
+                    { id: 'w1', code: function wdioHookBeforeFeature () {} },
+                ],
+                afterTestRunHookDefinitions: [
+                    { id: 'a1', code: function userHookFn () {} },
+                    { id: 'w2', code: function wdioHookAfterFeature () {} },
+                ],
+            })).toEqual({
+                b1: { kind: 'BeforeAll', name: 'login', uri: '/p/steps.ts', line: 3 },
+                a1: { kind: 'AfterAll', name: undefined, uri: undefined, line: undefined },
+            })
+        })
+
+        it('builds the start of a run hook under the feature', () => {
+            const payload = start()
+            expect(payload).toEqual({
+                type: 'hook', uid: 'r1', title: `BeforeAll (${path.join('features', 'steps.ts')}:23)`,
+                parent: 'f:1:1', parentUid: 'f:1:1', hookKind: 'beforeAll', hookSuiteUid: 'f:1:1', file: '/p/f.feature',
+            })
+            expectNoRunFields(payload)
+        })
+
+        it('names a named AfterAll', () => {
+            const payload = testRunHookStart({ uid: 'r2', hook: { kind: 'AfterAll', name: 'cleanup' }, featureUid: 'f', uri: 'u' })
+            expect(payload).toMatchObject({ title: 'AfterAll "cleanup"', hookKind: 'afterAll' })
+        })
+
+        it('titles a run hook with no name and no location', () => {
+            expect(testRunHookStart({ uid: 'r3', hook: { kind: 'BeforeAll' }, featureUid: 'f', uri: 'u' }).title).toBe('BeforeAll')
+        })
+
+        it('ends a passed run hook with no state', () => {
+            const payload = testRunHookEnd(start(), { status: 'PASSED', duration: { seconds: 0, nanos: 5e6 } } as unknown as TestStepResult)
+            expect(payload.duration).toBe(5)
+            expect(payload).not.toHaveProperty('state')
+            expect(payload).not.toHaveProperty('error')
+            expectNoRunFields(payload)
+        })
+
+        it('ends a failed run hook with its error', () => {
+            const payload = testRunHookEnd(start(), failed)
+            expect(payload.state).toBe('failed')
+            expect(payload.error?.message).toBe('BeforeAll fails')
+            expect(payload.error?.stack).toBe(failed.message)
+            expectNoRunFields(payload)
+        })
+
+        it('keeps the error type of a failed run hook', () => {
+            const payload = testRunHookEnd(start(), { ...failed, exception: { type: 'AssertionError', message: 'BeforeAll fails' } } as unknown as TestStepResult)
+            expect(payload.error?.name).toBe('AssertionError')
+        })
+
+        it('ends a skipped run hook (dry run)', () => {
+            const payload = testRunHookEnd(start(), { status: 'SKIPPED', duration: { seconds: 0, nanos: 0 } } as unknown as TestStepResult)
+            expect(payload.state).toBe('skipped')
+            expect(payload).not.toHaveProperty('error')
         })
     })
 

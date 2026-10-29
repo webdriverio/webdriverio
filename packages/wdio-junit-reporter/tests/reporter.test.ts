@@ -1,7 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { TestStats } from '@wdio/reporter'
+import { TestStats, sanitizeCaps } from '@wdio/reporter'
 
 import WDIOJunitReporter, { addProperty } from '../src/index.js'
 import type { SuiteStats } from '@wdio/reporter'
@@ -192,6 +192,88 @@ describe('wdio-junit-reporter', () => {
         // Steps should NOT be individual testcases - check no step title as testcase name
         expect(output).not.toContain('name="Givenstepha')
         expect(output).toMatchSnapshot()
+    })
+
+    describe('package of a run with a remote app', () => {
+        const phone = {
+            platformName: 'Android', 'appium:deviceName': 'Pixel 9', 'appium:platformVersion': '15',
+            'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123'
+        }
+
+        it('does not write the query of the app URL in a single run', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: false, sanitizedCapabilities: sanitizeCaps(phone as any) } as any)
+            expect(output).toContain('<property name="capabilities" value="android.pixel9.15.app_apk"/>')
+            expect(output).toContain('classname="android.pixel9.15.app_apk.')
+            expect(output).not.toContain('token')
+        })
+
+        it('does not write the query of the app URL in a multi-remote run', () => {
+            reporter.suites = suitesLog as any
+            const capabilities = { mrA: { browserName: 'chrome', platformName: 'mac' }, mrB: phone }
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: true, capabilities, sanitizedCapabilities: '' } as any)
+            expect(output).toContain('value="mrA-chrome_mac+mrB-android_pixel9_15_app_apk"/>')
+            expect(output).not.toContain('token')
+        })
+    })
+
+    describe('package of a multi-remote run', () => {
+        const chrome = { browserName: 'chrome', browserVersion: '155.0.8059.85', platformName: 'mac' }
+        const multiRemoteRunner = (extra: Record<string, unknown> = {}) => ({
+            ...mochaRunnerLog,
+            isMultiRemote: true,
+            capabilities: { mrA: chrome, mrB: chrome },
+            sanitizedCapabilities: '',
+            ...extra
+        })
+
+        it('names each instance and its browser in the classname and the capabilities property', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            const name = 'mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac'
+            expect(output).toContain(`<property name="capabilities" value="${name}"/>`)
+            expect(output).toContain(`classname="${name}.`)
+            expect(output).not.toContain('classname=".')
+        })
+
+        it('names an instance without usable capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: {} } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
+        it('names an instance with no capabilities by its name only', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: chrome, mrB: null } }) as any)
+            expect(output).toContain('value="mrA-chrome_155_0_8059_85_mac+mrB"/>')
+        })
+
+        it('reads the requested capabilities of an instance that did not start', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner({ capabilities: { mrA: { capabilities: { alwaysMatch: { browserName: 'chrome' } } }, mrB: chrome } }) as any)
+            expect(output).toContain('value="mrA-chrome+mrB-chrome_155_0_8059_85_mac"/>')
+        })
+
+        it('keeps the packageName option first', () => {
+            reporter.options.packageName = 'custom'
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml'](multiRemoteRunner() as any)
+            expect(output).toContain('classname="custom.')
+            expect(output).toContain('<property name="capabilities" value="mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac"/>')
+        })
+
+        it('keeps the Cucumber prefix', () => {
+            reporter.suites = featuresLog as any
+            const output = reporter['_buildJunitXml']({ ...cucumberRunnerMultiRemoteLog, capabilities: { mrA: chrome, mrB: chrome }, sanitizedCapabilities: '' } as any)
+            expect(output).toContain('classname="CucumberJUnitReport-mrA-chrome_155_0_8059_85_mac+mrB-chrome_155_0_8059_85_mac.')
+        })
+
+        it('does not change the package of a single browser run', () => {
+            reporter.suites = suitesLog as any
+            const output = reporter['_buildJunitXml']({ ...mochaRunnerLog, isMultiRemote: false } as any)
+            expect(output).toContain(`value="${mochaRunnerLog.sanitizedCapabilities}"`)
+            expect(output).toContain(`classname="${mochaRunnerLog.sanitizedCapabilities}.`)
+        })
     })
 
     it('generates xml output (Cucumber-style) with cucumberOpts.scenarioLevelReporter', () => {
@@ -691,6 +773,28 @@ describe('wdio-junit-reporter', () => {
         } finally {
             process.stdout.write = originalWrite
         }
+    })
+
+    it('addWorkerLogs: writes each Cucumber step on its own line, followed by its output (Cucumber-style)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+        reporter.suites = featuresLog as any
+        reporter['_testToAdditionalInformation']['step has passed6'] = {
+            uid: 'step has passed6',
+            workerConsoleLog: 'output of the first step',
+            properties: {}
+        }
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any).toString()
+        const systemOut = /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(output)?.[1]
+        expect(systemOut).toBe([
+            '',
+            '✅ Given step has passed',
+            'output of the first step',
+            '✅ When step has passed',
+            '❗ Then step has failed',
+            '',
+            ''
+        ].join('\n'))
     })
 
     it('addProperty adds a property to currently running testcase', () => {

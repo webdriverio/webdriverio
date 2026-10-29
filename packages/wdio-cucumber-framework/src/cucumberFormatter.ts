@@ -5,8 +5,8 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 
-import type { Payload } from './types.js'
-import { getFeatureStack, getStepResult, retriesForPickle, scenarioLabel, strictPendingWarning, withAmbiguousMessage } from './utils.js'
+import type { HookKind, Payload, TestRunHookStart, UserRunHook } from './types.js'
+import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, testRunHookEnd, testRunHookStart, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -25,7 +25,9 @@ import type {
     TestStepFinished,
     TestStepResult,
     Hook,
-    StepDefinition
+    StepDefinition,
+    TestRunHookFinished,
+    TestRunHookStarted
 } from '@cucumber/messages'
 
 import {
@@ -44,6 +46,8 @@ import type { HookParams, ReporterScenario } from './types.js'
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
     private _hookEvent: Hook[] = []
+    /** the open BeforeAll / AfterAll by `testRunHookStarted.id` */
+    private _openRunHooks = new Map<string, TestRunHookStart>()
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
     private _stepDefinitions = new Map<string, StepDefinition>()
@@ -69,6 +73,7 @@ export default class CucumberFormatter extends Formatter {
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
     private strict: boolean
+    private userRunHooks: Record<string, UserRunHook>
     private retry: number
     private retryTagFilter: string
     private rootDir?: string
@@ -127,6 +132,10 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.testRunHookStarted) {
+                this.onTestRunHookStarted(envelope.testRunHookStarted)
+            } else if (envelope.testRunHookFinished) {
+                this.onTestRunHookFinished(envelope.testRunHookFinished)
             } else if (envelope.stepDefinition) {
                 this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
@@ -146,6 +155,7 @@ export default class CucumberFormatter extends Formatter {
         this.retry = options.parsedArgvOptions._retry ?? 0
         this.retryTagFilter = options.parsedArgvOptions._retryTagFilter ?? ''
         this.rootDir = options.parsedArgvOptions._rootDir
+        this.userRunHooks = options.parsedArgvOptions._userRunHooks ?? {}
     }
 
     updateCurrentPickle(params: HookParams) {
@@ -208,7 +218,8 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: TestStep,
-        result: TestStepResult
+        result: TestStepResult,
+        hookKind?: HookKind
     ) {
         let error
         if (result.message) {
@@ -230,7 +241,7 @@ export default class CucumberFormatter extends Formatter {
                 : 0,
         })
 
-        this.emit('hook:end', payload)
+        this.emit('hook:end', { ...payload, ...(hookKind && { hookKind }) })
     }
 
     /**
@@ -402,24 +413,7 @@ export default class CucumberFormatter extends Formatter {
             doc.uri &&
             doc !== this._currentDoc
         ) {
-            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
-            this._featureStarts.set(doc.uri, starts)
-            const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
-            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
-            const payload = {
-                uid: this._currentFeatureUid,
-                title: this.getTitle(doc.feature as Feature),
-                type: 'feature',
-                file: doc.uri,
-                tags: doc.feature?.tags,
-                description: doc.feature?.description,
-                keyword: doc.feature?.keyword,
-            }
-
-            this.emit('suite:start', payload)
-            this._currentDoc = doc
-            // the duration of this part of the feature
-            this._featureStart = new Date()
+            this.startFeaturePart(doc)
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
@@ -503,13 +497,17 @@ export default class CucumberFormatter extends Formatter {
 
             this._testStart = new Date()
             const type = getStepType(step)
-            const payload = buildStepPayload(
-                uri as string,
-                feature as Feature,
-                scenario as Pickle,
-                step as PickleStep,
-                { type }
-            )
+            const hookKind = hookKindOf(hook)
+            const payload = {
+                ...buildStepPayload(
+                    uri as string,
+                    feature as Feature,
+                    scenario as Pickle,
+                    step as PickleStep,
+                    { type }
+                ),
+                ...(hookKind && { hookKind })
+            }
 
             this.emit(`${type}:start`, payload)
         }
@@ -567,7 +565,8 @@ export default class CucumberFormatter extends Formatter {
                 feature as Feature,
                 scenario as Pickle,
                 step,
-                result
+                result,
+                hookKindOf(this._hookEvent.find((h) => h.id === teststep?.hookId))
             )
         }
 
@@ -629,6 +628,71 @@ export default class CucumberFormatter extends Formatter {
             return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult, retried)
         }
         this.emit('suite:end', payload)
+    }
+
+    /**
+     * grouped specs: start a part of the feature (see `featurePartUid`)
+     */
+    startFeaturePart(doc: GherkinDocument) {
+        const starts = (this._featureStarts.get(doc.uri as string) ?? 0) + 1
+        this._featureStarts.set(doc.uri as string, starts)
+        const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
+        this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
+        const payload = {
+            uid: this._currentFeatureUid,
+            title: this.getTitle(doc.feature as Feature),
+            type: 'feature',
+            file: doc.uri,
+            tags: doc.feature?.tags,
+            description: doc.feature?.description,
+            keyword: doc.feature?.keyword,
+        }
+
+        this.emit('suite:start', payload)
+        this._currentDoc = doc
+        // the duration of this part of the feature
+        this._featureStart = new Date()
+    }
+
+    /**
+     * a user BeforeAll / AfterAll runs outside of any scenario: a hook of the feature, sent when it starts,
+     * so that the reporters give it the commands and logs of its body
+     */
+    onTestRunHookStarted({ id, hookId }: TestRunHookStarted) {
+        const hook = this.userRunHooks[hookId]
+        if (!hook) {
+            return
+        }
+        // grouped specs start a feature at its first scenario: a BeforeAll comes before any
+        if (this.usesSpecGrouping() && !this._currentDoc.uri) {
+            this.startFeaturePart(this._gherkinDocEvents[0])
+        }
+        const doc = this.usesSpecGrouping() ? this._currentDoc : this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
+        const start = testRunHookStart({
+            uid: id,
+            hook,
+            featureUid: this.featurePartUid(doc.uri as string, doc.feature as Feature),
+            uri: doc.uri as string,
+        })
+        this._openRunHooks.set(id, start)
+        this.emit('hook:start', start)
+    }
+
+    onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
+        const start = this._openRunHooks.get(testRunHookStartedId)
+        if (!start) {
+            // a WebdriverIO run hook (beforeFeature / afterFeature, only on a Cucumber timeout): no event, but a failure
+            if (result.status === Status.FAILED) {
+                this.failedCount++
+            }
+            return
+        }
+        this._openRunHooks.delete(testRunHookStartedId)
+        if (result.status === Status.FAILED) {
+            // the exit code of a run with `ignoreUndefinedDefinitions` (index.ts)
+            this.failedCount++
+        }
+        this.emit('hook:end', testRunHookEnd(start, result))
     }
 
     onTestRunFinished() {

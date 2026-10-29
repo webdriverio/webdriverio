@@ -42,7 +42,7 @@ import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
 
-import type { CucumberOptions, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
+import type { CucumberOptions, HookKind, ParallelBrowser, ParallelMode, ReporterStep, TestRunHookStart } from './types.js'
 import {
     addKeywordToStep,
     getFeatureId,
@@ -54,8 +54,12 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    hookKindOf,
     scenarioLabel,
     strictPendingWarning,
+    testRunHookEnd,
+    testRunHookStart,
+    userRunHooks,
     withAmbiguousMessage,
 } from './utils.js'
 
@@ -169,6 +173,8 @@ interface TestCaseRunnerInstance {
 }
 
 interface TestRunHookDefinition {
+    id: string
+    name?: string
     code: Function
     uri?: string
     line?: number
@@ -445,6 +451,8 @@ interface SupportCodeMessages {
     stepDefinitions: Map<string, messages.StepDefinition>
     /** hook id → the hook title of the sequential formatter */
     hookTitles: Map<string, string>
+    /** hook id → the kind of its Cucumber hook type */
+    hookKinds: Map<string, HookKind>
 }
 
 /**
@@ -453,6 +461,7 @@ interface SupportCodeMessages {
 function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): SupportCodeMessages {
     const stepDefinitions = new Map<string, messages.StepDefinition>()
     const hookTitles = new Map<string, string>()
+    const hookKinds = new Map<string, HookKind>()
     const eventBroadcaster = new EventEmitter()
     eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
         if (envelope.stepDefinition) {
@@ -461,10 +470,14 @@ function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): Sup
         if (envelope.hook) {
             const { id, name, tagExpression } = envelope.hook
             hookTitles.set(id, `${name || ''} ${tagExpression || ''}`.trim())
+            const kind = hookKindOf(envelope.hook)
+            if (kind) {
+                hookKinds.set(id, kind)
+            }
         }
     })
     emitSupportCodeMessages({ eventBroadcaster, supportCodeLibrary, newId: uuidFn })
-    return { stepDefinitions, hookTitles }
+    return { stepDefinitions, hookTitles, hookKinds }
 }
 
 interface ScenarioTranslator {
@@ -531,6 +544,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         pickleStep?: messages.PickleStep
         isHook: boolean
         hookTitle: string
+        hookKind?: HookKind
         stepDefinitionIds: readonly string[]
     }>()
     for (const ts of testCase.testSteps) {
@@ -538,6 +552,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             pickleStep: ts.pickleStepId ? pickleStepById.get(ts.pickleStepId) : undefined,
             isHook: !!ts.hookId,
             hookTitle: (ts.hookId && supportCode.hookTitles.get(ts.hookId)) || '',
+            hookKind: ts.hookId ? supportCode.hookKinds.get(ts.hookId) : undefined,
             stepDefinitionIds: ts.stepDefinitionIds ?? [],
         })
     }
@@ -580,7 +595,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         // Per-step anchor so step/hook durations don't accumulate from scenario start
         stepStart = new Date()
 
-        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
+        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) }
         if (!info.isHook) {
             openStep = payload
             lastTestUid = String(payload.uid)
@@ -613,7 +628,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                 error,
                 duration,
             })
-            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID } }))
+            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) } }))
             return
         }
 
@@ -1022,10 +1037,28 @@ async function runParallel(params: {
 
     const testRunStartedId = uuidFn()
     const runBroadcaster = new EventEmitter()
+    // a user BeforeAll / AfterAll is a hook of a feature, sent live as in a sequential run (cucumberFormatter.ts)
+    const runHooks = userRunHooks(supportCodeLibrary)
+    const openRunHooks = new Map<string, TestRunHookStart>()
     runBroadcaster.on('envelope', (envelope: messages.Envelope) => {
-        const result = envelope.testRunHookFinished?.result
-        if (result?.status === 'FAILED') {
-            log.error(`Test run hook failed: ${result.exception?.message ?? result.message}`)
+        const started = envelope.testRunHookStarted
+        const hook = started && runHooks[started.hookId]
+        if (started && hook) {
+            // as in a sequential run: BeforeAll under the first feature, AfterAll under the last one
+            const group = hook.kind === 'AfterAll' ? featureGroups[featureGroups.length - 1] : featureGroups[0]
+            const start = testRunHookStart({ uid: started.id, hook, featureUid: group.uid, uri: group.uri })
+            openRunHooks.set(started.id, start)
+            reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
+        }
+        const finished = envelope.testRunHookFinished
+        const start = finished && openRunHooks.get(finished.testRunHookStartedId)
+        // also a WebdriverIO run hook (beforeFeature / afterFeature, only on a Cucumber timeout), which is in no report
+        if (finished?.result.status === 'FAILED') {
+            log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
+        }
+        if (finished && start) {
+            openRunHooks.delete(finished.testRunHookStartedId)
+            reporter.emit('hook:end', formatMessage({ payload: { ...testRunHookEnd(start, finished.result), cid, specs } }))
         }
     })
     const snippetBuilder = await FormatterBuilder.getStepDefinitionSnippetBuilder({
@@ -1041,9 +1074,9 @@ async function runParallel(params: {
 
     // BeforeAll side effects cannot be replayed by a sequential fallback
     executionStarted = true
-    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
-
+    // the features start first: the BeforeAll hooks are hooks of the first feature
     emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start', cucumberOpts.tagsInTitle)
+    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
 
     // Once BeforeAll ran, AfterAll and suite:end must run even if assembly or
     // context allocation throws; the error is rethrown afterwards.
@@ -1166,9 +1199,9 @@ async function runParallel(params: {
 
     const totalDuration = Date.now() - runStart
 
-    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
-
+    // AfterAll runs before the end of the features, which get its failure as a hook
     const afterAllOk = await runTestRunHooks(eventEmitter, () => executor.runAfterAllHooks(), featureGroups, 'an AfterAll')
+    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
     if (runFailure) { throw runFailure.error }
 
     let passed = 0, failed = 0, skipped = allPickles.length - allResults.length

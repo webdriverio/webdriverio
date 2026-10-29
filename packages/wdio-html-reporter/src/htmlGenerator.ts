@@ -2,7 +2,7 @@ import type { HtmlReporterOptions, ReportData } from './types.js'
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
-import type { SuiteStats, TestStats } from '@wdio/reporter'
+import { hookCountsAsFailure, type SuiteStats, type TestStats } from '@wdio/reporter'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -12,6 +12,37 @@ import logger from '@wdio/logger'
 import url from 'node:url'
 
 dayjs.extend(duration)
+
+/** Windows: a file that another worker copies, or that an antivirus scans, is locked for a short time */
+const BUSY_RETRIES = 20
+const BUSY_RETRY_WAIT = 50
+const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES'])
+
+/**
+ * The workers of a run copy the same styles and font next to their reports, at the same time on parallel
+ * workers: wait for a locked copy, then check the file
+ */
+async function copyAsset (from: string, to: string) {
+    const content = await fsp.readFile(from)
+    const copied = () => fsp.readFile(to).then((existing) => existing.equals(content), () => false)
+    for (let tries = 0; ; tries++) {
+        if (await copied()) {
+            return
+        }
+        try {
+            return await fsp.copyFile(from, to)
+        } catch (err) {
+            if (!BUSY_CODES.has((err as NodeJS.ErrnoException).code ?? '') || tries === BUSY_RETRIES) {
+                // another worker can end its copy during the last try
+                if (await copied()) {
+                    return
+                }
+                throw err
+            }
+            await new Promise((resolve) => setTimeout(resolve, BUSY_RETRY_WAIT))
+        }
+    }
+}
 
 /**
  * The path of a file relative to the report, as a link: the browser reads `#`, `?`
@@ -156,8 +187,10 @@ class HtmlGenerator {
                 if (!suiteInfo || !suiteInfo.tests) {
                     return 'suite-unknown'
                 }
-                let numTests = Object.keys(suiteInfo.tests).length
-                const tests = suiteInfo.tests
+                // the last attempt of a retried test decides; the entry of a failed attempt keeps it
+                const counts = (suite: SuiteStats) => (test: TestStats) => !test.retried || Boolean((suite as { retriedAttempt?: boolean }).retriedAttempt)
+                const tests = Object.values(suiteInfo.tests).filter(counts(suiteInfo))
+                let numTests = tests.length
 
                 Object.values(tests).find((test: TestStats) => {
                     if (test.state === 'pending') {
@@ -170,8 +203,8 @@ class HtmlGenerator {
                  * filters must not hide a suite with a failure inside
                  */
                 const hasFailure = (suite: SuiteStats): boolean =>
-                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed') ||
-                    (suite.hooks ?? []).some((hook) => hook.error) ||
+                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed' && counts(suite)(test)) ||
+                    (suite.hooks ?? []).some(hookCountsAsFailure) ||
                     (suite.suites ?? []).some(hasFailure)
                 if (hasFailure(suiteInfo)) {
                     return 'suite-fail'
@@ -275,11 +308,11 @@ class HtmlGenerator {
 
                         const reportCss = rootdirname + '/css/report-styles.css'
                         const destCss = reportOptions.outputDir + '/report-styles.css'
-                        await fsp.copyFile(reportCss, destCss)
+                        await copyAsset(reportCss, destCss)
 
                         const cssFont = rootdirname + '/css/glyphicons-halflings-regular.woff'
                         const fontDest = reportOptions.outputDir + '/glyphicons-halflings-regular.woff'
-                        await fsp.copyFile(cssFont, fontDest)
+                        await copyAsset(cssFont, fontDest)
                     }
                 } catch (error) {
                     failed = true

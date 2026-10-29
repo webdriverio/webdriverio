@@ -98,6 +98,8 @@ function createHarness(mode: Mode, tests: PlannedTest[], options: Record<string,
         ...message(type, test, uid, extra),
         title: `"${kind}" hook for ${test.suites.at(-1)}`,
         fullTitle: `${test.suites.at(-1)}.${kind} hook`,
+        // a failed each-hook is reported once per test with the same title, so the id needs the test
+        ...(kind === 'before each' || kind === 'after each' ? { currentTest: test.title } : {}),
     })
     const command = (type: 'client:beforeCommand' | 'client:afterCommand', test: PlannedTest, name: string) => ({
         command: name,
@@ -524,6 +526,85 @@ describe('Mocha parallel mode', () => {
         })
     })
 
+    describe('root before all hook with a hook kind', () => {
+        it('keeps the commands of a contextless root before all hook in its fixture, not in a test', async () => {
+            const h = createHarness('parallel', [A1, B1])
+            h.emit('runner:start', {
+                cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {},
+            })
+            const title = '"before all" hook in "{root}"'
+            const rootHook = { cid: CID, specs: [SPEC], uid: 'root-hook', title, fullTitle: title, parent: '', file: SPEC, hookKind: 'beforeAll' }
+            h.emit('hook:start', { ...rootHook, type: 'hook:start' })
+            h.emit('client:beforeCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session' })
+            h.emit('client:afterCommand', { command: 'rootCommand', params: [], cid: CID, sessionId: 'session', result: undefined })
+            h.emit('hook:end', { ...rootHook, type: 'hook:end', state: 'pass' })
+            const keys = [...h.uids.keys()]
+            keys.forEach((key) => h.emit('suite:start', h.suiteMessage('suite:start', key)))
+            interleave([A1, B1].map((test) => scriptOf(h, test)))
+            keys.reverse().forEach((key) => h.emit('suite:end', h.suiteMessage('suite:end', key)))
+            h.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
+            await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
+            const { results, containers } = getResults(h.outputDir)
+
+            const rootFixtures = containers.flatMap((c: Result) => fixtures(c, 'befores')).filter((f: Result) => f.name === title)
+            expect(rootFixtures.map((f: Result) => stepNames(f.steps))).toEqual([['rootCommand']])
+            for (const test of [A1, B1]) {
+                const result = byName(results, test.title)
+                expect(stepNames(result.steps)).not.toContain('rootCommand')
+                expect(childrenOf(containers, result).flatMap((c) => fixtures(c, 'befores')).map((f: Result) => f.name)).toContain(title)
+            }
+        })
+    })
+
+    describe('failed before all hooks', () => {
+        it('keeps a distinct history id when two suites share the same hook title', async () => {
+            const first: PlannedTest = { id: 'h1', title: 'first', suites: ['Outer A', 'Shared'], outcome: 'hook-fail' }
+            const second: PlannedTest = { id: 'h2', title: 'second', suites: ['Outer B', 'Shared'], outcome: 'hook-fail' }
+            const { results } = await play('parallel', [first, second])
+
+            const hookResults = results.filter((r) => r.name === '"before all" hook for Shared')
+            expect(hookResults).toHaveLength(2)
+            expect(hookResults.map((r) => r.statusDetails.message)).toEqual([
+                'before all exploded',
+                'before all exploded',
+            ])
+            const historyIds = hookResults.map((r) => r.historyId)
+            expect(historyIds.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
+            expect(new Set(historyIds).size).toBe(2)
+        })
+
+        it('gives a hook the same history id in sequential and parallel mode', async () => {
+            const tests: PlannedTest[] = [
+                { id: 's1', title: 'first', suites: ['Outer', 'Inner'], outcome: 'hook-fail' },
+                { id: 's2', title: 'second', suites: ['Outer', 'Inner'], outcome: 'hook-fail' },
+            ]
+            const sequential = await play('sequential', tests)
+            const parallel = await play('parallel', tests)
+            const ids = (results: Result[]) =>
+                [...new Set(results.filter((r) => r.name === '"before all" hook for Inner').map((r) => r.historyId))]
+
+            // the suite path does not depend on which lane happened to be open
+            expect(ids(sequential.results)).toEqual(ids(parallel.results))
+            expect(ids(parallel.results)).toHaveLength(1)
+        })
+    })
+
+    describe('failed each hooks', () => {
+        it('keeps a distinct history id per test when one afterEach fails for both', async () => {
+            const first: PlannedTest = { id: 'e1', title: 'first', suites: ['Shared'], outcome: 'pass', afterEachFails: true }
+            const second: PlannedTest = { id: 'e2', title: 'second', suites: ['Shared'], outcome: 'pass', afterEachFails: true }
+            const { results } = await play('parallel', [first, second])
+
+            const hookResults = results.filter((r) => r.name === '"after each" hook for Shared')
+            expect(hookResults).toHaveLength(2)
+            const historyIds = hookResults.map((r) => r.historyId)
+            // one id would make Allure read the two failures as retries of a single result
+            expect(historyIds.every((id) => typeof id === 'string' && id.length > 0)).toBe(true)
+            expect(new Set(historyIds).size).toBe(2)
+        })
+    })
+
     describe('result timing and console logs', () => {
         const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
 
@@ -586,7 +667,7 @@ describe('Mocha parallel mode', () => {
         ]
 
         // the sequence a Mocha run with this.retries(2) sends, which the Vitest bridge reproduces in one lane
-        async function playRetried(mode: Mode) {
+        async function playRetried(mode: Mode, endEachAttempt = false) {
             const h = createHarness(mode, [RETRIED])
             const { emit, message } = h
             emit('runner:start', {
@@ -600,12 +681,17 @@ describe('Mocha parallel mode', () => {
                 process.emit(events.startStep as any, `step-${attempt}` as any)
                 h.reporter.addAttachment({ name: `attachment-${attempt}`, content: `content ${attempt}`, type: 'text/plain' })
                 process.emit(events.endStep as any, 'passed' as any)
+                process.stdout.write(`log ${attempt}\n`)
                 if (final) {
                     emit('test:pass', message('test:pass', RETRIED, uid, { duration: 1, passed: true }))
                     emit('test:end', message('test:end', RETRIED, uid, { duration: 1, passed: true }))
                 } else {
                     const error = { name: 'AssertionError', message: `fail ${attempt}`, stack: `AssertionError: fail ${attempt}` }
                     emit('test:retry', message('test:retry', RETRIED, uid, { duration: 1, error, pending: false }))
+                    // test:start, test:end, test:start in one context
+                    if (endEachAttempt) {
+                        emit('test:end', message('test:end', RETRIED, uid, { duration: 1, error, pending: false }))
+                    }
                 }
             }))
             if (mode === 'parallel') {
@@ -623,6 +709,10 @@ describe('Mocha parallel mode', () => {
                 steps: stepNames(r.steps).filter((name) => name.startsWith('step-')),
                 attachments: [...r.attachments ?? [], ...r.steps.flatMap((s: Result) => s.attachments ?? [])]
                     .filter((a: Result) => a.name.startsWith('attachment-')).map((a: Result) => attachmentText(h.outputDir, a)),
+                logs: (r.attachments ?? []).filter((a: Result) => a.name === 'Console Logs')
+                    .map((a: Result) => attachmentText(h.outputDir, a).replace('.........Console Logs.........\n\n', '')),
+                historyId: r.historyId,
+                fullName: r.fullName,
             }))
             .sort((a, b) => a.steps[0]?.localeCompare(b.steps[0]))
 
@@ -633,6 +723,17 @@ describe('Mocha parallel mode', () => {
             expect(sequential.map((r) => r.status)).toEqual(['failed', 'failed', 'passed'])
             expect(sequential.map((r) => r.steps)).toEqual([['step-0'], ['step-1'], ['step-2']])
             expect(sequential.map((r) => r.attachments)).toEqual([['content 0'], ['content 1'], ['content 2']])
+            expect(parallel).toEqual(sequential)
+        })
+
+        it('keeps the console logs of each attempt when a failed attempt sends test:end, and one historyId for all attempts', async () => {
+            const sequential = attempts(await playRetried('sequential', true))
+            const parallel = attempts(await playRetried('parallel', true))
+
+            expect(sequential.map((r) => r.logs)).toEqual([['log 0\n'], ['log 1\n'], ['log 2\n']])
+            expect(new Set(sequential.map((r) => r.historyId)).size).toBe(1)
+            // md5('R flaky#chrome'): no uuid, context, cid or attempt in it
+            expect(sequential[0].historyId).toBe('7b360d3d5d9819a0e2dd8ef5dd11de41')
             expect(parallel).toEqual(sequential)
         })
     })

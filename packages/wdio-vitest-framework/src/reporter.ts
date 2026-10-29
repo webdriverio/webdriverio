@@ -14,7 +14,7 @@ const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporte
 
 type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
-type AllHookName = 'beforeAll' | 'afterAll'
+type AllHookName = Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
 type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
 
 type ModuleRun = {
@@ -302,6 +302,7 @@ export class WdioBridgeReporter implements Reporter {
             // HookStats links a hook to its test by title, e.g. for the JSON reporter's associatedTest
             currentTest: test.title,
             ...(test.contextId !== undefined && { contextId: test.contextId }),
+            hookKind: kind,
             ...(retried && { retried }),
             // the test (attempt) failed with this error: reporters show the hook, but do not count it again
             ...(outcome.state === 'fail' && testFailed && { failedTestUid: test.uid })
@@ -427,7 +428,10 @@ export class WdioBridgeReporter implements Reporter {
         hookNames.forEach((hookName, index) => {
             const kind = HOOK_KIND[hookName]
             const hookTitle = `"${kind}" hook in "${title}"`
-            const hook = { title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}` }
+            const hook = {
+                title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}`,
+                hookKind: hookName, hookSuiteUid: parent.uid
+            }
             const own = hookNames.length > 1 && errors.length > 1 ? errors[index === 0 ? 0 : errors.length - 1] : errors[0]
             const error = toErrorPayload(own ?? { message: `${hookName} hook failed` })
             this.#emit(run, 'hook:start', hook)

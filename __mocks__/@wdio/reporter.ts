@@ -66,9 +66,56 @@ export default class WDIOReporter extends EventEmitter {
         return undefined
     }
 
+    getContextOwner (): TestStats | HookStats | undefined {
+        return this.getContextTest()
+    }
+
     getContextId (): string | undefined {
         return undefined
     }
+
+    parentOf (_stats: unknown): SuiteStats | undefined {
+        return undefined
+    }
+
+    pathOf (_stats: unknown): SuiteStats[] {
+        return []
+    }
+
+    depthOf (_stats: unknown): number {
+        return 0
+    }
+
+    getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    isFeatureHook (hook: unknown): boolean {
+        return this.parentOf(hook)?.type === 'feature'
+    }
+
+    unitOf (_stats: unknown): ReporterModule.ReporterUnit | undefined {
+        return undefined
+    }
+
+    hookOwner (_hook: unknown): ReporterModule.ReporterUnit | SuiteStats | undefined {
+        return undefined
+    }
+
+    unitState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
+        return undefined
+    }
+
+    attemptState<T> (_key: unknown, _init: (unit: ReporterModule.ReporterUnit) => T, _target?: string | ReporterModule.ReporterUnit): T | undefined {
+        return undefined
+    }
+
+    /* istanbul ignore next */
+    onUnitStart (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitRetry (_unit: ReporterModule.ReporterUnit) {}
+    /* istanbul ignore next */
+    onUnitEnd (_unit: ReporterModule.ReporterUnit) {}
 
     /* istanbul ignore next */
     onRunnerStart () {}
@@ -97,6 +144,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName, knownFramework, hookCountsAsFailure } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
+const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, knownFramework, hookCountsAsFailure }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, hookCountsAsFailure, isContextlessAllHook }

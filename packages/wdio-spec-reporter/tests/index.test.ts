@@ -43,7 +43,6 @@ describe('SpecReporter', () => {
     describe('on create', () => {
         it('should verify initial properties', () => {
             expect(reporter['_suiteUids'].size).toBe(0)
-            expect(reporter['_indents']).toBe(0)
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
@@ -244,16 +243,6 @@ describe('SpecReporter', () => {
 
         it('should increase stateCounts.skipped by 1', () => {
             expect(reporter['_stateCounts'].skipped).toBe(1)
-        })
-    })
-
-    describe('onSuiteEnd', () => {
-        beforeAll(() => {
-            reporter.onSuiteEnd()
-        })
-
-        it('should decrease indents', () => {
-            expect(reporter['_indents']).toBe(0)
         })
     })
 
@@ -688,6 +677,21 @@ describe('SpecReporter', () => {
             expect(result[0].hooks.length).toBe(1)
             expect(result[3].hooks.length).toBe(1)
         })
+
+        it('does not show a root suite hook that the framework skipped', () => {
+            tmpReporter['_suiteUids'] = new Set(['5'])
+            tmpReporter.suites = { '5': { uid: 5 } } as any
+            tmpReporter.currentSuites = [{
+                hooks: [{
+                    type: 'hook',
+                    title: '"before all" hook in "{root}"',
+                    state: 'skipped'
+                }]
+            }] as any
+            const result = tmpReporter.getOrderedSuites()
+            expect(result[0].hooks).toEqual([])
+            expect(result.at(-1)!.hooks).toEqual([])
+        })
     })
 
     describe('indent', () => {
@@ -779,16 +783,14 @@ describe('SpecReporter', () => {
 
         it('should add pending reason to report for skipped tests', () => {
             tmpReporter = new SpecReporter(options)
-            tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter.onTestSkip({
-                title:'test1',
-                state:State.SKIPPED,
-                pendingReason:'some random Reasons'
-            } as any)
-            const result = tmpReporter.getResultDisplay().toString()
-            expect(result).toContain('Pending Reasons')
-            expect(result).toContain('some random Reasons')
+            const suite = Object.values(SUITES)[2] as any
+            tmpReporter.onSuiteStart(suite)
+            const skipped = { ...suite.tests[1], pendingReason: 'some random Reasons' }
+            tmpReporter['_orderedSuites'] = [{ ...suite, tests: [suite.tests[0], skipped], hooksAndTests: [suite.tests[0], skipped] }] as any
+            tmpReporter.onTestSkip(skipped)
+            const result = tmpReporter.getResultDisplay().join('\n')
+            // under its own test, not under the first printed test
+            expect(result).toMatch(/foo bar baz\n.*a skipped test\n\n.*Pending Reasons.*\n\s+some random Reasons/)
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -1014,6 +1016,15 @@ describe('SpecReporter', () => {
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
+        it('names a remote app URL by its file name, without credentials and token', () => {
+            const app = 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            expect(tmpReporter.getEnviromentCombo({
+                a: { platformName: 'Android', 'appium:app': app },
+                b: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on my.apk and chrome')
+            expect(tmpReporter.getEnviromentCombo({ platformName: 'Android', 'appium:app': app } as any)).toBe('my.apk on Android')
+        })
+
         it('should not throw if mutliremote name is "app"', () => {
             expect(tmpReporter.getEnviromentCombo({
                 app: {
@@ -1021,6 +1032,19 @@ describe('SpecReporter', () => {
                     platform: 'Windows 8.1'
                 }
             } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
+        })
+
+        it('names an Appium device of a multi-remote run, and a session that did not start', () => {
+            // Appium returns its capabilities without the `appium:` prefix
+            expect(tmpReporter.getEnviromentCombo({
+                myPhone: { platformName: 'iOS', deviceName: 'iPhone 17' },
+                myBrowser: { browserName: 'chrome' }
+            } as any, true, true)).toBe('MultiRemoteBrowser on iPhone 17 and chrome')
+            expect(tmpReporter.getEnviromentCombo({
+                myBrowser: { capabilities: { browserName: 'chrome' } },
+                myOther: { capabilities: { browserName: 'firefox' } }
+            } as any, false, true)).toBe('MultiRemoteBrowser on chrome and firefox')
+            expect(tmpReporter.getEnviromentCombo({ a: { platformName: 'linux' } } as any, true, true)).toBe('MultiRemoteBrowser')
         })
 
         it('should return verbose desktop combo', () => {

@@ -51,7 +51,8 @@ const hookPayload = (type: string, error?: Error) => ({
     failedExpectations: [],
     deprecationWarnings: [],
     status: '',
-    pendingReason: ''
+    pendingReason: '',
+    hookKind: `${type}All`
 })
 
 const adapterFactory = (config = {}) => new JasmineAdapter(

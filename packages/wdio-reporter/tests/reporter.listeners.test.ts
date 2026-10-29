@@ -494,6 +494,23 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
             expect(reporter.hooks[hookStartEvent.uid!]).toMatchObject({ failedTestUid: 'test-1', retried: true })
         })
+
+        it('a hook:end with no hook:start throws its first error, not an error of the cleanup', () => {
+            reporter.emit('runner:start', runnerStartEvent)
+            const errorOf = (payload: Record<string, unknown>) => {
+                try {
+                    reporter.emit('hook:end', { uid: 'unknown', title: 'x', ...payload })
+                } catch (err) {
+                    return err as Error
+                }
+            }
+            for (const [payload, message] of [[{}, "reading 'complete'"], [{ retried: true }, "setting 'retried'"]] as const) {
+                const error = errorOf(payload)
+                expect(error).toBeInstanceOf(TypeError)
+                expect(error!.message).not.toContain('contextId')
+                expect(error!.message).toContain(message)
+            }
+        })
     })
 
     describe('handling test:start', () => {

@@ -490,6 +490,180 @@ describe('CucumberFormatter', () => {
         return wdioReporter.emit.mock.calls
     }
 
+    describe('step level: hookKind from the Cucumber hook type', () => {
+        const hookCalls = (eventBroadcaster: EventEmitter, testStepId: string) =>
+            stepEvents(eventBroadcaster, { status: 'PASSED' }, 0, testStepId).filter(([name]: [string]) => name.startsWith('hook:'))
+
+        it.each([
+            ['BEFORE_TEST_CASE', 'beforeEach'],
+            ['AFTER_TEST_CASE', 'afterEach'],
+            ['BEFORE_TEST_STEP', 'beforeStep'],
+            ['AFTER_TEST_STEP', 'afterStep'],
+            ['BEFORE_TEST_RUN', 'beforeAll'],
+            ['AFTER_TEST_RUN', 'afterAll'],
+        ])('a %s hook is a %s hook on hook:start and hook:end', (type, kind) => {
+            const { eventBroadcaster } = stepLevelFormatter()
+            eventBroadcaster.emit('envelope', { hook: { id: '21', name: 'my hook', type } })
+            const calls = hookCalls(eventBroadcaster, '24')
+            expect(calls.map(([name, payload]: [string, Record<string, unknown>]) => [name, payload.uid, payload.hookKind])).toEqual([
+                ['hook:start', '24', kind], ['hook:end', '24', kind]
+            ])
+        })
+
+        it('sends no hookKind for a hook with no type (older Cucumber versions)', () => {
+            const { eventBroadcaster } = stepLevelFormatter()
+            eventBroadcaster.emit('envelope', { hook: { id: '19', name: 'my hook' } })
+            const calls = hookCalls(eventBroadcaster, '27')
+            expect(calls.map(([name]: [string]) => name)).toEqual(['hook:start', 'hook:end'])
+            for (const [, payload] of calls) {
+                expect(payload).not.toHaveProperty('hookKind')
+            }
+        })
+    })
+
+    describe('run hooks', () => {
+        let lastFormatter: CucumberFormatter
+        let failedCount: number | undefined
+        const userRunHooks = {
+            'h-r1': { kind: 'BeforeAll', uri: path.join(process.cwd(), 'steps.ts'), line: 23 },
+            'h-r2': { kind: 'BeforeAll', name: 'second' },
+            'h-a1': { kind: 'AfterAll', uri: path.join(process.cwd(), 'steps.ts'), line: 23 },
+        }
+        const formatterFor = (scenarioLevelReporter = false) => {
+            const eventBroadcaster = new EventEmitter()
+            const eventEmitter = new EventEmitter()
+            failedCount = undefined
+            eventEmitter.on('getFailedCount', (count: number) => { failedCount = count })
+            lastFormatter = new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: { _reporter: wdioReporter, _cid: cid, _specs: specs, _eventEmitter: eventEmitter, _scenarioLevelReporter: scenarioLevelReporter, _tagsInTitle: false, _ignoreUndefinedDefinitions: false, _failAmbiguousDefinitions: true, _rootDir: '/some/path/to', _userRunHooks: userRunHooks },
+            } as any)
+            return eventBroadcaster
+        }
+        const startHook = (eventBroadcaster: EventEmitter, hookId: string, id = `s-${hookId}`) =>
+            eventBroadcaster.emit('envelope', { testRunHookStarted: { id, hookId, testRunStartedId: 't' } })
+        const finishHook = (eventBroadcaster: EventEmitter, hookId: string, status: string, id = `s-${hookId}`) =>
+            eventBroadcaster.emit('envelope', { testRunHookFinished: { testRunHookStartedId: id, result: { status, message: 'Error: BeforeAll fails\n    at steps.ts:23', exception: { type: 'Error', message: 'BeforeAll fails' }, duration: { seconds: 0, nanos: 0 } } } })
+        const runHook = (eventBroadcaster: EventEmitter, hookId: string, status: string) => {
+            startHook(eventBroadcaster, hookId)
+            finishHook(eventBroadcaster, hookId, status)
+        }
+        const events = () => wdioReporter.emit.mock.calls.map(([event]) => event as string)
+        const payloadOf = (event: string) => wdioReporter.emit.mock.calls.find(([name]) => name === event)?.[1] as Record<string, any>
+        const startRun = (eventBroadcaster: EventEmitter) => {
+            eventBroadcaster.emit('envelope', { gherkinDocument })
+            eventBroadcaster.emit('envelope', { pickle })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testRunStarted })
+        }
+
+        it.each([false, true])('sends a BeforeAll at its start, before it ends (scenarioLevelReporter: %s)', (scenarioLevelReporter) => {
+            const eventBroadcaster = formatterFor(scenarioLevelReporter)
+            startRun(eventBroadcaster)
+            startHook(eventBroadcaster, 'h-r1')
+            expect(events()).toEqual(['suite:start', 'hook:start'])
+            expect(payloadOf('hook:start')).not.toHaveProperty('error')
+            expect(payloadOf('hook:start')).not.toHaveProperty('state')
+            finishHook(eventBroadcaster, 'h-r1', 'FAILED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
+            const hook = payloadOf('hook:end')
+            const featureUid = payloadOf('suite:start').uid
+            expect(hook).toMatchObject({ type: 'hook', uid: 's-h-r1', title: 'BeforeAll (steps.ts:23)', state: 'failed', parentUid: featureUid, hookKind: 'beforeAll', hookSuiteUid: featureUid })
+            expect(hook).not.toHaveProperty('contextId')
+            expect(hook.error.message).toBe('BeforeAll fails')
+            expect(failedCount).toBe(1)
+        })
+
+        it('sends a passed run hook with no state', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            runHook(eventBroadcaster, 'h-r1', 'PASSED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
+            expect(payloadOf('hook:end')).not.toHaveProperty('state')
+            expect(failedCount).toBe(0)
+        })
+
+        it('sends a skipped run hook in a dry run', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            runHook(eventBroadcaster, 'h-r1', 'SKIPPED')
+            expect(payloadOf('hook:end').state).toBe('skipped')
+        })
+
+        it('sends a failed AfterAll before the end of the feature', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            runHook(eventBroadcaster, 'h-a1', 'FAILED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['hook:start', 'hook:end', 'suite:end'])
+            expect(payloadOf('hook:end')).toMatchObject({ title: 'AfterAll (steps.ts:23)', hookKind: 'afterAll' })
+        })
+
+        it('sends nothing for WDIO run hooks', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            expect(() => runHook(eventBroadcaster, 'h-wdio', 'PASSED')).not.toThrow()
+            expect(events()).toEqual([])
+        })
+
+        // a WebdriverIO run hook fails only on a Cucumber timeout: it sends no event, but fails the run
+        it('counts a failed WDIO run hook as a failure of the run', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            runHook(eventBroadcaster, 'h-wdio', 'FAILED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:end'])
+            expect(failedCount).toBe(1)
+        })
+
+        it('sends every BeforeAll, also after a failed one', () => {
+            const eventBroadcaster = formatterFor()
+            startRun(eventBroadcaster)
+            runHook(eventBroadcaster, 'h-r1', 'FAILED')
+            runHook(eventBroadcaster, 'h-r2', 'PASSED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:start', 'hook:start', 'hook:end', 'hook:start', 'hook:end', 'suite:end'])
+            expect(wdioReporter.emit.mock.calls.filter(([name]) => name === 'hook:end').map(([, payload]) => payload.title)).toEqual(['BeforeAll (steps.ts:23)', 'BeforeAll "second"'])
+            expect(failedCount).toBe(1)
+        })
+
+        it('opens and closes the first feature once in spec grouping', () => {
+            const eventBroadcaster = formatterFor()
+            eventBroadcaster.emit('envelope', { gherkinDocument })
+            eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, uri: '/other.feature' } })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testRunStarted })
+            startHook(eventBroadcaster, 'h-r1')
+            expect(events()).toEqual(['suite:start', 'hook:start'])
+            finishHook(eventBroadcaster, 'h-r1', 'FAILED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
+            expect(payloadOf('suite:start').file).toBe(payloadOf('suite:end').file)
+            expect(payloadOf('suite:end').file).toBeDefined()
+        })
+
+        it('sends an AfterAll under the last feature part in spec grouping', () => {
+            const eventBroadcaster = formatterFor()
+            const otherDoc = { ...gherkinDocument, uri: '/other.feature' }
+            eventBroadcaster.emit('envelope', { gherkinDocument })
+            eventBroadcaster.emit('envelope', { gherkinDocument: otherDoc })
+            eventBroadcaster.emit('envelope', { testRunStarted })
+            // the scenarios of the last feature ran: its part is open
+            lastFormatter.startFeaturePart(otherDoc as any)
+            wdioReporter.emit.mockClear()
+            runHook(eventBroadcaster, 'h-a1', 'PASSED')
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(events()).toEqual(['hook:start', 'hook:end', 'suite:end'])
+            expect(payloadOf('hook:start').parentUid).toBe(payloadOf('suite:end').uid)
+            expect(payloadOf('suite:end').file).toBe('/other.feature')
+        })
+    })
+
     describe('step level: a step that fails in an attempt that Cucumber retries', () => {
         const failed = { status: 'FAILED', message: 'first try fails' }
         const names = (calls: [string, unknown][]) => calls.map(([event]) => event).filter((event) => event.startsWith('test:'))

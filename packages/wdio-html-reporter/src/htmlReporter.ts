@@ -3,16 +3,16 @@ import type {
     CommandArgs,
     HookStats,
     RunnerStats,
-    SuiteStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
 import { writeFile } from './files.js'
+import { headerBrowserName } from './browserName.js'
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -61,8 +61,10 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         end: runner.end,
         _duration: runner._duration,
         isMultiRemote: runner.isMultiRemote,
-        retry: runner.retry,
+        retry: runner.specFileAttempt,
         capabilities,
+        // the names of the full capabilities: the reduced copy above cannot name an app
+        browserNames: getSessionNames(runner.capabilities, runner.isMultiRemote),
         // the runner gives the error of a session that did not start; its text can have credentials
         ...(runner.error ? { sessionFailed: true } : {})
     } as unknown as RunnerStats
@@ -96,8 +98,19 @@ export default class HtmlReporter extends WDIOReporter {
     #contextTests = new Map<string, string>()
     /** parallel mode: the events of a context before its test starts (a before hook) */
     #earlyEvents = new Map<string, ReportEvent[]>()
+    /**
+     * sequential mode: the events with no test context of each suite in which no test started yet
+     * (a `before all` or Cucumber `Before` hook, or the root suite before any suite), for its next test
+     */
+    #suiteEvents = new Map<SuiteStats, ReportEvent[]>()
+    /** sequential mode: the suites in which a test started */
+    #startedSuites = new WeakSet<SuiteStats>()
+    /** parallel mode: a test of a context started (a skipped test never starts); until then, events with no context wait */
+    #contextTestStarted = false
     /** the screenshot files of `useOnAfterCommandForScreenshot` */
     #screenshotFiles = new Set<string>()
+    /** the end of the last failed attempt of a retried scenario (the suite keeps the start of its first attempt) */
+    #attemptEnds = new WeakMap<SuiteStats, Date>()
     #noContextWarned = false
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
@@ -107,6 +120,7 @@ export default class HtmlReporter extends WDIOReporter {
     #onMessageEvent = ({ value }: { value: unknown }) => this.saveMessage(value)
     #onScreenshotEvent = ({ value }: { value: string }) => this.saveScreenshot(value)
     #onVideoEvent = ({ value }: { value: string }) => this.saveVideo(value)
+    #configuredBrowserName: string | undefined
 
     constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
@@ -117,6 +131,7 @@ export default class HtmlReporter extends WDIOReporter {
         const opts = new HtmlReporterOptions()
         opts.stdout = true
         this.options = Object.assign(opts, options)
+        this.#configuredBrowserName = options.browserName
         const dir = path.join(this.options.outputDir, 'screenshots')
 
         fs.mkdirSync(dir, { recursive: true })
@@ -135,14 +150,22 @@ export default class HtmlReporter extends WDIOReporter {
         const contextOf = (contextId?: string) => contextId ?? this.getContextId() ?? ''
         // after the base reporter: its hook stats have the error. The test:retry of the attempt shows a retried hook (Vitest)
         this.on('hook:end', (hook: { uid: string, contextId?: string }) => {
-            if (this.hooks[hook.uid] && hookCountsAsFailure(this.hooks[hook.uid]) && !this.#countScenarios) {
+            const stats = this.hooks[hook.uid]
+            // a failed Cucumber BeforeAll / AfterAll fails no scenario
+            if (stats && hookCountsAsFailure(stats) && (!this.#countScenarios || this.isFeatureHook(stats))) {
                 const key = contextOf(hook.contextId)
                 this.#openHookFailures.set(key, (this.#openHookFailures.get(key) ?? 0) + 1)
             }
         })
         this.on('test:fail', ({ contextId }: { contextId?: string }) => !this.#countScenarios && this.#openHookFailures.delete(contextOf(contextId)))
         // a Cucumber retry runs in the same context: its Before hook events are for the first step of the retry
-        this.on('suite:retry', ({ contextId }: { contextId?: string }) => contextId && this.#contextTests.delete(contextId))
+        this.on('suite:retry', ({ uid, contextId }: { uid: string, contextId?: string }) => {
+            if (contextId) {
+                this.#contextTests.delete(contextId)
+            } else if (this.suites[uid]) {
+                this.#startedSuites.delete(this.suites[uid])
+            }
+        })
     }
 
     get isSynchronised() : boolean {
@@ -174,26 +197,66 @@ export default class HtmlReporter extends WDIOReporter {
     onTestStart(theTest: TestStats) {
         this.LOG.info(`onTestStart: ${theTest.cid}:${theTest.uid}`)
         this._currentTestUid = theTest.uid
+        this.#registerTest(theTest)
+        this.#takeEarlyEvents(theTest, true)
+    }
+
+    #registerTest(test: TestStats) {
         //@ts-ignore
-        theTest.events = []
+        test.events = []
         //@ts-ignore
-        theTest.errorIndex = 0
-        this._testUids.set(theTest.uid, theTest)
-        this.#takeEarlyEvents(theTest)
+        test.errorIndex = 0
+        this._testUids.set(test.uid, test)
     }
 
     /**
-     * parallel mode: the test is the test of its context, and it takes the events
-     * that its context sent before (a before hook)
+     * The test takes the events that came before it (a before hook): in parallel mode
+     * the events of its context, in sequential mode those of all the waiting suites
      */
-    #takeEarlyEvents(test: TestStats) {
-        if (!test.contextId) {
-            return
-        }
-        this.#contextTests.set(test.contextId, test.uid)
+    #takeEarlyEvents(test: TestStats, started = false) {
         //@ts-ignore
-        test.events.push(...this.#earlyEvents.get(test.contextId) ?? [])
-        this.#earlyEvents.delete(test.contextId)
+        const events: ReportEvent[] = test.events
+        if (test.contextId) {
+            // the first parallel test that starts also takes the events from before any context (the config `before` hook)
+            if (started && !this.#contextTestStarted) {
+                this.#contextTestStarted = true
+                this.#takeWaitingEvents(events)
+            }
+            this.#contextTests.set(test.contextId, test.uid)
+            events.push(...this.#earlyEvents.get(test.contextId) ?? [])
+            this.#earlyEvents.delete(test.contextId)
+        } else {
+            this.#takeWaitingEvents(events)
+        }
+    }
+
+    /** the waiting events of the open suites, the outer suite first (the first parallel test also takes those of the other suites) */
+    #takeWaitingEvents(events: ReportEvent[]) {
+        for (const suite of [...this.currentSuites, ...this.#suiteEvents.keys()]) {
+            events.push(...this.#suiteEvents.get(suite) ?? [])
+            this.#suiteEvents.delete(suite)
+            this.#startedSuites.add(suite)
+        }
+    }
+
+    /**
+     * sequential mode: the suite whose next test takes an event with no test context, if no test of it
+     * started: the owner that the base reporter gives to the open hook (the suite of a `before all`,
+     * the scenario of a Cucumber `Before`), else the innermost open suite (a framework with no hook kind)
+     */
+    #waitingSuite(): SuiteStats | undefined {
+        const owner = this.getContextOwner()
+        let suite: SuiteStats | undefined
+        if (owner?.type === 'hook') {
+            const unit = this.unitOf(owner)
+            if (unit?.test) {
+                return undefined
+            }
+            const hookOwner = unit?.stats ?? this.hookOwner(owner as HookStats)
+            suite = hookOwner instanceof SuiteStats ? hookOwner : undefined
+        }
+        suite ??= this.currentSuites.at(-1)
+        return suite && !this.#startedSuites.has(suite) ? suite : undefined
     }
 
     onTestPass(theTest: TestStats) {
@@ -227,14 +290,12 @@ export default class HtmlReporter extends WDIOReporter {
     onTestSkip(test: TestStats) {
         this.LOG.info(`onTestSkip: ${test.cid}:${test.uid}`)
         this.#keepEventsOfStartedTest(test)
-        // parallel mode: a test that a before hook skips (`this.skip()`) never starts, it takes the events of its context
-        if (test.contextId && !this._testUids.has(test.uid)) {
-            //@ts-ignore
-            test.events = []
-            //@ts-ignore
-            test.errorIndex = 0
-            this._testUids.set(test.uid, test)
-            this.#takeEarlyEvents(test)
+        // a test that a before hook skips (`this.skip()`) never starts: in parallel mode it takes the events of its context
+        if (!this._testUids.has(test.uid)) {
+            this.#registerTest(test)
+            if (test.contextId) {
+                this.#takeEarlyEvents(test)
+            }
         }
         if (!this.#countScenarios) {
             this.metrics.skipped++
@@ -279,12 +340,19 @@ export default class HtmlReporter extends WDIOReporter {
      */
     #addEvent(event: ReportEvent, { contextId, moveErrors = true }: { contextId?: string, moveErrors?: boolean } = {}) {
         const id = contextId ?? this.getContextId()
-        if (!id && this.#contextTests.size && !this.#noContextWarned) {
+        if (!id && this.#contextTestStarted && !this.#noContextWarned) {
             this.#noContextWarned = true
             const message = 'An event with no parallel-mode test context (from code that runs outside a test, such as ' +
                 'an `AfterAll` hook or a `browser.on()` callback) goes to the test that started last.'
             this.LOG.warn(message)
             console.warn(`[@wdio/html-reporter] ${message}`)
+        }
+        const waitingSuite = !id && !this.#contextTestStarted ? this.#waitingSuite() : undefined
+        if (waitingSuite) {
+            const waiting = this.#suiteEvents.get(waitingSuite) ?? []
+            waiting.push(event)
+            this.#suiteEvents.set(waitingSuite, waiting)
+            return
         }
         const uid = id ? this.#contextTests.get(id) : this._currentTestUid
         const test = uid ? this.getTest(uid) : undefined
@@ -304,6 +372,34 @@ export default class HtmlReporter extends WDIOReporter {
         }
     }
 
+    /**
+     * sequential mode: no test of the suite started (`this.skip()` or `it.skip`, a failed
+     * before hook with `failHookAffectedTests: false`): its events go to the first test of
+     * the suite or of its child suites, else to the test before, else to nothing (not to a
+     * test of the next suite). The events of its parent suite still wait for the parent's next test
+     */
+    #endWaiting(suite: SuiteStats) {
+        const waiting = this.#suiteEvents.get(suite)
+        if (this.#contextTestStarted || !waiting) {
+            return
+        }
+        this.#suiteEvents.delete(suite)
+        const firstTest = this.#firstTest(suite)
+        if (firstTest) {
+            // the events of a child suite are already there: the outer events come first
+            //@ts-ignore
+            firstTest.events.unshift(...waiting)
+        } else {
+            //@ts-ignore
+            this.getTest(this._currentTestUid)?.events.push(...waiting)
+        }
+    }
+
+    #firstTest(suite: SuiteStats): TestStats | undefined {
+        const test = suite.tests?.find((test) => this._testUids.get(test.uid) === test)
+        return test ?? suite.suites?.reduce<TestStats | undefined>((found, child) => found ?? this.#firstTest(child), undefined)
+    }
+
     onHookStart(hook: HookStats) {
         this.LOG.info(`onHookStart: ${hook.cid}:${hook.uid}`)
     }
@@ -320,9 +416,49 @@ export default class HtmlReporter extends WDIOReporter {
         this.#openHookFailures.clear()
     }
 
+    /**
+     * A retried test (Mocha `retries`, Cucumber scenario level, Vitest): the failed attempt stays in the report
+     * as its own entry. A failed step of a Cucumber scenario attempt has no label: its scenario has it
+     */
+    onTestRetry(test: TestStats) {
+        // no test:end comes for a retried Mocha attempt: show its error now
+        this.moveErrorsToEvents(test)
+        const unit = this.unitOf(test)
+        if (!(unit?.stats instanceof SuiteStats)) {
+            test.title = `${test.title} (attempt ${(unit?.attempt ?? 0) + 1}, retried)`
+        }
+    }
+
+    /**
+     * Cucumber `retry` (step level): the failed attempt stays in the report as its own entry, with its own
+     * times, before the base clears the suite for the next attempt. Only the last attempt counts
+     */
+    onSuiteRetry(suite: SuiteStats) {
+        const attempt: SuiteStats = Object.assign(Object.create(Object.getPrototypeOf(suite)), suite, {
+            // the base counts the retry before this call
+            title: `${suite.title} (attempt ${suite.retries}, retried)`,
+            tests: [...suite.tests],
+            hooks: [...suite.hooks],
+            hooksAndTests: [...suite.hooksAndTests],
+            suites: [...suite.suites],
+            // its retried step is its failure (retried attempts are skipped only in the last attempt)
+            retriedAttempt: true
+        })
+        attempt.start = this.#attemptEnds.get(suite) ?? suite.start
+        attempt.complete()
+        this.#attemptEnds.set(suite, attempt.end!)
+        // a Cucumber scenario is always in its feature
+        const siblings = this.parentOf(suite)?.suites
+        const index = siblings?.indexOf(suite) ?? -1
+        if (siblings && index >= 0) {
+            siblings.splice(index, 0, attempt)
+        }
+    }
+
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
+        this.#endWaiting(suite)
         this.#countOpenHookFailures()
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
@@ -393,7 +529,7 @@ export default class HtmlReporter extends WDIOReporter {
             suites,
             this.metrics,
             reportFile,
-            this.options.browserName)
+            headerBrowserName(this.#configuredBrowserName, [runner], this.options.browserName))
     }
 
     /**
@@ -403,7 +539,9 @@ export default class HtmlReporter extends WDIOReporter {
      */
     rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
         const root = this.currentSuites[0]
-        if (!root || (!root.tests.length && !root.hooks.some((hook) => hook.error))) {
+        // a root hook keeps its commands in its own output, which only `removeOutput: false` writes
+        const keep = (hook: HookStats) => hook.error || (!this.options.removeOutput && hook.output?.length)
+        if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
         return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {

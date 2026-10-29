@@ -196,6 +196,8 @@ export default class JasmineReporter {
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {
+        const parent = this._parent.length ? this.getUniqueIdentifier(this._parent[this._parent.length - 1]) : null
+        const hookKind = (payload as TestEvent).hookKind
         const message = {
             cid: this._cid,
             uid: this.getUniqueIdentifier(payload),
@@ -204,7 +206,7 @@ export default class JasmineReporter {
             fullTitle: payload.fullName,
             pending: payload.status === 'pending',
             pendingReason: (payload as TestEvent).pendingReason,
-            parent: this._parent.length ? this.getUniqueIdentifier(this._parent[this._parent.length - 1]) : null,
+            parent,
             type: payload.type,
             // We maintain the single error property for backwards compatibility with reporters
             // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
@@ -214,7 +216,9 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            file: payload.filename
+            file: payload.filename,
+            // an all-hook runs in the suite that declares it; a top-level one has no suite event
+            ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }
 
         this._reporter.emit(event, message)

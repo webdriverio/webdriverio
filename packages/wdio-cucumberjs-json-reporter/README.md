@@ -280,7 +280,7 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
 
 ## Parallel mode
 
-The reporter does not support [`cucumberOpts.parallelMode`](https://webdriver.io/docs/parallel-tests) yet. When scenarios run at the same time, steps and attachments can be in the wrong scenario of the JSON file, and the reporter logs a warning.
+The reporter supports [`cucumberOpts.parallelMode`](https://webdriver.io/docs/parallel-tests): each scenario keeps its own steps, hooks, step lines and attachments. An attachment from code that runs outside a scenario, such as the WebdriverIO `after` hook, goes to the scenario that started last. A failed `BeforeAll` or `AfterAll` hook is not in the JSON, because it has no scenario to attach to.
 
 ## Older WebdriverIO Versions
 

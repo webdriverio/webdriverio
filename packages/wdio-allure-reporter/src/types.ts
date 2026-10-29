@@ -210,6 +210,9 @@ export type WDIOTestStartMessage = {
     data: {
         name: string
         start: number
+        uuid?: string
+        // the result of a failed hook next to the test that ended: the next hooks stay on that test
+        standalone?: boolean
     }
 }
 
@@ -242,6 +245,8 @@ export type WDIOHookStartMessage = {
         name: string
         type: 'before' | 'after'
         start: number
+        // from the hook kind of the framework: an all-hook of the root suite, another all-hook, an each-hook; else the title decides
+        scope?: 'root' | 'all' | 'each'
     }
 }
 

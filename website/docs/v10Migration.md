@@ -76,6 +76,16 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+### `strict` and profiles
+
+`cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
+
+Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. The `require` and `import` lists of the profile are loaded too, together with the ones in `cucumberOpts`. The `paths`, `requireModule` and `loader` of the profile are not used, and the worker logs a warning: use `specs` and `cucumberOpts.requireModule` (WebdriverIO has its own TypeScript loader). A folder in the `require` or `import` of the profile is not loaded either, with a warning: use a glob such as `features/support/**/*.js`. Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
+
+### `BeforeAll` and `AfterAll` hooks
+
+A Cucumber `BeforeAll` / `AfterAll` is now reported as a hook of the feature, passed or failed (before, a failed one was in no report). The browser commands and console logs of its body belong to the hook: those of an `AfterAll` were on the last step of the last scenario before. Allure shows each one as a fixture of the feature (set `disableMochaHooks: true` to hide the passed ones), and `@wdio/json-reporter` lists it in the `hooks` of the feature. WebdriverIO's own `beforeFeature` / `afterFeature` hooks are not reported.
+
 ### Feature uid
 
 The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. `%`, `:` and `#` in the path are encoded as `%25`, `%3A` and `%23`, so `uid.split(':')[1]` is still the line and a `#` only starts a part number. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
