@@ -1273,10 +1273,6 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     // the protocol commands of a user command start inside its open step: they are its child steps
-    protected get hidesProtocolCommands(): boolean {
-        return false
-    }
-
     onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
         if (!this._commandStepsAllowed()) { return }
         const name = userCommandTitle(payload.command, payload.body)

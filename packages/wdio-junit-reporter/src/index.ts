@@ -718,11 +718,6 @@ class JunitReporter extends WDIOReporter {
     // an empty override opts in to the user commands of WebDriver BiDi sessions
     onBeforeUserCommand() { }
 
-    // the protocol commands of a user command are written under it
-    protected get hidesProtocolCommands(): boolean {
-        return false
-    }
-
     private _format(val: any) {
         return JSON.stringify(limit(val))
     }
