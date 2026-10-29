@@ -569,9 +569,9 @@ Determines the maximum time reporters have to finish uploading all their logs un
 
 ### userCommandEvents
 
-<Option type="Boolean|Object" default="true">
+<Option type="Boolean|Object" default="undefined">
 
-Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. Set `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to not send the commands in the list. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
+Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. When the option is not set, a session with the `wdio:experimentalBiDiCommands` capability (also parallel mode, which needs it) sends the user commands, and other sessions do not, so their reports stay as before. Set `true` to send them in every WebDriver BiDi session, `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to send all except the commands in the list. WebDriver Classic and Appium sessions never send them. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
 
 </Option>
 
