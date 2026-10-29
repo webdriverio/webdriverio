@@ -43,6 +43,8 @@ interface EventBrowser {
     isBidi?: boolean
     isMultiRemote?: boolean
     options?: Pick<Options.Testrunner, 'userCommandEvents'>
+    capabilities?: unknown
+    requestedCapabilities?: unknown
     emit?: (event: string, payload: unknown) => unknown
     listenerCount?: (event: string) => number
     [HAS_USER_COMMAND_LISTENERS]?: () => boolean
@@ -122,10 +124,17 @@ function eventMode (browser: EventBrowser | undefined, command: string): 'send' 
         return undefined
     }
     const option = browser.options?.userCommandEvents
-    if (option === false) {
+    // not set: on only with the `wdio:experimentalBiDiCommands` capability
+    if (option === false || (option === undefined && !hasBidiCommandsFlag(browser))) {
         return undefined
     }
     return (typeof option === 'object' && option.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
+}
+
+function hasBidiCommandsFlag (browser: EventBrowser) {
+    const flag = 'wdio:experimentalBiDiCommands'
+    return Boolean((browser.requestedCapabilities as Record<string, unknown> | undefined)?.[flag]
+        || (browser.capabilities as Record<string, unknown> | undefined)?.[flag])
 }
 
 // with no listener, no copy is made
@@ -313,10 +322,16 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
     const kind = getWdioKind(value)
     if (kind === 'element') {
         const elem = value as { elementId?: unknown, selector?: unknown }
-        return wdioLabel(value as object, 'Element', elem.elementId || elem.selector)
+        // the selector, then the id or "not found"
+        const label = wdioLabel(value as object, 'Element', elem.selector)
+        if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
+            return label
+        }
+        return elem.elementId ? `${label} (id ${String(elem.elementId)})` : `${label} (not found)`
     }
     if (kind === 'element-array') {
-        return wdioLabel(value as object, 'ElementArray', (value as { selector?: unknown }).selector)
+        const label = wdioLabel(value as object, 'ElementArray', (value as { selector?: unknown }).selector)
+        return Array.isArray(value) ? `${label} (${value.length})` : label
     }
     if (kind === 'browser') {
         return 'WebdriverIO.Browser'
