@@ -15,7 +15,7 @@ import type {
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework, userCommandError } from '@wdio/reporter'
+import WDIOReporter, { compactRequest, hookCountsAsFailure, inlineResult, isNoDataResult, knownFramework, resolvedPath, userCommandError, userCommandTitle, userCommandTitleIsCut } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -87,7 +87,7 @@ const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
 const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
 // the result of a user command, until the steps that started after it end
-type UserStep = { done?: { result: AfterUserCommandArgs['result']; stop: number } }
+type UserStep = { name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -1229,7 +1229,22 @@ export default class AllureReporter extends WDIOReporter {
         const named = typeof command.command === 'string' && command.command.length > 0
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
-        this._startCommandStep(stepName, (command as unknown as MaybeBody).body)
+        const body = (command as unknown as MaybeBody).body
+        // a WebDriver Classic session has no open user step, so its steps stay as they are
+        if (!this._inUserStep() || !method || !endpoint) {
+            this._startCommandStep(stepName, body)
+            return
+        }
+        // a child of a user step: the compact request as a parameter, the resolved request as an attachment
+        this._startStep({ name: stepName, start: Date.now() })
+        this._pushRuntimeMessage({ type: 'step_metadata', data: { parameters: [{ name: 'request', value: compactRequest(method, endpoint) }] } })
+        const path = resolvedPath(endpoint, command.sessionId)
+        const hasBody = body !== undefined && !(isObject(body) && isEmptyObject(body))
+        this._attachJSON({ name: 'Request', json: hasBody ? { method, path, body } : { method, path } })
+    }
+
+    private _inUserStep(): boolean {
+        return (this._userSteps.get(this._userStepScope())?.length ?? 0) > 0
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
@@ -1250,17 +1265,27 @@ export default class AllureReporter extends WDIOReporter {
 
         if (!this._commandStepsAllowed()) { return }
         if (!isShot) { this._attachCommandResponse(resUnknown) }
+        const inline = isShot || !this._inUserStep() ? undefined : inlineResult(resUnknown, command.command)
+        if (inline && command.command) {
+            this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${command.command} → ${inline}` } })
+        }
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
     }
 
-    // WebDriver BiDi sessions: the base hides the protocol commands of a user command (a screenshot has no parent)
+    // the protocol commands of a user command start inside its open step: they are its child steps
+    protected get hidesProtocolCommands(): boolean {
+        return false
+    }
+
     onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
         if (!this._commandStepsAllowed()) { return }
-        this._startCommandStep(payload.command, payload.body)
+        const name = userCommandTitle(payload.command, payload.body)
+        // the arguments are in the name: the Request attachment only when the name does not show them all
+        this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
         const scope = this._userStepScope()
         const open = this._userSteps.get(scope) ?? []
         this._userSteps.set(scope, open)
-        const step: UserStep = {}
+        const step: UserStep = { name, command: payload.command }
         open.push(step)
         this._userStepOf.set(payload.id, { scope, open, step })
     }
@@ -1273,13 +1298,18 @@ export default class AllureReporter extends WDIOReporter {
         entry.step.done = { result: payload.result, stop: Date.now() }
         // the runtime ends the last open step: overlapping commands end their steps from the top
         while (entry.open.at(-1)?.done) {
-            this._endUserStep(entry.open.pop()!.done!)
+            const done = entry.open.pop()!
+            this._endUserStep(done.done!, done.name, done.command)
         }
     }
 
-    private _endUserStep({ result, stop }: NonNullable<UserStep['done']>): void {
+    private _endUserStep({ result, stop }: NonNullable<UserStep['done']>, name?: string, command?: string): void {
         if (!('error' in result)) {
-            this._attachCommandResponse(result)
+            if (!isNoDataResult(result, command)) { this._attachCommandResponse(result) }
+            const inline = inlineResult(result, command)
+            if (inline && name) {
+                this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${name} → ${inline}` } })
+            }
             this._endStep({ status: AllureStatusEnum.PASSED, stop })
             return
         }
