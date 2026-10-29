@@ -331,7 +331,7 @@ android=new UiSelector().text("Submit")
 
 ### Using `get_elements`
 
-The MCP server's `get_elements` tool returns multiple selector strategies for each element:
+On iOS, Android, and Electron sessions, the `get_elements` tool returns multiple selector strategies for each element:
 
 ```text
 Ask: "Get all visible elements on the screen"
@@ -344,9 +344,6 @@ This returns elements with pre-generated selectors you can use directly.
 For more control over element discovery:
 
 ```text
-# Get only images and visual elements
-Get visible elements with elementType "visual"
-
 # Get elements with their coordinates for layout debugging
 Get visible elements with includeBounds enabled
 
@@ -357,19 +354,26 @@ Get visible elements with limit 20 and offset 20
 Get visible elements with includeContainers enabled
 ```
 
-The tool returns a paginated response:
-```json
-{
-  "total": 42,
-  "showing": 20,
-  "hasMore": true,
-  "elements": [...]
-}
+The response is paginated: an object with `total`, `showing`, `hasMore`, and `elements` fields, encoded as TOON rather than JSON.
+
+### Using `snapshot` (Browser)
+
+In browsers, `get_elements` isn't listed, so use `snapshot`. It returns the page as an accessibility tree with refs, such as `button "Save" [ref=e3]`. Pass a ref to `click_element`, `set_value`, or `select_option`, or several refs to `perform_actions`.
+
+```text
+# Interactive elements (default)
+Take a snapshot
+
+# Only the parts of the page that contain "Save"
+Take a snapshot with find "Save"
+
+# Include text as well as interactive elements
+Take a snapshot with full enabled
 ```
 
-### Using `get_accessibility` (Browser Only)
+### Using `get_accessibility_tree` (Electron Sessions)
 
-For browser automation, the `get_accessibility` tool provides semantic information about page elements:
+`get_accessibility_tree` is listed only for Electron sessions. It filters by ARIA role and paginates:
 
 ```text
 # Get all named accessibility nodes
@@ -381,5 +385,3 @@ Get accessibility tree filtered to button and link roles
 # Get next page of results
 Get accessibility tree with limit 50 and offset 50
 ```
-
-This is useful when `get_elements` doesn't return expected elements, as it queries the browser's native accessibility API.
