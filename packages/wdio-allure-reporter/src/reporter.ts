@@ -330,6 +330,8 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _suitePathOf(test: TestStats | HookStats): string[] | undefined {
+        const root = this.currentSuites?.[0]
+        if (!root) { return undefined }
         const find = (suite: SuiteStats, titles: string[]): string[] | undefined => {
             if (suite.tests.includes(test as TestStats)) { return titles }
             for (const child of suite.suites) {
@@ -338,7 +340,7 @@ export default class AllureReporter extends WDIOReporter {
             }
             return undefined
         }
-        return find(this.currentSuites[0], [])
+        return find(root, [])
     }
 
     /** the feature of a parallel Cucumber unit: parallel mode starts every feature first */
@@ -1045,7 +1047,8 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._lanesSeen) { this._ensureSuitesStarted(cid) }
         const start = AllureReporter.getTimeOrNow((test as TestStats).start)
         const uuid = (test as MaybeUid).uid
-        const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title)
+        const suitePath = this._suitePathOf(test) ?? [...this._activeSuitePath(cid)]
+        const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title, suitePath)
         this._startTest({ name: test.title, start, uuid })
         const testCaseTitle = ft || fullTitle
         if (testCaseTitle) { this._emitHistoryIdsFrom(testCaseTitle) }
@@ -1053,10 +1056,9 @@ export default class AllureReporter extends WDIOReporter {
         const fullName = toFullName(this._pkg(cid)!, fullTitle || test.title)
         this._pushRuntimeMessage({
             type: 'allure:test:info',
-            data: { fullName: fullName, titlePath: this._titlePath(cid) }
+            data: { fullName: fullName, titlePath: this._titlePath(cid, undefined, suitePath) }
         })
 
-        const suitePath = [...this._activeSuitePath(cid)]
         const specFile = this._pkg(cid)
         const pkg = isFeatureFilePath(specFile) ? toPackageLabelCucumber(specFile || '') : toPackageLabel(specFile || '')
         const labels = [
@@ -1160,10 +1162,11 @@ export default class AllureReporter extends WDIOReporter {
         if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
         const cid = this._currentCid()
         if (test.file) { this._titlePathFileByCid.set(cid, test.file) }
+        const suitePath = this._suitePathOf(test)
         const lane = this._lane()
-        if (lane) { lane.suitePath = this._suitePathOf(test) }
+        if (lane) { lane.suitePath = suitePath }
         const fullName = toFullName(this._pkg(cid)!, test.fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, titlePath: this._titlePath(cid) } })
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, titlePath: this._titlePath(cid, undefined, suitePath) } })
         this._attachLogs()
         this._skipTest()
     }
@@ -1475,8 +1478,8 @@ export default class AllureReporter extends WDIOReporter {
         return true
     }
 
-    private _mochaFullTitle(cid: string, leaf: string): string {
-        const parts = [...this._activeSuitePath(cid)]
+    private _mochaFullTitle(cid: string, leaf: string, suitePathOverride?: string[]): string {
+        const parts = [...(suitePathOverride ?? this._activeSuitePath(cid))]
         if (leaf) { parts.push(leaf) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
@@ -1522,11 +1525,11 @@ export default class AllureReporter extends WDIOReporter {
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
 
-    private _titlePath(cid: string, cucumberPath?: string[]): string[] {
+    private _titlePath(cid: string, cucumberPath?: string[], suitePathOverride?: string[]): string[] {
         const file = this._unitFeature()?.file ?? this._titlePathFileByCid.get(cid) ?? this._pkgByCid.get(cid)
         const relativeFilePath = relNoSlash(file)
         const fileParts = splitTitlePathPart(relativeFilePath)
-        const suitePath = this._activeSuitePath(cid).map(String).map((s) => s.trim()).filter(Boolean)
+        const suitePath = (suitePathOverride ?? this._activeSuitePath(cid)).map(String).map((s) => s.trim()).filter(Boolean)
         const normalizedCucumberPath = cucumberPath?.map(String).map((s) => s.trim()).filter(Boolean)
 
         if (isFeatureFilePath(file)) {
