@@ -153,7 +153,17 @@ export const config = {
 
 - `outputDir` - defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.json` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 
-- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter. In WebDriver BiDi sessions, the WebDriver steps are the user commands (`url`, `$`, `getText`, …), see [User commands](https://webdriver.io/docs/customreporter#user-commands).
+- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter. In WebDriver BiDi sessions with user commands (see [User commands](https://webdriver.io/docs/customreporter#user-commands)), the WebDriver steps are the user commands, with the protocol commands that they run as child steps:
+
+  ```
+  $("#btn") → found
+  getText() → "clicked"
+    getElementText → "clicked"        (parameter request: GET /element/:elementId/text)
+  setValue("**MASKED**", {"mask":true})
+  dragAndDrop($("#drop"))
+  ```
+
+  A step name has the arguments (cut at 120 characters) and the result (cut at 60 characters, `found` / `not found` / `N found` for elements, nothing for a window handle or a result with no data). A child step has a `request` parameter and a `Request` attachment with the method, the resolved path and the body. The `Response` attachment has the whole result. In WebDriver Classic sessions and in sessions with no user commands, the steps stay as before.
 
 - `issueLinkTemplate` - optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder with value specified in `addIssue(value)` call parameter. The same logic is applied if Cucumber is used and tag `issue` is set at any level, it will be converted to the link in the report. The parameter value example:
   ```
