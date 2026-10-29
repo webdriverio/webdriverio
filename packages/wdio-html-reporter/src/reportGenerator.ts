@@ -33,7 +33,7 @@ class ReportGenerator {
      * or cannot write that report, the ReportAggregator finds this file.
      */
     startReport(reportData: ReportData) {
-        reportData.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid)
+        reportData.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid, reportData.info.retry)
         reportData.incomplete = true
         return JsonGenerator.jsonOutput(this.options, reportData)
     }
@@ -47,7 +47,7 @@ class ReportGenerator {
 
         this.LOG.info('Generated ' + specs.length + ' specs, ' + suites.length + ' suites, ' )
         // the report file of the data (the reporter sets it from its options), with the cid of the worker
-        this.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid)
+        this.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid, reportData.info.retry)
         reportData.reportFile = this.reportFile
 
         try {

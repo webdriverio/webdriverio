@@ -64,13 +64,16 @@ function mockSupportCodeLibrary(overrides: Partial<{
             importPaths: [],
             loaders: [],
         },
-        beforeTestRunHookDefinitions: (overrides.beforeTestRunHooks || []).map((code) => ({
+        // Cucumber gives each definition an id: the hookId of its testRunHookStarted
+        beforeTestRunHookDefinitions: (overrides.beforeTestRunHooks || []).map((code, index) => ({
+            id: `before-all-${index}`,
             code,
             uri: '/test/features',
             line: 1,
             options: {},
         })),
-        afterTestRunHookDefinitions: (overrides.afterTestRunHooks || []).map((code) => ({
+        afterTestRunHookDefinitions: (overrides.afterTestRunHooks || []).map((code, index) => ({
+            id: `after-all-${index}`,
             code,
             uri: '/test/features',
             line: 1,
@@ -756,6 +759,7 @@ describe('runParallelCucumber', () => {
                 throw new Error('first attempt fails')
             }
         })
+        reporter.on('test:retry', (p) => reporterEvents.push({ event: 'test:retry', payload: p }))
 
         await runOrCatch({
             browser: browser as unknown as WebdriverIO.Browser,
@@ -768,9 +772,12 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, retry: 1 }),
         })
 
-        // as in a sequential run: the step of attempt 1 fails and ends, the scenario restarts (suite:retry)
+        // as in a sequential run: the step of attempt 1 ends as a retry, the scenario restarts (suite:retry)
         const steps = reporterEvents.filter((e) => e.event.startsWith('test:')).map((e) => e.event)
-        expect(steps).toEqual(['test:start', 'test:fail', 'test:end', 'test:start', 'test:pass', 'test:end'])
+        expect(steps).toEqual(['test:start', 'test:retry', 'test:end', 'test:start', 'test:pass', 'test:end'])
+        const retry = reporterEvents.find((e) => e.event === 'test:retry')!.payload
+        expect(retry).toMatchObject({ type: 'step', state: 'fail', passed: false, contextId: 'ctx-0' })
+        expect((retry.error as Error).message).toContain('first attempt fails')
         // the window ends one time, after the last attempt
         const contextEnds = reporterEvents.filter((e) => e.event === 'context:end')
         expect(contextEnds).toHaveLength(1)
@@ -799,6 +806,52 @@ describe('runParallelCucumber', () => {
 
         expect((await run(false)).result).toBe(0)
         expect((await run(true)).result).toBe(1)
+    })
+
+    test('a step that fails in the last attempt, or with no retry for its tags, fails', async () => {
+        const run = async (cucumberOpts: Partial<CucumberOptions>) => {
+            const events = new EventEmitter()
+            const names: string[] = []
+            for (const ev of ['test:fail', 'test:retry']) { events.on(ev, () => names.push(ev)) }
+            await runOrCatch({
+                browser: mockBrowser({ contexts: ['ctx-0'] }) as unknown as WebdriverIO.Browser,
+                reporter: events,
+                eventEmitter: new EventEmitter(),
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 'scenario a', tags: ['@flaky'] }])],
+                supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', () => { throw new Error('always fails') })] }),
+                cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, ...cucumberOpts }),
+            })
+            return names
+        }
+        expect(await run({ retry: 1 })).toEqual(['test:retry', 'test:fail'])
+        expect(await run({ retry: 1, retryTagFilter: '@other' })).toEqual(['test:fail'])
+        expect(await run({ retry: 1, retryTagFilter: '@flaky' })).toEqual(['test:retry', 'test:fail'])
+    })
+
+    test.each([false, true])('strict: true keeps a pending step pending, as Cucumber, and names it in a warning (scenario level: %s)', async (scenarioLevelReporter) => {
+        const run = async (strict: boolean) => {
+            const events = new EventEmitter()
+            const results: Array<{ event: string, payload: Record<string, unknown> }> = []
+            for (const ev of ['test:fail', 'test:pending']) { events.on(ev, (payload) => results.push({ event: ev, payload })) }
+            await runOrCatch({
+                browser: mockBrowser({ contexts: ['ctx-0'] }) as unknown as WebdriverIO.Browser,
+                reporter: events,
+                eventEmitter: new EventEmitter(),
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])],
+                supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', () => 'pending')] }),
+                cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter, strict }),
+            })
+            return results
+        }
+        const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn').mockClear()
+        expect((await run(false)).map((r) => r.event)).toEqual(['test:pending'])
+        expect(warn).not.toHaveBeenCalled()
+        expect((await run(true)).map((r) => r.event)).toEqual(['test:pending'])
+        expect(warn).toHaveBeenCalledWith(`The run fails because cucumberOpts.strict is true and 1 scenario has a pending step or hook: "scenario a" (${path.relative(process.cwd(), '/test/foo.feature')}:3)`)
     })
 
     test('undefined steps fail unless ignoreUndefinedDefinitions is set', async () => {
@@ -1303,14 +1356,14 @@ describe('runParallelCucumber run-level behavior', () => {
             stepDefinitions: [makeStepDefinition('something', async function () {})],
         })
 
-    function run(browser: ReturnType<typeof mockBrowser>, supportCodeLibrary: ReturnType<typeof mockSupportCodeLibrary>, cucumberOpts = defaultCucumberOpts(), runner: typeof runParallelCucumber = runParallelCucumber) {
+    function run(browser: ReturnType<typeof mockBrowser>, supportCodeLibrary: ReturnType<typeof mockSupportCodeLibrary>, cucumberOpts = defaultCucumberOpts(), runner: typeof runParallelCucumber = runParallelCucumber, gherkinDocuments = [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])]) {
         return runner({
             browser: browser as unknown as WebdriverIO.Browser,
             reporter,
             eventEmitter,
             cid: '0-0',
-            specs: ['/test/foo.feature'],
-            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])],
+            specs: gherkinDocuments.map((doc) => doc.uri as string),
+            gherkinDocuments,
             supportCodeLibrary,
             cucumberOpts,
         })
@@ -1341,6 +1394,90 @@ describe('runParallelCucumber run-level behavior', () => {
 
         expect(result).toBe(1)
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(1)
+    })
+
+    describe('run hooks', () => {
+        const record = () => {
+            const events: { event: string, payload: Record<string, any> }[] = []
+            for (const event of ['suite:start', 'suite:end', 'hook:start', 'hook:end', 'test:start', 'test:end']) {
+                reporter.on(event, (payload) => events.push({ event, payload }))
+            }
+            return events
+        }
+
+        test.each([false, true])('sends a failed BeforeAll as a hook of the first feature (scenarioLevelReporter: %s)', async (scenarioLevelReporter) => {
+            const events = record()
+            const result = await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [failing] }), defaultCucumberOpts({ scenarioLevelReporter }))
+            expect(result).toBe(1)
+            expect(events.map(({ event }) => event)).toEqual(['suite:start', 'hook:start', 'hook:end', 'suite:end'])
+            const hook = events.find(({ event }) => event === 'hook:end')!.payload
+            expect(hook).toMatchObject({ type: 'hook', state: 'failed', parentUid: events[0].payload.uid, cid: '0-0' })
+            expect(hook).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: events[0].payload.uid })
+            expect(hook).not.toHaveProperty('contextId')
+            expect(hook.title).toMatch(/^BeforeAll/)
+            expect(hook.error.message).toBeTruthy()
+        })
+
+        test('sends a failed AfterAll before the end of the feature', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ afterTestRunHooks: [failing] }))
+            const names = events.map(({ event }) => event)
+            expect(names.indexOf('hook:end')).toBeGreaterThan(names.lastIndexOf('test:end'))
+            expect(names.at(-1)).toBe('suite:end')
+            expect(names.slice(-3)).toEqual(['hook:start', 'hook:end', 'suite:end'])
+            expect(events.find(({ event }) => event === 'hook:end')!.payload.title).toMatch(/^AfterAll/)
+            expect(events.find(({ event }) => event === 'hook:end')!.payload.hookKind).toBe('afterAll')
+        })
+
+        test('starts every feature before the first BeforeAll', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}] }))
+            const names = events.map(({ event }) => event)
+            expect(names.slice(0, 3)).toEqual(['suite:start', 'hook:start', 'hook:end'])
+            expect(names.lastIndexOf('suite:start')).toBeLessThan(names.indexOf('hook:start'))
+        })
+
+        test('sends a passed BeforeAll and AfterAll', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}], afterTestRunHooks: [() => {}] }))
+            const featureUid = events[0].payload.uid
+            const ends = events.filter(({ event }) => event === 'hook:end').map(({ payload }) => payload)
+            expect(events.filter(({ event }) => event === 'hook:start')).toHaveLength(2)
+            expect(ends.map((hook) => hook.hookKind)).toEqual(['beforeAll', 'afterAll'])
+            for (const hook of ends) {
+                expect(hook).toMatchObject({ hookSuiteUid: featureUid, parentUid: featureUid })
+                expect(hook).not.toHaveProperty('state')
+                expect(hook).not.toHaveProperty('contextId')
+            }
+        })
+
+        test('sends a BeforeAll start before its body runs', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => { events.push({ event: 'body', payload: {} }) }] }))
+            expect(events.map(({ event }) => event).filter((event) => event !== 'suite:start').slice(0, 3)).toEqual(['hook:start', 'body', 'hook:end'])
+        })
+
+        test('sends an AfterAll under the last feature, as a sequential run with grouped specs', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [() => {}], afterTestRunHooks: [() => {}] }), defaultCucumberOpts(), runParallelCucumber, [
+                makeFeatureDoc('/test/a.feature', 'A', ['a1']), makeFeatureDoc('/test/b.feature', 'B', ['b1']),
+            ])
+            const features = events.filter(({ event, payload }) => event === 'suite:start' && payload.type === 'feature').map(({ payload }) => payload.uid)
+            const ends = events.filter(({ event }) => event === 'hook:end').map(({ payload }) => payload)
+            expect(ends.map((hook) => [hook.hookKind, hook.hookSuiteUid])).toEqual([['beforeAll', features[0]], ['afterAll', features[1]]])
+        })
+
+        test('logs the error of a failed WDIO run hook', async () => {
+            const errorLog = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'error').mockClear()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [async function wdioHookBeforeFeature () { throw new Error('beforeFeature timeout') }] }))
+            expect(errorLog.mock.calls.map(([message]) => String(message)).some((message) => message.includes('beforeFeature timeout'))).toBe(true)
+        })
+
+        test('sends nothing for WDIO run hooks', async () => {
+            const events = record()
+            await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [async function wdioHookBeforeFeature () {}], afterTestRunHooks: [async function wdioHookAfterFeature () {}] }))
+            expect(events.map(({ event }) => event).filter((event) => event.startsWith('hook:'))).toEqual([])
+        })
     })
 
     test('adds one failure per failing hook phase', async () => {
@@ -1717,6 +1854,52 @@ describe('runParallelCucumber reporter contract and teardown', () => {
         expect(end.event).toBe('test:fail')
         expect(end.payload.error.message).toContain('After hook fails')
         expect(result).toBe(1)
+    })
+
+    test.each([false, true])('strict: %s, an After hook that returns pending stays pending, and fails the run only with strict', async (strict) => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => 'pending', id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts({ scenarioLevelReporter: false, strict }), supportCodeLibrary as never)
+
+        const hook = events.find((e) => e.event === 'hook:end')!
+        expect(hook.payload).toMatchObject({ state: 'PENDING', error: undefined })
+        expect(result).toBe(strict ? 1 : 0)
+    })
+
+    // as a sequential run, which counts each result that fails under the options
+    test('strict + ignoreUndefinedDefinitions: a pending After hook after an ignored undefined step fails the run and is named', async () => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary(),
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => 'pending', id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        const warn = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'warn').mockClear()
+        const { result } = await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 's1', steps: ['has no definition'] }])],
+            defaultCucumberOpts({ scenarioLevelReporter: false, strict: true, ignoreUndefinedDefinitions: true }), supportCodeLibrary as never)
+
+        expect(result).toBe(1)
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('1 scenario has a pending step or hook: "s1"'))
+    })
+
+    test('step-level Before and After hooks send the kind of their Cucumber hook type on hook:start and hook:end', async () => {
+        const TestCaseHookDefinition = createRequire(import.meta.url)('@cucumber/cucumber/lib/models/test_case_hook_definition').default
+        const supportCodeLibrary = {
+            ...mockSupportCodeLibrary({ stepDefinitions: [makeStepDefinition('something', async function () {})] }),
+            beforeTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => {}, id: 'hook-b', line: 2, uri: '/test/hooks.ts', order: 0, options: {} })],
+            afterTestCaseHookDefinitions: [new TestCaseHookDefinition({ code: () => { throw new Error('After hook fails') }, id: 'hook-a', line: 3, uri: '/test/hooks.ts', order: 0, options: {} })],
+        }
+        await run(mockBrowser({ contexts: ['ctx-a'] }), [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts({ scenarioLevelReporter: false }), supportCodeLibrary as never)
+
+        const hooks = events.filter((e) => e.event.startsWith('hook:')).map(({ event, payload }) => [event, payload.uid, payload.hookKind, 'hookSuiteUid' in payload])
+        expect(hooks.map(([event, , kind, hasSuite]) => [event, kind, hasSuite])).toEqual([
+            ['hook:start', 'beforeEach', false], ['hook:end', 'beforeEach', false],
+            ['hook:start', 'afterEach', false], ['hook:end', 'afterEach', false]
+        ])
+        expect(hooks[1][1]).toBe(hooks[0][1])
+        expect(hooks[3][1]).toBe(hooks[2][1])
     })
 
     test('a step-level window of a scenario with no steps sends context:end with the uid of the scenario', async () => {
@@ -2182,11 +2365,14 @@ describe('runParallelCucumber uncaught errors', () => {
             await sleep(40)
         }
         const failures = await run([{ name: 's1', steps: ['waits'] }], [waits], {
-            beforeTestRunHookDefinitions: [{ code: beforeAll, uri: '/test/features', line: 1, options: {} }],
+            beforeTestRunHookDefinitions: [{ id: 'before-all-0', code: beforeAll, uri: '/test/features', line: 1, options: {} }],
         } as never)
 
         expect(failures).toBe(1)
-        expect(emitted).toEqual([])
+        // once, as a hook of the feature
+        expect(emitted).toHaveLength(1)
+        expect(emitted[0]).toMatchObject({ event: 'hook:end', payload: { state: 'failed', error: { message: 'before all boom' } } })
+        expect(emitted[0].payload.title).toMatch(/^BeforeAll/)
     })
 
     test('keeps parallel mode when the Cucumber module for uncaught errors cannot load', async () => {

@@ -76,6 +76,16 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+### `strict` and profiles
+
+`cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
+
+Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. The `require` and `import` lists of the profile are loaded too, together with the ones in `cucumberOpts`. The `paths`, `requireModule` and `loader` of the profile are not used, and the worker logs a warning: use `specs` and `cucumberOpts.requireModule` (WebdriverIO has its own TypeScript loader). A folder in the `require` or `import` of the profile is not loaded either, with a warning: use a glob such as `features/support/**/*.js`. Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
+
+### `BeforeAll` and `AfterAll` hooks
+
+A Cucumber `BeforeAll` / `AfterAll` is now reported as a hook of the feature, passed or failed (before, a failed one was in no report). The browser commands and console logs of its body belong to the hook: those of an `AfterAll` were on the last step of the last scenario before. Allure shows each one as a fixture of the feature (set `disableMochaHooks: true` to hide the passed ones), and `@wdio/json-reporter` lists it in the `hooks` of the feature. WebdriverIO's own `beforeFeature` / `afterFeature` hooks are not reported.
+
 ### Feature uid
 
 The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. `%`, `:` and `#` in the path are encoded as `%25`, `%3A` and `%23`, so `uid.split(':')[1]` is still the line and a `#` only starts a part number. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
@@ -199,6 +209,36 @@ The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-ge
 In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files itself. In v10 it uses the system `unzip` command on Linux and macOS (`tar.exe` or PowerShell on Windows). Slim Docker images, such as `node:24-slim`, do not have it: install it, see [Docker](/docs/docker#images-where-webdriverio-downloads-the-browser).
 
 In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1`. WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
+
+## Chrome profile on Windows
+
+In v9, a testrunner worker on Windows gave Chrome the profile folder `wdio-chrome-<worker id>-<time>` in `outputDir` (or the temporary folder) when your capabilities set no `--user-data-dir`. The folder stayed on disk after the run, and two sessions of one worker, for example the instances of a multi-remote worker, could get the same folder.
+
+In v10, WebdriverIO adds no profile folder. ChromeDriver gives each session its own temporary profile in the system temporary folder, also after `reloadSession()`, as on Linux and macOS. To keep a profile, for example its `Crashpad` crash dumps, set your own `--user-data-dir`. WebdriverIO never changes or deletes it. Give each session its own folder: the capabilities in the config file are read once by the launcher, so set the folder in `beforeSession`, which runs in each worker:
+
+```js
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+export const config = {
+    // ...
+    beforeSession (config, capabilities) {
+        if (!/chrom/i.test(capabilities.browserName ?? '')) {
+            return
+        }
+        const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
+        if (chromeOptions.args?.some((arg) => arg.includes('user-data-dir'))) {
+            return
+        }
+        chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
+    }
+}
+```
+
+These folders stay on disk after the run: delete them when you no longer need them.
+
+In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`. With W3C capabilities, use `capabilities.alwaysMatch`.
 
 ## Multi-remote Global
 

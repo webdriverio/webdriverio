@@ -73,6 +73,14 @@ export default class SuiteStats extends RunnableStats {
      */
     retry () {
         this.retries++
+        this.clearAttempt()
+    }
+
+    /**
+     * Remove the tests and hooks of the failed attempt; the suite keeps the start of its first attempt, as main.
+     * @experimental the name may change
+     */
+    clearAttempt () {
         this.tests = []
         this.hooks = []
         this.hooksAndTests = []

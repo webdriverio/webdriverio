@@ -1,7 +1,9 @@
 import path from 'node:path'
+import type * as nodeFs from 'node:fs'
+import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { describe, expect, it, vi, beforeEach, beforeAll, afterEach } from 'vitest'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -69,6 +71,10 @@ vi.mock('moduleA', () => {
     global.MODULE_A_WAS_LOADED = true
     return {}
 })
+vi.mock('moduleProfile', () => {
+    global.MODULE_PROFILE_WAS_LOADED = true
+    return {}
+})
 vi.mock('moduleB', () => ({
     default: function moduleB(opts: any) {
         // @ts-ignore
@@ -101,6 +107,7 @@ declare global {
     var MODULE_B_WAS_LOADED_WITH: any
     var MODULE_INLINE_WAS_LOADED: boolean
     var MODULE_C_WAS_LOADED: boolean
+    var CUCUMBER_FORMAT_OPTIONS: Record<string, unknown> | undefined
 
 }
 
@@ -381,6 +388,482 @@ describe('CucumberAdapter', () => {
         expect(setUserHookNames).toBeCalledTimes(1)
     })
 
+    it('gives the formatter the retry and strict values that Cucumber runs with, also from a profile', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {
+            cucumberOpts: { retry: 1, strict: true, profiles: ['retried'], file: 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json' }
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooks = vi.fn()
+        adapter.loadFiles = vi.fn()
+        adapter._cucumberOpts.format = [[url.pathToFileURL(path.resolve(__dirname, 'fixtures', 'optionsProbeFormatter.mjs')).href]]
+
+        await adapter.run()
+        // as Cucumber merges them: cucumberOpts win over the profile (retry: 2), the profile gives retryTagFilter
+        expect(globalThis.CUCUMBER_FORMAT_OPTIONS).toMatchObject({ _retry: 1, _retryTagFilter: '@flaky', _strict: true, _cid: '0-0' })
+    })
+
+    describe('profiles and config files', () => {
+        const file = 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json'
+        const feature = 'packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'
+        const resolve = async (cucumberOpts: Record<string, unknown>, specs = [feature], capabilities = {}, generateSkipTags = false) => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts }, specs, capabilities, {}, {}, generateSkipTags)
+            return { adapter, configuration: await adapter._loadRunConfiguration({ cwd: process.cwd() }) }
+        }
+
+        it('uses every Cucumber value of a profile', async () => {
+            const { configuration } = await resolve({ profiles: ['everything'], file })
+            expect(configuration.runtime).toMatchObject({ dryRun: true, failFast: true, retry: 2, retryTagFilter: '@flaky', strict: false, worldParameters: { fromProfile: true }, filterStacktraces: false })
+            expect(configuration.sources).toMatchObject({ names: ['probe'], order: 'random:5' })
+            expect(configuration.sources.tagExpression).toContain('@profile')
+        })
+
+        it('uses the language of a profile for the feature files', async () => {
+            const { adapter, configuration } = await resolve({ profiles: ['danish'], file }, [])
+            expect(configuration.sources.defaultDialect).toBe('da')
+            expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+        })
+
+        // the skip tags parse the feature files: with the language of the profile
+        it('generates the skip tags with the language of a profile', async () => {
+            const danish = 'packages/wdio-cucumber-framework/tests/fixtures/test_danish.feature'
+            const { adapter } = await resolve({ profiles: ['danish'], file }, [danish], { browserName: 'chrome' }, true)
+            expect(adapter.hasTests()).toBe(true)
+            expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
+        })
+
+        // WebdriverIO loads the support code itself: Cucumber's warnings about it are wrong for the user
+        it('does not let Cucumber write to stderr when it resolves the configuration', async () => {
+            const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+            try {
+                await CucumberAdapter.init!('0-0', { cucumberOpts: { requireModule: ['moduleA'] } }, [feature], {}, {}, {}, false)
+                expect(write.mock.calls.map(([chunk]) => String(chunk)).join('')).not.toContain('require-module')
+            } finally {
+                write.mockRestore()
+            }
+        })
+
+        it('lets cucumberOpts win over the profile', async () => {
+            const { configuration } = await resolve({ profiles: ['everything'], file, retry: 1, strict: true })
+            expect(configuration.runtime).toMatchObject({ retry: 1, strict: true })
+        })
+
+        it.each([
+            [{}, true],
+            [{ profiles: ['strictOnly'], file }, true],
+            [{ profiles: ['smoke'], file }, false],
+            [{ strict: false }, false],
+        ])('defaults strict to true, as Cucumber (%j)', async (cucumberOpts, strict) => {
+            const { configuration } = await resolve(cucumberOpts)
+            expect(configuration.runtime.strict).toBe(strict)
+        })
+
+        it('joins the tags of cucumberOpts, of the profile and the generated skip tags', async () => {
+            const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
+            const { adapter, configuration } = await resolve({ profiles: ['smoke'], file, tags: '@user' }, [skipFeature], { browserName: 'chrome' }, true)
+            expect(configuration.sources.tagExpression).toContain('@smoke')
+            expect(configuration.sources.tagExpression).toContain('@user')
+            expect(configuration.sources.tagExpression).toContain('@skip')
+            // an empty tags value would replace the tags of the profile
+            const { adapter: plain } = await resolve({ profiles: ['smoke'], file })
+            expect(plain._providedConfiguration()).not.toHaveProperty('tags')
+            expect(adapter._providedConfiguration().tags).toContain('@user')
+        })
+
+        it('seeds the random order of a profile once', async () => {
+            const warn = vi.spyOn(logger('@wdio/cucumber-framework'), 'warn').mockClear()
+            try {
+                const { adapter, configuration } = await resolve({ profiles: ['randomOrder'], file })
+                expect(configuration.sources.order).toMatch(/^random:\d+$/)
+                expect(adapter._cucumberOpts.order).toBe(configuration.sources.order)
+                expect(warn.mock.calls.filter(([message]) => String(message).startsWith('Random order using seed')).length).toBe(1)
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // a loader for the Cucumber CLI (often ts-node/register): WebdriverIO has its own TypeScript loader
+        it('does not load the requireModule of a profile, and warns once', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            global.MODULE_PROFILE_WAS_LOADED = false
+            try {
+                const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: [() => { global.MODULE_FN_WAS_LOADED = true }, ['moduleB', { from: 'cucumberOpts' }]] })
+                await adapter.registerRequiredModules()
+                expect(global.MODULE_PROFILE_WAS_LOADED).toBe(false)
+                expect(global.MODULE_FN_WAS_LOADED).toBe(true)
+                expect(global.MODULE_B_WAS_LOADED_WITH).toEqual({ from: 'cucumberOpts' })
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('moduleProfile'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('cucumberOpts.requireModule')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // the WebdriverIO specs choose the features (#13562): Cucumber would add the paths of the profile in each worker
+        it('runs only the worker specs and warns once about the paths of the profile', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                const { configuration } = await resolve({ profiles: ['withPaths'], file })
+                expect(configuration.sources.paths).toEqual([path.resolve(feature)])
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('test_danish.feature'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('specs')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // Cucumber's errors and warnings reach the user; its advice for its own CLI (support code) does not
+        it('forwards the output of Cucumber to stderr, once, without its CLI advice', async () => {
+            const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+            try {
+                const { adapter } = await resolve({})
+                const { stderr, stdout } = adapter._cucumberEnvironment()
+                stderr.write('Error: ENOTDIR: not a directory\n')
+                stderr.write('Error: ENOTDIR: not a directory\n')
+                stderr.write('Use of `require-module` option normally means you should specify your support code paths with `require`\n')
+                stderr.write('Use of `loader` option normally means you should specify your support code paths with `import`\n')
+                stdout.write('progress output\n')
+                expect(write.mock.calls.map(([chunk]) => String(chunk))).toEqual(['Error: ENOTDIR: not a directory\n'])
+            } finally {
+                write.mockRestore()
+            }
+        })
+
+        // Cucumber joins the file to the working folder: `path.join(__dirname, 'cucumber.json')` in wdio.conf must work too
+        it('loads a configuration file with an absolute path', async () => {
+            const { configuration } = await resolve({ profiles: ['danish'], file: path.resolve(file) }, [])
+            expect(configuration.sources.defaultDialect).toBe('da')
+        })
+
+        // WebdriverIO runs the workers, shards the specs and publishes nothing by default: not the Cucumber CLI values
+        it('keeps parallel, shard and publish of a profile out of the run', async () => {
+            const { configuration } = await resolve({ profiles: ['cliOnly'], file })
+            expect(configuration.runtime.parallel).toBe(0)
+            expect(configuration.sources.shard).toBeFalsy()
+            expect(configuration.formats.publish).toBe(false)
+            const { configuration: published } = await resolve({ profiles: ['cliOnly'], file, publish: true })
+            expect(published.formats.publish).toBeTruthy()
+        })
+
+        // as on main: no session for a feature file that does not parse (only configuration errors wait for run())
+        it('fails init for a feature file with a Gherkin error', async () => {
+            const fs = await import('node:fs')
+            const os = await import('node:os')
+            const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-gherkin-'))
+            const broken = path.join(folder, 'broken.feature')
+            fs.writeFileSync(broken, 'Feature: a\n  Scenario: s\n    Given x\n    """\n    an open doc string\n')
+            try {
+                await expect(CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [broken], { browserName: 'chrome' }, {}, {}, true)).rejects.toThrow('Parser errors')
+            } finally {
+                fs.rmSync(folder, { recursive: true, force: true })
+            }
+        })
+
+        it('reports a bad tag expression of a profile from run()', async () => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['badTags'], file } }, [feature], {}, {}, {}, false)
+            expect(adapter.hasTests()).toBe(true)
+            await expect(adapter.run()).rejects.toThrow()
+        })
+
+        // the paths of the run are the specs (_loadRunConfiguration): Cucumber gets only the paths of the profile
+        it('does not send paths to Cucumber', async () => {
+            const { adapter } = await resolve({})
+            expect(adapter._providedConfiguration()).not.toHaveProperty('paths')
+        })
+
+        // the skip tags join the tags that the first load resolved: no second load
+        it('loads the configuration one time in init, also with skip tags', async () => {
+            const spy = vi.spyOn(packageExports.CucumberAdapter.prototype as any, '_resolveCucumberValues')
+            try {
+                const skipFeature = 'packages/wdio-cucumber-framework/tests/fixtures/test_skip.feature'
+                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['smoke'], file, tags: '@user' } }, [skipFeature], { browserName: 'chrome' }, {}, {}, true)
+                expect(spy).toHaveBeenCalledTimes(1)
+                expect(adapter._cucumberOpts.tags).toContain('@smoke')
+                expect(adapter._cucumberOpts.tags).toContain('@user')
+                expect(adapter._cucumberOpts.tags).toContain('@skip')
+            } finally {
+                spy.mockRestore()
+            }
+        })
+
+        // Cucumber does not wrap an expression that starts with ( and ends with ): an `or` would escape the `and`
+        it('keeps the user tags in parentheses when Cucumber joins them with the profile tags', async () => {
+            const { configuration } = await resolve({ profiles: ['smoke'], file, tags: '(@a) or (@b)' })
+            expect(configuration.sources.tagExpression).toBe('(@smoke) and ((@a) or (@b))')
+        })
+
+        it('warns once that the loader of a profile is not used', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                await resolve({ profiles: ['withLoader'], file })
+                const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('coffee-loader'))
+                expect(warnings).toHaveLength(1)
+                expect(warnings[0]).toContain('"loader"')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // as an empty `tags`: Cucumber would write '' over the profile value, and retry every failed scenario
+        it('keeps the retryTagFilter of the profile when cucumberOpts has an empty one', async () => {
+            const { configuration } = await resolve({ profiles: ['retried'], file, retryTagFilter: '' })
+            expect(configuration.runtime.retryTagFilter).toBe('@flaky')
+        })
+
+        it('keeps the user retryTagFilter in parentheses when Cucumber joins it with the profile one', async () => {
+            const { configuration } = await resolve({ profiles: ['retried'], file, retry: 2, retryTagFilter: '(@x) or (@y)' })
+            expect(configuration.runtime.retryTagFilter).toBe('(@flaky) and ((@x) or (@y))')
+        })
+
+        it('builds the format options of the run with the user run hooks', async () => {
+            const { adapter } = await resolve({})
+            const library = { beforeTestRunHookDefinitions: [{ id: 'b1', code: function userHookFn () {} }, { id: 'w1', code: function wdioHookBeforeFeature () {} }], afterTestRunHookDefinitions: [] }
+            const { options } = adapter._runFormats({ options: { mine: 1 } }, { retry: 2, retryTagFilter: '@flaky', strict: true }, library)
+            expect(options).toMatchObject({ mine: 1, _retry: 2, _retryTagFilter: '@flaky', _strict: true, _userRunHooks: { b1: { kind: 'BeforeAll' } } })
+            expect(adapter._cucumberOpts.formatOptions).not.toHaveProperty('_userRunHooks')
+        })
+
+        it('does not send requireModule to Cucumber', async () => {
+            const userModule = () => {}
+            const { adapter } = await resolve({ profiles: ['requires'], file, requireModule: ['moduleA', userModule] })
+            expect(adapter._providedConfiguration()).not.toHaveProperty('requireModule')
+            expect(adapter._cucumberOpts.requireModule).toEqual(['moduleA', userModule])
+        })
+
+        // the cucumberjs-json reporter reads cucumberOpts.language of the config (onRunnerStart)
+        it.each([
+            [{ profiles: ['danish'], file }, 'da'],
+            [{ profiles: ['danish'], file, language: 'en' }, 'en'],
+            // Cucumber's default: the `language` option of the reporter stays in use
+            [{}, undefined],
+        ])('gives the reporters the language of the profile (%j)', async (cucumberOpts, language) => {
+            const config = { cucumberOpts }
+            await CucumberAdapter.init!('0-0', config, [], {}, {}, {}, false)
+            expect((config.cucumberOpts as { language?: string }).language).toBe(language)
+        })
+
+        // as on main: the error comes from run(), after the after hook, and the runner reports it
+        it('reports a profile error from run(), after the after hook', async () => {
+            const after = vi.fn()
+            vi.mocked(executeHooksWithArgs).mockClear()
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['missing'], file }, after: [after] }, [feature], {}, {}, {}, false)
+            expect(adapter.hasTests()).toBe(true)
+            await expect(adapter.run()).rejects.toThrow(/missing/)
+            const [name, hooks, [error]] = vi.mocked(executeHooksWithArgs).mock.calls.find(([hookName]) => hookName === 'after')!
+            expect([name, hooks]).toEqual(['after', [after]])
+            expect(String(error)).toMatch(/missing/)
+        })
+
+        it('gives the order and the language of a profile to the parallel run', async () => {
+            vi.mocked(runParallelCucumber).mockResolvedValue(0)
+            ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+            try {
+                const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { parallelMode: 'contexts', profiles: ['everything', 'danish'], file } }, [], {}, {}, {}, false, 'progress')
+                await adapter.run()
+                expect(vi.mocked(runParallelCucumber).mock.calls[0][0].cucumberOpts).toMatchObject({ order: 'random:5', language: 'da', retry: 2, strict: false })
+            } finally {
+                delete (globalThis as Record<string, unknown>).browser
+            }
+        })
+
+        it('keeps the values of a config with no profile', async () => {
+            const { configuration } = await resolve({ tags: '@a', name: ['n'], language: 'en' })
+            expect(configuration.sources).toMatchObject({ names: ['n'], order: 'defined', defaultDialect: 'en', tagExpression: '@a' })
+        })
+    })
+
+    // Cucumber's own rules (resolvePaths): the cases where a copy of them differed
+    describe('support files with the rules of Cucumber', () => {
+        let fs: typeof nodeFs
+        let folder: string
+        const write = (...files: string[]) => {
+            for (const file of files) {
+                fs.mkdirSync(path.dirname(path.join(folder, file)), { recursive: true })
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+        }
+        const posix = (file: string) => file.split(path.sep).join('/')
+        const load = async (entries: string[], kind?: 'require' | 'import') => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            return ((await adapter.loadFilesWithType(entries, kind)) as string[]).map((file) => posix(path.relative(folder, file)))
+        }
+        beforeEach(async () => {
+            fs = await import('node:fs')
+            const os = await import('node:os')
+            folder = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-')))
+        })
+        afterEach(() => {
+            fs.rmSync(folder, { recursive: true, force: true })
+        })
+
+        it('uses an existing file as it is, also with [ ] in its path', async () => {
+            write('[app]/a.js')
+            expect(await load([path.join(folder, '[app]', 'a.js')])).toEqual(['[app]/a.js'])
+        })
+
+        it('sorts the files of a glob after it expands its folders', async () => {
+            write('support/b/x.js', 'support/b-a.js')
+            expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/b-a.js', 'support/b/x.js'])
+        })
+
+        it('expands a glob match that is a link to a folder', async () => {
+            write('shared/steps.js')
+            fs.mkdirSync(path.join(folder, 'support'))
+            // a junction needs no rights on Windows; macOS and Linux ignore the type
+            fs.symlinkSync(path.join(folder, 'shared'), path.join(folder, 'support', 'linked'), 'junction')
+            expect(await load([`${posix(folder)}/support/*`])).toEqual(['support/linked/steps.js'])
+        })
+
+        // as on main: WebdriverIO loads files and globs; the loader gets a folder as it is (tsx loads its index file)
+        it('gives a folder of cucumberOpts to the loader as it is', async () => {
+            write('support/index.js', 'support/a.js')
+            expect(await load([path.join(folder, 'support')], 'require')).toEqual(['support'])
+        })
+
+        it('does not warn about TypeScript files that a glob loads', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                write('features/support/world.ts', 'features/steps/a.ts')
+                await load([`${posix(folder)}/features/**`])
+                expect(warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('.ts'))).toEqual([])
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        // the loader resolves it (steps -> steps.ts with the TypeScript loader), or the import fails with its name
+        it('keeps an entry that is not a glob, a file or a folder as it is', async () => {
+            expect(await load([path.join(folder, 'steps', 'steps')])).toEqual(['steps/steps'])
+            expect(await load([path.join(folder, 'steps', 'missing.js')])).toEqual(['steps/missing.js'])
+        })
+
+        it('warns about a glob that matches no file', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            try {
+                expect(await load([`${posix(folder)}/steps/*.js`])).toEqual([])
+                const warnings = warn.mock.calls.map(([message]) => String(message))
+                expect(warnings.filter((message) => message.includes('steps/*.js'))).toHaveLength(1)
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        it('loads a file one time when a path and a glob name it', async () => {
+            write('steps/a.js')
+            expect(await load([path.relative(process.cwd(), path.join(folder, 'steps', 'a.js')), `${posix(folder)}/steps/*.js`])).toEqual(['steps/a.js'])
+        })
+
+        it('loads the require files before the import files', async () => {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { require: ['r.js'], import: ['i.mjs'] } }, [], {}, {}, {}, false)
+            const order: string[] = []
+            adapter.loadFilesWithType = vi.fn(async (files: string[]) => files)
+            adapter.loadAndRefreshModule = vi.fn(async (files: string[]) => {
+                order.push(`start ${files[0]}`)
+                await new Promise((resolve) => setTimeout(resolve, files[0] === 'r.js' ? 20 : 0))
+                order.push(`end ${files[0]}`)
+            })
+            await adapter.loadFiles()
+            expect(order).toEqual(['start r.js', 'end r.js', 'start i.mjs', 'end i.mjs'])
+        })
+    })
+
+    // path.join on Windows gives `steps\*.js`: is-glob reads `\*` as an escaped `*`, glob (windowsPathsNoEscape) as a wildcard
+    it('finds the files of a path.join glob on Windows', async () => {
+        const fs = await import('node:fs')
+        const nodeOs = (await import('node:os')).default
+        const folder = fs.mkdtempSync(path.join(nodeOs.tmpdir(), 'wdio-support-'))
+        const platform = vi.spyOn(nodeOs, 'platform').mockReturnValue('win32')
+        try {
+            fs.mkdirSync(path.join(folder, 'steps'))
+            fs.writeFileSync(path.join(folder, 'steps', 'a.js'), '')
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([`${folder}\\steps\\*.js`])
+            expect(files.map((file: string) => path.relative(folder, file))).toEqual([path.join('steps', 'a.js')])
+        } finally {
+            platform.mockRestore()
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    // the order of Cucumber (code unit), so that the hooks of the files register in the same order
+    it('loads the files of a glob in the order of Cucumber', async () => {
+        const fs = await import('node:fs')
+        const nodeOs = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(nodeOs.tmpdir(), 'wdio-support-'))
+        try {
+            for (const file of ['hooks.js', 'World.js']) {
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([`${folder.split(path.sep).join('/')}/*.js`])
+            expect(files.map((file: string) => path.basename(file))).toEqual(['World.js', 'hooks.js'])
+        } finally {
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    // glob finds nothing for a file:// URL pattern: on Windows the patterns stay paths too
+    it('finds the files of a glob on Windows', async () => {
+        const os = (await import('node:os')).default
+        const platform = vi.spyOn(os, 'platform').mockReturnValue('win32')
+        try {
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = await adapter.loadFilesWithType([path.join(process.cwd(), '__mocks__', 'module*.ts')])
+            expect(files.length).toBeGreaterThan(0)
+            expect(files.every((file: string) => !file.startsWith('file:'))).toBe(true)
+        } finally {
+            platform.mockRestore()
+        }
+    })
+
+    it('loads the script files of the folders that a glob matches', async () => {
+        const fs = await import('node:fs')
+        const os = await import('node:os')
+        const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-support-'))
+        try {
+            for (const file of ['a/support/one.js', 'b/support/two.mjs']) {
+                fs.mkdirSync(path.dirname(path.join(folder, file)), { recursive: true })
+                fs.writeFileSync(path.join(folder, file), '')
+            }
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+            const files = (await adapter.loadFilesWithType([path.join(folder, '*', 'support').split(path.sep).join('/')], 'import')).map((file: string) => path.relative(folder, file))
+            expect(files).toEqual([path.join('a', 'support', 'one.js'), path.join('b', 'support', 'two.mjs')])
+        } finally {
+            fs.rmSync(folder, { recursive: true, force: true })
+        }
+    })
+
+    // watch mode runs the same worker again: a second adapter must not add a second WebdriverIO formatter
+    it('adds its formatter to a copy of the format list', async () => {
+        await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+        const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: {} }, [], {}, {}, {}, false)
+        expect(adapter._cucumberOpts.format).toHaveLength(1)
+        const format = ['progress']
+        await CucumberAdapter.init!('0-0', { cucumberOpts: { format } }, [], {}, {}, {}, false)
+        expect(format).toEqual(['progress'])
+    })
+
+    // a profile folder was not loaded on main (profiles were not used): WebdriverIO's import() can not load a folder
+    it('does not load a folder of a profile, and warns once', async () => {
+        const fs = await import('node:fs')
+        const supportFolder = path.join(process.cwd(), 'packages', 'wdio-cucumber-framework', 'tests', 'fixtures', 'support-folder')
+        fs.mkdirSync(supportFolder, { recursive: true })
+        fs.writeFileSync(path.join(supportFolder, 'steps.js'), '')
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            const file = 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json'
+            const adapter = await CucumberAdapter.init!('0-0', { cucumberOpts: { profiles: ['folderRequire'], file } }, [], {}, {}, {}, false)
+            expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require, 'require')).toEqual([])
+            const warnings = warn.mock.calls.map(([message]) => String(message)).filter((message) => message.includes('support-folder'))
+            expect(warnings).toHaveLength(1)
+            expect(warnings[0]).toContain('support-folder/**/*.js')
+        } finally {
+            warn.mockRestore()
+            fs.rmSync(supportFolder, { recursive: true, force: true })
+        }
+    })
+
     it('registerRequiredModules', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
@@ -404,14 +887,6 @@ describe('CucumberAdapter', () => {
     })
 
     it('loadFilesWithType', async () => {
-        /**
-         * skip for windows which for some reasons only can find one entry, e.g.:
-         * D:\\a\\webdriverio\\webdriverio\\packages\\wdio-cucumber-framework\\tests\\adapter.test.ts
-         */
-        if (process.platform === 'win32') {
-            return
-        }
-
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 require: [

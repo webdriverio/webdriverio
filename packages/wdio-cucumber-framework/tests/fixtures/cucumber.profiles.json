@@ -1,3 +1,14 @@
 {
-    "smoke": { "tags": "@smoke", "strict": false }
+    "smoke": { "tags": "@smoke", "strict": false },
+    "retried": { "retry": 2, "retryTagFilter": "@flaky", "strict": true },
+    "everything": { "backtrace": true, "dryRun": true, "failFast": true, "name": ["probe"], "order": "random:5", "retry": 2, "retryTagFilter": "@flaky", "strict": false, "tags": "@profile", "worldParameters": { "fromProfile": true } },
+    "danish": { "language": "da" },
+    "randomOrder": { "order": "random" },
+    "strictOnly": { "strict": true },
+    "requires": { "requireModule": ["moduleProfile"] },
+    "folderRequire": { "require": ["packages/wdio-cucumber-framework/tests/fixtures/support-folder"] },
+    "withLoader": { "loader": ["coffee-loader"] },
+    "badTags": { "tags": "@a and" },
+    "cliOnly": { "parallel": 2, "shard": "1/2", "publish": true },
+    "withPaths": { "paths": ["packages/wdio-cucumber-framework/tests/fixtures/test_danish.feature"] }
 }

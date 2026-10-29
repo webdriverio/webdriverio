@@ -37,11 +37,12 @@ import { EventEmitter } from 'node:events'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 
 import logger from '@wdio/logger'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation } from '@wdio/utils'
 import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
 
-import type { CucumberOptions, ParallelBrowser, ParallelMode, ReporterStep } from './types.js'
+import type { CucumberOptions, HookKind, ParallelBrowser, ParallelMode, ReporterStep, TestRunHookStart } from './types.js'
 import {
     addKeywordToStep,
     getFeatureId,
@@ -53,6 +54,12 @@ import {
     getStepType,
     buildStepPayload,
     formatMessage,
+    hookKindOf,
+    scenarioLabel,
+    strictPendingWarning,
+    testRunHookEnd,
+    testRunHookStart,
+    userRunHooks,
     withAmbiguousMessage,
 } from './utils.js'
 
@@ -166,6 +173,8 @@ interface TestCaseRunnerInstance {
 }
 
 interface TestRunHookDefinition {
+    id: string
+    name?: string
     code: Function
     uri?: string
     line?: number
@@ -261,66 +270,6 @@ try {
 
 export function isParallelAvailable(): boolean {
     return parallelModulesAvailable
-}
-
-// ============================================================
-// Context allocation
-// ============================================================
-
-interface ParallelContextAllocation {
-    context: string
-    userContext?: string
-}
-
-function resolveMaxContexts(value: unknown, fallback: number): number {
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-        ? Math.max(1, Math.floor(value))
-        : Math.max(1, fallback)
-}
-
-async function removeUserContext(bidi: ParallelBrowser, userContext: string): Promise<void> {
-    try {
-        await bidi.browserRemoveUserContext?.({ userContext })
-    } catch (err) {
-        log.debug(`Cleanup error removing user context ${userContext}: ${(err as Error).message}`)
-    }
-}
-
-async function closeContext(bidi: ParallelBrowser, context: string, level: 'debug' | 'warn', label: string): Promise<void> {
-    try {
-        await bidi.browsingContextClose({ context })
-    } catch (err) {
-        log[level](`${label} ${context}: ${(err as Error).message}`)
-    }
-}
-
-async function cleanupAllocation(bidi: ParallelBrowser, { context, userContext }: ParallelContextAllocation): Promise<void> {
-    await closeContext(bidi, context, 'debug', 'Cleanup error closing context')
-    if (userContext) {
-        await removeUserContext(bidi, userContext)
-    }
-    bidi.__parallelContexts?.delete(context)
-}
-
-async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promise<ParallelContextAllocation> {
-    let allocation: ParallelContextAllocation
-    if (mode !== 'userContexts') {
-        const { context } = await bidi.browsingContextCreate({ type: 'window' })
-        allocation = { context }
-    } else {
-        const { userContext } = await bidi.browserCreateUserContext!({})
-        try {
-            const { context } = await bidi.browsingContextCreate({ type: 'window', userContext })
-            allocation = { context, userContext }
-        } catch (err) {
-            await removeUserContext(bidi, userContext)
-            throw err
-        }
-    }
-    // Register with the session ContextManager so navigations inside these
-    // windows don't trigger session-global re-anchoring (tree fetch + switchToWindow).
-    bidi.__parallelContexts?.add(allocation.context)
-    return allocation
 }
 
 // ============================================================
@@ -494,12 +443,16 @@ interface ScenarioTranslatorParams {
     /** `undefined` for a scenario that runs in skip mode after a failFast stop, with no window */
     contextId: string | undefined
     supportCode: SupportCodeMessages
+    /** the retries that Cucumber gives the scenario (`retry`, `retryTagFilter`) */
+    retries: number
 }
 
 interface SupportCodeMessages {
     stepDefinitions: Map<string, messages.StepDefinition>
     /** hook id → the hook title of the sequential formatter */
     hookTitles: Map<string, string>
+    /** hook id → the kind of its Cucumber hook type */
+    hookKinds: Map<string, HookKind>
 }
 
 /**
@@ -508,6 +461,7 @@ interface SupportCodeMessages {
 function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): SupportCodeMessages {
     const stepDefinitions = new Map<string, messages.StepDefinition>()
     const hookTitles = new Map<string, string>()
+    const hookKinds = new Map<string, HookKind>()
     const eventBroadcaster = new EventEmitter()
     eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
         if (envelope.stepDefinition) {
@@ -516,10 +470,14 @@ function collectSupportCodeMessages(supportCodeLibrary: SupportCodeLibrary): Sup
         if (envelope.hook) {
             const { id, name, tagExpression } = envelope.hook
             hookTitles.set(id, `${name || ''} ${tagExpression || ''}`.trim())
+            const kind = hookKindOf(envelope.hook)
+            if (kind) {
+                hookKinds.set(id, kind)
+            }
         }
     })
     emitSupportCodeMessages({ eventBroadcaster, supportCodeLibrary, newId: uuidFn })
-    return { stepDefinitions, hookTitles }
+    return { stepDefinitions, hookTitles, hookKinds }
 }
 
 interface ScenarioTranslator {
@@ -527,13 +485,15 @@ interface ScenarioTranslator {
     abort: (error: Error) => void
     /** uid of the last test of the scenario (step, or the scenario at scenario level), for `context:end` */
     lastTestUid: () => string
+    /** status of the last attempt under the options (see `getScenarioResult`); `undefined` with no steps */
+    finalStatus: () => messages.TestStepResultStatus | undefined
 }
 
 function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTranslator {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
         gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
-        scenarioIndex, contextId, supportCode,
+        scenarioIndex, contextId, supportCode, retries,
     } = params
 
     const uri = gherkinDocument.uri || ''
@@ -544,6 +504,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
     let testStart: Date | undefined
     let stepStart: Date | undefined
     let stepResults: messages.TestStepResult[] = []
+    let attempt = 0
     let scenarioOpen = false
     let openStep: Record<string, unknown> | undefined
     // a scenario with no steps has no test: its window ends with the uid of the scenario
@@ -583,6 +544,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         pickleStep?: messages.PickleStep
         isHook: boolean
         hookTitle: string
+        hookKind?: HookKind
         stepDefinitionIds: readonly string[]
     }>()
     for (const ts of testCase.testSteps) {
@@ -590,6 +552,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             pickleStep: ts.pickleStepId ? pickleStepById.get(ts.pickleStepId) : undefined,
             isHook: !!ts.hookId,
             hookTitle: (ts.hookId && supportCode.hookTitles.get(ts.hookId)) || '',
+            hookKind: ts.hookId ? supportCode.hookKinds.get(ts.hookId) : undefined,
             stepDefinitionIds: ts.stepDefinitionIds ?? [],
         })
     }
@@ -602,7 +565,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
         // the event stream balanced (the final attempt closes with `suite:end`).
-        const isRetry = typeof started.attempt === 'number' && started.attempt > 0
+        attempt = started.attempt ?? 0
+        const isRetry = attempt > 0
         reporter.emit(
             scenarioLevel ? 'test:start' : (isRetry ? 'suite:retry' : 'suite:start'),
             formatMessage({
@@ -631,7 +595,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         // Per-step anchor so step/hook durations don't accumulate from scenario start
         stepStart = new Date()
 
-        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
+        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) }
         if (!info.isHook) {
             openStep = payload
             lastTestUid = String(payload.uid)
@@ -664,7 +628,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                 error,
                 duration,
             })
-            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID } }))
+            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID, ...(info.hookKind && { hookKind: info.hookKind }) } }))
             return
         }
 
@@ -675,10 +639,13 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
                 isStep: true,
                 ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
                 failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+                strict: cucumberOpts.strict,
                 featureStack: () => getFeatureStack(uri, feature, pickle, step),
             }
         )
         const passed = ['pass', 'skip'].includes(state)
+        // Cucumber retries an attempt with a FAILED result (test_case_runner.js): the step ends as a retry
+        const retried = result.status === 'FAILED' && attempt < retries
 
         const payload = {
             ...buildStepPayload(uri, feature, pickle, step as ReporterStep, {
@@ -693,7 +660,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             parentUid: scenarioUID,
         }
         payload.title += titleSuffix
-        reporter.emit(`test:${state}`, formatMessage({ payload }))
+        reporter.emit(`test:${retried ? 'retry' : state}`, formatMessage({ payload }))
         // as in a sequential run: the result, then the end of the step (also in an attempt that is retried)
         reporter.emit('test:end', formatMessage({ payload }))
         openStep = undefined
@@ -710,6 +677,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         isStep: false,
         ignoreUndefinedDefinitions: cucumberOpts.ignoreUndefinedDefinitions,
         failAmbiguousDefinitions: cucumberOpts.failAmbiguousDefinitions,
+        strict: cucumberOpts.strict,
         featureStack: () => getFeatureStack(uri, feature, pickle),
     })
 
@@ -789,14 +757,19 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
         const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
         reporter.emit('suite:end', formatMessage({ payload }))
     }
-    return { abort, lastTestUid: () => lastTestUid }
+    // the result of the last attempt under the options (see `getScenarioResult`), as a sequential run names it
+    return { abort, lastTestUid: () => lastTestUid, finalStatus: () => getScenarioResult(stepResults, cucumberOpts)?.status }
 }
 
 // ============================================================
 // Scenario execution
 // ============================================================
 
-type ScenarioResult = { status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number }
+type ScenarioResult = {
+    status: messages.TestStepResultStatus | 'SKIPPED'; name: string; duration: number
+    /** only for a pending scenario under `strict`: its name in the warning (see `scenarioLabel`) */
+    strictPendingLabel?: string
+}
 
 /**
  * Mirrors Cucumber's shouldCauseFailure (runtime/helpers.js) plus WDIO's
@@ -811,8 +784,9 @@ function isFailedResult(
 ): boolean {
     if (r.status === 'rejected') { return true }
     if (cucumberOpts.dryRun) { return false }
-    const { status } = r.value
-    return status === 'FAILED' || status === 'AMBIGUOUS' ||
+    const { status, strictPendingLabel } = r.value
+    // a pending step or hook under strict also after an ignored undefined step, which Cucumber orders worse
+    return status === 'FAILED' || status === 'AMBIGUOUS' || Boolean(strictPendingLabel) ||
         (status === 'UNDEFINED' && !cucumberOpts.ignoreUndefinedDefinitions) ||
         (status === 'PENDING' && cucumberOpts.strict)
 }
@@ -883,6 +857,9 @@ async function runScenario(
 
     const execute = async () => {
         const scenarioBroadcaster = new EventEmitter()
+        const skip = runtimeOptions.dryRun || !allocation
+        // Cucumber gives a skipped scenario no retry (test_case_runner.js)
+        const retries = skip ? 0 : retriesForPickle(pickle, runtimeOptions)
 
         const translator = wireScenarioTranslator({
             broadcaster: scenarioBroadcaster,
@@ -898,6 +875,7 @@ async function runScenario(
             scenarioIndex: index,
             contextId,
             supportCode,
+            retries,
         })
 
         // skip: dryRun mirrors Cucumber's Runtime (runtime/index.js)
@@ -907,8 +885,8 @@ async function runScenario(
             newId: IdGenerator.uuid(),
             pickle,
             testCase,
-            retries: retriesForPickle(pickle, runtimeOptions),
-            skip: runtimeOptions.dryRun || !allocation,
+            retries,
+            skip,
             filterStackTraces: true,
             supportCodeLibrary,
             worldParameters: runtimeOptions.worldParameters,
@@ -930,7 +908,10 @@ async function runScenario(
         }
         const duration = Date.now() - testStart
 
-        return { status, name: pickle.name, duration }
+        const strictPendingLabel = cucumberOpts.strict && translator.finalStatus() === 'PENDING'
+            ? scenarioLabel(group.gherkinDocument.uri || '', group.gherkinDocument.feature, pickle)
+            : undefined
+        return { status, name: pickle.name, duration, ...(strictPendingLabel ? { strictPendingLabel } : {}) }
     }
     return contextId ? parallelStore.run(contextId, execute) : execute()
 }
@@ -1056,10 +1037,28 @@ async function runParallel(params: {
 
     const testRunStartedId = uuidFn()
     const runBroadcaster = new EventEmitter()
+    // a user BeforeAll / AfterAll is a hook of a feature, sent live as in a sequential run (cucumberFormatter.ts)
+    const runHooks = userRunHooks(supportCodeLibrary)
+    const openRunHooks = new Map<string, TestRunHookStart>()
     runBroadcaster.on('envelope', (envelope: messages.Envelope) => {
-        const result = envelope.testRunHookFinished?.result
-        if (result?.status === 'FAILED') {
-            log.error(`Test run hook failed: ${result.exception?.message ?? result.message}`)
+        const started = envelope.testRunHookStarted
+        const hook = started && runHooks[started.hookId]
+        if (started && hook) {
+            // as in a sequential run: BeforeAll under the first feature, AfterAll under the last one
+            const group = hook.kind === 'AfterAll' ? featureGroups[featureGroups.length - 1] : featureGroups[0]
+            const start = testRunHookStart({ uid: started.id, hook, featureUid: group.uid, uri: group.uri })
+            openRunHooks.set(started.id, start)
+            reporter.emit('hook:start', formatMessage({ payload: { ...start, cid, specs } }))
+        }
+        const finished = envelope.testRunHookFinished
+        const start = finished && openRunHooks.get(finished.testRunHookStartedId)
+        // also a WebdriverIO run hook (beforeFeature / afterFeature, only on a Cucumber timeout), which is in no report
+        if (finished?.result.status === 'FAILED') {
+            log.error(`Test run hook failed: ${finished.result.exception?.message ?? finished.result.message}`)
+        }
+        if (finished && start) {
+            openRunHooks.delete(finished.testRunHookStartedId)
+            reporter.emit('hook:end', formatMessage({ payload: { ...testRunHookEnd(start, finished.result), cid, specs } }))
         }
     })
     const snippetBuilder = await FormatterBuilder.getStepDefinitionSnippetBuilder({
@@ -1075,9 +1074,9 @@ async function runParallel(params: {
 
     // BeforeAll side effects cannot be replayed by a sequential fallback
     executionStarted = true
-    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
-
+    // the features start first: the BeforeAll hooks are hooks of the first feature
     emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start', cucumberOpts.tagsInTitle)
+    const beforeAllOk = await runTestRunHooks(eventEmitter, () => executor.runBeforeAllHooks(), featureGroups, 'a BeforeAll')
 
     // Once BeforeAll ran, AfterAll and suite:end must run even if assembly or
     // context allocation throws; the error is rethrown afterwards.
@@ -1200,9 +1199,9 @@ async function runParallel(params: {
 
     const totalDuration = Date.now() - runStart
 
-    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
-
+    // AfterAll runs before the end of the features, which get its failure as a hook
     const afterAllOk = await runTestRunHooks(eventEmitter, () => executor.runAfterAllHooks(), featureGroups, 'an AfterAll')
+    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end', cucumberOpts.tagsInTitle)
     if (runFailure) { throw runFailure.error }
 
     let passed = 0, failed = 0, skipped = allPickles.length - allResults.length
@@ -1216,6 +1215,10 @@ async function runParallel(params: {
         }
     }
     const hookFailures = Number(!beforeAllOk) + Number(!afterAllOk)
+    const strictPending = allResults.flatMap((r) => r.status === 'fulfilled' && r.value.strictPendingLabel ? [r.value.strictPendingLabel] : [])
+    if (strictPending.length) {
+        log.warn(strictPendingWarning(strictPending))
+    }
 
     log.info(
         `[Parallel] ${allPickles.length} scenarios: ${passed} passed, ${failed} failed, ${skipped} skipped in ${totalDuration}ms`

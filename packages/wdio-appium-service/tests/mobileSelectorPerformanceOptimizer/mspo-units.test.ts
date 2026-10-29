@@ -1,0 +1,78 @@
+import { describe, expect, test, vi } from 'vitest'
+
+import MobileSelectorPerformanceReporter from '../../src/mobileSelectorPerformanceOptimizer/mspo-reporter.js'
+import { getCurrentSuiteName, getCurrentTestFile, getCurrentTestName } from '../../src/mobileSelectorPerformanceOptimizer/mspo-store.js'
+
+// the real base reporter and store: the names that a selector command of the calling code gets
+let current: string | undefined
+const newReporter = () => {
+    const reporter = new MobileSelectorPerformanceReporter({ writeStream: { write: vi.fn() } })
+    reporter.setContextIdResolver(() => current)
+    return reporter
+}
+const names = (contextId?: string) => {
+    current = contextId
+    return { testFile: getCurrentTestFile(), suiteName: getCurrentSuiteName(), testName: getCurrentTestName() }
+}
+const suite = (uid: string, parentUid: string | null, file = `/specs/${uid}.spec.ts`) => ({ uid, title: uid, type: 'suite', cid: '0-0', file, parentUid })
+const testOf = (uid: string, parentUid: string, extra: Record<string, unknown> = {}) => ({ uid, title: uid, fullTitle: uid, type: 'test', cid: '0-0', parentUid, ...extra })
+
+describe('MobileSelectorPerformanceReporter owner of a command', () => {
+    test('gives a command of a parallel test the names of its own test and suite', () => {
+        const reporter = newReporter()
+        current = undefined
+        // Mocha parallel mode starts all suites before the first test
+        reporter.emit('suite:start', suite('outer', null, '/specs/a.spec.ts'))
+        reporter.emit('suite:start', suite('inner', 'outer', '/specs/a.spec.ts'))
+        reporter.emit('suite:start', suite('other', null, '/specs/b.spec.ts'))
+        reporter.emit('test:start', testOf('test a', 'inner', { contextId: 'ctx-a' }))
+        reporter.emit('test:start', testOf('test b', 'other', { contextId: 'ctx-b' }))
+
+        expect(names('ctx-a')).toEqual({ testFile: 'specs/a.spec.ts', suiteName: 'inner', testName: 'test a' })
+        expect(names('ctx-b')).toEqual({ testFile: 'specs/b.spec.ts', suiteName: 'other', testName: 'test b' })
+    })
+
+    // the resolver is module-global, so the reporter clears it at its end
+    test('clears its resolver at runner:end: the names that the events set last come back', () => {
+        const reporter = newReporter()
+        current = undefined
+        reporter.emit('runner:start', { cid: '0-0', specs: ['/specs/a.spec.ts'], capabilities: {}, config: {}, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        reporter.emit('suite:start', suite('outer', null, '/specs/a.spec.ts'))
+        reporter.emit('test:start', testOf('test a', 'outer', { contextId: 'ctx-a' }))
+        reporter.emit('test:start', testOf('test b', 'outer', { contextId: 'ctx-b' }))
+        expect(names('ctx-a').testName).toBe('test a')
+        reporter.emit('runner:end', { cid: '0-0', failures: 0, retries: 0 })
+
+        expect(names('ctx-a').testName).toBe('test b')
+    })
+
+    test('the end of another reporter does not clear the resolver of the reporter that set it last', () => {
+        const runnerStart = { cid: '0-0', specs: ['/specs/a.spec.ts'], capabilities: {}, config: {}, sessionId: 's', isMultiRemote: false, instanceOptions: {} }
+        current = undefined
+        const first = newReporter()
+        first.emit('runner:start', runnerStart)
+        const second = newReporter()
+        second.emit('runner:start', runnerStart)
+        second.emit('suite:start', suite('outer', null, '/specs/a.spec.ts'))
+        second.emit('test:start', testOf('test a', 'outer', { contextId: 'ctx-a' }))
+        second.emit('test:start', testOf('test b', 'outer', { contextId: 'ctx-b' }))
+        first.emit('runner:end', { cid: '0-0', failures: 0, retries: 0 })
+
+        expect(names('ctx-a').testName).toBe('test a')
+    })
+
+    test('keeps the names of the last started test and suite in a sequential run (no change)', () => {
+        const reporter = newReporter()
+        current = undefined
+        reporter.emit('suite:start', suite('first', null))
+        reporter.emit('test:start', testOf('test 1', 'first'))
+        reporter.emit('test:pass', testOf('test 1', 'first'))
+        reporter.emit('test:end', testOf('test 1', 'first'))
+        reporter.emit('suite:end', suite('first', null))
+        reporter.emit('suite:start', suite('second', null))
+
+        expect(names()).toEqual({ testFile: 'specs/second.spec.ts', suiteName: 'second', testName: 'test 1' })
+        reporter.emit('test:start', testOf('test 2', 'second'))
+        expect(names()).toEqual({ testFile: 'specs/second.spec.ts', suiteName: 'second', testName: 'test 2' })
+    })
+})

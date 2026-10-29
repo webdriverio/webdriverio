@@ -3,8 +3,8 @@ import { format } from 'node:util'
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
-import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName, getBrowserNames, hookCountsAsFailure } from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument, ContextEnd } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
 
@@ -16,13 +16,15 @@ interface CapabilitiesWithSessionId extends WebdriverIO.Capabilities {
 
 export default class SpecReporter extends WDIOReporter {
     private _suiteUids = new Set()
-    private _indents = 0
     private _suiteIndents: Record<string, number> = {}
     private _orderedSuites: SuiteStats[] = []
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs = new Map<string, string>()
-    private _pendingReasons: string[] = []
+    /** the console logs of a `beforeAll` / `afterAll` with no context, by hook: Jasmine hook uids repeat */
+    private _hookLogs = new Map<HookStats, string>()
+    /** the open `beforeAll` / `afterAll` of each parallel context: a Mocha `after()` runs after its test ended */
+    private _openContextAllHooks = new Map<string, HookStats[]>()
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
@@ -30,8 +32,8 @@ export default class SpecReporter extends WDIOReporter {
     private _showPreface = true
     private _suiteName = ''
 
-    private _isSuiteRetry = false
-    private _passingTestsSinceLastRetry = 0
+    /** the counts of the current attempt of each suite (uid): a retry of the suite (Cucumber scenario) removes them */
+    private _attemptCounts = new Map<string, Record<'passed' | 'failed' | 'skipped' | 'pending', number>>()
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -73,8 +75,15 @@ export default class SpecReporter extends WDIOReporter {
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                    // a hook owner gets the logs: the innermost open beforeAll / afterAll with no context, the open hook of a context before its test, or the open beforeAll / afterAll of a context after its test ended
+                    const owner = this.getContextOwner()
+                    const contextId = this.getContextId()
+                    const afterTest = owner?.type === 'test' && owner.end && contextId ? this._openContextAllHooks.get(contextId)?.at(-1) : undefined
+                    const hook = afterTest ?? (owner?.type === 'hook' ? owner as HookStats : undefined)
                     const test = this.getContextTest()
-                    if (test && !test.end) {
+                    if (hook) {
+                        this._hookLogs.set(hook, (this._hookLogs.get(hook) ?? '') + chunk)
+                    } else if (test && !test.end) {
                         this._consoleLogs.set(test.uid, (this._consoleLogs.get(test.uid) ?? '') + chunk)
                     }
                 }
@@ -101,33 +110,61 @@ export default class SpecReporter extends WDIOReporter {
         this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
-        if (suite.type === 'feature') {
-            this._indents = 0
-            this._suiteIndents[suite.uid] = this._indents
-        } else {
-            this._suiteIndents[suite.uid] = ++this._indents
+        // the place of the suite in the tree, below its feature, not the suites that started before it
+        const path = this.pathOf(suite)
+        this._suiteIndents[suite.uid] = suite.type === 'feature' ? 0 : path.length - path.findLastIndex((parent) => parent.type === 'feature')
+    }
+
+    onSuiteEnd (suite?: SuiteStats) {
+        this._attemptCounts.delete(this._suiteKey(suite?.uid))
+    }
+
+    onSuiteRetry(suite?: SuiteStats): void {
+        const key = this._suiteKey(suite?.uid)
+        for (const [state, count] of Object.entries(this._attemptCounts.get(key) ?? {})) {
+            this._stateCounts[state as 'passed'] -= count
         }
-    }
-
-    onSuiteEnd () {
-        this._indents--
-        this._isSuiteRetry = false
-        this._passingTestsSinceLastRetry = 0
-    }
-
-    onSuiteRetry(): void {
-        this._stateCounts.failed--
+        this._attemptCounts.delete(key)
         this._stateCounts.retried++
-        this._stateCounts.passed -= this._passingTestsSinceLastRetry
-        this._isSuiteRetry = true
-        this._passingTestsSinceLastRetry = 0
+    }
+
+    /** the suite of a test or hook: its `parentUid` in parallel mode, else the suite that runs */
+    private _suiteKey (uid?: string | null) {
+        return uid ?? this.currentSuites.at(-1)?.uid ?? ''
+    }
+
+    private _count (state: 'passed' | 'failed' | 'skipped' | 'pending', stat: TestStats | HookStats, change = 1) {
+        this._stateCounts[state] += change
+        const key = this._suiteKey(stat.parentUid)
+        const counts = this._attemptCounts.get(key) ?? { passed: 0, failed: 0, skipped: 0, pending: 0 }
+        counts[state] += change
+        this._attemptCounts.set(key, counts)
+    }
+
+    onHookStart (hook: HookStats) {
+        if (hook.contextId && (hook.hookKind === 'beforeAll' || hook.hookKind === 'afterAll')) {
+            this._openContextAllHooks.set(hook.contextId, [...(this._openContextAllHooks.get(hook.contextId) ?? []), hook])
+        }
     }
 
     onHookEnd (hook: HookStats) {
-        this.printCurrentStats(hook)
-        if (hook.error) {
-            this._stateCounts.failed++
+        if (hook.contextId) {
+            const open = this._openContextAllHooks.get(hook.contextId)?.filter((entry) => entry !== hook)
+            if (open?.length) {
+                this._openContextAllHooks.set(hook.contextId, open)
+            } else {
+                this._openContextAllHooks.delete(hook.contextId)
+            }
         }
+        this.printCurrentStats(hook)
+        if (hookCountsAsFailure(hook)) {
+            this._count('failed', hook)
+        }
+    }
+
+    onContextEnd (payload: ContextEnd) {
+        // a hook with no hook:end must not stay for a late log
+        this._openContextAllHooks.delete(payload.contextId)
     }
 
     onTestStart (testStat: TestStats) {
@@ -136,36 +173,33 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestPass (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._stateCounts.passed++
+        this._count('passed', testStat)
         this._passedTests.add(testStat)
-        if (!this._isSuiteRetry) {
-            this._passingTestsSinceLastRetry++
-        }
     }
 
     onTestFail (testStat: TestStats) {
         this.printCurrentStats(testStat)
 
         if (this._passedTests.delete(testStat)) {
-            this._stateCounts.passed--
-            if (!this._isSuiteRetry) {
-                this._passingTestsSinceLastRetry--
-            }
+            this._count('passed', testStat, -1)
         }
 
-        this._stateCounts.failed++
+        this._count('failed', testStat)
+    }
+
+    /** a test that runs again (Mocha), or a Cucumber step of an attempt that runs again: counted only by its last attempt */
+    onTestRetry (testStat: TestStats) {
+        this.printCurrentStats(Object.assign(Object.create(testStat), { state: State.RETRIED }))
     }
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason as string)
-        this._stateCounts.skipped++
+        this._count('skipped', testStat)
     }
 
     onTestPending(testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason as string)
-        this._stateCounts.pending++
+        this._count('pending', testStat)
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -368,7 +402,7 @@ export default class SpecReporter extends WDIOReporter {
                 }
                 return accumulator
             }, [] as (HookStats | TestStats)[]).filter((item) => Object.keys(item).length > 0).filter((item) => {
-                return item.type === 'test' || Boolean(item.error)
+                return item.type === 'test' || Boolean(item.error) || Boolean(this._hookLogs.get(item as HookStats))
             })
         ]
     }
@@ -383,12 +417,20 @@ export default class SpecReporter extends WDIOReporter {
         const preface = this._showPreface ? prefaceString : ''
         const suites = this.getOrderedSuites()
         const specFileReferences: string[] = []
+        // the afterAll lines of a suite with child suites, printed after the last of them
+        const pending: { childUids: Set<string>, lines: string[] }[] = []
+        const printPending = (next?: SuiteStats) => {
+            while (pending.length && !(next && pending.at(-1)!.childUids.has(next.uid))) {
+                output.push(...pending.pop()!.lines)
+            }
+        }
 
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
-            if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
+            if (!this._isShown(suite)) {
                 continue
             }
+            printPending(suite)
 
             // Get the indent/starting point for this suite
             const suiteIndent = this.indent(suite.uid)
@@ -421,61 +463,102 @@ export default class SpecReporter extends WDIOReporter {
             }
 
             const eventsToReport = this.getEventsToReport(suite)
-            for (const test of eventsToReport) {
-                const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
-                    ? this._chalk.yellow(`(${test.retries}x retries)`)
-                    : ''
-                const testTitle = `${test.title} ${testRetryAnnotation}`
-                const state = test.state as State
-                const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
-
-                // Output for a single test
-                output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state)} ${testTitle.trim()}`)
-
-                // print cucumber data table cells and docstring
-                const arg = (test as TestStats).argument
-                if (typeof(arg) === 'string'){
-                    // Doc string is the same with the indent on the output for a single test
-                    const docstringIndent = '  '
-                    const docstringMark = `${testIndent}${docstringIndent}"""`
-                    const docstring = String(arg)
-                    const formattedDocstringLines = docstring.split('\n').filter(line => line)
-                        .map((line: string) => `${testIndent}${docstringIndent}${line}`)
-                    output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
-                } else {
-                    const dataTable = arg as Argument
-                    if (dataTable && dataTable.rows && dataTable.rows.length) {
-                        const data = buildTableData(dataTable.rows)
-                        const rawTable = printTable(data)
-                        const table = getFormattedRows(rawTable, testIndent)
-                        output.push(...table)
-                    }
-                }
-
-                // print pending reasons
-                const pendingItem = this._pendingReasons.shift()
-                if (pendingItem) {
-                    output.push('')
-                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
-                    output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
-                }
-
-                // print console output
-                const logItem = this._consoleLogs.get(test.uid)
-                if (logItem) {
-                    output.push('')
-                    output.push(testIndent.repeat(2) + '.........Console Logs.........')
-                    output.push(testIndent.repeat(3) + logItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
-                }
-            }
+            const childUids = this._shownChildUids(suite)
+            const afterChildren = childUids.size
+                ? eventsToReport.filter((test) => test.type === 'hook' && (test as HookStats).hookKind === 'afterAll')
+                : []
+            const beforeChildren = eventsToReport.filter((test) => !afterChildren.includes(test))
+            output.push(...beforeChildren.flatMap((test) => this._eventLines(test, suite, suiteIndent, preface)))
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (eventsToReport.length) {
+            if (beforeChildren.length) {
                 output.push('')
+            }
+            if (afterChildren.length) {
+                pending.push({ childUids, lines: [...afterChildren.flatMap((test) => this._eventLines(test, suite, suiteIndent, preface)), ''] })
+            }
+        }
+        printPending()
+
+        return output
+    }
+
+    // a suite with no tests, hooks or sub suites is not printed
+    private _isShown (suite: SuiteStats) {
+        return suite.tests.length > 0 || suite.suites.length > 0 || suite.hooks.length > 0
+    }
+
+    // the uids of the printed suites below this suite
+    private _shownChildUids (suite: SuiteStats, uids = new Set<string>()) {
+        for (const child of suite.suites ?? []) {
+            if (this._isShown(child)) {
+                uids.add(child.uid)
+            }
+            this._shownChildUids(child, uids)
+        }
+        return uids
+    }
+
+    // the lines of one test or hook of a suite
+    private _eventLines (test: HookStats | TestStats, suite: SuiteStats, suiteIndent: string, preface?: string) {
+        const output: string[] = []
+        const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
+            ? this._chalk.yellow(`(${test.retries}x retries)`)
+            : ''
+        const testTitle = `${test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title} ${testRetryAnnotation}`
+        // a hook shown for its console logs has no state when it passed
+        const state = (test.state ?? (test.type === 'hook' && !test.error ? State.PASSED : undefined)) as State
+        const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
+
+        // Output for a single test
+        output.push(`${testIndent}${this.setMessageColor(this.getSymbol(state), state)} ${testTitle.trim()}`)
+
+        // print cucumber data table cells and docstring
+        const arg = (test as TestStats).argument
+        if (typeof(arg) === 'string'){
+            // Doc string is the same with the indent on the output for a single test
+            const docstringIndent = '  '
+            const docstringMark = `${testIndent}${docstringIndent}"""`
+            const docstring = String(arg)
+            const formattedDocstringLines = docstring.split('\n').filter(line => line)
+                .map((line: string) => `${testIndent}${docstringIndent}${line}`)
+            output.push(...[docstringMark, ...formattedDocstringLines, docstringMark])
+        } else {
+            const dataTable = arg as Argument
+            if (dataTable && dataTable.rows && dataTable.rows.length) {
+                const data = buildTableData(dataTable.rows)
+                const rawTable = printTable(data)
+                const table = getFormattedRows(rawTable, testIndent)
+                output.push(...table)
             }
         }
 
+        // print the pending reason of this test
+        const pendingItem = (test as TestStats).pendingReason
+        if (pendingItem) {
+            output.push('')
+            output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
+            output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
+        }
+
+        // print console output
+        const logItem = test.type === 'hook' ? this._hookLogs.get(test as HookStats) : this._consoleLogs.get(test.uid)
+        if (logItem) {
+            output.push('')
+            output.push(testIndent.repeat(2) + '.........Console Logs.........')
+            output.push(testIndent.repeat(3) + logItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
+        }
         return output
+    }
+
+    // an unnamed hook (a Cucumber Before / After) gets the name that JUnit gives it: before or after the first test
+    private _hookTitle (hook: HookStats, suite: SuiteStats) {
+        if (hook.title) {
+            return hook.title
+        }
+        const order = suite.hooksAndTests
+        const firstTest = order.findIndex((entry) => entry.type !== 'hook')
+        return firstTest === -1 || order.indexOf(hook) < firstTest ? 'Before hook' : 'After hook'
     }
 
     /**
@@ -539,7 +622,7 @@ export default class SpecReporter extends WDIOReporter {
                     continue
                 }
 
-                const testTitle = test.title
+                const testTitle = test.type === 'hook' ? this._hookTitle(test as HookStats, suite) : test.title
                 const errors: Error[] = test.errors || (test.error ? [test.error] : [])
                 // If we get here then there is a failed test
                 output.push(
@@ -573,7 +656,18 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         this._orderedSuites = []
-        for (const uid of this._suiteUids) {
+        // the order of the tree, first place of each uid: in parallel mode suites (Cucumber: features) start first
+        const treeUids = new Set<unknown>()
+        const walk = (parent: SuiteStats) => (parent.suites ?? []).forEach((child) => {
+            if (this._suiteUids.has(child.uid)) {
+                treeUids.add(child.uid)
+            }
+            walk(child)
+        })
+        if (this.currentSuites[0]) {
+            walk(this.currentSuites[0])
+        }
+        for (const uid of new Set([...treeUids, ...this._suiteUids])) {
             for (const [suiteUid, suite] of Object.entries(this.suites)) {
                 if (suiteUid !== uid) {
                     continue
@@ -595,8 +689,14 @@ export default class SpecReporter extends WDIOReporter {
                 fullTitle: '(root)',
                 suites: []
             }
-            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
-            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            // a hook that the framework skipped is not shown
+            const shown = (hook: HookStats) => hook.state && hook.state !== 'skipped'
+            // a failed root hook, or a root beforeAll / afterAll with console logs
+            const rootHooks = (kind: 'before' | 'after') => rootSuite.hooks.filter((hook) => this._hookLogs.get(hook)
+                ? hook.hookKind === `${kind}All`
+                : shown(hook) && hook.title.startsWith(`"${kind}`) && hook.title.endsWith('"{root}"'))
+            const beforeAllHooks = rootHooks('before')
+            const afterAllHooks = rootHooks('after')
             this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
                 hooks: beforeAllHooks,
                 hooksAndTests: beforeAllHooks
@@ -666,11 +766,11 @@ export default class SpecReporter extends WDIOReporter {
      */
     getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiRemote = false): string {
         if (isMultiRemote) {
-            const browserNames = Object.values(capability).map((c) => c.browserName)
+            const browserNames = getBrowserNames(capability, true)
             const browserName = browserNames.length > 1
                 ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
                 : browserNames.pop()
-            return `MultiRemoteBrowser on ${browserName}`
+            return browserName ? `MultiRemoteBrowser on ${browserName}` : 'MultiRemoteBrowser'
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']

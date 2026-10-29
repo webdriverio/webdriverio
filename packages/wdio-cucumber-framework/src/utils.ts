@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createRequire } from 'node:module'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
 import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
@@ -18,9 +19,10 @@ import type {
 } from '@cucumber/messages'
 import { getWorstTestStepResult } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
-import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
+import type { HookKind, ReporterStep, TestHookDefinitionConfig, Payload, TestRunHookStart, UserRunHook } from './types.js'
 import { AMBIGUOUS_STEP_MESSAGE, CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
+const require_ = createRequire(import.meta.url)
 
 function createStepArgument ({ argument }: PickleStep) {
     if (!argument) {
@@ -55,8 +57,9 @@ export function formatMessage ({ payload = {} }: { payload: Payload }): Payload 
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
     if (payload.error && (payload.error.message || payload.error.stack)) {
-        const { name, message, stack } = payload.error
-        content.error = { name, message, stack }
+        const { name, message, stack, type } = payload.error as Error & { type?: string }
+        // as the Mocha framework: the concise reporter prints the type
+        content.error = { name, message, stack, type: type || name } as Error
     }
 
     if (payload.title && payload.parent) {
@@ -64,6 +67,22 @@ export function formatMessage ({ payload = {} }: { payload: Payload }): Payload 
     }
 
     return content
+}
+
+const HOOK_KINDS: Record<string, HookKind> = {
+    BEFORE_TEST_CASE: 'beforeEach',
+    AFTER_TEST_CASE: 'afterEach',
+    BEFORE_TEST_STEP: 'beforeStep',
+    AFTER_TEST_STEP: 'afterStep',
+    BEFORE_TEST_RUN: 'beforeAll',
+    AFTER_TEST_RUN: 'afterAll'
+}
+
+/**
+ * The hook kind of a Cucumber hook message; `undefined` when the Cucumber version sends no `type`
+ */
+export function hookKindOf(hook?: { type?: string }): HookKind | undefined {
+    return hook?.type ? HOOK_KINDS[hook.type] : undefined
 }
 
 enum StepType {
@@ -360,6 +379,103 @@ export function getFeatureStack(uri: string, feature: Feature, scenario: Pickle,
     return stack
 }
 
+/**
+ * a scenario as Cucumber names it: `"name" (path:line)`, with the line of the example row for an outline
+ */
+export function scenarioLabel(uri: string, feature: Feature | undefined, scenario: Pickle): string {
+    const [scenarioId, rowId] = scenario.astNodeIds ?? []
+    const children = feature?.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
+    const featScenario = children.find((c) => c.scenario?.id === scenarioId)?.scenario
+    const row = featScenario?.examples?.flatMap((examples) => examples.tableBody).find((r) => r.id === rowId)
+    const line = (row ?? featScenario)?.location?.line
+    return `"${scenario.name}" (${path.relative(process.cwd(), uri)}${line ? `:${line}` : ''})`
+}
+
+interface RunHookDefinition {
+    id: string
+    name?: string
+    uri?: string
+    line?: number
+    code: Function
+}
+
+/**
+ * the user BeforeAll / AfterAll hooks by hook id: the kind comes from the list, also when Cucumber sends
+ * no hook `type`; WDIO's own run hooks (`wdioHook*`, see `setUserHookNames`) are left out
+ */
+export function userRunHooks(library: { beforeTestRunHookDefinitions: RunHookDefinition[], afterTestRunHookDefinitions: RunHookDefinition[] }) {
+    const hooks: Record<string, UserRunHook> = {}
+    const add = (definitions: RunHookDefinition[], kind: UserRunHook['kind']) => {
+        for (const { id, name, uri, line, code } of definitions) {
+            if (!code.name.startsWith('wdioHook')) {
+                hooks[id] = { kind, name, uri, line }
+            }
+        }
+    }
+    add(library.beforeTestRunHookDefinitions, 'BeforeAll')
+    add(library.afterTestRunHookDefinitions, 'AfterAll')
+    return hooks
+}
+
+/**
+ * the `hook:start` of a BeforeAll or AfterAll: Cucumber runs it once for each run, outside of any scenario,
+ * so it is a hook of the feature suite; no contextId, so the base reporter gives it its commands (hookOwner)
+ */
+export function testRunHookStart({ uid, hook, featureUid, uri }: { uid: string, hook: UserRunHook, featureUid: string, uri: string }): TestRunHookStart {
+    const { kind, name, uri: hookUri, line } = hook
+    return {
+        type: 'hook',
+        uid,
+        title: `${kind}${name ? ` "${name}"` : ''}${hookUri ? ` (${path.relative(process.cwd(), hookUri)}${line ? `:${line}` : ''})` : ''}`,
+        parent: featureUid,
+        parentUid: featureUid,
+        hookKind: kind === 'AfterAll' ? 'afterAll' : 'beforeAll',
+        hookSuiteUid: featureUid,
+        file: uri,
+    }
+}
+
+/**
+ * the `hook:end` of a run hook: a passed one has no state (HookStats), SKIPPED is a dry run
+ */
+export function testRunHookEnd(start: TestRunHookStart, result: TestStepResult): TestRunHookStart & { duration: number, state?: 'failed' | 'skipped', error?: Error } {
+    const duration = Math.round((result.duration?.seconds ?? 0) * 1000 + (result.duration?.nanos ?? 0) / 1e6)
+    if (result.status === 'FAILED') {
+        const message = result.message ?? ''
+        const error = new Error(result.exception?.message ?? message.split('\n')[0])
+        error.name = result.exception?.type ?? 'Error'
+        error.stack = message
+        return { ...start, duration, state: 'failed', error }
+    }
+    return { ...start, duration, ...(result.status === 'SKIPPED' && { state: 'skipped' as const }) }
+}
+
+/**
+ * with `strict`, Cucumber fails the run on a pending step or hook, but shows it as pending
+ * (a warning, issue_helpers.js): name the scenarios (see `scenarioLabel`) that make the run fail
+ */
+export function strictPendingWarning(scenarios: string[]) {
+    return `The run fails because cucumberOpts.strict is true and ${scenarios.length} ${scenarios.length === 1 ? 'scenario has' : 'scenarios have'} ` +
+        `a pending step or hook: ${scenarios.join(', ')}`
+}
+
+/**
+ * Cucumber's own rule for the retries of a scenario (`retry`, `retryTagFilter`), from a file that
+ * Cucumber does not export: `undefined` when it cannot be loaded
+ */
+let cucumberRetriesForPickle: ((pickle: Pickle, options: { retry: number, retryTagFilter: string }) => number) | null | undefined
+export function retriesForPickle(pickle: Pickle, options: { retry: number, retryTagFilter: string }): number | undefined {
+    if (cucumberRetriesForPickle === undefined) {
+        try {
+            ;({ retriesForPickle: cucumberRetriesForPickle } = require_('@cucumber/cucumber/lib/runtime/helpers'))
+        } catch (err) {
+            cucumberRetriesForPickle = null
+            log.warn(`Failed to load Cucumber's retry rule: ${(err as Error).message}. A step that fails in an attempt that Cucumber retries is reported as failed.`)
+        }
+    }
+    return cucumberRetriesForPickle?.(pickle, options)
+}
+
 export interface StepResult {
     state: 'pass' | 'fail' | 'skip' | 'pending'
     error?: Error
@@ -377,11 +493,12 @@ export interface StepResult {
  */
 export function getScenarioResult(
     results: TestStepResult[],
-    options: { ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean }
+    options: { ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, strict: boolean }
 ): TestStepResult | undefined {
     const failing = results.filter(({ status }) => status === 'FAILED' ||
         (status === 'UNDEFINED' && !options.ignoreUndefinedDefinitions) ||
-        (status === 'AMBIGUOUS' && options.failAmbiguousDefinitions))
+        (status === 'AMBIGUOUS' && options.failAmbiguousDefinitions) ||
+        (status === 'PENDING' && options.strict))
     if (failing.length) {
         return getWorstTestStepResult(failing)
     }
@@ -397,7 +514,7 @@ export function getScenarioResult(
  */
 export function getStepResult(
     result: TestStepResult,
-    params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, featureStack: () => string }
+    params: { title: string, isStep: boolean, ignoreUndefinedDefinitions: boolean, failAmbiguousDefinitions: boolean, strict: boolean, featureStack: () => string }
 ): StepResult {
     const { title, isStep, featureStack } = params
     let state = convertStatus(result.status)
@@ -418,6 +535,9 @@ export function getStepResult(
             )
             error.stack = `${error.message}\n${featureStack()}`
         }
+    } else if (result.status === 'PENDING' && params.strict) {
+        // as Cucumber: still pending, but the run fails
+        failed = true
     } else if (result.status === 'FAILED') {
         state = 'fail'
         failed = true

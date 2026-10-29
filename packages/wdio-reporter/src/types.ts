@@ -1,3 +1,5 @@
+import type { Frameworks } from '@wdio/types'
+
 export interface Tag {
     name: string;
     line: number;
@@ -26,8 +28,8 @@ export interface AfterCommandArgs extends CommandArgs {
 }
 
 /**
- * Payload of `context:end`: the browsing context of a parallel test sends no more events
- * @experimental sent in Mocha and Cucumber `parallelMode`; the name and the fields may change
+ * Payload of `context:end`: the context of a parallel test sends no more events
+ * @experimental sent in Mocha and Cucumber `parallelMode` and for Vitest concurrent tests; the name and the fields may change
  */
 export interface ContextEnd {
     cid: string
@@ -42,3 +44,8 @@ export interface Argument {
         cells: string[]
     }[]
 }
+
+/** The kind of a hook, sent by the framework adapter. @experimental */
+export type HookKind = Frameworks.HookKind
+
+export type { ReporterUnit } from './units.js'

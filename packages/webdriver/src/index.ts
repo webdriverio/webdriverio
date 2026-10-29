@@ -156,8 +156,14 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (isBidi(options.capabilities || {})) {
-            client._bidiHandler?.waitForConnected().then(()=>{
-                client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            /**
+             * attaching doesn't wait for the connection: when it fails, there is no socket
+             * to listen on, and an error here would crash the process (#16240)
+             */
+            client._bidiHandler?.waitForConnected().then((isConnected: boolean) => {
+                if (isConnected) {
+                    client._bidiHandler?.socket?.on('message', parseBidiMessage.bind(client))
+                }
             })
         }
         return client

@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** The kind of a hook, as a framework sends it in its hook events. @experimental */
+export type HookKind = 'beforeAll' | 'beforeEach' | 'afterEach' | 'afterAll' | 'beforeStep' | 'afterStep'
+
 export interface Suite {
     type: string
     title: string
@@ -151,4 +154,34 @@ export interface Scenario {
      * Array of tags
      */
     tags: Tag[]
+}
+
+export interface FrameworkLaunchParams {
+    config: WebdriverIO.Config
+    /** Resolved absolute spec file paths, after `--spec` and `exclude` filtering. */
+    specs: string[]
+    configFile: string
+    /** CLI arguments the launcher was started with, so framework workers can rebuild the same config. */
+    args?: Record<string, unknown>
+    /** Aborted when the launcher receives SIGINT/SIGTERM. The framework must cancel its run and resolve. */
+    signal?: AbortSignal
+    /** Receives the job and reporter events the CLI needs to render the run. */
+    onEvent?: (event: FrameworkLaunchEvent) => void
+}
+
+export type FrameworkLaunchEvent =
+    | { type: 'job:start', cid: string, caps: WebdriverIO.Capabilities, specs: string[] }
+    | { type: 'job:end', cid: string, passed: boolean }
+    | { type: 'message', message: unknown }
+
+/**
+ * Frameworks that schedule specs themselves export `launch`. The CLI then
+ * calls it in the launcher process instead of starting WDIO workers.
+ *
+ * @experimental Internal to first-party frameworks (the CLI only honors an
+ * allowlist). The contract may change in any release, without a major version.
+ */
+export interface FrameworkLauncher {
+    /** @returns number of failures, `0` when the run passed */
+    launch(params: FrameworkLaunchParams): Promise<number>
 }

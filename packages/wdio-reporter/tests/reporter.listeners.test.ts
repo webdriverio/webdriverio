@@ -488,6 +488,29 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
             expect(reporter.counts.hooks).toBe(1)
         })
+
+        it('keeps failedTestUid and retried when only hook:end has them', () => {
+            hookEndEvent = { ...hookEndEvent, error: new Error('boom'), failedTestUid: 'test-1', retried: true } as any
+            emitEvents()
+            expect(reporter.hooks[hookStartEvent.uid!]).toMatchObject({ failedTestUid: 'test-1', retried: true })
+        })
+
+        it('a hook:end with no hook:start throws its first error, not an error of the cleanup', () => {
+            reporter.emit('runner:start', runnerStartEvent)
+            const errorOf = (payload: Record<string, unknown>) => {
+                try {
+                    reporter.emit('hook:end', { uid: 'unknown', title: 'x', ...payload })
+                } catch (err) {
+                    return err as Error
+                }
+            }
+            for (const [payload, message] of [[{}, "reading 'complete'"], [{ retried: true }, "setting 'retried'"]] as const) {
+                const error = errorOf(payload)
+                expect(error).toBeInstanceOf(TypeError)
+                expect(error!.message).not.toContain('contextId')
+                expect(error!.message).toContain(message)
+            }
+        })
     })
 
     describe('handling test:start', () => {
@@ -775,6 +798,63 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.counts.passes).toBe(0)
             expect(reporter.counts.failures).toBe(1)
         })
+
+        it('marks the stats of a retried attempt, not the next attempt', () => {
+            emitEventsFirstTry()
+            const attempt = reporter.tests[testRetryEvent.uid]
+            emitEventsSecondPassTry()
+            expect(attempt.retried).toBe(true)
+            expect(reporter.tests[testEndEvent.uid].retried).toBeUndefined()
+        })
+    })
+
+    // Cucumber at step level: suite:retry starts the next attempt of a scenario and clears its steps
+    describe('suite:retry removes the counts of the attempt that it clears', () => {
+        const step = (uid: string, result: 'pass' | 'fail' | 'retry' | 'skip' | 'pending', contextId?: string) => {
+            const payload = { uid, title: uid, parentUid: contextId ? `S-${contextId}` : undefined, contextId }
+            reporter.emit('test:start', payload)
+            reporter.emit(`test:${result}`, { ...payload, ...(result === 'pending' ? { state: 'pending' } : {}) })
+            reporter.emit('test:end', payload)
+        }
+        const scenario = (uid: string, event: 'suite:start' | 'suite:retry', contextId?: string) =>
+            reporter.emit(event, { uid, title: uid, parentUid: contextId ? 'F' : undefined, contextId })
+
+        beforeEach(() => {
+            reporter.emit('suite:start', { uid: 'F', title: 'feature' })
+        })
+
+        it('keeps only the steps of the last attempt', () => {
+            scenario('S', 'suite:start')
+            step('s1', 'pass')
+            step('s2', 'retry')
+            step('s3', 'skip')
+            scenario('S', 'suite:retry')
+            step('s1', 'pass')
+            step('s2', 'pass')
+            step('s3', 'pass')
+            expect(reporter.counts).toMatchObject({ tests: 3, passes: 3, failures: 0, skipping: 0, pending: 0 })
+        })
+
+        it('removes a failure of an attempt that an After hook made Cucumber retry', () => {
+            scenario('S', 'suite:start')
+            step('s1', 'pass')
+            step('s2', 'fail')
+            step('s3', 'pending')
+            scenario('S', 'suite:retry')
+            step('s1', 'pass')
+            expect(reporter.counts).toMatchObject({ tests: 1, passes: 1, failures: 0, skipping: 0, pending: 0 })
+        })
+
+        it('keeps the counts of the scenario of another window', () => {
+            scenario('S-a', 'suite:start', 'a')
+            scenario('S-b', 'suite:start', 'b')
+            step('a1', 'retry', 'a')
+            step('b1', 'fail', 'b')
+            step('b2', 'skip', 'b')
+            scenario('S-a', 'suite:retry', 'a')
+            step('a1', 'pass', 'a')
+            expect(reporter.counts).toMatchObject({ tests: 3, passes: 1, failures: 1, skipping: 1 })
+        })
     })
 
     describe('handling test:end', () => {
@@ -1055,5 +1135,100 @@ describe('WDIOReporter Listeners', () => {
             expect(suite.tests[0]).toBe(reporter.tests.A)
             expect(suite.tests[0].end).toBeDefined()
         })
+    })
+
+    describe('Reported test times', () => {
+        const base = {
+            type: 'test:start' as const, title: 't', parent: 'p', fullTitle: 'p t', pending: false,
+            cid: '0-0', specs: ['/a.js'], uid: 'timed', parentUid: null
+        }
+
+        it('uses start and end of the payload instead of the receipt time', () => {
+            reporter.emit('test:start', base)
+            reporter.emit('test:pass', { ...base, type: 'test:pass', start: 1_000, end: 1_040 })
+
+            expect(reporter.tests.timed.start.getTime()).toBe(1_000)
+            expect(reporter.tests.timed.end!.getTime()).toBe(1_040)
+            expect(reporter.tests.timed.duration).toBe(40)
+        })
+
+        it('applies them to failing and pending tests as well', () => {
+            reporter.emit('test:start', { ...base, uid: 'failing' })
+            reporter.emit('test:fail', { ...base, uid: 'failing', type: 'test:fail', start: 2_000, end: 2_010, error: new Error('x') })
+            reporter.emit('test:pending', { ...base, uid: 'skipped', type: 'test:pending', start: 3_000, end: 3_005 })
+
+            expect(reporter.tests.failing.duration).toBe(10)
+            expect(reporter.tests.skipped.start.getTime()).toBe(3_000)
+            expect(reporter.tests.skipped.duration).toBe(5)
+        })
+
+        it('stamps the receipt time when the payload carries no times', () => {
+            vi.useFakeTimers()
+            vi.setSystemTime(5_000)
+            reporter.emit('test:start', { ...base, uid: 'plain' })
+            vi.setSystemTime(5_020)
+            reporter.emit('test:pass', { ...base, uid: 'plain', type: 'test:pass' })
+            vi.useRealTimers()
+
+            expect(reporter.tests.plain.start.getTime()).toBe(5_000)
+            expect(reporter.tests.plain.duration).toBe(20)
+        })
+
+        it('ignores a start without an end, as Jasmine sends one on every payload', () => {
+            vi.useFakeTimers()
+            vi.setSystemTime(6_000)
+            reporter.emit('test:start', { ...base, uid: 'jasmine', start: 1 })
+            vi.setSystemTime(6_030)
+            reporter.emit('test:pending', { ...base, uid: 'jasmine', type: 'test:pending', start: 1 })
+            vi.useRealTimers()
+
+            expect(reporter.tests.jasmine.start.getTime()).toBe(6_000)
+            expect(reporter.tests.jasmine.duration).toBe(30)
+        })
+    })
+})
+
+describe('WDIOReporter process listeners', () => {
+    class ProcessReporter extends WDIOReporter {
+        constructor() {
+            super({ logFile: tmp.fileSync().name })
+            this.onProcess('wdio-test:event', () => {})
+            this.onProcess('wdio-test:other', () => {})
+        }
+    }
+    const counts = () => [process.listenerCount('wdio-test:event'), process.listenerCount('wdio-test:other')]
+
+    it('removes the listeners registered with onProcess when the runner ends', () => {
+        const before = counts()
+        const reporters = Array.from({ length: 3 }, () => new ProcessReporter())
+        expect(counts()).toEqual(before.map((count) => count + 3))
+
+        reporters.forEach((reporter) => reporter.emit('runner:end', { failures: 0, retries: 0 }))
+        expect(counts()).toEqual(before)
+    })
+
+    it('keeps the listeners of reporters whose runner has not ended', () => {
+        const before = counts()
+        const ended = new ProcessReporter()
+        const running = new ProcessReporter()
+        ended.emit('runner:end', { failures: 0, retries: 0 })
+
+        expect(counts()).toEqual(before.map((count) => count + 1))
+        running.emit('runner:end', { failures: 0, retries: 0 })
+        expect(counts()).toEqual(before)
+    })
+
+    it('removes the listeners when onRunnerEnd throws', () => {
+        class ThrowingReporter extends ProcessReporter {
+            onRunnerEnd() {
+                throw new Error('onRunnerEnd failed')
+            }
+        }
+        const before = counts()
+        const r = new ThrowingReporter()
+        r.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+
+        expect(() => r.emit('runner:end', { failures: 0, retries: 0 })).toThrow()
+        expect(counts()).toEqual(before)
     })
 })

@@ -1,7 +1,7 @@
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook } from '../src/utils.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -49,6 +49,16 @@ describe('utils', () => {
         })).toBe('android.androidemulator.6_4.my-awesome_apk')
     })
 
+    it('sanitizeCaps drops the credentials, the query and the hash of an app URL', () => {
+        const phone = { deviceName: 'Pixel 9', platformName: 'Android', 'appium:platformVersion': '15' }
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'https://user:secret@storage.example.com/builds/app.apk?token=abc123#part' }))
+            .toBe('android.pixel9.15.app_apk')
+        expect(sanitizeCaps({ browserName: 'chrome', 'appium:app': 'https://host/app.apk?token=abc123' })).toBe('chrome.app_apk')
+        expect(sanitizeCaps({ browserName: 'chrome', 'appium:app': 'https://user:secret@apps.example.com/?token=abc123' })).toBe('chrome.apps_example_com')
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'sauce-storage:my-app.zip' })).toBe('android.pixel9.15.sauce-storage:my-app_zip')
+        expect(sanitizeCaps({ ...phone, 'appium:app': 'bs://abcdef' })).toBe('android.pixel9.15.abcdef')
+    })
+
     it('pad', () => {
         expect(pad('foobar', 10)).toBe('    foobar')
     })
@@ -74,5 +84,29 @@ describe('knownFramework', () => {
 
     it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
         expect(knownFramework(name)).toBeUndefined()
+    })
+})
+
+describe('hookCountsAsFailure', () => {
+    const error = new Error('boom')
+    it('counts a failed hook', () => {
+        expect(hookCountsAsFailure({ error })).toBe(true)
+    })
+    it('does not count a passed hook', () => {
+        expect(hookCountsAsFailure({})).toBe(false)
+    })
+    it('does not count a hook whose error is the failure of a test or of a retried attempt', () => {
+        expect(hookCountsAsFailure({ error, failedTestUid: 'test-1' })).toBe(false)
+        expect(hookCountsAsFailure({ error, retried: true })).toBe(false)
+    })
+})
+
+describe('isContextlessAllHook', () => {
+    it('is true only for a beforeAll / afterAll with hookKind and no context', () => {
+        expect(isContextlessAllHook({ hookKind: 'beforeAll' })).toBe(true)
+        expect(isContextlessAllHook({ hookKind: 'afterAll' })).toBe(true)
+        expect(isContextlessAllHook({ hookKind: 'afterAll', contextId: 'c1' })).toBe(false)
+        expect(isContextlessAllHook({ hookKind: 'beforeEach' })).toBe(false)
+        expect(isContextlessAllHook({})).toBe(false)
     })
 })
