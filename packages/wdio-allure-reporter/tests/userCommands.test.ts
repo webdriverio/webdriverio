@@ -7,7 +7,7 @@ import { temporaryDirectory } from 'tempy'
 import AllureReporter from '../src/reporter.js'
 import { getResults } from './helpers/wdio-allure-helper.js'
 
-// the real base: it hides the protocol events of a user command and keeps the screenshots
+// the real base: it keeps the protocol events of a user command, with their parent, and the screenshots
 vi.mock('@wdio/reporter', () => vi.importActual('@wdio/reporter'))
 
 const CID = '0-0'
@@ -42,11 +42,18 @@ const userCommand = (emit: Parameters<Play>[0], id: number, command: string, bod
     inner?.()
     emit('client:afterUserCommand', { ...user(id, command, body), result })
 }
-const protocol = (emit: Parameters<Play>[0], command: string, result: unknown, parent?: number) => {
-    const payload = { command, method: 'POST', endpoint: '/x', body: {}, sessionId: 's', ...(parent === undefined ? {} : { parent }) }
+const protocol = (emit: Parameters<Play>[0], command: string, result: unknown, parent?: number, request: Record<string, unknown> = {}) => {
+    const payload = { command, method: 'POST', endpoint: '/x', body: {}, sessionId: 's', ...request, ...(parent === undefined ? {} : { parent }) }
     emit('client:beforeCommand', payload)
     emit('client:afterCommand', { ...payload, result })
 }
+const getElementText = { method: 'GET', endpoint: '/session/:sessionId/element/f.1.d.2.e.3/text' }
+const stepTree = (s: Result, attachment: (a: Result) => string): unknown => ({
+    name: s.name,
+    parameters: s.parameters.map((p: Result) => `${p.name}=${p.value}`),
+    attachments: s.attachments.map((a: Result) => `${a.name}=${attachment(a).replace(/\s+/g, '')}`),
+    steps: s.steps.map((c: Result) => stepTree(c, attachment))
+})
 
 let writeSpy: ReturnType<typeof vi.spyOn>
 beforeEach(() => {
@@ -57,32 +64,95 @@ afterEach(() => {
 })
 
 describe('user commands of WebDriver BiDi sessions', () => {
-    it('gives one step for a user command, with its result and no step for its protocol commands', async () => {
+    it('gives a user command step with its arguments and result, and its protocol commands as child steps', async () => {
         const { result, attachment } = await run((emit) => userCommand(emit, 1, 'getText', [], { value: 'hello' }, () => {
-            protocol(emit, 'browsingContextLocateNodes', { value: [] }, 1)
-            protocol(emit, 'scriptCallFunction', { value: 'hello' }, 1)
+            protocol(emit, 'getElementText', { value: 'hello' }, 1, getElementText)
         }))
 
-        expect(result.steps.map((s: Result) => [s.name, s.status, s.steps.length])).toEqual([['getText', 'passed', 0]])
-        const [step] = result.steps
-        expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'application/json', 'hello']])
+        expect(result.steps.map((s: Result) => stepTree(s, attachment))).toEqual([{
+            name: 'getText() → "hello"',
+            parameters: [],
+            attachments: ['Response=hello'],
+            steps: [{
+                name: 'getElementText → "hello"',
+                // the compact request, and the resolved request with the session id
+                parameters: ['request=GET /element/:elementId/text'],
+                attachments: ['Request={"method":"GET","path":"/session/s/element/f.1.d.2.e.3/text"}', 'Response=hello'],
+                steps: []
+            }]
+        }])
     })
 
-    it('attaches the short body of a user command as the request', async () => {
-        const { result, attachment } = await run((emit) => userCommand(emit, 1, 'setValue', ['**MASKED**'], { value: null }))
+    it('puts the arguments of a user command in its name, with no Request attachment', async () => {
+        const { result } = await run((emit) => userCommand(emit, 1, 'setValue', ['**MASKED**', { mask: true }], { value: null }))
 
         const [step] = result.steps
-        expect(step.name).toBe('setValue')
-        expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([
-            ['Request', 'application/json', JSON.stringify(['**MASKED**'], null, 2)],
+        expect(step.name).toBe('setValue("**MASKED**", {"mask":true})')
+        expect(step.attachments).toEqual([])
+    })
+
+    it('attaches the arguments of a user command when its name cuts them', async () => {
+        const long = 'a'.repeat(200)
+        const { result, attachment } = await run((emit) => userCommand(emit, 1, 'url', [long], { value: 'WebdriverIO.BrowsingContext' }))
+
+        const [step] = result.steps
+        expect(step.name.endsWith('…)')).toBe(true)
+        expect(step.attachments.map((a: Result) => [a.name, JSON.parse(attachment(a))])).toEqual([['Request', [long]]])
+    })
+
+    it('gives no Response for a result with no data and no result in the name of a handle command', async () => {
+        const { result, attachment } = await run((emit) => {
+            userCommand(emit, 1, 'url', ['https://webdriver.io'], { value: 'WebdriverIO.BrowsingContext' })
+            userCommand(emit, 2, 'newWindow', ['https://webdriver.io'], { value: 'WebdriverIO.BrowsingContext' }, () => {
+                protocol(emit, 'getWindowHandles', { value: ['4F2B'] }, 2, { method: 'GET', endpoint: '/session/:sessionId/window/handles' })
+            })
+            userCommand(emit, 3, 'browsingContexts', [], { value: ['WebdriverIO.BrowsingContext', 'WebdriverIO.BrowsingContext'] })
+        })
+
+        expect(result.steps.map((s: Result) => stepTree(s, attachment))).toEqual([
+            { name: 'url("https://webdriver.io")', parameters: [], attachments: [], steps: [] },
+            { name: 'newWindow("https://webdriver.io")', parameters: [], attachments: [], steps: [{
+                name: 'getWindowHandles',
+                parameters: ['request=GET /window/handles'],
+                // the handle is not in the name, the Response keeps it
+                attachments: ['Request={"method":"GET","path":"/session/s/window/handles"}', 'Response=["4F2B"]'],
+                steps: []
+            }] },
+            { name: 'browsingContexts() → 2', parameters: [], attachments: [], steps: [] }
         ])
+    })
+
+    it('gives found, not found and the number of elements found, with the id only in the Response', async () => {
+        const { result, attachment } = await run((emit) => {
+            userCommand(emit, 1, '$', ['#btn'], { value: 'WebdriverIO.Element<#btn> (id e.3)' })
+            userCommand(emit, 2, '$', ['#missing'], { value: 'WebdriverIO.Element<#missing> (not found)' })
+            userCommand(emit, 3, '$$', ['li'], { value: 'WebdriverIO.ElementArray<li> (3)' })
+            userCommand(emit, 4, 'selectByVisibleText', ['France'], { value: null }, () => {
+                protocol(emit, 'findElementFromElement', { value: { 'element-6066-11e4-a52e-4f735466cecf': 'e.9' } }, 4, { endpoint: '/session/:sessionId/element/e.8/element' })
+            })
+        })
+
+        expect(result.steps.map((s: Result) => s.name)).toEqual(['$("#btn") → found', '$("#missing") → not found', '$$("li") → 3 found', 'selectByVisibleText("France")'])
+        expect(attachment(result.steps[0].attachments[0])).toBe('WebdriverIO.Element<#btn> (id e.3)')
+        expect(result.steps[3].steps[0].name).toBe('findElementFromElement → found')
+    })
+
+    it('keeps a protocol command with no user command as on a WebDriver Classic session: no result in its name, no request parameter', async () => {
+        const { result, attachment } = await run((emit) => protocol(emit, 'getElementText', { value: 'hello' }, undefined, { ...getElementText, body: { a: 1 } }))
+
+        expect(result.steps.map((s: Result) => stepTree(s, attachment))).toEqual([{
+            name: 'getElementText',
+            parameters: [],
+            attachments: ['Request={"a":1}', 'Response=hello'],
+            steps: []
+        }])
     })
 
     it('fails the step of a user command that throws, with the name and the message of the error', async () => {
         const { result, attachment } = await run((emit) => userCommand(emit, 1, 'getText', [], { error: new Error('element not found') }))
 
         const [step] = result.steps
-        expect([step.name, step.status, step.statusDetails?.message]).toEqual(['getText', 'failed', 'element not found'])
+        expect([step.name, step.status, step.statusDetails?.message]).toEqual(['getText()', 'failed', 'element not found'])
         expect(step.attachments.map((a: Result) => [a.name, a.type, attachment(a)])).toEqual([['Response', 'text/plain', 'Error: element not found']])
     })
 
@@ -116,8 +186,11 @@ describe('user commands of WebDriver BiDi sessions', () => {
         }))
 
         const [step] = result.steps
-        expect(step.name).toBe('saveScreenshot')
-        expect(step.steps.flatMap((s: Result) => s.attachments.map((a: Result) => [s.name, a.name, a.type]))).toEqual([['takeScreenshot', 'Screenshot', 'image/png']])
+        expect(step.name).toBe('saveScreenshot("./a.png") → <Buffer 8 bytes>')
+        expect(step.steps.flatMap((s: Result) => s.attachments.map((a: Result) => [s.name, a.name, a.type]))).toEqual([
+            ['takeScreenshot', 'Request', 'application/json'],
+            ['takeScreenshot', 'Screenshot', 'image/png']
+        ])
     })
 
     it('gives no step in a multi-remote session', async () => {
@@ -171,8 +244,8 @@ describe('user commands that overlap or end after their test', () => {
         })
 
         expect(steps(byName('t1'), attachment)).toEqual([
-            ['pause', 'passed', undefined, ['paused'], [
-                ['execute', 'failed', 'boom', ['Error: boom'], []]
+            ['pause() → "paused"', 'passed', undefined, ['paused'], [
+                ['execute()', 'failed', 'boom', ['Error: boom'], []]
             ]]
         ])
     })
@@ -192,10 +265,10 @@ describe('user commands that overlap or end after their test', () => {
             emit('test:end', test('t2'))
         })
 
-        expect(byName('t1').steps.map((s: Result) => s.name)).toEqual(['waitForDisplayed'])
+        expect(byName('t1').steps.map((s: Result) => s.name)).toEqual(['waitForDisplayed()'])
         expect(byName('t1').steps[0].status).not.toBe('passed')
         expect(steps(byName('t2'), attachment)).toEqual([
-            ['pause', 'passed', undefined, ['[\n  7000\n]'], []]
+            ['pause(7000)', 'passed', undefined, [], []]
         ])
     })
 
