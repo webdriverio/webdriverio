@@ -678,6 +678,31 @@ describe('ConfigParser', () => {
             expect(specs.flat()).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
+        it('should exclude by path and by keyword in the same list', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ exclude: ['FileSystemPathService', __filename] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).not.toContain(__filename)
+            expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
+        it('should resolve a relative exclude path from the current working directory', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ exclude: ['FileSystemPathService', path.relative(process.cwd(), __filename).replace(/\\/g, '/')] })
+
+            expect(configParser.getSpecs()).not.toContain(__filename)
+        })
+
+        it('should get the specs of an instance independent of the CLI selection', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ shard: { current: 2, total: 2 } } as any)
+
+            expect(configParser.getInstanceSpecs([INDEX_PATH, __filename], [__filename])).toEqual([INDEX_PATH])
+            expect(configParser.getInstanceSpecs([__filename], [__filename])).toEqual([])
+            expect(configParser.getInstanceSpecs([__filename], [INDEX_PATH])).toEqual([__filename])
+        })
+
         it('should exclude/include capability excludes', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize()
