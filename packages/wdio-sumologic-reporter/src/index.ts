@@ -87,6 +87,11 @@ export default class SumoLogicReporter extends WDIOReporter {
     // an empty override opts in to the user commands of WebDriver BiDi sessions
     onBeforeUserCommand() { }
 
+    // the protocol commands of a user command are sent, with their parent
+    protected get hidesProtocolCommands(): boolean {
+        return false
+    }
+
     onRunnerStart(runner: RunnerStats) {
         if (this._isDisabled) {
             return

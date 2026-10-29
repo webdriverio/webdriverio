@@ -24,13 +24,19 @@ describe('Sumo Logic user commands', () => {
         vi.clearAllTimers()
     })
 
-    it('sends the user command and its result in the output of the test', () => {
+    it('sends the user command, its protocol commands with their parent, and the one-line text of each', () => {
         const data = payloadOf([
             ['client:beforeUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi' }],
-            ['client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' }, parent: 1 }],
-            ['client:afterUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi', result: { value: null } }]
+            ['client:beforeCommand', { command: 'navigateTo', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' }, parent: 1 }],
+            ['client:afterCommand', { command: 'navigateTo', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' }, result: { value: null }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'url', body: ['/home'], protocol: 'bidi', result: { value: 'WebdriverIO.BrowsingContext' } }]
         ])
-        expect(data.output.map((entry) => entry.type)).toEqual(['userCommand', 'userResult'])
+        expect(data.output.map((entry) => [entry.type, entry.parent, entry.text])).toEqual([
+            ['userCommand', undefined, 'url("/home")'],
+            ['command', 1, 'navigateTo  POST /url'],
+            ['result', 1, undefined],
+            ['userResult', undefined, undefined]
+        ])
         expect(data.output[0]).toMatchObject({ command: 'url', body: ['/home'] })
     })
 
@@ -54,6 +60,6 @@ describe('Sumo Logic user commands', () => {
         const data = payloadOf([
             ['client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' } }]
         ])
-        expect(data.output.map((entry) => entry.type)).toEqual(['command'])
+        expect(data.output.map((entry) => [entry.type, entry.text])).toEqual([['command', undefined]])
     })
 })
