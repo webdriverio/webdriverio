@@ -32,9 +32,9 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | One row per command in the Actions list | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
 | Screenshot on every command row | ✅ | ✅ | ✅ | ✅ |
 | Browser console logs | ✅ | ✅ | ✅ | ✅ |
-| Source tab opens the test line that ran the command | ✅ | ✅ | ✅ | ✅ |
+| Source tab opens the test line that ran the command | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
 | Metadata tab (session, capabilities, device) | ✅ | ✅ | ✅ | ✅ |
-| Performance timings on navigation rows | ✅ | ✅ | ✅ | ✅ |
+| Performance timings on navigation rows | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
 | Failed command in the Errors tab, with the browser's message | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
 | Run, Rerun and Run all from the dashboard | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ✅ |
 | Preserve & Rerun (compare a failed run with its rerun) | ✅ | ✅ | ✅ | ✅ |

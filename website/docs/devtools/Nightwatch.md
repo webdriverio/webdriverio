@@ -161,6 +161,12 @@ When BiDi is attached, the per-command Chrome performance-log network capture pa
 
 **Set `webSocketUrl: true` even without `bidi: true`.** With it, the adapter registers its page collector at document start on every page, so DOM time-travel stays accurate across navigations. Without it, the adapter falls back to injecting the collector after each navigation, which can miss the first moments of a new page.
 
+## Direct WebDriver reads and remote grids
+
+Some reads the plugin makes go straight to the driver over the WebDriver HTTP transport instead of through Nightwatch's command queue: the page collector's probes and drains, the per-action snapshot probes and screenshots, the screencast's screenshots, and, on a session without BiDi, Chrome's performance log. A command issued through the queue while a test command is running would become part of that command and let its `await` return before it finished, so these reads never join the queue and never cut a test command short.
+
+They use the connection Nightwatch itself is configured with: https when `webdriver.ssl` is set, or when it is unset and the port is 443, and basic authentication from `webdriver.username` and `webdriver.access_key`. A remote grid on https or behind credentials therefore needs no extra configuration for the plugin.
+
 ## Trace mode
 
 Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) into a `test-results/` folder (next to the resolved test / config directory), with the same shape as the WebdriverIO trace artifact.
@@ -278,6 +284,7 @@ Nightwatch does not provide the same depth of framework hooks as WebdriverIO, so
 | Screencast in polling mode only | Unlike WDIO (CDP push via `browser.getPuppeteer()`) and Selenium (CDP push via `driver.createCDPConnection`), Nightwatch lacks a stable CDP escape hatch, so frames are captured by polling the WebDriver screenshot endpoint. Works on every browser Nightwatch supports; small per-frame cost proportional to the polling interval. |
 | Per-test trace slicing (BDD `describe/it`) | The BDD interface fires the plugin's per-test hook once per module, so `traceGranularity: 'test'` collapses to one session-scoped slice. The exports-object (mocha-style) and Cucumber interfaces get real per-test slicing. See [Per-test slicing](#per-test-slicing--the-bdd-describeit-caveat). |
 | Retry-aware retention | Only `tracePolicy: 'retain-on-failure'` is reliable; the other retry-aware policies degrade to it. |
+| Element waits show no polls | A `waitForElement*` wait is one row with nothing nested under it: Nightwatch polls for the element through its own transport, which the plugin does not see. A `waitUntil` row nests the commands its condition issued. See [Waits](/docs/devtools/wdio/trace-mode#waits). |
 | Produce-only trace artifacts | Per-test `screenshot` / `video` files are written to the trace output dir (and the manifest when `emitArtifactsManifest: true`) but not attached inline to Allure — Nightwatch has no live Allure attach API. |
 
 Overall feature parity with the WebdriverIO DevTools service is approximately **80-90%**.
