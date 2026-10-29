@@ -330,6 +330,11 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _suitePathOf(test: TestStats | HookStats): string[] | undefined {
+        const uid = (test as MaybeUid).uid
+        const registered = Boolean((uid && this.tests?.[uid] === test) || this.parentOf?.(test))
+        if (registered && typeof this.pathOf === 'function') {
+            return this.pathOf(test).map((suite) => suite.title)
+        }
         const root = this.currentSuites?.[0]
         if (!root) { return undefined }
         const find = (suite: SuiteStats, titles: string[]): string[] | undefined => {
