@@ -146,9 +146,11 @@ class HtmlGenerator {
 
             environment.addGlobal('formatSpecFile', (suiteInfo:SuiteStats) => {
                 // Display file path of spec
-                // the root suite can name several spec files
-                const specFile = suiteInfo.file.replaceAll(process.cwd(), '')
-                return specFile
+                // the root suite can name several spec files; remove the working folder only at the start of each
+                const cwd = process.cwd()
+                return suiteInfo.file.split(', ')
+                    .map((file) => file.startsWith(cwd) ? file.slice(cwd.length) : file)
+                    .join(', ')
             })
 
             environment.addGlobal('testStateColor', (testInfo:TestStats) => {

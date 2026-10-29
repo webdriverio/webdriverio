@@ -726,6 +726,13 @@ describe('tests with no describe()', () => {
         expect(htmlOf('root-tests-two-files')).toContain(`<td>${shown}</td>`)
     })
 
+    it('removes the working folder only at the start of each spec file', async () => {
+        const [first, second] = [firstSpec, secondSpec].map((spec) => path.join(process.cwd(), process.cwd(), path.basename(spec)))
+        await rootTests('root-tests-nested', [first, second])
+        const shown = [first, second].map((spec) => spec.slice(process.cwd().length)).join(', ')
+        expect(htmlOf('root-tests-nested')).toContain(`<td>${shown}</td>`)
+    })
+
     it('shows no spec file on a root suite with only hooks in a worker with several spec files', async () => {
         // grouped spec files: the root tests and hooks can come from any of them
         const [first, second] = ['first.spec.js', 'second.spec.js'].map((name) => path.resolve('project', name))
