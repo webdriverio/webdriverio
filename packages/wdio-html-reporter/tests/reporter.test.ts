@@ -656,6 +656,8 @@ describe('tests with no describe()', () => {
         return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as JsonSuite[]
     }
     const htmlOf = (name: string) => fs.readFileSync(path.join(outputRoot, name, 'report-0-0.html'), 'utf-8')
+    // the spec file row: the paths after the working folder; nunjucks escapes the backslashes of Windows
+    const specRow = (...files: string[]) => `<td>${files.map((file) => file.slice(process.cwd().length)).join(', ').replaceAll('\\', '&#92;')}</td>`
 
     it('writes the root suite with the commands of its hooks, removeOutput: false', async () => {
         const suites = await rootHooks('root-hooks-output', { removeOutput: false })
@@ -689,8 +691,8 @@ describe('tests with no describe()', () => {
         const [root, outer] = htmlOf('root-spec-path').split('&nbsp;</span>outer')
         expect(root + outer).not.toContain('file://')
         // a filter can hide the (root) box: the first suite of the file keeps its own row
-        expect(root).toContain(`<td>${spec.replace(process.cwd(), '')}</td>`)
-        expect(outer).toContain(`<td>${spec.replace(process.cwd(), '')}</td>`)
+        expect(root).toContain(specRow(spec))
+        expect(outer).toContain(specRow(spec))
     })
 
     // grouped spec files: Mocha gives each root test the spec file it comes from
@@ -717,20 +719,18 @@ describe('tests with no describe()', () => {
         const [root] = await rootTests('root-tests-grouped', [secondSpec])
         expect(root.isRoot).toBe(true)
         expect(root.file).toBe(secondSpec)
-        expect(htmlOf('root-tests-grouped')).toContain(`<td>${secondSpec.replace(process.cwd(), '')}</td>`)
+        expect(htmlOf('root-tests-grouped')).toContain(specRow(secondSpec))
     })
 
     it('shows each spec file of root tests that come from several spec files', async () => {
         await rootTests('root-tests-two-files', [firstSpec, secondSpec, firstSpec])
-        const shown = [firstSpec, secondSpec].map((spec) => spec.replace(process.cwd(), '')).join(', ')
-        expect(htmlOf('root-tests-two-files')).toContain(`<td>${shown}</td>`)
+        expect(htmlOf('root-tests-two-files')).toContain(specRow(firstSpec, secondSpec))
     })
 
     it('removes the working folder only at the start of each spec file', async () => {
         const [first, second] = [firstSpec, secondSpec].map((spec) => path.join(process.cwd(), process.cwd(), path.basename(spec)))
         await rootTests('root-tests-nested', [first, second])
-        const shown = [first, second].map((spec) => spec.slice(process.cwd().length)).join(', ')
-        expect(htmlOf('root-tests-nested')).toContain(`<td>${shown}</td>`)
+        expect(htmlOf('root-tests-nested')).toContain(specRow(first, second))
     })
 
     it('shows no spec file on a root suite with only hooks in a worker with several spec files', async () => {
