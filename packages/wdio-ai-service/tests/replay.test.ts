@@ -96,6 +96,7 @@ describe('healing without the model', () => {
                     'main > button:nth-of-type(2)',
                     '[data-testid="cart"] > button',
                     '#checkout > div:nth-of-type(1) > button:nth-of-type(2)',
+                    '#\\31 cart > button',
                     '#add',
                     'a=Home > Products',
                     'button.primary',

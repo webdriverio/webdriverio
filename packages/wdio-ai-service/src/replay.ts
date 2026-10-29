@@ -120,7 +120,7 @@ export function roleSelector (role: string, name: string) {
  * anchor, joined by ` > ` and ending with a tag. On a changed page another
  * element can sit at that position, so healing skips it.
  */
-const POSITIONAL_PATH = /^(?:(?:#(?:\\.|[^>\s])+|\[data-(?:testid|test-id|test|cy|qa)="(?:\\.|[^"\\])*"\]|[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?) > )*[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?$/
+const POSITIONAL_PATH = /^(?:(?:#(?:\\[0-9a-fA-F]{1,6}\s?|\\.|[^>\s])+|\[data-(?:testid|test-id|test|cy|qa)="(?:\\.|[^"\\])*"\]|[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?) > )*[a-z][a-z0-9-]*(?::nth-of-type\(\d+\))?$/
 
 /**
  * Other ways to find the target of a step, without the model: the other
