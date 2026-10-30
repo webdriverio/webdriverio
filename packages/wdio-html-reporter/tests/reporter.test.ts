@@ -665,6 +665,8 @@ describe('tests with no describe()', () => {
             ['"before all" hook in "{root}"', ['before-url']],
             ['"after all" hook in "{root}"', ['after-url']],
         ])
+        // the page does not read the spec file of a hook
+        expect(suites[0].hooks.filter((hook) => 'file' in hook)).toEqual([])
     })
 
     it('does not show a root suite with only passed hooks, but keeps their commands in the JSON file', async () => {
@@ -735,6 +737,19 @@ describe('tests with no describe()', () => {
         const [first, second] = [firstSpec, secondSpec].map((spec) => path.join(process.cwd(), process.cwd(), path.basename(spec)))
         await rootTests('root-tests-nested', [first, second])
         expect(htmlOf('root-tests-nested')).toContain(specRow(first, second))
+    })
+
+    it('names a spec file once when one root test gives it as a URL', async () => {
+        const [root] = await rootTests('root-tests-url', [firstSpec, url.pathToFileURL(firstSpec).href])
+        expect(root.file).toBe(firstSpec)
+        expect(root).not.toHaveProperty('files')
+        expect(htmlOf('root-tests-url')).toContain(specRow(firstSpec))
+    })
+
+    it('keeps the full path of a spec file in a folder next to the working folder', async () => {
+        const sibling = `${process.cwd()}-e2e${path.sep}login.spec.js`
+        await rootTests('root-tests-sibling', [sibling])
+        expect(htmlOf('root-tests-sibling')).toContain(`<td>${sibling.replaceAll('\\', '&#92;')}</td>`)
     })
 
     it('keeps a spec file whole when the working folder has a comma', async () => {

@@ -153,7 +153,7 @@ class HtmlGenerator {
                 // the root suite can name several spec files; remove the working folder only at the start of each
                 const cwd = process.cwd()
                 return ((suiteInfo as SuiteStats & { files?: string[] }).files ?? [suiteInfo.file])
-                    .map((file) => file.startsWith(cwd) ? file.slice(cwd.length) : file)
+                    .map((file) => file.startsWith(cwd + path.sep) ? file.slice(cwd.length) : file)
                     .join(', ')
             })
 
@@ -238,8 +238,6 @@ class HtmlGenerator {
 
                 return 'suite-unknown'
             })
-
-            environment.addGlobal('showSuite', showSuite)
 
             environment.addGlobal('humanizeDuration', (duration:number) => {
                 return dayjs.duration(duration, 'milliseconds').format('HH:mm:ss.SSS')

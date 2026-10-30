@@ -7,7 +7,7 @@ import { writeFile } from './files.js'
 import { withExtension } from './fileNames.js'
 
 // experimental hook fields of the base that the report does not use; a hook keeps `output` only with commands
-const BASE_ONLY_HOOK_KEYS = new Set(['hookKind', 'hookSuiteUid'])
+const BASE_ONLY_HOOK_KEYS = new Set(['hookKind', 'hookSuiteUid', 'file'])
 
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
