@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
@@ -90,6 +91,13 @@ export async function scrollIntoView (
             })
         }
 
+        return scrollIntoViewWeb.call(this, options)
+    }
+
+    /**
+     * Chromedriver rejects "wheel" actions when mobile emulation is enabled
+     */
+    if (hasChromeMobileEmulation(browser)) {
         return scrollIntoViewWeb.call(this, options)
     }
 
@@ -478,6 +486,13 @@ await elem.scrollIntoView({
 });
 
         `)
+}
+
+function hasChromeMobileEmulation (browser: WebdriverIO.Browser) {
+    const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
+    // W3C "process capabilities": the driver uses the first `firstMatch` entry that matches
+    const matched = requested && 'alwaysMatch' in requested ? [requested.alwaysMatch, requested.firstMatch?.[0]] : [requested]
+    return matched.some((caps) => caps?.['goog:chromeOptions']?.mobileEmulation)
 }
 
 function scrollIntoViewWeb (

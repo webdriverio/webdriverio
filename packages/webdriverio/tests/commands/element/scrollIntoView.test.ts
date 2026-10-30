@@ -532,6 +532,34 @@ describe('scrollIntoView test', () => {
         })
     })
 
+    describe('chrome mobile emulation', () => {
+        beforeAll(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar',
+                    'goog:chromeOptions': {
+                        mobileEmulation: { deviceMetrics: { width: 360, height: 800, pixelRatio: 3 } }
+                    }
+                }
+            })
+            // @ts-expect-error
+            elem = await browser.$('#foo')
+            // @ts-expect-error mock feature
+            elem.elementId = { scrollIntoView: 'mockFunction' }
+        })
+
+        it('scrolls with the Web API instead of the wheel action', async () => {
+            vi.mocked(fetch).mockClear()
+            await elem.scrollIntoView({ block: 'center' })
+            const { calls } = vi.mocked(fetch).mock
+            expect(calls).toHaveLength(1)
+            const [[executeCallUrl, executeCallOptions]] = calls as any
+            expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
+            expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'center' })
+        })
+    })
+
     describe('mobile native app', () => {
         beforeAll(async () => {
             browser = await remote({
