@@ -30,7 +30,8 @@ export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): 
 /**
  * the path of a spec file: a framework or the runner can send a file:// URL
  * (Jasmine with ESM specs, Mocha parallel mode, the specs of the runner);
- * a URL that names no path stays as it is
+ * a URL that names no path stays as it is; the same as in `@wdio/utils`, which a reporter
+ * does not depend on (it installs the browser drivers)
  */
 export function specFilePath(file: string): string {
     if (!file.startsWith('file://')) {

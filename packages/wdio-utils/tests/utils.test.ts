@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import fs from 'node:fs/promises'
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
@@ -7,7 +8,7 @@ import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
     userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
-    isAbsolute
+    isAbsolute, specFilePath
 } from '../src/utils.js'
 import { setWdioKind } from '../src/kind.js'
 
@@ -284,6 +285,20 @@ describe('utils:isAbsolute', () => {
         expect(isAbsolute(pathString)).toBe(expected)
     })
 
+})
+
+describe('specFilePath', () => {
+    it('gives a file URL as a path', () => {
+        const file = path.resolve('project', 'a.spec.js')
+        expect(specFilePath(url.pathToFileURL(file).href)).toBe(file)
+    })
+    it('keeps a path', () => {
+        expect(specFilePath('./a.spec.js')).toBe('./a.spec.js')
+    })
+    // an encoded `/` is not valid in a file path on any platform
+    it('keeps a URL that names no path', () => {
+        expect(specFilePath('file:///project/a%2Fb.spec.js')).toBe('file:///project/a%2Fb.spec.js')
+    })
 })
 
 describe('getBrowserObject', () => {

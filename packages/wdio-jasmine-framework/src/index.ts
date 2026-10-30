@@ -2,14 +2,14 @@ import type { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
-import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs, specFilePath } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
 import type { Services, Capabilities, Frameworks } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import { createHybridExpect } from './expect.js'
-import { jestResultToJasmine, specPath } from './utils.js'
+import { jestResultToJasmine } from './utils.js'
 import type {
     JasmineOpts as JasmineOptions, ResultHandlerPayload, FrameworkMessage, FormattedMessage
 } from './types.js'
@@ -240,7 +240,7 @@ class JasmineAdapter {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-        this._specs.forEach((spec) => this._jrunner.addSpecFile(specPath(spec)))
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(specFilePath(spec)))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
@@ -251,7 +251,7 @@ class JasmineAdapter {
             self._lastTest.start = new Date().getTime()
             // the file of its suite; outside every suite, the first spec file, as in the hook messages
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.file = self._reporter.suiteFile ?? specPath(self._specs[0])
+            self._lastTest.file = self._reporter.suiteFile ?? specFilePath(self._specs[0])
             /**
              * Jasmine 6's spec-started event has no expectation lists. Own the
              * arrays so afterTest can see failures recorded during the spec.

@@ -10,7 +10,7 @@ import { Writable } from 'node:stream'
 import isGlob from 'is-glob'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs, specFilePath, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Frameworks } from '@wdio/types'
 
 import {
@@ -182,9 +182,7 @@ export class CucumberAdapter {
          * as Cucumber doesn't support file:// formats yet we have to
          * remove it before adding it to Cucumber
          */
-        this._specs = this._specs.map((spec) =>
-            spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec
-        )
+        this._specs = this._specs.map(specFilePath)
     }
 
     readFiles(

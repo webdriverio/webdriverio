@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
-import { specPath } from './utils.js'
+import { specFilePath } from '@wdio/utils'
 import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent, JasmineOpts } from './types.js'
 
 const log = logger('@wdio/jasmine-framework')
@@ -25,7 +25,7 @@ export default class JasmineReporter {
     ) {
         this._cid = params.cid
         this._specs = params.specs
-        this._specFiles = params.specs.map(specPath)
+        this._specFiles = params.specs.map(specFilePath)
         this._jasmineOpts = params.jasmineOpts
         this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
     }
@@ -49,7 +49,7 @@ export default class JasmineReporter {
             description: suite.description,
             id: suite.id,
             tests: 0,
-            file: suite.filename ? specPath(suite.filename) : undefined
+            file: suite.filename ? specFilePath(suite.filename) : undefined
         })
     }
 
@@ -220,7 +220,7 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            file: payload.type === 'suite' ? payload.filename && specPath(payload.filename) : this.suiteFile,
+            file: payload.type === 'suite' ? payload.filename && specFilePath(payload.filename) : this.suiteFile,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }
