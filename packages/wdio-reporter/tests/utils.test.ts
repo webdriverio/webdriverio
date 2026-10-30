@@ -1,7 +1,10 @@
+import path from 'node:path'
+import url from 'node:url'
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook, specFilePath } from '../src/utils.js'
+import * as reporterExports from '../src/index.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -84,6 +87,20 @@ describe('knownFramework', () => {
 
     it.each([undefined, '', '@serenity-js/webdriverio', 'my-custom-framework', '/abs/path/to/framework.js', 'file:///abs/framework.js'])('gives no known framework for %s', (name) => {
         expect(knownFramework(name)).toBeUndefined()
+    })
+})
+
+describe('specFilePath', () => {
+    it('gives a file URL as a path', () => {
+        const file = path.resolve('project', 'a.spec.js')
+        expect(specFilePath(url.pathToFileURL(file).href)).toBe(file)
+    })
+    // an encoded `/` is not valid in a file path on any platform
+    it('keeps a URL that names no path', () => {
+        expect(specFilePath('file:///project/a%2Fb.spec.js')).toBe('file:///project/a%2Fb.spec.js')
+    })
+    it('is exported for the reporters', () => {
+        expect(reporterExports.specFilePath).toBe(specFilePath)
     })
 })
 

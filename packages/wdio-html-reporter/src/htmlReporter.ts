@@ -5,7 +5,7 @@ import type {
     RunnerStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, specFilePath, SuiteStats } from '@wdio/reporter'
 
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData, type RootReportSuite } from './types.js'
 import dayjs from 'dayjs'
@@ -16,7 +16,6 @@ import { headerBrowserName } from './browserName.js'
 
 import fs from 'node:fs'
 import path from 'node:path'
-import url from 'node:url'
 import util from 'node:util'
 import logger from '@wdio/logger'
 
@@ -549,11 +548,9 @@ export default class HtmlReporter extends WDIOReporter {
          * the spec files of the root tests (Mocha gives each test its file); a root hook runs for all spec
          * files of the worker and has none, so only the one spec file of a worker names it
          */
-        // the runner gives URLs, the suites paths
-        const toPath = (file: string) => file.startsWith('file://') ? url.fileURLToPath(file) : file
         const testFiles = [...new Set(root.tests.map((test) => test.file).filter((file): file is string => Boolean(file)))]
         const [spec, ...others] = runner.specs
-        const paths = testFiles.length ? testFiles : spec && !others.length ? [toPath(spec)] : []
+        const paths = testFiles.length ? testFiles : spec && !others.length ? [specFilePath(spec)] : []
         // `file` stays one path, as on the other suites; `files` has all of them when the root tests come from several
         const fields: Pick<RootReportSuite, 'suites' | 'file' | 'files' | 'end'> = {
             suites: [],

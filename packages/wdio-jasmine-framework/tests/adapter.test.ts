@@ -283,20 +283,21 @@ test('records the in-flight spec when a spec starts', async () => {
 
 // Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper, not the spec file
 test('gives the test hooks the spec file of the suite of the test', async () => {
-    const adapter = adapterFactory()
+    const [first, second] = ['a.test.js', 'b.test.js'].map((name) => path.resolve('foo', name))
+    const adapter = new JasmineAdapter('0-2', { beforeHook: [], afterHook: [] } as any, [first, url.pathToFileURL(second).href], { browserName: 'chrome' } as any, wdioReporter)
     await adapter.init()
     await adapter.run()
     const spec = (id: string) => ({ id, description: id, fullName: id, failedExpectations: [], passedExpectations: [], filename: '/wdio/utils/build/index.js' }) as any
 
     adapter['_reporter'].specStarted(spec('top-level'))
     // @ts-ignore outdated types
-    expect(adapter['_lastTest'].file).toBe('/foo/bar.test.js')
-    adapter['_reporter'].suiteStarted({ id: 's1', description: 'suite', fullName: 'suite', filename: '/project/a.spec.js' } as any)
+    expect(adapter['_lastTest'].file).toBe(first)
+    adapter['_reporter'].suiteStarted({ id: 's1', description: 'suite', fullName: 'suite', filename: second } as any)
     adapter['_reporter'].specStarted(spec('in a suite'))
     // @ts-ignore outdated types
-    expect(adapter['_lastTest'].file).toBe('/project/a.spec.js')
-    adapter['_jrunner']!.specFiles = ['/foo/bar.test.js']
-    expect(adapter.prepareMessage('afterTest').file).toBe('/project/a.spec.js')
+    expect(adapter['_lastTest'].file).toBe(second)
+    adapter['_jrunner']!.specFiles = [first, second]
+    expect(adapter.prepareMessage('afterTest').file).toBe(second)
 })
 
 test('gives a test outside every suite of grouped spec files the first spec file, as the hook messages do', async () => {

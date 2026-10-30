@@ -112,3 +112,17 @@ test.each(['specFile.js', 'specFile.mjs'])('the events of a real Jasmine run nam
         .map(([event, payload]) => [event, payload.file])
     expect(files).toEqual([['suite:start', spec], ['test:start', spec]])
 })
+
+// a shared helper module that declares a describe(): Jasmine names the helper, the tests keep the spec file
+test('the tests of a real Jasmine run in a describe() of a helper name the spec file', async () => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const spec = path.join(__dirname, '__fixtures__', 'sharedSuiteSpec.js')
+    const adapter = new JasmineAdapter('0-0', { beforeHook: [], afterHook: [] } as any, [spec], { browserName: 'chrome' } as any, reporter as any)
+    await adapter.init()
+    await adapter.run()
+    const files = reporter.emit.mock.calls
+        .filter(([event]) => event === 'test:start')
+        .map(([, payload]) => [payload.title, payload.file])
+    expect(files).toEqual([['from the helper', spec], ['from the helper', spec], ['in the spec', spec]])
+})

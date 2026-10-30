@@ -264,45 +264,70 @@ test('emit: a hook event keeps its hookKind and gets the uid of its suite as hoo
     expect(calls[4][1]).not.toHaveProperty('hookKind')
 })
 
+// the runner gives the spec files of the worker as URLs
+const SPEC = path.resolve('project', 'a.spec.js')
+const OTHER_SPEC = path.resolve('project', 'b.spec.js')
+const HELPER = path.resolve('project', 'helpers', 'shared.js')
+const WRAPPER = path.resolve('project', 'node_modules', '@wdio', 'utils', 'build', 'index.js')
+const reporterFor = (...specs: string[]) => new JasmineReporter(runnerReporter, { ...PARAMS, specs: specs.map((spec) => url.pathToFileURL(spec).href) })
+const emittedFiles = () => vi.mocked(runnerReporter.emit).mock.calls.map(([event, payload]) => [event, payload.file])
+
 // Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper, not the spec file
 test('emit: a test or hook gets the spec file of its suite', () => {
-    const wrapper = '/project/node_modules/@wdio/utils/build/index.js'
+    jasmineReporter = reporterFor(SPEC)
     const hook = { id: '', type: 'hook', description: '"before all" hook', fullName: '"before all" hook', hookKind: 'beforeAll', filename: '' } as any
     jasmineReporter.emit('hook:start', hook)
-    jasmineReporter.specStarted({ id: '20', description: 'top-level spec', fullName: 'top-level spec', filename: wrapper } as any)
-    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '/project/a.spec.js' } as any)
+    jasmineReporter.specStarted({ id: '20', description: 'top-level spec', fullName: 'top-level spec', filename: WRAPPER } as any)
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: SPEC } as any)
     jasmineReporter.emit('hook:start', hook)
-    jasmineReporter.suiteStarted({ id: '25', description: 'inner', fullName: 'inner', filename: '/project/a.spec.js' } as any)
-    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: wrapper } as any)
+    jasmineReporter.suiteStarted({ id: '25', description: 'inner', fullName: 'inner', filename: SPEC } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
 
-    expect(vi.mocked(runnerReporter.emit).mock.calls.map(([event, payload]) => [event, payload.file])).toEqual([
+    expect(emittedFiles()).toEqual([
         ['hook:start', undefined],
         ['test:start', undefined],
-        ['suite:start', '/project/a.spec.js'],
-        ['hook:start', '/project/a.spec.js'],
-        ['suite:start', '/project/a.spec.js'],
-        ['test:start', '/project/a.spec.js']
+        ['suite:start', SPEC],
+        ['hook:start', SPEC],
+        ['suite:start', SPEC],
+        ['test:start', SPEC]
     ])
 })
 
 // Jasmine gives the file of an ESM spec as a URL
 test('emit: a test gets the spec file of an ESM suite as a path', () => {
     const file = path.resolve('project', 'a.spec.mjs')
+    jasmineReporter = reporterFor(file)
     jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: url.pathToFileURL(file).href } as any)
-    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: '/wdio/utils/build/index.js' } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
     expect(vi.mocked(runnerReporter.emit).mock.calls[1][1].file).toBe(file)
     expect(jasmineReporter.suiteFile).toBe(file)
 })
 
-// a describe() of a shared helper module: Jasmine names the helper, the outermost suite is in the spec file
-test('emit: a test gets the spec file of its outermost suite', () => {
-    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '/project/a.spec.js' } as any)
-    jasmineReporter.suiteStarted({ id: '25', description: 'shared', fullName: 'shared', filename: '/project/helpers/shared.js' } as any)
-    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: '/wdio/utils/build/index.js' } as any)
-    expect(vi.mocked(runnerReporter.emit).mock.calls[2][1].file).toBe('/project/a.spec.js')
+// a describe() of a shared helper module: Jasmine names the helper
+test('emit: a test in a describe() of a helper inside the spec suite gets the spec file', () => {
+    jasmineReporter = reporterFor(SPEC, OTHER_SPEC)
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: OTHER_SPEC } as any)
+    jasmineReporter.suiteStarted({ id: '25', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
+    expect(emittedFiles()[2]).toEqual(['test:start', OTHER_SPEC])
 })
 
-test('emit: a suite with an empty file name gives its tests no file', () => {
+test('emit: a test in a top-level describe() of a helper gets the spec file of the worker', () => {
+    jasmineReporter = reporterFor(SPEC)
+    jasmineReporter.suiteStarted({ id: '23', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
+    expect(emittedFiles()[1]).toEqual(['test:start', SPEC])
+})
+
+test('emit: a suite with an empty file name gives its tests the spec file of the worker', () => {
+    jasmineReporter = reporterFor(SPEC)
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '' } as any)
+    expect(jasmineReporter.suiteFile).toBe(SPEC)
+})
+
+// grouped spec files: no suite names one of them, so the spec file is not known
+test('emit: with several spec files, a suite with an empty file name gives its tests no file', () => {
+    jasmineReporter = reporterFor(SPEC, OTHER_SPEC)
     jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '' } as any)
     expect(jasmineReporter.suiteFile).toBeUndefined()
 })

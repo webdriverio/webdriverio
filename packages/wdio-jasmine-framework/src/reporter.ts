@@ -11,6 +11,7 @@ const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|-
 export default class JasmineReporter {
     private _cid: string
     private _specs: string[]
+    private _specFiles: string[]
     private _jasmineOpts: JasmineOpts
     private _shouldCleanStack: boolean
     private _parent: ParentSuite[] = []
@@ -24,6 +25,7 @@ export default class JasmineReporter {
     ) {
         this._cid = params.cid
         this._specs = params.specs
+        this._specFiles = params.specs.map(specPath)
         this._jasmineOpts = params.jasmineOpts
         this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
     }
@@ -228,11 +230,15 @@ export default class JasmineReporter {
 
     /**
      * the spec file of the current tests and hooks: Jasmine names the file that calls `it()`,
-     * which is the WebdriverIO wrapper; the outermost suite is in the spec file (an inner
-     * `describe()` can come from a shared helper module)
+     * which is the WebdriverIO wrapper, and a `describe()` of a shared helper module names
+     * the helper; so the first suite in a spec file of the worker, else the one spec file
      */
     get suiteFile () {
-        return this._parent[0]?.file
+        if (!this._parent.length) {
+            return undefined
+        }
+        return this._parent.find((suite) => suite.file && this._specFiles.includes(suite.file))?.file
+            ?? (this._specFiles.length === 1 ? this._specFiles[0] : this._parent[0].file)
     }
 
     getFailedCount () {
