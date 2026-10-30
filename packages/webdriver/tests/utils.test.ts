@@ -204,6 +204,11 @@ describe('utils', () => {
             }
         })
 
+        it('uses the value in appium:options over the top-level one, as Appium does', () => {
+            const requested = { 'appium:chromedriverForwardBiDi': false, 'appium:options': { chromedriverForwardBiDi: true } }
+            expect(getAppiumBidiAdvice(android, requested as never)).toContain('Appium 3.9.0 or later')
+        })
+
         it('gives the versions for Android, and nothing for other platforms', () => {
             expect(getAppiumBidiAdvice(android, {})).toContain('Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later')
             expect(getAppiumBidiAdvice({ platformName: 'iOS', browserName: 'Safari' }, {})).toBe('')
@@ -425,6 +430,12 @@ describe('utils', () => {
                 }
                 const caps = await requested({ platformName: 'android', browserName: 'chrome', 'appium:options': { automationName: 'uiautomator2' } })
                 expect(caps['appium:chromedriverForwardBiDi']).toBe(true)
+                // Appium uses the value in `appium:options` over the top-level one
+                const nested = await requested({
+                    platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'Chromium',
+                    'appium:options': { automationName: 'UiAutomator2' }
+                })
+                expect(nested['appium:chromedriverForwardBiDi']).toBe(true)
             })
 
             it('keeps the value of the user', async () => {
@@ -445,6 +456,7 @@ describe('utils', () => {
                     { ...android, browserName: 'Chrome', 'wdio:enforceWebDriverClassic': true },
                     { ...android, browserName: 'firefox' },
                     { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'Chromium' },
+                    { ...android, browserName: 'Chrome', 'appium:options': { automationName: 'Chromium' } },
                     { platformName: 'iOS', browserName: 'Chrome', 'appium:automationName': 'XCUITest' },
                     { browserName: 'chrome', platformName: 'linux' },
                     // an `appium:` capability next to an unprefixed one makes the session invalid

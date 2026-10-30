@@ -186,11 +186,11 @@ function hasAppiumCapability (capabilities: WebdriverIO.Capabilities, name: stri
 }
 
 /**
- * the value of an Appium capability, set as `appium:<name>` or in `appium:options`
+ * the value of an Appium capability, set in `appium:options` or as `appium:<name>`: as in Appium, `appium:options` wins
  */
 function getAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
     const appiumOptions = capabilities['appium:options'] as Record<string, unknown> | undefined
-    return (capabilities as Record<string, unknown>)[`appium:${name}`] ?? appiumOptions?.[name]
+    return appiumOptions?.[name] ?? (capabilities as Record<string, unknown>)[`appium:${name}`]
 }
 
 /**
