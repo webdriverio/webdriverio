@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { expect as wdioExpect, wdioCustomMatchers } from 'expect-webdriverio'
+import { expect as wdioExpect, wdioCustomMatchers, SnapshotService } from 'expect-webdriverio'
 import { registerUserCommands, runUserCommand, setUserCommandStore } from '@wdio/utils'
 
 import { wrapAssertions } from '../src/assertions.js'
@@ -69,5 +69,16 @@ describe('wrapAssertions', () => {
         expect(extend).not.toHaveBeenCalled()
         await (wdioExpect('el') as any).toPollText('Done')
         expect(events()).toHaveLength(2)
+    })
+
+    it('keeps the call site of an inline snapshot in the test file', async () => {
+        const assert = vi.fn()
+        const spy = vi.spyOn(SnapshotService, 'initiate').mockReturnValue({ client: { assert }, currentFilePath: 'test.e2e.ts', currentTestName: 'test' } as never)
+        await wdioExpect('el').toMatchInlineSnapshot('"el"')
+        spy.mockRestore()
+        // the rule of Vitest: the call site is two frames below the frame of `__INLINE_SNAPSHOT__`
+        const frames = (assert.mock.calls[0][0].error.stack as string).split('\n')
+        const callSite = frames[frames.findIndex((line) => line.includes('__INLINE_SNAPSHOT__')) + 2]
+        expect(callSite).toContain('assertions.test.ts')
     })
 })
