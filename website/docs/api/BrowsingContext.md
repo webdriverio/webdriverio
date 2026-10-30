@@ -113,7 +113,7 @@ it('mocks the requests of one tab only', async () => {
 })
 ```
 
-When a session-wide mock from `browser.mock()` has the same URL, the mock of the tab answers in its tab and the session-wide mock answers in all other tabs. This is true in both orders of creation. A mock of the tab that only records requests, or that has no response left (`respondOnce`), does not block the session-wide mock.
+When a session-wide mock from `browser.mock()` has the same URL, the mock of the tab answers in its tab and the session-wide mock answers in all other tabs. This is true in both orders of creation. A mock of the tab that only records requests, or that used up its `once` calls (`respondOnce`), does not block the session-wide mock.
 
 A mock of a tab can wait for the response, for example with a `statusCode` filter. In Chrome, the session-wide mock answers when the response does not match that filter. In Firefox, a mock that waits for the response cannot send a body after the request left. It gives way to a session-wide mock that answers early, and WebdriverIO logs one warning for that mock. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request).
 

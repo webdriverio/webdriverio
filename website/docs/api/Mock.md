@@ -123,15 +123,23 @@ This event is being emitted when the network response has neither been overwritt
 
 ## Which mock answers a request
 
-Several mocks can match one request. Only one mock answers it, in this order:
+Several mocks can match one request. In each phase of the request (before the request is sent, and when the response starts), one mock acts on it, in this order:
 
-1. A mock that answers (`respond`, `abort`, `request`) beats a mock that only lets the request through, such as a spy or a mock with no `once` call left.
+1. A mock that acts (`respond`, `abort`, `request`) beats a mock that only lets the request through, such as a spy or a mock that used up its `once` calls.
 2. A mock of a tab or of a parallel test beats a session-wide mock from `browser.mock()`.
 3. The mock that was created first wins.
 
-`browser.mock()` replaces an existing mock only when the URL definition and the scope (session-wide, tab or parallel test) are the same. The other mocks emit `continue` for this request.
+The other mocks emit `continue` for this request.
+
+Each phase has its own winner, so two mocks can act on one request. For example, a `request()` overwrite of a tab can change the request, and then a session-wide `respond()` can replace the response.
+
+`browser.mock()` replaces an existing mock only when the URL definition and the scope (session-wide, tab or parallel test) are the same.
 
 If a mock waits for the response (for example with a `statusCode` filter) and the response does not match, the next mock in this order answers in Chrome. In Firefox, a mock that waits for the response cannot send a body after the request left. It gives way to a mock that answers early, and WebdriverIO logs one warning for each such mock.
+
+A mock that gives way before the request is sent lets the request reach the server. This is also true for an `abort()` and for a `respond()` with `fetchResponse: false`. When such a `respond()` answers at the response, it sends the status 200, or its `statusCode` option. In Chrome, a session-wide `abort()` that gives way to a mock that waits for the response fails the request only after the server answered. The same hand-over applies between two `browser.mock()` mocks when the older one waits for the response.
+
+This order applies to the mocks of one browser object. Two `attach()` clients of one session do not share it: a mock of one client does not give way to a mock of the other client. But a `browser.mock()` with the same URL definition on one client replaces the mock of the other client, because both clients use the same session.
 
 ## Examples
 
