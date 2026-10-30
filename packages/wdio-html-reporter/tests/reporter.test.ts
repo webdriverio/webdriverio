@@ -736,7 +736,9 @@ describe('tests with no describe()', () => {
     })
 
     it('removes the working folder only at the start of each spec file', async () => {
-        const [first, second] = [firstSpec, secondSpec].map((spec) => path.join(process.cwd(), process.cwd(), path.basename(spec)))
+        // the working folder again inside the path, without its root (a drive letter cannot be in a Windows path)
+        const cwd = process.cwd()
+        const [first, second] = [firstSpec, secondSpec].map((spec) => path.join(cwd, cwd.slice(path.parse(cwd).root.length), path.basename(spec)))
         await rootTests('root-tests-nested', [first, second])
         expect(htmlOf('root-tests-nested')).toContain(specRow(first, second))
     })
