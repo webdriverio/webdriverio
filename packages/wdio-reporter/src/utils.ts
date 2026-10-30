@@ -285,20 +285,25 @@ function cut(text: string, length: number) {
     return text.length > length ? `${text.slice(0, length)}…` : text
 }
 
-// JSON for a title that never throws: a repeated object as "[Circular]", at most 200 values
+// JSON for a title that never throws: a cycle as "[Circular]", at most 200 values
 function titleJson(value: unknown): string {
-    const seen = new WeakSet<object>()
+    // the open parent chain only, so that a shared value is written each time
+    const ancestors: unknown[] = []
     let values = 0
     try {
-        const json = JSON.stringify(value, (_key, v: unknown) => {
+        const json = JSON.stringify(value, function (this: unknown, _key, v: unknown) {
             if (++values > TITLE_JSON_VALUES) {
                 return '…'
             }
+            // `this` is the parent of `v`: close the branches that ended
+            while (ancestors.length && ancestors[ancestors.length - 1] !== this) {
+                ancestors.pop()
+            }
             if (v && typeof v === 'object') {
-                if (seen.has(v)) {
+                if (ancestors.includes(v)) {
                     return '[Circular]'
                 }
-                seen.add(v)
+                ancestors.push(v)
             }
             return v
         })
