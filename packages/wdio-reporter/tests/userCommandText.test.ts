@@ -33,6 +33,7 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.Browser', 'https://webdriver.io'])).toBe('expect(browser).toHaveUrl("https://webdriver.io")')
         expect(userCommandTitle('expect.toBeRequested', ['WebdriverIO.Mock'])).toBe('expect(mock).toBeRequested()')
         expect(userCommandTitle('expect.toBeElementsArrayOfSize', ['WebdriverIO.ElementArray<li> (3)', 3])).toBe('expect($$("li")).toBeElementsArrayOfSize(3)')
+        expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.Browser', '[Matcher StringContaining "Docs"]'])).toBe('expect(browser).toHaveTitle(StringContaining "Docs")')
     })
 
     it('keeps the name of a command with no list of arguments', () => {

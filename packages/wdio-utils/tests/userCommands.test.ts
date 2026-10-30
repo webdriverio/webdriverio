@@ -1036,6 +1036,16 @@ describe('shortCopy', () => {
         expect(query).toHaveBeenCalledTimes(1)
     })
 
+    it('labels an asymmetric matcher of an assertion with its name and its sample', () => {
+        const matcher = (name: string, sample?: unknown, text?: string) => ({
+            $$typeof: Symbol.for('jest.asymmetricMatcher'), sample, toString: () => name,
+            ...(text ? { toAsymmetricMatcher: () => text } : {})
+        })
+        expect(mod.shortCopy(matcher('StringContaining', 'ab'))).toBe('[Matcher StringContaining "ab"]')
+        expect(mod.shortCopy(matcher('StringMatching', /a.b/))).toBe('[Matcher StringMatching /a.b/]')
+        expect(mod.shortCopy(matcher('Any', String, 'Any<String>'))).toBe('[Matcher Any<String>]')
+    })
+
     it('labels an element list with its selector and its number of elements', () => {
         const list = kind.setWdioKind(Object.assign([{}, {}, {}], { selector: 'li' }), 'element-array')
         expect(mod.shortCopy(list)).toBe('WebdriverIO.ElementArray<li> (3)')

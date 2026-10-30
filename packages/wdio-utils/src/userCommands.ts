@@ -303,6 +303,32 @@ function isPlainObject (value: unknown) {
     return proto === Object.prototype || proto === null
 }
 
+const ASYMMETRIC_MATCHER = Symbol.for('jest.asymmetricMatcher')
+
+interface AsymmetricMatcher {
+    sample?: unknown
+    toString(): string
+    toAsymmetricMatcher?(): string
+}
+
+// for example `StringContaining "Docs"`, as the message of a failed assertion writes it
+function matcherText (matcher: AsymmetricMatcher) {
+    if (typeof matcher.toAsymmetricMatcher === 'function') {
+        return matcher.toAsymmetricMatcher()
+    }
+    const { sample } = matcher
+    if (sample === undefined) {
+        return String(matcher)
+    }
+    let text: string
+    try {
+        text = sample instanceof RegExp ? String(sample) : JSON.stringify(sample) ?? String(sample)
+    } catch {
+        text = UNREADABLE
+    }
+    return `${String(matcher)} ${text.length > MAX_STRING_LENGTH ? `${text.slice(0, MAX_STRING_LENGTH)}…` : text}`
+}
+
 function wdioLabel (value: object, name: string, ref: unknown) {
     // a chainable element gives a promise for each property, but the selector of its query
     if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
@@ -389,6 +415,9 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
     }
     if (typeof (value as { then?: unknown }).then === 'function') {
         return '[Promise]'
+    }
+    if ((value as { $$typeof?: unknown }).$$typeof === ASYMMETRIC_MATCHER) {
+        return `[Matcher ${matcherText(value as AsymmetricMatcher)}]`
     }
     if (state.ancestors.has(value as object)) {
         return '[Circular]'
