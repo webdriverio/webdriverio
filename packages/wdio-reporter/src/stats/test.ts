@@ -5,7 +5,7 @@ import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
 import RunnableStats from './runnable.js'
-import { pad, color, colorLines } from '../utils.js'
+import { pad, color, colorLines, specFilePath } from '../utils.js'
 import type { Argument } from '../types.js'
 
 const maxStringLength = 2048
@@ -82,6 +82,8 @@ export default class TestStats extends RunnableStats {
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null
+    /** @experimental the path of the spec file of the test (the feature file for Cucumber), when the framework sends it (Jasmine: none outside every `describe()`) */
+    declare file?: string
 
     constructor(test: Test) {
         super('test')
@@ -96,6 +98,9 @@ export default class TestStats extends RunnableStats {
         // Mocha only
         this.body = test.body
         this.keepParallelFields(test)
+        if (typeof test.file === 'string' && test.file) {
+            this.file = specFilePath(test.file)
+        }
 
         /**
          * initial test state is pending

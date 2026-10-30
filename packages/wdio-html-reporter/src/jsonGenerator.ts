@@ -6,8 +6,9 @@ import fs from 'node:fs'
 import { writeFile } from './files.js'
 import { withExtension } from './fileNames.js'
 
-// experimental hook fields of the base that the report does not use; a hook keeps `output` only with commands
+// experimental fields of the base that the report does not use; a hook keeps `output` only with commands
 const BASE_ONLY_HOOK_KEYS = new Set(['hookKind', 'hookSuiteUid'])
+const BASE_ONLY_TEST_KEYS = new Set(['file'])
 
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
@@ -53,7 +54,9 @@ class JsonGenerator {
                          * suite, which the report does not use
                          */
                         const stringified = JSON.stringify(reportData, function (this: { type?: unknown }, key, value) {
-                            return key === 'hooksAndTests' || (this.type === 'hook' && (BASE_ONLY_HOOK_KEYS.has(key) || (key === 'output' && !(Array.isArray(value) && value.length)))) ? undefined : value
+                            return key === 'hooksAndTests' ||
+                                (this.type === 'test' && BASE_ONLY_TEST_KEYS.has(key)) ||
+                                (this.type === 'hook' && (BASE_ONLY_HOOK_KEYS.has(key) || (key === 'output' && !(Array.isArray(value) && value.length)))) ? undefined : value
                         })
                         JsonGenerator.writeJson(jsonFile, stringified)
                     } catch (error) {
