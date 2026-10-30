@@ -1,4 +1,4 @@
-import type { HtmlReporterOptions, ReportData } from './types.js'
+import type { HtmlReporterOptions, ReportData, ReportSuite } from './types.js'
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
@@ -148,13 +148,17 @@ class HtmlGenerator {
                 return false
             })
 
-            environment.addGlobal('formatSpecFile', (suiteInfo:SuiteStats) => {
+            environment.addGlobal('formatSpecFile', (suiteInfo: ReportSuite) => {
                 // Display file path of spec
-                // the root suite can name several spec files; remove the working folder only at the start of each
+                // the root suite can name several spec files; a file in the working folder shows its path from there
+                // (path.relative also matches another drive letter case and `/` on Windows)
                 const cwd = process.cwd()
-                return ((suiteInfo as SuiteStats & { files?: string[] }).files ?? [suiteInfo.file])
-                    .map((file) => file.startsWith(cwd + path.sep) ? file.slice(cwd.length) : file)
-                    .join(', ')
+                return (suiteInfo.files ?? [suiteInfo.file]).map((file) => {
+                    const relative = path.isAbsolute(file) ? path.relative(cwd, file) : ''
+                    return relative && relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative)
+                        ? path.sep + relative
+                        : file
+                }).join(', ')
             })
 
             environment.addGlobal('testStateColor', (testInfo:TestStats) => {

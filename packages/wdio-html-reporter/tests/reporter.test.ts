@@ -754,6 +754,15 @@ describe('tests with no describe()', () => {
         expect(htmlOf('root-tests-sibling')).toContain(`<td>${sibling.replaceAll('\\', '&#92;')}</td>`)
     })
 
+    // Windows: a path can have another case of the drive letter, or `/` (Vitest)
+    it.runIf(process.platform === 'win32')('removes the working folder from a Windows path with another drive letter case or with /', async () => {
+        const cwd = process.cwd()
+        const lowerDrive = cwd[0].toLowerCase() + cwd.slice(1) + '\\project\\first.spec.js'
+        const slashes = cwd.replaceAll('\\', '/') + '/project/second.spec.js'
+        await rootTests('root-tests-windows', [lowerDrive, slashes])
+        expect(htmlOf('root-tests-windows')).toContain('<td>&#92;project&#92;first.spec.js, &#92;project&#92;second.spec.js</td>')
+    })
+
     it('keeps a spec file whole when the working folder has a comma', async () => {
         const cwd = path.join(process.cwd(), 'Work, Inc')
         const spec = path.join(cwd, 'project', 'first.spec.js')

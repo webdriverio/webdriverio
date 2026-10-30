@@ -64,6 +64,9 @@ export class InternalReportEvent  {
 
 }
 
+/** a suite of the report; the root suite lists in `files` the spec files of its tests when there are several */
+export type ReportSuite = SuiteStats & { files?: string[] }
+
 export class ReportData {
     info: RunnerStats
     metrics: Metrics

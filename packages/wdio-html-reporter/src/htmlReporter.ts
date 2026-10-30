@@ -7,7 +7,7 @@ import type {
 } from '@wdio/reporter'
 import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats } from '@wdio/reporter'
 
-import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
+import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData, type ReportSuite } from './types.js'
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
@@ -538,7 +538,7 @@ export default class HtmlReporter extends WDIOReporter {
      * suite (Mocha `it()` with no `describe()`): no suite start event adds it. Its
      * child suites are already in the report.
      */
-    rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
+    rootSuiteWithTests(runner: RunnerStats): ReportSuite[] {
         const root = this.currentSuites[0]
         // a root hook keeps its commands in its own output, which only `removeOutput: false` writes
         const keep = (hook: HookStats) => hook.error || (!this.options.removeOutput && hook.output?.length)
@@ -555,12 +555,13 @@ export default class HtmlReporter extends WDIOReporter {
         const [spec, ...others] = runner.specs
         const paths = testFiles.length ? testFiles : spec && !others.length ? [toPath(spec)] : []
         // `file` stays one path, as on the other suites; `files` has all of them when the root tests come from several
-        return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
+        const fields: Pick<ReportSuite, 'suites' | 'file' | 'files' | 'end'> = {
             suites: [],
             file: paths[0] ?? '',
-            ...(paths.length > 1 && { files: paths }),
+            files: paths.length > 1 ? paths : undefined,
             end: new Date()
-        })]
+        }
+        return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, fields)]
     }
 
     removeSuite(uid: string | undefined) {
