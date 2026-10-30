@@ -104,4 +104,18 @@ describe('JUnit user commands', () => {
         ])
         expect(xml).toContain('COMMAND: POST /session/s/url - {"url":"/home"}')
     })
+
+    it('writes the XML when a custom command inside a user command returns a circular object', () => {
+        const circular: Record<string, unknown> = { name: 'page' }
+        circular.self = circular
+        const xml = xmlOf([
+            ['client:beforeUserCommand', { id: 1, command: 'login', body: ['john'], protocol: 'bidi' }],
+            // the old events of an inner custom command keep their raw result
+            ['client:beforeCommand', { command: 'openPage', body: [], parent: 1 }],
+            ['client:afterCommand', { command: 'openPage', body: [], result: { value: circular }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'login', body: ['john'], protocol: 'bidi', result: { value: true } }]
+        ])
+        expect(xml).toContain('COMMAND: login("john") → true')
+        expect(xml).toContain('  COMMAND: openPage → {"name":"page","self":"[Circular]"}')
+    })
 })
