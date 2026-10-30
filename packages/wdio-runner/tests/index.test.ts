@@ -11,11 +11,13 @@ import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
+import { wrapAssertions } from '../src/assertions.js'
 import type { CustomStubCommand } from '../src/types.js'
 
 vi.mock('expect-webdriverio', () => ({
     setDefaultOptions: vi.fn(),
     expect: vi.fn(),
+    wdioCustomMatchers: {},
     SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
@@ -23,6 +25,7 @@ vi.mock('expect-webdriverio', () => ({
         })
     }
 }))
+vi.mock('../src/assertions.js', () => ({ wrapAssertions: vi.fn() }))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -729,6 +732,18 @@ describe('wdio-runner', () => {
             expect(typeof browser?.deleteSession).toBe('function')
             expect(_setGlobal).toBeCalledTimes(3)
             expect(setDefaultOptions).toBeCalledTimes(1)
+        })
+
+        it('makes each assertion a user command with the local runner only', async () => {
+            const runner = new WDIORunner()
+            vi.mocked(wrapAssertions).mockClear()
+            await runner['_startSession']({ runner: 'browser' } as any, {} as any)
+            expect(wrapAssertions).not.toBeCalled()
+
+            const browser = await runner['_startSession']({ runner: 'local' } as any, {} as any)
+            expect(wrapAssertions).toBeCalledTimes(1)
+            const [, , getBrowser] = vi.mocked(wrapAssertions).mock.calls[0]
+            expect(getBrowser()).toBe(browser)
         })
 
         it('transfers stubbed custom commands onto the new session', async () => {
