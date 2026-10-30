@@ -281,6 +281,10 @@ const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 // most values that a title writes: a raw result can be big or circular
 const TITLE_JSON_VALUES = 200
 
+const ASSERTION_PREFIX = 'expect.'
+// the received value of an assertion as in the test code
+const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock' }
+
 function cut(text: string, length: number) {
     return text.length > length ? `${text.slice(0, length)}…` : text
 }
@@ -346,6 +350,12 @@ function formatArgument(arg: unknown) {
 export function userCommandTitle(command: string, body: unknown): string {
     if (!Array.isArray(body)) {
         return command
+    }
+    // an assertion: `expect.toHaveText` or `expect.not.toHaveText`, with the received value first
+    if (command.startsWith(ASSERTION_PREFIX)) {
+        const [received, ...expected] = body
+        const target = RECEIVED_NAMES[received as string] ?? formatArgument(received)
+        return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
     }
     return `${command}(${cut(body.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
 }
