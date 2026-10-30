@@ -2999,7 +2999,7 @@ describe('WebDriverInterception', () => {
             })
 
             describe('in Firefox, which takes no response body after the request was sent', () => {
-                const LOST = 'another mock of the same request answered it before it was sent'
+                const LOST = 'another mock of the same request acted on it before it was sent, so this mock\'s response may not apply'
                 let logWarnSpy: ReturnType<typeof vi.spyOn>
                 const warnings = () => logWarnSpy.mock.calls.flat().filter((message) => String(message).includes(LOST))
 
@@ -3056,6 +3056,7 @@ describe('WebDriverInterception', () => {
                     await waitForAsyncHandlers()
 
                     expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+                    expect(warnings()).toHaveLength(1)
                 })
 
                 it('does not warn when the winner only lets the request through', async () => {

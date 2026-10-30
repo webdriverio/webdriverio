@@ -412,9 +412,9 @@ export default class WebDriverInterception {
         }
         this.#warnedAboutLostResponse = true
         log.warn(
-            `mock.respond() of a mock that filters on the response did not answer request ${requestId}: ` +
-            'another mock of the same request answered it before it was sent. ' +
-            'Firefox can not replace a response body after the request was sent.'
+            `Request ${requestId} of a mock.respond() that needs the response: ` +
+            'another mock of the same request acted on it before it was sent, so this mock\'s response may not apply ' +
+            '(Firefox can not replace a response body after the request was sent).'
         )
     }
 
