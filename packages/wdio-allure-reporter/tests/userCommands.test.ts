@@ -250,6 +250,34 @@ describe('user commands that overlap or end after their test', () => {
         ])
     })
 
+    it('ends a protocol step that is still open with its user command, and ignores its late result', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // waitUntil times out while its condition still waits for a protocol command
+            const waitUntil = user(4, 'waitUntil', ['[Function anonymous]', { timeout: 600 }])
+            const execute = { command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body: {}, sessionId: 's', parent: 4 }
+            emit('client:beforeUserCommand', waitUntil)
+            emit('client:beforeCommand', execute)
+            emit('client:afterCommand', { ...execute, result: { value: false } })
+            emit('client:beforeCommand', execute)
+            emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('waitUntil condition timed out after 600ms') } })
+            emit('client:afterCommand', { ...execute, result: { value: true } })
+            emit('client:beforeUserCommand', user(5, 'getTitle', []))
+            emit('client:afterUserCommand', { ...user(5, 'getTitle', []), result: { value: 'UCE demo' } })
+            emit('test:fail', { ...test('t1'), error: new Error('waitUntil condition timed out after 600ms') })
+            emit('test:end', test('t1'))
+        })
+
+        const message = 'waitUntil condition timed out after 600ms'
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['waitUntil(function anonymous, {"timeout":600})', 'failed', message, [`Error: ${message}`], [
+                ['executeScript → false', 'passed', undefined, [expect.stringContaining('/execute/sync'), 'false'], []],
+                ['executeScript', 'failed', message, [expect.stringContaining('/execute/sync')], []]
+            ]],
+            ['getTitle() → "UCE demo"', 'passed', undefined, ['UCE demo'], []]
+        ])
+    })
+
     it('does not close a step of the next test with a result that comes after the end of its test', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
