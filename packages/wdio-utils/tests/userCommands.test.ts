@@ -1026,6 +1026,16 @@ describe('shortCopy', () => {
         expect(copy['…']).toBe('[99950 more]')
     })
 
+    it('copies at most 1000 values of a wide object', () => {
+        const row = Array.from({ length: 50 }, (_, i) => i)
+        const wide = Array(50).fill(Array(50).fill(Array(50).fill(row)))
+        const copy = mod.shortCopy(wide)
+        const json = JSON.stringify(copy)
+        expect(json.match(/\d+(?=[,\]])/g)!.length).toBeLessThanOrEqual(1000)
+        expect(json.length).toBeLessThan(10_000)
+        expect((copy as unknown[]).at(-1)).toBe('… [49 more]')
+    })
+
     it('keeps at most 4 levels', () => {
         expect(mod.shortCopy({ a: { b: { c: { d: { e: 1 } } } } })).toEqual({ a: { b: { c: { d: '[…]' } } } })
         expect(mod.shortCopy([[[[[1]]]]])).toEqual([[[['[…]']]]])
