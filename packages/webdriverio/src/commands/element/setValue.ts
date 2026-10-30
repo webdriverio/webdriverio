@@ -30,7 +30,8 @@ const SET_DIRECTLY = ['range', 'date', 'datetime-local', 'month', 'week', 'time'
  * picking a value with the mouse does. Pass the value in the input's own format, e.g. `2026-10-04` for a date
  * or `14:30` for a time. The browser corrects values that don't fit, like a range input does with a value
  * between two steps; read the result with [`getValue`](/docs/api/element/getValue). A value the browser
- * can't parse at all, like `garbage` for a date or a range, throws an error and leaves the previous value in place.
+ * can't parse at all, like `garbage` for a date or a range, or an empty value for a range, throws an error and
+ * leaves the previous value in place.
  *
  * <example>
     :setValue.js

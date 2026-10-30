@@ -553,6 +553,9 @@ async function editableBehind (session: Session, target: ResolvedTarget, given: 
     return { inner: { element, selector, code: `${target.code}.$(${quote(selector)})`, label: `${kind.desc} in ${target.label}` }, text }
 }
 
+const notTaken = (target: ResolvedTarget, value: string, took: string, type?: string) =>
+    usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${type} input takes values like ${FORMATS[type!] ?? 'its own format'}.`)
+
 /** setValue, with a value the browser rejected (the input keeps its previous one) as a usage error */
 async function setValueOrUsage (target: ResolvedTarget, value: string, type?: string) {
     try {
@@ -561,8 +564,7 @@ async function setValueOrUsage (target: ResolvedTarget, value: string, type?: st
         if (!(err instanceof Error && err.message.startsWith('The browser rejected the value'))) {
             throw err
         }
-        const took = await target.element.getValue()
-        throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${type} input takes values like ${FORMATS[type!] ?? 'its own format'}.`)
+        throw notTaken(target, value, await target.element.getValue(), type)
     }
 }
 
@@ -582,6 +584,18 @@ async function fillTarget (session: Session, args: ActionArgs, target: ResolvedT
         // setValue sets these directly, as their picker does (see webdriverio's setValue)
         await setValueOrUsage(target, value, kind.type)
         const took = await target.element.getValue()
+        if (took !== value && kind.type !== 'range') {
+            // the browser writes some values its own way (#ff8800 for #FF8800); an empty one only stays empty
+            const own = value === '' ? '' : await target.element.execute((el: Element, given: string) => {
+                const input = document.createElement('input')
+                input.type = (el as HTMLInputElement).type
+                input.value = given
+                return input.value
+            }, value)
+            if (took !== own) {
+                throw notTaken(target, value, took, kind.type)
+            }
+        }
         const note = took !== value ? ` (it took ${took}: ${kind.type === 'range' ? 'the nearest allowed value' : 'the format of the input'})` : ''
         if (kind.type === 'range') {
             /**

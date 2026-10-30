@@ -695,15 +695,43 @@ describe('fill on inputs that are not typed into', () => {
         expect(keys).toEqual(['ArrowLeft', 'ArrowRight'])
     })
 
+    /** a direct input: the first execute answers fillKind, the next ones how the browser stores the given value */
+    const direct = (type: string, stored?: string) => vi.fn()
+        .mockResolvedValueOnce({ kind: 'direct', type })
+        .mockResolvedValue(stored)
+
     it('reports a value the input stores in its own format', async () => {
         const element = {
-            execute: async () => ({ kind: 'direct', type: 'color' }),
+            execute: direct('color', '#ff8800'),
             setValue: async () => {},
             getValue: async () => '#ff8800'
         }
         const result = await fill(refSession(element), { target: 'e2', text: '#FF8800', $cwd: '/' })
         expect(result.text).toBe('Set e2 (textbox "Name") to #ff8800 (it took #ff8800: the format of the input)')
         expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'#FF8800\')')
+    })
+
+    it('rejects a date the page put back', async () => {
+        const element = {
+            execute: direct('date', '2026-10-04'),
+            setValue: async () => {},
+            getValue: async () => '2026-01-01'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take "2026-10-04"; it has "2026-01-01".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects an empty value a color input replaced with black', async () => {
+        const element = {
+            execute: direct('color', '#000000'),
+            setValue: async () => {},
+            getValue: async () => '#000000'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take ""; it has "#000000".')
     })
 
     it('rejects a date the browser rejected in setValue', async () => {
