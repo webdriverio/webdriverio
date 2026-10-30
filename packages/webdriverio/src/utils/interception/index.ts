@@ -396,7 +396,8 @@ export default class WebDriverInterception {
                 : this.#answerResponse(event as Response, aborts),
             lose: (winner) => {
                 if (phase === 'beforeRequestSent' && winner.kind === 'defer' && this.#requestOverwrites[0]?.abort) {
-                    this.#handOverAbort(requestId)
+                    // the abort still acts on this request when the response starts
+                    return this.#handOverAbort(requestId)
                 }
                 if (needsResponse && winner.kind === 'answer') {
                     this.#warnAboutLostResponse(requestId)

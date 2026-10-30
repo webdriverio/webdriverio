@@ -2966,6 +2966,29 @@ describe('WebDriverInterception', () => {
                 expect(failed).toEqual([123])
             })
 
+            it('emits only fail, not continue, from a session-wide abort that fails the request when the response starts', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                sessionWide.abort()
+                scoped.respond({ from: 'scoped' })
+                const events: string[] = []
+                sessionWide.on('continue', (requestId) => events.push(`continue ${requestId}`))
+                sessionWide.on('fail', (requestId) => events.push(`fail ${requestId}`))
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1', 124))
+                await waitForAsyncHandlers()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1', 124, 201))
+                await waitForAsyncHandlers()
+
+                expect(events).toEqual(['fail 123', 'continue 124'])
+                expect(respondedWith(browser)).toEqual(['scoped'])
+            })
+
             it('does not abort the response of a request that a scoped request() overwrite let through', async () => {
                 const browser = getBrowser()
                 const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
