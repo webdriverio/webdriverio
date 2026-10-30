@@ -208,6 +208,19 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default 10485760 (10MB)
      */
     maxSpyCollectedBodySize?: number
+    /**
+     * Sends an event before and after each user command (the testrunner gives them to the reporters),
+     * in WebDriver BiDi sessions only. A user command is a command that your test code calls directly:
+     * a WebdriverIO command or a custom command.
+     * When it is not set, a session with the `wdio:experimentalBiDiCommands` capability sends them
+     * and other sessions do not. Set `true` to send them in every WebDriver BiDi session, `false`
+     * to send none, or `{ exclude: ['waitUntil'] }` to send all except the named commands (the
+     * commands that an excluded command runs are not sent either).
+     *
+     * @default undefined
+     * @experimental
+     */
+    userCommandEvents?: boolean | { exclude?: string[] }
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {
@@ -331,18 +344,6 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * until an error is being thrown by the testrunner.
      */
     reporterSyncTimeout?: number
-    /**
-     * Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command
-     * is a command that your test code calls directly: a WebdriverIO command or a custom command.
-     * When it is not set, a session with the `wdio:experimentalBiDiCommands` capability sends them
-     * and other sessions do not. Set `true` to send them in every WebDriver BiDi session, `false`
-     * to send none, or `{ exclude: ['waitUntil'] }` to send all except the named commands (the
-     * commands that an excluded command runs are not sent either).
-     *
-     * @default undefined
-     * @experimental
-     */
-    userCommandEvents?: boolean | { exclude?: string[] }
     /**
      * Node arguments to specify when launching child processes.
      */
