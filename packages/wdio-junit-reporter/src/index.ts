@@ -672,6 +672,7 @@ class JunitReporter extends WDIOReporter {
     private _getCommandStandardOutput(test: Pick<TestStats, 'output'>) {
         const standardOutput: string[] = []
         const texts = userCommandTexts(test.output)
+        const userCommands = new Map(test.output.flatMap((entry) => isUserCommandOutput(entry) ? [[entry.id, entry] as const] : []))
         test.output.forEach((data) => {
             // a user command: one line with its arguments and result, its protocol commands indented under it
             if (isUserCommandOutput(data)) {
@@ -684,7 +685,7 @@ class JunitReporter extends WDIOReporter {
                     return
                 }
                 // the line shows a cut result: the whole value under it
-                const start = test.output.find((entry) => isUserCommandOutput(entry) && entry.id === data.id)
+                const start = userCommands.get(data.id)
                 if (start && texts.get(start)?.endsWith('…')) {
                     standardOutput.push(`RESULT: ${this._format(data.result.value)}`)
                 }
