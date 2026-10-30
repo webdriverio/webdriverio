@@ -156,7 +156,7 @@ function hasListeners (browser: EventBrowser) {
  * `userCommand` and a `userResult` event in a WebDriver BiDi session.
  * @experimental
  */
-export async function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>): Promise<T> {
+export function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>): Promise<T> {
     if (!userCommandStore || !userCommandNames.has(command) || TRANSPARENT_COMMANDS.includes(command)) {
         return run()
     }
