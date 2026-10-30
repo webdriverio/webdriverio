@@ -144,6 +144,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, specFilePath, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
+const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, specFilePath, hookCountsAsFailure, isContextlessAllHook }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook }

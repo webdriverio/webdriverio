@@ -2,7 +2,7 @@ import type { HtmlReporterOptions, ReportData, RootReportSuite } from './types.j
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
-import { hookCountsAsFailure, type SuiteStats, type TestStats } from '@wdio/reporter'
+import { hookCountsAsFailure, relativeSpecFile, type SuiteStats, type TestStats } from '@wdio/reporter'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -151,13 +151,9 @@ class HtmlGenerator {
             environment.addGlobal('formatSpecFile', (suiteInfo: RootReportSuite) => {
                 // Display file path of spec
                 // the root suite can name several spec files; a file in the working folder shows its path from there
-                // (path.relative also matches another drive letter case and `/` on Windows)
-                const cwd = process.cwd()
                 return (suiteInfo.files ?? [suiteInfo.file]).map((file) => {
-                    const relative = path.isAbsolute(file) ? path.relative(cwd, file) : ''
-                    return relative && relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative)
-                        ? path.sep + relative
-                        : file
+                    const relative = relativeSpecFile(file)
+                    return relative ? path.sep + relative : file
                 }).join(', ')
             })
 

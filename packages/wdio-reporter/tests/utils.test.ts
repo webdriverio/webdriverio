@@ -3,7 +3,7 @@ import url from 'node:url'
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook, specFilePath } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook, specFilePath, relativeSpecFile } from '../src/utils.js'
 import * as reporterExports from '../src/index.js'
 
 vi.mock('../src/supportsColor.js', () => {
@@ -101,6 +101,21 @@ describe('specFilePath', () => {
     })
     it('is exported for the reporters', () => {
         expect(reporterExports.specFilePath).toBe(specFilePath)
+    })
+})
+
+describe('relativeSpecFile', () => {
+    const cwd = path.resolve('project')
+    it('gives the path of a spec file in the working folder from there', () => {
+        expect(relativeSpecFile(path.join(cwd, 'specs', 'a.spec.js'), cwd)).toBe(path.join('specs', 'a.spec.js'))
+    })
+    it.each([
+        ['outside the working folder', path.resolve(cwd, '..', 'other', 'a.spec.js')],
+        ['in a folder whose name starts with the name of the working folder', `${cwd}lication${path.sep}a.spec.js`],
+        ['that is relative', path.join('specs', 'a.spec.js')],
+        ['that is the working folder', cwd]
+    ])('gives nothing for a spec file %s', (_, file) => {
+        expect(relativeSpecFile(file, cwd)).toBeUndefined()
     })
 })
 

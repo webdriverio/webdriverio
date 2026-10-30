@@ -1,3 +1,4 @@
+import path from 'node:path'
 import url from 'node:url'
 
 import supportsColor from './supportsColor.js'
@@ -42,6 +43,18 @@ export function specFilePath(file: string): string {
     } catch {
         return file
     }
+}
+
+/**
+ * the path of a spec file from the working folder, to show it; `undefined` for a file outside it
+ * (a prefix search would cut `/app/application/…` with the working folder `/app`); path.relative
+ * also matches another drive letter case and `/` on Windows
+ */
+export function relativeSpecFile(file: string, cwd = process.cwd()): string | undefined {
+    const relative = path.isAbsolute(file) ? path.relative(cwd, file) : ''
+    return relative && relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative)
+        ? relative
+        : undefined
 }
 
 /**
