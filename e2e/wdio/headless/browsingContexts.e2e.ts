@@ -534,6 +534,26 @@ describe('browsing contexts', () => {
             }
         })
 
+        it('lets a tab mock with a matching response filter answer, and keeps the session-wide mock in other tabs', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-a')
+            try {
+                const all = await browser.mock('**/api/user')
+                all.respond('default', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                // needs the response; the server sends 200, so the filter matches
+                const own = await b.mock('**/api/user', { statusCode: 200 })
+                own.respond('special', { headers: { 'Content-Type': 'text/plain' } })
+
+                await b.navigate(`${origin}/fetch?endpoint=user`)
+                // Firefox can not send a body after the request left, so the mock that answers early wins there
+                await expect(b.$('#result')).toHaveText(browser.isFirefox ? 'default' : 'special')
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('default')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
         it('lets a session-wide mock answer in a tab that only has a spy of the same url', async () => {
             await open('/tab-a')
             const b = await openTab('/tab-a')
