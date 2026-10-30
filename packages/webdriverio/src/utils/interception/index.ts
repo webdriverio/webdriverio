@@ -471,6 +471,8 @@ export default class WebDriverInterception {
             return this.#fail(this.#requestOverwrites, requestId)
         }
 
+        // an early answer that comes here gave way to a mock that acted before the request was sent
+        const gaveWay = this.#answersEarly()
         const overwrite = this.#respondOverwrites[0]?.overwrite && this.#take(this.#respondOverwrites).overwrite
         if (overwrite) {
             const responseData = parseOverwrite(overwrite as RespondWithOptions, response)
@@ -483,7 +485,7 @@ export default class WebDriverInterception {
             return this.#track(
                 requestId,
                 this.#browser.networkProvideResponse({ request: requestId, ...statusCode, ...responseData }),
-                (err: Error) => this.#handleUnsupportedOverwrite(err, requestId)
+                (err: Error) => this.#handleUnsupportedOverwrite(err, requestId, gaveWay)
             )
         }
 
@@ -592,7 +594,7 @@ export default class WebDriverInterception {
         if (!this.#browser.isFirefox) {
             return false
         }
-        if (this.#filterOptions.statusCode !== undefined || this.#filterOptions.responseHeaders !== undefined) {
+        if (this.#filtersOnResponse()) {
             return false
         }
         if (!this.#warnedAboutEarlyAnswer) {
@@ -610,13 +612,18 @@ export default class WebDriverInterception {
      * `network.provideResponse`, which would leave the request blocked. Let the
      * real response through and say so, instead of hanging the test.
      */
-    #handleUnsupportedOverwrite (err: Error, requestId: string) {
+    #handleUnsupportedOverwrite (err: Error, requestId: string, gaveWay: boolean) {
         if (!err.message.includes('unsupported operation')) {
             return this.#handleNetworkProvideResponseError(err)
         }
+        const reason = gaveWay
+            ? 'Another mock acted on the request before it was sent, so this mock could only answer the response.'
+            : this.#filtersOnResponse()
+                ? 'This mock filters on `statusCode` or `responseHeaders`, so it needs the response.'
+                : 'Use `fetchResponse: false` to answer before the request is sent.'
         log.warn(
             `mock.respond() could not replace the response of request ${requestId}: ${err.message}. ` +
-            'The page received the real response. Use `fetchResponse: false` to answer before the request is sent.'
+            `The page received the real response. ${reason}`
         )
         return this.#browser.networkProvideResponse({ request: requestId }).catch(this.#handleNetworkProvideResponseError)
     }
@@ -689,17 +696,25 @@ export default class WebDriverInterception {
      */
     public simulateResponseStarted(request: Response): void {
         const event = request as unknown as NetworkEvent
-        this.#observe('responseStarted', event)
+        const requestId = request.request.request
+        // as the arbiter does: a restored mock gets no event, and a mock that throws fails the request
+        if (!this.#restored) {
+            this.#observe('responseStarted', event)
+        }
         if (!request.isBlocked) {
             return
         }
-        // as the arbiter does: a restored or not matching mock lets the response through
         const decision = this.#restored ? undefined : this.#decide('responseStarted', event) as Decision | undefined
         if (!decision) {
-            void this.#track(request.request.request, this.#browser.networkProvideResponse({ request: request.request.request }))
+            void this.#track(requestId, this.#browser.networkProvideResponse({ request: requestId }))
             return
         }
-        void decision.run(() => {})
+        try {
+            void decision.run(() => {})
+        } catch (err) {
+            log.error(`A mock failed to handle request ${requestId}, failing it: ${(err as Error).message}`)
+            void this.#track(requestId, this.#browser.networkFailRequest({ request: requestId }))
+        }
     }
 
     public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
@@ -833,7 +848,6 @@ export default class WebDriverInterception {
         this.#hasOneResponseCollected = false
         this.#hasOneBodyReadStarted = false
         this.#blockedRequests.clear()
-        this.#abortsHandedOver.clear()
         return this
     }
 
@@ -1017,14 +1031,16 @@ export default class WebDriverInterception {
      * `fetchResponse: false` never calls the backend, so the filter cannot
      * be decided and must not be silently ignored or bypassed by fetching.
      */
+    #filtersOnResponse() {
+        return this.#filterOptions.statusCode !== undefined || this.#filterOptions.responseHeaders !== undefined
+    }
+
     #assertCanSkipFetch(params: Omit<RespondWithOptions, 'body'>) {
         if (params.fetchResponse !== false) {
             return
         }
 
-        const filtersOnResponse = this.#filterOptions.statusCode !== undefined ||
-            this.#filterOptions.responseHeaders !== undefined
-        if (!filtersOnResponse) {
+        if (!this.#filtersOnResponse()) {
             return
         }
 

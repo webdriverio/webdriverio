@@ -1109,6 +1109,31 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
     })
 
+    it('fails a simulated response when the respond callback throws', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        mock.respond(() => { throw new Error('broken callback') })
+
+        expect(() => mock.simulateResponseStarted(getResponseCollectionRequestStub())).not.toThrow()
+        await waitForAsyncHandlers()
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken callback'))
+    })
+
+    it('records no call for a simulated response of a restored mock', async () => {
+        const browser = getResponseCollectionBrowserMock({}, {
+            networkRemoveIntercept: vi.fn().mockResolvedValue(undefined),
+            getWindowHandle: vi.fn().mockResolvedValue('window-1')
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        await mock.restore()
+
+        mock.simulateResponseStarted(getResponseCollectionRequestStub())
+
+        expect(mock.calls).toHaveLength(0)
+    })
+
     it('handles non-binary response correctly', async () => {
         const browser = getResponseCollectionBrowserMock()
 
@@ -2997,6 +3022,23 @@ describe('WebDriverInterception', () => {
                 expect(failed).toEqual([123])
             })
 
+            it('keeps the abort hand-over of a request in flight when the abort mock is cleared', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                sessionWide.abort()
+                scoped.respond({ from: 'scoped' })
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                sessionWide.clear()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+
+                expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+                expect(respondedWith(browser)).toEqual([])
+            })
+
             it('emits only fail, not continue, from a session-wide abort that fails the request when the response starts', async () => {
                 const browser = getBrowser()
                 const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
@@ -3098,6 +3140,38 @@ describe('WebDriverInterception', () => {
 
                 afterEach(() => {
                     logWarnSpy.mockRestore()
+                })
+
+                const rejectedBodyWarning = () => logWarnSpy.mock.calls.flat().map(String).find((message) => message.includes('could not replace the response'))
+
+                it('says that another mock acted first when an early answer that gave way cannot replace the body', async () => {
+                    const browser = getFirefox()
+                    vi.mocked(browser.networkProvideResponse).mockRejectedValueOnce(new Error('unsupported operation: body'))
+                    const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, {}, browser, SCOPE)
+                    sessionWide.respond({ from: 'session-wide' }, { fetchResponse: false })
+                    scoped.request({ method: 'POST' })
+
+                    browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+                    browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(rejectedBodyWarning()).toContain('Another mock acted on the request before it was sent')
+                    expect(rejectedBodyWarning()).not.toContain('Use `fetchResponse: false`')
+                })
+
+                it('says that a mock with a response filter needs the response when it cannot replace the body', async () => {
+                    const browser = getFirefox()
+                    vi.mocked(browser.networkProvideResponse).mockRejectedValueOnce(new Error('unsupported operation: body'))
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 200 }, browser, SCOPE)
+                    scoped.respond({ from: 'scoped' })
+
+                    browser.emit('network.responseStarted', responseIn(['mock-id-1'], 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(rejectedBodyWarning()).toContain('filters on `statusCode` or `responseHeaders`')
+                    expect(rejectedBodyWarning()).not.toContain('Use `fetchResponse: false`')
                 })
 
                 it('lets a session-wide early answer win over a tab mock that needs the response, and warns once', async () => {
