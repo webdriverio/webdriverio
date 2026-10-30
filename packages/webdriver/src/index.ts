@@ -11,7 +11,7 @@ import command from './command.js'
 import { DEFAULTS, DEFAULT_CONNECT_TIMEOUT } from './constants.js'
 import type { BidiHandler } from './bidi/handler.js'
 import { environment as environmentValue } from './environment.js'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions, discardBidiWithoutBrowsingContext } from './utils.js'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions, discardBidiWithoutBrowsingContext, getAppiumBidiAdvice } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
@@ -26,10 +26,14 @@ async function listenToBidiEvents (
     client: Client,
     handler: BidiHandler,
     capabilities: WebdriverIO.Capabilities,
+    requestedCapabilities: Capabilities.RequestedStandaloneCapabilities,
     isMobile: boolean | undefined,
     checkTimeout: number
 ) {
-    if (isMobile && capabilities.browserName && !await discardBidiWithoutBrowsingContext(handler, checkTimeout)) {
+    if (
+        isMobile && capabilities.browserName &&
+        !await discardBidiWithoutBrowsingContext(handler, checkTimeout, getAppiumBidiAdvice(capabilities, requestedCapabilities))
+    ) {
         delete capabilities.webSocketUrl
         return
     }
@@ -103,7 +107,7 @@ export default class WebDriver {
              * make sure the Bidi connection is established before returning
              */
             if (await client._bidiHandler.waitForConnected()) {
-                await listenToBidiEvents(client, client._bidiHandler, capabilities, environment.isMobile, params.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
+                await listenToBidiEvents(client, client._bidiHandler, capabilities, requestedCapabilities, environment.isMobile, params.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
             }
         }
 
@@ -253,7 +257,7 @@ export default class WebDriver {
             const isConnected = await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
             if (instance._bidiHandler && isConnected) {
                 const { isMobile } = sessionEnvironmentDetector({ capabilities: newSessionCapabilities, requestedCapabilities: capabilities })
-                await listenToBidiEvents(instance, instance._bidiHandler, newSessionCapabilities, isMobile, instance.options.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
+                await listenToBidiEvents(instance, instance._bidiHandler, newSessionCapabilities, capabilities, isMobile, instance.options.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
             }
         }
 

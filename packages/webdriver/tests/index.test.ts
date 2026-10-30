@@ -268,7 +268,11 @@ describe('WebDriver', () => {
             })
 
             afterEach(() => {
-                process.env.WDIO_UNIT_TESTS = wid
+                if (wid === undefined) {
+                    delete process.env.WDIO_UNIT_TESTS
+                } else {
+                    process.env.WDIO_UNIT_TESTS = wid
+                }
                 vi.restoreAllMocks()
             })
 
@@ -283,9 +287,9 @@ describe('WebDriver', () => {
                 const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(false)
                 const browser = await startSession(appiumCaps)
                 expect(discard).toHaveBeenCalledOnce()
-                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler, DEFAULTS.bidiConnectTimeout.default)
+                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler, DEFAULTS.bidiConnectTimeout.default, 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. ')
                 await startSession(appiumCaps, { bidiConnectTimeout: 30_000 })
-                expect(discard).toHaveBeenLastCalledWith(expect.anything(), 30_000)
+                expect(discard).toHaveBeenLastCalledWith(expect.anything(), 30_000, expect.any(String))
             })
 
             it('drops webSocketUrl after a discard, so a later attach does not connect again', async () => {
@@ -485,7 +489,7 @@ describe('WebDriver', () => {
                 ;(session as any)._bidiHandler = handler
                 const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(usable)
                 await WebDriver.reloadSession(session, capabilities)
-                expect(discard).toHaveBeenCalledWith(handler, DEFAULTS.bidiConnectTimeout.default)
+                expect(discard).toHaveBeenCalledWith(handler, DEFAULTS.bidiConnectTimeout.default, 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. ')
                 expect(on).toHaveBeenCalledTimes(usable ? 1 : 0)
                 expect(session.capabilities.webSocketUrl).toBe(usable ? 'ws://foo/bar' : undefined)
                 discard.mockRestore()

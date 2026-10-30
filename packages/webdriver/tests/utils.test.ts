@@ -10,7 +10,7 @@ import { environment } from '../src/environment.js'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     startWebDriverSession, setupDirectConnect, validateCapabilities, getBidiRequestOptions,
-    initiateBidi, discardBidiWithoutBrowsingContext
+    initiateBidi, discardBidiWithoutBrowsingContext, getAppiumBidiAdvice
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -169,15 +169,44 @@ describe('utils', () => {
 
         it('discards the connection of a server that does not answer within the given time', async () => {
             vi.useFakeTimers()
-            const handler = { browsingContextGetTree: vi.fn().mockReturnValue(new Promise(() => {})), discard: vi.fn() }
-            const result = discardBidiWithoutBrowsingContext(handler as never, 30_000)
-            await vi.advanceTimersByTimeAsync(29_999)
-            expect(handler.discard).not.toHaveBeenCalled()
-            await vi.advanceTimersByTimeAsync(1)
-            expect(await result).toBe(false)
-            expect(handler.discard).toHaveBeenCalledOnce()
-            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('(no answer within 30000ms)'))
-            vi.useRealTimers()
+            try {
+                const handler = { browsingContextGetTree: vi.fn().mockReturnValue(new Promise(() => {})), discard: vi.fn() }
+                const result = discardBidiWithoutBrowsingContext(handler as never, 30_000)
+                await vi.advanceTimersByTimeAsync(29_999)
+                expect(handler.discard).not.toHaveBeenCalled()
+                await vi.advanceTimersByTimeAsync(1)
+                expect(await result).toBe(false)
+                expect(handler.discard).toHaveBeenCalledOnce()
+                expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('(no answer within 30000ms)'))
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('adds the advice to the warning', async () => {
+            vi.mocked(logMock.warn).mockClear()
+            const handler = { browsingContextGetTree: vi.fn().mockRejectedValue(new Error('unknown command')), discard: vi.fn() }
+            await discardBidiWithoutBrowsingContext(handler as never, 10_000, 'Do this. ')
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('continue with WebDriver Classic. Do this. To skip this check'))
+        })
+    })
+
+    describe('getAppiumBidiAdvice', () => {
+        const android = { platformName: 'Android', browserName: 'Chrome' }
+
+        it('names the forward capability when the user set it to false', () => {
+            for (const requested of [
+                { 'appium:chromedriverForwardBiDi': false },
+                { 'appium:options': { chromedriverForwardBiDi: false } },
+                { alwaysMatch: { 'appium:chromedriverForwardBiDi': false }, firstMatch: [{}] }
+            ]) {
+                expect(getAppiumBidiAdvice(android, requested as never)).toContain('"appium:chromedriverForwardBiDi" is false')
+            }
+        })
+
+        it('gives the versions for Android, and nothing for other platforms', () => {
+            expect(getAppiumBidiAdvice(android, {})).toContain('Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later')
+            expect(getAppiumBidiAdvice({ platformName: 'iOS', browserName: 'Safari' }, {})).toBe('')
         })
     })
 

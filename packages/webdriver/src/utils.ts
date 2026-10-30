@@ -8,7 +8,7 @@ import {
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 import type { ClientOptions } from 'ws'
 
 import command from './command.js'
@@ -182,8 +182,35 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
  * `true` when the user set the Appium capability, as `appium:<name>` or in `appium:options`
  */
 function hasAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
+    return getAppiumCapability(capabilities, name) !== undefined
+}
+
+/**
+ * the value of an Appium capability, set as `appium:<name>` or in `appium:options`
+ */
+function getAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
     const appiumOptions = capabilities['appium:options'] as Record<string, unknown> | undefined
-    return (capabilities as Record<string, unknown>)[`appium:${name}`] !== undefined || appiumOptions?.[name] !== undefined
+    return (capabilities as Record<string, unknown>)[`appium:${name}`] ?? appiumOptions?.[name]
+}
+
+/**
+ * what the user can do when the WebDriver Bidi server of an Appium browser session can not run
+ * browser commands: only Chrome on Android can get WebDriver Bidi through the browser driver
+ *
+ * @param  capabilities           capabilities of the session
+ * @param  requestedCapabilities  capabilities that the user requested
+ */
+export function getAppiumBidiAdvice (capabilities: WebdriverIO.Capabilities, requestedCapabilities: Capabilities.RequestedStandaloneCapabilities) {
+    const requested = (
+        'alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities
+    ) as WebdriverIO.Capabilities
+    if (getAppiumCapability(requested, 'chromedriverForwardBiDi') === false) {
+        return 'Appium answers WebDriver Bidi itself, because "appium:chromedriverForwardBiDi" is false. '
+    }
+    if (/^android$/i.test(capabilities.platformName || '')) {
+        return 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. '
+    }
+    return ''
 }
 
 /**
@@ -545,9 +572,10 @@ export function initiateBidi (
  * @param  handler  the connected handler of an Appium browser session
  * @param  timeout  how long to wait for the answer (`bidiConnectTimeout`): a server that never
  *                  answers must not hold the session start for `bidiResponseTimeout`
+ * @param  advice   what the user can do, see `getAppiumBidiAdvice`
  * @return `false` when the connection was discarded
  */
-export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, timeout: number) {
+export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, timeout: number, advice = '') {
     let timer: ReturnType<typeof setTimeout> | undefined
     try {
         await Promise.race([
@@ -561,8 +589,7 @@ export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, t
         const reason = err instanceof Error ? err.message : String(err)
         log.warn(
             `The WebDriver Bidi server of this Appium session can not run browser commands (${reason}), ` +
-            'continue with WebDriver Classic. For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or ' +
-            'later with the UiAutomator2 driver 8.7.3 or later. To skip this check, set "wdio:enforceWebDriverClassic": true.'
+            `continue with WebDriver Classic. ${advice}To skip this check, set "wdio:enforceWebDriverClassic": true.`
         )
         handler.discard()
         return false

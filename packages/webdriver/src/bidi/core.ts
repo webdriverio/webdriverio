@@ -191,14 +191,11 @@ export class BidiCore {
      * state of a connection that could not be made, so the session does not count as ended
      */
     public discard () {
-        const wasConnected = this._isConnected
         this.close()
         /**
-         * a socket that the server closed before stays closed: the session ended
+         * also when the server closed the socket during the check: the session continues
          */
-        if (wasConnected) {
-            this.#closed = false
-        }
+        this.#closed = false
     }
 
     /**
