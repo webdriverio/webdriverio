@@ -715,13 +715,15 @@ describe('tests with no describe()', () => {
         })
         await reporter.onRunnerEnd(reporter.runnerStat!)
         removeListeners()
-        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as (JsonSuite & { file: string, files?: string[], isRoot?: boolean })[]
+        return JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8')).suites as (JsonSuite & { file: string, files?: string[], isRoot?: boolean, tests: Record<string, unknown>[] })[]
     }
 
     it('shows the spec file of the root tests of a worker with several spec files', async () => {
         const [root] = await rootTests('root-tests-grouped', [secondSpec])
         expect(root.isRoot).toBe(true)
         expect(root.file).toBe(secondSpec)
+        // the page does not read the spec file of a test
+        expect(root.tests.filter((test) => 'file' in test)).toEqual([])
         expect(htmlOf('root-tests-grouped')).toContain(specRow(secondSpec))
     })
 
