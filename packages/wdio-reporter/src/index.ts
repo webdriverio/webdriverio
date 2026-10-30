@@ -143,9 +143,10 @@ export default class WDIOReporter extends EventEmitter {
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
-            file: '',
-            isRoot: true
+            file: ''
         })
+        // only this suite has the mark: no event sets it
+        rootSuite.isRoot = true
         this.currentSuites.push(rootSuite)
 
         this.on('client:beforeCommand', (payload: BeforeCommandArgs) => this.#callForCommand(payload, () => this.onBeforeCommand(payload)))

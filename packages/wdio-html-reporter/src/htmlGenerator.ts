@@ -1,4 +1,4 @@
-import type { HtmlReporterOptions, ReportData, ReportSuite } from './types.js'
+import type { HtmlReporterOptions, ReportData, RootReportSuite } from './types.js'
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
@@ -148,7 +148,7 @@ class HtmlGenerator {
                 return false
             })
 
-            environment.addGlobal('formatSpecFile', (suiteInfo: ReportSuite) => {
+            environment.addGlobal('formatSpecFile', (suiteInfo: RootReportSuite) => {
                 // Display file path of spec
                 // the root suite can name several spec files; a file in the working folder shows its path from there
                 // (path.relative also matches another drive letter case and `/` on Windows)

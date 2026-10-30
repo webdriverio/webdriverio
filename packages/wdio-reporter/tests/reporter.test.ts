@@ -24,6 +24,9 @@ describe('WDIOReporter', () => {
         expect(reporter.currentSuites[0].isRoot).toBe(true)
         reporter.emit('suite:start', { type: 'suite:start', uid: 'suite-1', title: '(root)', fullTitle: '(root)', file: '/a.spec.js', cid: '0-0' })
         expect('isRoot' in reporter.currentSuites[1]).toBe(false)
+        // only the base reporter marks its own root suite
+        reporter.emit('suite:start', { type: 'suite:start', uid: 'suite-2', title: 'b', fullTitle: 'b', file: '/a.spec.js', cid: '0-0', isRoot: true })
+        expect('isRoot' in reporter.currentSuites[2]).toBe(false)
     })
 
     it('constructor', () => {

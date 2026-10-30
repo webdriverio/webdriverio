@@ -293,3 +293,16 @@ test('emit: a test gets the spec file of an ESM suite as a path', () => {
     expect(vi.mocked(runnerReporter.emit).mock.calls[1][1].file).toBe(file)
     expect(jasmineReporter.suiteFile).toBe(file)
 })
+
+// a describe() of a shared helper module: Jasmine names the helper, the outermost suite is in the spec file
+test('emit: a test gets the spec file of its outermost suite', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '/project/a.spec.js' } as any)
+    jasmineReporter.suiteStarted({ id: '25', description: 'shared', fullName: 'shared', filename: '/project/helpers/shared.js' } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: '/wdio/utils/build/index.js' } as any)
+    expect(vi.mocked(runnerReporter.emit).mock.calls[2][1].file).toBe('/project/a.spec.js')
+})
+
+test('emit: a suite with an empty file name gives its tests no file', () => {
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: '' } as any)
+    expect(jasmineReporter.suiteFile).toBeUndefined()
+})

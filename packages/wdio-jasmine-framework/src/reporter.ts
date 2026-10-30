@@ -47,7 +47,7 @@ export default class JasmineReporter {
             description: suite.description,
             id: suite.id,
             tests: 0,
-            file: suite.filename && specPath(suite.filename)
+            file: suite.filename ? specPath(suite.filename) : undefined
         })
     }
 
@@ -218,7 +218,7 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            file: payload.type === 'suite' ? payload.filename : this.suiteFile,
+            file: payload.type === 'suite' ? payload.filename && specPath(payload.filename) : this.suiteFile,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }
@@ -227,11 +227,12 @@ export default class JasmineReporter {
     }
 
     /**
-     * the spec file of the current suite, for its tests and hooks: Jasmine names the file
-     * that calls `it()`, which is the WebdriverIO wrapper
+     * the spec file of the current tests and hooks: Jasmine names the file that calls `it()`,
+     * which is the WebdriverIO wrapper; the outermost suite is in the spec file (an inner
+     * `describe()` can come from a shared helper module)
      */
     get suiteFile () {
-        return this._parent.at(-1)?.file
+        return this._parent[0]?.file
     }
 
     getFailedCount () {

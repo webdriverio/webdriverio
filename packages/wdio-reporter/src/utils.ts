@@ -1,3 +1,5 @@
+import url from 'node:url'
+
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
@@ -30,6 +32,14 @@ export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): 
  * `initializePlugin` loads them (`'Cucumber'`, `'@wdio/cucumber-framework'`); `undefined` for another
  * framework, and for a path or a `file://` URL (the name of the framework is not known there)
  */
+/**
+ * the path of a spec file: a framework or the runner can send a file:// URL
+ * (Jasmine with ESM specs, Mocha parallel mode, the specs of the runner)
+ */
+export function specFilePath(file: string): string {
+    return file.startsWith('file://') ? url.fileURLToPath(file) : file
+}
+
 export function knownFramework(name?: string): 'cucumber' | 'mocha' | 'jasmine' | 'vitest' | undefined {
     const short = name?.toLowerCase().replace(/^@wdio\//, '').replace(/-framework$/, '')
     return short === 'cucumber' || short === 'mocha' || short === 'jasmine' || short === 'vitest' ? short : undefined

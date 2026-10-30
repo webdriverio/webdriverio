@@ -2,6 +2,7 @@ import type HookStats from './hook.js'
 import RunnableStats from './runnable.js'
 import type TestStats from './test.js'
 import type { Tag } from '../types.js'
+import { specFilePath } from '../utils.js'
 
 export interface Suite {
     type?: string
@@ -22,8 +23,6 @@ export interface Suite {
     description?: string
     rule?: string
     retries?: number
-    /** @experimental only the root suite of the reporter */
-    isRoot?: true
 }
 
 /**
@@ -59,7 +58,7 @@ export default class SuiteStats extends RunnableStats {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
-        this.file = suite.file
+        this.file = typeof suite.file === 'string' ? specFilePath(suite.file) : suite.file
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
@@ -70,9 +69,6 @@ export default class SuiteStats extends RunnableStats {
         this.description = suite.description
         this.rule = suite.rule
         this.keepParallelFields(suite)
-        if (suite.isRoot) {
-            this.isRoot = true
-        }
     }
 
     /**

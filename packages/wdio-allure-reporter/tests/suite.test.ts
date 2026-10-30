@@ -546,6 +546,24 @@ describe('Pending tests', () => {
         ]))
     })
 
+    it('takes the titlePath file of a pending test with no start from the test', async () => {
+        outputDir = temporaryDirectory()
+
+        const reporter = new AllureReporter({ outputDir })
+        const file = path.join('foo', 'other.test.js')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onTestSkip({ ...testPending(), uid: 'root-skip', title: 'a skipped root test', fullTitle: 'a skipped root test', file } as any)
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.find((result) => result.name === 'a skipped root test')?.titlePath).toEqual(['foo', 'other.test.js'])
+    })
+
     it('should detect not started pending test case', async () => {
         outputDir = temporaryDirectory()
 

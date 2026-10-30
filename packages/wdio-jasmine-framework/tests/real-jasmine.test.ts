@@ -98,3 +98,17 @@ test('the global expect has the asymmetric matchers of expect-webdriverio, expec
     expect((globalThis as any).expect.oneOf).toBe(wdioExpect.oneOf)
     expect((globalThis as any).expect.multiRemote).toBe(wdioExpect.multiRemote)
 })
+
+// Jasmine 6 marks the file name of the suite started event as deprecated: the tests take their spec file from it
+test.each(['specFile.js', 'specFile.mjs'])('the events of a real Jasmine run name the spec file %s as a path', async (name) => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const spec = path.join(__dirname, '__fixtures__', name)
+    const adapter = new JasmineAdapter('0-0', { beforeHook: [], afterHook: [] } as any, [spec], { browserName: 'chrome' } as any, reporter as any)
+    await adapter.init()
+    await adapter.run()
+    const files = reporter.emit.mock.calls
+        .filter(([event]) => event === 'suite:start' || event === 'test:start')
+        .map(([event, payload]) => [event, payload.file])
+    expect(files).toEqual([['suite:start', spec], ['test:start', spec]])
+})

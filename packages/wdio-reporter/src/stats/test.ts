@@ -1,4 +1,3 @@
-import url from 'node:url'
 import { types as nodeUtilTypes } from 'node:util'
 import type { AssertionError } from 'node:assert'
 
@@ -6,7 +5,7 @@ import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
 import RunnableStats from './runnable.js'
-import { pad, color, colorLines } from '../utils.js'
+import { pad, color, colorLines, specFilePath } from '../utils.js'
 import type { Argument } from '../types.js'
 
 const maxStringLength = 2048
@@ -99,9 +98,8 @@ export default class TestStats extends RunnableStats {
         // Mocha only
         this.body = test.body
         this.keepParallelFields(test)
-        if (test.file !== undefined) {
-            // a framework can send a file:// URL (Jasmine with ESM specs, Mocha parallel mode)
-            this.file = test.file.startsWith('file://') ? url.fileURLToPath(test.file) : test.file
+        if (typeof test.file === 'string' && test.file) {
+            this.file = specFilePath(test.file)
         }
 
         /**

@@ -1159,6 +1159,7 @@ export default class AllureReporter extends WDIOReporter {
         this._startTest({ name: test.title, start })
         if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
         const cid = this._currentCid()
+        if (test.file) { this._titlePathFileByCid.set(cid, test.file) }
         const lane = this._lane()
         if (lane) { lane.suitePath = this._suitePathOf(test) }
         const fullName = toFullName(this._pkg(cid)!, test.fullTitle || test.title)

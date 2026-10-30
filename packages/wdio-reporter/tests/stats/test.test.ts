@@ -59,6 +59,16 @@ describe('TestStats', () => {
         expect(withFile.file).toBe('/specs/b.spec.js')
     })
 
+    it('keeps no spec file that is not a text', () => {
+        for (const file of [null, 1, '']) {
+            const withValue = new TestStats({
+                type: 'test:start', title: 'a', parent: '', fullTitle: 'a', pending: false,
+                cid: '0-0', specs: [], uid: 'test-0-0-4', file: file as never
+            })
+            expect('file' in withValue).toBe(false)
+        }
+    })
+
     // Jasmine gives the file of an ESM spec as a URL, Mocha parallel mode the URL of the runner
     it('keeps the spec file of the test as a path', () => {
         const file = path.resolve('specs', 'b.spec.js')
