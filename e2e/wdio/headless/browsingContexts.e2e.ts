@@ -98,7 +98,8 @@ describe('browsing contexts', () => {
         '/api/closed': () => 'real',
         '/api/session': () => 'real',
         '/api/own': () => 'real',
-        '/api/user': () => 'real'
+        '/api/user': () => 'real',
+        '/api/target': () => 'target'
     }
 
     const server = createServer((request, response) => {
@@ -589,6 +590,22 @@ describe('browsing contexts', () => {
                 expect(events).toContain('older overwrite')
                 expect(events).toContain('older continue')
                 expect(events).toContain('newer overwrite')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets the redirect target through when a mock answers early with a redirect and another mock waits for the response', async () => {
+            const a = await open('/tab-a')
+            try {
+                const redirect = await browser.mock('**/api/moved')
+                redirect.respondOnce('', { statusCode: 302, headers: { Location: `${origin}/api/target` }, fetchResponse: false })
+                // Chrome reports the redirect response as blocked while the request already is at the target: an answer there would replace the target
+                const waiting = await browser.mock('**/api/*', { statusCode: 302 })
+                waiting.respond('wrong', { headers: { 'Content-Type': 'text/plain' } })
+
+                await a.navigate(`${origin}/fetch?endpoint=moved`)
+                await expect(a.$('#result')).toHaveText('target')
             } finally {
                 await browser.mockRestoreAll()
             }
