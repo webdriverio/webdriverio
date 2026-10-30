@@ -153,6 +153,27 @@ describe('user command events', () => {
         expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand', 'userResult'])
     })
 
+    it('keeps the protocol result of an overwritten protocol command, and hides the old result', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const user = { id: 4, command: 'getUrl', body: [], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
+        const old = { command: 'getUrl', body: [], parent: 4, sessionId: 's', contextId: 'ctx-a' }
+        const protocol = { command: 'getUrl', method: 'GET', endpoint: '/session/:sessionId/url', body: {}, parent: 4, sessionId: 's', contextId: 'ctx-a' }
+
+        // the events in the order of `overwriteCommand('getUrl', (orig) => orig())`
+        reporter.emit('client:beforeUserCommand', user)
+        reporter.emit('client:beforeCommand', { ...old })
+        reporter.emit('client:beforeCommand', { ...protocol })
+        reporter.emit('client:afterCommand', { ...protocol, result: { value: 'https://webdriver.io' } })
+        reporter.emit('client:afterCommand', { ...old, result: { value: 'https://webdriver.io' } })
+        reporter.emit('client:afterUserCommand', { ...user, result: { value: 'https://webdriver.io' } })
+
+        expect(reporter.commands).toEqual(['before getUrl', 'after getUrl'])
+        expect(reporter.tests.A.output.map((entry: any) => [entry.type, entry.method])).toEqual([
+            ['userCommand', undefined], ['command', 'GET'], ['result', 'GET'], ['userResult', undefined]
+        ])
+    })
+
     it('shows a custom command once: as a user command, not with its old events', () => {
         const optIn = new UserCommandReporter({ logFile: tmp.fileSync().name })
         const optOut = new CommandReporter({ logFile: tmp.fileSync().name })
