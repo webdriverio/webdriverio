@@ -41,6 +41,7 @@ const USER_COMMAND_EVENTS = ['userCommand', 'userResult']
 interface EventBrowser {
     sessionId?: string
     isBidi?: boolean
+    isMobile?: boolean
     isMultiRemote?: boolean
     options?: Pick<Options.Testrunner, 'userCommandEvents'>
     capabilities?: unknown
@@ -120,7 +121,8 @@ export function runOutsideUserCommands<T> (fn: () => T): T {
 
 // 'hide': an id but no events (an excluded command, no listener), so opt-in reporters hide its protocol commands
 function eventMode (browser: EventBrowser | undefined, command: string): 'send' | 'hide' | undefined {
-    if (!browser?.isBidi || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
+    // Appium sessions are out of scope, also with WebDriver BiDi
+    if (!browser?.isBidi || browser.isMobile || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return undefined
     }
     const option = browser.options?.userCommandEvents
