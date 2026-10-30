@@ -167,7 +167,7 @@ export async function mock(
     }
     const normalizedFilterOptions = filterOptions || {}
     for (const existingMock of Array.from(SESSION_MOCKS[sessionKey])) {
-        if (!existingMock.isSameDefinition(url, normalizedFilterOptions) || !existingMock.isScopedTo(contexts)) {
+        if (!existingMock.isSameDefinition(url, normalizedFilterOptions)) {
             continue
         }
 

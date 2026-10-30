@@ -1083,6 +1083,32 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
+    it('releases a simulated blocked response that the mock does not match', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 404 }, browser)
+        mock.respond('mocked')
+
+        mock.simulateResponseStarted(getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+    })
+
+    it('sends no response overwrite for a simulated response of a restored mock', async () => {
+        const browser = getResponseCollectionBrowserMock({}, {
+            networkRemoveIntercept: vi.fn().mockResolvedValue(undefined),
+            getWindowHandle: vi.fn().mockResolvedValue('window-1')
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        mock.respond('mocked')
+        await mock.restore()
+
+        mock.simulateResponseStarted(getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+    })
+
     it('handles non-binary response correctly', async () => {
         const browser = getResponseCollectionBrowserMock()
 
@@ -2226,19 +2252,6 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
         })
-    })
-
-    it('tells whether a mock has the given scope', async () => {
-        const browser = getResponseCollectionBrowserMock()
-        const sessionWide = await WebDriverInterception.initiate('/api/*', {}, browser)
-        const tab = await WebDriverInterception.initiate('/api/*', {}, browser, { contexts: ['ctx-1'], sessionKey: 'ctx-1' })
-
-        expect(sessionWide.isScopedTo()).toBe(true)
-        expect(sessionWide.isScopedTo(['ctx-1'])).toBe(false)
-        expect(tab.isScopedTo(['ctx-1'])).toBe(true)
-        expect(tab.isScopedTo(['ctx-2'])).toBe(false)
-        expect(tab.isScopedTo(['ctx-1', 'ctx-2'])).toBe(false)
-        expect(tab.isScopedTo()).toBe(false)
     })
 
     /**

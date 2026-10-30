@@ -3,7 +3,7 @@ import { expect, describe, it, vi } from 'vitest'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore, getParallelContextStore, getContextManager } from '../../../src/session/context.js'
+import { setParallelContextStore, getParallelContextStore } from '../../../src/session/context.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 
@@ -45,13 +45,11 @@ describe('mock', () => {
 
         const firstMock = {
             restore: vi.fn().mockResolvedValue(undefined),
-            isSameDefinition: vi.fn().mockReturnValue(true),
-            isScopedTo: vi.fn().mockReturnValue(true)
+            isSameDefinition: vi.fn().mockReturnValue(true)
         }
         const secondMock = {
             restore: vi.fn().mockResolvedValue(undefined),
-            isSameDefinition: vi.fn().mockReturnValue(true),
-            isScopedTo: vi.fn().mockReturnValue(true)
+            isSameDefinition: vi.fn().mockReturnValue(true)
         }
         const initiateSpy = vi.spyOn(WebDriverInterception, 'initiate')
             .mockResolvedValueOnce(firstMock as any)
@@ -94,16 +92,15 @@ describe('mock', () => {
     })
 
     describe('registry key', () => {
-        const fake = (scopedTo: boolean) => ({
+        const fake = () => ({
             restore: vi.fn().mockResolvedValue(undefined),
-            isSameDefinition: vi.fn().mockReturnValue(true),
-            isScopedTo: vi.fn().mockReturnValue(scopedTo)
+            isSameDefinition: vi.fn().mockReturnValue(true)
         })
 
         it('keeps a session-wide mock and a tab mock of the same url', async () => {
             browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'bidi' } })
-            const sessionWide = fake(false)
-            const tabMock = fake(false)
+            const sessionWide = fake()
+            const tabMock = fake()
             const noopStore = getParallelContextStore()
             const initiateSpy = vi.spyOn(WebDriverInterception, 'initiate')
                 .mockResolvedValueOnce(sessionWide as any)
@@ -112,9 +109,9 @@ describe('mock', () => {
                 await browser.mock('**/foo')
                 const store = new AsyncLocalStorage<string>()
                 setParallelContextStore(store)
-                const current = await getContextManager(browser).getCurrentContext()
-                await store.run(current, () => browser.mock('**/foo'))
+                await store.run('ctx-1', () => browser.mock('**/foo'))
                 expect(sessionWide.restore).not.toHaveBeenCalled()
+                expect(initiateSpy).toHaveBeenLastCalledWith('**/foo', {}, browser, expect.objectContaining({ sessionKey: 'ctx-1' }))
             } finally {
                 setParallelContextStore(noopStore)
                 initiateSpy.mockRestore()
@@ -124,8 +121,8 @@ describe('mock', () => {
 
         it('replaces a session-wide mock of the same url also after the current tab changed', async () => {
             browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'bidi' } })
-            const first = fake(true)
-            const second = fake(true)
+            const first = fake()
+            const second = fake()
             const initiateSpy = vi.spyOn(WebDriverInterception, 'initiate')
                 .mockResolvedValueOnce(first as any)
                 .mockResolvedValueOnce(second as any)

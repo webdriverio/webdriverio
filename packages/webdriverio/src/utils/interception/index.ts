@@ -345,13 +345,8 @@ export default class WebDriverInterception {
         }
 
         this.#emit('request', request)
-        if (this.#requestOverwrites[0]?.abort) {
-            return this.#decision('beforeRequestSent', request, 'answer')
-        }
-        if (this.#answersEarly()) {
-            return this.#decision('beforeRequestSent', request, 'answer')
-        }
-        if (this.#requestOverwrites.length > 0) {
+        // the order of `#answerRequest`: an abort skips the Firefox early-answer warning
+        if (this.#requestOverwrites[0]?.abort || this.#answersEarly() || this.#requestOverwrites.length > 0) {
             return this.#decision('beforeRequestSent', request, 'answer')
         }
         if (!this.#respondOverwrites[0]?.overwrite) {
@@ -698,7 +693,13 @@ export default class WebDriverInterception {
         if (!request.isBlocked) {
             return
         }
-        void (this.#decide('responseStarted', event) as Decision | undefined)?.run(() => {})
+        // as the arbiter does: a restored or not matching mock lets the response through
+        const decision = this.#restored ? undefined : this.#decide('responseStarted', event) as Decision | undefined
+        if (!decision) {
+            void this.#track(request.request.request, this.#browser.networkProvideResponse({ request: request.request.request }))
+            return
+        }
+        void decision.run(() => {})
     }
 
     public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
@@ -1058,15 +1059,6 @@ export default class WebDriverInterception {
         return this.#browser.sessionId === browser.sessionId &&
             (context === undefined || Boolean(this.#contexts?.includes(context))) &&
             (test === undefined || this.#test === test)
-    }
-
-    /**
-     * Whether this mock has the given scope: the same tabs, or none for a session-wide mock.
-     */
-    isScopedTo(contexts?: string[]) {
-        const own = this.#contexts ?? []
-        const other = contexts ?? []
-        return own.length === other.length && own.every((context, index) => context === other[index])
     }
 
     isSameDefinition(url: string | URLPattern | globalThis.URLPattern, filterOptions: MockFilterOptions = {}) {
