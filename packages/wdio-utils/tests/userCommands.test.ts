@@ -140,6 +140,12 @@ describe('runUserCommand', () => {
             await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
             expect(browser.emit).not.toHaveBeenCalled()
         })
+
+        it('sends nothing in an Appium session with WebDriver BiDi, userCommandEvents true and the capability', async () => {
+            const browser = fakeBrowser({ isMobile: true, options: { userCommandEvents: true } })
+            await mod.runUserCommand(browser, 'getText', [], async () => 'hello')
+            expect(browser.emit).not.toHaveBeenCalled()
+        })
     })
 
     it('sends nothing for an excluded name', async () => {
