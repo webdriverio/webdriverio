@@ -73,7 +73,6 @@ export default class WDIOReporter extends EventEmitter {
     // the name of each open user command, the hidden protocol commands that wait for their result, the hidden events
     #userCommandNames = new Map<number, string>()
     #hiddenChildren = new Map<string, number>()
-    #hiddenEvents = new WeakSet<object>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -166,15 +165,20 @@ export default class WDIOReporter extends EventEmitter {
         rootSuite.isRoot = true
         this.currentSuites.push(rootSuite)
 
+        // one listener for each event: the hiding rule counts each event one time
         this.on('client:beforeCommand', (payload: BeforeCommandArgs) => {
-            if (!this.#hidesCommand(payload)) {
-                this.#callForCommand(payload, () => this.onBeforeCommand(payload))
+            if (this.#hidesCommand(payload)) {
+                return
             }
+            this.#callForCommand(payload, () => this.onBeforeCommand(payload))
+            this.#addCommandEntry(getCommandTarget(payload), payload, 'command')
         })
         this.on('client:afterCommand', (payload: AfterCommandArgs) => {
-            if (!this.#hidesCommand(payload)) {
-                this.#callForCommand(payload, () => this.onAfterCommand(payload))
+            if (this.#hidesCommand(payload)) {
+                return
             }
+            this.#callForCommand(payload, () => this.onAfterCommand(payload))
+            this.#addCommandEntry(getCommandTarget(payload), payload, 'result')
         })
         this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => {
             if (!this.showsUserCommands) {
@@ -558,36 +562,20 @@ export default class WDIOReporter extends EventEmitter {
                 fs.unlinkSync(logFile)
             }
         })
+    }
 
-        /**
-         * browser client event handlers
-         */
-        this.on('client:beforeCommand', (payload) => {
-            const target = getCommandTarget(payload)
-            if (!target || this.#hidesCommand(payload)) {
-                return
+    #addCommandEntry(target: TestStats | HookStats | undefined, payload: BeforeCommandArgs | AfterCommandArgs, type: 'command' | 'result') {
+        if (!target) {
+            return
+        }
+        const entry = payload as BeforeCommandArgs & { body?: { script?: string } }
+        if (entry.body?.script) {
+            entry.body = {
+                ...entry.body,
+                script: transformCommandScript(entry.body.script)
             }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
-                }
-            }
-            (target.output ??= []).push(Object.assign(payload, { type: 'command' }))
-        })
-        this.on('client:afterCommand', (payload) => {
-            const target = getCommandTarget(payload)
-            if (!target || this.#hidesCommand(payload)) {
-                return
-            }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
-                }
-            }
-            (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
-        })
+        }
+        (target.output ??= []).push(Object.assign(payload, { type }) as never)
     }
 
     // a copy: the runner sends the same payload to every reporter
@@ -629,33 +617,27 @@ export default class WDIOReporter extends EventEmitter {
         if (payload.parent === undefined || !this.showsUserCommands) {
             return false
         }
-        if (this.hidesProtocolCommands || this.#hiddenEvents.has(payload)) {
+        // the user command replaces the old events of its custom command
+        if (this.hidesProtocolCommands || payload.custom) {
             return true
         }
-        // the old events of a custom command have no method, so a protocol result never takes their place
         const key = `${payload.parent}:${payload.command}:${payload.method ?? ''}`
-        let hidden: boolean
         if ('result' in payload) {
             // the result of a hidden command, also when it comes after the result of the user command
             const open = this.#hiddenChildren.get(key) ?? 0
-            hidden = open > 0
             if (open > 1) {
                 this.#hiddenChildren.set(key, open - 1)
             } else {
                 this.#hiddenChildren.delete(key)
             }
-        } else {
-            const name = this.#userCommandNames.get(payload.parent)
-            // a user command with no entry (excluded, or sent to no listener), or the old event of a custom command
-            hidden = name === undefined || (!payload.method && name === payload.command)
-            if (hidden) {
-                this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
-            }
+            return open > 0
         }
-        if (hidden) {
-            this.#hiddenEvents.add(payload)
+        // a user command with no entry: excluded, or sent to no listener
+        if (this.#userCommandNames.has(payload.parent)) {
+            return false
         }
-        return hidden
+        this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
+        return true
     }
 
     /**

@@ -719,6 +719,22 @@ describe('custom commands', () => {
         ])
     })
 
+    it('marks the old events of the custom command that is the user command, not those of a nested call of the same name', async () => {
+        const { browser, events } = client()
+        browser.addCommand('countDown', async function (this: Record<string, Function>, n: number) {
+            return n > 0 ? this.countDown(n - 1) : 'done'
+        })
+        expect(await browser.countDown(1)).toBe('done')
+        expect(events.map(([event, payload]) => [event, payload.command, payload.parent, payload.custom])).toEqual([
+            ['userCommand', 'countDown', undefined, undefined],
+            ['command', 'countDown', 1, true],
+            ['command', 'countDown', 1, undefined],
+            ['result', 'countDown', 1, undefined],
+            ['result', 'countDown', 1, true],
+            ['userResult', 'countDown', undefined, undefined]
+        ])
+    })
+
     it('keeps the chainable result of a custom element query', async () => {
         const { browser, events } = client()
         browser.addCommand('byTestId$', async (selector: string) => ({ elementId: `el-${selector}`, getText: async () => 'text' }))

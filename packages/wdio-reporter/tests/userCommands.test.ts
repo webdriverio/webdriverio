@@ -142,7 +142,7 @@ describe('user command events', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
         const myCmd = { id: 3, command: 'myCmd', body: [], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
-        const old = { command: 'myCmd', body: [], parent: 3, sessionId: 's', contextId: 'ctx-a' }
+        const old = { command: 'myCmd', body: [], parent: 3, custom: true, sessionId: 's', contextId: 'ctx-a' }
 
         reporter.emit('client:beforeUserCommand', myCmd)
         reporter.emit('client:beforeCommand', old)
@@ -157,7 +157,7 @@ describe('user command events', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
         const user = { id: 4, command: 'getUrl', body: [], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
-        const old = { command: 'getUrl', body: [], parent: 4, sessionId: 's', contextId: 'ctx-a' }
+        const old = { command: 'getUrl', body: [], parent: 4, custom: true, sessionId: 's', contextId: 'ctx-a' }
         const protocol = { command: 'getUrl', method: 'GET', endpoint: '/session/:sessionId/url', body: {}, parent: 4, sessionId: 's', contextId: 'ctx-a' }
 
         // the events in the order of `overwriteCommand('getUrl', (orig) => orig())`
@@ -174,6 +174,27 @@ describe('user command events', () => {
         ])
     })
 
+    it('hides the old events of a user command by their flag, and keeps a nested call of the same name', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const user = { id: 5, command: 'countDown', body: [1], protocol: 'bidi', sessionId: 's', contextId: 'ctx-a' }
+        const old = { command: 'countDown', body: [1], parent: 5, custom: true, sessionId: 's', contextId: 'ctx-a' }
+        const nested = { command: 'countDown', body: [0], parent: 5, sessionId: 's', contextId: 'ctx-a' }
+
+        // the events of a custom command that calls itself one time
+        reporter.emit('client:beforeUserCommand', user)
+        reporter.emit('client:beforeCommand', { ...old })
+        reporter.emit('client:beforeCommand', { ...nested })
+        reporter.emit('client:afterCommand', { ...nested, result: { value: 'done' } })
+        reporter.emit('client:afterCommand', { ...old, result: { value: 'done' } })
+        reporter.emit('client:afterUserCommand', { ...user, result: { value: 'done' } })
+
+        expect(reporter.commands).toEqual(['before countDown', 'after countDown'])
+        expect(reporter.tests.A.output.map((entry: any) => [entry.type, entry.body])).toEqual([
+            ['userCommand', [1]], ['command', [0]], ['result', [0]], ['userResult', [1]]
+        ])
+    })
+
     it('shows a custom command once: as a user command, not with its old events', () => {
         const optIn = new UserCommandReporter({ logFile: tmp.fileSync().name })
         const optOut = new CommandReporter({ logFile: tmp.fileSync().name })
@@ -181,8 +202,8 @@ describe('user command events', () => {
         // the events in the order that a custom command sends them in a WebDriver BiDi session
         const events: [string, Record<string, unknown>][] = [
             ['client:beforeUserCommand', myCmd],
-            ['client:beforeCommand', { command: 'myCmd', body: ['secret', { mask: true }], parent: 2, sessionId: 's', contextId: 'ctx-a' }],
-            ['client:afterCommand', { command: 'myCmd', result: { value: 'done' }, parent: 2, sessionId: 's', contextId: 'ctx-a' }],
+            ['client:beforeCommand', { command: 'myCmd', body: ['secret', { mask: true }], parent: 2, custom: true, sessionId: 's', contextId: 'ctx-a' }],
+            ['client:afterCommand', { command: 'myCmd', result: { value: 'done' }, parent: 2, custom: true, sessionId: 's', contextId: 'ctx-a' }],
             ['client:afterUserCommand', { ...myCmd, result: { value: 'done' } }]
         ]
         for (const reporter of [optIn, optOut]) {

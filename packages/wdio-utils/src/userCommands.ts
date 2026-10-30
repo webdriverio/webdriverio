@@ -171,14 +171,14 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
 /**
  * Run a custom command of `addCommand` / `overwriteCommand`. Its outer call is
  * a user command, and `run` is in its frame, so the old events of the custom
- * command get its id as `parent`.
+ * command get its id as `parent`. `run` gets `true` when this call is the user command.
  * @experimental
  */
-export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: () => T): T {
+export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T): T {
     if (!userCommandStore || userCommandStore.getStore() || TRANSPARENT_COMMANDS.includes(command)) {
-        return run()
+        return run(false)
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run)
+    return runOuterCommand(userCommandStore, scope, command, args, () => run(true))
 }
 
 function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T): T {

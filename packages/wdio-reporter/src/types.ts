@@ -22,6 +22,11 @@ export interface CommandArgs {
      * @experimental
      */
     parent?: number
+    /**
+     * `true` for the old event of a custom command that is itself the user command `parent`: the user command replaces it
+     * @experimental
+     */
+    custom?: boolean
 }
 
 export interface BeforeCommandArgs extends CommandArgs {
