@@ -33,6 +33,16 @@ describe('userCommandTitle', () => {
 })
 
 describe('inlineResult', () => {
+    it('never throws on a raw value: a cycle, a BigInt, a big object', () => {
+        const circular: Record<string, unknown> = { name: 'page' }
+        circular.self = circular
+        expect(inlineResult({ value: circular })).toBe('{"name":"page","self":"[Circular]"}')
+        expect(inlineResult({ value: { id: 1n } })).toBe('[object Object]')
+        const big = Object.fromEntries(Array.from({ length: 1000 }, (_, i) => [`k${i}`, i]))
+        expect(inlineResult({ value: big })).toBe('{"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"k5":5,"k6":6,"k7":7,"k8…')
+        expect(userCommandTitle('login', [circular])).toBe('login({"name":"page","self":"[Circular]"})')
+    })
+
     it('gives a short value as JSON', () => {
         expect(inlineResult({ value: 'Hello' })).toBe('"Hello"')
         expect(inlineResult({ value: false })).toBe('false')

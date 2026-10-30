@@ -278,9 +278,34 @@ const NO_DATA_COMMANDS = ['newWindow', 'emulate', 'addInitScript', 'debug', 'get
 // commands whose result is a window handle: not shown in a title, the id means nothing to a reader
 const HANDLE_COMMANDS = ['getWindowHandle', 'getWindowHandles', 'createWindow', 'closeWindow', 'switchWindow']
 const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+// most values that a title writes: a raw result can be big or circular
+const TITLE_JSON_VALUES = 200
 
 function cut(text: string, length: number) {
     return text.length > length ? `${text.slice(0, length)}…` : text
+}
+
+// JSON for a title that never throws: a repeated object as "[Circular]", at most 200 values
+function titleJson(value: unknown): string {
+    const seen = new WeakSet<object>()
+    let values = 0
+    try {
+        const json = JSON.stringify(value, (_key, v: unknown) => {
+            if (++values > TITLE_JSON_VALUES) {
+                return '…'
+            }
+            if (v && typeof v === 'object') {
+                if (seen.has(v)) {
+                    return '[Circular]'
+                }
+                seen.add(v)
+            }
+            return v
+        })
+        return json ?? String(value)
+    } catch {
+        return String(value)
+    }
 }
 
 function resultValue(result: unknown): unknown {
@@ -305,7 +330,7 @@ function formatArgument(arg: unknown) {
     if (elem) {
         return elem[2] !== undefined ? `$${elem[1] ? '$' : ''}(${JSON.stringify(elem[2])})` : 'Element'
     }
-    return JSON.stringify(arg)
+    return titleJson(arg)
 }
 
 /**
@@ -382,7 +407,7 @@ export function inlineResult(result: unknown, command?: string): string | undefi
             return value
         }
     }
-    return cut(JSON.stringify(value), INLINE_RESULT_LENGTH)
+    return cut(titleJson(value), INLINE_RESULT_LENGTH)
 }
 
 /**

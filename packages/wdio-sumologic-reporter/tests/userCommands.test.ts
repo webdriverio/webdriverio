@@ -62,4 +62,17 @@ describe('Sumo Logic user commands', () => {
         ])
         expect(data.output.map((entry) => [entry.type, entry.text])).toEqual([['command', undefined]])
     })
+
+    it('sends the test when a custom command inside a user command returns a circular object', () => {
+        const circular: Record<string, unknown> = { name: 'page' }
+        circular.self = circular
+        const data = payloadOf([
+            ['client:beforeUserCommand', { id: 1, command: 'login', body: ['john'], protocol: 'bidi' }],
+            // the old events of an inner custom command keep their raw result
+            ['client:beforeCommand', { command: 'openPage', body: [], parent: 1 }],
+            ['client:afterCommand', { command: 'openPage', body: [], result: { value: circular }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'login', body: ['john'], protocol: 'bidi', result: { value: true } }]
+        ])
+        expect(data.output.map((entry) => entry.text)).toEqual(['login("john") → true', 'openPage → {"name":"page","self":"[Circular]"}', undefined, undefined])
+    })
 })
