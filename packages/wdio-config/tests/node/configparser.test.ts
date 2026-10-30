@@ -694,6 +694,13 @@ describe('ConfigParser', () => {
             expect(configParser.getSpecs()).not.toContain(__filename)
         })
 
+        it('should resolve a relative exclude path with a line number from the current working directory', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ exclude: [`${path.relative(process.cwd(), __filename).replace(/\\/g, '/')}:12`] })
+
+            expect(configParser.getSpecs()).not.toContain(__filename)
+        })
+
         it('should get the specs of an instance independent of the CLI selection', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ shard: { current: 2, total: 2 } } as any)

@@ -596,13 +596,15 @@ function resolveFromCwd(entry: string, pathService: PathService) {
     }
     /**
      * keep a path that matches nothing from the working directory as it is: it stays
-     * relative to the config file, as before
+     * relative to the config file, as before. A Cucumber line number (`:12`) is no part
+     * of the file name, so it is left out of the check and kept on the resolved path.
      */
-    const fromCwd = path.resolve(process.cwd(), entry)
-    const matches = entry.includes('*')
+    const file = removeLineNumbers(entry)
+    const fromCwd = path.resolve(process.cwd(), file)
+    const matches = file.includes('*')
         ? pathService.glob(fromCwd.replace(/\\/g, '/'), process.cwd()).length > 0
         : pathService.isFile(fromCwd)
-    return matches ? fromCwd : entry
+    return matches ? fromCwd + entry.slice(file.length) : entry
 }
 
 /**
