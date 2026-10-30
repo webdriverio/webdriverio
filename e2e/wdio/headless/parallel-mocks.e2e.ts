@@ -5,7 +5,8 @@ import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
  * The two tests run at the same time (`maxParallelContexts: 2`): the second one
  * waits for the mocks of the first, and the first checks its mocks after the
  * second called `mockClearAll()` and `mockRestoreAll()`. `wdio.parallel.conf.ts`
- * mocks `/api/suite-wide` in `beforeSuite`, outside the test windows.
+ * mocks `/api/suite-wide` in `beforeSuite`, outside the test windows; the third
+ * test overrides it in its window.
  */
 const fetchText = (endpoint: string, scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext = browser) => scope.execute(
     (url) => fetch(url, { cache: 'no-store' }).then((response) => response.text()),
@@ -75,5 +76,13 @@ describe('mocks in parallel mode', () => {
             restored.resolve()
             await tab?.closeWindow().catch(() => {})
         }
+    })
+
+    it('overrides the beforeSuite mock in its own window', async () => {
+        const mine = await browser.mock('**/api/suite-wide')
+        mine.respond('override', respondOptions)
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+        expect(await fetchText('suite-wide')).toBe('override')
+        expect(await fetchText('suite-wide')).toBe('override')
     })
 })
