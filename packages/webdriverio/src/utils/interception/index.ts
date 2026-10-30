@@ -311,6 +311,7 @@ export default class WebDriverInterception {
         // #decide() reuses it, so a function filter runs once per event
         this.#observedResponse = { event: response, matches }
         // also records requests the driver did not block, e.g. subresources of a navigation
+        // Firefox sends no responseStarted for a 3xx given before the request is sent, so no call: https://bugzilla.mozilla.org/show_bug.cgi?id=2087477
         if (matches) {
             this.#calls.push(response)
         }
