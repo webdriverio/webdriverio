@@ -34,6 +34,8 @@ const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 const FILE_PROTOCOL = 'file://'
+// Jasmine does not support file:// URLs
+const specPath = (spec: string) => spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -242,15 +244,7 @@ class JasmineAdapter {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-        this._specs.forEach((spec) => this._jrunner.addSpecFile(
-            /**
-             * as Jasmine doesn't support file:// formats yet we have to
-             * remove it before adding it to Jasmine
-             */
-            spec.startsWith(FILE_PROTOCOL)
-                ? url.fileURLToPath(spec)
-                : spec
-        ))
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(specPath(spec)))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
@@ -259,8 +253,10 @@ class JasmineAdapter {
             self._lastTest = test
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.start = new Date().getTime()
+            // the file of its suite; outside every suite, the spec file of a worker with one
+            const [spec, ...others] = self._specs
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.file = test.filename
+            self._lastTest.file = self._reporter.suiteFile ?? (spec && !others.length ? specPath(spec) : undefined)
             /**
              * Jasmine 6's spec-started event has no expectation lists. Own the
              * arrays so afterTest can see failures recorded during the spec.

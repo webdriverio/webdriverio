@@ -217,13 +217,20 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            // Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper: a test or hook takes the file of its suite
-            file: payload.type === 'suite' ? payload.filename : this._parent.at(-1)?.file,
+            file: payload.type === 'suite' ? payload.filename : this.suiteFile,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }
 
         this._reporter.emit(event, message)
+    }
+
+    /**
+     * the spec file of the current suite, for its tests and hooks: Jasmine names the file
+     * that calls `it()`, which is the WebdriverIO wrapper
+     */
+    get suiteFile () {
+        return this._parent.at(-1)?.file
     }
 
     getFailedCount () {
