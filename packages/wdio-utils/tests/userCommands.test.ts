@@ -292,6 +292,17 @@ describe('runUserCommand', () => {
     })
 })
 
+describe('runUserCommand with an event result', () => {
+    it('sends the event result and returns the result of the command as it is', async () => {
+        const browser = fakeBrowser()
+        mod.registerUserCommands(['expect.toHaveText'])
+        const result = { pass: false, message: () => 'no' }
+        const error = new Error('no')
+        expect(await mod.runUserCommand(browser, 'expect.toHaveText', ['a'], async () => result, () => ({ error }))).toBe(result)
+        expect(pairs(browser)[1]).toEqual(['userResult', expect.objectContaining({ command: 'expect.toHaveText', result: { error } })])
+    })
+})
+
 describe('async stack of a command that fails', () => {
     const failing = async () => {
         await new Promise((resolve) => setTimeout(resolve, 1))
@@ -1013,6 +1024,16 @@ describe('shortCopy', () => {
     it('gives a pending chainable element no id and no "not found"', () => {
         const chainable = Object.assign(kind.setWdioKind({ selector: '#btn' }, 'element'), { [kind.WDIO_CHAINABLE]: true })
         expect(mod.shortCopy(chainable)).toBe('WebdriverIO.Element')
+    })
+
+    it('gives a pending chainable element of $ its selector, with no command', async () => {
+        const browser = fakeBrowser()
+        const query = vi.fn(async (selector: string) => ({ elementId: 'abc', selector }))
+        const $ = shim.wrapCommand('$', query)
+        const chainable = $.call(browser, '#btn') as unknown as Promise<unknown>
+        expect(mod.shortCopy(chainable)).toBe('WebdriverIO.Element<#btn>')
+        await chainable
+        expect(query).toHaveBeenCalledTimes(1)
     })
 
     it('labels an element list with its selector and its number of elements', () => {
