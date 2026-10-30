@@ -91,7 +91,7 @@ describe('browsing contexts', () => {
         '/iframe-nested': () => page('Nested by url'),
         '/fetch': () => page('Fetch', `<p id="result"></p><script>
             const endpoint = new URLSearchParams(location.search).get('endpoint')
-            fetch('/api/' + endpoint).then((r) => r.text()).then((t) => { document.getElementById('result').textContent = t })
+            fetch('/api/' + endpoint).then((r) => r.text()).then((t) => { document.getElementById('result').textContent = t }, () => { document.getElementById('result').textContent = 'failed' })
         </script>`),
         '/api/scoped': () => 'real',
         '/api/restored': () => 'real',
@@ -606,6 +606,19 @@ describe('browsing contexts', () => {
 
                 await a.navigate(`${origin}/fetch?endpoint=moved`)
                 await expect(a.$('#result')).toHaveText('target')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('fails the request when the filter function of a matching mock throws', async () => {
+            const a = await open('/tab-a')
+            try {
+                const broken = await browser.mock('**/api/user', { method: () => { throw new Error('broken filter') } })
+                broken.respond('mocked', { headers: { 'Content-Type': 'text/plain' } })
+
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('failed')
             } finally {
                 await browser.mockRestoreAll()
             }
