@@ -625,7 +625,8 @@ export default class WDIOReporter extends EventEmitter {
         if (this.hidesProtocolCommands || this.#hiddenEvents.has(payload)) {
             return true
         }
-        const key = `${payload.parent}:${payload.command}`
+        // the old events of a custom command have no method, so a protocol result never takes their place
+        const key = `${payload.parent}:${payload.command}:${payload.method ?? ''}`
         let hidden: boolean
         if ('result' in payload) {
             // the result of a hidden command, also when it comes after the result of the user command
