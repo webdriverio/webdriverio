@@ -464,6 +464,23 @@ describe('RequestArbiter', () => {
             expect(unhandled).not.toHaveBeenCalled()
         })
 
+        it('handles a pending decision that rejects after a later mock threw', async () => {
+            let reject!: (err: Error) => void
+            const pending = new Promise<Decision | undefined>((_, rej) => { reject = rej })
+            const arbiter = arbiterOf(asBrowser(browser))
+            // vi.fn() would handle the returned promise to record its result
+            arbiter.add({ ...candidate(1, 'int-a'), decide: () => pending })
+            arbiter.add(candidate(2, 'int-b', () => { throw new Error('broken filter') }))
+
+            emit(browser, 'beforeRequestSent')
+            reject(new Error('broken post data filter'))
+            await flush()
+
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(unhandled).not.toHaveBeenCalled()
+        })
+
         it('fails the request, and sends no other call, when decide throws', async () => {
             const pass = decision('pass', { age: 2 })
             const arbiter = arbiterOf(asBrowser(browser))

@@ -152,7 +152,14 @@ export class RequestArbiter {
         const asked = live.filter((candidate) => intercepts.includes(candidate.interceptId))
         // a mock whose filter throws may have aborted the request: fail it rather than let it reach the server
         try {
-            const decisions = asked.map((candidate) => candidate.decide(phase, event))
+            // a throw becomes a rejection, so `Promise.all` also handles the pending decisions of the other mocks
+            const decisions = asked.map((candidate) => {
+                try {
+                    return candidate.decide(phase, event)
+                } catch (err) {
+                    return Promise.reject(err)
+                }
+            })
             if (decisions.some(isPromise)) {
                 void Promise.all(decisions)
                     .then((settled) => this.#pick(phase, event, asked.map((c, i) => [c, settled[i]])))
