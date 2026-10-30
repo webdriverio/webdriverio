@@ -139,7 +139,7 @@ export class RequestArbiter {
         }
 
         // Chrome and Firefox still block the response of a request answered before it was sent, and reject a body there.
-        if (phase === 'responseStarted' && answeredHop === event.redirectCount) {
+        if (phase === 'responseStarted' && answeredHop !== undefined && answeredHop === event.redirectCount) {
             return this.#release(phase, requestId)
         }
 

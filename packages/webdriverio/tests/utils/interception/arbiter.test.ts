@@ -527,6 +527,20 @@ describe('RequestArbiter', () => {
             expect(b.decide).toHaveBeenLastCalledWith('responseStarted', expect.objectContaining({ redirectCount: 1 }))
         })
 
+        it('asks the candidates for a response with no redirect count and no early answer', async () => {
+            const answer = decision('answer', { age: 1 })
+            const a = candidate(1, 'int-a', () => answer)
+            arbiterOf(asBrowser(browser)).add(a)
+
+            const event = networkEvent({ intercepts: ['int-a'] }) as NetworkEvent & { redirectCount?: number }
+            delete event.redirectCount
+            browser.emit('network.responseStarted', event)
+            await flush()
+
+            expect(answer.run).toHaveBeenCalledTimes(1)
+            expect(bidiCalls(browser)).toBe(0)
+        })
+
         it('records an early answer in beforeRequestSent only', async () => {
             const answer = decision('answer', { age: 1, answersEarly: true })
             const a = candidate(1, 'int-a', (phase) => phase === 'responseStarted' ? answer : undefined)
