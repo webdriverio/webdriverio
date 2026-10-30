@@ -110,6 +110,18 @@ describe('user command events', () => {
         expect(events).toEqual([])
     })
 
+    it('keeps userCommandEvents in a standalone session', async () => {
+        const on = await remote({ capabilities: { browserName: 'bidi' }, userCommandEvents: true })
+        expect(on.options.userCommandEvents).toBe(true)
+        const off = await remote({ capabilities: { browserName: 'bidi' }, userCommandEvents: { exclude: ['url'] } })
+        expect(off.options.userCommandEvents).toEqual({ exclude: ['url'] })
+        const events = recordEvents(on)
+        vi.spyOn(getContextManager(on), 'getCurrentContext').mockResolvedValue('top-context')
+        vi.spyOn(on, 'browsingContextNavigate').mockResolvedValue({ navigation: null, url: 'https://example.com/' } as never)
+        await on.url('https://example.com')
+        expect(commandsOf(events)).toEqual([['userCommand', 'url'], ['userResult', 'url']])
+    })
+
     it('sends nothing in a BiDi session without the option and without wdio:experimentalBiDiCommands', async () => {
         const browser = await bidiSession()
         delete browser.options.userCommandEvents

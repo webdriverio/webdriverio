@@ -358,6 +358,14 @@ Maximum size of the response body (in bytes) that can be returned when using the
 
 </Option>
 
+### userCommandEvents
+
+<Option type="Boolean|Object" default="undefined">
+
+Sends an event before and after each user command, in WebDriver BiDi sessions only. The testrunner gives them to the reporters, and a standalone script can listen to `userCommand` and `userResult` on the browser. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. When the option is not set, a session with the `wdio:experimentalBiDiCommands` capability (also parallel mode, which needs it) sends the user commands, and other sessions do not, so their reports stay as before. Set `true` to send them in every WebDriver BiDi session, `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to send all except the commands in the list. WebDriver Classic and Appium sessions never send them. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
+
+</Option>
+
 ### region
 
 <Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | asia-south-2 | staging">
@@ -564,14 +572,6 @@ Determines in which interval the reporter should check if they are synchronized 
 <Option type="Number" default="5000 (ms)">
 
 Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
-
-</Option>
-
-### userCommandEvents
-
-<Option type="Boolean|Object" default="undefined">
-
-Sends the user commands to the reporters, in WebDriver BiDi sessions only. A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. When the option is not set, a session with the `wdio:experimentalBiDiCommands` capability (also parallel mode, which needs it) sends the user commands, and other sessions do not, so their reports stay as before. Set `true` to send them in every WebDriver BiDi session, `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to send all except the commands in the list. WebDriver Classic and Appium sessions never send them. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
 
 </Option>
 

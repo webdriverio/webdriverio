@@ -67,7 +67,8 @@ export const remote = async function (
     params: Capabilities.WebdriverIOConfig,
     remoteModifier?: (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
-    const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
+    // `userCommandEvents` is a boolean or an object, so it is kept here and not in the typed defaults table
+    const keysToKeep = (environment.value.variables.WDIO_WORKER_ID ? Object.keys(params) : [...Object.keys(DEFAULTS), 'userCommandEvents']) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
     /**
