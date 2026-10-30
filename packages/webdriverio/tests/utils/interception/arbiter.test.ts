@@ -289,16 +289,19 @@ describe('RequestArbiter', () => {
         expect(bidiCalls(browser)).toBe(0)
     })
 
-    it('treats a rejected decision as no decision', async () => {
+    it('fails the request when a decision rejects', async () => {
         const pass = decision('pass', { age: 2 })
         const arbiter = arbiterOf(asBrowser(browser))
-        arbiter.add(candidate(1, 'int-a', () => Promise.reject(new Error('getData failed'))))
+        arbiter.add(candidate(1, 'int-a', () => Promise.reject(new Error('broken post data filter'))))
         arbiter.add(candidate(2, 'int-b', () => pass))
 
         emit(browser, 'beforeRequestSent')
         await flush()
 
-        expect(pass.run).toHaveBeenCalledTimes(1)
+        expect(pass.run).not.toHaveBeenCalled()
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken post data filter'))
     })
 
     it('passes a completed response to each live mock, and logs a mock that fails to record it', async () => {
@@ -445,8 +448,8 @@ describe('RequestArbiter', () => {
             expect(unhandled).not.toHaveBeenCalled()
         })
 
-        it('keeps releasing when observe or decide throws', async () => {
-            const broken = candidate(1, 'int-a', () => { throw new Error('broken decide') })
+        it('keeps releasing when observe throws', async () => {
+            const broken = candidate(1, 'int-a')
             broken.observe.mockImplementation(() => { throw new Error('broken observe') })
             const pass = decision('pass', { age: 2 })
             const arbiter = arbiterOf(asBrowser(browser))
@@ -457,8 +460,23 @@ describe('RequestArbiter', () => {
             await flush()
 
             expect(pass.run).toHaveBeenCalledTimes(1)
-            expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken decide'))
             expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken observe'))
+            expect(unhandled).not.toHaveBeenCalled()
+        })
+
+        it('fails the request, and sends no other call, when decide throws', async () => {
+            const pass = decision('pass', { age: 2 })
+            const arbiter = arbiterOf(asBrowser(browser))
+            arbiter.add(candidate(1, 'int-a', () => { throw new Error('broken filter') }))
+            arbiter.add(candidate(2, 'int-b', () => pass))
+
+            emit(browser, 'beforeRequestSent')
+            await flush()
+
+            expect(pass.run).not.toHaveBeenCalled()
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(bidiCalls(browser)).toBe(1)
+            expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken filter'))
             expect(unhandled).not.toHaveBeenCalled()
         })
     })
@@ -574,6 +592,28 @@ describe('RequestArbiter', () => {
 
             expect(answer.run).toHaveBeenCalledTimes(1)
             expect(bidiCalls(browser)).toBe(0)
+        })
+
+        it('sends nothing at the responseStarted of an answered request with no redirect count', async () => {
+            const early = decision('answer', { age: 1, run: answersEarly() })
+            const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? early : undefined)
+            const b = candidate(2, 'int-b', () => decision('answer', { age: 2 }))
+            const arbiter = arbiterOf(asBrowser(browser))
+            arbiter.add(a)
+            arbiter.add(b)
+            const withoutRedirectCount = (phase: Phase) => {
+                const event = networkEvent() as NetworkEvent & { redirectCount?: number }
+                delete event.redirectCount
+                browser.emit(`network.${phase}`, event)
+            }
+
+            withoutRedirectCount('beforeRequestSent')
+            withoutRedirectCount('responseStarted')
+            await flush()
+
+            expect(early.run).toHaveBeenCalledTimes(1)
+            expect(a.decide).toHaveBeenCalledTimes(1)
+            expect(b.decide).toHaveBeenCalledTimes(1)
         })
 
         it('does not record a hop when the winner\'s run did not answer early', async () => {

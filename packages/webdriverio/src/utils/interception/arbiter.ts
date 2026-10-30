@@ -88,7 +88,7 @@ export class RequestArbiter {
     /**
      * request id → redirect count of a hop answered in `beforeRequestSent`
      */
-    #answeredHops = new Map<string, number>()
+    #answeredHops = new Map<string, number | undefined>()
     #listening = false
 
     constructor (browser: WebdriverIO.Browser) {
@@ -135,30 +135,30 @@ export class RequestArbiter {
         }
 
         const requestId = event.request.request
+        const answered = this.#answeredHops.has(requestId)
         const answeredHop = this.#answeredHops.get(requestId)
-        if (answeredHop !== undefined) {
-            this.#answeredHops.delete(requestId)
-        }
+        this.#answeredHops.delete(requestId)
 
         if (!event.isBlocked || !event.intercepts?.some((id) => this.#owned.has(id))) {
             return
         }
 
         // the event of a request answered before it was sent says blocked, but nothing is paused: a call gets 'no such request'
-        if (phase === 'responseStarted' && answeredHop !== undefined && answeredHop === event.redirectCount) {
+        if (phase === 'responseStarted' && answered && answeredHop === event.redirectCount) {
             return
         }
 
         const intercepts = event.intercepts
         const asked = live.filter((candidate) => intercepts.includes(candidate.interceptId))
-        const decisions = asked.map((candidate) => this.#decide(candidate, phase, event))
-        if (decisions.some(isPromise)) {
-            void Promise.all(decisions)
-                .then((settled) => this.#pick(phase, event, asked.map((c, i) => [c, settled[i]])))
-                .catch((err) => this.#failPick(requestId, err))
-            return
-        }
+        // a mock whose filter throws may have aborted the request: fail it rather than let it reach the server
         try {
+            const decisions = asked.map((candidate) => candidate.decide(phase, event))
+            if (decisions.some(isPromise)) {
+                void Promise.all(decisions)
+                    .then((settled) => this.#pick(phase, event, asked.map((c, i) => [c, settled[i]])))
+                    .catch((err) => this.#failPick(requestId, err))
+                return
+            }
             this.#pick(phase, event, asked.map((c, i) => [c, decisions[i] as Decision | undefined]))
         } catch (err) {
             this.#failPick(requestId, err)
@@ -168,19 +168,6 @@ export class RequestArbiter {
     #failPick (requestId: string, err: unknown) {
         log.error(`Failed to pick the mock for request ${requestId}, failing it: ${messageOf(err)}`)
         void this.#browser.networkFailRequest({ request: requestId }).catch(this.#onReleaseError)
-    }
-
-    #decide (candidate: Candidate, phase: Phase, event: NetworkEvent) {
-        const onError = (err: unknown) => {
-            log.error(`A mock failed to decide on request ${event.request.request}: ${messageOf(err)}`)
-            return undefined
-        }
-        try {
-            const decision = candidate.decide(phase, event)
-            return isPromise(decision) ? Promise.resolve(decision).catch(onError) : decision
-        } catch (err) {
-            return onError(err)
-        }
     }
 
     #pick (phase: Phase, event: NetworkEvent, entries: Entry[]) {
@@ -207,9 +194,6 @@ export class RequestArbiter {
 
     // the record is set before the answer is sent: the next event of the request can come before the reply
     #recordAnsweredHop (requestId: string, redirectCount: number | undefined) {
-        if (redirectCount === undefined) {
-            return
-        }
         this.#answeredHops.set(requestId, redirectCount)
         if (this.#answeredHops.size > MAX_ANSWERED_HOPS) {
             this.#answeredHops.delete(this.#answeredHops.keys().next().value!)
