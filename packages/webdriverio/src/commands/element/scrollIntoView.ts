@@ -490,8 +490,12 @@ await elem.scrollIntoView({
 
 function hasChromeMobileEmulation (browser: WebdriverIO.Browser) {
     const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
-    // W3C "process capabilities": the driver uses the first `firstMatch` entry that matches
-    const matched = requested && 'alwaysMatch' in requested ? [requested.alwaysMatch, requested.firstMatch?.[0]] : [requested]
+    // W3C "process capabilities": the driver uses the first `firstMatch` entry that matches,
+    // so pick the one whose `browserName` fits the session the driver returned
+    const browserName = browser.capabilities?.browserName?.toLowerCase()
+    const matched = requested && 'alwaysMatch' in requested
+        ? [requested.alwaysMatch, requested.firstMatch?.find((caps) => !caps.browserName || caps.browserName.toLowerCase() === browserName)]
+        : [requested]
     return matched.some((caps) => caps?.['goog:chromeOptions']?.mobileEmulation)
 }
 
