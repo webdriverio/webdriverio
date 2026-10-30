@@ -401,6 +401,19 @@ describe('BidiCore', () => {
             expect(afterClose?.name).toBe(SESSION_ENDED_ERROR)
         })
 
+        it('acts like a connection that could not be made after discard', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            const socket = handler.socket!
+            handler.discard()
+            expect(socket.close).toHaveBeenCalled()
+            expect(handler.isConnected).toBe(false)
+            expect(handler.isClosed).toBe(false)
+            const afterDiscard = (() => { try { handler.sendAsync({ method: 'session.status', params: {} }) } catch (err) { return err as Error } })()
+            expect(afterDiscard?.message).toBe('No connection to WebDriver Bidi was established')
+            expect(afterDiscard?.name).toBe('Error')
+        })
+
         it('ignores the close event of the socket of an earlier connection', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()

@@ -10,7 +10,7 @@ import '../src/browser.js'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
-import { initCount } from '../src/bidi/core.js'
+import { initCount, BidiCore } from '../src/bidi/core.js'
 import * as utils from '../src/utils.js'
 import type { Client } from '../src/types.js'
 
@@ -256,6 +256,48 @@ describe('WebDriver', () => {
                 30000
             )
         })
+
+        describe('Appium browser session', () => {
+            const appiumCaps = { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'UiAutomator2' }
+            let wid: string | undefined
+
+            beforeEach(() => {
+                wid = process.env.WDIO_UNIT_TESTS
+                delete process.env.WDIO_UNIT_TESTS
+                vi.spyOn(BidiCore.prototype, 'waitForConnected').mockResolvedValue(true)
+            })
+
+            afterEach(() => {
+                process.env.WDIO_UNIT_TESTS = wid
+                vi.restoreAllMocks()
+            })
+
+            const startSession = (capabilities: WebdriverIO.Capabilities) => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                    value: { sessionId: 'bidi-session', capabilities: { ...capabilities, webSocketUrl: 'ws://foo/bar' } }
+                }))
+                return WebDriver.newSession({ path: '/', capabilities })
+            }
+
+            it('checks that the WebDriver Bidi server can run browser commands', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(false)
+                const browser = await startSession(appiumCaps)
+                expect(discard).toHaveBeenCalledOnce()
+                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler)
+            })
+
+            it('does not check a desktop browser session', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                await startSession({ browserName: 'chrome' })
+                expect(discard).not.toHaveBeenCalled()
+            })
+
+            it('does not check a native app session, which keeps the events of Appium', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                await startSession({ platformName: 'Android', 'appium:automationName': 'UiAutomator2', 'appium:app': '/app.apk' })
+                expect(discard).not.toHaveBeenCalled()
+            })
+        })
     })
 
     describe('attachToSession', () => {
@@ -420,6 +462,25 @@ describe('WebDriver', () => {
     })
 
     describe('reloadSession', () => {
+        it('checks the WebDriver Bidi server of a new Appium browser session', async () => {
+            const capabilities = { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'UiAutomator2' }
+            for (const usable of [false, true]) {
+                // the first session is a desktop one: the check follows the new session
+                const session = await WebDriver.newSession({ path: '/', capabilities: { browserName: 'firefox' } })
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                    value: { sessionId: 'bidi-session', capabilities: { ...capabilities, webSocketUrl: 'ws://foo/bar' } }
+                }))
+                const on = vi.fn()
+                const handler = { reconnect: vi.fn().mockResolvedValue(true), socket: { on } }
+                ;(session as any)._bidiHandler = handler
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(usable)
+                await WebDriver.reloadSession(session, capabilities)
+                expect(discard).toHaveBeenCalledWith(handler)
+                expect(on).toHaveBeenCalledTimes(usable ? 1 : 0)
+                discard.mockRestore()
+            }
+        })
+
         it('should reload session', async () => {
             const session = await WebDriver.newSession({
                 path: '/',

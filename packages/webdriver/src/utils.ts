@@ -88,6 +88,12 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
          * allow WebdriverIO to handle alerts
          */
         capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        /**
+         * without it, Appium answers WebDriver Bidi itself and has no `browsingContext` module
+         */
+        if (isAppiumAndroidChrome(capabilities.alwaysMatch) && !hasAppiumCapability(capabilities.alwaysMatch, 'chromedriverForwardBiDi')) {
+            capabilities.alwaysMatch['appium:chromedriverForwardBiDi'] = true
+        }
     }
 
     validateCapabilities(capabilities.alwaysMatch)
@@ -170,6 +176,26 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     params.capabilities = sessionCapabilities
 
     return { sessionId, capabilities: sessionCapabilities }
+}
+
+/**
+ * `true` when the user set the Appium capability, as `appium:<name>` or in `appium:options`
+ */
+function hasAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
+    const appiumOptions = capabilities['appium:options'] as Record<string, unknown> | undefined
+    return (capabilities as Record<string, unknown>)[`appium:${name}`] !== undefined || appiumOptions?.[name] !== undefined
+}
+
+/**
+ * a Chrome browser session on Android through the UiAutomator2 driver of Appium
+ */
+function isAppiumAndroidChrome (capabilities: WebdriverIO.Capabilities) {
+    const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+    return (
+        /^android$/i.test(capabilities.platformName || '') &&
+        /^(chrome|chromium)$/i.test(capabilities.browserName || '') &&
+        /^uiautomator2$/i.test(automationName || '')
+    )
 }
 
 /**
@@ -504,6 +530,43 @@ export function initiateBidi (
             }
             return acc
         }, {} as PropertyDescriptorMap)
+    }
+}
+
+/**
+ * a server that accepts the socket but never answers must not hold the session start for `bidiResponseTimeout`
+ */
+const APPIUM_BIDI_CHECK_TIMEOUT = 10_000
+
+/**
+ * Appium (since 2.15) gives its own WebDriver Bidi url to each session that asks for it,
+ * unless it forwards the socket to the browser driver. That server has no
+ * `browsingContext` or `script` module, so a browser session must use WebDriver Classic.
+ *
+ * @param  handler  the connected handler of an Appium browser session
+ * @return `false` when the connection was discarded
+ */
+export async function discardBidiWithoutBrowsingContext (handler: BidiHandler) {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    try {
+        await Promise.race([
+            handler.browsingContextGetTree({ maxDepth: 0 }),
+            new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error(`no answer within ${APPIUM_BIDI_CHECK_TIMEOUT}ms`)), APPIUM_BIDI_CHECK_TIMEOUT)
+            })
+        ])
+        return true
+    } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        log.warn(
+            `The WebDriver Bidi server of this Appium session can not run browser commands (${reason}), ` +
+            'continue with WebDriver Classic. For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or ' +
+            'later with the UiAutomator2 driver 8.7.3 or later. To skip this check, set "wdio:enforceWebDriverClassic": true.'
+        )
+        handler.discard()
+        return false
+    } finally {
+        clearTimeout(timer)
     }
 }
 

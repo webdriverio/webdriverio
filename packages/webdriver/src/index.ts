@@ -11,10 +11,18 @@ import command from './command.js'
 import { DEFAULTS } from './constants.js'
 import type { BidiHandler } from './bidi/handler.js'
 import { environment as environmentValue } from './environment.js'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions } from './utils.js'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions, discardBidiWithoutBrowsingContext } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
+
+/**
+ * a browser session of Appium; a native app session that asks for WebDriver Bidi
+ * keeps the events of Appium's own server
+ */
+function isAppiumBrowserSession (isMobile: boolean | undefined, capabilities: WebdriverIO.Capabilities) {
+    return Boolean(isMobile && capabilities.browserName)
+}
 
 export default class WebDriver {
     static async newSession(
@@ -82,7 +90,10 @@ export default class WebDriver {
             /**
              * make sure the Bidi connection is established before returning
              */
-            if (await client._bidiHandler.waitForConnected()) {
+            if (
+                await client._bidiHandler.waitForConnected() &&
+                (!isAppiumBrowserSession(environment.isMobile, capabilities) || await discardBidiWithoutBrowsingContext(client._bidiHandler))
+            ) {
                 client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
             }
         }
@@ -230,8 +241,14 @@ export default class WebDriver {
          */
         if (isBidi(instance.capabilities || {})) {
             const bidiReqOpts = getBidiRequestOptions(instance.options.strictSSL, instance.options.headers)
-            await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
-            instance._bidiHandler?.socket?.on('message', parseBidiMessage.bind(instance))
+            const isConnected = await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
+            if (
+                instance._bidiHandler && isConnected &&
+                (!isAppiumBrowserSession(sessionEnvironmentDetector({ capabilities: newSessionCapabilities, requestedCapabilities: capabilities }).isMobile, newSessionCapabilities) ||
+                    await discardBidiWithoutBrowsingContext(instance._bidiHandler))
+            ) {
+                instance._bidiHandler.socket?.on('message', parseBidiMessage.bind(instance))
+            }
         }
 
         return sessionId
