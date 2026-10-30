@@ -794,13 +794,21 @@ export async function executeAsync(
          */
         const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
         /**
+         * Jasmine enforces the timeout of a spec or hook itself. WebdriverIO only must not
+         * fail it before that: a timeout longer than the default wins over it, a shorter
+         * one is left to Jasmine, so it fails with its own message.
+         */
+        const jasmineTimeout = (): number | undefined => {
+            // @ts-expect-error - jasmine is set by Jasmine at runtime
+            const defaultTimeout: number | undefined = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+            return defaultTimeout === undefined ? undefined : Math.max(timeout > 0 ? timeout : 0, defaultTimeout)
+        }
+        /**
          * The current framework timeout. A Mocha test or hook can change it with
          * `this.timeout()` while it runs, and `0` turns it off.
          */
         const frameworkTimeout = (): number => (
-            // a timeout given to a Jasmine spec or hook wins over its default, as in Jasmine
-            // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? (timeout > 0 ? timeout : undefined) ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+            runnable?._timeout ?? jasmineTimeout() ?? timeout
         )
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now

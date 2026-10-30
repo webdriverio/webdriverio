@@ -261,7 +261,7 @@ export default class ConfigParser {
          * like the one of '--spec'.
          */
         if (exclude.length > 0) {
-            const excludePaths = exclude.filter(isPathEntry).map(resolveFromCwd)
+            const excludePaths = exclude.filter(isPathEntry).map((entry) => resolveFromCwd(entry, this._pathService))
             const excludeKeywords = exclude.filter((entry) => !isPathEntry(entry))
             this._config.exclude = [
                 ...(excludePaths.length > 0 ? this.setFilePathToFilterOptions(excludePaths, this._config.exclude!) : []),
@@ -590,8 +590,19 @@ function isPathEntry(entry: string) {
 /**
  * a relative path of the command line is relative to the current working directory
  */
-function resolveFromCwd(entry: string) {
-    return entry.startsWith('file://') || path.isAbsolute(entry) ? entry : path.resolve(process.cwd(), entry)
+function resolveFromCwd(entry: string, pathService: PathService) {
+    if (entry.startsWith('file://') || path.isAbsolute(entry)) {
+        return entry
+    }
+    /**
+     * keep a path that matches nothing from the working directory as it is: it stays
+     * relative to the config file, as before
+     */
+    const fromCwd = path.resolve(process.cwd(), entry)
+    const matches = entry.includes('*')
+        ? pathService.glob(fromCwd.replace(/\\/g, '/'), process.cwd()).length > 0
+        : pathService.isFile(fromCwd)
+    return matches ? fromCwd : entry
 }
 
 /**

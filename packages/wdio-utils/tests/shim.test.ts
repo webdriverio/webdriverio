@@ -255,6 +255,16 @@ describe('executeAsync', () => {
             expect(await result).toBeUndefined()
         })
 
+        it('should leave a Jasmine spec timeout shorter than the default to Jasmine', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 5000 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise((resolve) => setTimeout(resolve, 3000)), { attempts: 0, limit: 0 }, [], 1000
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(3000)
+            expect(await result).toBeUndefined()
+        })
+
         it('should use the Jasmine default timeout when the spec has none', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             const result = executeAsync.call(
