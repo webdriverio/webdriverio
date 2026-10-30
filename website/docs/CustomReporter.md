@@ -297,6 +297,16 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
+A reporter that only reads `output` (for example when it writes a file at the end of the run) does not need these methods. It returns `true` from the `showsUserCommands` getter:
+
+```js
+export default class CustomReporter extends WDIOReporter {
+    get showsUserCommands() {
+        return true
+    }
+}
+```
+
 The payload has these fields:
 
 | Field | Description |
@@ -313,14 +323,14 @@ WebdriverIO masks and shortens the `body` and the `value` before it sends the ev
 
 The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values. `userOutputReplacer` is a `JSON.stringify` replacer that does this for each `userResult` entry of `output`.
 
-When your reporter overrides one of these methods, the base reporter does these steps:
+When your reporter overrides one of these methods or returns `true` from `showsUserCommands`, the base reporter does these steps:
 
 - It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
 - It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. The owner is the owner at the start of the user command: a result that comes after the end of its test (for example after a test timeout) goes to the `output` of that test, and the reporter gets `onAfterUserCommand` in the unit of that test. The type of an `output` entry is `'command' | 'result' | 'userCommand' | 'userResult'` and the other fields keep the types of a protocol entry. Call `isUserCommandOutput(entry)` or `isUserResultOutput(entry)` to get the fields of a user entry (`UserCommandOutput`, `UserResultOutput`). For `execute` and `executeAsync`, a script string in the first value of `body` is shortened as the script of a protocol command. A function stays `[Function name]`.
 - It keeps the protocol commands that a user command runs, with its `id` in their `parent` field, so you can show them as children of the user command: it calls `onBeforeCommand` and `onAfterCommand` for them and adds them to `output` after the `userCommand` entry. To hide them, return `true` from the `hidesProtocolCommands` getter. `takeScreenshot` and `takeElementScreenshot` have no `parent` field, and you can get the screenshots from them as before. These two commands never send user command events, because their result is a base64 screenshot.
 - It hides the old `command` and `result` events of a custom command (no HTTP method, the name of its user command), so your reporter does not see the custom command two times, and the protocol commands of a user command that sent no user command events (an excluded command).
 
-A reporter that overrides neither method gets no user commands, and it gets all protocol commands as before.
+A reporter that does neither gets no user commands, and it gets all protocol commands as before.
 
 Only the outer user command sends events. The commands that a custom command or `waitUntil` runs send no events. `call` does not hide its commands: it sends no events, and the commands that run in it send their events, as in your test code. In a multi-remote run, the multi-remote browser sends no events: each instance sends the events of its own commands, also for the commands that a custom command of the multi-remote browser runs. The commands that a WebDriver BiDi event listener runs (for example `browser.on('log.entryAdded', …)`) are outer commands, also after `reloadSession`. The commands that a `beforeCommand` or `afterCommand` hook runs, and the commands that a reporter runs, send no events. An excluded command (see [`userCommandEvents`](./Configuration.md#usercommandevents)) is still the outer command, so the commands that it runs send no events, and its protocol commands have the `parent` field. For example, when you exclude `waitUntil`, its polls are hidden too. A custom command and a command that you overwrite with `overwriteCommand` (for example `click`) send one `userCommand` and one `userResult` event, as a WebdriverIO command does. A command of a browsing context (for example `tab.navigate()`, or a command that you add with `attachToBrowsingContext: true`) also sends one pair of events, with its own name. The old `command` and `result` events of a custom command that runs in a user command have the `parent` field. A reporter that gets user commands does not get them, and other reporters get these events as before.
 

@@ -715,8 +715,10 @@ class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    // an empty override opts in to the user commands of WebDriver BiDi sessions
-    onBeforeUserCommand() { }
+    // the base adds the user commands of WebDriver BiDi sessions to `output`
+    protected get showsUserCommands(): boolean {
+        return true
+    }
 
     private _format(val: any) {
         return JSON.stringify(limit(val))
