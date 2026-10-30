@@ -121,6 +121,18 @@ interface MatchEvent {
 
 This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
 
+## Which mock answers a request
+
+Several mocks can match one request. Only one mock answers it, in this order:
+
+1. A mock that answers (`respond`, `abort`, `request`) beats a mock that only lets the request through, such as a spy or a mock with no `once` call left.
+2. A mock of a tab or of a parallel test beats a session-wide mock from `browser.mock()`.
+3. The mock that was created first wins.
+
+`browser.mock()` replaces an existing mock only when the URL definition and the scope (session-wide, tab or parallel test) are the same. The other mocks emit `continue` for this request.
+
+If a mock waits for the response (for example with a `statusCode` filter) and the response does not match, the next mock in this order answers in Chrome. In Firefox, a mock that waits for the response cannot send a body after the request left. It gives way to a mock that answers early, and WebdriverIO logs one warning for each such mock.
+
 ## Examples
 
 Getting a number of pending requests:
@@ -189,4 +201,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request. After `firstMock` used its response, it only lets requests through, so the `secondMock` response value is used for the rest of them.
