@@ -510,14 +510,12 @@ describe('RequestArbiter', () => {
             return { a, b }
         }
 
-        it('uses the early-answer rule for the responseStarted of an answered hop only', async () => {
-            browser.networkProvideResponse.mockRejectedValue(new Error('no such request'))
+        it('sends nothing at the responseStarted of an answered hop only', async () => {
             const { a, b } = answerEarly()
 
             emit(browser, 'responseStarted')
             await flush()
-            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
-            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(bidiCalls(browser)).toBe(0)
             expect(a.decide).toHaveBeenCalledTimes(1)
             expect(b.decide).toHaveBeenCalledTimes(1)
             expect(a.observe).toHaveBeenCalledTimes(2)
@@ -574,7 +572,7 @@ describe('RequestArbiter', () => {
                 run: answersEarly(async () => {
                     // the next event of the request arrives before the reply of the answer
                     emit(browser, 'responseStarted', { intercepts: ['int-a'] })
-                    recordedBeforeSend = browser.networkProvideResponse.mock.calls.length === 1
+                    recordedBeforeSend = a.decide.mock.calls.length === 1
                 })
             })
             const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? early : undefined)

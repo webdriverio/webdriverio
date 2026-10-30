@@ -480,9 +480,8 @@ describe('WebDriverInterception', () => {
             }
         })
 
-        // the browser still reports the answered request as blocked, so it gets a release without a body
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+        // the browser still reports the answered request as blocked, but nothing is paused
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
         expect(mock.calls).toHaveLength(1)
     })
 
@@ -2821,7 +2820,7 @@ describe('WebDriverInterception', () => {
                 expect(sessionWide.calls).toHaveLength(1)
             })
 
-            it('answers a fetchResponse: false request once, and only lets its response through', async () => {
+            it('answers a fetchResponse: false request once, and sends nothing when its response starts', async () => {
                 const browser = getBrowser()
                 const [first, second] = await initiateOverlappingMocks(browser)
                 first.respond({ from: 'first' }, { fetchResponse: false })
@@ -2832,8 +2831,9 @@ describe('WebDriverInterception', () => {
                 browser.emit('network.responseStarted', { ...blockedBy(BOTH), response: { headers: [], status: 200 } })
                 await waitForAsyncHandlers()
 
-                expect(respondedWith(browser)).toEqual(['first', 'continued'])
-                expect(browser.networkProvideResponse).toHaveBeenLastCalledWith({ request: 123 })
+                expect(respondedWith(browser)).toEqual(['first'])
+                expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+                expect(browser.networkFailRequest).not.toHaveBeenCalled()
             })
 
             it('skips an early-answered response also in a mock whose pattern does not match the url', async () => {
@@ -2848,7 +2848,7 @@ describe('WebDriverInterception', () => {
                 browser.emit('network.responseStarted', { ...blockedBy(BOTH), response: { headers: [], status: 200 } })
                 await waitForAsyncHandlers()
 
-                expect(respondedWith(browser)).toEqual(['early', 'continued'])
+                expect(respondedWith(browser)).toEqual(['early'])
             })
 
             it('decides the response of a later redirect hop of an early-answered request', async () => {

@@ -135,9 +135,9 @@ export class RequestArbiter {
             return
         }
 
-        // Chrome and Firefox still block the response of a request answered before it was sent, and reject a body there.
+        // the event of a request answered before it was sent says blocked, but nothing is paused: a call gets 'no such request'
         if (phase === 'responseStarted' && answeredHop !== undefined && answeredHop === event.redirectCount) {
-            return this.#release(phase, requestId)
+            return
         }
 
         const intercepts = event.intercepts
