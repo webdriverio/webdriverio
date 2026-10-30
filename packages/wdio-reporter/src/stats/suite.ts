@@ -58,7 +58,8 @@ export default class SuiteStats extends RunnableStats {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
-        this.file = typeof suite.file === 'string' ? specFilePath(suite.file) : suite.file
+        // a file that is not a text stays out, as on the test stats (a framework can send no file)
+        this.file = typeof suite.file === 'string' ? specFilePath(suite.file) : undefined as unknown as string
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags

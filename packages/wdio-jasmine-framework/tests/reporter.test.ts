@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
@@ -316,7 +318,43 @@ test('emit: a test in a top-level describe() of a helper gets the spec file of t
     jasmineReporter = reporterFor(SPEC)
     jasmineReporter.suiteStarted({ id: '23', description: 'shared', fullName: 'shared', filename: HELPER } as any)
     jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
-    expect(emittedFiles()[1]).toEqual(['test:start', SPEC])
+    expect(emittedFiles()).toEqual([['suite:start', SPEC], ['test:start', SPEC]])
+})
+
+// JUnit keeps a suite only when its file is a spec file of the worker
+test('emit: the describe() of a helper inside the spec suite gets the spec file, also at its end', () => {
+    jasmineReporter = reporterFor(SPEC, OTHER_SPEC)
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: OTHER_SPEC } as any)
+    jasmineReporter.suiteStarted({ id: '25', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+    jasmineReporter.suiteDone({ id: '25', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+    expect(emittedFiles()).toEqual([['suite:start', OTHER_SPEC], ['suite:start', OTHER_SPEC], ['suite:end', OTHER_SPEC]])
+})
+
+// grouped spec files: the spec file of a top-level describe() of a helper is not known
+test('emit: with several spec files, a test in a top-level describe() of a helper gets no file', () => {
+    jasmineReporter = reporterFor(SPEC, OTHER_SPEC)
+    jasmineReporter.suiteStarted({ id: '23', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
+    expect(emittedFiles()).toEqual([['suite:start', HELPER], ['test:start', undefined]])
+})
+
+// Node loads a spec file by its real path, the runner keeps the path of the link
+test('emit: a test gets the spec file of a worker in a linked folder', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jasmine-link-'))
+    try {
+        fs.mkdirSync(path.join(dir, 'real'))
+        const specs = ['a.spec.js', 'b.spec.js'].map((name) => path.join(dir, 'real', name))
+        specs.forEach((spec) => fs.writeFileSync(spec, ''))
+        fs.symlinkSync(path.join(dir, 'real'), path.join(dir, 'link'), 'junction')
+        jasmineReporter = reporterFor(...specs.map((spec) => spec.replace(`${path.sep}real${path.sep}`, `${path.sep}link${path.sep}`)))
+        const realSpec = fs.realpathSync(specs[1])
+        jasmineReporter.suiteStarted({ id: '23', description: 'shared', fullName: 'shared', filename: HELPER } as any)
+        jasmineReporter.suiteStarted({ id: '25', description: 'outer', fullName: 'outer', filename: realSpec } as any)
+        jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
+        expect(emittedFiles()[2]).toEqual(['test:start', realSpec])
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true })
+    }
 })
 
 test('emit: a suite with an empty file name gives its tests the spec file of the worker', () => {

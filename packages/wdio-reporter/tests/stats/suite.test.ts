@@ -80,3 +80,7 @@ test('keeps the spec file of a suite as a path', () => {
     expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: url.pathToFileURL(file).href }).file).toBe(file)
     expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: 'unknown spec file' }).file).toBe('unknown spec file')
 })
+
+test('ignores a suite file that is not a text', () => {
+    expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: new URL('file:///a.spec.js') as never }).file).toBeUndefined()
+})

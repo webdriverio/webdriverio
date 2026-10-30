@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
@@ -11,7 +12,8 @@ const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|-
 export default class JasmineReporter {
     private _cid: string
     private _specs: string[]
-    private _specFiles: string[]
+    private _specFiles: Set<string>
+    private _onlySpecFile?: string
     private _jasmineOpts: JasmineOpts
     private _shouldCleanStack: boolean
     private _parent: ParentSuite[] = []
@@ -25,7 +27,10 @@ export default class JasmineReporter {
     ) {
         this._cid = params.cid
         this._specs = params.specs
-        this._specFiles = params.specs.map(specFilePath)
+        const specFiles = params.specs.map(specFilePath)
+        // Node loads a spec file by its real path, the runner keeps the path of a link
+        this._specFiles = new Set(specFiles.flatMap((file) => [file, realPath(file)]))
+        this._onlySpecFile = specFiles.length === 1 ? specFiles[0] : undefined
         this._jasmineOpts = params.jasmineOpts
         this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
     }
@@ -44,12 +49,13 @@ export default class JasmineReporter {
         }
         newSuite.fullName = fullName
 
+        const specFile = this.specFileOf(suite.filename)
         this.emit('suite:start', newSuite)
         this._parent.push({
             description: suite.description,
             id: suite.id,
             tests: 0,
-            file: suite.filename ? specFilePath(suite.filename) : undefined
+            specFile
         })
     }
 
@@ -220,7 +226,9 @@ export default class JasmineReporter {
             duration: payload.duration || 0,
             specs: this._specs,
             start: payload.start,
-            file: payload.type === 'suite' ? payload.filename && specFilePath(payload.filename) : this.suiteFile,
+            file: payload.type === 'suite'
+                ? this.specFileOf(payload.filename) ?? (payload.filename && specFilePath(payload.filename))
+                : this.suiteFile,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
         }
@@ -229,16 +237,24 @@ export default class JasmineReporter {
     }
 
     /**
-     * the spec file of the current tests and hooks: Jasmine names the file that calls `it()`,
-     * which is the WebdriverIO wrapper, and a `describe()` of a shared helper module names
-     * the helper; so the first suite in a spec file of the worker, else the one spec file
+     * the spec file of a suite that starts or ends in the current suite: Jasmine names the file
+     * that calls `describe()`, which can be a shared helper module; so the spec file of the
+     * parent suite, else the file of the suite when it is a spec file of the worker, else the
+     * one spec file of the worker
+     */
+    specFileOf (filename?: string) {
+        const file = filename ? specFilePath(filename) : undefined
+        return this._parent[this._parent.length - 1]?.specFile
+            ?? (file && this._specFiles.has(file) ? file : undefined)
+            ?? this._onlySpecFile
+    }
+
+    /**
+     * the spec file of the current tests and hooks (Jasmine names the file that calls `it()`,
+     * which is the WebdriverIO wrapper); none outside every suite
      */
     get suiteFile () {
-        if (!this._parent.length) {
-            return undefined
-        }
-        return this._parent.find((suite) => suite.file && this._specFiles.includes(suite.file))?.file
-            ?? (this._specFiles.length === 1 ? this._specFiles[0] : this._parent[0].file)
+        return this._parent[this._parent.length - 1]?.specFile
     }
 
     getFailedCount () {
@@ -258,5 +274,13 @@ export default class JasmineReporter {
         stack = stack.filter((line) => !line.match(STACKTRACE_FILTER))
         error.stack = stack.join('\n')
         return error
+    }
+}
+
+function realPath (file: string) {
+    try {
+        return fs.realpathSync(file)
+    } catch {
+        return file
     }
 }

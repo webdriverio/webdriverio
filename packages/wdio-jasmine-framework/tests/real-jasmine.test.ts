@@ -114,7 +114,7 @@ test.each(['specFile.js', 'specFile.mjs'])('the events of a real Jasmine run nam
 })
 
 // a shared helper module that declares a describe(): Jasmine names the helper, the tests keep the spec file
-test('the tests of a real Jasmine run in a describe() of a helper name the spec file', async () => {
+test('the suites and tests of a real Jasmine run in a describe() of a helper name the spec file', async () => {
     vi.mocked(executeHooksWithArgs).mockResolvedValue([])
     const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
     const spec = path.join(__dirname, '__fixtures__', 'sharedSuiteSpec.js')
@@ -122,7 +122,11 @@ test('the tests of a real Jasmine run in a describe() of a helper name the spec 
     await adapter.init()
     await adapter.run()
     const files = reporter.emit.mock.calls
-        .filter(([event]) => event === 'test:start')
-        .map(([, payload]) => [payload.title, payload.file])
-    expect(files).toEqual([['from the helper', spec], ['from the helper', spec], ['in the spec', spec]])
+        .filter(([event]) => event === 'suite:start' || event === 'test:start')
+        .map(([event, payload]) => [event, payload.title, payload.file])
+    expect(files).toEqual([
+        ['suite:start', 'shared', spec], ['test:start', 'from the helper', spec],
+        ['suite:start', 'outer', spec], ['suite:start', 'shared', spec], ['test:start', 'from the helper', spec],
+        ['test:start', 'in the spec', spec]
+    ])
 })
