@@ -27,6 +27,14 @@ describe('userCommandTitle', () => {
         expect(userCommandTitleIsCut('getText()')).toBe(false)
     })
 
+    it('writes an assertion as in the test code', () => {
+        expect(userCommandTitle('expect.toHaveText', ['WebdriverIO.Element<#btn>', 'Done'])).toBe('expect($("#btn")).toHaveText("Done")')
+        expect(userCommandTitle('expect.not.toBeDisplayed', ['WebdriverIO.Element<#x> (not found)'])).toBe('expect($("#x")).not.toBeDisplayed()')
+        expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.Browser', 'https://webdriver.io'])).toBe('expect(browser).toHaveUrl("https://webdriver.io")')
+        expect(userCommandTitle('expect.toBeRequested', ['WebdriverIO.Mock'])).toBe('expect(mock).toBeRequested()')
+        expect(userCommandTitle('expect.toBeElementsArrayOfSize', ['WebdriverIO.ElementArray<li> (3)', 3])).toBe('expect($$("li")).toBeElementsArrayOfSize(3)')
+    })
+
     it('keeps the name of a command with no list of arguments', () => {
         expect(userCommandTitle('action', undefined)).toBe('action')
     })
