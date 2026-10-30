@@ -688,6 +688,44 @@ describe('fill on inputs that are not typed into', () => {
             .rejects.toThrow('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
     })
 
+    it('rejects a date the browser rejected in setValue', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'date' }),
+            setValue: async () => {
+                throw new Error('The browser rejected the value "10/04/2026" for this input, which keeps its previous value.')
+            },
+            getValue: async () => ''
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects a range value the browser rejected in setValue', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'range' }),
+            setValue: async () => {
+                throw new Error('The browser rejected the value "loud" for this input, which keeps its previous value.')
+            },
+            getValue: async () => '50'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: 'loud', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "loud"; it has "50".')
+        expect(err.hint).toBe('A range input takes a number.')
+    })
+
+    it('keeps other setValue errors', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'date' }),
+            setValue: async () => {
+                throw new Error('element not interactable')
+            },
+            getValue: async () => ''
+        }
+        await expect(fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }))
+            .rejects.toThrow('element not interactable')
+    })
+
     it('moves an ARIA slider with arrow keys until it has the value', async () => {
         let now = 25
         const keys: string[] = []

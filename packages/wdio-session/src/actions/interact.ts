@@ -565,10 +565,20 @@ async function fillTarget (session: Session, args: ActionArgs, target: ResolvedT
     }
     if (kind.kind === 'direct') {
         // setValue sets these directly, as their picker does (see webdriverio's setValue)
-        await target.element.setValue(value)
+        let rejected = false
+        try {
+            await target.element.setValue(value)
+        } catch (err) {
+            // setValue throws this when the input keeps its previous value
+            if (!(err instanceof Error && err.message.startsWith('The browser rejected the value'))) {
+                throw err
+            }
+            rejected = true
+        }
         const took = await target.element.getValue()
-        if (took !== value && kind.type !== 'range') {
-            throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
+        if (rejected || (took !== value && kind.type !== 'range')) {
+            const format = kind.type === 'range' ? 'A range input takes a number.' : `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`
+            throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, format)
         }
         const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
         if (kind.type === 'range') {
