@@ -123,6 +123,35 @@ describe('compactRequest and resolvedPath', () => {
 })
 
 describe('userCommandTexts', () => {
+    it('gives each protocol command its own result when the results come out of order', () => {
+        const child = (endpoint: string) => ({ type: 'command', command: 'getElementText', method: 'GET', endpoint, parent: 1 })
+        const result = (endpoint: string, value: string) => ({ ...child(endpoint), type: 'result', result: { value } })
+        const a = child('/session/:sessionId/element/e.1/text')
+        const b = child('/session/:sessionId/element/e.2/text')
+        const texts = userCommandTexts([
+            { type: 'userCommand', id: 1, command: 'readAll', body: [] },
+            a, b,
+            result('/session/:sessionId/element/e.2/text', 'B'),
+            result('/session/:sessionId/element/e.1/text', 'A'),
+            { type: 'userResult', id: 1, command: 'readAll', body: [], result: { value: ['A', 'B'] } }
+        ])
+        expect(texts.get(a)).toBe('getElementText → "A"  GET /element/:elementId/text')
+        expect(texts.get(b)).toBe('getElementText → "B"  GET /element/:elementId/text')
+    })
+
+    it('pairs the same request first in, first out', () => {
+        const child = { type: 'command', command: 'getTitle', method: 'GET', endpoint: '/session/:sessionId/title', parent: 1 }
+        const first = { ...child }
+        const second = { ...child }
+        const texts = userCommandTexts([
+            { type: 'userCommand', id: 1, command: 'twice', body: [] },
+            first, { ...child, type: 'result', result: { value: 'one' } },
+            second, { ...child, type: 'result', result: { value: 'two' } },
+            { type: 'userResult', id: 1, command: 'twice', body: [], result: { value: true } }
+        ])
+        expect([texts.get(first), texts.get(second)]).toEqual(['getTitle → "one"  GET /title', 'getTitle → "two"  GET /title'])
+    })
+
     const userCommand = { type: 'userCommand', id: 1, command: 'getText', body: [] }
     const command = { type: 'command', command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', parent: 1 }
     const result = { type: 'result', command: 'getElementText', result: { value: 'clicked' }, parent: 1 }

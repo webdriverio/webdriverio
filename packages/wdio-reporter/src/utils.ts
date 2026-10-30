@@ -434,30 +434,51 @@ export function resolvedPath(endpoint: string, sessionId?: string): string {
  * @experimental the name and the format may change
  */
 export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<object, string> {
+    // one pass: a user result by id; a protocol result goes to the first open command with the same parent and
+    // name, and the same request when the result has one, so concurrent commands do not swap their results
+    const userResults = new Map<number, UserResultOutput>()
+    const childResults = new Map<object, Partial<Output>>()
+    const pending = new Map<string, Partial<Output>[]>()
+    for (const entry of output) {
+        if (isUserResultOutput(entry)) {
+            userResults.set(entry.id, entry)
+            continue
+        }
+        const e = entry as Partial<Output>
+        if (e.parent === undefined || (entry.type !== 'command' && entry.type !== 'result')) {
+            continue
+        }
+        const key = `${e.parent}\u0000${e.command}`
+        const queue = pending.get(key) ?? []
+        pending.set(key, queue)
+        if (entry.type === 'command') {
+            queue.push(e)
+            continue
+        }
+        const index = e.endpoint === undefined ? 0 : Math.max(0, queue.findIndex((c) => c.method === e.method && c.endpoint === e.endpoint))
+        const [command] = queue.splice(index, 1)
+        if (command) {
+            childResults.set(command, e)
+        }
+    }
+
     const texts = new Map<object, string>()
-    const used = new Set<object>()
-    output.forEach((entry, index) => {
+    for (const entry of output) {
         if (isUserCommandOutput(entry)) {
             const title = userCommandTitle(entry.command, entry.body)
-            const end = output.slice(index + 1).find((e) => isUserResultOutput(e) && e.id === entry.id) as UserResultOutput | undefined
+            const end = userResults.get(entry.id)
             const inline = end && inlineResult(end.result, entry.command)
             texts.set(entry, inline ? `${title} → ${inline}` : title)
-            return
+            continue
         }
         const command = entry as Partial<Output>
         if (entry.type !== 'command' || command.parent === undefined) {
-            return
+            continue
         }
-        const end = output.slice(index + 1).find((e) => {
-            const r = e as Partial<Output>
-            return e.type === 'result' && !used.has(e) && r.parent === command.parent && r.command === command.command
-        })
-        if (end) {
-            used.add(end)
-        }
-        const inline = end && inlineResult((end as Partial<Output>).result, command.command)
+        const end = childResults.get(entry)
+        const inline = end && inlineResult(end.result, command.command)
         const request = command.method && command.endpoint ? `  ${compactRequest(command.method, command.endpoint)}` : ''
         texts.set(entry, `${command.command}${inline ? ` → ${inline}` : ''}${request}`)
-    })
+    }
     return texts
 }
