@@ -2997,6 +2997,97 @@ describe('WebDriverInterception', () => {
                 expect(respondedWith(browser)).toEqual(['scoped', 'continued'])
                 expect(browser.networkFailRequest).not.toHaveBeenCalled()
             })
+
+            describe('in Firefox, which takes no response body after the request was sent', () => {
+                const LOST = 'another mock of the same request answered it before it was sent'
+                let logWarnSpy: ReturnType<typeof vi.spyOn>
+                const warnings = () => logWarnSpy.mock.calls.flat().filter((message) => String(message).includes(LOST))
+
+                const getFirefox = () => Object.assign(getBrowser(), { isFirefox: true })
+
+                beforeEach(() => {
+                    logWarnSpy = vi.spyOn(logger('WebDriverInterception'), 'warn')
+                })
+
+                afterEach(() => {
+                    logWarnSpy.mockRestore()
+                })
+
+                it('lets a session-wide early answer win over a tab mock that needs the response, and warns once', async () => {
+                    const browser = getFirefox()
+                    const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                    sessionWide.respond({ from: 'session-wide' }, { fetchResponse: false })
+                    scoped.respond({ from: 'scoped' })
+
+                    for (const request of [123, 124]) {
+                        browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1', request))
+                        await waitForAsyncHandlers()
+                    }
+
+                    expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+                    expect(respondedWith(browser)).toEqual(['session-wide', 'session-wide'])
+                    expect(warnings()).toHaveLength(1)
+                })
+
+                it('lets a session-wide abort fail the request before it is sent', async () => {
+                    const browser = getFirefox()
+                    const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                    sessionWide.abort()
+                    scoped.respond({ from: 'scoped' })
+
+                    browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+                    expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+                    expect(warnings()).toHaveLength(1)
+                })
+
+                it('lets a session-wide request() overwrite change the request of a tab mock that needs the response', async () => {
+                    const browser = getFirefox()
+                    const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                    sessionWide.request({ method: 'POST' })
+                    scoped.respond({ from: 'scoped' })
+
+                    browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+                })
+
+                it('does not warn when the winner only lets the request through', async () => {
+                    const browser = getFirefox()
+                    await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                    scoped.respond({ from: 'scoped' })
+
+                    browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+                    expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+                    expect(warnings()).toHaveLength(0)
+                })
+
+                it('does not warn when the other mock of the request declines', async () => {
+                    const browser = getFirefox()
+                    // declines a GET
+                    const sessionWide = await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+                    const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                    sessionWide.respond({ from: 'session-wide' }, { fetchResponse: false })
+                    scoped.respond({ from: 'scoped' })
+
+                    browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                    await waitForAsyncHandlers()
+
+                    expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+                    expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+                    expect(warnings()).toHaveLength(0)
+                })
+            })
         })
     })
 

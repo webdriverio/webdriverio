@@ -117,6 +117,7 @@ export default class WebDriverInterception {
      */
     #onContextDestroyed?: (params: { context: string }) => void
     #warnedAboutEarlyAnswer = false
+    #warnedAboutLostResponse = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
     #contexts?: string[]
@@ -354,7 +355,13 @@ export default class WebDriverInterception {
         if (this.#requestOverwrites.length > 0) {
             return this.#decision('beforeRequestSent', request, 'answer')
         }
-        return this.#decision('beforeRequestSent', request, this.#respondOverwrites[0]?.overwrite ? 'defer' : 'pass')
+        if (!this.#respondOverwrites[0]?.overwrite) {
+            return this.#decision('beforeRequestSent', request, 'pass')
+        }
+        // Firefox takes no body once the request was sent, so a mock that acts before must win
+        return this.#browser.isFirefox
+            ? this.#decision('beforeRequestSent', request, 'pass', { needsResponse: true })
+            : this.#decision('beforeRequestSent', request, 'defer')
     }
 
     #decideResponse(response: Response) {
@@ -370,14 +377,14 @@ export default class WebDriverInterception {
         // an abort acts here only when it gave way before the request was sent to a mock that needs the response
         const aborts = handedOver && Boolean(this.#requestOverwrites[0]?.abort)
         const answers = aborts || Boolean(this.#respondOverwrites[0]?.overwrite)
-        return this.#decision('responseStarted', response, answers ? 'answer' : 'pass', aborts)
+        return this.#decision('responseStarted', response, answers ? 'answer' : 'pass', { aborts })
     }
 
     #decision(
         phase: Phase,
         event: local.NetworkBeforeRequestSentParameters | Response,
         kind: Decision['kind'],
-        aborts = false
+        { aborts = false, needsResponse = false } = {}
     ): Decision {
         const requestId = event.request.request
         return {
@@ -391,9 +398,24 @@ export default class WebDriverInterception {
                 if (phase === 'beforeRequestSent' && winner.kind === 'defer' && this.#requestOverwrites[0]?.abort) {
                     this.#handOverAbort(requestId)
                 }
+                if (needsResponse && winner.kind === 'answer') {
+                    this.#warnAboutLostResponse(requestId)
+                }
                 this.#emit('continue', requestId)
             }
         }
+    }
+
+    #warnAboutLostResponse(requestId: string) {
+        if (this.#warnedAboutLostResponse) {
+            return
+        }
+        this.#warnedAboutLostResponse = true
+        log.warn(
+            `mock.respond() of a mock that filters on the response did not answer request ${requestId}: ` +
+            'another mock of the same request answered it before it was sent. ' +
+            'Firefox can not replace a response body after the request was sent.'
+        )
     }
 
     #handOverAbort(requestId: string) {
