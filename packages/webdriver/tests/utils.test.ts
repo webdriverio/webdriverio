@@ -153,7 +153,7 @@ describe('utils', () => {
     describe('discardBidiWithoutBrowsingContext', () => {
         it('keeps a connection that can run browser commands', async () => {
             const handler = { browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }), discard: vi.fn() }
-            expect(await discardBidiWithoutBrowsingContext(handler as never)).toBe(true)
+            expect(await discardBidiWithoutBrowsingContext(handler as never, 10_000)).toBe(true)
             expect(handler.browsingContextGetTree).toHaveBeenCalledWith({ maxDepth: 0 })
             expect(handler.discard).not.toHaveBeenCalled()
         })
@@ -162,19 +162,21 @@ describe('utils', () => {
             vi.mocked(logMock.warn).mockClear()
             const error = new Error('WebDriver Bidi command "browsingContext.getTree" failed with error: unknown command')
             const handler = { browsingContextGetTree: vi.fn().mockRejectedValue(error), discard: vi.fn() }
-            expect(await discardBidiWithoutBrowsingContext(handler as never)).toBe(false)
+            expect(await discardBidiWithoutBrowsingContext(handler as never, 10_000)).toBe(false)
             expect(handler.discard).toHaveBeenCalledOnce()
             expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining(`(${error.message}), continue with WebDriver Classic`))
         })
 
-        it('discards the connection of a server that does not answer', async () => {
+        it('discards the connection of a server that does not answer within the given time', async () => {
             vi.useFakeTimers()
             const handler = { browsingContextGetTree: vi.fn().mockReturnValue(new Promise(() => {})), discard: vi.fn() }
-            const result = discardBidiWithoutBrowsingContext(handler as never)
-            await vi.advanceTimersByTimeAsync(10_000)
+            const result = discardBidiWithoutBrowsingContext(handler as never, 30_000)
+            await vi.advanceTimersByTimeAsync(29_999)
+            expect(handler.discard).not.toHaveBeenCalled()
+            await vi.advanceTimersByTimeAsync(1)
             expect(await result).toBe(false)
             expect(handler.discard).toHaveBeenCalledOnce()
-            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('(no answer within 10000ms)'))
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('(no answer within 30000ms)'))
             vi.useRealTimers()
         })
     })
@@ -416,6 +418,8 @@ describe('utils', () => {
                     { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'Chromium' },
                     { platformName: 'iOS', browserName: 'Chrome', 'appium:automationName': 'XCUITest' },
                     { browserName: 'chrome', platformName: 'linux' },
+                    // an `appium:` capability next to an unprefixed one makes the session invalid
+                    { platformName: 'Android', browserName: 'Chrome', automationName: 'UiAutomator2' } as WebdriverIO.Capabilities,
                     { browserName: 'chrome' }
                 ]
                 for (const capabilities of others) {

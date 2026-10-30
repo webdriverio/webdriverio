@@ -414,6 +414,14 @@ describe('BidiCore', () => {
             expect(afterDiscard?.name).toBe('Error')
         })
 
+        it('stays closed after discard when the server closed the socket before', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            listenerOf(handler, 'close')?.(1006)
+            handler.discard()
+            expect(handler.isClosed).toBe(true)
+        })
+
         it('ignores the close event of the socket of an earlier connection', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()

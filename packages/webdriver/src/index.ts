@@ -8,7 +8,7 @@ import { validateConfig } from '@wdio/config'
 import type { Capabilities, Options } from '@wdio/types'
 
 import command from './command.js'
-import { DEFAULTS } from './constants.js'
+import { DEFAULTS, DEFAULT_CONNECT_TIMEOUT } from './constants.js'
 import type { BidiHandler } from './bidi/handler.js'
 import { environment as environmentValue } from './environment.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions, discardBidiWithoutBrowsingContext } from './utils.js'
@@ -17,11 +17,23 @@ import type { Client, AttachOptions, SessionFlags } from './types.js'
 const log = logger('webdriver')
 
 /**
- * a browser session of Appium; a native app session that asks for WebDriver Bidi
- * keeps the events of Appium's own server
+ * Listen to the events of a connected Bidi handler. A browser session of Appium first checks
+ * that the server can run browser commands, else it continues with WebDriver Classic and
+ * drops `webSocketUrl`, so a later `attach()` does not connect again. A native app session
+ * that asks for WebDriver Bidi keeps the events of Appium's own server.
  */
-function isAppiumBrowserSession (isMobile: boolean | undefined, capabilities: WebdriverIO.Capabilities) {
-    return Boolean(isMobile && capabilities.browserName)
+async function listenToBidiEvents (
+    client: Client,
+    handler: BidiHandler,
+    capabilities: WebdriverIO.Capabilities,
+    isMobile: boolean | undefined,
+    checkTimeout: number
+) {
+    if (isMobile && capabilities.browserName && !await discardBidiWithoutBrowsingContext(handler, checkTimeout)) {
+        delete capabilities.webSocketUrl
+        return
+    }
+    handler.socket?.on('message', parseBidiMessage.bind(client))
 }
 
 export default class WebDriver {
@@ -90,11 +102,8 @@ export default class WebDriver {
             /**
              * make sure the Bidi connection is established before returning
              */
-            if (
-                await client._bidiHandler.waitForConnected() &&
-                (!isAppiumBrowserSession(environment.isMobile, capabilities) || await discardBidiWithoutBrowsingContext(client._bidiHandler))
-            ) {
-                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            if (await client._bidiHandler.waitForConnected()) {
+                await listenToBidiEvents(client, client._bidiHandler, capabilities, environment.isMobile, params.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
             }
         }
 
@@ -242,12 +251,9 @@ export default class WebDriver {
         if (isBidi(instance.capabilities || {})) {
             const bidiReqOpts = getBidiRequestOptions(instance.options.strictSSL, instance.options.headers)
             const isConnected = await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
-            if (
-                instance._bidiHandler && isConnected &&
-                (!isAppiumBrowserSession(sessionEnvironmentDetector({ capabilities: newSessionCapabilities, requestedCapabilities: capabilities }).isMobile, newSessionCapabilities) ||
-                    await discardBidiWithoutBrowsingContext(instance._bidiHandler))
-            ) {
-                instance._bidiHandler.socket?.on('message', parseBidiMessage.bind(instance))
+            if (instance._bidiHandler && isConnected) {
+                const { isMobile } = sessionEnvironmentDetector({ capabilities: newSessionCapabilities, requestedCapabilities: capabilities })
+                await listenToBidiEvents(instance, instance._bidiHandler, newSessionCapabilities, isMobile, instance.options.bidiConnectTimeout ?? DEFAULT_CONNECT_TIMEOUT)
             }
         }
 

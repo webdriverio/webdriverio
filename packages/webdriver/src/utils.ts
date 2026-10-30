@@ -190,6 +190,10 @@ function hasAppiumCapability (capabilities: WebdriverIO.Capabilities, name: stri
  * a Chrome browser session on Android through the UiAutomator2 driver of Appium
  */
 function isAppiumAndroidChrome (capabilities: WebdriverIO.Capabilities) {
+    /**
+     * not the unprefixed `automationName`: with an `appium:` capability next to it,
+     * `validateCapabilities` rejects the session
+     */
     const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
     return (
         /^android$/i.test(capabilities.platformName || '') &&
@@ -534,25 +538,22 @@ export function initiateBidi (
 }
 
 /**
- * a server that accepts the socket but never answers must not hold the session start for `bidiResponseTimeout`
- */
-const APPIUM_BIDI_CHECK_TIMEOUT = 10_000
-
-/**
  * Appium (since 2.15) gives its own WebDriver Bidi url to each session that asks for it,
  * unless it forwards the socket to the browser driver. That server has no
  * `browsingContext` or `script` module, so a browser session must use WebDriver Classic.
  *
  * @param  handler  the connected handler of an Appium browser session
+ * @param  timeout  how long to wait for the answer (`bidiConnectTimeout`): a server that never
+ *                  answers must not hold the session start for `bidiResponseTimeout`
  * @return `false` when the connection was discarded
  */
-export async function discardBidiWithoutBrowsingContext (handler: BidiHandler) {
+export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, timeout: number) {
     let timer: ReturnType<typeof setTimeout> | undefined
     try {
         await Promise.race([
             handler.browsingContextGetTree({ maxDepth: 0 }),
             new Promise((_, reject) => {
-                timer = setTimeout(() => reject(new Error(`no answer within ${APPIUM_BIDI_CHECK_TIMEOUT}ms`)), APPIUM_BIDI_CHECK_TIMEOUT)
+                timer = setTimeout(() => reject(new Error(`no answer within ${timeout}ms`)), timeout)
             })
         ])
         return true

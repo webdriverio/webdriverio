@@ -272,18 +272,28 @@ describe('WebDriver', () => {
                 vi.restoreAllMocks()
             })
 
-            const startSession = (capabilities: WebdriverIO.Capabilities) => {
+            const startSession = (capabilities: WebdriverIO.Capabilities, options: Partial<Capabilities.RemoteConfig> = {}) => {
                 vi.mocked(fetch).mockResolvedValueOnce(Response.json({
                     value: { sessionId: 'bidi-session', capabilities: { ...capabilities, webSocketUrl: 'ws://foo/bar' } }
                 }))
-                return WebDriver.newSession({ path: '/', capabilities })
+                return WebDriver.newSession({ path: '/', capabilities, ...options })
             }
 
-            it('checks that the WebDriver Bidi server can run browser commands', async () => {
+            it('checks that the WebDriver Bidi server can run browser commands, within bidiConnectTimeout', async () => {
                 const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(false)
                 const browser = await startSession(appiumCaps)
                 expect(discard).toHaveBeenCalledOnce()
-                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler)
+                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler, DEFAULTS.bidiConnectTimeout.default)
+                await startSession(appiumCaps, { bidiConnectTimeout: 30_000 })
+                expect(discard).toHaveBeenLastCalledWith(expect.anything(), 30_000)
+            })
+
+            it('drops webSocketUrl after a discard, so a later attach does not connect again', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                discard.mockResolvedValueOnce(false)
+                expect((await startSession(appiumCaps)).capabilities.webSocketUrl).toBe(undefined)
+                discard.mockResolvedValueOnce(true)
+                expect((await startSession(appiumCaps)).capabilities.webSocketUrl).toBe('ws://foo/bar')
             })
 
             it('does not check a desktop browser session', async () => {
@@ -475,8 +485,9 @@ describe('WebDriver', () => {
                 ;(session as any)._bidiHandler = handler
                 const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(usable)
                 await WebDriver.reloadSession(session, capabilities)
-                expect(discard).toHaveBeenCalledWith(handler)
+                expect(discard).toHaveBeenCalledWith(handler, DEFAULTS.bidiConnectTimeout.default)
                 expect(on).toHaveBeenCalledTimes(usable ? 1 : 0)
+                expect(session.capabilities.webSocketUrl).toBe(usable ? 'ws://foo/bar' : undefined)
                 discard.mockRestore()
             }
         })
