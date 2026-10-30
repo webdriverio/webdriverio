@@ -699,6 +699,7 @@ describe('deleteSession clean up', () => {
 describe('user command parent', () => {
     // a listener of the user command events: with no listener, the user command sends no events
     const bidiScope = Object.assign(new FakeClient(), { isBidi: true, listenerCount: () => 1 })
+    Object.assign(bidiScope.options, { userCommandEvents: true })
 
     beforeEach(() => {
         setUserCommandStore(new AsyncLocalStorage())

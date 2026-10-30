@@ -13,7 +13,7 @@ registerUserCommands(['getTitle'])
 
 describe('BaseReporter user command events', () => {
     it('sends no user command event for a command that a reporter runs', async () => {
-        const browser = { isBidi: true, options: {}, emit: vi.fn() }
+        const browser = { isBidi: true, options: { userCommandEvents: true }, emit: vi.fn() }
         const getTitle = () => runUserCommand(browser, 'getTitle', [], async () => 'title')
         let pending: Promise<unknown> | undefined
         const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', { browserName: 'foo' })

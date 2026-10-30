@@ -20,6 +20,8 @@ interface UserCommandEvent { id: number, command: string, body: unknown[], proto
 
 async function bidiSession () {
     const browser = await remote({ capabilities: { browserName: 'bidi' } })
+    // a BiDi session without `wdio:experimentalBiDiCommands` sends user commands only with the option
+    browser.options.userCommandEvents = true
     vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('top-context')
     vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue(undefined as never)
     vi.spyOn(browser, 'browsingContextNavigate').mockResolvedValue({ navigation: null, url: 'https://example.com/' } as never)
@@ -106,6 +108,17 @@ describe('user command events', () => {
         await browser.action('pointer').move({ x: 1, y: 2 }).down().up().perform()
         await browser.url('https://example.com')
         expect(events).toEqual([])
+    })
+
+    it('sends nothing in a BiDi session without the option and without wdio:experimentalBiDiCommands', async () => {
+        const browser = await bidiSession()
+        delete browser.options.userCommandEvents
+        const events = recordEvents(browser)
+        await browser.url('https://example.com')
+        expect(events).toEqual([])
+        browser.options.userCommandEvents = true
+        await browser.url('https://example.com')
+        expect(commandsOf(events)).toEqual([['userCommand', 'url'], ['userResult', 'url']])
     })
 
     it('sends one actions pair with the action types of each builder', async () => {
@@ -329,6 +342,7 @@ describe('user command events of a browsing context', () => {
             beforeCommand: [(name: string) => { calls.push(`before ${name}`) }],
             afterCommand: [(name: string) => { calls.push(`after ${name}`) }]
         })
+        browser.options.userCommandEvents = true
         vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('top-context')
         vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue(undefined as never)
         const events = recordEvents(browser)

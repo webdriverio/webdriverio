@@ -14,7 +14,7 @@ describe('parseBidiMessage', () => {
     it('runs the listeners of an event outside of the user command that opened the socket', async () => {
         setUserCommandStore(new AsyncLocalStorage())
         registerUserCommands(['reloadSession', 'getText'])
-        const browser = Object.assign(new EventEmitter(), { isBidi: true, options: {} })
+        const browser = Object.assign(new EventEmitter(), { isBidi: true, options: { userCommandEvents: true } })
         const commands: string[] = []
         browser.on('userCommand', (payload: { command: string }) => commands.push(payload.command))
 
