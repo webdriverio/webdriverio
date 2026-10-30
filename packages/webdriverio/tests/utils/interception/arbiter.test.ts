@@ -390,6 +390,24 @@ describe('RequestArbiter', () => {
             expect(unhandled).not.toHaveBeenCalled()
         })
 
+        it.each([
+            ['at once', (value: Decision) => value],
+            ['after a wait', (value: Decision) => Promise.resolve(value)]
+        ])('fails the request and logs when picking the winner throws %s', async (_, settle) => {
+            const broken = decision('answer', { age: 1 })
+            Object.defineProperty(broken, 'answersEarly', { get () { throw new Error('broken pick') } })
+            arbiterOf(asBrowser(browser)).add(candidate(1, 'int-a', () => settle(broken)))
+
+            expect(() => emit(browser, 'beforeRequestSent', { intercepts: ['int-a'] })).not.toThrow()
+            await flush()
+
+            expect(broken.run).not.toHaveBeenCalled()
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(bidiCalls(browser)).toBe(1)
+            expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken pick'))
+            expect(unhandled).not.toHaveBeenCalled()
+        })
+
         it('keeps releasing when observe or decide throws', async () => {
             const broken = candidate(1, 'int-a', () => { throw new Error('broken decide') })
             broken.observe.mockImplementation(() => { throw new Error('broken observe') })

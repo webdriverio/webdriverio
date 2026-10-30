@@ -50,10 +50,7 @@ export interface Candidate {
 
 type Entry = [Candidate, Decision | undefined]
 
-/**
- * `< 0` when `a` wins: a mock that acts beats one that lets the request through,
- * then a scoped mock beats a session-wide one, then the older mock wins.
- */
+// `< 0` when `a` wins: acting beats letting through, then scoped beats session-wide, then older wins.
 export function rank (a: Decision, b: Decision): number {
     const tier = (decision: Decision) => decision.kind === 'pass' ? 1 : 0
     return (tier(a) - tier(b)) || (Number(b.scoped) - Number(a.scoped)) || (a.age - b.age)
@@ -73,10 +70,7 @@ function isNoSuchRequest (err: unknown) {
 
 const arbiters = new WeakMap<WebdriverIO.Browser, RequestArbiter>()
 
-/**
- * The arbiter of a browser object. Each multi-remote instance and each `attach()`
- * client has its own.
- */
+// One per browser object: each multi-remote instance and each `attach()` client has its own.
 export function arbiterOf (browser: WebdriverIO.Browser): RequestArbiter {
     let arbiter = arbiters.get(browser)
     if (!arbiter) {
@@ -86,11 +80,7 @@ export function arbiterOf (browser: WebdriverIO.Browser): RequestArbiter {
     return arbiter
 }
 
-/**
- * Collects one decision per mock for a blocked request and releases it once.
- * The driver lists every matching intercept in one event, and only the first
- * resume command counts, so the mocks must not each release it.
- */
+// The driver lists every matching intercept in one event and only the first resume command counts.
 export class RequestArbiter {
     #browser: WebdriverIO.Browser
     #candidates = new Set<Candidate>()
@@ -157,10 +147,21 @@ export class RequestArbiter {
         const asked = live.filter((candidate) => intercepts.includes(candidate.interceptId))
         const decisions = asked.map((candidate) => this.#decide(candidate, phase, event))
         if (decisions.some(isPromise)) {
-            void Promise.all(decisions).then((settled) => this.#pick(phase, event, asked.map((c, i) => [c, settled[i]])))
+            void Promise.all(decisions)
+                .then((settled) => this.#pick(phase, event, asked.map((c, i) => [c, settled[i]])))
+                .catch((err) => this.#failPick(requestId, err))
             return
         }
-        this.#pick(phase, event, asked.map((c, i) => [c, decisions[i] as Decision | undefined]))
+        try {
+            this.#pick(phase, event, asked.map((c, i) => [c, decisions[i] as Decision | undefined]))
+        } catch (err) {
+            this.#failPick(requestId, err)
+        }
+    }
+
+    #failPick (requestId: string, err: unknown) {
+        log.error(`Failed to pick the mock for request ${requestId}, failing it: ${messageOf(err)}`)
+        void this.#browser.networkFailRequest({ request: requestId }).catch(this.#onReleaseError)
     }
 
     #decide (candidate: Candidate, phase: Phase, event: NetworkEvent) {
