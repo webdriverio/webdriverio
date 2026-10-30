@@ -30,7 +30,8 @@ const SET_DIRECTLY = ['range', 'date', 'datetime-local', 'month', 'week', 'time'
  * picking a value with the mouse does. Pass the value in the input's own format, e.g. `2026-10-04` for a date
  * or `14:30` for a time. The browser corrects values that don't fit, like a range input does with a value
  * between two steps; read the result with [`getValue`](/docs/api/element/getValue). A value the browser
- * can't parse at all, like `garbage` for a date or a range, throws an error and leaves the previous value in place.
+ * can't parse at all, like `garbage` for a date or a range, or an empty value for a range, throws an error and
+ * leaves the previous value in place.
  *
  * <example>
     :setValue.js
@@ -67,9 +68,9 @@ export async function setValue (
             if (elem.disabled || elem.readOnly) {
                 return 'skipped'
             }
-            // a range input falls back to its midpoint for a value that isn't a finite number, which a value
-            // inside the range can't be told from, so check it before the assignment
-            if (elem.type === 'range' && newValue !== '' && !(/^-?(\d+|\d*\.\d+)([eE][-+]?\d+)?$/.test(newValue) && Number.isFinite(Number(newValue)))) {
+            // a range input falls back to its midpoint for a value that isn't a finite number (an empty one too,
+            // as a range can't be empty), which a value inside the range can't be told from, so check it first
+            if (elem.type === 'range' && !(/^-?(\d+|\d*\.\d+)([eE][-+]?\d+)?$/.test(newValue) && Number.isFinite(Number(newValue)))) {
                 return 'rejected'
             }
             const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!

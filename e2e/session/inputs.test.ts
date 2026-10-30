@@ -97,6 +97,45 @@ describe('wdio session on picked inputs', () => {
         expect(res.stderr).toContain('2026-10-04')
     })
 
+    it('rejects a date in the wrong format given through its label', async () => {
+        await load()
+        const res = await project.run(['fill', 'label:has(#start)', '10/04/2026'])
+        expect(res.code).not.toBe(0)
+        expect(res.stderr).toContain('did not take "10/04/2026"')
+        expect(res.stderr).toContain('2026-10-04')
+    })
+
+    it('rejects a range value that is not a number', async () => {
+        await load()
+        // not the midpoint, which is where the browser puts a value it can't parse
+        await run('exec', '-e', 'await browser.execute(() => { volume.value = \'70\' })')
+        for (const value of ['loud', '']) {
+            const res = await project.run(['fill', '#volume', value])
+            expect(res.code).not.toBe(0)
+            expect(res.stderr).toContain(`did not take ${JSON.stringify(value)}; it has "70"`)
+        }
+    })
+
+    it('rejects a date the page puts back', async () => {
+        await load()
+        await run('exec', '-e', 'await browser.execute(() => start.addEventListener(\'input\', () => { start.value = \'2026-01-01\' }))')
+        const res = await project.run(['fill', '#start', '2026-10-04'])
+        expect(res.code).not.toBe(0)
+        expect(res.stderr).toContain('did not take "2026-10-04"; it has "2026-01-01"')
+    })
+
+    it('reports a color the input stores in its own format, and rejects an empty one', async () => {
+        await load()
+        await run('exec', '-e', 'await browser.execute(() => document.body.insertAdjacentHTML(\'beforeend\', \'<input id="paint" type="color">\'))')
+        const res = await run('fill', '#paint', '#FF8800')
+        expect(res.stdout).toContain('to #ff8800')
+        expect(await read('paint.value')).toBe('#ff8800')
+
+        const empty = await project.run(['fill', '#paint', ''])
+        expect(empty.code).not.toBe(0)
+        expect(empty.stderr).toContain('did not take ""; it has "#000000"')
+    })
+
     it('reports where an ARIA slider stops at its bound', async () => {
         await load()
         const res = await project.run(['fill', '#age', '99'])
