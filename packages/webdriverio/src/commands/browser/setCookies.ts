@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, parallelCookieScope } from '../../utils/cookiePartition.js'
+import { getCookiePartition, getWindowInfo, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -52,25 +52,15 @@ const log = logger('webdriverio')
  * @param {String=}       cookie.name     The name of the cookie.
  * @param {String=}       cookie.value    The cookie value.
  * @param {String=}       cookie.path     The cookie path. Defaults to "/" if omitted when adding a cookie.
- * @param {String=}       cookie.domain   The domain the cookie is visible to. Defaults to the current browsing context’s active document’s URL domain if omitted when adding a cookie.
+ * @param {String=}       cookie.domain   The domain the cookie is visible to. Defaults to the current browsing context’s active document’s URL domain if omitted when adding a cookie. With `wdio:experimentalBiDiCommands` and in a parallel test, the domain goes to WebDriver BiDi as given: `example.com` is a host-only cookie, `.example.com` also goes to the subdomains.
  * @param {Boolean=}      cookie.secure   Whether the cookie is a secure cookie. Defaults to false if omitted when adding a cookie.
  * @param {Boolean=}      cookie.httpOnly Whether the cookie is an HTTP only cookie. Defaults to false if omitted when adding a cookie.
  * @param {Number=}       cookie.expiry   When the cookie expires, specified in seconds since Unix Epoch. Must not be set if omitted when adding a cookie.
- * @param {String=}       cookie.sameSite Whether the cookie applies to a SameSite policy. Defaults to None if omitted when adding a cookie. Can be set to either "Lax" or "Strict".
+ * @param {String=}       cookie.sameSite Whether the cookie applies to a SameSite policy. Defaults to None if omitted when adding a cookie. Can be set to "Lax", "Strict" or "None", in any case.
  * @uses protocol/addCookie
  * @type cookie
  *
  */
-/** the JSDoc and WebDriver Classic use "Lax" / "Strict"; WebDriver BiDi only accepts lowercase values */
-function toBidiCookie(cookie: Cookie, domain: string): remote.StoragePartialCookie {
-    return {
-        ...cookie,
-        domain,
-        ...(typeof cookie.sameSite === 'string' ? { sameSite: cookie.sameSite.toLowerCase() as remote.NetworkSameSite } : {}),
-        value: { type: 'string', value: cookie.value }
-    }
-}
-
 export async function setCookies(
     this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     cookieObjs: Cookie | Cookie[]
@@ -86,7 +76,13 @@ export async function setCookies(
      */
     if (!this.isBidi) {
         const classic = isBrowsingContext(this) ? this.browser : this
-        await Promise.all(cookieObjsList.map(cookieObj => classic.addCookie(cookieObj)))
+        await Promise.all(cookieObjsList.map(cookieObj => classic.addCookie(toClassicCookie(cookieObj))))
+        return
+    }
+
+    const scope = await windowCookieScope(this)
+    if (scope) {
+        await setWindowCookies(scope, cookieObjsList)
         return
     }
 
@@ -107,35 +103,17 @@ export async function setCookies(
     }
 
     /**
-     * A parallel test owns its browsing context. Falling back to addCookie would
-     * act on the session's main window, so BiDi errors propagate.
-     */
-    const parallelScope = await parallelCookieScope(this)
-    if (parallelScope) {
-        const defaultDomain = cookieObjsList.every((cookie) => cookie.domain)
-            ? undefined
-            : new URL(await this.getUrl()).hostname
-        await Promise.all(cookieObjsList.map((cookie) => (
-            this.storageSetCookie({
-                cookie: toBidiCookie(cookie, cookie.domain || defaultDomain!),
-                partition: parallelScope.partition
-            })
-        )))
-        return
-    }
-
-    /**
      * only fetch current url of browsing context if not all cookies have a domain set
      */
     let url: URL
     try {
         url = new URL(await this.getUrl())
         if (url.origin === 'null') {
-            await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+            await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(toClassicCookie(cookieObj))))
             return
         }
     } catch {
-        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(toClassicCookie(cookieObj))))
         return
     }
 
@@ -148,7 +126,51 @@ export async function setCookies(
         )))
     } catch (err) {
         log.warn(`BiDi setCookies failed, falling back to classic: ${(err as Error).message}`)
-        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(toClassicCookie(cookieObj))))
     }
     return
+}
+
+/**
+ * A window of a parallel test, or a session with `wdio:experimentalBiDiCommands`: falling back to
+ * addCookie would act on the focused window, so BiDi errors propagate.
+ */
+async function setWindowCookies(scope: WindowCookieScope, cookies: Cookie[]) {
+    const host = cookies.every((cookie) => cookie.domain) ? undefined : (await getWindowInfo(scope)).url?.hostname
+    const bidiCookies = cookies.map((cookie) => {
+        const domain = cookie.domain || host
+        if (!domain) {
+            throw new Error(`Can not set the cookie "${cookie.name}" without a domain: the page has no host (for example about:blank). Open a page first, or set the "domain" of the cookie.`)
+        }
+        return toBidiCookie(cookie, domain)
+    })
+    await Promise.all(bidiCookies.map((cookie) => scope.browser.storageSetCookie({ cookie, partition: scope.partition })))
+}
+
+/**
+ * The two W3C protocols spell sameSite differently, and each one rejects the other spelling:
+ * WebDriver Classic uses "Strict" / "Lax" / "None", WebDriver BiDi uses "strict" / "lax" / "none" / "default".
+ * The commands accept both and send each protocol its own spelling.
+ */
+const CLASSIC_SAME_SITE: Record<string, 'Strict' | 'Lax' | 'None'> = { strict: 'Strict', lax: 'Lax', none: 'None' }
+
+function toClassicCookie(cookie: Cookie): Cookie {
+    if (typeof cookie.sameSite !== 'string') {
+        return cookie
+    }
+    const { sameSite, ...rest } = cookie
+    // Classic has no "default": leave it unset, as the spec says for no same site policy
+    if (sameSite.toLowerCase() === 'default') {
+        return rest
+    }
+    return { ...rest, sameSite: CLASSIC_SAME_SITE[sameSite.toLowerCase()] ?? sameSite }
+}
+
+function toBidiCookie({ sameSite, ...cookie }: Cookie, domain: string): remote.StoragePartialCookie {
+    return {
+        ...cookie,
+        domain,
+        ...(typeof sameSite === 'string' ? { sameSite: sameSite.toLowerCase() as remote.NetworkSameSite } : {}),
+        value: { type: 'string', value: cookie.value }
+    }
 }

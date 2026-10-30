@@ -2,7 +2,7 @@ import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, it, beforeEach, beforeAll, afterEach, vi, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore } from '../../../src/session/context.js'
+import { getContextManager, setParallelContextStore } from '../../../src/session/context.js'
 
 const parallelStore = new AsyncLocalStorage<string>()
 
@@ -156,7 +156,7 @@ describe('deleteCookies', () => {
             ])
         })
 
-        it('should delete only the cookies of the page path and of a secure page inside a parallel scope', async () => {
+        it('should delete only the cookies of the page path, also secure ones, inside a parallel scope', async () => {
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'http://app.example.com/page', userContext: 'uc-1', children: [] }]
             } as any)
@@ -168,9 +168,25 @@ describe('deleteCookies', () => {
                 ]
             })
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
+            const partition = { type: 'context', context: 'ctx-1' }
             expect(storageDeleteCookies.mock.calls).toEqual([
-                [{ filter: { name: 'root', domain: 'app.example.com', path: '/' }, partition: { type: 'context', context: 'ctx-1' } }]
+                [{ filter: { name: 'root', domain: 'app.example.com', path: '/' }, partition }],
+                [{ filter: { name: 'secure', domain: 'app.example.com', path: '/' }, partition }]
             ])
+        })
+
+        it('should delete a cookie once when two filters match it inside a parallel scope', async () => {
+            const page = { name: 'page', domain: 'webdriver.io', path: '/' }
+            storageGetCookies.mockResolvedValueOnce({ cookies: [page] }).mockResolvedValueOnce({ cookies: [page] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies(['page', { domain: 'webdriver.io' }]))
+            expect(storageDeleteCookies).toBeCalledTimes(1)
+        })
+
+        it.each([undefined, null, 2])('should reject the cookie filter entry %s inside a parallel scope', async (entry) => {
+            await expect(parallelStore.run('ctx-1', () => browser.deleteCookies([entry as never])))
+                .rejects.toThrow('Invalid value for cookie filter')
+            expect(storageGetCookies).not.toBeCalled()
+            expect(storageDeleteCookies).not.toBeCalled()
         })
 
         // WebDriver Classic: a page with no host has no associated cookies; the jar is shared with other tests
@@ -263,6 +279,39 @@ describe('deleteCookies', () => {
             await expect(browser.deleteCookies([2]))
                 .rejects
                 .toEqual(new Error('Invalid value for cookie filter, expected \'string\' or \'remote.StorageCookieFilter\' but found "number"'))
+        })
+
+        it('should reject a null cookie filter entry', async () => {
+            await expect(browser.deleteCookies([null as never]))
+                .rejects.toThrow('Invalid value for cookie filter, expected \'string\' or \'remote.StorageCookieFilter\' but found "null"')
+        })
+
+        describe('with wdio:experimentalBiDiCommands', () => {
+            beforeEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = true
+                vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('ctx-1')
+            })
+
+            afterEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = false
+                vi.mocked(getContextManager(browser).getCurrentContext).mockRestore()
+            })
+
+            it('should delete the cookies of the page in the jar of the current window without classic fallback', async () => {
+                const deleteAllCookies = vi.spyOn(browser, 'deleteAllCookies')
+                deleteAllCookies.mockClear()
+                storageGetCookies.mockResolvedValueOnce({ cookies: [
+                    { name: 'page', domain: 'webdriver.io', path: '/' },
+                    { name: 'other', domain: 'other.example', path: '/' }
+                ] })
+                await browser.deleteCookies()
+                const partition = { type: 'context', context: 'ctx-1' }
+                expect(storageGetCookies).toBeCalledWith({ partition })
+                expect(storageDeleteCookies.mock.calls).toEqual([
+                    [{ filter: { name: 'page', domain: 'webdriver.io', path: '/' }, partition }]
+                ])
+                expect(deleteAllCookies).not.toBeCalled()
+            })
         })
 
         it('should fallback to classic if storageGetCookies returns empty', async () => {

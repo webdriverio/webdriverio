@@ -2,7 +2,7 @@ import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, it, vi, afterEach, beforeEach, beforeAll, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore } from '../../../src/session/context.js'
+import { getContextManager, setParallelContextStore } from '../../../src/session/context.js'
 
 const parallelStore = new AsyncLocalStorage<string>()
 
@@ -144,36 +144,30 @@ describe('getCookies', () => {
             storageGetCookies.mockClear()
         })
 
+        const page = (url: string, userContext = 'uc-1') => vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+            contexts: [{ context: 'ctx-1', url, userContext, children: [] }]
+        } as any)
+        const cookie = (name: string, extra: Record<string, unknown>) => ({ name, value: { type: 'string', value: name }, path: '/', ...extra })
+        const hostCookies = {
+            cookies: [
+                cookie('page', { domain: 'app.example.com' }),
+                cookie('parent', { domain: '.example.com' }),
+                cookie('other', { domain: 'other.example' })
+            ]
+        }
+
         it('should read the context partition on about:blank without classic fallback', async () => {
-            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
-            } as any)
-            const getUrl = vi.spyOn(browser, 'getUrl')
-            getUrl.mockClear()
-            getUrl.mockResolvedValue('about:blank')
+            page('about:blank')
             const getAllCookies = vi.spyOn(browser, 'getAllCookies')
             getAllCookies.mockClear()
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
             expect(getAllCookies).not.toBeCalled()
-            getUrl.mockResolvedValue('https://webdriver.io')
-            // WebDriver Classic: a page with no host has no associated cookies
+            // a page with no host has no cookies
             expect(cookies).toEqual([])
         })
 
-        // a sourceOrigin is a partition key, not a filter: Chrome reads it as a partitioned (CHIPS) jar
-        const hostCookies = {
-            cookies: [
-                { name: 'page', domain: 'app.example.com', value: { type: 'string', value: '1' } },
-                { name: 'parent', domain: '.example.com', value: { type: 'string', value: '2' } },
-                { name: 'other', domain: 'other.example', value: { type: 'string', value: '3' } }
-            ]
-        }
-
         it('should read the jar of the test window and keep the cookies of the page host inside a parallel scope', async () => {
-            const getTree = vi.spyOn(browser, 'browsingContextGetTree')
-            getTree.mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
-            } as any)
+            const getTree = page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce(hostCookies)
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
             expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
@@ -181,21 +175,23 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['page', 'parent'])
         })
 
-        it('should keep the cookies of an explicit sourceOrigin inside a parallel scope', async () => {
-            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
-            } as any)
+        it('should read the BiDi partition of an explicit sourceOrigin in the user context of the window inside a parallel scope', async () => {
+            page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce(hostCookies)
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies(undefined, 'https://other.example'))
-            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' } })
-            expect(cookies.map((c) => c.name)).toEqual(['other'])
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', sourceOrigin: 'https://other.example', userContext: 'uc-1' }
+            })
+            expect(cookies.map((c) => c.name)).toEqual(['page', 'parent', 'other'])
         })
 
-        // WebDriver Classic "associated cookies" (RFC 6265 5.4): domain, path and secure match
-        const page = (url: string) => vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-            contexts: [{ context: 'ctx-1', url, userContext: 'uc-1', children: [] }]
-        } as any)
-        const cookie = (name: string, extra: Record<string, unknown>) => ({ name, value: { type: 'string', value: name }, path: '/', ...extra })
+        it('should use the page for an empty sourceOrigin inside a parallel scope', async () => {
+            page('https://app.example.com/page')
+            storageGetCookies.mockResolvedValueOnce(hostCookies)
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies(undefined, ''))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' } })
+            expect(cookies.map((c) => c.name)).toEqual(['page', 'parent'])
+        })
 
         it('should keep only the cookies of the page path inside a parallel scope', async () => {
             page('https://app.example.com/page')
@@ -209,14 +205,11 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['root', 'exact'])
         })
 
-        it('should keep a secure cookie only on a secure page inside a parallel scope', async () => {
-            const jar = { cookies: [cookie('plain', { domain: 'app.example.com' }), cookie('secure', { domain: 'app.example.com', secure: true })] }
+        it('should not filter by secure, as WebDriver BiDi and Puppeteer', async () => {
             page('http://app.example.com/')
-            storageGetCookies.mockResolvedValueOnce(jar)
-            expect((await parallelStore.run('ctx-1', () => browser.getCookies())).map((c) => c.name)).toEqual(['plain'])
-            page('http://localhost:8080/')
-            storageGetCookies.mockResolvedValueOnce({ cookies: jar.cookies.map((c) => ({ ...c, domain: 'localhost' })) })
-            expect((await parallelStore.run('ctx-1', () => browser.getCookies())).map((c) => c.name)).toEqual(['plain', 'secure'])
+            storageGetCookies.mockResolvedValueOnce({ cookies: [cookie('plain', { domain: 'app.example.com' }), cookie('secure', { domain: 'app.example.com', secure: true })] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(cookies.map((c) => c.name)).toEqual(['plain', 'secure'])
         })
 
         it('should match a host-only cookie only on its own host inside a parallel scope', async () => {
@@ -229,23 +222,71 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['parentDomain'])
         })
 
+        it('should match a domain cookie on an IP address host only by the same address', async () => {
+            page('http://10.0.0.1/')
+            storageGetCookies.mockResolvedValueOnce({ cookies: [
+                cookie('same', { domain: '10.0.0.1' }),
+                cookie('suffix', { domain: '.0.0.1' })
+            ] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(cookies.map((c) => c.name)).toEqual(['same'])
+        })
+
+        it('should keep a partitioned cookie of the page host', async () => {
+            page('https://app.example.com/')
+            const partitioned = cookie('chips', { domain: 'app.example.com', 'goog:partitionKey': { topLevelSite: 'https://other.example' } })
+            storageGetCookies.mockResolvedValueOnce({ cookies: [partitioned] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(cookies).toEqual([{ ...partitioned, value: 'chips' }])
+        })
+
         it('should keep all cookies of the jar for a null sourceOrigin inside a parallel scope', async () => {
+            const getTree = page('https://app.example.com/page')
+            getTree.mockClear()
             storageGetCookies.mockResolvedValueOnce(hostCookies)
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies(undefined, null))
             expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' } })
+            expect(getTree).not.toBeCalled()
             expect(cookies.map((c) => c.name)).toEqual(['page', 'parent', 'other'])
         })
 
         it('should not fall back to classic on an empty origin partition inside a parallel scope', async () => {
-            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', children: [] }]
-            } as any)
+            page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce({ cookies: [] })
             const getAllCookies = vi.spyOn(browser, 'getAllCookies')
             getAllCookies.mockClear()
             const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
             expect(getAllCookies).not.toBeCalled()
             expect(cookies).toEqual([])
+        })
+
+        describe('with wdio:experimentalBiDiCommands', () => {
+            beforeEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = true
+                vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('ctx-1')
+            })
+
+            afterEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = false
+                vi.mocked(getContextManager(browser).getCurrentContext).mockRestore()
+            })
+
+            it('should read the jar of the current window and keep the cookies of the page host', async () => {
+                page('https://app.example.com/page')
+                storageGetCookies.mockResolvedValueOnce(hostCookies)
+                const cookies = await browser.getCookies()
+                expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' } })
+                expect(cookies.map((c) => c.name)).toEqual(['page', 'parent'])
+            })
+
+            it('should not fall back to classic when BiDi fails', async () => {
+                page('https://app.example.com/page')
+                storageGetCookies.mockRejectedValueOnce(new Error('boom'))
+                const getAllCookies = vi.spyOn(browser, 'getAllCookies')
+                getAllCookies.mockClear()
+                await expect(browser.getCookies()).rejects.toThrow('boom')
+                expect(getAllCookies).not.toBeCalled()
+            })
         })
 
         it('should return all cookies', async () => {
