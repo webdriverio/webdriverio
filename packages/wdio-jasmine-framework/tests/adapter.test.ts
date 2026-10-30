@@ -298,6 +298,15 @@ test('gives the test hooks the spec file of the suite of the test', async () => 
     expect(adapter.prepareMessage('afterTest').file).toBe('/project/a.spec.js')
 })
 
+test('gives a test outside every suite of grouped spec files the first spec file, as the hook messages do', async () => {
+    const adapter = new JasmineAdapter('0-2', { beforeHook: [], afterHook: [] } as any, ['/foo/a.test.js', 'file:///foo/b.test.js'], { browserName: 'chrome' } as any, wdioReporter)
+    await adapter.init()
+    await adapter.run()
+    adapter['_reporter'].specStarted({ id: 'top-level', description: 'top-level', fullName: 'top-level', failedExpectations: [], passedExpectations: [], filename: '/wdio/utils/build/index.js' } as any)
+    // @ts-ignore outdated types
+    expect(adapter['_lastTest'].file).toBe('/foo/a.test.js')
+})
+
 test('customSpecFilter', () => {
     const specMock = {
         getFullName: () => 'my test @smoke',

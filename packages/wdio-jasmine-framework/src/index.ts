@@ -253,10 +253,9 @@ class JasmineAdapter {
             self._lastTest = test
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.start = new Date().getTime()
-            // the file of its suite; outside every suite, the spec file of a worker with one
-            const [spec, ...others] = self._specs
+            // the file of its suite; outside every suite, the first spec file, as in the hook messages
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.file = self._reporter.suiteFile ?? (spec && !others.length ? specPath(spec) : undefined)
+            self._lastTest.file = self._reporter.suiteFile ?? specPath(self._specs[0])
             /**
              * Jasmine 6's spec-started event has no expectation lists. Own the
              * arrays so afterTest can see failures recorded during the spec.
