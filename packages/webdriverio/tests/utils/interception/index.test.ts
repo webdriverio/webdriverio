@@ -2460,6 +2460,57 @@ describe('WebDriverInterception', () => {
             expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         })
 
+        const responseOf = (request = 123) => ({
+            ...blockedBy(['mock-id-1']),
+            request: { request, url: TARGET_URL, method: 'GET', headers: [] },
+            response: { headers: [], status: 200 }
+        })
+
+        it('does not abort the response of a request that a requestOnce() before the abortOnce() let through', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const mock = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+            mock.requestOnce({ method: 'POST' }).abortOnce()
+
+            browser.emit('network.beforeRequestSent', { ...blockedBy(['mock-id-1']), request: { request: 123, url: TARGET_URL, method: 'GET', headers: [] } })
+            browser.emit('network.responseStarted', responseOf(123))
+            browser.emit('network.beforeRequestSent', { ...blockedBy(['mock-id-1']), request: { request: 124, url: TARGET_URL, method: 'GET', headers: [] } })
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 124 })
+        })
+
+        it('does not abort the response of a request that was sent before abortOnce() was called', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const mock = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+
+            browser.emit('network.beforeRequestSent', { ...blockedBy(['mock-id-1']), request: { request: 123, url: TARGET_URL, method: 'GET', headers: [] } })
+            mock.abortOnce()
+            browser.emit('network.responseStarted', responseOf(123))
+            browser.emit('network.beforeRequestSent', { ...blockedBy(['mock-id-1']), request: { request: 124, url: TARGET_URL, method: 'GET', headers: [] } })
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 124 })
+        })
+
+        it('does not let a younger abort fail the response of a request that an older request() overwrite let through', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const [older, younger] = await initiateOverlappingMocks(browser)
+            older.request({ method: 'POST' })
+            younger.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            browser.emit('network.responseStarted', { ...blockedBy(['mock-id-1', 'mock-id-2']), response: { headers: [], status: 200 } })
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+            expect(browser.networkFailRequest).not.toHaveBeenCalled()
+            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+        })
+
         it('lets a younger mock that answers win over an older one that only lets the request through', async () => {
             const browser = getBrowserMockWithUniqueIntercepts()
             const [, answering] = await initiateOverlappingMocks(browser)
@@ -2655,7 +2706,9 @@ describe('WebDriverInterception', () => {
                 vi.mocked(browser.networkGetData).mockReturnValue(lookup)
                 const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
                 await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser, SCOPE)
-                sessionWide.respondOnce({ from: 'session-wide' }, { fetchResponse: false })
+                sessionWide
+                    .respondOnce({ from: 'early' }, { fetchResponse: false })
+                    .respondOnce({ from: 'with the response' })
                 const events: string[] = []
                 sessionWide.on('overwrite', ({ request }) => events.push(`overwrite ${request.request}`))
                 sessionWide.on('continue', (requestId) => events.push(`continue ${requestId}`))
@@ -2666,12 +2719,15 @@ describe('WebDriverInterception', () => {
                 resolveBody('other-body')
                 await lookup
                 await waitForAsyncHandlers()
+                // 123 was not answered early, so its response still goes to the mocks
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1', 123))
+                await waitForAsyncHandlers()
 
-                expect(respondedWith(browser)).toEqual(['session-wide'])
-                expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({ request: 124 }))
+                expect(vi.mocked(browser.networkProvideResponse).mock.calls.map(([{ request }]) => request)).toEqual([124, 123])
+                expect(respondedWith(browser)).toEqual(['early', 'with the response'])
                 expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
                 expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
-                expect(events).toEqual(['overwrite 124', 'continue 123'])
+                expect(events).toEqual(['overwrite 124', 'continue 123', 'overwrite 123'])
             })
 
             it('lets the session-wide mock answer when the scoped mock is restored while it waits', async () => {
@@ -2875,6 +2931,23 @@ describe('WebDriverInterception', () => {
                 expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
                 expect(respondedWith(browser)).toEqual(['continued'])
                 expect(failed).toEqual([123])
+            })
+
+            it('does not abort the response of a request that a scoped request() overwrite let through', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, {}, browser, SCOPE)
+                sessionWide.abort()
+                scoped.request({ method: 'POST' })
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+
+                expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+                expect(browser.networkFailRequest).not.toHaveBeenCalled()
+                expect(respondedWith(browser)).toEqual(['continued'])
             })
 
             it('lets the scoped mock answer a matching statusCode over a session-wide abort', async () => {

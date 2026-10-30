@@ -28,17 +28,14 @@ export interface Decision {
      */
     age: number
     /**
-     * `network.provideResponse` in `beforeRequestSent`
+     * the BiDi call of this mock; takes its once entry here. It calls `answeredEarly`
+     * right before it sends `network.provideResponse` in `beforeRequestSent`
      */
-    answersEarly?: boolean
-    /**
-     * the BiDi call of this mock; takes its once entry here
-     */
-    run (): Promise<unknown>
+    run (answeredEarly: () => void): Promise<unknown>
     /**
      * emits `continue`, nothing else
      */
-    lose (): void
+    lose (winner: Decision): void
 }
 
 export interface Candidate {
@@ -188,24 +185,29 @@ export class RequestArbiter {
         }
 
         const [[, winner], ...losers] = decided
-        if (phase === 'beforeRequestSent' && winner.answersEarly) {
-            this.#answeredHops.set(requestId, event.redirectCount)
-            if (this.#answeredHops.size > MAX_ANSWERED_HOPS) {
-                this.#answeredHops.delete(this.#answeredHops.keys().next().value!)
-            }
-        }
-        this.#run(winner, requestId)
+        this.#run(winner, requestId, () => phase === 'beforeRequestSent' && this.#recordAnsweredHop(requestId, event.redirectCount))
 
         for (const [, loser] of losers) {
             try {
-                loser.lose()
+                loser.lose(winner)
             } catch (err) {
                 log.error(`A mock failed to give way on request ${requestId}: ${messageOf(err)}`)
             }
         }
     }
 
-    #run (winner: Decision, requestId: string) {
+    // the record is set before the answer is sent: the next event of the request can come before the reply
+    #recordAnsweredHop (requestId: string, redirectCount: number | undefined) {
+        if (redirectCount === undefined) {
+            return
+        }
+        this.#answeredHops.set(requestId, redirectCount)
+        if (this.#answeredHops.size > MAX_ANSWERED_HOPS) {
+            this.#answeredHops.delete(this.#answeredHops.keys().next().value!)
+        }
+    }
+
+    #run (winner: Decision, requestId: string, answeredEarly: () => void) {
         const onError = (err: unknown) => {
             this.#answeredHops.delete(requestId)
             if (isNoSuchRequest(err)) {
@@ -216,7 +218,7 @@ export class RequestArbiter {
             return this.#browser.networkFailRequest({ request: requestId }).catch(this.#onReleaseError)
         }
         try {
-            void Promise.resolve(winner.run()).catch(onError)
+            void Promise.resolve(winner.run(answeredEarly)).catch(onError)
         } catch (err) {
             void onError(err)
         }

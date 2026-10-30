@@ -27,6 +27,9 @@ const subscribedSessions = new WeakMap<WebdriverIO.Browser, string | undefined>(
 
 let registeredMocks = 0
 
+// requests can end before their response (a failed request), so the abort hand-overs are capped
+const MAX_ABORT_HAND_OVERS = 1000
+
 type RespondBodyValue = string | JsonCompatible | ArrayBufferView | ArrayBuffer
 type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
@@ -97,8 +100,11 @@ function toNetworkBody(payload: RespondBodyValue): remote.NetworkBytesValue {
  * Note: this code is executed in Node.js and in the browser, so make sure
  *       you use primitives that work in both environments.
  */
-export default class WebDriverInterception implements Candidate {
-    readonly age = ++registeredMocks
+export default class WebDriverInterception {
+    /**
+     * What the arbiter of the browser sees of this mock, kept off the public `Mock` type
+     */
+    #candidate: Candidate
     #pattern: URLPattern
     #patternId: string
     #mockId: string
@@ -138,6 +144,10 @@ export default class WebDriverInterception implements Candidate {
     #hasOneBodyReadStarted = false
     #blockedRequests = new Set<string>()
     #observedResponse?: { event: Response, matches: boolean }
+    /**
+     * Requests whose abort gave way before they were sent to a mock that needs the response
+     */
+    #abortsHandedOver = new Set<string>()
 
     constructor(
         pattern: URLPattern,
@@ -152,6 +162,12 @@ export default class WebDriverInterception implements Candidate {
         this.#pattern = pattern
         this.#patternId = getPatternId(pattern)
         this.#mockId = mockId
+        this.#candidate = {
+            age: ++registeredMocks,
+            interceptId: mockId,
+            observe: (phase, event) => this.#observe(phase, event),
+            decide: (phase, event) => this.#decide(phase, event)
+        }
         this.#filterOptions = filterOptions
         this.#browser = browser
         this.#contexts = contexts
@@ -238,7 +254,7 @@ export default class WebDriverInterception implements Candidate {
         const mock = new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
         mock.#test = scope.test
         // before any await: a request blocked by the new intercept must find its mock
-        arbiterOf(browser).add(mock)
+        arbiterOf(browser).add(mock.#candidate)
         await mock.#seedDescendantContexts()
         return mock
     }
@@ -282,11 +298,7 @@ export default class WebDriverInterception implements Candidate {
         handlers?.push(handler)
     }
 
-    get interceptId() {
-        return this.#mockId
-    }
-
-    observe(phase: Phase, event: NetworkEvent) {
+    #observe(phase: Phase, event: NetworkEvent) {
         if (phase !== 'responseStarted') {
             return
         }
@@ -297,7 +309,7 @@ export default class WebDriverInterception implements Candidate {
 
         this.#attachPostData(response)
         const matches = this.#matchesFilterOptions(response)
-        // decide() reuses it, so a function filter runs once per event
+        // #decide() reuses it, so a function filter runs once per event
         this.#observedResponse = { event: response, matches }
         // also records requests the driver did not block, e.g. subresources of a navigation
         if (matches) {
@@ -305,7 +317,7 @@ export default class WebDriverInterception implements Candidate {
         }
     }
 
-    decide(phase: Phase, event: NetworkEvent): Decision | undefined | Promise<Decision | undefined> {
+    #decide(phase: Phase, event: NetworkEvent): Decision | undefined | Promise<Decision | undefined> {
         if (!this.#pattern.test(event.request.url)) {
             return undefined
         }
@@ -327,6 +339,7 @@ export default class WebDriverInterception implements Candidate {
     }
 
     #decideRequest(request: local.NetworkBeforeRequestSentParameters, matches: boolean) {
+        this.#abortsHandedOver.delete(request.request.request)
         if (!matches) {
             return undefined
         }
@@ -336,7 +349,7 @@ export default class WebDriverInterception implements Candidate {
             return this.#decision('beforeRequestSent', request, 'answer')
         }
         if (this.#answersEarly()) {
-            return this.#decision('beforeRequestSent', request, 'answer', true)
+            return this.#decision('beforeRequestSent', request, 'answer')
         }
         if (this.#requestOverwrites.length > 0) {
             return this.#decision('beforeRequestSent', request, 'answer')
@@ -345,6 +358,7 @@ export default class WebDriverInterception implements Candidate {
     }
 
     #decideResponse(response: Response) {
+        const handedOver = this.#abortsHandedOver.delete(response.request.request)
         const observed = this.#observedResponse
         this.#observedResponse = undefined
         const matches = observed?.event === response ? observed.matches : this.#matchesFilterOptions(response)
@@ -353,26 +367,39 @@ export default class WebDriverInterception implements Candidate {
             return undefined
         }
 
-        // an abort that lost the request phase to a mock that needed the response acts here
-        const answers = this.#requestOverwrites[0]?.abort || this.#respondOverwrites[0]?.overwrite
-        return this.#decision('responseStarted', response, answers ? 'answer' : 'pass')
+        // an abort acts here only when it gave way before the request was sent to a mock that needs the response
+        const aborts = handedOver && Boolean(this.#requestOverwrites[0]?.abort)
+        const answers = aborts || Boolean(this.#respondOverwrites[0]?.overwrite)
+        return this.#decision('responseStarted', response, answers ? 'answer' : 'pass', aborts)
     }
 
     #decision(
         phase: Phase,
         event: local.NetworkBeforeRequestSentParameters | Response,
         kind: Decision['kind'],
-        answersEarly = false
+        aborts = false
     ): Decision {
+        const requestId = event.request.request
         return {
             kind,
-            answersEarly,
             scoped: Boolean(this.#contexts?.length),
-            age: this.age,
-            run: () => phase === 'beforeRequestSent'
-                ? this.#answerRequest(event as local.NetworkBeforeRequestSentParameters)
-                : this.#answerResponse(event as Response),
-            lose: () => this.#emit('continue', event.request.request)
+            age: this.#candidate.age,
+            run: (answeredEarly) => phase === 'beforeRequestSent'
+                ? this.#answerRequest(event as local.NetworkBeforeRequestSentParameters, answeredEarly)
+                : this.#answerResponse(event as Response, aborts),
+            lose: (winner) => {
+                if (phase === 'beforeRequestSent' && winner.kind === 'defer' && this.#requestOverwrites[0]?.abort) {
+                    this.#handOverAbort(requestId)
+                }
+                this.#emit('continue', requestId)
+            }
+        }
+    }
+
+    #handOverAbort(requestId: string) {
+        this.#abortsHandedOver.add(requestId)
+        if (this.#abortsHandedOver.size > MAX_ABORT_HAND_OVERS) {
+            this.#abortsHandedOver.delete(this.#abortsHandedOver.values().next().value!)
         }
     }
 
@@ -386,7 +413,7 @@ export default class WebDriverInterception implements Candidate {
     }
 
     // the queues are read again here: another request may have used a once entry while this one waited
-    #answerRequest(request: local.NetworkBeforeRequestSentParameters) {
+    #answerRequest(request: local.NetworkBeforeRequestSentParameters, answeredEarly: () => void) {
         const requestId = request.request.request
         if (this.#requestOverwrites[0]?.abort) {
             return this.#fail(this.#requestOverwrites, requestId)
@@ -399,6 +426,7 @@ export default class WebDriverInterception implements Candidate {
                 this.#overwrittenResponseBodies.set(requestId, responseData.body)
             }
             this.#emit('overwrite', request)
+            answeredEarly()
             return this.#track(requestId, this.#browser.networkProvideResponse({
                 request: requestId,
                 statusCode: 200,
@@ -420,9 +448,9 @@ export default class WebDriverInterception implements Candidate {
         return this.#track(requestId, this.#browser.networkContinueRequest({ request: requestId }))
     }
 
-    #answerResponse(response: Response) {
+    #answerResponse(response: Response, aborts: boolean) {
         const requestId = response.request.request
-        if (this.#requestOverwrites[0]?.abort) {
+        if (aborts && this.#requestOverwrites[0]?.abort) {
             return this.#fail(this.#requestOverwrites, requestId)
         }
 
@@ -646,8 +674,11 @@ export default class WebDriverInterception implements Candidate {
      */
     public simulateResponseStarted(request: Response): void {
         const event = request as unknown as NetworkEvent
-        this.observe('responseStarted', event)
-        void (this.decide('responseStarted', event) as Decision | undefined)?.run()
+        this.#observe('responseStarted', event)
+        if (!request.isBlocked) {
+            return
+        }
+        void (this.#decide('responseStarted', event) as Decision | undefined)?.run(() => {})
     }
 
     public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
@@ -781,6 +812,7 @@ export default class WebDriverInterception implements Candidate {
         this.#hasOneResponseCollected = false
         this.#hasOneBodyReadStarted = false
         this.#blockedRequests.clear()
+        this.#abortsHandedOver.clear()
         return this
     }
 
@@ -821,7 +853,7 @@ export default class WebDriverInterception implements Candidate {
          */
         const blockedRequestIds = Array.from(this.#blockedRequests)
         // a request this mock still waits on is released by the arbiter, which keeps knowing its intercept
-        arbiterOf(this.#browser).remove(this)
+        arbiterOf(this.#browser).remove(this.#candidate)
         if (this.#onContextDestroyed) {
             this.#browser.off('browsingContext.contextDestroyed', this.#onContextDestroyed)
             this.#onContextDestroyed = undefined

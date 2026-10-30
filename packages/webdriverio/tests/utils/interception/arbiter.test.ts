@@ -68,6 +68,14 @@ interface FakeDecision extends Decision {
     lose: ReturnType<typeof vi.fn> & Decision['lose']
 }
 
+// a run that answers in `beforeRequestSent`, as `network.provideResponse` does there
+function answersEarly (result: () => Promise<unknown> = () => Promise.resolve()) {
+    return vi.fn((answeredEarly: () => void) => {
+        answeredEarly()
+        return result()
+    })
+}
+
 function decision (kind: Decision['kind'], options: Partial<Decision> = {}): FakeDecision {
     return {
         kind,
@@ -137,8 +145,9 @@ describe('RequestArbiter', () => {
         expect(answer.lose).not.toHaveBeenCalled()
         expect(passOld.run).not.toHaveBeenCalled()
         expect(passOld.lose).toHaveBeenCalledTimes(1)
+        expect(passOld.lose).toHaveBeenCalledWith(answer)
         expect(passScoped.run).not.toHaveBeenCalled()
-        expect(passScoped.lose).toHaveBeenCalledTimes(1)
+        expect(passScoped.lose).toHaveBeenCalledWith(answer)
         expect(other.decide).not.toHaveBeenCalled()
         expect(other.observe).toHaveBeenCalledTimes(1)
         expect(bidiCalls(browser)).toBe(0)
@@ -395,13 +404,17 @@ describe('RequestArbiter', () => {
             ['after a wait', (value: Decision) => Promise.resolve(value)]
         ])('fails the request and logs when picking the winner throws %s', async (_, settle) => {
             const broken = decision('answer', { age: 1 })
-            Object.defineProperty(broken, 'answersEarly', { get () { throw new Error('broken pick') } })
-            arbiterOf(asBrowser(browser)).add(candidate(1, 'int-a', () => settle(broken)))
+            Object.defineProperty(broken, 'kind', { get () { throw new Error('broken pick') } })
+            const answer = decision('answer', { age: 2 })
+            const arbiter = arbiterOf(asBrowser(browser))
+            arbiter.add(candidate(1, 'int-a', () => settle(broken)))
+            arbiter.add(candidate(2, 'int-b', () => answer))
 
-            expect(() => emit(browser, 'beforeRequestSent', { intercepts: ['int-a'] })).not.toThrow()
+            expect(() => emit(browser, 'beforeRequestSent')).not.toThrow()
             await flush()
 
             expect(broken.run).not.toHaveBeenCalled()
+            expect(answer.run).not.toHaveBeenCalled()
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
             expect(bidiCalls(browser)).toBe(1)
             expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('broken pick'))
@@ -484,7 +497,7 @@ describe('RequestArbiter', () => {
 
     describe('early answer', () => {
         function answerEarly () {
-            const early = decision('answer', { age: 1, answersEarly: true })
+            const early = decision('answer', { age: 1, run: answersEarly() })
             const a = candidate(1, 'int-a', (phase, event) => (
                 phase === 'beforeRequestSent' && event.redirectCount === 0 ? early : undefined
             ))
@@ -541,8 +554,41 @@ describe('RequestArbiter', () => {
             expect(bidiCalls(browser)).toBe(0)
         })
 
+        it('does not record a hop when the winner\'s run did not answer early', async () => {
+            const answer = decision('answer', { age: 1 })
+            const a = candidate(1, 'int-a', () => answer)
+            arbiterOf(asBrowser(browser)).add(a)
+
+            emit(browser, 'beforeRequestSent', { intercepts: ['int-a'] })
+            emit(browser, 'responseStarted', { intercepts: ['int-a'] })
+            await flush()
+
+            expect(a.decide).toHaveBeenCalledTimes(2)
+            expect(answer.run).toHaveBeenCalledTimes(2)
+        })
+
+        it('records the hop before the early answer is sent', async () => {
+            let recordedBeforeSend = false
+            const early = decision('answer', {
+                age: 1,
+                run: answersEarly(async () => {
+                    // the next event of the request arrives before the reply of the answer
+                    emit(browser, 'responseStarted', { intercepts: ['int-a'] })
+                    recordedBeforeSend = browser.networkProvideResponse.mock.calls.length === 1
+                })
+            })
+            const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? early : undefined)
+            arbiterOf(asBrowser(browser)).add(a)
+
+            emit(browser, 'beforeRequestSent', { intercepts: ['int-a'] })
+            await flush()
+
+            expect(recordedBeforeSend).toBe(true)
+            expect(a.decide).toHaveBeenCalledTimes(1)
+        })
+
         it('records an early answer in beforeRequestSent only', async () => {
-            const answer = decision('answer', { age: 1, answersEarly: true })
+            const answer = decision('answer', { age: 1, run: answersEarly() })
             const a = candidate(1, 'int-a', (phase) => phase === 'responseStarted' ? answer : undefined)
             arbiterOf(asBrowser(browser)).add(a)
 
@@ -587,7 +633,7 @@ describe('RequestArbiter', () => {
         })
 
         it('keeps a bounded number of records', async () => {
-            const early = decision('answer', { age: 1, answersEarly: true })
+            const early = decision('answer', { age: 1, run: answersEarly() })
             const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? early : undefined)
             arbiterOf(asBrowser(browser)).add(a)
 
@@ -605,7 +651,7 @@ describe('RequestArbiter', () => {
         })
 
         it('forgets the record when the answer fails', async () => {
-            const early = decision('answer', { age: 1, answersEarly: true, run: vi.fn().mockRejectedValue(new Error('bad body')) })
+            const early = decision('answer', { age: 1, run: answersEarly(() => Promise.reject(new Error('bad body'))) })
             const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? early : undefined)
             arbiterOf(asBrowser(browser)).add(a)
 
@@ -618,7 +664,7 @@ describe('RequestArbiter', () => {
         })
 
         it('does not record an early answer that lost', async () => {
-            const early = decision('answer', { age: 2, answersEarly: true })
+            const early = decision('answer', { age: 2, run: answersEarly() })
             const scoped = decision('defer', { age: 1, scoped: true })
             const a = candidate(1, 'int-a', (phase) => phase === 'beforeRequestSent' ? scoped : undefined)
             const b = candidate(2, 'int-b', (phase) => phase === 'beforeRequestSent' ? early : undefined)
