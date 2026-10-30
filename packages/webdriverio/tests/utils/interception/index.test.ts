@@ -2910,6 +2910,39 @@ describe('WebDriverInterception', () => {
                 expect(respondedWith(browser)).toEqual(['session-wide', 'continued'])
             })
 
+            it('answers with status 200 when a fetchResponse: false mock answers the response of the server', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                sessionWide.respond({ from: 'session-wide' }, { fetchResponse: false })
+                scoped.respond({ from: 'scoped' })
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1', 123, 500))
+                await waitForAsyncHandlers()
+
+                expect(respondedWith(browser)).toEqual(['session-wide'])
+                expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({ request: 123, statusCode: 200 }))
+            })
+
+            it('keeps the statusCode option of a fetchResponse: false mock that answers the response of the server', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, {}, browser, SCOPE)
+                sessionWide.respond({ from: 'session-wide' }, { fetchResponse: false, statusCode: 418 })
+                scoped.request({ method: 'POST' })
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1', 123, 500))
+                await waitForAsyncHandlers()
+
+                expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
+                expect(respondedWith(browser)).toEqual(['session-wide'])
+                expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({ request: 123, statusCode: 418 }))
+            })
+
             it('fails the request with the session-wide abort when the statusCode of the tab mock does not match', async () => {
                 const browser = getBrowser()
                 const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)

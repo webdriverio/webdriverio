@@ -482,10 +482,12 @@ export default class WebDriverInterception {
             if (responseData.body) {
                 this.#overwrittenResponseBodies.set(requestId, responseData.body)
             }
+            // a `fetchResponse: false` answer that gave way before the request was sent keeps the status of the early answer
+            const statusCode = 'fetchResponse' in overwrite && overwrite.fetchResponse === false ? { statusCode: 200 } : {}
             this.#emit('overwrite', response)
             return this.#track(
                 requestId,
-                this.#browser.networkProvideResponse({ request: requestId, ...responseData }),
+                this.#browser.networkProvideResponse({ request: requestId, ...statusCode, ...responseData }),
                 (err: Error) => this.#handleUnsupportedOverwrite(err, requestId)
             )
         }
