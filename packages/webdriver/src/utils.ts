@@ -221,11 +221,11 @@ function isAppiumAndroidChrome (capabilities: WebdriverIO.Capabilities) {
      * not the unprefixed `automationName`: with an `appium:` capability next to it,
      * `validateCapabilities` rejects the session
      */
-    const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+    const automationName = getAppiumCapability(capabilities, 'automationName')
     return (
         /^android$/i.test(capabilities.platformName || '') &&
         /^(chrome|chromium)$/i.test(capabilities.browserName || '') &&
-        /^uiautomator2$/i.test(automationName || '')
+        typeof automationName === 'string' && /^uiautomator2$/i.test(automationName)
     )
 }
 
@@ -571,7 +571,8 @@ export function initiateBidi (
  *
  * @param  handler  the connected handler of an Appium browser session
  * @param  timeout  how long to wait for the answer (`bidiConnectTimeout`): a server that never
- *                  answers must not hold the session start for `bidiResponseTimeout`
+ *                  answers must not hold the session start for `bidiResponseTimeout`; a shorter
+ *                  `bidiResponseTimeout` ends the check first
  * @param  advice   what the user can do, see `getAppiumBidiAdvice`
  * @return `false` when the connection was discarded
  */
@@ -588,7 +589,7 @@ export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, t
     } catch (err) {
         const reason = err instanceof Error ? err.message : String(err)
         log.warn(
-            `The WebDriver Bidi server of this Appium session can not run browser commands (${reason}), ` +
+            `The WebDriver Bidi server of this mobile session can not run browser commands (${reason}), ` +
             `continue with WebDriver Classic. ${advice}To skip this check, set "wdio:enforceWebDriverClassic": true.`
         )
         handler.discard()
