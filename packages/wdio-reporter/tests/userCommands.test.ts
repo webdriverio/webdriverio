@@ -217,6 +217,21 @@ describe('user command events', () => {
         expect(execute.body).toEqual(['return document.title', 1])
     })
 
+    it('gives the size of the full script when the producer cut it', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        // the producer keeps 1024 characters and writes the size of the full script
+        const execute = { ...userCommand, command: 'execute', body: [`${'x'.repeat(1024)}… [20012 bytes]`, 1], contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', execute)
+        reporter.emit('client:afterUserCommand', { ...execute, result: { value: 1 } })
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.body)).toEqual([
+            ['<script> [20012 bytes]', 1],
+            ['<script> [20012 bytes]', 1]
+        ])
+    })
+
     it('keeps the empty body of execute in the output', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
