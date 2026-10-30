@@ -43,6 +43,15 @@ describe('inlineResult', () => {
         expect(userCommandTitle('login', [circular])).toBe('login({"name":"page","self":"[Circular]"})')
     })
 
+    it('writes a shared value each time it occurs: only a cycle is "[Circular]"', () => {
+        const shared = { x: 1 }
+        expect(inlineResult({ value: [shared, shared] })).toBe('[{"x":1},{"x":1}]')
+        expect(userCommandTitle('custom', [shared, { a: shared }])).toBe('custom({"x":1}, {"a":{"x":1}})')
+        const circular: Record<string, unknown> = { shared }
+        circular.self = { back: circular, shared }
+        expect(userCommandTitle('custom', [circular])).toBe('custom({"shared":{"x":1},"self":{"back":"[Circular]","shared":{"x":1}}})')
+    })
+
     it('gives a short value as JSON', () => {
         expect(inlineResult({ value: 'Hello' })).toBe('"Hello"')
         expect(inlineResult({ value: false })).toBe('false')
