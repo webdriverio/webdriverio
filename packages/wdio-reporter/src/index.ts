@@ -19,6 +19,13 @@ type CustomWriteStream = { write: (content: unknown) => boolean }
 const EXECUTE_COMMANDS = ['execute', 'executeAsync']
 // the producer sends a function script as its name only
 const isFunctionLabel = (value: unknown) => typeof value === 'string' && /^\[Function [^\]]*\]$/.test(value)
+// the producer cuts a long script at 1024 characters and writes the size of the full script: keep that size
+const CUT_SCRIPT = /^([\s\S]{1024})… \[(\d+) bytes\]$/
+const userScript = (script: string) => {
+    const cut = CUT_SCRIPT.exec(script)
+    const label = transformCommandScript(cut ? cut[1] : script) as string
+    return cut ? label.replace(/\[\d+ bytes\]$/, `[${cut[2]} bytes]`) : label
+}
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -589,7 +596,7 @@ export default class WDIOReporter extends EventEmitter {
             return
         }
         const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
-            ? [transformCommandScript(payload.body[0] as string), ...payload.body.slice(1)]
+            ? [userScript(payload.body[0] as string), ...payload.body.slice(1)]
             : payload.body
         const entry: UserCommandOutput | UserResultOutput = type === 'userCommand'
             ? { ...payload, body, type }
