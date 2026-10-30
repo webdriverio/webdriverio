@@ -84,8 +84,10 @@ export default class SumoLogicReporter extends WDIOReporter {
         return this._isDisabled || this._unsynced.length === 0
     }
 
-    // an empty override opts in to the user commands of WebDriver BiDi sessions
-    onBeforeUserCommand() { }
+    // the base adds the user commands of WebDriver BiDi sessions to `output`
+    protected get showsUserCommands(): boolean {
+        return true
+    }
 
     onRunnerStart(runner: RunnerStats) {
         if (this._isDisabled) {
