@@ -12,7 +12,7 @@ const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|-
 export default class JasmineReporter {
     private _cid: string
     private _specs: string[]
-    private _specFiles: Set<string>
+    private _specFiles: Map<string, string>
     private _onlySpecFile?: string
     private _jasmineOpts: JasmineOpts
     private _shouldCleanStack: boolean
@@ -28,8 +28,8 @@ export default class JasmineReporter {
         this._cid = params.cid
         this._specs = params.specs
         const specFiles = params.specs.map(specFilePath)
-        // Node loads a spec file by its real path, the runner keeps the path of a link
-        this._specFiles = new Set(specFiles.flatMap((file) => [file, realPath(file)]))
+        // Node loads a spec file by its real path, the runner keeps the path of a link: name it as the runner does
+        this._specFiles = new Map(specFiles.flatMap((file) => [[realPath(file), file], [file, file]]))
         this._onlySpecFile = specFiles.length === 1 ? specFiles[0] : undefined
         this._jasmineOpts = params.jasmineOpts
         this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
@@ -50,7 +50,7 @@ export default class JasmineReporter {
         newSuite.fullName = fullName
 
         const specFile = this.specFileOf(suite.filename)
-        this.emit('suite:start', newSuite)
+        this.emit('suite:start', newSuite, specFile)
         this._parent.push({
             description: suite.description,
             id: suite.id,
@@ -193,7 +193,7 @@ export default class JasmineReporter {
         }
 
         this._parent.pop()
-        this.emit('suite:end', newSuite)
+        this.emit('suite:end', newSuite, this.specFileOf(suite.filename))
     }
 
     jasmineDone (result: jasmine.JasmineDoneInfo) {
@@ -205,7 +205,7 @@ export default class JasmineReporter {
         }
     }
 
-    emit (event: string, payload: SuiteEvent | TestEvent) {
+    emit (event: string, payload: SuiteEvent | TestEvent, suiteSpecFile?: string) {
         const parent = this._parent.length ? this.getUniqueIdentifier(this._parent[this._parent.length - 1]) : null
         const hookKind = (payload as TestEvent).hookKind
         const message = {
@@ -227,7 +227,7 @@ export default class JasmineReporter {
             specs: this._specs,
             start: payload.start,
             file: payload.type === 'suite'
-                ? this.specFileOf(payload.filename) ?? (payload.filename && specFilePath(payload.filename))
+                ? suiteSpecFile ?? (payload.filename && specFilePath(payload.filename))
                 : this.suiteFile,
             // an all-hook runs in the suite that declares it; a top-level one has no suite event
             ...(hookKind && { hookKind, ...(parent && { hookSuiteUid: parent }) })
@@ -245,7 +245,7 @@ export default class JasmineReporter {
     specFileOf (filename?: string) {
         const file = filename ? specFilePath(filename) : undefined
         return this._parent[this._parent.length - 1]?.specFile
-            ?? (file && this._specFiles.has(file) ? file : undefined)
+            ?? (file && this._specFiles.get(file))
             ?? this._onlySpecFile
     }
 

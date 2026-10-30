@@ -339,19 +339,19 @@ test('emit: with several spec files, a test in a top-level describe() of a helpe
 })
 
 // Node loads a spec file by its real path, the runner keeps the path of the link
-test('emit: a test gets the spec file of a worker in a linked folder', () => {
+test('emit: a test gets the spec file of a worker in a linked folder, as the runner names it', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jasmine-link-'))
     try {
         fs.mkdirSync(path.join(dir, 'real'))
         const specs = ['a.spec.js', 'b.spec.js'].map((name) => path.join(dir, 'real', name))
         specs.forEach((spec) => fs.writeFileSync(spec, ''))
         fs.symlinkSync(path.join(dir, 'real'), path.join(dir, 'link'), 'junction')
-        jasmineReporter = reporterFor(...specs.map((spec) => spec.replace(`${path.sep}real${path.sep}`, `${path.sep}link${path.sep}`)))
-        const realSpec = fs.realpathSync(specs[1])
+        const linkedSpecs = specs.map((spec) => spec.replace(`${path.sep}real${path.sep}`, `${path.sep}link${path.sep}`))
+        jasmineReporter = reporterFor(...linkedSpecs)
         jasmineReporter.suiteStarted({ id: '23', description: 'shared', fullName: 'shared', filename: HELPER } as any)
-        jasmineReporter.suiteStarted({ id: '25', description: 'outer', fullName: 'outer', filename: realSpec } as any)
+        jasmineReporter.suiteStarted({ id: '25', description: 'outer', fullName: 'outer', filename: fs.realpathSync(specs[1]) } as any)
         jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: WRAPPER } as any)
-        expect(emittedFiles()[2]).toEqual(['test:start', realSpec])
+        expect(emittedFiles().slice(1)).toEqual([['suite:start', linkedSpecs[1]], ['test:start', linkedSpecs[1]]])
     } finally {
         fs.rmSync(dir, { recursive: true, force: true })
     }

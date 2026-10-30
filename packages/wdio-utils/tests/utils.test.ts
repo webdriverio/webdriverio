@@ -295,9 +295,9 @@ describe('specFilePath', () => {
     it('keeps a path', () => {
         expect(specFilePath('./a.spec.js')).toBe('./a.spec.js')
     })
-    // an encoded `/` is not valid in a file path on any platform
-    it('keeps a URL that names no path', () => {
-        expect(specFilePath('file:///project/a%2Fb.spec.js')).toBe('file:///project/a%2Fb.spec.js')
+    // an encoded `/` is not valid in a file path on any platform: the spec cannot run
+    it('fails for a URL that names no path', () => {
+        expect(() => specFilePath('file:///project/a%2Fb.spec.js')).toThrow()
     })
 })
 

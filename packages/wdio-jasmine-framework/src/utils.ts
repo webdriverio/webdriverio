@@ -1,4 +1,3 @@
-
 interface JestExpectationResult {
     pass: boolean
     message: () => string
