@@ -46,6 +46,13 @@ beforeEach(async () => {
 })
 
 describe('runUserCommand', () => {
+    it('gives the promise of the command as it is when it sends nothing', () => {
+        const browser = fakeBrowser({ isBidi: false })
+        const result = Promise.resolve('hello')
+        expect(mod.runUserCommand(browser, 'findElement', [], () => result)).toBe(result)
+        expect(mod.runUserCommand(browser, 'getText', [], () => result)).toBe(result)
+    })
+
     it('sends one userCommand and one userResult with the same id for an outer call', async () => {
         const browser = fakeBrowser()
         expect(await mod.runUserCommand(browser, 'getText', [], async () => 'hello')).toBe('hello')
