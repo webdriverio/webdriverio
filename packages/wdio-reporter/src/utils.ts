@@ -334,6 +334,11 @@ function formatArgument(arg: unknown) {
     if (fn) {
         return `function ${fn[1]}`
     }
+    // an asymmetric matcher of an assertion, e.g. `StringContaining "Docs"`
+    const matcher = typeof arg === 'string' && /^\[Matcher (.*)\]$/s.exec(arg)
+    if (matcher) {
+        return matcher[1]
+    }
     // an element argument: its query, as in the test code
     const elem = typeof arg === 'string' && /^WebdriverIO\.Element(Array)?(?:<(.*)>)?(?: \(.*\))?$/.exec(arg)
     if (elem) {
