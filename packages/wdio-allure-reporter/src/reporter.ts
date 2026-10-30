@@ -87,7 +87,8 @@ const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
 const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
 // the result of a user command, until the steps that started after it end
-type UserStep = { name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
+// `children`: the parent ids of the protocol steps that started in the step and are still open
+type UserStep = { name?: string; command?: string; children: (number | undefined)[]; done?: { result: AfterUserCommandArgs['result']; stop: number } }
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -179,6 +180,8 @@ export default class AllureReporter extends WDIOReporter {
     // the open user command steps of each test, hook or Cucumber step, in start order
     private _userSteps = new Map<string, UserStep[]>()
     private _userStepOf = new Map<number, { scope: string, open: UserStep[], step: UserStep }>()
+    // the protocol steps that their user command ended before their result, by scope and parent id
+    private _lateResults = new Map<string, number>()
 
     allureStatesByCid: Map<string, AllureReportState> = new Map()
 
@@ -765,6 +768,7 @@ export default class AllureReporter extends WDIOReporter {
         // the steps of user commands that got no result
         this._userSteps.clear()
         this._userStepOf.clear()
+        this._lateResults.clear()
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
          * cannot report the reporter as synchronised while this pass is still writing
@@ -1230,6 +1234,7 @@ export default class AllureReporter extends WDIOReporter {
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
         const body = (command as unknown as MaybeBody).body
+        this._userStepTop()?.children.push(command.parent)
         // a WebDriver Classic session has no open user step, so its steps stay as they are
         if (!this._inUserStep() || !method || !endpoint) {
             this._startCommandStep(stepName, body)
@@ -1245,6 +1250,14 @@ export default class AllureReporter extends WDIOReporter {
 
     private _inUserStep(): boolean {
         return (this._userSteps.get(this._userStepScope())?.length ?? 0) > 0
+    }
+
+    private _userStepTop(): UserStep | undefined {
+        return this._userSteps.get(this._userStepScope())?.at(-1)
+    }
+
+    private _lateResultKey(parent: number | undefined, scope = this._userStepScope()): string {
+        return `${scope}:${parent ?? ''}`
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
@@ -1264,6 +1277,20 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (!this._commandStepsAllowed()) { return }
+        // its user command ended its step: the result must not end another step
+        const late = this._lateResultKey(command.parent)
+        const lateCount = this._lateResults.get(late) ?? 0
+        if (lateCount > 0) {
+            if (lateCount > 1) {
+                this._lateResults.set(late, lateCount - 1)
+            } else {
+                this._lateResults.delete(late)
+            }
+            return
+        }
+        const children = this._userStepTop()?.children
+        const child = children?.lastIndexOf(command.parent) ?? -1
+        if (child >= 0) { children!.splice(child, 1) }
         if (!isShot) { this._attachCommandResponse(resUnknown) }
         const inline = isShot || !this._inUserStep() ? undefined : inlineResult(resUnknown, command.command)
         if (inline && command.command) {
@@ -1281,7 +1308,7 @@ export default class AllureReporter extends WDIOReporter {
         const scope = this._userStepScope()
         const open = this._userSteps.get(scope) ?? []
         this._userSteps.set(scope, open)
-        const step: UserStep = { name, command: payload.command }
+        const step: UserStep = { name, command: payload.command, children: [] }
         open.push(step)
         this._userStepOf.set(payload.id, { scope, open, step })
     }
@@ -1294,13 +1321,15 @@ export default class AllureReporter extends WDIOReporter {
         entry.step.done = { result: payload.result, stop: Date.now() }
         // the runtime ends the last open step: overlapping commands end their steps from the top
         while (entry.open.at(-1)?.done) {
-            const done = entry.open.pop()!
-            this._endUserStep(done.done!, done.name, done.command)
+            this._endUserStep(entry.open.pop()!, entry.scope)
         }
     }
 
-    private _endUserStep({ result, stop }: NonNullable<UserStep['done']>, name?: string, command?: string): void {
+    private _endUserStep(step: UserStep, scope: string): void {
+        const { result, stop } = step.done!
+        const { name, command } = step
         if (!('error' in result)) {
+            this._endUserChildren(step, scope, AllureStatusEnum.PASSED, stop)
             if (!isNoDataResult(result, command)) { this._attachCommandResponse(result) }
             const inline = inlineResult(result, command)
             if (inline && name) {
@@ -1310,8 +1339,10 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         if (result.error instanceof Error) {
+            const statusDetails = getMessageAndTraceFromError(result.error)
+            this._endUserChildren(step, scope, AllureStatusEnum.FAILED, stop, statusDetails)
             this._attachCommandResponse(result)
-            this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails: getMessageAndTraceFromError(result.error) })
+            this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails })
             return
         }
         // an error from another realm or a thrown value
@@ -1319,8 +1350,18 @@ export default class AllureReporter extends WDIOReporter {
         const fields = isObject(error) ? error as { name?: unknown, message?: unknown } : {}
         const message = typeof fields.message === 'string' ? fields.message : typeof error === 'string' ? error : String(JSON.stringify(error))
         const text = typeof fields.name === 'string' && fields.name ? `${fields.name}: ${message}` : message
+        this._endUserChildren(step, scope, AllureStatusEnum.FAILED, stop, { message })
         this._attachFile({ name: 'Response', content: Buffer.from(text, 'utf8'), contentType: AllureContentType.TEXT })
         this._endStep({ status: AllureStatusEnum.FAILED, stop, statusDetails: { message } })
+    }
+
+    // a protocol step still in flight ends as its user command, as open steps do at the end of a test
+    private _endUserChildren(step: UserStep, scope: string, status: AllureStatus, stop: number, statusDetails?: StatusDetails): void {
+        for (const parent of step.children.splice(0)) {
+            const key = this._lateResultKey(parent, scope)
+            this._lateResults.set(key, (this._lateResults.get(key) ?? 0) + 1)
+            this._endStep({ status, stop, statusDetails })
+        }
     }
 
     onTestEnd(test: TestStats): void {
