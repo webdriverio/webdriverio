@@ -8,6 +8,8 @@ import { isInCommandHook } from './shim.js'
 const MAX_STRING_LENGTH = 1024
 const MAX_ITEMS = 50
 const MAX_DEPTH = 4
+// a wide object stays small and fast: 20 times one level, so a normal result (a list of cookies) is whole
+const MAX_VALUES = 1000
 // a copy never makes the command fail
 const UNREADABLE = '<unreadable>'
 // their result is base64 and reporters get them from the protocol events
@@ -296,19 +298,25 @@ function wdioLabel (value: object, name: string, ref: unknown) {
 
 /**
  * A copy of `value` that is small and safe to send: no binary data, long
- * strings cut, at most 50 items and 4 levels, WebdriverIO objects and functions
+ * strings cut, at most 50 items, 4 levels and 1000 values, WebdriverIO objects and functions
  * as a name, cycles as `[Circular]`.
  * @experimental
  */
 export function shortCopy (value: unknown): unknown {
     try {
-        return copyValue(value, new Set(), 0)
+        return copyValue(value, { ancestors: new Set(), values: 0 }, 0)
     } catch {
         return UNREADABLE
     }
 }
 
-function copyValue (value: unknown, ancestors: Set<object>, depth: number): unknown {
+interface CopyState {
+    ancestors: Set<object>
+    values: number
+}
+
+function copyValue (value: unknown, state: CopyState, depth: number): unknown {
+    state.values++
     if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
         return value
     }
@@ -366,7 +374,7 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
     if (typeof (value as { then?: unknown }).then === 'function') {
         return '[Promise]'
     }
-    if (ancestors.has(value as object)) {
+    if (state.ancestors.has(value as object)) {
         return '[Circular]'
     }
     if (depth >= MAX_DEPTH) {
@@ -380,23 +388,30 @@ function copyValue (value: unknown, ancestors: Set<object>, depth: number): unkn
         return source
     }
 
-    ancestors.add(value as object)
-    const copyItem = (item: unknown) => copyValue(item, ancestors, depth + 1)
+    state.ancestors.add(value as object)
     let copy: unknown
     if (Array.isArray(value)) {
-        copy = value.slice(0, MAX_ITEMS).map(copyItem)
-        if (value.length > MAX_ITEMS) {
-            (copy as unknown[]).push(`… [${value.length - MAX_ITEMS} more]`)
+        const items: unknown[] = []
+        for (let i = 0; i < Math.min(value.length, MAX_ITEMS) && state.values < MAX_VALUES; i++) {
+            items.push(copyValue(value[i], state, depth + 1))
         }
+        if (value.length > items.length) {
+            items.push(`… [${value.length - items.length} more]`)
+        }
+        copy = items
     } else {
         // keys first: a getter of a key that is not kept does not run
         const keys = Object.keys(source as object)
         const object = source as Record<string, unknown>
-        copy = Object.fromEntries(keys.slice(0, MAX_ITEMS).map((key) => [key, copyItem(object[key])]))
-        if (keys.length > MAX_ITEMS) {
-            (copy as Record<string, unknown>)['…'] = `[${keys.length - MAX_ITEMS} more]`
+        const entries: [string, unknown][] = []
+        for (let i = 0; i < Math.min(keys.length, MAX_ITEMS) && state.values < MAX_VALUES; i++) {
+            entries.push([keys[i], copyValue(object[keys[i]], state, depth + 1)])
         }
+        if (keys.length > entries.length) {
+            entries.push(['…', `[${keys.length - entries.length} more]`])
+        }
+        copy = Object.fromEntries(entries)
     }
-    ancestors.delete(value as object)
+    state.ancestors.delete(value as object)
     return copy
 }
