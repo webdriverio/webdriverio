@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
+import { specPath } from './utils.js'
 import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent, JasmineOpts } from './types.js'
 
 const log = logger('@wdio/jasmine-framework')
@@ -46,7 +47,7 @@ export default class JasmineReporter {
             description: suite.description,
             id: suite.id,
             tests: 0,
-            file: suite.filename
+            file: suite.filename && specPath(suite.filename)
         })
     }
 

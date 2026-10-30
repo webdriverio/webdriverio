@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
@@ -282,4 +283,13 @@ test('emit: a test or hook gets the spec file of its suite', () => {
         ['suite:start', '/project/a.spec.js'],
         ['test:start', '/project/a.spec.js']
     ])
+})
+
+// Jasmine gives the file of an ESM spec as a URL
+test('emit: a test gets the spec file of an ESM suite as a path', () => {
+    const file = path.resolve('project', 'a.spec.mjs')
+    jasmineReporter.suiteStarted({ id: '23', description: 'outer', fullName: 'outer', filename: url.pathToFileURL(file).href } as any)
+    jasmineReporter.specStarted({ id: '24', description: 'some test spec', fullName: 'foobar', filename: '/wdio/utils/build/index.js' } as any)
+    expect(vi.mocked(runnerReporter.emit).mock.calls[1][1].file).toBe(file)
+    expect(jasmineReporter.suiteFile).toBe(file)
 })

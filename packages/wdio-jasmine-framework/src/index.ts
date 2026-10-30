@@ -1,4 +1,3 @@
-import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
@@ -10,7 +9,7 @@ import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImpo
 
 import JasmineReporter from './reporter.js'
 import { createHybridExpect } from './expect.js'
-import { jestResultToJasmine } from './utils.js'
+import { jestResultToJasmine, specPath } from './utils.js'
 import type {
     JasmineOpts as JasmineOptions, ResultHandlerPayload, FrameworkMessage, FormattedMessage
 } from './types.js'
@@ -33,9 +32,6 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
-const FILE_PROTOCOL = 'file://'
-// Jasmine does not support file:// URLs
-const specPath = (spec: string) => spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec
 
 const log = logger('@wdio/jasmine-framework')
 

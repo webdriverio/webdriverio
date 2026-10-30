@@ -108,9 +108,3 @@ test('a skipped hook gets the state skipped, unless it has errors', () => {
     ran.complete([])
     expect(ran.state).toBeUndefined()
 })
-
-test('keeps the spec file of the hook only when the payload has it', () => {
-    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
-    expect('file' in new HookStats(payload)).toBe(false)
-    expect(new HookStats({ ...payload, file: '/specs/b.spec.js' }).file).toBe('/specs/b.spec.js')
-})

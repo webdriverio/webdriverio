@@ -1,6 +1,8 @@
 import { describe, expect, vi, it, beforeEach } from 'vitest'
 
 import { AssertionError } from 'node:assert'
+import path from 'node:path'
+import url from 'node:url'
 import TestStats from '../../src/stats/test.js'
 
 describe('TestStats', () => {
@@ -55,6 +57,16 @@ describe('TestStats', () => {
             cid: '0-0', specs: [], uid: 'test-0-0-2', file: '/specs/b.spec.js'
         })
         expect(withFile.file).toBe('/specs/b.spec.js')
+    })
+
+    // Jasmine gives the file of an ESM spec as a URL, Mocha parallel mode the URL of the runner
+    it('keeps the spec file of the test as a path', () => {
+        const file = path.resolve('specs', 'b.spec.js')
+        const withUrl = new TestStats({
+            type: 'test:start', title: 'a', parent: '', fullTitle: 'a', pending: false,
+            cid: '0-0', specs: [], uid: 'test-0-0-3', file: url.pathToFileURL(file).href
+        })
+        expect(withUrl.file).toBe(file)
     })
 
     it('completes at a given end instead of now', () => {

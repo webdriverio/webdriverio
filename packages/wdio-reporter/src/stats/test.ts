@@ -1,3 +1,4 @@
+import url from 'node:url'
 import { types as nodeUtilTypes } from 'node:util'
 import type { AssertionError } from 'node:assert'
 
@@ -82,7 +83,7 @@ export default class TestStats extends RunnableStats {
     declare contextId?: string
     /** the uid of the suite of the test (`null` for a top-level test) */
     declare parentUid?: string | null
-    /** @experimental the spec file of the test (the feature file for Cucumber), when the framework sends it (Jasmine: none outside every `describe()`) */
+    /** @experimental the path of the spec file of the test (the feature file for Cucumber), when the framework sends it (Jasmine: none outside every `describe()`) */
     declare file?: string
 
     constructor(test: Test) {
@@ -99,7 +100,8 @@ export default class TestStats extends RunnableStats {
         this.body = test.body
         this.keepParallelFields(test)
         if (test.file !== undefined) {
-            this.file = test.file
+            // a framework can send a file:// URL (Jasmine with ESM specs, Mocha parallel mode)
+            this.file = test.file.startsWith('file://') ? url.fileURLToPath(test.file) : test.file
         }
 
         /**
