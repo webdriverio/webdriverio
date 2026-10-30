@@ -2,7 +2,7 @@ import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import { getBrowserObject, transformCommandLogResult } from './utils.js'
-import { WDIO_CHAINABLE, getWdioKind } from './kind.js'
+import { WDIO_CHAINABLE, WDIO_CHAIN_SELECTOR, getWdioKind } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
@@ -152,11 +152,18 @@ function hasListeners (browser: EventBrowser) {
 }
 
 /**
- * Run a user command. The outer call of a registered command sends a
- * `userCommand` and a `userResult` event in a WebDriver BiDi session.
+ * The result of a `userResult` event when it is not the result of the command, for example the status of an assertion
  * @experimental
  */
-export function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>): Promise<T> {
+export type UserCommandEventResult = { value: unknown } | { error: unknown }
+
+/**
+ * Run a user command. The outer call of a registered command sends a
+ * `userCommand` and a `userResult` event in a WebDriver BiDi session.
+ * `eventResult` gives the result of the `userResult` event; the caller gets the result of `run` as it is.
+ * @experimental
+ */
+export function runUserCommand<T> (scope: unknown, command: string, args: unknown[], run: () => Promise<T>, eventResult?: (value: T) => UserCommandEventResult): Promise<T> {
     if (!userCommandStore || !userCommandNames.has(command) || TRANSPARENT_COMMANDS.includes(command)) {
         return run()
     }
@@ -165,7 +172,7 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     if (userCommandStore.getStore()) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run)
+    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined)
 }
 
 /**
@@ -181,7 +188,7 @@ export function runCustomCommand<T> (scope: unknown, command: string, args: unkn
     return runOuterCommand(userCommandStore, scope, command, args, () => run(true))
 }
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T): T {
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -208,7 +215,15 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             // ignore
         }
     }
-    const sendValue = (value: unknown) => send('userResult', { ...event, result: { value: shortCopy(value) } })
+    const sendValue = (value: unknown) => {
+        let result: UserCommandEventResult | undefined
+        try {
+            result = eventResult?.(value)
+        } catch {
+            // the event gets the result of the command
+        }
+        send('userResult', { ...event, result: result && 'error' in result ? result : { value: shortCopy(result ? result.value : value) } })
+    }
     const sendError = (error: unknown) => send('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
     return store.run({ id: event.id }, () => {
@@ -289,9 +304,10 @@ function isPlainObject (value: unknown) {
 }
 
 function wdioLabel (value: object, name: string, ref: unknown) {
-    // a chainable element gives a promise for each property
+    // a chainable element gives a promise for each property, but the selector of its query
     if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
-        return `WebdriverIO.${name}`
+        const selector = (value as { [WDIO_CHAIN_SELECTOR]?: string })[WDIO_CHAIN_SELECTOR]
+        return selector ? `WebdriverIO.${name}<${selector}>` : `WebdriverIO.${name}`
     }
     return typeof ref === 'string' && ref ? `WebdriverIO.${name}<${ref}>` : `WebdriverIO.${name}`
 }

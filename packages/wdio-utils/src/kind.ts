@@ -42,6 +42,11 @@ export const WDIO_KIND: unique symbol = Symbol.for('wdio.kind') as typeof WDIO_K
  */
 export const WDIO_CHAINABLE: unique symbol = Symbol.for('wdio.chainable') as typeof WDIO_CHAINABLE
 
+/**
+ * Internal: the selector of an unresolved `$()` or `shadow$()` query, read with no command
+ */
+export const WDIO_CHAIN_SELECTOR: unique symbol = Symbol('wdio.chainSelector') as typeof WDIO_CHAIN_SELECTOR
+
 export const WDIO_KINDS = ['browser', 'element', 'element-array', 'mock', 'browsing-context'] as const
 
 export type WdioKind = typeof WDIO_KINDS[number]

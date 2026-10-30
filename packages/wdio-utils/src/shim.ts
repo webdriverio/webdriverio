@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, WDIO_CHAIN_SELECTOR, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
 import { runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
@@ -286,6 +286,12 @@ function createElementPromiseProxy (
                 }
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
+                }
+                // for the title of a user command that gets the pending element
+                if ((prop as string | symbol) === WDIO_CHAIN_SELECTOR) {
+                    return chainable && !prevInnerArgs && (commandName === '$' || commandName === 'shadow$') && typeof args[0] === 'string'
+                        ? args[0]
+                        : undefined
                 }
 
                 /**
