@@ -3,9 +3,8 @@ import { expect, describe, it, vi } from 'vitest'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore, getParallelContextStore } from '../../../src/session/context.js'
+import { setParallelContextStore, getParallelContextStore, getContextManager } from '../../../src/session/context.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
-import { getContextManager } from '../../../src/session/context.js'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

@@ -28,12 +28,11 @@ export interface Decision {
      */
     age: number
     /**
-     * the BiDi call of this mock; takes its once entry here. It calls `answeredEarly`
-     * right before it sends `network.provideResponse` in `beforeRequestSent`
+     * the BiDi call of this mock, which takes its once entry and calls `answeredEarly` before an early answer
      */
     run (answeredEarly: () => void): Promise<unknown>
     /**
-     * emits `continue`, nothing else
+     * emits `continue`, or keeps an abort for the response, and can log the Firefox warning; sends no BiDi call
      */
     lose (winner: Decision): void
 }

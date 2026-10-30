@@ -511,11 +511,7 @@ export default class WebDriverInterception {
         return this.#withBlockedRequestTracking(requestId, call.catch(onError))
     }
 
-    /**
-     * `fetchResponse: false` answers before a response exists. Callbacks are
-     * typed to receive one, so give them the status this mock sends by default.
-     * A callback can still replace that status.
-     */
+    // callbacks are typed to receive a response: an early answer has none, so they get the 200 it sends by default
     #eventForEarlyResponse(request: local.NetworkBeforeRequestSentParameters) {
         return {
             ...request,

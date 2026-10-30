@@ -158,10 +158,7 @@ export async function mock(
 
     const browser = getBrowserObject(this)
     const context = await contextIdOf(this)
-    /**
-     * A mock of a held context or a parallel test is scoped to that context. A session-wide
-     * mock is keyed by session, so a change of the current tab does not move it.
-     */
+    // a session-wide mock is keyed by session, so a switch of the current tab does not move it
     const test = getParallelContextStore().getStore()
     const contexts = isBrowsingContext(this) || test ? [context] : undefined
     const sessionKey = contexts ? context : `session:${browser.sessionId}`
