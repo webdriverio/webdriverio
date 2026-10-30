@@ -453,12 +453,14 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
         setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
-            return runCustomCommand(this, name, args, () => liftedCall.call(this, args))
+            return runCustomCommand(this, name, args, (outer) => liftedCall.call(this, args, outer))
         })
 
-        function liftedCall(this: { emit: (event: string, payload: unknown) => unknown }, args: unknown[]) {
-            // the old events of a custom command inside a user command get its id, so opt-in reporters hide them
-            const parent = userCommandParent(name)
+        function liftedCall(this: { emit: (event: string, payload: unknown) => unknown }, args: unknown[], outer: boolean) {
+            // the old events of a custom command inside a user command get its id; `custom` marks the events
+            // that the user command replaces, so opt-in reporters hide them
+            const userParent = userCommandParent(name)
+            const parent = outer && userParent.parent !== undefined ? { ...userParent, custom: true } : userParent
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args, ...parent })
 
