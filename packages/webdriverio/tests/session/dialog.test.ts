@@ -92,6 +92,20 @@ describe('DialogManager', () => {
             context: 'some-context'
         })
     })
+
+    it('should accept "beforeunload" prompts so navigation is not blocked', async () => {
+        const log = { context: 'some-context', type: 'beforeunload' } as any
+
+        const calls = browser.on.mock.calls
+        const userPromptHandler = calls.find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+
+        await userPromptHandler(log)
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: true,
+            context: 'some-context'
+        })
+    })
 })
 
 describe('Dialog - Browser', () => {

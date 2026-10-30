@@ -71,12 +71,18 @@ export class DialogManager extends SessionManager {
         if (this.#autoHandleDialog) {
             this.#prompts.delete(log.context)
             try {
+                /**
+                 * accept `beforeunload` prompts so navigation is not blocked, dismiss the rest
+                 */
                 return await this.#browser.browsingContextHandleUserPrompt({
-                    accept: false,
+                    accept: log.type === 'beforeunload',
                     context: log.context
                 })
             } catch (err) {
-                // ignore race conditions when the dialog/context is gone before auto-dismiss runs
+                /**
+                 * the prompt can be gone before this auto-handle lands: `no such alert` when
+                 * the dialog was already closed, `no such frame` when its context is gone
+                 */
                 if (
                     err instanceof Error &&
                     (err.message.includes('no such alert') || err.message.includes('no such frame'))
