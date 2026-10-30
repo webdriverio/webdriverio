@@ -3055,7 +3055,7 @@ describe('WebDriverInterception', () => {
             })
 
             describe('in Firefox, which takes no response body after the request was sent', () => {
-                const LOST = 'another mock of the same request acted on it before it was sent, so this mock\'s response may not apply'
+                const LOST = 'needs the response, but another mock acted on the request before it was sent, so this response may not apply'
                 let logWarnSpy: ReturnType<typeof vi.spyOn>
                 const warnings = () => logWarnSpy.mock.calls.flat().filter((message) => String(message).includes(LOST))
 
