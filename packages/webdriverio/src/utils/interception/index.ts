@@ -859,6 +859,8 @@ export default class WebDriverInterception {
         this.clear()
         this.#respondOverwrites = []
         this.#requestOverwrites = []
+        // an abort set after reset() must not act on a request that an older abort handed over
+        this.#abortsHandedOver.clear()
         return this
     }
 

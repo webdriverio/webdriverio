@@ -3039,6 +3039,24 @@ describe('WebDriverInterception', () => {
                 expect(respondedWith(browser)).toEqual([])
             })
 
+            it('does not let a request in flight before reset() use an abort that was set after it', async () => {
+                const browser = getBrowser()
+                const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+                const scoped = await WebDriverInterception.initiate(TARGET_URL, { statusCode: 201 }, browser, SCOPE)
+                sessionWide.abort()
+                scoped.respond({ from: 'scoped' })
+
+                browser.emit('network.beforeRequestSent', blockedIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+                sessionWide.reset()
+                sessionWide.abortOnce()
+                browser.emit('network.responseStarted', responseIn(BOTH, 'ctx-1'))
+                await waitForAsyncHandlers()
+
+                expect(browser.networkFailRequest).not.toHaveBeenCalled()
+                expect(respondedWith(browser)).toEqual(['continued'])
+            })
+
             it('emits only fail, not continue, from a session-wide abort that fails the request when the response starts', async () => {
                 const browser = getBrowser()
                 const sessionWide = await WebDriverInterception.initiate(TARGET_URL, {}, browser)
