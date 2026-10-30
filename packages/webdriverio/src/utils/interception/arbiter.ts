@@ -41,6 +41,7 @@ export interface Candidate {
     readonly age: number
     readonly interceptId: string
     observe (phase: Phase, event: NetworkEvent): void
+    complete (event: local.NetworkResponseCompletedParameters): Promise<void>
     decide (phase: Phase, event: NetworkEvent): Decision | undefined | Promise<Decision | undefined>
 }
 
@@ -101,7 +102,7 @@ export class RequestArbiter {
             this.#listening = true
             this.#browser.on('network.beforeRequestSent', (event) => this.#handle('beforeRequestSent', event))
             this.#browser.on('network.responseStarted', (event) => this.#handle('responseStarted', event))
-            this.#browser.on('network.responseCompleted', (event) => this.#forget(event))
+            this.#browser.on('network.responseCompleted', (event) => this.#complete(event))
             this.#browser.on('network.fetchError', (event) => this.#forget(event))
         }
     }
@@ -112,6 +113,15 @@ export class RequestArbiter {
 
     #forget (event: { request: local.NetworkRequestData }) {
         this.#answeredHops.delete(event.request.request)
+    }
+
+    #complete (event: local.NetworkResponseCompletedParameters) {
+        this.#forget(event)
+        for (const candidate of [...this.#candidates]) {
+            candidate.complete(event).catch((err) => {
+                log.error(`A mock failed to record response ${event.request.request}: ${messageOf(err)}`)
+            })
+        }
     }
 
     #handle (phase: Phase, event: NetworkEvent) {

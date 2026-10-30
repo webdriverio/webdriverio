@@ -167,15 +167,13 @@ export default class WebDriverInterception {
             age: ++registeredMocks,
             interceptId: mockId,
             observe: (phase, event) => this.#observe(phase, event),
+            complete: (event) => this.#handleResponseCompleted(event as Response),
             decide: (phase, event) => this.#decide(phase, event)
         }
         this.#filterOptions = filterOptions
         this.#browser = browser
         this.#contexts = contexts
         this.#isCollectingNetworkData = isCollectingNetworkData
-
-        // the arbiter handles the blocked phases, this mock records the completed responses
-        browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
 
         /**
          * A mock of a held context ends with it. Chromium keeps an intercept

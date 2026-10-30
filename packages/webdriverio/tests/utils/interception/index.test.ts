@@ -102,9 +102,8 @@ describe('WebDriverInterception', () => {
             statusCode: 200
         }, browser)
         expect(mock).toBeInstanceOf(WebDriverInterception)
-        // the mock records completed responses, the arbiter of the browser takes the blocked phases
+        // the arbiter of the browser takes the network events for all its mocks
         expect(vi.mocked(browser.on).mock.calls.map(([event]) => event)).toEqual([
-            'network.responseCompleted',
             'network.beforeRequestSent',
             'network.responseStarted',
             'network.responseCompleted',
@@ -850,6 +849,25 @@ describe('WebDriverInterception', () => {
         browser.emit('browsingContext.contextDestroyed', { context: 'grandchild' })
         browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'grandchild' })
         expect(mock.calls).toHaveLength(1)
+    })
+
+    it('stops recording completed responses of a restored mock, with one listener for all mocks', async () => {
+        const browser = getResponseCollectionBrowserMock({}, {
+            networkRemoveIntercept: vi.fn().mockResolvedValue({}),
+            getWindowHandle: vi.fn().mockResolvedValue('window-1')
+        })
+        const kept = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const restored = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+        expect(browser.listenerCount('network.responseCompleted')).toBe(1)
+
+        await restored.restore()
+        browser.emit('network.responseStarted', { ...getResponseCollectionRequestStub(), isBlocked: false })
+        browser.emit('network.responseCompleted', { ...getResponseCollectionRequestStub(), isBlocked: false })
+        await waitForAsyncHandlers()
+
+        expect(kept.calls[0].body).toBe('response-body')
+        expect(restored.calls).toHaveLength(0)
+        expect(browser.listenerCount('network.responseCompleted')).toBe(1)
     })
 
     it('records a completed response of a descendant context but not of an unrelated one', async () => {

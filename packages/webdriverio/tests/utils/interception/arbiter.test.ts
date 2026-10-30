@@ -91,6 +91,7 @@ type Decide = Candidate['decide']
 
 interface FakeCandidate extends Candidate {
     observe: ReturnType<typeof vi.fn> & Candidate['observe']
+    complete: ReturnType<typeof vi.fn> & Candidate['complete']
     decide: ReturnType<typeof vi.fn> & Decide
 }
 
@@ -99,6 +100,7 @@ function candidate (age: number, interceptId: string, decide: Decide = () => und
         age,
         interceptId,
         observe: vi.fn(),
+        complete: vi.fn(() => Promise.resolve()),
         decide: vi.fn(decide)
     } as FakeCandidate
 }
@@ -297,6 +299,28 @@ describe('RequestArbiter', () => {
         await flush()
 
         expect(pass.run).toHaveBeenCalledTimes(1)
+    })
+
+    it('passes a completed response to each live mock, and logs a mock that fails to record it', async () => {
+        const a = candidate(1, 'int-a')
+        const b = candidate(2, 'int-b')
+        const removed = candidate(3, 'int-c')
+        a.complete.mockRejectedValue(new Error('body read failed'))
+        const arbiter = arbiterOf(asBrowser(browser))
+        for (const each of [a, b, removed]) {
+            arbiter.add(each)
+        }
+        arbiter.remove(removed)
+
+        const event = networkEvent({ isBlocked: false })
+        browser.emit('network.responseCompleted', event)
+        await flush()
+
+        expect(a.complete).toHaveBeenCalledWith(event)
+        expect(b.complete).toHaveBeenCalledWith(event)
+        expect(removed.complete).not.toHaveBeenCalled()
+        expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('body read failed'))
+        expect(browser.listenerCount('network.responseCompleted')).toBe(1)
     })
 
     it('observes a request that is not blocked, and releases nothing', async () => {
