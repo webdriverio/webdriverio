@@ -5,6 +5,8 @@ type Matcher = (this: { isNot?: boolean } | undefined, ...args: unknown[]) => un
 
 // a matcher that is already a user command
 const ASSERTION_WRAPPER = Symbol('wdio.assertionWrapper')
+// Vitest finds an inline snapshot in the test file from the frames of its call: a wrapper frame moves it
+const UNWRAPPED_MATCHERS = ['toMatchInlineSnapshot']
 
 /**
  * Make each call of the matchers one user command (`expect.toHaveText`, `expect.not.toHaveText`), so the
@@ -17,7 +19,7 @@ export function wrapAssertions (
 ) {
     const wrapped: Record<string, Matcher> = {}
     for (const [name, matcher] of Object.entries(matchers)) {
-        if (typeof matcher !== 'function' || ASSERTION_WRAPPER in matcher) {
+        if (typeof matcher !== 'function' || ASSERTION_WRAPPER in matcher || UNWRAPPED_MATCHERS.includes(name)) {
             continue
         }
         registerUserCommands([`expect.${name}`, `expect.not.${name}`])
