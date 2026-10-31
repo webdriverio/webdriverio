@@ -875,6 +875,26 @@ describe('custom commands', () => {
         expect(userEvents[1][1].result).toEqual({ error: expect.objectContaining({ message: 'no rows' }) })
     })
 
+    it('sends a pending element list that fails as an argument with no unhandled rejection', async () => {
+        const { browser, events } = client()
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => unhandled.push(reason)
+        process.on('unhandledRejection', onUnhandled)
+        try {
+            browser.addCommand('rows$$', async () => {
+                throw new Error('no rows')
+            })
+            browser.addCommand('countRows', async (rows: Promise<unknown[]>) => (await rows).length)
+            await expect(browser.countRows(browser.rows$$())).rejects.toThrow('no rows')
+            await new Promise((resolve) => setTimeout(resolve, 10))
+            expect(unhandled).toEqual([])
+            const [, { body }] = events.find(([event, payload]) => event === 'userCommand' && payload.command === 'countRows')!
+            expect(body).toEqual([{ wdio: 'element-array', query: [{ foundWith: 'rows$$' }] }])
+        } finally {
+            process.off('unhandledRejection', onUnhandled)
+        }
+    })
+
     it('sends the wait of an item past the end of a pending list as the item of the list', async () => {
         const { browser, events } = client({ options: { value: {} } })
         let calls = 0

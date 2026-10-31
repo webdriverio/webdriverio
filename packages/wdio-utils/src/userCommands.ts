@@ -429,9 +429,8 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
     }
     if (kind === 'element-array') {
         const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
-        // a pending list is a proxy of an array whose length is not known yet
-        const { length } = value as { length?: unknown }
-        return Array.isArray(value) && typeof length === 'number' ? { ...placeholder, length } : placeholder
+        // the length of a pending list is a new promise, and it starts the query
+        return Array.isArray(value) && !isPromiseLike(value) ? { ...placeholder, length: value.length } : placeholder
     }
     if (kind === 'browser') {
         return (value as { isMultiRemote?: unknown }).isMultiRemote ? 'WebdriverIO.MultiRemoteBrowser' : 'WebdriverIO.Browser'
