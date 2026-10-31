@@ -292,6 +292,30 @@ describe('runUserCommand', () => {
     })
 })
 
+describe('wrapCustomCommand', () => {
+    it('sends one pair with the name of a command that is not registered, and runs the hooks outside of it', async () => {
+        const browser = fakeBrowser()
+        const calls: string[] = []
+        browser.options = {
+            beforeCommand: () => { calls.push('before') },
+            afterCommand: () => { calls.push('after') }
+        }
+        browser.emit.mockImplementation((event: string) => { calls.push(event) })
+        const login = shim.wrapCustomCommand('login', function (this: unknown) {
+            return mod.runUserCommand(this, 'pause', [], async () => 'ok')
+        })
+        expect(await login.call(browser, 'user')).toBe('ok')
+        expect(pairs(browser).map(([event, payload]) => [event, payload.command, payload.body])).toEqual([
+            ['userCommand', 'login', ['user']],
+            ['userResult', 'login', ['user']]
+        ])
+        expect(calls).toEqual(['before', 'userCommand', 'userResult', 'after'])
+
+        await shim.wrapCommand('login', async () => 'ok').call(browser)
+        expect(browser.emit).toHaveBeenCalledTimes(2)
+    })
+})
+
 describe('runUserCommand with an event result', () => {
     it('sends the event result and returns the result of the command as it is', async () => {
         const browser = fakeBrowser()

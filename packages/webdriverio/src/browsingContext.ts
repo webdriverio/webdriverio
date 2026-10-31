@@ -1,4 +1,4 @@
-import { DEFERRED_USER_COMMANDS, resolveCustomCommandOptions, runCustomCommand, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { resolveCustomCommandOptions, setWdioKind, webdriverMonad, wrapCustomCommand } from '@wdio/utils'
 
 import { $ } from './commands/browser/$.js'
 import { $$ } from './commands/browser/$$.js'
@@ -193,19 +193,6 @@ function liveContexts (registry: BrowsingContextCommands): WebdriverIO.BrowsingC
     return contexts
 }
 
-/**
- * A context command is a user command with its own name, as a custom command. Its names are not
- * registered: several are also protocol commands of the browser (`getTitle`, `refresh`).
- */
-function userCommand (name: string, command: Function) {
-    if (DEFERRED_USER_COMMANDS.includes(name)) {
-        return command
-    }
-    return function (this: WebdriverIO.BrowsingContext, ...args: unknown[]) {
-        return runCustomCommand(this, name, args, () => command.apply(this, args))
-    }
-}
-
 function applyToLiveContexts (registry: BrowsingContextCommands, name: string) {
     const command = resolveCommand(registry, name)
     if (!command) {
@@ -213,7 +200,7 @@ function applyToLiveContexts (registry: BrowsingContextCommands, name: string) {
     }
     for (const context of liveContexts(registry)) {
         Object.defineProperty(context, name, {
-            value: wrapCommand(name, userCommand(name, command) as (...args: unknown[]) => Promise<unknown>),
+            value: wrapCustomCommand(name, command),
             configurable: true,
             writable: true
         })
@@ -379,7 +366,11 @@ export function getBrowsingContext (
         return setWdioKind(client, 'browsing-context')
     }, contextProperties(registry))
 
-    const context = monad(browser.sessionId, wrapCommand) as WebdriverIO.BrowsingContext
+    /**
+     * a context command is a user command with its own name, as a custom command. Its names are not
+     * registered: several are also protocol commands of the browser (`getTitle`, `refresh`)
+     */
+    const context = monad(browser.sessionId, wrapCustomCommand) as WebdriverIO.BrowsingContext
     context.addCommand = rejectCommand('addCommand')
     context.overwriteCommand = rejectCommand('overwriteCommand')
     const ref = new WeakRef(context)
@@ -401,11 +392,6 @@ function contextProperties (registry: BrowsingContextCommands): Record<string, P
         const base = properties[name]?.value
         if (typeof base === 'function') {
             properties[name] = { value: composeOverrides(base, overrides), configurable: true }
-        }
-    }
-    for (const [name, property] of Object.entries(properties)) {
-        if (typeof property.value === 'function') {
-            property.value = userCommand(name, property.value)
         }
     }
     return properties
