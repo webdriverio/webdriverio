@@ -231,6 +231,11 @@ describe('wdio-runner', () => {
             await runner.run({ args: { reporters: [] }, cid: '0-0', caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
 
             const flag = { 'wdio:experimentalBiDiCommands': true }
+            // the instances are the sessions, the multi-remote browser has no `isBidi`
+            const multiRemote = (...props: Record<string, unknown>[]) => {
+                const instances = props.map((instance) => ({ capabilities: {}, options: {}, ...instance }))
+                return { isMultiRemote: true, instances: ['a', 'b'], getInstance: (name: string) => instances[name === 'a' ? 0 : 1] }
+            }
             const rows: [string, Record<string, unknown>, boolean][] = [
                 ['Classic', { capabilities: flag }, false],
                 ['Appium with WebDriver BiDi', { isBidi: true, isMobile: true, capabilities: flag }, false],
@@ -238,7 +243,8 @@ describe('wdio-runner', () => {
                 ['WebDriver BiDi with userCommandEvents true', { isBidi: true, options: { userCommandEvents: true } }, true],
                 ['WebDriver BiDi with no capability', { isBidi: true }, false],
                 ['WebDriver BiDi with userCommandEvents false', { isBidi: true, capabilities: flag, options: { userCommandEvents: false } }, false],
-                ['multi-remote', { isMultiRemote: true }, true]
+                ['multi-remote with Classic instances', multiRemote({ isBidi: false, capabilities: flag }, {}), false],
+                ['multi-remote with one instance that sends them', multiRemote({}, { isBidi: true, capabilities: flag }), true]
             ]
             const sends = rows.map(([name, props]) => {
                 // the check reads the browser at each reporter event
