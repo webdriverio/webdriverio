@@ -61,6 +61,16 @@ describe('user command events', () => {
         expect(registerUserCommands).not.toHaveBeenCalled()
     })
 
+    it('sends a pending element list with its query and no length', async () => {
+        const browser = await bidiSession()
+        browser.addCommand('countItems', async (list: unknown) => (await (list as Promise<unknown[]>)).length)
+        const events = recordEvents(browser)
+        // the list is still pending when the command starts: its length is not known yet
+        await (browser as unknown as { countItems: (list: unknown) => Promise<number> }).countItems(browser.$$('li'))
+        const [, { body }] = events.find(([event, payload]) => event === 'userCommand' && payload.command === 'countItems')!
+        expect(body).toEqual([{ wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }] }])
+    })
+
     it('sends a pair for url and for $ called from a test', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
