@@ -1,4 +1,4 @@
-import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
+import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, runListItem, WDIO_KIND } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Selector } from '../types.js'
 /**
@@ -228,8 +228,12 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
      * Waits in one browser or element for the index. When the list still does not reach
      * the index after `waitforTimeout`, gives a "not found" element, see below.
      */
-    const itemIn = async (target: WebdriverIO.Browser | WebdriverIO.Element): Promise<WebdriverIO.Element> => {
+    // the wait is the user command of the item (`` $$(`li`)[3] ``), not a `waitUntil` of the test
+    const itemIn = (target: WebdriverIO.Browser | WebdriverIO.Element): Promise<WebdriverIO.Element> => {
         const browser = getBrowserObject(target)
+        return runListItem(browser, foundWith, [selector, ...props], index, () => waitForItem(target, browser))
+    }
+    const waitForItem = async (target: WebdriverIO.Browser | WebdriverIO.Element, browser: WebdriverIO.Browser): Promise<WebdriverIO.Element> => {
         try {
             return await browser.waitUntil(() => findIn(target), {
                 timeout: browser.options?.waitforTimeout,

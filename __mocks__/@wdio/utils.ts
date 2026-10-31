@@ -96,6 +96,7 @@ export const setUserCommandStore = vi.fn()
 export const registerUserCommands = vi.fn()
 export const runUserCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()
 export const runCustomCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()
+export const runListItem = <T>(_scope: unknown, _command: string, _args: unknown[], _index: number, run: () => T): T => run()
 export const isFunctionAsync = isFnAsync
 export const safeRequire = vi.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig
