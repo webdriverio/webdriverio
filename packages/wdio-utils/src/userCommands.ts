@@ -123,17 +123,26 @@ export function runOutsideUserCommands<T> (fn: () => T): T {
     return userCommandStore.run(undefined, fn)
 }
 
+/**
+ * Whether the session has user command events: WebDriver BiDi, not Appium, and `userCommandEvents` on (when it is not set,
+ * on only with the `wdio:experimentalBiDiCommands` capability)
+ * @experimental
+ */
+export function sendsUserCommands (browser: EventBrowser | undefined): boolean {
+    // Appium sessions are out of scope, also with WebDriver BiDi: not tested on a device yet
+    if (!browser?.isBidi || browser.isMobile) {
+        return false
+    }
+    const option = browser.options?.userCommandEvents
+    return option !== false && (option !== undefined || hasBidiCommandsFlag(browser))
+}
+
 // 'hide': an id but no events (an excluded command, no listener), so opt-in reporters hide its protocol commands
 function eventMode (browser: EventBrowser | undefined, command: string): 'send' | 'hide' | undefined {
-    // Appium sessions are out of scope, also with WebDriver BiDi
-    if (!browser?.isBidi || browser.isMobile || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
+    if (!browser || !sendsUserCommands(browser) || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return undefined
     }
     const option = browser.options?.userCommandEvents
-    // not set: on only with the `wdio:experimentalBiDiCommands` capability
-    if (option === false || (option === undefined && !hasBidiCommandsFlag(browser))) {
-        return undefined
-    }
     return (typeof option === 'object' && option.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
 }
 

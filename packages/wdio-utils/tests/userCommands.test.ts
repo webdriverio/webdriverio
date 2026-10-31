@@ -292,6 +292,25 @@ describe('runUserCommand', () => {
     })
 })
 
+describe('sendsUserCommands', () => {
+    it.each([
+        ['a Classic session', { isBidi: false }, false],
+        ['an Appium session with WebDriver BiDi', { isMobile: true }, false],
+        ['WebDriver BiDi with the capability', {}, true],
+        ['WebDriver BiDi with the capability of the session', { requestedCapabilities: {}, capabilities: BIDI_COMMANDS }, true],
+        ['WebDriver BiDi with no capability', { requestedCapabilities: {} }, false],
+        ['WebDriver BiDi with userCommandEvents true', { requestedCapabilities: {}, options: { userCommandEvents: true } }, true],
+        ['WebDriver BiDi with an exclude list', { requestedCapabilities: {}, options: { userCommandEvents: { exclude: ['pause'] } } }, true],
+        ['WebDriver BiDi with userCommandEvents false', { options: { userCommandEvents: false } }, false]
+    ])('%s: %s', (_name, props, expected) => {
+        expect(mod.sendsUserCommands(fakeBrowser(props))).toBe(expected)
+    })
+
+    it('is false with no browser', () => {
+        expect(mod.sendsUserCommands(undefined)).toBe(false)
+    })
+})
+
 describe('wrapCustomCommand', () => {
     it('sends one pair with the name of a command that is not registered, and runs the hooks outside of it', async () => {
         const browser = fakeBrowser()

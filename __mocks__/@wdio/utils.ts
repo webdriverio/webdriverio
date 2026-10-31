@@ -14,6 +14,7 @@ import {
     sessionEnvironmentDetector as sessionEnvDetector,
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector
 } from '../../packages/wdio-utils/src/envDetector.js'
+import { sendsUserCommands as sendsUserCommandsOrig } from '../../packages/wdio-utils/src/userCommands.js'
 import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_DEFINITION_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
 /**
@@ -90,6 +91,7 @@ export const commandCallStructure = commandCallStructureOrig
 export const userCommandParent = () => ({})
 export const runWithoutUserCommands = <T>(fn: () => T): T => fn()
 export const runOutsideUserCommands = <T>(fn: () => T): T => fn()
+export const sendsUserCommands = sendsUserCommandsOrig
 export const setUserCommandStore = vi.fn()
 export const registerUserCommands = vi.fn()
 export const runUserCommand = <T>(_scope: unknown, _command: string, _args: unknown[], run: () => T): T => run()

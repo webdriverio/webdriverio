@@ -11,7 +11,7 @@ import {
     userImport, getBrowserObject, enableFileLogging, specFilePath,
 } from './utils.js'
 import { wrapCommand, wrapCustomCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
-import { setUserCommandStore, registerUserCommands, userCommandParent, runUserCommand, runCustomCommand, runWithoutUserCommands, runOutsideUserCommands, type UserCommandFrame, type UserCommandStore } from './userCommands.js'
+import { setUserCommandStore, registerUserCommands, userCommandParent, runUserCommand, runCustomCommand, runWithoutUserCommands, runOutsideUserCommands, sendsUserCommands, type UserCommandFrame, type UserCommandStore } from './userCommands.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAgent.js'
@@ -76,6 +76,7 @@ export {
     runCustomCommand,
     runWithoutUserCommands,
     runOutsideUserCommands,
+    sendsUserCommands,
     type UserCommandFrame,
     type UserCommandStore,
 
