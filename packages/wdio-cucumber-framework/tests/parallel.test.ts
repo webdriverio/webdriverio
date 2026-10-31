@@ -624,7 +624,7 @@ describe('runParallelCucumber', () => {
         expect(scenarioEnd.payload.parentUid).toBe(featureUid)
     })
 
-    test('emits suite:retry for retried attempts in step-level mode', async () => {
+    test.each([false, true])('emits native retry metadata (scenario level: %s)', async (scenarioLevelReporter) => {
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
 
@@ -662,10 +662,18 @@ describe('runParallelCucumber', () => {
             specs: ['/test/foo.feature'],
             gherkinDocuments: [doc],
             supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [stepDefinition] }),
-            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, retry: 1 }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter, retry: 1 }),
         })
 
         expect(calls).toBe(2)
+        if (scenarioLevelReporter) {
+            const starts = reporterEvents.filter((e) => e.event === 'test:start')
+            expect(starts).toHaveLength(2)
+            expect(starts[0].payload).not.toHaveProperty('retry')
+            expect(starts[1].payload).toMatchObject({ type: 'scenario', retry: 1 })
+            expect(reporterEvents.filter((e) => e.event === 'suite:retry')).toHaveLength(0)
+            return
+        }
         // feature suite:start + scenario suite:start (attempt 0) — no suite:end
         // for the retried attempt, mirroring sequential mode
         const suiteStarts = reporterEvents.filter((e) => e.event === 'suite:start')

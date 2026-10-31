@@ -24,6 +24,37 @@ const capability: WebdriverIO.Capabilities = { browserName: 'foo' }
 process.send = vi.fn()
 
 describe('BaseReporter', () => {
+    it('sends one test summary per run independently of configured reporter instances', () => {
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', capability)
+        reporter.emit('runner:start', {})
+        reporter.emit('test:pass', {})
+        reporter.emit('test:fail', {})
+        reporter.emit('test:retry', {})
+        reporter.emit('test:pending', {})
+        reporter.emit('test:skip', {})
+        reporter.emit('hook:end', { title: 'before all', error: 'hook failure' })
+        reporter.emit('runner:end', {})
+        expect(process.send).toHaveBeenCalledWith({ origin: 'worker', name: 'testCounts', cid: '0-0',
+            content: { id: expect.stringMatching(/:1$/), counts: { passed: 1, failed: 1, skipped: 2, retries: 1 } } })
+        reporter.emit('runner:start', {})
+        reporter.emit('test:pass', {})
+        reporter.emit('runner:end', {})
+        expect(process.send).toHaveBeenCalledWith({ origin: 'worker', name: 'testCounts', cid: '0-0',
+            content: { id: expect.stringMatching(/:2$/), counts: { passed: 1, failed: 0, skipped: 0, retries: 0 } } })
+    })
+
+    it('counts native Cucumber retries once per additional attempt in both reporter modes', () => {
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', capability)
+        reporter.emit('runner:start', {})
+        reporter.emit('suite:retry', { type: 'scenario' })
+        reporter.emit('test:start', { type: 'scenario', retry: 2 })
+        reporter.emit('test:start', { type: 'scenario', retry: 0 })
+        reporter.emit('test:start', { type: 'step', retry: 2 })
+        reporter.emit('runner:end', {})
+        expect(process.send).toHaveBeenCalledWith({ origin: 'worker', name: 'testCounts', cid: '0-0',
+            content: { id: expect.any(String), counts: { passed: 0, failed: 0, skipped: 0, retries: 2 } } })
+    })
+
     it('should load all reporters', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',

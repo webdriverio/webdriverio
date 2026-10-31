@@ -259,14 +259,14 @@ Instead of calling the `wdio` command, you can also include the test runner as m
 <TabItem value="esm">
 
 ```js
-import Launcher from '@wdio/cli'
+import { Launcher } from '@wdio/cli'
 ```
 
 </TabItem>
 <TabItem value="cjs">
 
 ```js
-const Launcher = require('@wdio/cli').default
+const { Launcher } = require('@wdio/cli')
 ```
 
 </TabItem>
@@ -291,15 +291,25 @@ const wdio = new Launcher(
     { spec: '/path/to/a/single/spec.e2e.js' }
 )
 
-wdio.run().then((exitCode) => {
-    process.exit(exitCode)
+wdio.run().then((result) => {
+    console.log(result.tests, result.specs, result.duration)
+    process.exit(result.exitCode)
 }, (error) => {
     console.error('Launcher failed to start the test', error.stacktrace)
     process.exit(1)
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+Since v10, `run()` resolves to a `LauncherResult`, including when tests fail:
+
+- `exitCode`: the numeric process exit status. The `wdio` CLI still exits with this status.
+- `duration`: elapsed wall-clock milliseconds from launch through hooks and shutdown, not the sum of concurrent worker times.
+- `tests`: `passed`, `failed`, `skipped`, and `retries` counts from framework events across executed worker attempts. `skipped` includes pending tests. `retries` counts native framework retries: individual tests in Mocha and scenarios in Cucumber. Retries inside a test callback or a WebdriverIO function wrapper do not emit framework retry events and are not included. Whole-spec reruns are counted separately in `specs.retries`. A failed test in an earlier spec attempt remains in `tests.failed` even if the rerun passes. Cucumber outcome counts represent steps or scenarios according to `scenarioLevelReporter`.
+- `specs`: `passed`, `failed`, `skipped`, and `retries` counts for spec-file jobs, not individual tests.
+
+Scenario-level Cucumber reporting omits intermediate failed scenario outcomes from `tests.failed`; the native retry is still included in `tests.retries`.
+
+Watch reruns reset the outcome counters, so the returned counts describe the latest reporting cycle, while `duration` spans the launcher invocation. Configuration or startup errors still reject the promise. Test failures and ordinary user `onComplete` hook failures resolve with a nonzero `exitCode`; severe service or hook errors may still reject.
 
 ## `@wdio/browser-runner`
 

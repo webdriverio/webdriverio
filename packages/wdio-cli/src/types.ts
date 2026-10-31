@@ -63,6 +63,16 @@ export interface SupportedPackage {
     purpose: string
 }
 
+/** Result of a completed programmatic Launcher.run(), also when exitCode is nonzero. */
+export interface LauncherResult {
+    exitCode: number
+    /** Elapsed wall-clock milliseconds, including launcher hooks and shutdown. */
+    duration: number
+    tests: Reporters.TestCounts
+    /** Spec-file jobs; these are not individual test counts. */
+    specs: Omit<OnCompleteResult, 'finished'> & { skipped: number }
+}
+
 export interface OnCompleteResult {
     finished: number
     passed: number

@@ -13,13 +13,15 @@ import { Launcher } from '@wdio/cli'
  */
 export default function launch (testName, configPath, args = {}, ...rest) {
     const launcher = new Launcher(configPath, { strictSelectors: false, ...args }, ...rest)
-    return launcher.run().then(async (exitCode) => {
-        const isFailing = exitCode !== 0
+    return launcher.run().then(async (result) => {
+        const isFailing = result.exitCode !== 0
         if (!isFailing) {
             return {
-                passed: launcher.interface.result.passed,
-                skippedSpecs: launcher.interface._skippedSpecs,
-                failed: launcher.interface.result.failed,
+                passed: result.specs.passed,
+                skippedSpecs: result.specs.skipped,
+                failed: result.specs.failed,
+                tests: result.tests,
+                duration: result.duration,
                 workerTimings: launcher.interface.workerTimings
             }
         }

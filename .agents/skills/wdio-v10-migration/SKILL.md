@@ -80,6 +80,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `browser.uploadFile(path)` then `setValue` | `element.setFiles(path)` or `element.setFiles([paths])`. Needs a BiDi session and a path the browser can read. Grid byte staging is gone. See below. |
 | `touchAction(` | `browser.action('pointer', { parameters: { pointerType: 'touch' } })`, or mobile `tap` / `swipe` |
 | `setTimeout({ 'page load': n })` | `setTimeout({ pageLoad: n })` |
+| `const exitCode = await new Launcher(config).run()` | `const result = await new Launcher(config).run(); const exitCode = result.exitCode`. The CLI exit status stays numeric. |
 | `browser.chromeBrowser.url(...)` on a multi-remote browser | `browser.getInstance('chromeBrowser').url(...)`. The testrunner global `chromeBrowser` is the single session. |
 | `const [a, b] = await browser.mock(...)` | `const mock = await browser.mock(...)`, then `mock.getInstance('name')` |
 | Buffer-specific methods on `mock.getBinaryResponse()` | The result is typed as `Uint8Array \| null`. Check for null, then use `Buffer.from(bytes)` in Node.js before calling Buffer-specific methods. |

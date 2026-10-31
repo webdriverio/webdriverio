@@ -282,6 +282,15 @@ describe('CucumberFormatter', () => {
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
+        it('exposes a native scenario retry attempt on test:start', () => {
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, attempt: 2 } })
+            expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({ type: 'scenario', retry: 2 }))
+        })
+
         it('should send proper data on `test-case-finished` event', () => {
             const passingStep: TestStepFinished = JSON.parse(
                 JSON.stringify(testStepFinished)

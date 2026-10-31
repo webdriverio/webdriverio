@@ -10,6 +10,7 @@ import type { Options, Workers } from '@wdio/types'
 
 import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'
+import WDIOCLInterface from '../src/interface.js'
 
 /**
  * Helper to create cross-platform absolute paths for testing.
@@ -544,6 +545,40 @@ describe('watcher', () => {
             baseUrl: 'http://localhost:1234'
         })
         expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(1)
+    })
+
+    it('does not count the preliminary watch job as a skipped spec', () => {
+        const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
+        const cliInterface = new WDIOCLInterface({}, 1, true)
+        watcher['_launcher'].interface = cliInterface
+        watcher['_launcher'].runner!.workerPool = {
+            '0-0': new WorkerMock({ cid: '0-0', specs: [testPath('watch.test.js')] })
+        }
+
+        watcher.run()
+
+        expect(cliInterface.specs).toEqual({ passed: 0, failed: 0, skipped: 0, retries: 0 })
+    })
+
+    it.each([true, false])('counts the framework outcome once after a watch job starts (hasTests: %s)', (hasTests) => {
+        const watcher = new Watcher(path.join(__dirname, '__fixtures__', 'wdio.conf'), {})
+        const cliInterface = new WDIOCLInterface({}, 1, true)
+        watcher['_launcher'].interface = cliInterface
+        watcher['_launcher'].runner!.workerPool = {
+            '0-0': new WorkerMock({ cid: '0-0', specs: [testPath('watch.test.js')] })
+        }
+
+        watcher.run()
+        cliInterface.onMessage({ name: 'testFrameworkInit', content: { cid: '0-0', hasTests } })
+        cliInterface.emit('job:end', { cid: '0-0', passed: true, retries: 0 })
+
+        expect(cliInterface.specs).toEqual({
+            passed: hasTests ? 1 : 0,
+            failed: 0,
+            skipped: hasTests ? 0 : 1,
+            retries: 0
+        })
+        expect(cliInterface.result.finished).toBe(1)
     })
 
     it('should not clean if no watcher is running', () => {
