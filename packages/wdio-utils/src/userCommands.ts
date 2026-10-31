@@ -417,7 +417,9 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
     }
     if (kind === 'element-array') {
         const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
-        return Array.isArray(value) ? { ...placeholder, length: value.length } : placeholder
+        // a pending list is a proxy of an array whose length is not known yet
+        const { length } = value as { length?: unknown }
+        return Array.isArray(value) && typeof length === 'number' ? { ...placeholder, length } : placeholder
     }
     if (kind === 'browser') {
         return 'WebdriverIO.Browser'
