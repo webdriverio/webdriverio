@@ -21,6 +21,7 @@ import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 export type { ChromedriverParameters } from '../driverOptions.js'
 
 const log = logger('@wdio/utils')
+let profileRootLogged = false
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 const DRIVER_RETRY_INTERVAL = 100
 const TRANSIENT_SPAWN_CODES = new Set(['EBUSY', 'EAGAIN', 'EACCES'])
@@ -184,7 +185,10 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         const runnerTemp = process.env.RUNNER_TEMP
         if (os.platform() === 'win32' && runnerTemp && !geckodriverOptions.profileRoot && !caps['moz:firefoxOptions']?.androidPackage) {
             geckodriverOptions.profileRoot = runnerTemp
-            log.info(`Create the Firefox profiles in RUNNER_TEMP (${runnerTemp}). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }`)
+            if (!profileRootLogged) {
+                profileRootLogged = true
+                log.info(`Create the Firefox profiles in RUNNER_TEMP (${runnerTemp}). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }`)
+            }
         }
 
         driver = 'GeckoDriver'

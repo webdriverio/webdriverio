@@ -211,11 +211,11 @@ describe('startWebDriver', () => {
         const runnerTemp = process.env.RUNNER_TEMP
         const start = async (capabilities: WebdriverIO.Capabilities) => {
             vi.mocked(startGeckodriver).mockClear()
-            vi.mocked(logMock.info).mockClear()
             await startWebDriver({ capabilities: { browserName: 'firefox', ...capabilities } } as never)
             return vi.mocked(startGeckodriver).mock.calls[0][0]
         }
         beforeEach(() => {
+            vi.mocked(logMock.info).mockClear()
             setPlatform('win32')
             process.env.RUNNER_TEMP = 'D:\\a\\_temp'
         })
@@ -228,9 +228,11 @@ describe('startWebDriver', () => {
             }
         })
 
-        it('creates them in RUNNER_TEMP and says so', async () => {
+        it('creates them in RUNNER_TEMP and says so one time', async () => {
             expect((await start({})).profileRoot).toBe('D:\\a\\_temp')
-            expect(logMock.info).toHaveBeenCalledWith(expect.stringContaining("Create the Firefox profiles in RUNNER_TEMP (D:\\a\\_temp). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }"))
+            expect((await start({})).profileRoot).toBe('D:\\a\\_temp')
+            const said = vi.mocked(logMock.info).mock.calls.filter(([message]) => String(message).includes('RUNNER_TEMP'))
+            expect(said).toEqual([["Create the Firefox profiles in RUNNER_TEMP (D:\\a\\_temp). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }"]])
         })
 
         it('also with a custom driver binary', async () => {
@@ -913,6 +915,7 @@ describe('startWebDriver', () => {
             (caps['goog:chromeOptions']?.args || []).filter((arg) => arg.includes('user-data-dir'))
 
         beforeEach(() => {
+            vi.mocked(logMock.info).mockClear()
             setPlatform('win32')
             process.env.WDIO_WORKER_ID = '0-1'
         })
