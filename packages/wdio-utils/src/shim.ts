@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, queryCall, queryPrefix, setWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, setWdioKind, type WdioKind, type WdioQuery } from './kind.js'
 import { runCustomCommand, runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
@@ -235,7 +235,7 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * Proxy around a promise of an element (or element list) so commands and
  * properties can be chained before the promise resolves.
  */
-export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false, query?: () => string | undefined): T {
+export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false, query?: () => WdioQuery | undefined): T {
     return createElementPromiseProxy(
         promise,
         function (this: T) {
@@ -258,8 +258,8 @@ function createElementPromiseProxy (
     prevInnerArgs?: { prop: string | number, args: unknown[] },
     kind?: WdioKind,
     multiRemote = false,
-    // the query as in the test code, see `WDIO_QUERY`
-    query: () => string | undefined = () => undefined
+    // how the element is found, see `WDIO_QUERY`
+    query: () => WdioQuery | undefined = () => undefined
 ): unknown {
     /**
      * only an unresolved element is chainable: a pending element list (for example
@@ -377,7 +377,7 @@ function createElementPromiseProxy (
                         multiRemote,
                         () => {
                             const list = query()
-                            return list && `${list}[${numValue}]`
+                            return list && { ...list, index: numValue }
                         }
                     )
                 }
@@ -399,7 +399,7 @@ function createElementPromiseProxy (
                         multiRemote,
                         () => {
                             const list = query()
-                            return list && `${list}.at(${index})`
+                            return list && { ...list, index }
                         }
                     )
                 }
@@ -528,10 +528,11 @@ function attachElementArrayHooks (
 
         let commandError: unknown
         try {
-            // the event gets a labeled list, so reporters can show the count
+            // the event gets a list with the query of the list, so reporters can show it and the count
             await runUserCommand(self, commandName, args, async () => {
                 const loaded = await load()
-                return Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], { selector: args[0] }), 'element-array') : loaded
+                const query = { foundWith: commandName, selector: args[0], props: args.slice(1), parent: self }
+                return Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], query), 'element-array') : loaded
             })
         } catch (err) {
             commandError = err
@@ -602,7 +603,7 @@ function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCo
          */
         return createElementPromiseProxy(
             promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise),
-            () => `${queryPrefix(promise)}${queryCall(commandName, args)}`
+            () => ({ foundWith: commandName, selector: args[0], props: args.slice(1), parent: promise })
         )
     }
 
@@ -697,7 +698,7 @@ function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCo
                     undefined,
                     isPending ? 'element-array' : undefined,
                     isMultiRemoteOrigin(this),
-                    () => `${queryPrefix(this)}${queryCall(commandName, args)}`
+                    () => ({ foundWith: commandName, selector: args[0], props: args.slice(1), parent: this })
                 )
             }
         }

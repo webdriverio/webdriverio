@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { reactScript } from '../constant.js'
-import { getElements } from '../../utils/getElementObject.js'
+import { getElements, reactArguments } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
@@ -57,7 +57,7 @@ export function react$$ (
             react$$Script, selector, props, state
         ) as unknown as ElementReference[]
 
-        return getElements.call(this, selector, res, { isReactElement: true, reactOptions: { props, state } })
+        return getElements.call(this, selector, res, { isReactElement: true, reactOptions: { props, state }, foundWith: 'react$$', queryProps: reactArguments({ props, state }) })
     }, {
         selector,
         foundWith: 'react$$',

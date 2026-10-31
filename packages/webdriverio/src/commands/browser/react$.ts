@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { reactScript } from '../constant.js'
-import { getElement } from '../../utils/getElementObject.js'
+import { getElement, reactArguments } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
@@ -68,5 +68,5 @@ export async function react$ (
      * `react$` never counts matches itself, so a refetch (implicit wait, stale
      * element) must not suddenly apply the global strict `$` default either
      */
-    return getElement.call(this, selector, res, { isReactElement: true, strict: false, reactOptions: { props, state } })
+    return getElement.call(this, selector, res, { isReactElement: true, strict: false, reactOptions: { props, state }, foundWith: 'react$', queryProps: reactArguments({ props, state }) })
 }
