@@ -285,7 +285,7 @@ const ASSERTION_PREFIX = 'expect.'
 // `$`, `$$`, `shadow$`, `custom$$` …: the first argument is the selector
 const QUERY_COMMAND = /\$\$?$/
 // the received value of an assertion as in the test code
-const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock' }
+const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock', 'WebdriverIO.BrowsingContext': 'context' }
 
 function cut(text: string, length: number) {
     return text.length > length ? `${text.slice(0, length)}…` : text
