@@ -134,8 +134,8 @@ describe('setCookies', () => {
             contexts: [{ context: 'ctx-1', url, userContext: 'uc-1', children: [] }]
         } as any)
 
-        // Chrome rejects a cookie that is not secure in a sourceOrigin (CHIPS) partition
-        it('should set the cookie in the jar of the test window inside a parallel scope', async () => {
+        // Firefox stores a cookie of the "context" partition where a plain http page does not see it
+        it('should set the cookie in the user context of the test window inside a parallel scope', async () => {
             const getUrl = vi.spyOn(browser, 'getUrl')
             getUrl.mockClear()
             const getTree = page('https://webdriver.io/')
@@ -143,18 +143,24 @@ describe('setCookies', () => {
             await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
             expect(storageSetCookie).toBeCalledWith({
                 cookie: { name: 'cookie1', domain: 'webdriver.io', value: { type: 'string', value: cookie1.value } },
-                partition: { type: 'context', context: 'ctx-1' }
+                partition: { type: 'storageKey', userContext: 'uc-1' }
             })
             expect(getTree).toBeCalledTimes(1)
             expect(getUrl).not.toBeCalled()
         })
 
+        it('should use the context partition when the window has no user context', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
+            expect(storageSetCookie.mock.calls[0][0].partition).toEqual({ type: 'context', context: 'ctx-1' })
+        })
+
         it('should send an explicit domain as given inside a parallel scope', async () => {
-            const getTree = page('https://webdriver.io/')
-            getTree.mockClear()
+            page('https://webdriver.io/')
             await parallelStore.run('ctx-1', () => browser.setCookies({ ...cookie1, domain: 'example.com' }))
             expect(storageSetCookie.mock.calls[0][0].cookie.domain).toBe('example.com')
-            expect(getTree).not.toBeCalled()
         })
 
         it('should not set a cookie without a domain on a page with no host inside a parallel scope', async () => {
@@ -205,7 +211,7 @@ describe('setCookies', () => {
                 vi.mocked(getContextManager(browser).getCurrentContext).mockRestore()
             })
 
-            it('should set the cookie in the jar of the current window without addCookie', async () => {
+            it('should set the cookie in the user context of the current window without addCookie', async () => {
                 page('https://webdriver.io/')
                 const addCookie = vi.spyOn(browser, 'addCookie')
                 addCookie.mockClear()
@@ -213,7 +219,7 @@ describe('setCookies', () => {
                 await expect(browser.setCookies(cookie1)).rejects.toThrow('bidi boom')
                 expect(storageSetCookie).toBeCalledWith({
                     cookie: { name: 'cookie1', domain: 'webdriver.io', value: { type: 'string', value: cookie1.value } },
-                    partition: { type: 'context', context: 'ctx-1' }
+                    partition: { type: 'storageKey', userContext: 'uc-1' }
                 })
                 expect(addCookie).not.toBeCalled()
             })

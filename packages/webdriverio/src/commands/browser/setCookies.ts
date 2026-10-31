@@ -136,7 +136,8 @@ export async function setCookies(
  * addCookie would act on the focused window, so BiDi errors propagate.
  */
 async function setWindowCookies(scope: WindowCookieScope, cookies: Cookie[]) {
-    const host = cookies.every((cookie) => cookie.domain) ? undefined : (await getWindowInfo(scope)).url?.hostname
+    const { url, userContext } = await getWindowInfo(scope)
+    const host = url?.hostname
     const bidiCookies = cookies.map((cookie) => {
         const domain = cookie.domain || host
         if (!domain) {
@@ -144,7 +145,13 @@ async function setWindowCookies(scope: WindowCookieScope, cookies: Cookie[]) {
         }
         return toBidiCookie(cookie, domain)
     })
-    await Promise.all(bidiCookies.map((cookie) => scope.browser.storageSetCookie({ cookie, partition: scope.partition })))
+    /**
+     * Firefox resolves the "context" partition to the origin of the page and stores the cookie
+     * where a plain http page (not https, not loopback) does not see it; the user context of the
+     * window is the jar of the page in Chrome and Firefox
+     */
+    const partition: remote.StoragePartitionDescriptor = userContext ? { type: 'storageKey', userContext } : scope.partition
+    await Promise.all(bidiCookies.map((cookie) => scope.browser.storageSetCookie({ cookie, partition })))
 }
 
 /**
