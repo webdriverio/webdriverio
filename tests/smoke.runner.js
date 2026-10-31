@@ -1204,6 +1204,39 @@ const parallelMultiRemote = async () => {
 }
 
 /**
+ * stop the run once it exceeded `globalTimeout`, but still run `onComplete`
+ */
+const globalTimeout = async () => {
+    const startedSpecs = []
+    let onCompleteExitCode
+    const start = Date.now()
+    const failed = await launch('globalTimeout', baseConfig, {
+        specs: [
+            path.resolve(__dirname, 'global-timeout', 'slow.js'),
+            path.resolve(__dirname, 'global-timeout', 'never-started.js')
+        ],
+        maxInstances: 1,
+        globalTimeout: 3000,
+        mochaOpts: { ui: 'bdd', timeout: 60000 },
+        onWorkerStart: [(cid, caps, specs) => { startedSpecs.push(...specs) }],
+        onComplete: [(exitCode) => { onCompleteExitCode = exitCode }]
+    }).then(
+        () => false,
+        () => true
+    )
+    const duration = Date.now() - start
+
+    assert.equal(failed, true, 'Expected the run to fail after the globalTimeout')
+    assert.equal(onCompleteExitCode, 1, `Expected onComplete to run with exit code 1, got ${onCompleteExitCode}`)
+    assert.deepEqual(
+        [...new Set(startedSpecs.map((spec) => path.basename(spec)))],
+        ['slow.js'],
+        `Expected only slow.js to be started, got ${startedSpecs.join(', ')}`
+    )
+    assert.ok(duration < 15000, `Expected the run to stop well before the 20s spec ended, took ${duration}ms`)
+}
+
+/**
  * specfile-level retries (fail)
  */
 const retryFail = async () => {
@@ -1831,6 +1864,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
+        globalTimeout,
         customReporterString,
         customReporterObject,
         sessionGoneReport,
