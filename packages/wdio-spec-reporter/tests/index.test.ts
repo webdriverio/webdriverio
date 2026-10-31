@@ -47,6 +47,7 @@ describe('SpecReporter', () => {
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
                 failed: 0,
+                failedHooks: 0,
                 skipped: 0,
                 pending: 0,
                 retried: 0
@@ -70,18 +71,18 @@ describe('SpecReporter', () => {
     })
 
     describe('onHookEnd', () => {
-        it('should increase stateCount failures if hook failed', () => {
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+        it('should increase stateCount failedHooks if hook failed', () => {
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({} as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(1)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(1)
         })
 
         it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
             tmpReporter.onHookEnd({ error: new Error('boom!'), failedTestUid: 'test-1' } as any)
             tmpReporter.onHookEnd({ error: new Error('boom!'), retried: true } as any)
-            expect(tmpReporter['_stateCounts'].failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
         })
     })
 
@@ -125,6 +126,71 @@ describe('SpecReporter', () => {
             } as any)
             expect(events).toEqual([a1, b1])
         })
+    })
+
+    it.each([0, 1])('separates failed hooks from %i failed tests in the printed report', (failedTests) => {
+        tmpReporter.write = vi.fn()
+        tmpReporter['_suiteUids'] = SUITE_UIDS
+        tmpReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR as any
+        const hook = Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR)[0].hooks[0]
+        tmpReporter.onHookEnd(hook as any)
+        if (failedTests) {
+            tmpReporter.onTestFail({ uid: 'failed-test' } as any)
+        }
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toContain('1 failing hook')
+        expect(output).toContain('a failed hook')
+        expect(output).toContain('expected foo to equal bar')
+        expect(output).not.toMatch(new RegExp(`${failedTests + 1} failing(?: \\([^\\n]*\\))?\\n`))
+        if (failedTests) {
+            expect(output).toMatch(/1 failing(?: \([^\n]*\))?\n/)
+        }
+    })
+
+    it.each(['"before all" hook', '"after all" hook'])('counts Jasmine root hooks without a Mocha root-title suffix: %s', (title) => {
+        tmpReporter.write = vi.fn()
+        tmpReporter['_suiteUids'] = SUITE_UIDS
+        tmpReporter.suites = SUITES
+        const hook = {
+            title,
+            hookKind: title.includes('before') ? 'beforeAll' : 'afterAll',
+            state: State.FAILED,
+            error: new Error('root hook failed')
+        }
+        tmpReporter.currentSuites = [{ hooks: [hook], suites: [], tests: [], hooksAndTests: [hook] }] as any
+        tmpReporter.onHookEnd(hook as any)
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toContain('1 failing hook')
+        expect(output).toContain('root hook failed')
+        expect(output).not.toMatch(/1 failing(?: \([^\n]*\))?\n/)
+    })
+
+    it('does not display hooks whose failure is already counted on a test or retried attempt', () => {
+        tmpReporter.write = vi.fn()
+        const suite = Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR)[0]
+        const hooks = [
+            { ...suite.hooks[0], failedTestUid: 'test-1' },
+            { ...suite.hooks[0], uid: 'retried-hook', retried: true }
+        ]
+        tmpReporter['_suiteUids'] = new Set([suite.uid])
+        tmpReporter.suites = {
+            [suite.uid]: {
+                ...suite,
+                hooks,
+                hooksAndTests: []
+            }
+        } as any
+        hooks.forEach(hook => tmpReporter.onHookEnd(hook as any))
+        tmpReporter.onTestFail({ uid: 'test-1' } as any)
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toMatch(/1 failing(?: \([^\n]*\))?\n/)
+        expect(output).not.toMatch(/failing hooks?/)
     })
 
     describe('onTestPass', () => {
