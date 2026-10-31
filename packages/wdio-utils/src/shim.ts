@@ -4,7 +4,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 import { WDIO_KIND, WDIO_CHAINABLE, WDIO_CHAIN_SELECTOR, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
-import { runUserCommand } from './userCommands.js'
+import { runCustomCommand, runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -83,8 +83,6 @@ export function unwrapCommand<T> (value: T): T | Function {
     return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
 }
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
-// `wrapCommand` calls these outside their user command: an element list sends its pair when it loads, an action at `perform()`
-export const DEFERRED_USER_COMMANDS = [...ELEMENT_ARRAY_COMMANDS, ...ACTION_COMMANDS]
 
 /**
  * `webdriverio` registers this so a chained call such as `$('parent').$$('child')`
@@ -548,6 +546,20 @@ function attachElementArrayHooks (
  * @param fn          command function
  */
 export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return wrapCommandWith<T>(commandName, fn, runUserCommand)
+}
+
+/**
+ * `wrapCommand` for a command that is a user command with its own name, also when the name is not
+ * registered (the commands of a browsing context)
+ */
+export function wrapCustomCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return wrapCommandWith<T>(commandName, fn, runCustomCommand)
+}
+
+type RunCommand = (scope: unknown, command: string, args: unknown[], run: () => Promise<unknown>) => Promise<unknown>
+
+function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCommand): (...args: unknown[]) => Promise<T> {
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
@@ -558,7 +570,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         let commandResult
         let commandError
         try {
-            commandResult = await runUserCommand(this, commandName, args, () => fn.apply(this, args))
+            commandResult = await runCommand(this, commandName, args, () => fn.apply(this, args))
         } catch (err) {
             commandError = err
         }
