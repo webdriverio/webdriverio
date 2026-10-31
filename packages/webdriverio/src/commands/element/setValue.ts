@@ -29,7 +29,9 @@ const SET_DIRECTLY = ['range', 'date', 'datetime-local', 'month', 'week', 'time'
  * as typed text. For them `setValue` sets the value directly and fires the `input` and `change` events, as
  * picking a value with the mouse does. Pass the value in the input's own format, e.g. `2026-10-04` for a date
  * or `14:30` for a time. The browser corrects values that don't fit, like a range input does with a value
- * between two steps; read the result with [`getValue`](/docs/api/element/getValue).
+ * between two steps; read the result with [`getValue`](/docs/api/element/getValue). A value the browser
+ * can't parse at all, like `garbage` for a date or a range, or an empty value for a range, throws an error and
+ * leaves the previous value in place.
  *
  * <example>
     :setValue.js
@@ -61,18 +63,44 @@ export async function setValue (
 ) {
     if ((typeof value === 'string' || typeof value === 'number') && await setsDirectly(this)) {
         const browser = getBrowserObject(this)
-        const done = await browser.execute(function setInputValue (elem: HTMLInputElement, newValue: string) {
+        const result = await browser.execute(function setInputValue (elem: HTMLInputElement, newValue: string) {
             // leave a field the user can't change to the key strokes, which fail with the reason
             if (elem.disabled || elem.readOnly) {
-                return false
+                return 'skipped'
+            }
+            // a range input falls back to its midpoint for a value that isn't a finite number (an empty one too,
+            // as a range can't be empty), which a value inside the range can't be told from, so check it first
+            if (elem.type === 'range' && !(/^-?(\d+|\d*\.\d+)([eE][-+]?\d+)?$/.test(newValue) && Number.isFinite(Number(newValue)))) {
+                return 'rejected'
             }
             const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+            const previous = elem.value
             setter.call(elem, newValue)
+            // the other types reject a value they can't parse by resetting the input to an empty string,
+            // a color input to #000000, which is only right if the value is a CSS color for black
+            let rejected = newValue !== '' && elem.value === ''
+            if (!rejected && newValue !== '' && elem.type === 'color' && elem.value === '#000000') {
+                // a canvas keeps its current color for a value it can't parse
+                const context = document.createElement('canvas').getContext('2d')!
+                context.fillStyle = '#010101'
+                context.fillStyle = newValue
+                rejected = context.fillStyle !== '#000000'
+            }
+            if (rejected) {
+                setter.call(elem, previous)
+                return 'rejected'
+            }
             elem.dispatchEvent(new Event('input', { bubbles: true }))
             elem.dispatchEvent(new Event('change', { bubbles: true }))
-            return true
+            return 'set'
         }, this as unknown as HTMLInputElement, value.toString())
-        if (done) {
+        if (result === 'rejected') {
+            throw new Error(
+                `The browser rejected the value "${value}" for this input, which keeps its previous value. ` +
+                'Pass the value in the format of the input type: `2026-10-04` for a date, `14:30` for a time, a number for a range or `#rrggbb` for a color.'
+            )
+        }
+        if (result === 'set') {
             return
         }
     }

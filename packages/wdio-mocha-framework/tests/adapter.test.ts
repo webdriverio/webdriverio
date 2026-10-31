@@ -3,7 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
-import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs, specFilePath } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
@@ -13,6 +13,9 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 vi.mock('mocha')
 vi.mock('@wdio/utils')
+// the spec path conversion is not under test: keep it real
+const { specFilePath: realSpecFilePath } = await vi.importActual<{ specFilePath: typeof specFilePath }>('@wdio/utils')
+vi.mocked(specFilePath).mockImplementation(realSpecFilePath)
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/parallel.js', () => ({
     runParallelTests: vi.fn().mockResolvedValue(0),

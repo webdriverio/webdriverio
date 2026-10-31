@@ -17,9 +17,10 @@ WebdriverIO MCP is a **Model Context Protocol (MCP) server** that enables AI ass
 It provides a unified interface for:
 
 -   🖥️ **Desktop Browsers** (Chrome, Firefox, Edge, Safari, headed or headless)
+-   **Electron Apps** (renderer automation, main-process scripts and deeplinks)
 -   📱 **Native Mobile Apps** (iOS Simulators / Android Emulators / Real Devices via Appium)
 -   📳 **Hybrid Mobile Apps** (Native + WebView context switching via Appium)
--   ☁️ **Cloud Devices** (BrowserStack, Sauce Labs, TestMu real device and browser clouds)
+-   ☁️ **Cloud Devices** (BrowserStack, Sauce Labs, TestMu, TestingBot and Digital.ai real device and browser clouds)
 
 through the [`@wdio/mcp`](https://www.npmjs.com/package/@wdio/mcp) package.
 
@@ -124,6 +125,16 @@ Ask Claude to automate mobile apps:
 | **Device Emulation** | Emulate mobile/tablet viewports in browser (BiDi required) |
 | **Script Execution** | Execute custom JavaScript in browser context |
 
+### Electron Automation
+
+| Feature | Description |
+|---------|-------------|
+| **Session Management** | Start an Electron app with `platform: "electron"`; deeplink scheme and project root are set at start |
+| **Renderer Automation** | Automate the renderer UI of the app |
+| **Main-Process Scripts** | Run JavaScript with access to the Electron APIs in the main process |
+| **Deeplinks** | Trigger deeplinks through the running app |
+| **Mocking** | Mock Electron API functions (requires `enable_tools` for the `mocks` group) |
+
 ### Mobile App Automation (iOS/Android)
 
 | Feature | Description |
@@ -141,9 +152,9 @@ Ask Claude to automate mobile apps:
 
 | Feature | Description |
 |---------|-------------|
-| **Browser Sessions** | Run browser sessions on BrowserStack, Sauce Labs, TestMu, or TestingBot (Windows, macOS, Linux) |
-| **Mobile Sessions** | Run app sessions on real devices via BrowserStack, Sauce Labs, TestMu, or TestingBot |
-| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps across all four providers |
+| **Browser Sessions** | Run browser sessions on BrowserStack, Sauce Labs, TestMu, TestingBot, or Digital.ai (Windows, macOS, Linux) |
+| **Mobile Sessions** | Run app sessions on real devices via BrowserStack, Sauce Labs, TestMu, TestingBot, or Digital.ai |
+| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps across all five providers |
 | **Local Tunnel** | Auto-manage provider-specific tunnel binaries for accessing localhost |
 | **Reporting** | Tag sessions with project/build/session labels (works identically across all providers) |
 
@@ -226,7 +237,8 @@ WebdriverIO MCP acts as a bridge between AI assistants and browser/mobile automa
 
 ### Session Management
 
--   **Single-session model**: Only one browser OR app session can be active at a time
+-   **Named multi-session**: give a session a `name` in `start_session` or `attach_session`, and it runs alongside the others when started with `onExisting: "keep"`. Without `keep`, a new session replaces the active one
+-   **Targeting**: every tool except the sessionless ones (`start_session`, `attach_session`, `launch_chrome`, `list_apps`, `upload_app`, `query_docs`, `enable_tools`) takes a `session` argument with a session name or ID. Without it, the tool uses the default session. Results are prefixed `[session: name (id8)]` when a target is passed or more than one session is live
 -   **Session state** is maintained globally across tool calls
 -   **Auto-detach**: Sessions with preserved state (`noReset: true`) automatically detach on close
 
@@ -292,28 +304,49 @@ android=new UiSelector().text("Login")
 
 ## Available Tools
 
-The MCP server provides 29 tools for browser and mobile automation. See [Tools](./mcp/tools) for the complete reference.
+The MCP server provides 42 tools for browser, Electron and mobile automation. See [Tools](./mcp/tools) for the complete reference, including which tools are hidden until a group is enabled with `enable_tools` (see [Tool visibility](./mcp/tools#tool-visibility)).
+
+### Recommended Workflow
+
+1. Take a `snapshot` to read the page. Its refs, such as `e12`, are what the other tools accept as selectors.
+2. Act on those refs with `click_element`, `set_value` or `select_option`.
+3. For several steps in a row, such as filling a form and then submitting it, send one `perform_actions` call rather than one call per step.
+
+Refs from the latest result stay valid until the page changes. After that, take a new snapshot.
 
 | Tool | Platform | Description |
 |------|----------|-------------|
-| `start_session` | all | Start a browser or mobile session (local or cloud provider) |
-| `close_session` | all | Close or detach from the current session |
-| `launch_chrome` | browser | Open Chrome with remote debugging for CDP attach |
+| `start_session` | all | Start a browser, Electron or mobile session (local or cloud provider) |
+| `attach_session` | all | Attach to an existing WebDriver or Appium session by ID or name (`attach` group) |
+| `close_session` | all | Close or detach from a session |
+| `launch_chrome` | browser | Open Chrome with remote debugging for CDP attach (`attach` group) |
 | `navigate` | browser | Load a URL in the current tab |
 | `get_tabs` | browser | List all open tabs |
 | `switch_tab` | browser | Focus a tab by handle or index |
 | `switch_frame` | browser | Switch into an iframe by selector, or back to top-level |
-| `click_element` | browser | Click an element |
-| `set_value` | all | Type text into an input |
 | `scroll` | browser | Scroll the page up or down |
-| `get_elements` | all | Get interactable elements (with filtering + pagination) |
-| `get_accessibility_tree` | browser | Get accessibility tree (with role filtering) |
+| `click_element` | all | Click an element (ref or selector) |
+| `set_value` | all | Replace the text of an input (ref or selector) |
+| `select_option` | browser | Select a `<select>` option by its text |
+| `press_key` | browser | Press a key or combination in the focused element |
+| `perform_actions` | all | Run several click, fill, select, check, uncheck or press steps in one call |
+| `snapshot` | all | Accessibility tree with refs for the page or app screen |
+| `get_elements` | ios, android, electron | Get interactable elements (with filtering + pagination) (`elements` group) |
+| `get_accessibility_tree` | electron | Get accessibility tree (with role filtering) |
 | `get_screenshot` | all | Capture screenshot (auto-optimized) |
-| `get_cookies` | browser | Get all cookies or a specific cookie |
-| `set_cookie` | browser | Set a browser cookie |
-| `delete_cookies` | browser | Delete all or one cookie |
-| `emulate_device` | browser | Emulate a mobile/tablet device viewport |
+| `get_cookies` | browser | Get all cookies or a specific cookie (`cookies` group) |
+| `set_cookie` | browser | Set a browser cookie (`cookies` group) |
+| `delete_cookies` | browser | Delete all or one cookie (`cookies` group) |
+| `emulate_device` | browser | Emulate a mobile/tablet device viewport (`device` group) |
+| `set_geolocation` | all | Override device GPS coordinates (`device` group) |
 | `execute_script` | all | Run JavaScript (browser) or Appium commands (mobile) |
+| `execute_electron_script` | electron | Run JavaScript in the Electron main process |
+| `trigger_electron_deeplink` | electron | Trigger a deeplink through the running Electron app |
+| `mock` | all | Mock browser requests or Electron APIs (`mocks` group) |
+| `get_mock_calls` | all | Read the recorded calls of a mock (`mocks` group) |
+| `manage_mock` | all | Clear, reset or restore a mock (`mocks` group) |
+| `open_web_extension` | browser | Install a web extension and open one of its pages (`extensions` group) |
+| `query_docs` | all | Search the WebdriverIO documentation by keyword |
 | `tap_element` | mobile | Tap an element or screen coordinates |
 | `swipe` | mobile | Swipe gesture in a direction |
 | `drag_and_drop` | mobile | Drag between elements or coordinates |
@@ -321,10 +354,10 @@ The MCP server provides 29 tools for browser and mobile automation. See [Tools](
 | `switch_context` | mobile | Switch between native and webview contexts |
 | `rotate_device` | mobile | Rotate to portrait or landscape |
 | `hide_keyboard` | mobile | Dismiss the software keyboard |
-| `set_geolocation` | all | Override device GPS coordinates |
 | `get_app_state` | mobile | Get app lifecycle state |
-| `list_apps` | cloud | List uploaded apps (BrowserStack, Sauce Labs, TestMu, TestingBot) |
-| `upload_app` | cloud | Upload an `.apk`/`.ipa` to a cloud provider |
+| `list_apps` | cloud | List uploaded apps (BrowserStack, Sauce Labs, TestMu, TestingBot, Digital.ai) (`cloud-apps` group) |
+| `upload_app` | cloud | Upload an `.apk`/`.ipa` to a cloud provider (`cloud-apps` group) |
+| `enable_tools` | all | Show the hidden tools of one or more groups |
 
 ## MCP Resources
 

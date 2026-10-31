@@ -32,6 +32,12 @@ export class DialogManager extends SessionManager {
         }
 
         /**
+         * the browser keeps its listeners when `reloadSession()` rebuilds the manager, which
+         * otherwise learns of them only when one is added or the last one is removed
+         */
+        this.#autoHandleDialog = browser.listenerCount('dialog') === 0
+
+        /**
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({

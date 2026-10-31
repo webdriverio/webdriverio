@@ -495,6 +495,21 @@ describe('SpecReporter', () => {
     })
 
     describe('getResultDisplay', () => {
+        // the spec file line shows the path from the working folder, else the whole path
+        const fileLine = (file: string) => {
+            tmpReporter.getOrderedSuites = vi.fn(() => [{ ...Object.values(SUITES)[0], file }]) as any
+            return tmpReporter.getResultDisplay().find((line) => line.includes('» '))
+        }
+        it('shows a spec file in the working folder from there', () => {
+            expect(fileLine(path.join(process.cwd(), 'specs', 'login.spec.js'))).toBe(`» ${path.join('specs', 'login.spec.js')}`)
+        })
+        it.each([
+            ['outside the working folder', path.resolve(process.cwd(), '..', 'other', 'login.spec.js')],
+            ['in a folder whose name starts with the name of the working folder', `${process.cwd()}lication${path.sep}login.spec.js`]
+        ])('shows the whole path of a spec file %s', (_, file) => {
+            expect(fileLine(file)).toBe(`» ${file}`)
+        })
+
         it('should validate the result output with tests', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES)) as any
             const result = tmpReporter.getResultDisplay()

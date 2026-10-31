@@ -13,6 +13,14 @@ const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 export const SLASH = '/'
 export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
+/**
+ * the path of a spec file: the runner gives the specs as file:// URLs, and some frameworks
+ * name a file as one (Jasmine with ESM specs); throws for a URL that names no path
+ */
+export function specFilePath (file: string): string {
+    return file.startsWith('file://') ? url.fileURLToPath(file) : file
+}
+
 function assertPath(path?: unknown) {
     if (typeof path !== 'string') {
         throw new TypeError('Path must be a string. Received ' + JSON.stringify(path))

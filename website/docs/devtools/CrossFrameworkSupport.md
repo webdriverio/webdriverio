@@ -18,8 +18,8 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Feature | WebdriverIO | Selenium | Nightwatch | Python |
 |---|---|---|---|---|
 | Trace mode + `show-trace` player | ✅ | ✅ | ✅ | ✅ |
-| DOM time-travel (mutation capture) | ✅ tested | ⚠️ with BiDi ¹ | ⚠️ with BiDi ¹ | ✅ tested |
-| Network requests (browser sessions) | ✅ tested | ⚠️ with BiDi ² | ⚠️ with BiDi ³ | ✅ tested |
+| DOM time-travel (mutation capture) | ✅ | ⚠️ with BiDi ¹ | ⚠️ with BiDi ¹ | ✅ |
+| Network requests (browser sessions) | ✅ | ⚠️ with BiDi ² | ⚠️ with BiDi ³ | ✅ |
 | Screencast (`filmstrip` / video) | ✅ CDP push (Chrome), polling elsewhere | ✅ CDP push (Chromium), polling elsewhere | ⚠️ polling only ⁴ | ✅ CDP push (Chromium), one frame per command elsewhere |
 | Per-test granularity (`traceGranularity: 'test'`) | ✅ | ✅ | ⚠️ ⁵ | ✅ |
 | Retry-aware retention (`tracePolicy`) | ✅ | ✅ | ⚠️ `retain-on-failure` only ⁶ | ⚠️ `retain-on-failure` only ⁷ |
@@ -29,24 +29,25 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | BiDi console / network capture | ✅ auto | ✅ auto | ⚠️ opt-in ¹⁵ | ✅ auto |
 | A11y tab + pick-locator overlay (trace player) | ✅ | ✅ | ✅ | ✅ |
 | Transcript + Copy-for-LLM (trace player) | ✅ | ✅ | ✅ | ✅ |
-| One row per command in the Actions list | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
+| One row per command in the Actions list | ✅ | ✅ | ✅ | ✅ |
+| Waits show as one row with what they issued nested under it | ✅ | ✅ | ⚠️ no element-wait polls ¹⁶ | ✅ |
 | Screenshot on every command row | ✅ | ✅ | ✅ | ✅ |
 | Browser console logs | ✅ | ✅ | ✅ | ✅ |
 | Source tab opens the test line that ran the command | ✅ | ✅ | ✅ | ✅ |
 | Metadata tab (session, capabilities, device) | ✅ | ✅ | ✅ | ✅ |
 | Performance timings on navigation rows | ✅ | ✅ | ✅ | ✅ |
-| Failed command in the Errors tab, with the browser's message | ✅ tested | ✅ tested | ✅ tested | ✅ tested |
-| Run, Rerun and Run all from the dashboard | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ⚠️ no Cucumber step rerun ¹⁶ | ✅ |
+| Failed command in the Errors tab, with the browser's message | ✅ | ✅ | ✅ | ✅ |
+| Run, Rerun and Run all from the dashboard | ⚠️ no Cucumber step rerun ¹⁷ | ⚠️ no Cucumber step rerun ¹⁷ | ⚠️ no Cucumber step rerun ¹⁷ | ✅ |
 | Preserve & Rerun (compare a failed run with its rerun) | ✅ | ✅ | ✅ | ✅ |
-| Dashboard window opens by itself in live mode, and can be turned off | ⚠️ always opens ¹⁷ | ✅ `openUi: false` | ⚠️ always opens ¹⁸ | ✅ `DEVTOOLS_OPEN=0` |
-| Turn off per-command screenshots (`captureScreenshots`) | ❌ ¹⁹ | ✅ | ❌ ²⁰ | ❌ ²⁰ |
-| Force the test browser headless (`headless`) | ❌ ²¹ | ⚠️ Chrome only ²² | ❌ ²¹ | ❌ ²¹ |
-| Safari kept frontmost so input lands (live mode) | ⚠️ once ²³ | ✅ before each element input | ⚠️ once ²³ | ⚠️ once ²³ |
-| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✅ | ✅ | ✅ | ❌ zip only ²⁴ |
-| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✅ | ✅ | ⚠️ opt-in ²⁵ | ❌ ²⁶ |
-| Network without BiDi (Safari, Appium mobile browsers) | ⚠️ ²⁷ | ⚠️ ²⁷ | ⚠️ ²⁷ | ⚠️ ²⁷ |
+| Dashboard window opens by itself in live mode, and can be turned off | ⚠️ always opens ¹⁸ | ✅ `openUi: false` | ⚠️ always opens ¹⁹ | ✅ `DEVTOOLS_OPEN=0` |
+| Turn off per-command screenshots (`captureScreenshots`) | ❌ ²⁰ | ✅ | ❌ ²¹ | ❌ ²¹ |
+| Force the test browser headless (`headless`) | ❌ ²² | ⚠️ Chrome only ²³ | ❌ ²² | ❌ ²² |
+| Safari kept frontmost so input lands (live mode) | ⚠️ once ²⁴ | ✅ before each element input | ⚠️ once ²⁴ | ⚠️ once ²⁴ |
+| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✅ | ✅ | ✅ | ❌ zip only ²⁵ |
+| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✅ | ✅ | ⚠️ opt-in ²⁶ | ❌ ²⁷ |
+| Network without BiDi (Safari, Appium mobile browsers) | ⚠️ ²⁸ | ⚠️ ²⁸ | ⚠️ ²⁸ | ⚠️ ²⁸ |
 
-✅ tested: proven for that adapter by the cross-adapter conformance suite. ✅: supported, backed by a named test or a manual check listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
+✅ supported. ⚠️ partial, with the limit in the note below. ❌ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Without BiDi (Safari, Appium) the page collector is injected after each navigation, so a page the test leaves within tens of milliseconds is never captured.
 
@@ -78,28 +79,30 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 ¹⁵ Nightwatch turns it on with `bidi: true` plus `webSocketUrl: true` in the capabilities.
 
-¹⁶ Under Cucumber a Gherkin step has no CLI filter of its own, so the dashboard reruns scenarios and features, not single steps.
+¹⁶ A `waitUntil` row holds the commands its condition issued; a `waitForElement*` row has nothing under it, because Nightwatch polls for the element through its own transport rather than `browser`.
 
-¹⁷ The service always opens the dashboard in live mode; `devtoolsCapabilities` picks its browser but cannot skip it.
+¹⁷ Under Cucumber a Gherkin step has no CLI filter of its own, so the dashboard reruns scenarios and features, not single steps.
 
-¹⁸ Nightwatch always opens the dashboard in live mode.
+¹⁸ The service always opens the dashboard in live mode; `devtoolsCapabilities` picks its browser but cannot skip it.
 
-¹⁹ No option: every command row takes a screenshot, except on Appium, where only native sessions in live mode do.
+¹⁹ Nightwatch always opens the dashboard in live mode.
 
-²⁰ No option: every command row takes a screenshot.
+²⁰ No option: every command row takes a screenshot, except on Appium, where only native sessions in live mode do.
 
-²¹ No option: set headless in the browser capabilities, as for any run.
+²¹ No option: every command row takes a screenshot.
 
-²² The option adds `--headless=old` to `goog:chromeOptions` only, so other browsers stay headed; set their own headless capability.
+²² No option: set headless in the browser capabilities, as for any run.
 
-²³ Brings Safari to the front once after the session starts (live mode, local macOS), so a click issued after another window took the front can still land nowhere.
+²³ The option adds `--headless=old` to `goog:chromeOptions` only, so other browsers stay headed; set their own headless capability.
 
-²⁴ The Python adapter has no option for it and sends no format in its export request, so the backend writes a zip.
+²⁴ Brings Safari to the front once after the session starts (live mode, local macOS), so a click issued after another window took the front can still land nowhere.
 
-²⁵ Nightwatch has no live Allure signal to turn the manifest on by itself, so it stays opt-in.
+²⁵ The Python adapter has no option for it and sends no format in its export request, so the backend writes a zip.
 
-²⁶ The Python adapter writes no artifacts manifest.
+²⁶ Nightwatch has no live Allure signal to turn the manifest on by itself, so it stays opt-in.
 
-²⁷ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
+²⁷ The Python adapter writes no artifacts manifest.
+
+²⁸ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
 <!-- capability-matrix:cross-framework:end -->

@@ -158,29 +158,29 @@ export async function mock(
 
     const browser = getBrowserObject(this)
     const context = await contextIdOf(this)
-    if (!SESSION_MOCKS[context]) {
-        SESSION_MOCKS[context] = new Set()
+    // a session-wide mock is keyed by session, so a switch of the current tab does not move it
+    const test = getParallelContextStore().getStore()
+    const contexts = isBrowsingContext(this) || test ? [context] : undefined
+    const sessionKey = contexts ? context : `session:${browser.sessionId}`
+    if (!SESSION_MOCKS[sessionKey]) {
+        SESSION_MOCKS[sessionKey] = new Set()
     }
     const normalizedFilterOptions = filterOptions || {}
-    for (const existingMock of Array.from(SESSION_MOCKS[context])) {
+    for (const existingMock of Array.from(SESSION_MOCKS[sessionKey])) {
         if (!existingMock.isSameDefinition(url, normalizedFilterOptions)) {
             continue
         }
 
         await existingMock.restore()
-        SESSION_MOCKS[context].delete(existingMock)
+        SESSION_MOCKS[sessionKey].delete(existingMock)
     }
 
-    /**
-     * A mock made on a held context only intercepts that context's requests.
-     * `browser.mock()` stays session-wide, except in a parallel test, where a
-     * session-wide intercept would catch other tests' traffic.
-     */
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
-        contexts: isBrowsingContext(this) || getParallelContextStore().getStore() ? [context] : undefined,
-        sessionKey: context
+        contexts,
+        sessionKey,
+        test
     })
-    SESSION_MOCKS[context].add(networkInterception)
+    SESSION_MOCKS[sessionKey].add(networkInterception)
 
     return networkInterception satisfies WebdriverIO.Mock
 }

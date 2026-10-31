@@ -1,8 +1,8 @@
-import type { HtmlReporterOptions, ReportData } from './types.js'
+import type { HtmlReporterOptions, ReportData, RootReportSuite } from './types.js'
 import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
-import { hookCountsAsFailure, type SuiteStats, type TestStats } from '@wdio/reporter'
+import { hookCountsAsFailure, relativeSpecFile, type SuiteStats, type TestStats } from '@wdio/reporter'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -50,6 +50,10 @@ async function copyAsset (from: string, to: string) {
  */
 const linkTo = (outputDir: string, file: string) =>
     path.relative(outputDir, file).split(path.sep).map(encodeURIComponent).join('/')
+
+// the root suite of a worker is written for the commands of its hooks; the page shows only its tests and failed hooks
+const showSuite = (suite: SuiteStats) =>
+    !suite.isRoot || Boolean(suite.tests?.length) || (suite.hooks ?? []).some((hook) => hook.error)
 
 /**
  * the escaping of the nunjucks autoescape, except `\` to `&#92;`
@@ -131,6 +135,10 @@ class HtmlGenerator {
                 return path.extname(videoCaptureFile).toLowerCase() === '.webm' ? 'video/webm' : 'video/mp4'
             })
             environment.addGlobal('displaySpecFile', (suiteInfo:SuiteStats) => {
+                // a filter can hide the root box: the first suite of the file keeps its own row
+                if (suiteInfo?.file && suiteInfo.isRoot) {
+                    return true
+                }
                 if (suiteInfo && suiteInfo.file) {
                     if (specFileReferences && !specFileReferences.includes(suiteInfo.file)) {
                         specFileReferences.push(suiteInfo.file)
@@ -140,10 +148,13 @@ class HtmlGenerator {
                 return false
             })
 
-            environment.addGlobal('formatSpecFile', (suiteInfo:SuiteStats) => {
+            environment.addGlobal('formatSpecFile', (suiteInfo: RootReportSuite) => {
                 // Display file path of spec
-                const specFile = `${suiteInfo.file.replace(process.cwd(), '')}`
-                return specFile
+                // the root suite can name several spec files; a file in the working folder shows its path from there
+                return (suiteInfo.files ?? [suiteInfo.file]).map((file) => {
+                    const relative = relativeSpecFile(file)
+                    return relative ? path.sep + relative : file
+                }).join(', ')
             })
 
             environment.addGlobal('testStateColor', (testInfo:TestStats) => {
@@ -281,8 +292,7 @@ class HtmlGenerator {
                         return 0
                     })
 
-                    for (let i = 0; i < sortedSuites.length; i++) {
-                        const suite = sortedSuites[i]
+                    for (const suite of sortedSuites.filter(showSuite)) {
 
                         try {
                             const suiteHtml = await new Promise<string>((resolve, reject) => {

@@ -25,6 +25,19 @@ const caps = (): Capabilities.RequestedMultiRemoteCapabilities => ({
 })
 
 describe('Multi-Remote tests', () => {
+    describe('listenerCount', () => {
+        test('counts the listeners of each instance', async () => {
+            const browser = await multiRemote(caps())
+
+            browser.on('dialog', () => {})
+            browser.getInstance('browserA').on('dialog', () => {})
+
+            expect(browser.listenerCount('dialog')).toEqual([2, 1])
+            expect(browser.getInstance('browserA').listenerCount('dialog')).toBe(2)
+            expect(browser.listenerCount('unlistened')).toEqual([0, 0])
+        })
+    })
+
     describe('$$', () => {
         test('returns a MultiRemoteElementArray without any opt-in', async () => {
             const browser = await multiRemote(caps())

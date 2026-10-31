@@ -111,7 +111,7 @@ export default class Runner extends EventEmitter {
             ? Object.entries(caps).reduce((filteredCaps, [browserName, browserCaps]) => {
                 const ex = browserCaps.capabilities['wdio:exclude']
                 if (ex) {
-                    const sp = this._configParser?.getSpecs(specs, ex)
+                    const sp = this._configParser?.getInstanceSpecs(specs, ex)
                     if (sp && sp.length === 0) {
                         return filteredCaps
                     }

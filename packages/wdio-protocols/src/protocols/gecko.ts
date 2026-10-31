@@ -93,7 +93,7 @@ export default {
         },
     },
     '/session/:sessionId/moz/addon/uninstall': {
-        GET: {
+        POST: {
             command: 'uninstallAddOn',
             description:
                 "Uninstalls an addon from the current browser session's profile.",

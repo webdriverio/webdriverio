@@ -523,6 +523,47 @@ describe('Pending tests', () => {
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
 
+    // grouped spec files: a test outside every suite names its own spec file, not the file of the suite before it
+    it('takes the titlePath file of a test from the test', async () => {
+        outputDir = temporaryDirectory()
+
+        const reporter = new AllureReporter({ outputDir })
+        const file = path.join('foo', 'other.test.js')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onTestStart({ ...testStart(), uid: 'root-test', title: 'a root test', fullTitle: 'a root test', file } as any)
+        reporter.onTestPass({ ...testPassed(), uid: 'root-test', title: 'a root test', fullTitle: 'a root test', file } as any)
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((result) => [result.name, result.titlePath])).toEqual(expect.arrayContaining([
+            ['should can do something', ['foo', 'bar.test.js', 'A passing Suite']],
+            ['a root test', ['foo', 'other.test.js']]
+        ]))
+    })
+
+    it('takes the titlePath file of a pending test with no start from the test', async () => {
+        outputDir = temporaryDirectory()
+
+        const reporter = new AllureReporter({ outputDir })
+        const file = path.join('foo', 'other.test.js')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onTestSkip({ ...testPending(), uid: 'root-skip', title: 'a skipped root test', fullTitle: 'a skipped root test', file } as any)
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.find((result) => result.name === 'a skipped root test')?.titlePath).toEqual(['foo', 'other.test.js'])
+    })
+
     it('should detect not started pending test case', async () => {
         outputDir = temporaryDirectory()
 

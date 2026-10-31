@@ -11,7 +11,6 @@ import { browser, $, $$, expect } from '@wdio/globals'
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
-import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
 
@@ -1202,9 +1201,8 @@ describe('main suite 1', () => {
         it('should have sameSite in PascalCase for classic cases fallback', async function () {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setCookies([
-                // TODO one day, fix the Api not supporting classic PascalCase enaum
-                { name: 'test1-0', value: '123', sameSite: 'Strict' as SameSiteOptions },
-                { name: 'test1-1', value: '456', sameSite: 'None' as SameSiteOptions },
+                { name: 'test1-0', value: '123', sameSite: 'Strict' },
+                { name: 'test1-1', value: '456', sameSite: 'none' },
                 { name: 'test1-2', value: '789' }
             ])
 
