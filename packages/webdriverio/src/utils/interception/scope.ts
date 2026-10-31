@@ -20,3 +20,33 @@ export function mocksOf (scope: WebdriverIO.Browser | WebdriverIO.BrowsingContex
         .flatMap((mocks) => Array.from(mocks))
         .filter((mock) => mock.isOwnedBy(browser, filter))
 }
+
+/**
+ * Every mock of the session of a browser, whatever tab or parallel test made it.
+ */
+export function sessionMocksOf (browser: WebdriverIO.Browser): WebDriverInterception[] {
+    return Object.values(SESSION_MOCKS)
+        .flatMap((mocks) => Array.from(mocks))
+        .filter((mock) => mock.isOwnedBy(browser))
+}
+
+/**
+ * Restores the given mocks. A mock that can't be restored does not keep the others
+ * from it; its error is thrown afterwards, all of them when several fail.
+ */
+export async function restoreMocks (mocks: WebDriverInterception[]): Promise<void> {
+    const errors: unknown[] = []
+    for (const mock of mocks) {
+        try {
+            await mock.restore()
+        } catch (err) {
+            errors.push(err)
+        }
+    }
+    if (errors.length === 1) {
+        throw errors[0]
+    }
+    if (errors.length > 1) {
+        throw new AggregateError(errors, `${errors.length} of ${mocks.length} mocks could not be restored: ${errors.map((err) => (err as Error).message).join(', ')}`)
+    }
+}

@@ -2,6 +2,9 @@ import path from 'node:path'
 import { expect, describe, afterEach, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { applyBidiBrowserOverwrites } from '../../../src/utils/bidi/browserOverwrites.js'
+import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { getParallelContextStore, setParallelContextStore } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -63,16 +66,38 @@ describe('reloadSession test', () => {
             capabilities: { browserName: 'foobar' }
         })
         const order: string[] = []
-        const mockRestoreAll = vi.fn(async () => { order.push('restore') })
+        const mock = { restore: vi.fn(async () => { order.push('restore') }), isOwnedBy: () => true }
+        SESSION_MOCKS.reloadTest = new Set([mock as any])
         const deleteSession = vi.fn(async () => { order.push('delete') })
-        for (const [key, value] of Object.entries({ mockRestoreAll, deleteSession })) {
-            Object.defineProperty(browser, key, { value, configurable: true, writable: true })
-        }
+        Object.defineProperty(browser, 'deleteSession', { value: deleteSession, configurable: true, writable: true })
 
         vi.mocked(fetch).setMockResponse([sessionResponse])
         await browser.reloadSession()
+        delete SESSION_MOCKS.reloadTest
 
         expect(order).toEqual(['restore', 'delete'])
+    })
+
+    it('should restore every mock of the old session in a parallel test, not only the ones of the test', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' }
+        })
+        // made outside of the test, e.g. in a `before` hook: owned by the session, not by the test
+        const mock = {
+            restore: vi.fn(),
+            isOwnedBy: (_: unknown, { test }: { test?: string } = {}) => test === undefined
+        }
+        SESSION_MOCKS.reloadTest = new Set([mock as any])
+        Object.defineProperty(browser, 'deleteSession', { value: vi.fn(), configurable: true, writable: true })
+
+        vi.mocked(fetch).setMockResponse([sessionResponse])
+        const noopStore = getParallelContextStore()
+        setParallelContextStore(new AsyncLocalStorage<string>())
+        await getParallelContextStore().run('test-1', () => browser.reloadSession()).finally(() => setParallelContextStore(noopStore))
+        delete SESSION_MOCKS.reloadTest
+
+        expect(mock.restore).toHaveBeenCalledTimes(1)
     })
 
     it('should fail when the new session response has no session id', async () => {

@@ -27,6 +27,7 @@ describe('DialogManager', () => {
             off: vi.fn(),
             removeAllListeners: vi.fn(),
             emit: vi.fn(),
+            listenerCount: vi.fn().mockReturnValue(0),
             browsingContextHandleUserPrompt: vi.fn()
         }
         // Mock isEnabled to bypass environment check which disables it in unit tests
@@ -35,10 +36,8 @@ describe('DialogManager', () => {
     })
 
     it('should keep a registered dialog listener when the manager is rebuilt for the same browser', async () => {
-        const registered = browser.on.mock.calls.find((call: unknown[]) => call[0] === '_dialogListenerRegistered')?.[1]
-        registered()
-
         // as after `reloadSession()`: a new manager, the user listener stays on the browser
+        browser.listenerCount.mockImplementation((event: string) => event === 'dialog' ? 1 : 0)
         browser.on.mockClear()
         new DialogManager(browser)
         const userPromptHandler = browser.on.mock.calls.find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
@@ -121,6 +120,7 @@ describe('Dialog - Browser', () => {
             off: vi.fn(),
             removeAllListeners: vi.fn(),
             emit: vi.fn(),
+            listenerCount: vi.fn().mockReturnValue(0),
         }
     })
 

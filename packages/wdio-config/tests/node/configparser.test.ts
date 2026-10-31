@@ -687,6 +687,18 @@ describe('ConfigParser', () => {
             expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
+        it('should still exclude by keyword when an exclude path next to it matches nothing', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ exclude: ['./not/there.test.ts', 'FileSystemPathService'] })
+
+            expect(configParser.getSpecs()).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
+        it('should fail when every exclude path matches nothing', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await expect(configParser.initialize({ exclude: ['./not/there.test.ts'] })).rejects.toThrow('not found')
+        })
+
         it('should resolve a relative exclude path from the current working directory', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ exclude: ['FileSystemPathService', path.relative(process.cwd(), __filename).replace(/\\/g, '/')] })

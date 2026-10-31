@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { mocksOf } from '../../utils/interception/scope.js'
+import { mocksOf, restoreMocks } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
@@ -32,18 +32,5 @@ const log = logger('webdriverio:mockRestoreAll')
 export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
     const mocks = mocksOf(this)
     log.trace(`Restoring ${mocks.length} mock(s)`)
-    const errors: unknown[] = []
-    for (const mock of mocks) {
-        /**
-         * a mock that can't be restored must not keep the others from it
-         */
-        try {
-            await mock.restore()
-        } catch (err) {
-            errors.push(err)
-        }
-    }
-    if (errors.length > 0) {
-        throw errors[0]
-    }
+    await restoreMocks(mocks)
 }

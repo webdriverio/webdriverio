@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import { setWdioKind } from '@wdio/utils'
 
 import { validateUrl } from '../../utils/index.js'
@@ -6,6 +7,8 @@ import { getContextManager, getParallelContextStore } from '../../session/contex
 import { contextIdValue } from '../../session/browsingContext.js'
 import WebDriverInterception, { parseLiteralUrlPattern } from '../../utils/interception/index.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
+
+const log = logger('webdriverio')
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
@@ -100,6 +103,15 @@ export async function navigateInContext (
     let navigationError: unknown
     let request: WebdriverIO.Request | undefined = undefined
     let mock: WebDriverInterception | undefined
+    /**
+     * restores the headers mock once: right after the navigation, or in the cleanup when
+     * the navigation failed before
+     */
+    const restoreHeadersMock = async () => {
+        const headersMock = mock
+        mock = undefined
+        await headersMock?.restore()
+    }
     try {
         /**
          * The headers go through a mock of this navigation only: it matches the URL literally,
@@ -166,11 +178,7 @@ export async function navigateInContext (
             throw err
         })
 
-        if (mock) {
-            const headersMock = mock
-            mock = undefined
-            await headersMock.restore()
-        }
+        await restoreHeadersMock()
 
         /**
          * Classic fallback (`navigateTo`) and some BiDi navigations (same-document)
@@ -215,8 +223,14 @@ export async function navigateInContext (
     } catch (err) {
         navigationError = err
     } finally {
-        if (mock) {
-            await mock.restore().catch(() => { /* the session may be gone */ })
+        try {
+            await restoreHeadersMock()
+        } catch (cleanupError) {
+            // the navigation error is the one to throw, the session may be gone
+            log.warn(`Failed to restore the headers mock of the navigation to '${path}': ${(cleanupError as Error).message}`)
+            if (!navigationError) {
+                navigationError = cleanupError
+            }
         }
         if (resetPreloadScript) {
             try {

@@ -3,6 +3,7 @@ import type { Options } from '@wdio/types'
 
 import { registerSessionManager } from '../../session/index.js'
 import { applyBidiBrowserOverwrites } from '../../utils/bidi/browserOverwrites.js'
+import { restoreMocks, sessionMocksOf } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio')
 
@@ -70,10 +71,11 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
 
     /**
      * mocks belong to the session they were made in, the ones of the old session must not
-     * answer in the new one: restore them while the session is still there
+     * answer in the new one: restore them while the session is still there. All of them,
+     * also in a parallel test, where `mockRestoreAll()` only restores the mocks of the test
      */
     try {
-        await this.mockRestoreAll()
+        await restoreMocks(sessionMocksOf(this))
     } catch (err) {
         log.warn(`Suppressing error restoring the mocks of the session: ${(err as Error).stack}`)
     }

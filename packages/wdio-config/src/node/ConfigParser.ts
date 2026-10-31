@@ -194,6 +194,8 @@ export default class ConfigParser {
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
+        // the exclude list of the config, before the one of the command line replaces it
+        const ownExclude = this._config.exclude ?? []
 
         /**
          * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
@@ -263,10 +265,21 @@ export default class ConfigParser {
         if (exclude.length > 0) {
             const excludePaths = exclude.filter(isPathEntry).map((entry) => resolveFromCwd(entry, this._pathService))
             const excludeKeywords = exclude.filter((entry) => !isPathEntry(entry))
-            this._config.exclude = [
-                ...(excludePaths.length > 0 ? this.setFilePathToFilterOptions(excludePaths, this._config.exclude!) : []),
-                ...excludeKeywords
-            ]
+            let excludedFiles: string[] = []
+            if (excludePaths.length > 0) {
+                try {
+                    excludedFiles = this.setFilePathToFilterOptions(excludePaths, ownExclude)
+                } catch (err) {
+                    /**
+                     * paths that match nothing do not keep the keywords next to them from applying
+                     */
+                    if (excludeKeywords.length === 0) {
+                        throw err
+                    }
+                    log.warn(`${(err as Error).message}, excluding by ${excludeKeywords.join(', ')} only`)
+                }
+            }
+            this._config.exclude = [...excludedFiles, ...excludeKeywords]
         }
     }
 

@@ -254,10 +254,27 @@ describe('url', () => {
             userMock.mockRestore()
         })
 
+        it('should match the request of a url with a fragment or credentials, which the request has not', async () => {
+            await browser.url('http://user:pass@google.com/page?q=1#section', { headers: { 'X-Custom': 'value' } })
+
+            const pattern = mock.mock.calls[0][0]
+            expect(pattern.test('http://google.com/page?q=1')).toBe(true)
+            expect(pattern.test('http://google.com/page?q=2')).toBe(false)
+        })
+
         it('should restore the headers mock when the navigation fails', async () => {
             browsingContextNavigate.mockImplementationOnce((async () => {
                 throw new Error('net::ERR_FAILED')
             }) as any)
+            await expect(browser.url('http://google.com', { headers: { 'X-Custom': 'value' } })).rejects.toThrow('net::ERR_FAILED')
+            expect(mockMock.restore).toBeCalledTimes(1)
+        })
+
+        it('should throw the navigation error when restoring the headers mock fails too', async () => {
+            browsingContextNavigate.mockImplementationOnce((async () => {
+                throw new Error('net::ERR_FAILED')
+            }) as any)
+            mockMock.restore.mockRejectedValueOnce(new Error('no such intercept'))
             await expect(browser.url('http://google.com', { headers: { 'X-Custom': 'value' } })).rejects.toThrow('net::ERR_FAILED')
             expect(mockMock.restore).toBeCalledTimes(1)
         })
