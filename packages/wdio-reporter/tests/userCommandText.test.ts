@@ -23,6 +23,11 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('custom$', ['byTestId', 'submit'])).toBe('custom$(`byTestId`, "submit")')
     })
 
+    it('writes the item of a list that waits for its index', () => {
+        expect(userCommandTitle('$$', ['.product'], 0)).toBe('$$(`.product`)[0]')
+        expect(userCommandTitle('custom$$', ['byTestId', 'row'], -1)).toBe('custom$$(`byTestId`, "row").at(-1)')
+    })
+
     it('writes a WebdriverIO object argument by its name', () => {
         expect(userCommandTitle('checkPage', ['WebdriverIO.Browser', 'home'])).toBe('checkPage(browser, "home")')
         expect(userCommandTitle('expect.toBe', ['WebdriverIO.Mock', 'WebdriverIO.Mock'])).toBe('expect(mock).toBe(mock)')

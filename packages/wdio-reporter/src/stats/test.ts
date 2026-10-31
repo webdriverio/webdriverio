@@ -68,6 +68,8 @@ export interface UserCommandOutput {
     sessionId?: string
     cid?: string
     contextId?: string
+    /** The item of the list of `command` that this user command waits for: `` $$(`li`)[3] `` */
+    index?: number
 }
 
 /**

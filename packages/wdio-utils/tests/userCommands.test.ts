@@ -875,6 +875,25 @@ describe('custom commands', () => {
         expect(userEvents[1][1].result).toEqual({ error: expect.objectContaining({ message: 'no rows' }) })
     })
 
+    it('sends the wait of an item past the end of a pending list as the item of the list', async () => {
+        const { browser, events } = client({ options: { value: {} } })
+        let calls = 0
+        browser.addCommand('waitUntil', async (condition: () => Promise<unknown>) => condition())
+        // a plain array (no ElementArray): the first query finds 1 row, the next one 3
+        browser.addCommand('rows$$', async function (this: unknown, selector: string) {
+            return Object.assign(++calls === 1 ? ['a'] : ['a', 'b', 'c'], { selector, foundWith: 'rows$$', parent: this })
+        })
+        expect(await (browser.rows$$('tr') as unknown as Record<number, Promise<unknown>>)[2]).toBe('c')
+        const userEvents = events.filter(([event]) => event.startsWith('user'))
+        expect(userEvents.map(([event, payload]) => [event, payload.command, payload.index])).toEqual([
+            ['userCommand', 'rows$$', undefined],
+            ['userResult', 'rows$$', undefined],
+            ['userCommand', 'rows$$', 2],
+            ['userResult', 'rows$$', 2]
+        ])
+        expect(userEvents[2][1].body).toEqual(['tr'])
+    })
+
     it('keeps the pending element list of an async overwrite of $$', async () => {
         const { browser, events } = client({ $$: { value: shim.wrapCommand('$$', async () => ['a']), writable: true, configurable: true } })
         browser.overwriteCommand('$$', async (orig$$: Function, selector: string) => orig$$(selector))

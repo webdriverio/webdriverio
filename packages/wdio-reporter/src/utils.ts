@@ -433,9 +433,13 @@ function formatArgument(arg: unknown): string {
  * arguments cut at 120 characters.
  * @experimental the name and the format may change
  */
-export function userCommandTitle(command: string, body: unknown): string {
+export function userCommandTitle(command: string, body: unknown, index?: number): string {
     if (!Array.isArray(body)) {
         return command
+    }
+    // the item of a list that waits for its index, e.g. `` $$(`li`)[3] ``
+    if (typeof index === 'number') {
+        return `${userCommandTitle(command, body)}${index < 0 ? `.at(${index})` : `[${index}]`}`
     }
     // an assertion: `expect.toHaveText` or `expect.not.toHaveText`, with the received value first
     if (command.startsWith(ASSERTION_PREFIX)) {
@@ -560,7 +564,7 @@ export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<o
     const texts = new Map<object, string>()
     for (const entry of output) {
         if (isUserCommandOutput(entry)) {
-            const title = userCommandTitle(entry.command, entry.body)
+            const title = userCommandTitle(entry.command, entry.body, entry.index)
             const end = userResults.get(entry.id)
             const inline = end && inlineResult(end.result, entry.command)
             texts.set(entry, inline ? `${title} → ${inline}` : title)

@@ -4,7 +4,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, setWdioKind, type WdioKind, type WdioQuery } from './kind.js'
-import { runCustomCommand, runUserCommand } from './userCommands.js'
+import { runCustomCommand, runListItem, runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -350,7 +350,9 @@ function createElementPromiseProxy (
                              */
                             if (index >= this.length) {
                                 const browser = getBrowserObject(this) as WebdriverIOInstance
-                                return browser.waitUntil(async () => {
+                                // the wait is the user command of the item (`` $$(`li`)[3] ``), not a `waitUntil` of the test
+                                const query = [this.selector, ...((this as unknown as { props?: unknown[] }).props ?? [])]
+                                return runListItem(browser, String(this.foundWith), query, Number(index), () => browser.waitUntil(async () => {
                                     const elems = await this.parent[this.foundWith as unknown as '$$'](this.selector)
                                     if (elems.length > index) {
                                         return elems[index]
@@ -359,7 +361,7 @@ function createElementPromiseProxy (
                                 }, {
                                     timeout: browser.options.waitforTimeout,
                                     timeoutMsg: `Index out of bounds! $$(${this.selector}) returned only ${this.length} elements.`
-                                })
+                                }))
                             }
 
                             return this[index]

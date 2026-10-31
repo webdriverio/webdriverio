@@ -199,7 +199,19 @@ export function runCustomCommand<T> (scope: unknown, command: string, args: unkn
     return runOuterCommand(userCommandStore, scope, command, args, () => run(true))
 }
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult): T {
+/**
+ * Run the wait for an item past the end of an element list (`$$('li')[3]` when the list has fewer elements):
+ * a user command of the list with its `index`, so the wait is in its frame and the reporters write `` $$(`li`)[3] ``.
+ * @experimental
+ */
+export function runListItem<T> (scope: unknown, command: string, args: unknown[], index: number, run: () => Promise<T>): Promise<T> {
+    if (!userCommandStore || userCommandStore.getStore()) {
+        return run()
+    }
+    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index })
+}
+
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields?: { index: number }): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -214,7 +226,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
 
     const emit = browser!.emit!.bind(browser)
     const event = {
-        id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const,
+        id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const, ...fields,
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }

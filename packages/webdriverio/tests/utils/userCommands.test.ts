@@ -61,6 +61,27 @@ describe('user command events', () => {
         expect(registerUserCommands).not.toHaveBeenCalled()
     })
 
+    it('sends the wait of an item past the end of a list as the item, with no internal waitUntil', async () => {
+        const browser = await bidiSession()
+        browser.options.waitforTimeout = 50
+        const events = recordEvents(browser)
+        const list = await browser.$$('li')
+        events.length = 0
+        await expect(browser.$$('li')[list.length + 2].getText()).rejects.toThrow('Index out of bounds')
+        expect(events.map(([event, payload]) => [event, payload.command, payload.index])).toEqual([
+            ['userCommand', '$$', undefined],
+            ['userResult', '$$', undefined],
+            ['userCommand', '$$', list.length + 2],
+            ['userResult', '$$', list.length + 2],
+            ['userCommand', 'getText', undefined],
+            ['userResult', 'getText', undefined]
+        ])
+        expect(events[2][1].body).toEqual(['li'])
+        // after the wait, the item is a "not found" element, as `$('.missing')`; the command on it fails
+        expect((events[3][1].result as { value?: { found?: boolean } }).value?.found).toBe(false)
+        expect((events[5][1].result as { error?: Error }).error?.message).toContain('Index out of bounds')
+    })
+
     it('sends a pending element list with its query and no length', async () => {
         const browser = await bidiSession()
         browser.addCommand('countItems', async (list: unknown) => (await (list as Promise<unknown[]>)).length)
