@@ -10,6 +10,8 @@ const UNWRAPPED_MATCHERS = ['toMatchInlineSnapshot']
 // the subjects that belong to a session; a mock has none
 const SESSION_KINDS = ['browser', 'element', 'element-array', 'browsing-context']
 const MAX_QUERY_STEPS = 10
+// the brand of the `some()` wrapper of expect-webdriverio, through the global symbol registry as in expect-webdriverio
+const SOME_SYMBOL = Symbol.for('expect-webdriverio.some')
 
 /**
  * Make each call of the matchers one user command (`expect.toHaveText`, `expect.not.toHaveText`), so the
@@ -28,10 +30,13 @@ export function wrapAssertions (
         registerUserCommands([`expect.${name}`, `expect.not.${name}`])
         wrapped[name] = Object.assign(function (this: { isNot?: boolean } | undefined, ...args: unknown[]) {
             const isNot = Boolean(this?.isNot)
+            // the matcher checks the elements of a `some()`; the reporters write it as in the test code
+            const some = isSome(args[0])
+            const subject = some ? (args[0] as { elements: unknown }).elements : args[0]
             return runUserCommand(
-                sessionOf(args[0]) ?? getBrowser(),
+                sessionOf(subject) ?? getBrowser(),
                 `expect.${isNot ? 'not.' : ''}${name}`,
-                args,
+                some ? [{ wdio: 'some', elements: subject }, ...args.slice(1)] : args,
                 () => (matcher as Matcher).apply(this, args) as Promise<unknown>,
                 (result) => assertionResult(result, isNot)
             )
@@ -40,6 +45,10 @@ export function wrapAssertions (
     if (Object.keys(wrapped).length > 0) {
         expectLib.extend(wrapped)
     }
+}
+
+function isSome (value: unknown) {
+    return Boolean(value) && typeof value === 'object' && (value as { [SOME_SYMBOL]?: unknown })[SOME_SYMBOL] === true
 }
 
 // the session of the subject, so an assertion on a multi-remote instance is a user command of that instance
