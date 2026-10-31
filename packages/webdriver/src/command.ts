@@ -224,17 +224,12 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            const tasks = emitResult.call(this, { command, method, endpoint, body: maskedBody, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result })
             const value = result.value as WebDriverResponse | BidiResponses
-            // the command resolves after the work its listeners started, e.g. the switch to a window after `closeWindow`
-            const settled = tasks.length ? waitForResultTasks(command, tasks) : undefined
             // `deleteSession` resolves once the driver is stopped, if it is shut down
-            if (command === 'deleteSession') {
-                return Promise.resolve(settled).then(() => cleanUpSession(true)).then(() => value)
-            }
-            return settled ? settled.then(() => value) : value
+            return command === 'deleteSession' ? cleanUpSession(true).then(() => value) : value
         }).catch((error) => {
-            emitResult.call(this, { command, method, endpoint, body: maskedBody, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
             if (command === 'deleteSession') {
                 return cleanUpSession(false).then(() => { throw error })
             }
@@ -242,25 +237,6 @@ export default function (
         }).finally(() => {
             cleanup()
         })
-    }
-}
-
-/**
- * Emit the `result` event with a `waitUntil` that delays the command until a listener's work is done.
- * Not enumerable, so a reporter that copies or serializes the event does not see it.
- */
-function emitResult (this: BaseClient, event: Omit<WebDriverResultEvent, 'waitUntil'>) {
-    const tasks: Promise<unknown>[] = []
-    Object.defineProperty(event, 'waitUntil', { value: (task: Promise<unknown>) => { tasks.push(task) } })
-    this.emit('result', event as WebDriverResultEvent)
-    return tasks
-}
-
-async function waitForResultTasks (command: string, tasks: Promise<unknown>[]) {
-    for (const task of await Promise.allSettled(tasks)) {
-        if (task.status === 'rejected') {
-            log.warn(`A listener of the "${command}" result failed: ${task.reason instanceof Error ? task.reason.message : String(task.reason)}`)
-        }
     }
 }
 
