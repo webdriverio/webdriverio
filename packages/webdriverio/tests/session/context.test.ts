@@ -430,6 +430,24 @@ describe('ContextManager', () => {
         }
     })
 
+    it('makes closeWindow wait for the switch to the remaining window', async () => {
+        let switched!: () => void
+        browser.switchToWindow.mockReturnValue(new Promise<void>((resolve) => { switched = resolve }))
+        const waitUntil = vi.fn()
+
+        getListeners().result![0]({ command: 'closeWindow', result: { value: ['handle-A'] }, waitUntil })
+
+        expect(browser.switchToWindow).toHaveBeenCalledWith('handle-A')
+        expect(waitUntil).toHaveBeenCalledTimes(1)
+        let done = false
+        void waitUntil.mock.calls[0][0].then(() => { done = true })
+        await Promise.resolve()
+        expect(done).toBe(false)
+        switched()
+        await waitUntil.mock.calls[0][0]
+        expect(done).toBe(true)
+    })
+
     it('does not reject when the session ends while it switches to a window after closeWindow', async () => {
         const stub = createBrowserStub()
         stub.browser.switchToWindow.mockRejectedValue(sessionEnded(

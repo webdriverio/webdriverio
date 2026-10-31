@@ -51,6 +51,10 @@ export interface WebDriverResultEvent {
     endpoint: string
     body: unknown
     result: unknown
+    /**
+     * the command resolves only after this promise settles; set when the command emits the event
+     */
+    readonly waitUntil?: (task: Promise<unknown>) => void
 }
 type WebDriverClassicEvents = {
     command: WebDriverCommandEvent
