@@ -19,21 +19,18 @@ export async function deleteCookies(
     this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filter?: string | string[] | remote.StorageCookieFilter | remote.StorageCookieFilter[]
 ): Promise<void> {
-    const filterArray = typeof filter === 'undefined'
+    const filters = typeof filter === 'undefined'
         ? undefined
-        : Array.isArray(filter) ? filter : [filter]
-    if (filterArray) {
-        toCookieFilters(filterArray)
-    }
+        : toCookieFilters(Array.isArray(filter) ? filter : [filter])
 
     if (!this.isBidi) {
-        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        await deleteCookiesClassic.call(this, getNamesForClassic(filters))
         return
     }
 
     const scope = await windowCookieScope(this)
     if (scope) {
-        await deleteWindowCookies(scope, filterArray)
+        await deleteWindowCookies(scope, filters)
         return
     }
 
@@ -42,13 +39,7 @@ export async function deleteCookies(
             type: 'context',
             context: this.contextId
         }
-        if (!filterArray) {
-            await this.browser.storageDeleteCookies({ partition })
-            return
-        }
-        await Promise.all(toCookieFilters(filterArray).map((entry) => (
-            this.browser.storageDeleteCookies({ filter: entry, partition })
-        )))
+        await deleteBidiCookies(this.browser, partition, filters)
         return
     }
 
@@ -56,11 +47,11 @@ export async function deleteCookies(
     try {
         url = new URL(await this.getUrl())
         if (url.origin === 'null') {
-            await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+            await deleteCookiesClassic.call(this, getNamesForClassic(filters))
             return
         }
     } catch {
-        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        await deleteCookiesClassic.call(this, getNamesForClassic(filters))
         return
     }
     const partition = getCookiePartition(url.origin)
@@ -68,20 +59,20 @@ export async function deleteCookies(
     try {
         const { cookies } = await this.storageGetCookies({ partition })
         if (cookies.length === 0 && !this.isMobile) {
-            await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+            await deleteCookiesClassic.call(this, getNamesForClassic(filters))
             return
         }
     } catch (err) {
         log.warn(`BiDi deleteCookies check failed, falling back to classic: ${(err as Error).message}`)
-        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        await deleteCookiesClassic.call(this, getNamesForClassic(filters))
         return
     }
 
     try {
-        await deleteBidiCookies(this, partition, filterArray)
+        await deleteBidiCookies(this, partition, filters)
     } catch (err) {
         log.warn(`BiDi deleteCookies failed, falling back to classic: ${(err as Error).message}`)
-        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        await deleteCookiesClassic.call(this, getNamesForClassic(filters))
     }
 
     return
@@ -93,13 +84,14 @@ export async function deleteCookies(
  */
 async function deleteWindowCookies(
     scope: WindowCookieScope,
-    filterArray?: (string | remote.StorageCookieFilter)[]
+    filters?: remote.StorageCookieFilter[]
 ) {
-    const filters = filterArray ? toCookieFilters(filterArray) : [undefined]
     const { browser, partition } = scope
-    const isVisible = cookieMatchesUrl((await getWindowInfo(scope)).url)
-    const found = await Promise.all(filters.map((filter) => browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })))
-    const cookies = new Map(found.flatMap(({ cookies }) => cookies).filter(isVisible).map((cookie) => (
+    const [{ url }, found] = await Promise.all([
+        getWindowInfo(scope),
+        Promise.all((filters ?? [undefined]).map((filter) => browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })))
+    ])
+    const cookies = new Map(found.flatMap(({ cookies }) => cookies).filter(cookieMatchesUrl(url)).map((cookie) => (
         [`${cookie.name}\0${cookie.domain}\0${cookie.path}`, cookie]
     )))
     await Promise.all([...cookies.values()].map(({ name, domain, path }) => (
@@ -110,22 +102,19 @@ async function deleteWindowCookies(
 async function deleteBidiCookies(
     browser: WebdriverIO.Browser,
     partition: remote.StoragePartitionDescriptor,
-    filterArray?: (string | remote.StorageCookieFilter)[]
+    filters?: remote.StorageCookieFilter[]
 ) {
-    if (!filterArray) {
+    if (!filters) {
         await browser.storageDeleteCookies({ partition })
         return
     }
-
-    const bidiFilter = toCookieFilters(filterArray)
-
-    await Promise.all(bidiFilter.map((filter) => (
+    await Promise.all(filters.map((filter) => (
         browser.storageDeleteCookies({ filter, partition })
     )))
 }
 
-function getNamesForClassic(filterArray?: (string | remote.StorageCookieFilter)[]) {
-    return filterArray && toCookieFilters(filterArray).map(({ name }) => {
+function getNamesForClassic(filters?: remote.StorageCookieFilter[]) {
+    return filters?.map(({ name }) => {
         if (!name) {
             throw new Error('In WebDriver Classic you can only filter for cookie names')
         }

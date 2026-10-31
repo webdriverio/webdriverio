@@ -97,6 +97,13 @@ describe('setCookies', () => {
                 .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)'))
         })
 
+        it('should throw the input error for a null cookie', async () => {
+            await expect(browser.setCookies([null as never]))
+                .rejects
+                .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)'))
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
         afterEach(() => {
             vi.mocked(fetch).mockClear()
         })

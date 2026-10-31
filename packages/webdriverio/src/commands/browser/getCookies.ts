@@ -100,12 +100,15 @@ async function getWindowCookies(
     if (sourceOrigin === null) {
         return readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
     }
-    const { url, userContext } = await getWindowInfo(scope)
     if (sourceOrigin) {
+        const { userContext } = await getWindowInfo(scope)
         const partition: remote.StoragePartitionDescriptor = { type: 'storageKey', sourceOrigin, ...(userContext ? { userContext } : {}) }
         return readBidiCookies(scope.browser, { partition, ...filterParam }, filter, true)
     }
-    const cookies = await readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
+    const [{ url }, cookies] = await Promise.all([
+        getWindowInfo(scope),
+        readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
+    ])
     return cookies.filter(cookieMatchesUrl(url))
 }
 

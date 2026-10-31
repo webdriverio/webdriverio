@@ -67,7 +67,7 @@ export async function setCookies(
 ): Promise<void> {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
-    if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
+    if (cookieObjsList.some(obj => (typeof obj !== 'object' || obj === null))) {
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)')
     }
 
