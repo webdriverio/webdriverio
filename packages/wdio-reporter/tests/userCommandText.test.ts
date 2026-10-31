@@ -61,6 +61,20 @@ describe('inlineResult', () => {
         expect(userCommandTitle('custom', [circular])).toBe('custom({"shared":{"x":1},"self":{"back":"[Circular]","shared":{"x":1}}})')
     })
 
+    it('reads at most the values that the text can write', () => {
+        let reads = 0
+        const wide: Record<string, unknown> = {}
+        for (let i = 0; i < 10_000; i++) {
+            Object.defineProperty(wide, `k${i}`, { enumerable: true, get: () => ++reads })
+        }
+        const start = JSON.stringify(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, i + 1])))
+        expect(inlineResult({ value: wide })).toBe(`${start.slice(0, 60)}…`)
+        expect(reads).toBeLessThanOrEqual(200)
+        reads = 0
+        userCommandTitle('custom', [wide])
+        expect(reads).toBeLessThanOrEqual(200)
+    })
+
     it('gives a short value as JSON', () => {
         expect(inlineResult({ value: 'Hello' })).toBe('"Hello"')
         expect(inlineResult({ value: false })).toBe('false')

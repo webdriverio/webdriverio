@@ -291,8 +291,9 @@ function cut(text: string, length: number) {
 
 // JSON for a title that never throws: a cycle as "[Circular]", at most 200 values
 function titleJson(value: unknown): string {
-    // the open parent chain only, so that a shared value is written each time
-    const ancestors: unknown[] = []
+    // the open parent chain only, so that a shared value is written each time;
+    // `written` is the cut copy that JSON.stringify walks, `value` the original for the cycle check
+    const ancestors: { written: unknown, value: unknown }[] = []
     let values = 0
     try {
         const json = JSON.stringify(value, function (this: unknown, _key, v: unknown) {
@@ -300,14 +301,20 @@ function titleJson(value: unknown): string {
                 return '…'
             }
             // `this` is the parent of `v`: close the branches that ended
-            while (ancestors.length && ancestors[ancestors.length - 1] !== this) {
+            while (ancestors.length && ancestors[ancestors.length - 1].written !== this) {
                 ancestors.pop()
             }
             if (v && typeof v === 'object') {
-                if (ancestors.includes(v)) {
+                if (ancestors.some((a) => a.value === v)) {
                     return '[Circular]'
                 }
-                ancestors.push(v)
+                // only the entries that the limit can still write: the other keys and their getters are not read
+                const room = TITLE_JSON_VALUES - values + 1
+                const written = Array.isArray(v)
+                    ? (v.length > room ? [...v.slice(0, room), '…'] : v)
+                    : cutEntries(v as Record<string, unknown>, room)
+                ancestors.push({ written, value: v })
+                return written
             }
             return v
         })
@@ -315,6 +322,14 @@ function titleJson(value: unknown): string {
     } catch {
         return String(value)
     }
+}
+
+function cutEntries(object: Record<string, unknown>, room: number): Record<string, unknown> {
+    const keys = Object.keys(object)
+    if (keys.length <= room) {
+        return object
+    }
+    return Object.fromEntries([...keys.slice(0, room).map((key) => [key, object[key]]), ['…', '…']])
 }
 
 function resultValue(result: unknown): unknown {
