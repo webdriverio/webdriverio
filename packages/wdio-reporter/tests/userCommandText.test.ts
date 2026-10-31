@@ -28,7 +28,9 @@ describe('userCommandTitle', () => {
         expect(elementQueryText(element([{ foundWith: '$$', selector: 'li', index: -1 }]))).toBe('$$(`li`).at(-1)')
         expect(elementQueryText(element([{ foundWith: 'custom$$', selector: 'byTestId', props: ['row'], index: 1 }]))).toBe('custom$$(`byTestId`, "row")[1]')
         expect(elementQueryText(element([{ foundWith: 'react$', selector: 'MyComp', props: [{ props: { id: 1 } }] }]))).toBe('react$(`MyComp`, {"props":{"id":1}})')
-        expect(elementQueryText(element([{ foundWith: '$', selector: '#first' }, { foundWith: '$', selector: '[Function nextElement]' }]))).toBe('$(`#first`).$(function nextElement)')
+        expect(elementQueryText(element([{ foundWith: '$', selector: '#first' }, { foundWith: '$', selector: '[Function nextElement]' }]))).toBe('$(`#first`).$(<fn nextElement>)')
+        // the script of the `shadow$` fallback has no name
+        expect(elementQueryText(element([{ foundWith: '$', selector: '#host' }, { foundWith: '$', selector: '[Function anonymous]' }]))).toBe('$(`#host`).$(<fn>)')
         expect(elementQueryText(element([{ foundWith: '$', selector: '#first' }, { foundWith: 'nextElement' }]))).toBe('$(`#first`).nextElement()')
         // an element of an older producer: no command
         expect(elementQueryText(element([{ selector: 'li', index: 0 }]))).toBe('$$(`li`)[0]')
