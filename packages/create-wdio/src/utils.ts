@@ -26,7 +26,26 @@ const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
+/**
+ * Scoped to `fn`: @wdio/cli imports this package in-process, so a listener that outlives an
+ * interactive prompt would pre-empt the launcher's graceful shutdown that ends the WebDriver sessions.
+ * Inquirer re-raises Ctrl+C as SIGINT on the process, and the prompt itself rejects with
+ * ExitPromptError, so both are mapped to the goodbye exit.
+ */
+export async function withSigintExit<T>(fn: () => Promise<T>): Promise<T> {
+    const onSigint = () => printAndExit(undefined, 'SIGINT')
+    process.on('SIGINT', onSigint)
+    try {
+        return await fn()
+    } catch (err) {
+        if ((err as Error)?.name === 'ExitPromptError') {
+            onSigint()
+        }
+        throw err
+    } finally {
+        process.removeListener('SIGINT', onSigint)
+    }
+}
 
 /**
  * to resolve properly during WDIO unit tests we need resolve the template root dir
@@ -94,7 +113,7 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
 export async function getAnswers(yes: boolean, flagAnswers: Partial<Questionnair> = {}): Promise<Questionnair> {
     const answers = yes
         ? await getDefaultAnswers(flagAnswers)
-        : await promptAnswers(flagAnswers)
+        : await withSigintExit(() => promptAnswers(flagAnswers))
     assertAnswerFlagsApply(flagAnswers, answers)
     return answers
 }
@@ -708,12 +727,12 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers, yes = fal
         )
     }
 
-    const answer = await inquirer.prompt({
+    const answer = await withSigintExit(() => inquirer.prompt({
         name: 'continueWithAppiumSetup',
         message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
         type: 'confirm',
         default: true
-    })
+    }))
 
     if (!answer.continueWithAppiumSetup) {
         return console.log(
