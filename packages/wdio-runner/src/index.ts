@@ -354,6 +354,8 @@ export default class Runner extends EventEmitter {
 
         this._reporter.caps = browser.capabilities
         this._reporter.setContextIdResolver(() => (getContextIdPayload(browser as WebdriverIO.Browser) as { contextId?: string }).contextId)
+        // WebDriver BiDi sessions only, see `@wdio/utils` `userCommands.ts`; the instances of a multi-remote browser can be such sessions
+        this._reporter.setUserCommandSession(() => Boolean(browser.isMultiRemote || (browser.isBidi && !browser.isMobile)))
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
