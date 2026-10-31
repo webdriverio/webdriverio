@@ -76,6 +76,7 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('expect.not.toBeDisplayed', [element([{ foundWith: '$', selector: '#x' }], { found: false })])).toBe('expect($(`#x`)).not.toBeDisplayed()')
         expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.Browser', 'https://webdriver.io'])).toBe('expect(browser).toHaveUrl("https://webdriver.io")')
         expect(userCommandTitle('expect.toBeRequested', ['WebdriverIO.Mock'])).toBe('expect(mock).toBeRequested()')
+        expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.BrowsingContext', 'https://webdriver.io'])).toBe('expect(context).toHaveUrl("https://webdriver.io")')
         expect(userCommandTitle('expect.toBeElementsArrayOfSize', [{ wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 3 }, 3])).toBe('expect($$(`li`)).toBeElementsArrayOfSize(3)')
         expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.Browser', '[Matcher StringContaining "Docs"]'])).toBe('expect(browser).toHaveTitle(StringContaining "Docs")')
     })
