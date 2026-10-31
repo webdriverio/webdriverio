@@ -8,7 +8,6 @@ type CookieAttributes = { domain?: string, path?: string }
 
 export interface WindowCookieScope {
     browser: WebdriverIO.Browser
-    context: string
     /**
      * the jar of the window: its user context. Firefox limits the BiDi "context" partition to the
      * origin of the page, so a read or delete there misses the cookies of other hosts, and a cookie set
@@ -28,13 +27,11 @@ export async function windowCookieScope(
     target: WebdriverIO.Browser | WebdriverIO.BrowsingContext
 ): Promise<WindowCookieScope | undefined> {
     const browser = isBrowsingContext(target) ? target.browser : target
-    const parallelContext = getParallelContextStore().getStore()
-    if (!parallelContext && !isBidiCommandsEnabled(browser)) {
+    if (!getParallelContextStore().getStore() && !isBidiCommandsEnabled(browser)) {
         return undefined
     }
-    const context = isBrowsingContext(target)
-        ? target.contextId
-        : parallelContext ?? await getContextManager(browser).getCurrentContext()
+    // the context manager returns the window of a parallel test first
+    const context = isBrowsingContext(target) ? target.contextId : await getContextManager(browser).getCurrentContext()
     const info = (await browser.browsingContextGetTree({ root: context, maxDepth: 0 })).contexts[0]
     let url: URL | undefined
     try {
@@ -45,7 +42,6 @@ export async function windowCookieScope(
     const userContext = info?.userContext || undefined
     return {
         browser,
-        context,
         partition: userContext ? { type: 'storageKey', userContext } : { type: 'context', context },
         userContext,
         url

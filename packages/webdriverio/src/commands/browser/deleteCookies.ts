@@ -10,6 +10,10 @@ const log = logger('webdriverio')
  * Delete cookies visible to the current page. By providing a cookie name it
  * just removes the single cookie or more when multiple names are passed.
  *
+ * With `wdio:experimentalBiDiCommands` and in a parallel test, the command uses the cookies of the window:
+ * it deletes the cookies that the page sees (domain and path) or, with a `domain` in the filter, the cookies
+ * of that domain, whatever page is open. On a page with no host (for example `about:blank`) it deletes no cookie.
+ *
  * @alias browser.deleteCookies
  * @param {StorageCookieFilter[]} filter  Use the filter property to identify and delete specific cookies based on matching criteria.
  * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L9-L29
