@@ -1,10 +1,12 @@
 import { ELEMENT_KEY } from 'webdriver'
+import { getWdioKind } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import { DEEP_SELECTOR } from '../../constants.js'
 import { findElement, buildNotFoundError } from '../../utils/index.js'
 import { findStrictElement, isCountableSelector, isStrictQuery, StrictSelectorError } from '../../utils/strictMode.js'
 import { getElement } from '../../utils/getElementObject.js'
+import { findElementAgain } from '../../utils/findElementAgain.js'
 import type { ElementQueryOptions, Selector } from '../../types.js'
 
 /**
@@ -81,6 +83,35 @@ export async function $ (
     const strict = isCountableSelector(selector) && isStrictQuery(this, options)
 
     /**
+     * An element reference does not query inside its parent.
+     */
+    if (typeof selector === 'object') {
+        const elementRef = selector as ElementReference
+        if (typeof elementRef[ELEMENT_KEY] === 'string') {
+            return getElement.call(this, undefined, elementRef)
+        }
+    }
+
+    /**
+     * A query must not wait for a missing parent before a child can run a state
+     * check or reverse wait. Look for the parent once per query, retaining its
+     * chain when it is still absent. This also lets a positive wait find a
+     * parent that appears later, without querying the child in the browser.
+     * Keep this before the browser-runner bridge, which also needs a real scope.
+     */
+    if (getWdioKind(this) === 'element' && !(this as WebdriverIO.Element).elementId) {
+        const scope = this as WebdriverIO.Element
+        const parent = await findElementAgain(scope)
+        if (!parent?.elementId) {
+            return getElement.call(this, selector, buildNotFoundError(selector), { strict })
+        }
+        scope.elementId = parent.elementId
+        scope[ELEMENT_KEY] = parent.elementId
+        scope.parent = parent.parent
+        delete scope.error
+    }
+
+    /**
      * run this in Node.js land if we are using browser runner because we collect
      * more browser information there that allows better lookups
      */
@@ -116,17 +147,6 @@ export async function $ (
             ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector, options)
             : await globalThis.wdio.execute('$' as const, selector, options)
         return getElement.call(this, selector as string, res, { strict })
-    }
-
-    /**
-     * convert protocol result into WebdriverIO element
-     * e.g. when element was fetched with `getActiveElement`
-     */
-    if (typeof selector === 'object') {
-        const elementRef = selector as ElementReference
-        if (typeof elementRef[ELEMENT_KEY] === 'string') {
-            return getElement.call(this, undefined, elementRef)
-        }
     }
 
     const res = strict

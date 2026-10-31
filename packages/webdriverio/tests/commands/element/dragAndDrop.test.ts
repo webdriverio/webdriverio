@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
@@ -79,13 +80,21 @@ describe('dragAndDrop', () => {
         vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
-        // move to
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[9][0].pathname).toContain('/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[10][0].pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(fetch).mock.calls[10][1]?.method).toContain('DELETE')
+        const actions = vi.mocked(fetch).mock.calls.find(([uri, options]) =>
+            (uri as URL).pathname.endsWith('/actions') && options?.method === 'POST')
+        expect(actions).toBeDefined()
+        const payload = JSON.parse(actions![1]!.body as string)
+        expect(payload.actions).toEqual([expect.objectContaining({
+            type: 'pointer',
+            actions: expect.arrayContaining([
+                expect.objectContaining({ type: 'pointerMove', origin: { [ELEMENT_KEY]: 'some-elem-123' } }),
+                expect.objectContaining({ type: 'pointerMove', origin: { [ELEMENT_KEY]: 'some-sub-elem-321' } })
+            ])
+        })])
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ method: 'DELETE' })
+        )
     })
 
     it('should do a dragAndDrop for mobile', async () => {
