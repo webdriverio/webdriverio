@@ -19,7 +19,7 @@ import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DE
 import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, normalizeHost, getEffectiveCapability } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -50,12 +50,13 @@ export default class BrowserRunner extends LocalRunner {
         this.#reportsDirectory = this.#coverageOptions.reportsDirectory || path.join(this.#config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
 
         /**
-         * transform mochaOpts require params so we can use it in the browser
+         * transform mochaOpts require params so we can use it in the browser; keep
+         * them decoded (`/C:/My Project/setup.js`), `toViteFsUrl` encodes them once
          */
         if (this.#config.mochaOpts) {
             this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
                 .map((r: 'string') => path.join(this.#config.rootDir || process.cwd(), r))
-                .map((r: 'string') => url.pathToFileURL(r).pathname)
+                .map((r: 'string') => decodeURIComponent(url.pathToFileURL(r).pathname))
         }
     }
 
@@ -94,15 +95,29 @@ export default class BrowserRunner extends LocalRunner {
 
         try {
             const port = await server.start()
-            const host = this.#options.host || DEFAULT_HOST
+            const host = normalizeHost(this.#options.host) || DEFAULT_HOST
             runArgs.args.baseUrl = `${host}:${port}`
 
             /**
              * enable Geckodriver to accept Bidi messages from the browser
              */
-            if (runArgs.caps.browserName === 'firefox') {
-                runArgs.caps['wdio:geckodriverOptions'] = {
-                    allowOrigins: [`http://localhost:${port}`]
+            const capability = getEffectiveCapability(runArgs.caps)
+            if (capability.browserName?.toLowerCase() === 'firefox') {
+                /**
+                 * keep the user's driver options (e.g. a custom `binary`) and origins
+                 */
+                const geckodriverOptions = capability['wdio:geckodriverOptions'] || {}
+                const allowOrigins = new Set([...(geckodriverOptions.allowOrigins || []), `http://localhost:${port}`])
+                try {
+                    const hostUrl = new URL(host)
+                    hostUrl.port = String(port)
+                    allowOrigins.add(hostUrl.origin)
+                } catch {
+                    // an invalid `host` is no valid origin, keep localhost only
+                }
+                capability['wdio:geckodriverOptions'] = {
+                    ...geckodriverOptions,
+                    allowOrigins: [...allowOrigins]
                 }
             }
         } catch (err) {

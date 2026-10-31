@@ -12,7 +12,11 @@ export function toViteFsUrl (file: string) {
     }
     const normalized = file.replace(/\\/g, '/')
     const absolute = normalized.startsWith('/') ? normalized.slice(1) : normalized
-    return `/@fs/${absolute}`
+    /**
+     * encode e.g. `%` and spaces, which Vite decodes with `decodeURI`; `#` and `?`
+     * would otherwise cut the path off
+     */
+    return `/@fs/${encodeURI(absolute).replace(/#/g, '%23').replace(/\?/g, '%3F')}`
 }
 
 /**

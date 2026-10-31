@@ -5,7 +5,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 
-import { getTemplate, userfriendlyImport, getErrorTemplate, getFilesFromDirectory } from '../../src/vite/utils.js'
+import { getTemplate, userfriendlyImport, getErrorTemplate, getFilesFromDirectory, getAliasMap } from '../../src/vite/utils.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -47,6 +47,49 @@ describe('getTemplate', () => {
         const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
         const template = await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)
         expect(template.replace(sourceMapDir, '/foo/bar')).toMatchSnapshot()
+    })
+
+    it('escapes the spec path for the inline script and the HTML attribute', async () => {
+        const spec = '/home/O\'Brien/a"b&c</script><!--.test.js'
+        const p: any = { env: {}, cwd: () => '/some/cwd' }
+        const template = await getTemplate({}, { config: {} } as any, spec, p)
+
+        const line = template.split('\n').find((l) => l.includes('window.__wdioSpec__'))!.trim()
+        const window: { __wdioSpec__?: string } = {}
+        new Function('window', line)(window)
+        expect(window.__wdioSpec__).toBe(spec)
+        expect(template).not.toContain('</script><!--.test.js')
+
+        const attribute = template.match(/<mocha-framework spec="([^"]*)"/)![1]
+        expect(attribute).toBe('/home/O\'Brien/a&quot;b&amp;c&lt;/script&gt;&lt;!--.test.js')
+    })
+
+    it('escapes env, process env, cwd and aliases for the inline scripts', async () => {
+        const evil = '</script><!--'
+        const p: any = { env: { HTML: evil }, cwd: () => `/cwd/${evil}` }
+        const template = await getTemplate({}, { config: { value: evil } } as any, '/spec.js', p, { [evil]: evil })
+        expect(template).not.toContain(evil)
+        expect(template).toContain('\\u003c/script>\\u003c!--')
+    })
+
+    it('uses the given aliases for mock resolution', async () => {
+        const p: any = { env: {}, cwd: () => '/cwd' }
+        const template = await getTemplate({}, { config: {} } as any, '/spec.js', p, { '@app': '/src' })
+        expect(template).toContain('const alias = {"@app":"/src"}')
+    })
+})
+
+describe('getAliasMap', () => {
+    it('converts object and resolved list aliases into a prefix map', () => {
+        expect(getAliasMap()).toEqual({})
+        expect(getAliasMap({ '@app': '/src' })).toEqual({ '@app': '/src' })
+        expect(getAliasMap([
+            { find: '@app', replacement: '/src' },
+            { find: /^\/?@vite\/env/, replacement: '/@fs/env.mjs' }
+        ])).toEqual({ '@app': '/src' })
+        if (process.platform === 'win32') {
+            expect(getAliasMap({ '@app': 'C:\\proj\\src' })).toEqual({ '@app': '/C:/proj/src' })
+        }
     })
 })
 

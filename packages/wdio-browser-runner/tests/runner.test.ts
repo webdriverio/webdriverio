@@ -147,6 +147,74 @@ describe('BrowserRunner', () => {
         expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
     })
 
+    it('allows the origin of a custom host for Firefox', async () => {
+        const runner = new BrowserRunner({ host: 'http://192.168.1.10' }, {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any)
+        await runner.initialize()
+
+        vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+        const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
+        await runner.run(runArgs)
+        expect(runArgs.args.baseUrl).toBe('http://192.168.1.10:1234')
+        expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234', 'http://192.168.1.10:1234'])
+    })
+
+    it('sets the allowed origins for Firefox in W3C capabilities when headless', async () => {
+        process.env.CI = '1'
+        try {
+            const runner = new BrowserRunner({}, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps: { alwaysMatch: { browserName: 'firefox' }, firstMatch: [{}] }, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect(runArgs.caps.firstMatch).toEqual([{}])
+            expect(runArgs.caps.alwaysMatch['moz:firefoxOptions'].args).toEqual(['-headless'])
+            expect(runArgs.caps.alwaysMatch['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
+        } finally {
+            delete process.env.CI
+        }
+    })
+
+    it('keeps the user\'s geckodriver options when adding the allowed origins', async () => {
+        for (const caps of [
+            { browserName: 'firefox', 'wdio:geckodriverOptions': { binary: '/geckodriver', allowOrigins: ['http://other:1'] } },
+            { alwaysMatch: { browserName: 'firefox', 'wdio:geckodriverOptions': { binary: '/geckodriver', allowOrigins: ['http://other:1'] } }, firstMatch: [{}] }
+        ]) {
+            const runner = new BrowserRunner({}, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect((runArgs.caps.alwaysMatch || runArgs.caps)['wdio:geckodriverOptions']).toEqual({
+                binary: '/geckodriver',
+                allowOrigins: ['http://other:1', 'http://localhost:1234']
+            })
+        }
+    })
+
+    it('passes mochaOpts.require to the browser as decoded paths', () => {
+        const rootDir = path.resolve('/My Project')
+        const config: any = { rootDir, framework: 'mocha', mochaOpts: { require: ['./setup.js'] } }
+        new BrowserRunner({}, config)
+        const [requirePath] = config.mochaOpts.require
+        expect(requirePath).not.toContain('%20')
+        expect(requirePath.endsWith('/My Project/setup.js')).toBe(true)
+    })
+
+    it('normalizes a host without protocol or with a trailing slash', async () => {
+        for (const host of ['http://192.168.1.10/', '192.168.1.10', '192.168.1.10/']) {
+            const runner = new BrowserRunner({ host }, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect(runArgs.args.baseUrl).toBe('http://192.168.1.10:1234')
+            expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234', 'http://192.168.1.10:1234'])
+        }
+    })
+
     it('shutdown', async () => {
         const runner = new BrowserRunner({}, {
             rootDir: '/foo/bar',
