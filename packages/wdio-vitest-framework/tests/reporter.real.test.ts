@@ -168,8 +168,11 @@ describe('WdioBridgeReporter with the real JUnit reporter', () => {
             bridge.onTestModuleStart(module)
             await bridge.onTestModuleEnd(module)
 
-            const [file] = await fs.readdir(outputDir)
-            expect(await fs.readFile(path.join(outputDir, file), 'utf8')).toContain('<failure message="Cannot find module ./missing"')
+            await vi.waitFor(async () => {
+                const [file] = await fs.readdir(outputDir)
+                expect(file).toBeDefined()
+                expect(await fs.readFile(path.join(outputDir, file), 'utf8')).toContain('<failure message="Cannot find module ./missing"')
+            })
         } finally {
             await fs.rm(outputDir, { recursive: true, force: true })
         }
