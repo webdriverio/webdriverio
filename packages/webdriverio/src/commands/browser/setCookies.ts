@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition, getWindowInfo, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
+import { getCookiePartition, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -139,23 +139,15 @@ export async function setCookies(
  * A window of a parallel test, or a session with `wdio:experimentalBiDiCommands`: falling back to
  * addCookie would act on the focused window, so BiDi errors propagate.
  */
-async function setWindowCookies(scope: WindowCookieScope, cookies: Cookie[]) {
-    const { url, userContext } = await getWindowInfo(scope)
-    const host = url?.hostname
+async function setWindowCookies({ browser, partition, url }: WindowCookieScope, cookies: Cookie[]) {
     const bidiCookies = cookies.map((cookie) => {
-        const domain = cookie.domain || host
+        const domain = cookie.domain || url?.hostname
         if (!domain) {
             throw new Error(`Can not set the cookie "${cookie.name}" without a domain: the page has no host (for example about:blank). Open a page first, or set the "domain" of the cookie.`)
         }
         return toBidiCookie(cookie, domain)
     })
-    /**
-     * Firefox resolves the "context" partition to the origin of the page and stores the cookie
-     * where a plain http page (not https, not loopback) does not see it; the user context of the
-     * window is the jar of the page in Chrome and Firefox
-     */
-    const partition: remote.StoragePartitionDescriptor = userContext ? { type: 'storageKey', userContext } : scope.partition
-    await Promise.all(bidiCookies.map((cookie) => scope.browser.storageSetCookie({ cookie, partition })))
+    await Promise.all(bidiCookies.map((cookie) => browser.storageSetCookie({ cookie, partition })))
 }
 
 /**

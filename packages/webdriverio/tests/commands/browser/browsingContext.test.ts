@@ -161,7 +161,7 @@ describe('browsing context', () => {
         expect(browser.storageDeleteCookies).toHaveBeenCalledTimes(1)
         expect(browser.storageDeleteCookies).toHaveBeenCalledWith({
             filter: { name: 'child', domain: 'child.example', path: '/' },
-            partition: { type: 'context', context: 'frame-1' }
+            partition: { type: 'storageKey', userContext: 'default' }
         })
     })
 

@@ -115,7 +115,7 @@ describe('deleteCookies', () => {
             storageDeleteCookies.mockClear()
             storageGetCookies.mockClear()
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-0', children: [] }]
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-1', children: [] }]
             } as any)
             setParallelContextStore(parallelStore)
         })
@@ -127,7 +127,7 @@ describe('deleteCookies', () => {
             deleteAllCookies.mockClear()
             deleteCookie.mockClear()
             await parallelStore.run('ctx-1', () => browser.deleteCookies('nope'))
-            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' }, filter: { name: 'nope' } })
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey', userContext: 'uc-1' }, filter: { name: 'nope' } })
             expect(storageDeleteCookies).not.toBeCalled()
             expect(deleteAllCookies).not.toBeCalled()
             expect(deleteCookie).not.toBeCalled()
@@ -148,7 +148,7 @@ describe('deleteCookies', () => {
             })
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
             expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
-            const partition = { type: 'context', context: 'ctx-1' }
+            const partition = { type: 'storageKey', userContext: 'uc-1' }
             expect(storageGetCookies).toBeCalledWith({ partition })
             expect(storageDeleteCookies.mock.calls).toEqual([
                 [{ filter: { name: 'page', domain: 'app.example.com', path: '/' }, partition }],
@@ -168,7 +168,7 @@ describe('deleteCookies', () => {
                 ]
             })
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
-            const partition = { type: 'context', context: 'ctx-1' }
+            const partition = { type: 'storageKey', userContext: 'uc-1' }
             expect(storageDeleteCookies.mock.calls).toEqual([
                 [{ filter: { name: 'root', domain: 'app.example.com', path: '/' }, partition }],
                 [{ filter: { name: 'secure', domain: 'app.example.com', path: '/' }, partition }]
@@ -187,7 +187,7 @@ describe('deleteCookies', () => {
                 .mockResolvedValueOnce({ cookies: [{ name: 'other', domain: 'other.example', path: '/' }] })
             await parallelStore.run('ctx-1', () => browser.deleteCookies([{ domain: 'auth.example.com' }, 'other']))
             expect(storageDeleteCookies.mock.calls).toEqual([
-                [{ filter: { name: 'sso', domain: 'auth.example.com', path: '/' }, partition: { type: 'context', context: 'ctx-1' } }]
+                [{ filter: { name: 'sso', domain: 'auth.example.com', path: '/' }, partition: { type: 'storageKey', userContext: 'uc-1' } }]
             ])
         })
 
@@ -321,7 +321,7 @@ describe('deleteCookies', () => {
                     { name: 'other', domain: 'other.example', path: '/' }
                 ] })
                 await browser.deleteCookies()
-                const partition = { type: 'context', context: 'ctx-1' }
+                const partition = { type: 'storageKey', userContext: 'uc-1' }
                 expect(storageGetCookies).toBeCalledWith({ partition })
                 expect(storageDeleteCookies.mock.calls).toEqual([
                     [{ filter: { name: 'page', domain: 'webdriver.io', path: '/' }, partition }]

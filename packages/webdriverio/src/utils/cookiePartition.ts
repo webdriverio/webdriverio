@@ -9,8 +9,14 @@ type CookieAttributes = { domain?: string, path?: string }
 export interface WindowCookieScope {
     browser: WebdriverIO.Browser
     context: string
-    /** WebDriver BiDi "context" partition: the key of the navigable's storage partition, its user context included */
+    /**
+     * the jar of the window: its user context. Firefox limits the BiDi "context" partition to the
+     * origin of the page, so a read or delete there misses the cookies of other hosts, and a cookie set
+     * there is not visible to a plain http page; Chrome resolves "context" to the user context
+     */
     partition: remote.StoragePartitionDescriptor
+    userContext?: string
+    url?: URL
 }
 
 /**
@@ -29,10 +35,6 @@ export async function windowCookieScope(
     const context = isBrowsingContext(target)
         ? target.contextId
         : parallelContext ?? await getContextManager(browser).getCurrentContext()
-    return { browser, context, partition: { type: 'context', context } }
-}
-
-export async function getWindowInfo({ browser, context }: WindowCookieScope) {
     const info = (await browser.browsingContextGetTree({ root: context, maxDepth: 0 })).contexts[0]
     let url: URL | undefined
     try {
@@ -40,7 +42,14 @@ export async function getWindowInfo({ browser, context }: WindowCookieScope) {
     } catch {
         url = undefined
     }
-    return { url, userContext: info?.userContext }
+    const userContext = info?.userContext || undefined
+    return {
+        browser,
+        context,
+        partition: userContext ? { type: 'storageKey', userContext } : { type: 'context', context },
+        userContext,
+        url
+    }
 }
 
 /**

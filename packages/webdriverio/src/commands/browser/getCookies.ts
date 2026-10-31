@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { cookieMatchesUrl, getCookiePartition, getWindowInfo, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
+import { cookieMatchesUrl, getCookiePartition, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -92,25 +92,22 @@ export async function getCookies(
 }
 
 async function getWindowCookies(
-    scope: WindowCookieScope,
+    { browser, partition, userContext, url }: WindowCookieScope,
     filter?: remote.StorageCookieFilter,
     sourceOrigin?: string | null
 ) {
-    const filterParam = typeof filter !== 'undefined' ? { filter } : {}
-    if (sourceOrigin === null) {
-        return readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
+    const params: remote.StorageGetCookiesParameters = {
+        partition: sourceOrigin
+            ? { type: 'storageKey', sourceOrigin, ...(userContext ? { userContext } : {}) }
+            : partition,
+        ...(typeof filter !== 'undefined' ? { filter } : {})
     }
-    if (sourceOrigin) {
-        const { userContext } = await getWindowInfo(scope)
-        const partition: remote.StoragePartitionDescriptor = { type: 'storageKey', sourceOrigin, ...(userContext ? { userContext } : {}) }
-        return readBidiCookies(scope.browser, { partition, ...filterParam }, filter, true)
-    }
-    const [{ url }, cookies] = await Promise.all([
-        getWindowInfo(scope),
-        readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
-    ])
-    // a filter with a domain names the cookies to read, whatever page is open
-    return filter?.domain ? cookies : cookies.filter(cookieMatchesUrl(url))
+    const cookies = await readBidiCookies(browser, params, filter, true)
+    /**
+     * null and an explicit origin read all cookies of their jar, and a filter with a domain names the
+     * cookies to read, whatever page is open
+     */
+    return sourceOrigin === null || sourceOrigin || filter?.domain ? cookies : cookies.filter(cookieMatchesUrl(url))
 }
 
 async function readBidiCookies (
@@ -181,7 +178,7 @@ async function getCookiesClassic(
         (filter.value === undefined || filterValue === cookie.value) &&
         (filter.path === undefined || filter.path === cookie.path) &&
         (filter.domain === undefined || filter.domain === cookie.domain) &&
-        (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+        (filter.sameSite === undefined || filter.sameSite.toLowerCase() === cookie.sameSite?.toLowerCase()) &&
         (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
         (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
         (filter.secure === undefined || filter.secure === cookie.secure)

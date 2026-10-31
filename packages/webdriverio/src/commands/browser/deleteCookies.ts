@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { cookieMatchesUrl, getCookiePartition, getWindowInfo, toCookieFilters, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
+import { cookieMatchesUrl, getCookiePartition, toCookieFilters, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -86,14 +86,11 @@ async function deleteWindowCookies(
     scope: WindowCookieScope,
     filters?: remote.StorageCookieFilter[]
 ) {
-    const { browser, partition } = scope
-    const [{ url }, found] = await Promise.all([
-        getWindowInfo(scope),
-        Promise.all((filters ?? [undefined]).map(async (filter) => ({
-            filter,
-            cookies: (await browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })).cookies
-        })))
-    ])
+    const { browser, partition, url } = scope
+    const found = await Promise.all((filters ?? [undefined]).map(async (filter) => ({
+        filter,
+        cookies: (await browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })).cookies
+    })))
     const isVisible = cookieMatchesUrl(url)
     const cookies = new Map(found.flatMap(({ filter, cookies }) => (
         // a filter with a domain names the cookies to delete, whatever page is open
