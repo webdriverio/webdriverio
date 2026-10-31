@@ -145,6 +145,36 @@ describe('browsing context', () => {
         await expect(browser.switchFrame(null)).rejects.toThrow('switchFrame')
     })
 
+    it('keeps the cookies that the page of a frame sees with wdio:experimentalBiDiCommands', async () => {
+        (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = true
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example/' })
+        vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+            contexts: [{ context: 'frame-1', url: 'https://child.example/', userContext: 'default', children: [] }]
+        } as never)
+        const cookie = (name: string, domain: string) => ({ name, domain, path: '/', value: { type: 'string', value: name } })
+        vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({
+            cookies: [cookie('child', 'child.example'), cookie('top', 'example.com')]
+        } as never)
+        vi.spyOn(browser, 'storageDeleteCookies').mockResolvedValue({} as never)
+        await expect(frame.getCookies()).resolves.toMatchObject([{ name: 'child', value: 'child' }])
+        await frame.deleteCookies()
+        expect(browser.storageDeleteCookies).toHaveBeenCalledTimes(1)
+        expect(browser.storageDeleteCookies).toHaveBeenCalledWith({
+            filter: { name: 'child', domain: 'child.example', path: '/' },
+            partition: { type: 'storageKey', userContext: 'default' }
+        })
+    })
+
+    it('sends a sameSite cookie filter of a held context in lowercase to BiDi', async () => {
+        const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com/' })
+        vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({ cookies: [] } as never)
+        vi.spyOn(browser, 'storageDeleteCookies').mockResolvedValue({} as never)
+        await page.getCookies({ sameSite: 'Strict' as never })
+        expect(browser.storageGetCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { sameSite: 'strict' } })
+        await page.deleteCookies({ name: 'a', sameSite: 'Lax' as never })
+        expect(browser.storageDeleteCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { name: 'a', sameSite: 'lax' } })
+    })
+
     it('scopes navigation, cookies, history, and prompts to the held context', async () => {
         const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com/' })
         vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({

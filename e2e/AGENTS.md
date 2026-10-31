@@ -13,6 +13,7 @@ pnpm run test:e2e:testrunner   # headless wdio testrunner
 pnpm run test:e2e:webdriver    # local webdriver conf
 pnpm run test:e2e:classic
 pnpm run test:e2e:parallel     # parallel mode (contexts) in Chrome (also in the CI testrunner lane)
+pnpm run test:e2e:parallel-user-contexts # the same specs with parallelMode 'userContexts' (also in the CI testrunner lane)
 pnpm run test:e2e:jasmine      # Jasmine framework: sync and async expect
 pnpm run test:e2e:multi-remote
 pnpm run test:component        # e2e/browser-runner (needs @wdio/browser-runner)
