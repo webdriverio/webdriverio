@@ -284,8 +284,13 @@ const TITLE_JSON_VALUES = 200
 const ASSERTION_PREFIX = 'expect.'
 // `$`, `$$`, `shadow$`, `custom$$` …: the first argument is the selector
 const QUERY_COMMAND = /\$\$?$/
-// the received value of an assertion as in the test code
-const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock', 'WebdriverIO.BrowsingContext': 'context' }
+// a WebdriverIO object as in the test code; the copy writes it as `WebdriverIO.<type>`
+const OBJECT_NAMES: Record<string, string> = {
+    'WebdriverIO.Browser': 'browser',
+    'WebdriverIO.MultiRemoteBrowser': 'multiRemoteBrowser',
+    'WebdriverIO.Mock': 'mock',
+    'WebdriverIO.BrowsingContext': 'browsingContext'
+}
 
 function cut(text: string, length: number) {
     return text.length > length ? `${text.slice(0, length)}…` : text
@@ -401,6 +406,9 @@ function isElementReference(value: unknown) {
 }
 
 function formatArgument(arg: unknown): string {
+    if (typeof arg === 'string' && Object.hasOwn(OBJECT_NAMES, arg)) {
+        return OBJECT_NAMES[arg]
+    }
     const fn = typeof arg === 'string' && /^\[Function (.*)\]$/.exec(arg)
     if (fn) {
         return `function ${fn[1]}`
@@ -432,7 +440,7 @@ export function userCommandTitle(command: string, body: unknown): string {
     // an assertion: `expect.toHaveText` or `expect.not.toHaveText`, with the received value first
     if (command.startsWith(ASSERTION_PREFIX)) {
         const [received, ...expected] = body
-        const target = RECEIVED_NAMES[received as string] ?? formatArgument(received)
+        const target = formatArgument(received)
         return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
     }
     const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) ? selectorText(arg) : formatArgument(arg))
