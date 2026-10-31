@@ -16,6 +16,13 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('execute', ['[Function readTitle]', 1])).toBe('execute(function readTitle, 1)')
     })
 
+    it('writes the selector of a query command as in its element query', () => {
+        expect(userCommandTitle('$', ['[Function anonymous]'])).toBe('$(<fn>)')
+        expect(userCommandTitle('$$', ['[Function byRole]'])).toBe('$$(<fn byRole>)')
+        expect(userCommandTitle('shadow$$', ['li'])).toBe('shadow$$(`li`)')
+        expect(userCommandTitle('custom$', ['byTestId', 'submit'])).toBe('custom$(`byTestId`, "submit")')
+    })
+
     it('writes an element argument as its query, with no id', () => {
         expect(userCommandTitle('dragAndDrop', [element([{ foundWith: '$', selector: '#drop' }], { elementId: 'f.1.d.2.e.3' })])).toBe('dragAndDrop($(`#drop`))')
         expect(userCommandTitle('isEqual', [{ wdio: 'element', elementId: 'abc' }])).toBe('isEqual(Element)')
