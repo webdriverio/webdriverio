@@ -337,6 +337,30 @@ describe('user commands that overlap or end after their test', () => {
         ])
     })
 
+    it('ends the protocol step of a failed user command when a user command that started after it ends', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // waitUntil times out while its request and a later pause still run; the test catches the timeout
+            const waitUntil = user(4, 'waitUntil', ['[Function anonymous]', { timeout: 600 }])
+            const execute = { command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body: {}, sessionId: 's', parent: 4 }
+            emit('client:beforeUserCommand', waitUntil)
+            emit('client:beforeCommand', execute)
+            emit('client:beforeUserCommand', user(5, 'pause', [1000]))
+            emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('timed out') } })
+            emit('client:afterUserCommand', { ...user(5, 'pause', [1000]), result: { value: null } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['waitUntil(function anonymous, {"timeout":600})', 'failed', 'timed out', ['Error: timed out'], [
+                ['executeScript', 'failed', 'timed out', [expect.stringContaining('/execute/sync')], [
+                    ['pause(1000)', 'passed', undefined, [], []]
+                ]]
+            ]]
+        ])
+    })
+
     it('does not close a step of the next test with a result that comes after the end of its test', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
