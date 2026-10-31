@@ -267,7 +267,7 @@ describe('user command events', () => {
     it('keeps the function label of execute in the output', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
-        const execute = { ...userCommand, command: 'executeAsync', body: ['[Function getTitle]', 1], contextId: 'ctx-a' }
+        const execute = { ...userCommand, command: 'execute', body: ['[Function getTitle]', 1], contextId: 'ctx-a' }
 
         reporter.emit('client:beforeUserCommand', execute)
         reporter.emit('client:afterUserCommand', { ...execute, result: { value: 'title' } })
