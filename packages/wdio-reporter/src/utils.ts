@@ -369,9 +369,11 @@ export function elementQueryText(element: ElementPlaceholder): string {
     return element.query.map((step, i) => {
         const list = step.index !== undefined || (element.wdio === 'element-array' && i === element.query!.length - 1)
         const command = step.foundWith ?? (list ? '$$' : '$')
-        const selector = typeof step.selector === 'string' && !/^\[Function .*\]$/.test(step.selector)
-            ? `\`${step.selector}\``
-            : formatArgument(step.selector)
+        // a function selector as in expect-webdriverio, with its name when it has one
+        const fn = typeof step.selector === 'string' && /^\[Function (.*)\]$/.exec(step.selector)
+        const selector = fn
+            ? fn[1] === 'anonymous' ? '<fn>' : `<fn ${fn[1]}>`
+            : typeof step.selector === 'string' ? `\`${step.selector}\`` : formatArgument(step.selector)
         // the copy writes a list that is too deep as a cut (a string)
         const props = Array.isArray(step.props) ? step.props.map(formatArgument) : step.props === undefined ? [] : ['…']
         const args = [...(step.selector === undefined ? [] : [selector]), ...props].join(', ')
