@@ -28,6 +28,7 @@ export interface EnvironmentDependencies {
     saveScreenshot: typeof saveScreenshot,
     saveElementScreenshot: typeof saveElementScreenshot
     osType: () => string
+    createRequire?: (filename: string) => NodeJS.Require
 }
 
 /**

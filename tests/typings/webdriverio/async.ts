@@ -2,7 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, Selector, Action, PDFPrintOptions } from 'webdriverio'
+import type { ClickOptions, Selector, Action, PDFPrintOptions, DebugOptions } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -212,6 +212,12 @@ async function bar() {
 
     // browser
     await browser.pause(1)
+    await browser.debug()
+    await browser.debug(10000)
+    await browser.debug(10000, { myPage: {} })
+    const debugOptions: DebugOptions = { commandTimeout: 10000, context: { myPage: {} } }
+    await browser.debug(debugOptions)
+    await browser.debug({ myPage: {} })
     await browser.newWindow('https://webdriver.io', {
         type: 'window'
     })
