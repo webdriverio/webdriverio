@@ -22,6 +22,7 @@ import {
 } from './kind.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
+import type { ChromedriverParameters } from './driverOptions.js'
 
 export {
     startWebDriver,
@@ -112,5 +113,10 @@ export {
     resolveMaxContexts,
     type ParallelMode,
     type ParallelContextAllocation,
-    type ParallelContextBrowser
+    type ParallelContextBrowser,
+
+    /**
+     * the Chromedriver options; loading this entry also types `WebdriverIO.GeckodriverOptions` etc.
+     */
+    type ChromedriverParameters
 }
