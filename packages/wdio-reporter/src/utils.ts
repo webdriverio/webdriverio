@@ -369,11 +369,7 @@ export function elementQueryText(element: ElementPlaceholder): string {
     return element.query.map((step, i) => {
         const list = step.index !== undefined || (element.wdio === 'element-array' && i === element.query!.length - 1)
         const command = step.foundWith ?? (list ? '$$' : '$')
-        // a function selector as in expect-webdriverio, with its name when it has one
-        const fn = typeof step.selector === 'string' && /^\[Function (.*)\]$/.exec(step.selector)
-        const selector = fn
-            ? fn[1] === 'anonymous' ? '<fn>' : `<fn ${fn[1]}>`
-            : typeof step.selector === 'string' ? `\`${step.selector}\`` : formatArgument(step.selector)
+        const selector = selectorText(step.selector)
         // the copy writes a list that is too deep as a cut (a string)
         const props = Array.isArray(step.props) ? step.props.map(formatArgument) : step.props === undefined ? [] : ['…']
         const args = [...(step.selector === undefined ? [] : [selector]), ...props].join(', ')
@@ -385,6 +381,15 @@ export function elementQueryText(element: ElementPlaceholder): string {
 // the `some()` of expect-webdriverio as the subject of an assertion, e.g. `` some($$(`li`)) ``
 function isSomePlaceholder(value: unknown): value is { wdio: 'some', elements: unknown } {
     return Boolean(value) && typeof value === 'object' && (value as { wdio?: unknown }).wdio === 'some'
+}
+
+// a selector as in the test code: a string in backticks, a function as in expect-webdriverio (`<fn>`, or `<fn name>` with its name)
+function selectorText(selector: unknown): string {
+    const fn = typeof selector === 'string' && /^\[Function (.*)\]$/.exec(selector)
+    if (fn) {
+        return fn[1] === 'anonymous' ? '<fn>' : `<fn ${fn[1]}>`
+    }
+    return typeof selector === 'string' ? `\`${selector}\`` : formatArgument(selector)
 }
 
 function isPlaceholder(value: unknown) {
@@ -430,7 +435,7 @@ export function userCommandTitle(command: string, body: unknown): string {
         const target = RECEIVED_NAMES[received as string] ?? formatArgument(received)
         return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
     }
-    const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) && typeof arg === 'string' ? `\`${arg}\`` : formatArgument(arg))
+    const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) ? selectorText(arg) : formatArgument(arg))
     return `${command}(${cut(args.join(', '), TITLE_ARGS_LENGTH)})`
 }
 
