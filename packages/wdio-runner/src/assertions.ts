@@ -1,5 +1,5 @@
 import { stripVTControlCharacters } from 'node:util'
-import { registerUserCommands, runUserCommand, getBrowserObject, getWdioKind, WDIO_QUERY, type WdioQuery } from '@wdio/utils'
+import { registerUserCommands, runUserCommand, getWdioKind, WDIO_QUERY, type WdioQuery } from '@wdio/utils'
 
 type Matcher = (this: { isNot?: boolean } | undefined, ...args: unknown[]) => unknown
 
@@ -7,8 +7,6 @@ type Matcher = (this: { isNot?: boolean } | undefined, ...args: unknown[]) => un
 const ASSERTION_WRAPPER = Symbol('wdio.assertionWrapper')
 // Vitest finds an inline snapshot in the test file from the frames of its call: a wrapper frame moves it
 const UNWRAPPED_MATCHERS = ['toMatchInlineSnapshot']
-// the subjects that belong to a session; a mock has none
-const SESSION_KINDS = ['browser', 'element', 'element-array', 'browsing-context']
 const MAX_QUERY_STEPS = 10
 // the brand of the `some()` wrapper of expect-webdriverio, through the global symbol registry as in expect-webdriverio
 const SOME_SYMBOL = Symbol.for('expect-webdriverio.some')
@@ -54,12 +52,25 @@ function isSome (value: unknown) {
 // the session of the subject, so an assertion on a multi-remote instance is a user command of that instance
 function sessionOf (subject: unknown) {
     let current = subject
-    // a pending element: its caller (a browser, an element or the previous link of the chain)
-    for (let step = 0; step < MAX_QUERY_STEPS && current && (current as { [WDIO_QUERY]?: WdioQuery })[WDIO_QUERY]; step++) {
-        current = (current as { [WDIO_QUERY]: WdioQuery })[WDIO_QUERY].parent
+    for (let step = 0; step < MAX_QUERY_STEPS; step++) {
+        const kind = getWdioKind(current)
+        if (kind === 'browser') {
+            return current
+        }
+        if (kind === 'browsing-context') {
+            return (current as WebdriverIO.BrowsingContext).browser
+        }
+        if (kind !== 'element' && kind !== 'element-array') {
+            return undefined
+        }
+        // a pending element: its caller (a browser, an element or the previous link of the chain)
+        const pending = (current as { [WDIO_QUERY]?: WdioQuery })[WDIO_QUERY]
+        // a field of a promise is a new promise; an element list gives its parent also when it is pending
+        current = pending ? pending.parent : Array.isArray(current) || typeof (current as { then?: unknown }).then !== 'function'
+            ? (current as { parent?: unknown }).parent
+            : undefined
     }
-    const kind = getWdioKind(current)
-    return kind && SESSION_KINDS.includes(kind) ? getBrowserObject(current as WebdriverIO.Browser) : undefined
+    return undefined
 }
 
 // the status of the assertion for the event: no value when it passes, the message as the error when it fails
