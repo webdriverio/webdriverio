@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
@@ -12,7 +12,7 @@ import { SESSION_ENDED_ERROR } from '../src/constants.js'
 // @ts-expect-error mock feature
 import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
-import type { BaseClient } from '../src/types.js'
+import type { BaseClient, WebDriverResultEvent } from '../src/types.js'
 import { CommandRuntimeOptions } from '../src/types.js'
 import type { RequestEventHandler } from '../build/request/types.js'
 import type { RequestOptions } from '../src/request/types.js'
@@ -283,6 +283,66 @@ describe('command wrapper', () => {
             endpoint: '/session/:sessionId/element/%2Fpath/element',
             body: { using: 'css selector', value: '#body' },
             result: { error }
+        })
+    })
+
+    describe('waitUntil of the result event', () => {
+        const run = async (listener: (event: WebDriverResultEvent) => void) => {
+            vi.mocked(thenMock).mockClear()
+            vi.mocked(scope.emit).mockImplementation(((name: string, event: WebDriverResultEvent) => {
+                if (name === 'result') {
+                    listener(event)
+                }
+                return true
+            }) as never)
+            const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+            await commandFn.call(scope, '/path', 'css selector', '#body')
+            const onSuccess = thenMock.mock.calls[0][0] as (result: { value: unknown }) => unknown
+            // in an object: `await run()` would wait for a returned promise
+            return { returned: onSuccess({ value: 'the value' }) }
+        }
+        afterEach(() => {
+            vi.mocked(scope.emit).mockReset()
+        })
+
+        it('resolves the command after the promise of a listener', async () => {
+            let finish!: () => void
+            const order: string[] = []
+            const { returned: value } = await run((event) => event.waitUntil!(new Promise<void>((resolve) => {
+                finish = () => {
+                    order.push('listener done')
+                    resolve()
+                }
+            })))
+            expect(value).toBeInstanceOf(Promise)
+            ;(value as Promise<unknown>).then(() => order.push('command resolved'))
+            await Promise.resolve()
+            expect(order).toEqual([])
+            finish()
+            await expect(value).resolves.toBe('the value')
+            expect(order).toEqual(['listener done', 'command resolved'])
+        })
+
+        it('returns the value at once when no listener waits', async () => {
+            expect((await run(() => {})).returned).toBe('the value')
+        })
+
+        it('logs a failed listener promise and still resolves the command', async () => {
+            vi.mocked(log.warn).mockClear()
+            const { returned: value } = await run((event) => event.waitUntil!(Promise.reject(new Error('switch failed'))))
+            await expect(value).resolves.toBe('the value')
+            expect(log.warn).toBeCalledWith('A listener of the "findElementFromElement" result failed: switch failed')
+        })
+
+        it('is not in a copy or a serialization of the event', async () => {
+            let copy: unknown, json = ''
+            await run((event) => {
+                expect(typeof event.waitUntil).toBe('function')
+                copy = { ...event }
+                json = JSON.stringify(event)
+            })
+            expect(copy).not.toHaveProperty('waitUntil')
+            expect(json).not.toContain('waitUntil')
         })
     })
 

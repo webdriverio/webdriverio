@@ -132,7 +132,7 @@ export class ContextManager extends SessionManager {
     #isNativeContext: boolean
     #getContextSupport = true
     #currentWindowHandle?: string
-    #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
+    #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown, waitUntil?: (task: Promise<unknown>) => void }) => void
     #onCommandListener: (event: { command: string, body: unknown, endpoint?: string }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
     #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
@@ -356,7 +356,7 @@ export class ContextManager extends SessionManager {
         )?.context
     }
 
-    #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
+    #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown, waitUntil?: (task: Promise<unknown>) => void }) {
         /**
          * the `closeWindow` command returns:
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
@@ -373,8 +373,11 @@ export class ContextManager extends SessionManager {
             /**
              * an event listener: the error has no caller, e.g. when the session ends at once
              */
-            return this.#browser.switchToWindow(this.#currentContext)
+            const switched = this.#browser.switchToWindow(this.#currentContext)
                 .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser))
+            // `closeWindow` resolves after the switch: a Classic command right after it would run in the closed window
+            event.waitUntil?.(switched)
+            return switched
         }
 
         /**
