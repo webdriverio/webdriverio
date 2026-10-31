@@ -27,8 +27,26 @@ export function normalizeHost (host?: string) {
     return withProtocol.replace(/\/+$/, '')
 }
 
+/**
+ * The capability that is actually used: `alwaysMatch` of W3C capabilities or the capabilities themselves
+ */
+export function getEffectiveCapability (caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+    return (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+}
+
+/**
+ * Merge options into the effective capability, keeping W3C capabilities
+ * (`alwaysMatch` + `firstMatch`) in their shape
+ */
+export function mergeIntoCapability (caps: WebdriverIO.Capabilities, options: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+    const merged = deepmerge(getEffectiveCapability(caps), options) as WebdriverIO.Capabilities
+    return (caps as Capabilities.W3CCapabilities).alwaysMatch
+        ? { ...caps, alwaysMatch: merged } as WebdriverIO.Capabilities
+        : merged
+}
+
 export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+    const capability = getEffectiveCapability(caps)
     if (!capability.browserName) {
         throw new Error(
             'No "browserName" defined in capability object. It seems you are trying to run tests ' +
@@ -61,13 +79,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
         return caps
     }
 
-    const headlessCapability = deepmerge(capability, headlessOptions)
-    /**
-     * keep W3C capabilities (`alwaysMatch` + `firstMatch`) in their shape
-     */
-    return (caps as Capabilities.W3CCapabilities).alwaysMatch
-        ? { ...caps, alwaysMatch: headlessCapability } as WebdriverIO.Capabilities
-        : headlessCapability
+    return mergeIntoCapability(caps, headlessOptions)
 }
 
 /**
@@ -78,9 +90,9 @@ export function adjustWindowInWatchMode (config: WebdriverIO.Config, caps: Webdr
         return caps
     }
 
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
-    if (config.watch && capability.browserName === 'chrome') {
-        return deepmerge(capability, {
+    const capability = getEffectiveCapability(caps)
+    if (config.watch && capability.browserName?.toLowerCase() === 'chrome') {
+        return mergeIntoCapability(caps, {
             'goog:chromeOptions': {
                 args: ['auto-open-devtools-for-tabs', 'window-size=1600,1200'],
                 prefs: {

@@ -161,6 +161,31 @@ describe('BrowserRunner', () => {
         expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234', 'http://192.168.1.10:1234'])
     })
 
+    it('sets the allowed origins for Firefox in W3C capabilities when headless', async () => {
+        process.env.CI = '1'
+        try {
+            const runner = new BrowserRunner({}, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps: { alwaysMatch: { browserName: 'firefox' }, firstMatch: [{}] }, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect(runArgs.caps.firstMatch).toEqual([{}])
+            expect(runArgs.caps.alwaysMatch['moz:firefoxOptions'].args).toEqual(['-headless'])
+            expect(runArgs.caps.alwaysMatch['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
+        } finally {
+            delete process.env.CI
+        }
+    })
+
+    it('passes mochaOpts.require to the browser as decoded paths', () => {
+        const rootDir = path.resolve('/My Project')
+        const config: any = { rootDir, framework: 'mocha', mochaOpts: { require: ['./setup.js'] } }
+        new BrowserRunner({}, config)
+        const [requirePath] = config.mochaOpts.require
+        expect(requirePath).not.toContain('%20')
+        expect(requirePath.endsWith('/My Project/setup.js')).toBe(true)
+    })
+
     it('normalizes a host without protocol or with a trailing slash', async () => {
         for (const host of ['http://192.168.1.10/', '192.168.1.10', '192.168.1.10/']) {
             const runner = new BrowserRunner({ host }, { rootDir: '/foo/bar', framework: 'mocha' } as any)

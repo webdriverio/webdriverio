@@ -117,6 +117,14 @@ describe('adjustWindowInWatchMode', () => {
             }
         })
     })
+
+    it('keeps the alwaysMatch and firstMatch shape of W3C capabilities in watch mode', () => {
+        const firstMatch = [{ 'goog:chromeOptions': { binary: '/chrome' } }]
+        const result: any = adjustWindowInWatchMode({ watch: true } as any, { alwaysMatch: { browserName: 'chrome' }, firstMatch } as any)
+        expect(result.firstMatch).toBe(firstMatch)
+        expect(result.alwaysMatch.browserName).toBe('chrome')
+        expect(result.alwaysMatch['goog:chromeOptions'].args).toEqual(['auto-open-devtools-for-tabs', 'window-size=1600,1200'])
+    })
 })
 
 it('getCoverageByFactor', () => {

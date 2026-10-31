@@ -19,7 +19,7 @@ import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DE
 import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, normalizeHost } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, normalizeHost, getEffectiveCapability } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -50,12 +50,13 @@ export default class BrowserRunner extends LocalRunner {
         this.#reportsDirectory = this.#coverageOptions.reportsDirectory || path.join(this.#config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
 
         /**
-         * transform mochaOpts require params so we can use it in the browser
+         * transform mochaOpts require params so we can use it in the browser; keep
+         * them decoded (`/C:/My Project/setup.js`), `toViteFsUrl` encodes them once
          */
         if (this.#config.mochaOpts) {
             this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
                 .map((r: 'string') => path.join(this.#config.rootDir || process.cwd(), r))
-                .map((r: 'string') => url.pathToFileURL(r).pathname)
+                .map((r: 'string') => decodeURIComponent(url.pathToFileURL(r).pathname))
         }
     }
 
@@ -100,7 +101,8 @@ export default class BrowserRunner extends LocalRunner {
             /**
              * enable Geckodriver to accept Bidi messages from the browser
              */
-            if (runArgs.caps.browserName === 'firefox') {
+            const capability = getEffectiveCapability(runArgs.caps)
+            if (capability.browserName?.toLowerCase() === 'firefox') {
                 const allowOrigins = new Set([`http://localhost:${port}`])
                 try {
                     const hostUrl = new URL(host)
@@ -109,7 +111,7 @@ export default class BrowserRunner extends LocalRunner {
                 } catch {
                     // an invalid `host` is no valid origin, keep localhost only
                 }
-                runArgs.caps['wdio:geckodriverOptions'] = {
+                capability['wdio:geckodriverOptions'] = {
                     allowOrigins: [...allowOrigins]
                 }
             }
