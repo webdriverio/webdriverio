@@ -159,5 +159,9 @@ describe('parallel mode e2e test', () => {
         await browser.url('about:blank')
         expect(await names()).toEqual([])
         await expect(browser.setCookies({ name: 'scope-blank', value: '1' })).rejects.toThrow('the page has no host')
+
+        // a filter with a domain deletes the cookies of that domain whatever page is open
+        await browser.deleteCookies([{ name: 'scope-other-host', domain: 'localhost' }, { name: 'scope-other-path', domain: '127.0.0.1' }])
+        expect(await names(null)).toEqual([])
     })
 })

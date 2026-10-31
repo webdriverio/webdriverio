@@ -40,7 +40,7 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
- * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). With `wdio:experimentalBiDiCommands` and in a parallel test, the commands use the cookies of the window: without `sourceOrigin`, the cookies that the page sees (domain and path), with `sourceOrigin`, the WebDriver BiDi storage partition of that origin, and with null, all cookies of the window
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). With `wdio:experimentalBiDiCommands` and in a parallel test, the commands use the cookies of the window: without `sourceOrigin`, the cookies that the page sees (domain and path) or, with a `domain` in the filter, the cookies of that domain, with `sourceOrigin`, the WebDriver BiDi storage partition of that origin, and with null, all cookies of the window
  * @return {Cookie[]}                           requested cookies
  *
  */
@@ -109,7 +109,8 @@ async function getWindowCookies(
         getWindowInfo(scope),
         readBidiCookies(scope.browser, { partition: scope.partition, ...filterParam }, filter, true)
     ])
-    return cookies.filter(cookieMatchesUrl(url))
+    // a filter with a domain names the cookies to read, whatever page is open
+    return filter?.domain ? cookies : cookies.filter(cookieMatchesUrl(url))
 }
 
 async function readBidiCookies (

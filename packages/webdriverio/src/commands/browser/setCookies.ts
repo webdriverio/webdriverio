@@ -117,10 +117,14 @@ export async function setCookies(
         return
     }
 
+    /**
+     * sameSite as given, as before: BiDi rejects "Strict", and the Classic fallback stores a cookie
+     * that is not partitioned (Chrome partitions a secure cookie of a sourceOrigin partition)
+     */
     try {
         await Promise.all(cookieObjsList.map((cookie) => (
             this.storageSetCookie({
-                cookie: toBidiCookie(cookie, cookie.domain || url.hostname),
+                cookie: toBidiCookie(cookie, cookie.domain || url.hostname, true),
                 partition: getCookiePartition(url.origin)
             })
         )))
@@ -173,11 +177,11 @@ function toClassicCookie(cookie: Cookie): Cookie {
     return { ...rest, sameSite: CLASSIC_SAME_SITE[sameSite.toLowerCase()] ?? sameSite }
 }
 
-function toBidiCookie({ sameSite, ...cookie }: Cookie, domain: string): remote.StoragePartialCookie {
+function toBidiCookie({ sameSite, ...cookie }: Cookie, domain: string, sameSiteAsGiven = false): remote.StoragePartialCookie {
     return {
         ...cookie,
         domain,
-        ...(typeof sameSite === 'string' ? { sameSite: sameSite.toLowerCase() as remote.NetworkSameSite } : {}),
+        ...(typeof sameSite === 'string' ? { sameSite: (sameSiteAsGiven ? sameSite : sameSite.toLowerCase()) as remote.NetworkSameSite } : {}),
         value: { type: 'string', value: cookie.value }
     }
 }

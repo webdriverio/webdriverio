@@ -89,11 +89,16 @@ async function deleteWindowCookies(
     const { browser, partition } = scope
     const [{ url }, found] = await Promise.all([
         getWindowInfo(scope),
-        Promise.all((filters ?? [undefined]).map((filter) => browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })))
+        Promise.all((filters ?? [undefined]).map(async (filter) => ({
+            filter,
+            cookies: (await browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })).cookies
+        })))
     ])
-    const cookies = new Map(found.flatMap(({ cookies }) => cookies).filter(cookieMatchesUrl(url)).map((cookie) => (
-        [`${cookie.name}\0${cookie.domain}\0${cookie.path}`, cookie]
-    )))
+    const isVisible = cookieMatchesUrl(url)
+    const cookies = new Map(found.flatMap(({ filter, cookies }) => (
+        // a filter with a domain names the cookies to delete, whatever page is open
+        filter?.domain ? cookies : cookies.filter(isVisible)
+    )).map((cookie) => [`${cookie.name}\0${cookie.domain}\0${cookie.path}`, cookie]))
     await Promise.all([...cookies.values()].map(({ name, domain, path }) => (
         browser.storageDeleteCookies({ filter: { name, domain, path }, partition })
     )))

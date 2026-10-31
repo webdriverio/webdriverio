@@ -171,14 +171,16 @@ describe('setCookies', () => {
         })
 
         // WebDriver BiDi only accepts lowercase values
-        it.each([
-            ['inside a parallel scope', (fn: () => Promise<unknown>) => parallelStore.run('ctx-1', fn)],
-            ['in a sequential run', (fn: () => Promise<unknown>) => fn()]
-        ])('should send sameSite in lowercase to BiDi %s', async (_, run) => {
+        it('should send sameSite in lowercase to BiDi inside a parallel scope', async () => {
             page('https://webdriver.io/')
-            storageSetCookie.mockClear()
-            await run(() => browser.setCookies({ ...cookie1, sameSite: 'Strict' }))
+            await parallelStore.run('ctx-1', () => browser.setCookies({ ...cookie1, sameSite: 'Strict' }))
             expect(storageSetCookie.mock.calls[0][0].cookie.sameSite).toBe('strict')
+        })
+
+        // as before: "Strict" fails in BiDi and the Classic fallback stores a cookie that is not partitioned
+        it('should send sameSite as given to BiDi in a sequential run', async () => {
+            await browser.setCookies({ ...cookie1, sameSite: 'Strict' })
+            expect(storageSetCookie.mock.calls[0][0].cookie.sameSite).toBe('Strict')
         })
 
         it('should send sameSite in its own case to the WebDriver Classic fallback', async () => {

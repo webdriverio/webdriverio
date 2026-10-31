@@ -181,6 +181,16 @@ describe('deleteCookies', () => {
             expect(storageDeleteCookies).not.toBeCalled()
         })
 
+        it('should delete the cookies of a domain filter whatever page is open inside a parallel scope', async () => {
+            storageGetCookies
+                .mockResolvedValueOnce({ cookies: [{ name: 'sso', domain: 'auth.example.com', path: '/' }] })
+                .mockResolvedValueOnce({ cookies: [{ name: 'other', domain: 'other.example', path: '/' }] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies([{ domain: 'auth.example.com' }, 'other']))
+            expect(storageDeleteCookies.mock.calls).toEqual([
+                [{ filter: { name: 'sso', domain: 'auth.example.com', path: '/' }, partition: { type: 'context', context: 'ctx-1' } }]
+            ])
+        })
+
         it('should delete a cookie once when two filters match it inside a parallel scope', async () => {
             const page = { name: 'page', domain: 'webdriver.io', path: '/' }
             storageGetCookies.mockResolvedValueOnce({ cookies: [page] }).mockResolvedValueOnce({ cookies: [page] })

@@ -193,6 +193,15 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['page', 'parent'])
         })
 
+        // a BiDi filter with a domain matches that domain, as Puppeteer deletes a cookie of an explicit domain
+        it('should keep the cookies of a domain filter whatever page is open inside a parallel scope', async () => {
+            page('https://app.example.com/page')
+            storageGetCookies.mockResolvedValueOnce({ cookies: [hostCookies.cookies[2]] })
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies({ domain: 'other.example' }))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'context', context: 'ctx-1' }, filter: { domain: 'other.example' } })
+            expect(cookies.map((c) => c.name)).toEqual(['other'])
+        })
+
         it('should keep only the cookies of the page path inside a parallel scope', async () => {
             page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce({ cookies: [
