@@ -372,7 +372,9 @@ export function elementQueryText(element: ElementPlaceholder): string {
         const selector = typeof step.selector === 'string' && !/^\[Function .*\]$/.test(step.selector)
             ? `\`${step.selector}\``
             : formatArgument(step.selector)
-        const args = [...(step.selector === undefined ? [] : [selector]), ...(step.props ?? []).map(formatArgument)].join(', ')
+        // the copy writes a list that is too deep as a cut (a string)
+        const props = Array.isArray(step.props) ? step.props.map(formatArgument) : step.props === undefined ? [] : ['…']
+        const args = [...(step.selector === undefined ? [] : [selector]), ...props].join(', ')
         const item = step.index === undefined ? '' : step.index < 0 ? `.at(${step.index})` : `[${step.index}]`
         return `${command}(${args})${item}`
     }).join('.')

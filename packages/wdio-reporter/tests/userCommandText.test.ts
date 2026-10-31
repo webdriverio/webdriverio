@@ -36,6 +36,17 @@ describe('userCommandTitle', () => {
         expect(elementQueryText({ wdio: 'element' })).toBe('Element')
     })
 
+    it('writes the arguments of a query that the copy cut as a cut', () => {
+        expect(elementQueryText(element([{ foundWith: 'custom$', selector: 'byParent', props: '[…]' as unknown as unknown[] }]))).toBe('custom$(`byParent`, …)')
+    })
+
+    it('writes the title of an assertion on an element found with an element found with an element (the copy cuts the inner arguments)', () => {
+        // the copy of `custom$('byParent', custom$('byParent', custom$('byParent', 'a')))`
+        const step = (props: unknown) => ({ foundWith: 'custom$', selector: 'byParent', props })
+        const body = [element([step([element([step([element([step('[…]')], { elementId: 'e' })])], { elementId: 'e' })])], { elementId: 'e' }), 'Done']
+        expect(userCommandTitle('expect.toHaveText', body)).toBe('expect(custom$(`byParent`, custom$(`byParent`, custom$(`byParent`, …)))).toHaveText("Done")')
+    })
+
     it('writes the selector of a query in backticks', () => {
         expect(userCommandTitle('$', ['input[name="email"]'])).toBe('$(`input[name="email"]`)')
         expect(userCommandTitle('$$', ['li'])).toBe('$$(`li`)')
