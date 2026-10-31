@@ -10,7 +10,8 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('../../../src/vite/utils.js', () => ({
     getTemplate: vi.fn(),
     getErrorTemplate: vi.fn(),
-    normalizeId: vi.fn((id) => id)
+    normalizeId: vi.fn((id) => id),
+    getAliasMap: vi.fn(() => ({ '@app': '/src' }))
 }))
 
 test('exposes correct format', () => {
@@ -70,7 +71,7 @@ test('transform', () => {
 const req = { headers: { cookie: '' } }
 test('configureServer continues if no url given', async () => {
     const plugin = testrunner({})
-    const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args) }
+    const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args), config: { resolve: { alias: [] } } }
     ;(plugin[0].configureServer as Function)(server)()
     expect(server.middlewares.use).toBeCalledWith(expect.any(Function))
 
@@ -145,4 +146,21 @@ test('configureServer continues if no url given', async () => {
         '/wdio/headless/__fixtures__/test.html',
         'some error html'
     ])
+})
+
+test('configureServer reads an encoded spec cookie and passes the resolved aliases', async () => {
+    const plugin = testrunner({})
+    const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args), config: { resolve: { alias: [] } } }
+    ;(plugin[0].configureServer as Function)(server)()
+    const middleware = vi.mocked(server.middlewares.use).mock.calls[0][0]
+
+    SESSIONS.set('1-2', {} as any)
+    vi.mocked(getTemplate).mockClear()
+    vi.mocked(getTemplate).mockResolvedValue('some html')
+    const spec = '/home/a&b=c;d.test.js'
+    await middleware({
+        headers: { cookie: `WDIO_CID=1-2; WDIO_SPEC=${encodeURIComponent(spec)}` },
+        originalUrl: 'http://localhost:1234/'
+    }, { end: vi.fn() }, vi.fn())
+    expect(getTemplate).toBeCalledWith({}, {}, spec, process, { '@app': '/src' })
 })

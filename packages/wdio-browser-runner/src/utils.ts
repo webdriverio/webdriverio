@@ -10,6 +10,23 @@ import type { BrowserRunnerOptions, CoverageOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 
+/**
+ * `create-wdio` writes `MicrosoftEdge`, which is also what msedgedriver reports
+ */
+const EDGE_BROWSER_NAMES = ['msedge', 'edge', 'microsoftedge']
+
+/**
+ * Bring the `host` option into the `<protocol>://<hostname>` form the base URL
+ * is built from, e.g. `192.168.1.10/` becomes `http://192.168.1.10`
+ */
+export function normalizeHost (host?: string) {
+    if (!host) {
+        return
+    }
+    const withProtocol = host.includes('://') ? host : `http://${host}`
+    return withProtocol.replace(/\/+$/, '')
+}
+
 export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
     const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
     if (!capability.browserName) {
@@ -30,28 +47,27 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
         return caps
     }
 
-    if (capability.browserName === 'chrome') {
-        return deepmerge(capability, {
-            'goog:chromeOptions': {
-                args: ['headless', 'disable-gpu']
-            }
-        })
-    } else if (capability.browserName === 'firefox') {
-        return deepmerge(capability, {
-            'moz:firefoxOptions': {
-                args: ['-headless']
-            }
-        })
-    } else if (capability.browserName === 'msedge' || capability.browserName === 'edge') {
-        return deepmerge(capability, {
-            'ms:edgeOptions': {
-                args: ['--headless']
-            }
-        })
+    const browserName = capability.browserName.toLowerCase()
+    const headlessOptions: WebdriverIO.Capabilities | undefined = browserName === 'chrome'
+        ? { 'goog:chromeOptions': { args: ['headless', 'disable-gpu'] } }
+        : browserName === 'firefox'
+            ? { 'moz:firefoxOptions': { args: ['-headless'] } }
+            : EDGE_BROWSER_NAMES.includes(browserName)
+                ? { 'ms:edgeOptions': { args: ['--headless'] } }
+                : undefined
+
+    if (!headlessOptions) {
+        log.error(`Headless mode not supported for browser "${capability.browserName}"`)
+        return caps
     }
 
-    log.error(`Headless mode not supported for browser "${capability.browserName}"`)
-    return caps
+    const headlessCapability = deepmerge(capability, headlessOptions)
+    /**
+     * keep W3C capabilities (`alwaysMatch` + `firstMatch`) in their shape
+     */
+    return (caps as Capabilities.W3CCapabilities).alwaysMatch
+        ? { ...caps, alwaysMatch: headlessCapability } as WebdriverIO.Capabilities
+        : headlessCapability
 }
 
 /**

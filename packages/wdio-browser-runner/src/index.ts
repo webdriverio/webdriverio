@@ -19,7 +19,7 @@ import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DE
 import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, normalizeHost } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -94,15 +94,23 @@ export default class BrowserRunner extends LocalRunner {
 
         try {
             const port = await server.start()
-            const host = this.#options.host || DEFAULT_HOST
+            const host = normalizeHost(this.#options.host) || DEFAULT_HOST
             runArgs.args.baseUrl = `${host}:${port}`
 
             /**
              * enable Geckodriver to accept Bidi messages from the browser
              */
             if (runArgs.caps.browserName === 'firefox') {
+                const allowOrigins = new Set([`http://localhost:${port}`])
+                try {
+                    const hostUrl = new URL(host)
+                    hostUrl.port = String(port)
+                    allowOrigins.add(hostUrl.origin)
+                } catch {
+                    // an invalid `host` is no valid origin, keep localhost only
+                }
                 runArgs.caps['wdio:geckodriverOptions'] = {
-                    allowOrigins: [`http://localhost:${port}`]
+                    allowOrigins: [...allowOrigins]
                 }
             }
         } catch (err) {

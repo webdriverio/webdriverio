@@ -147,6 +147,32 @@ describe('BrowserRunner', () => {
         expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
     })
 
+    it('allows the origin of a custom host for Firefox', async () => {
+        const runner = new BrowserRunner({ host: 'http://192.168.1.10' }, {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any)
+        await runner.initialize()
+
+        vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+        const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
+        await runner.run(runArgs)
+        expect(runArgs.args.baseUrl).toBe('http://192.168.1.10:1234')
+        expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234', 'http://192.168.1.10:1234'])
+    })
+
+    it('normalizes a host without protocol or with a trailing slash', async () => {
+        for (const host of ['http://192.168.1.10/', '192.168.1.10', '192.168.1.10/']) {
+            const runner = new BrowserRunner({ host }, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect(runArgs.args.baseUrl).toBe('http://192.168.1.10:1234')
+            expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234', 'http://192.168.1.10:1234'])
+        }
+    })
+
     it('shutdown', async () => {
         const runner = new BrowserRunner({}, {
             rootDir: '/foo/bar',
