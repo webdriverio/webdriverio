@@ -278,6 +278,65 @@ describe('user commands that overlap or end after their test', () => {
         ])
     })
 
+    it('ends each protocol step of overlapping user commands in its own user step', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // await Promise.all([a.getText(), b.getText()]): the request of a ends while b is on top
+            const a = user(10, 'getText', []), b = user(11, 'getText', [])
+            const textOf = (id: string, parent: number) => ({ command: 'getElementText', method: 'GET', endpoint: `/session/:sessionId/element/${id}/text`, sessionId: 's', parent })
+            emit('client:beforeUserCommand', a)
+            emit('client:beforeCommand', textOf('a', 10))
+            emit('client:beforeUserCommand', b)
+            emit('client:beforeCommand', textOf('b', 11))
+            emit('client:afterCommand', { ...textOf('a', 10), result: { value: 'A' } })
+            emit('client:afterCommand', { ...textOf('b', 11), result: { value: 'B' } })
+            emit('client:afterUserCommand', { ...a, result: { value: 'A' } })
+            emit('client:afterUserCommand', { ...b, result: { value: 'B' } })
+            emit('client:beforeUserCommand', user(12, 'getTitle', []))
+            emit('client:afterUserCommand', { ...user(12, 'getTitle', []), result: { value: 'T' } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+
+        // the steps nest by start time; each step gets its own result
+        const request = (id: string) => expect.stringContaining(`/element/${id}/text`)
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['getText() → "A"', 'passed', undefined, ['A'], [
+                ['getElementText → "A"', 'passed', undefined, [request('a'), 'A'], [
+                    ['getText() → "B"', 'passed', undefined, ['B'], [
+                        ['getElementText → "B"', 'passed', undefined, [request('b'), 'B'], []]
+                    ]]
+                ]]
+            ]],
+            ['getTitle() → "T"', 'passed', undefined, ['T'], []]
+        ])
+    })
+
+    it('ignores only the late result of the protocol step that its user command ended', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // waitUntil times out while a screenshot (no parent) is in flight; a later getTitle ends first
+            const waitUntil = user(4, 'waitUntil', ['[Function anonymous]', { timeout: 600 }])
+            const shot = { command: 'takeScreenshot', method: 'GET', endpoint: '/session/:sessionId/screenshot', sessionId: 's' }
+            const title = { command: 'getTitle', method: 'GET', endpoint: '/session/:sessionId/title', sessionId: 's' }
+            emit('client:beforeUserCommand', waitUntil)
+            emit('client:beforeCommand', shot)
+            emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('timed out') } })
+            emit('client:beforeCommand', title)
+            emit('client:afterCommand', { ...title, result: { value: 'T' } })
+            emit('client:afterCommand', { ...shot, result: { value: PNG } })
+            emit('test:fail', { ...test('t1'), error: new Error('timed out') })
+            emit('test:end', test('t1'))
+        })
+
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['waitUntil(function anonymous, {"timeout":600})', 'failed', 'timed out', ['Error: timed out'], [
+                ['takeScreenshot', 'failed', 'timed out', [expect.stringContaining('/screenshot')], []]
+            ]],
+            ['getTitle', 'passed', undefined, ['T'], []]
+        ])
+    })
+
     it('does not close a step of the next test with a result that comes after the end of its test', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
