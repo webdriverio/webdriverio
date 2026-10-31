@@ -386,6 +386,24 @@ describe('user command events of a browsing context', () => {
         expect(events[0][1].body).toEqual([['keyDown', 'keyUp']])
     })
 
+    it('sends one pair for $ of a context and for a custom command of a context that ends with $', async () => {
+        const browser = await bidiSession()
+        browser.addCommand('byTestId$', function (this: WebdriverIO.BrowsingContext, id: string) {
+            return this.$(`[data-testid="${id}"]`)
+        }, { attachToBrowsingContext: true })
+        const page = topContext(browser)
+        const events = recordEvents(browser)
+        await page.$('#foo')
+        await page.byTestId$('login')
+        expect(commandsOf(events)).toEqual([
+            ['userCommand', '$'],
+            ['userResult', '$'],
+            ['userCommand', 'byTestId$'],
+            ['userResult', 'byTestId$']
+        ])
+        expect(events[2][1].body).toEqual(['login'])
+    })
+
     it('keeps the protocol commands of the browser as they are', async () => {
         const browser = await bidiSession()
         topContext(browser)

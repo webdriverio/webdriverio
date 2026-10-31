@@ -83,6 +83,8 @@ export function unwrapCommand<T> (value: T): T | Function {
     return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
 }
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
+// `wrapCommand` calls these outside their user command: an element list sends its pair when it loads, an action at `perform()`
+export const DEFERRED_USER_COMMANDS = [...ELEMENT_ARRAY_COMMANDS, ...ACTION_COMMANDS]
 
 /**
  * `webdriverio` registers this so a chained call such as `$('parent').$$('child')`
