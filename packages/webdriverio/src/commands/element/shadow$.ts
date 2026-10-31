@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import { SHADOW_ELEMENT_KEY } from 'webdriver'
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
+import { tagQuery } from '../../utils/elementQuery.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@wdio/utils'
 import { findStrategy } from '../../utils/findStrategy.js'
@@ -48,7 +49,7 @@ export async function shadow$ (
      * element of another held context, use the shadow DOM shim directly.
      */
     if (isParallelContextActive() || await foreignContext(this)) {
-        return this.$(shadowFnFactory(selector), { strict: false })
+        return this.$(tagQuery(shadowFnFactory(selector), 'shadow$', [selector]), { strict: false })
     }
     try {
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
@@ -64,6 +65,6 @@ export async function shadow$ (
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +
             'Falling back to JavaScript shim.'
         )
-        return this.$(shadowFnFactory(selector), { strict: false })
+        return this.$(tagQuery(shadowFnFactory(selector), 'shadow$', [selector]), { strict: false })
     }
 }

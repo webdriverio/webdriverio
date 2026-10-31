@@ -124,16 +124,16 @@ describe('user commands of WebDriver BiDi sessions', () => {
 
     it('gives found, not found and the number of elements found, with the id only in the Response', async () => {
         const { result, attachment } = await run((emit) => {
-            userCommand(emit, 1, '$', ['#btn'], { value: 'WebdriverIO.Element<#btn> (id e.3)' })
-            userCommand(emit, 2, '$', ['#missing'], { value: 'WebdriverIO.Element<#missing> (not found)' })
-            userCommand(emit, 3, '$$', ['li'], { value: 'WebdriverIO.ElementArray<li> (3)' })
+            userCommand(emit, 1, '$', ['#btn'], { value: 'WebdriverIO.Element<$(`#btn`)> (id e.3)' })
+            userCommand(emit, 2, '$', ['#missing'], { value: 'WebdriverIO.Element<$(`#missing`)> (not found)' })
+            userCommand(emit, 3, '$$', ['li'], { value: 'WebdriverIO.ElementArray<$$(`li`)> (3)' })
             userCommand(emit, 4, 'selectByVisibleText', ['France'], { value: null }, () => {
                 protocol(emit, 'findElementFromElement', { value: { 'element-6066-11e4-a52e-4f735466cecf': 'e.9' } }, 4, { endpoint: '/session/:sessionId/element/e.8/element' })
             })
         })
 
-        expect(result.steps.map((s: Result) => s.name)).toEqual(['$("#btn") → found', '$("#missing") → not found', '$$("li") → 3 found', 'selectByVisibleText("France")'])
-        expect(attachment(result.steps[0].attachments[0])).toBe('WebdriverIO.Element<#btn> (id e.3)')
+        expect(result.steps.map((s: Result) => s.name)).toEqual(['$(`#btn`) → found', '$(`#missing`) → not found', '$$(`li`) → 3 found', 'selectByVisibleText("France")'])
+        expect(attachment(result.steps[0].attachments[0])).toBe('WebdriverIO.Element<$(`#btn`)> (id e.3)')
         expect(result.steps[3].steps[0].name).toBe('findElementFromElement → found')
     })
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, WDIO_QUERY, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements,
+    queryCall, queryPrefix
 } from '../src/kind.js'
 
 /**
@@ -117,5 +118,29 @@ describe('WebdriverIO object brand', () => {
             expect(isArrayOfElements(list)).toBe(false)
             expect(isArrayOfElements(Object.assign([element()], { every: () => Promise.resolve(false) }))).toBe(true)
         })
+    })
+})
+
+describe('queryCall', () => {
+    it('writes the selector in backticks and the other arguments as JSON', () => {
+        expect(queryCall('$', ['input[name="email"]'])).toBe('$(`input[name="email"]`)')
+        expect(queryCall('custom$', ['byTestId', 'name', { exact: true }])).toBe('custom$(`byTestId`, "name", {"exact":true})')
+        expect(queryCall('$', [() => null])).toBe('$(`<fn>`)')
+        expect(queryCall('nextElement', [])).toBe('nextElement()')
+    })
+
+    it('leaves out the element that a custom strategy runs in, and keeps a value that is not JSON', () => {
+        const circular: Record<string, unknown> = {}
+        circular.self = circular
+        expect(queryCall('custom$', ['byTestId', setWdioKind({}, 'element')])).toBe('custom$(`byTestId`)')
+        expect(queryCall('custom$', ['byTestId', circular])).toBe('custom$(`byTestId`, [object Object])')
+    })
+})
+
+describe('queryPrefix', () => {
+    it('gives the query of the parent and a dot, or nothing for a browser', () => {
+        expect(queryPrefix({ [WDIO_QUERY]: '$(`#a`)' })).toBe('$(`#a`).')
+        expect(queryPrefix(setWdioKind({}, 'browser'))).toBe('')
+        expect(queryPrefix(undefined)).toBe('')
     })
 })

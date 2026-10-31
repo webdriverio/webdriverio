@@ -2,7 +2,7 @@ import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import { getBrowserObject, transformCommandLogResult } from './utils.js'
-import { WDIO_CHAINABLE, WDIO_CHAIN_SELECTOR, getWdioKind } from './kind.js'
+import { WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, queryCall } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
@@ -329,13 +329,17 @@ function matcherText (matcher: AsymmetricMatcher, state: CopyState, depth: numbe
     return `${String(matcher)} ${text.length > MAX_STRING_LENGTH ? `${text.slice(0, MAX_STRING_LENGTH)}…` : text}`
 }
 
-function wdioLabel (value: object, name: string, ref: unknown) {
-    // a chainable element gives a promise for each property, but the selector of its query
-    if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
-        const selector = (value as { [WDIO_CHAIN_SELECTOR]?: string })[WDIO_CHAIN_SELECTOR]
-        return selector ? `WebdriverIO.${name}<${selector}>` : `WebdriverIO.${name}`
+// the query as in the test code; a chainable element gives a promise for each other property
+function wdioLabel (value: object, name: string, list: boolean) {
+    let query = (value as { [WDIO_QUERY]?: unknown })[WDIO_QUERY]
+    if (typeof query !== 'string' && !(value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
+        const { selector } = value as { selector?: unknown }
+        query = typeof selector === 'string' && selector ? queryCall(list ? '$$' : '$', [selector]) : undefined
     }
-    return typeof ref === 'string' && ref ? `WebdriverIO.${name}<${ref}>` : `WebdriverIO.${name}`
+    if (typeof query !== 'string') {
+        return `WebdriverIO.${name}`
+    }
+    return `WebdriverIO.${name}<${query.length > MAX_STRING_LENGTH ? `${query.slice(0, MAX_STRING_LENGTH)}…` : query}>`
 }
 
 /**
@@ -374,15 +378,15 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
     const kind = getWdioKind(value)
     if (kind === 'element') {
         const elem = value as { elementId?: unknown, selector?: unknown }
-        // the selector, then the id or "not found"
-        const label = wdioLabel(value as object, 'Element', elem.selector)
+        // the query, then the id or "not found"
+        const label = wdioLabel(value as object, 'Element', false)
         if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
             return label
         }
         return elem.elementId ? `${label} (id ${String(elem.elementId)})` : `${label} (not found)`
     }
     if (kind === 'element-array') {
-        const label = wdioLabel(value as object, 'ElementArray', (value as { selector?: unknown }).selector)
+        const label = wdioLabel(value as object, 'ElementArray', true)
         return Array.isArray(value) ? `${label} (${value.length})` : label
     }
     if (kind === 'browser') {
