@@ -82,6 +82,15 @@ describe('deleteCookies', () => {
             )
         })
 
+        it('should send an empty cookie name to WebDriver Classic as given', async () => {
+            await browser.deleteCookies('')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie/' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
+        })
+
         it('should throw if remote.StorageCookieFilter in classic is used with other value than name', async () => {
             await expect(browser.deleteCookies([{ domain: 'cookie123' }]))
                 .rejects

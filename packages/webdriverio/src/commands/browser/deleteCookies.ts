@@ -12,7 +12,8 @@ const log = logger('webdriverio')
  *
  * With `wdio:experimentalBiDiCommands` and in a parallel test, the command uses the cookies of the window:
  * it deletes the cookies that the page sees (domain and path) or, with a `domain` in the filter, the cookies
- * of that domain, whatever page is open. On a page with no host (for example `about:blank`) it deletes no cookie.
+ * of that domain, whatever page is open. Without a `domain` in the filter, it deletes no cookie on a page with
+ * no host (for example `about:blank`).
  *
  * @alias browser.deleteCookies
  * @param {StorageCookieFilter[]} filter  Use the filter property to identify and delete specific cookies based on matching criteria.
@@ -121,7 +122,7 @@ async function deleteBidiCookies(
 
 function getNamesForClassic(filters?: remote.StorageCookieFilter[]) {
     return filters?.map(({ name }) => {
-        if (!name) {
+        if (typeof name !== 'string') {
             throw new Error('In WebDriver Classic you can only filter for cookie names')
         }
         return name

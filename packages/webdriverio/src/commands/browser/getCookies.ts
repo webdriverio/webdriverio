@@ -178,7 +178,9 @@ async function getCookiesClassic(
         (filter.value === undefined || filterValue === cookie.value) &&
         (filter.path === undefined || filter.path === cookie.path) &&
         (filter.domain === undefined || filter.domain === cookie.domain) &&
-        (filter.sameSite === undefined || filter.sameSite.toLowerCase() === cookie.sameSite?.toLowerCase()) &&
+        (filter.sameSite === undefined || (typeof filter.sameSite === 'string'
+            ? filter.sameSite.toLowerCase() === cookie.sameSite?.toLowerCase()
+            : filter.sameSite === cookie.sameSite)) &&
         (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
         (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
         (filter.secure === undefined || filter.secure === cookie.secure)

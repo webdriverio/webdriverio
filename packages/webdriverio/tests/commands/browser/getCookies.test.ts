@@ -102,6 +102,11 @@ describe('getCookies', () => {
             expect(await browser.getCookies({ sameSite: 'strict' })).toEqual([{ name: 'a', value: '1', sameSite: 'Strict' }])
         })
 
+        it('should not match a null sameSite filter', async () => {
+            vi.spyOn(browser, 'getAllCookies').mockResolvedValueOnce([{ name: 'a', value: '1', sameSite: 'Strict' }])
+            expect(await browser.getCookies({ sameSite: null as never })).toEqual([])
+        })
+
         it('should throw error if invalid arguments are passed', async () => {
             // @ts-expect-error test invalid input
             await expect(browser.getCookies([2])).rejects.toThrow(
