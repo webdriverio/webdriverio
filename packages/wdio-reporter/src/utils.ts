@@ -4,8 +4,39 @@ import url from 'node:url'
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
+import type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
+
+/**
+ * The `error` of a `userResult` for a JSON report: `{ name, message }` for an object with a string `message`
+ * (also an error from another realm, which `JSON.stringify` writes as `{}`), else the value as it is.
+ * @experimental the name and the rule may change
+ */
+export function userCommandError(error: unknown): unknown {
+    if (error && typeof error === 'object' && typeof (error as { message?: unknown }).message === 'string') {
+        const { name, message } = error as { name?: unknown, message: string }
+        return { name, message }
+    }
+    return error
+}
+
+/**
+ * A `JSON.stringify` replacer for a report of `TestStats.output`: the error of a `userResult` gets its name and
+ * message (see `userCommandError`), and each user command entry and protocol command entry that a user command
+ * runs gets its one-line `text` (see `userCommandTexts`). Other values stay as they are.
+ * @experimental the name and the rule may change
+ */
+export function userOutputReplacer(this: unknown, key: string, value: unknown): unknown {
+    if ((this as { type?: unknown } | undefined)?.type === 'userResult' && key === 'result' && value && typeof value === 'object' && 'error' in value) {
+        return { error: userCommandError((value as { error: unknown }).error) }
+    }
+    if (key === 'output' && Array.isArray(value) && value.some((entry) => entry && isUserCommandOutput(entry))) {
+        const texts = userCommandTexts(value)
+        return value.map((entry) => texts.has(entry) ? { ...entry, text: texts.get(entry) } : entry)
+    }
+    return value
+}
 
 /**
  * @experimental a failed hook that is a failure of its own: its error is not already the failure of a test
@@ -221,4 +252,272 @@ export function transformCommandScript (script?: string|Function) {
         return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
     }
     return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+}
+
+/**
+ * `true` for a user command entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserCommandOutput(entry: { type: string }): entry is UserCommandOutput {
+    return entry.type === 'userCommand'
+}
+
+/**
+ * `true` for a user command result entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserResultOutput(entry: { type: string }): entry is UserResultOutput {
+    return entry.type === 'userResult'
+}
+
+// longest arguments in a user command title and longest inline result
+const TITLE_ARGS_LENGTH = 120
+const INLINE_RESULT_LENGTH = 60
+// commands whose result is a handle or a helper, not data
+const NO_DATA_COMMANDS = ['newWindow', 'emulate', 'addInitScript', 'debug', 'getPuppeteer']
+// commands whose result is a window handle: not shown in a title, the id means nothing to a reader
+const HANDLE_COMMANDS = ['getWindowHandle', 'getWindowHandles', 'createWindow', 'closeWindow', 'switchWindow']
+const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+// most values that a title writes: a raw result can be big or circular
+const TITLE_JSON_VALUES = 200
+
+const ASSERTION_PREFIX = 'expect.'
+// `$`, `$$`, `shadow$`, `custom$$` …: the first argument is the selector
+const QUERY_COMMAND = /\$\$?$/
+// the received value of an assertion as in the test code
+const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock' }
+
+function cut(text: string, length: number) {
+    return text.length > length ? `${text.slice(0, length)}…` : text
+}
+
+// JSON for a title that never throws: a cycle as "[Circular]", at most 200 values
+function titleJson(value: unknown): string {
+    // the open parent chain only, so that a shared value is written each time;
+    // `written` is the cut copy that JSON.stringify walks, `value` the original for the cycle check
+    const ancestors: { written: unknown, value: unknown }[] = []
+    let values = 0
+    try {
+        const json = JSON.stringify(value, function (this: unknown, _key, v: unknown) {
+            if (++values > TITLE_JSON_VALUES) {
+                return '…'
+            }
+            // `this` is the parent of `v`: close the branches that ended
+            while (ancestors.length && ancestors[ancestors.length - 1].written !== this) {
+                ancestors.pop()
+            }
+            if (v && typeof v === 'object') {
+                if (ancestors.some((a) => a.value === v)) {
+                    return '[Circular]'
+                }
+                // only the entries that the limit can still write: the other keys and their getters are not read
+                const room = TITLE_JSON_VALUES - values + 1
+                const written = Array.isArray(v)
+                    ? (v.length > room ? [...v.slice(0, room), '…'] : v)
+                    : cutEntries(v as Record<string, unknown>, room)
+                ancestors.push({ written, value: v })
+                return written
+            }
+            return v
+        })
+        return json ?? String(value)
+    } catch {
+        return String(value)
+    }
+}
+
+function cutEntries(object: Record<string, unknown>, room: number): Record<string, unknown> {
+    const keys = Object.keys(object)
+    if (keys.length <= room) {
+        return object
+    }
+    return Object.fromEntries([...keys.slice(0, room).map((key) => [key, object[key]]), ['…', '…']])
+}
+
+function resultValue(result: unknown): unknown {
+    return result && typeof result === 'object' && 'value' in result ? (result as { value: unknown }).value : result
+}
+
+function isPlaceholder(value: unknown) {
+    return typeof value === 'string' && value.startsWith('WebdriverIO.') && !value.startsWith('WebdriverIO.Element')
+}
+
+function isElementReference(value: unknown) {
+    return Boolean(value) && typeof value === 'object' && ELEMENT_REFERENCE_KEY in (value as object)
+}
+
+function formatArgument(arg: unknown) {
+    const fn = typeof arg === 'string' && /^\[Function (.*)\]$/.exec(arg)
+    if (fn) {
+        return `function ${fn[1]}`
+    }
+    // an asymmetric matcher of an assertion, e.g. `StringContaining "Docs"`
+    const matcher = typeof arg === 'string' && /^\[Matcher (.*)\]$/s.exec(arg)
+    if (matcher) {
+        return matcher[1]
+    }
+    // an element argument: its query as in the test code, written by the producer
+    const elem = typeof arg === 'string' && /^WebdriverIO\.Element(?:Array)?(?:<(.*)>)?(?: \([^()]*\))?$/s.exec(arg)
+    if (elem) {
+        return elem[1] ?? 'Element'
+    }
+    return titleJson(arg)
+}
+
+/**
+ * The title of a user command as in the test code, e.g. `` $(`#btn`) `` or `setValue("**MASKED**", {"mask":true})`:
+ * the selector of a query in backticks, functions as `function name`, element arguments as their query,
+ * arguments cut at 120 characters.
+ * @experimental the name and the format may change
+ */
+export function userCommandTitle(command: string, body: unknown): string {
+    if (!Array.isArray(body)) {
+        return command
+    }
+    // an assertion: `expect.toHaveText` or `expect.not.toHaveText`, with the received value first
+    if (command.startsWith(ASSERTION_PREFIX)) {
+        const [received, ...expected] = body
+        const target = RECEIVED_NAMES[received as string] ?? formatArgument(received)
+        return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
+    }
+    const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) && typeof arg === 'string' ? `\`${arg}\`` : formatArgument(arg))
+    return `${command}(${cut(args.join(', '), TITLE_ARGS_LENGTH)})`
+}
+
+/**
+ * `true` when the title of a user command does not show all its arguments
+ * @experimental the name may change
+ */
+export function userCommandTitleIsCut(title: string): boolean {
+    return title.endsWith('…)')
+}
+
+/**
+ * `true` for a result with no data: none, `null`, `{}`, a tab or mock placeholder, or the handle of
+ * `newWindow`, `emulate`, `addInitScript`, `debug` or `getPuppeteer`
+ * @experimental the name and the rule may change
+ */
+export function isNoDataResult(result: unknown, command?: string): boolean {
+    if (command && NO_DATA_COMMANDS.includes(command)) {
+        return true
+    }
+    const value = resultValue(result)
+    return value === undefined || value === null
+        || (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0)
+        || isPlaceholder(value)
+        || (Array.isArray(value) && value.length > 0 && value.every(isPlaceholder))
+}
+
+/**
+ * The result of a command for its title, e.g. `"Hello"`, `found`, `3 found`, `not found` (cut at 60 characters).
+ * `undefined` for an error, a result with no data or a window handle; a list of tabs gives their number.
+ * @experimental the name and the format may change
+ */
+export function inlineResult(result: unknown, command?: string): string | undefined {
+    if ((result && typeof result === 'object' && 'error' in result) || (command && HANDLE_COMMANDS.includes(command))) {
+        return undefined
+    }
+    const value = resultValue(result)
+    if (Array.isArray(value) && value.length > 0 && value.every((v) => v === 'WebdriverIO.BrowsingContext')) {
+        return String(value.length)
+    }
+    if (isNoDataResult(result, command)) {
+        return undefined
+    }
+    if (isElementReference(value)) {
+        return 'found'
+    }
+    // an empty list is a list of elements only for an element query
+    if (Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) {
+        return `${value.length} found`
+    }
+    if (typeof value === 'string') {
+        if (/^WebdriverIO\.Element(?:<.*>)? \(not found\)$/s.test(value)) {
+            return 'not found'
+        }
+        if (/^WebdriverIO\.Element(?:<.*>)? \(id .*\)$/s.test(value)) {
+            return 'found'
+        }
+        const many = /^WebdriverIO\.ElementArray(?:<.*>)? \((\d+)\)$/s.exec(value)
+        if (many) {
+            return `${many[1]} found`
+        }
+        if (/^<Buffer \d+ bytes>$/.test(value)) {
+            return value
+        }
+    }
+    return cut(titleJson(value), INLINE_RESULT_LENGTH)
+}
+
+/**
+ * A WebDriver request with no session id and no element or shadow root id, e.g. `GET /element/:elementId/text`
+ * @experimental the name and the format may change
+ */
+export function compactRequest(method: string, endpoint: string): string {
+    const path = endpoint.replace(/^\/session\/[^/]+/, '').replace(/\/(element|shadow)\/[^/]+/g, '/$1/:$1Id')
+    return `${method.toUpperCase()} ${path || '/'}`
+}
+
+/**
+ * The path of a WebDriver request with the session id in place of `:sessionId`
+ * @experimental the name may change
+ */
+export function resolvedPath(endpoint: string, sessionId?: string): string {
+    return sessionId ? endpoint.replace(':sessionId', sessionId) : endpoint
+}
+
+/**
+ * The one-line text of each user command entry and of each protocol command entry that a user command runs
+ * (an entry with `parent`): `getText() → "clicked"`, `getElementText → "clicked"  GET /element/:elementId/text`.
+ * Other entries get no text, so a report of a WebDriver Classic session does not change.
+ * @experimental the name and the format may change
+ */
+export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<object, string> {
+    // one pass: a user result by id; a protocol result goes to the first open command with the same parent and
+    // name, and the same request when the result has one, so concurrent commands do not swap their results
+    const userResults = new Map<number, UserResultOutput>()
+    const childResults = new Map<object, Partial<Output>>()
+    const pending = new Map<string, Partial<Output>[]>()
+    for (const entry of output) {
+        if (isUserResultOutput(entry)) {
+            userResults.set(entry.id, entry)
+            continue
+        }
+        const e = entry as Partial<Output>
+        if (e.parent === undefined || (entry.type !== 'command' && entry.type !== 'result')) {
+            continue
+        }
+        const key = `${e.parent}\u0000${e.command}`
+        const queue = pending.get(key) ?? []
+        pending.set(key, queue)
+        if (entry.type === 'command') {
+            queue.push(e)
+            continue
+        }
+        const index = e.endpoint === undefined ? 0 : Math.max(0, queue.findIndex((c) => c.method === e.method && c.endpoint === e.endpoint))
+        const [command] = queue.splice(index, 1)
+        if (command) {
+            childResults.set(command, e)
+        }
+    }
+
+    const texts = new Map<object, string>()
+    for (const entry of output) {
+        if (isUserCommandOutput(entry)) {
+            const title = userCommandTitle(entry.command, entry.body)
+            const end = userResults.get(entry.id)
+            const inline = end && inlineResult(end.result, entry.command)
+            texts.set(entry, inline ? `${title} → ${inline}` : title)
+            continue
+        }
+        const command = entry as Partial<Output>
+        if (entry.type !== 'command' || command.parent === undefined) {
+            continue
+        }
+        const end = childResults.get(entry)
+        const inline = end && inlineResult(end.result, command.command)
+        const request = command.method && command.endpoint ? `  ${compactRequest(command.method, command.endpoint)}` : ''
+        texts.set(entry, `${command.command}${inline ? ` → ${inline}` : ''}${request}`)
+    }
+    return texts
 }

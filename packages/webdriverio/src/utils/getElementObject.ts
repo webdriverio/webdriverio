@@ -1,4 +1,4 @@
-import { shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { WDIO_QUERY, shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -9,6 +9,7 @@ import { elementErrorHandler } from '../middlewares.js'
 import { routeElementEndpoints } from './foreignContext.js'
 import * as browserCommands from '../commands/browser.js'
 import { REACT_OPTIONS } from './findElementAgain.js'
+import { elementQuery } from './elementQuery.js'
 import type { Selector, AddCommandFn, ExtendedElementReference, ReactSelectorOptions } from '../types.js'
 
 interface GetElementProps {
@@ -68,7 +69,13 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
             return commands
         }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element'),
-        scope: { value: 'element' }
+        scope: { value: 'element' },
+        // computed when it is read, see `WDIO_QUERY` in `@wdio/utils`
+        [WDIO_QUERY]: {
+            get (this: WebdriverIO.Element) {
+                return elementQuery(this)
+            }
+        }
     }
     routeElementEndpoints(propertiesObject)
     propertiesObject.emit = { value: parent.emit.bind(parent) }

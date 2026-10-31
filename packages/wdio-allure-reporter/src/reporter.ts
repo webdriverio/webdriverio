@@ -5,15 +5,17 @@ import { stringify } from 'csv-stringify/sync'
 
 import type {
     AfterCommandArgs,
+    AfterUserCommandArgs,
     Argument,
     BeforeCommandArgs,
+    BeforeUserCommandArgs,
     ContextEnd,
     HookStats,
     RunnerStats,
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { compactRequest, hookCountsAsFailure, inlineResult, isNoDataResult, knownFramework, resolvedPath, userCommandError, userCommandTitle, userCommandTitleIsCut } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -83,6 +85,37 @@ type ReportLane = {
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 // the Cucumber scenario that runs in a parallel unit
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
+const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
+// the result of a user command, until the steps that started after it end
+type UserStep = { kind: 'user'; id: number; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
+// a protocol step that started in a user step; `ended`: its user command ended it before its result
+type ProtocolStep = {
+    kind: 'protocol'; parent?: number; command?: string; endpoint?: string
+    done?: { result: unknown; stop: number; isShot: boolean } | { ended: { status: AllureStatus; stop: number; statusDetails?: StatusDetails } }
+}
+// the steps of a test that are still open, in start order: a step ends when all steps after it ended
+type OpenStep = UserStep | ProtocolStep
+
+// the user step of a request: its parent, else (no parent) the user step it started in
+function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined {
+    const index = open.indexOf(step)
+    const parent = step.parent === undefined ? undefined : open.find((s): s is UserStep => s.kind === 'user' && s.id === step.parent)
+    return parent ?? open.slice(0, index).findLast((s): s is UserStep => s.kind === 'user')
+}
+
+// the status of a user step: an error from another realm or a thrown value fails it with its text
+function userStepStatus(result: AfterUserCommandArgs['result']): { status: AllureStatus; statusDetails?: StatusDetails } {
+    if (!('error' in result)) {
+        return { status: AllureStatusEnum.PASSED }
+    }
+    if (result.error instanceof Error) {
+        return { status: AllureStatusEnum.FAILED, statusDetails: getMessageAndTraceFromError(result.error) }
+    }
+    const error = userCommandError(result.error)
+    const fields = isObject(error) ? error as { message?: unknown } : {}
+    const message = typeof fields.message === 'string' ? fields.message : typeof error === 'string' ? error : String(JSON.stringify(error))
+    return { status: AllureStatusEnum.FAILED, statusDetails: { message } }
+}
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -171,6 +204,11 @@ export default class AllureReporter extends WDIOReporter {
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
     private _closedLaneKeys = new Set<string>()
+    // the open user command steps of each test, hook or Cucumber step, in start order
+    private _userSteps = new Map<string, OpenStep[]>()
+    private _userStepOf = new Map<number, { scope: string, open: OpenStep[], step: UserStep }>()
+    // the protocol steps that their user command ended before their result, by scope and parent id
+    private _lateResults = new Map<string, number>()
 
     allureStatesByCid: Map<string, AllureReportState> = new Map()
 
@@ -279,7 +317,24 @@ export default class AllureReporter extends WDIOReporter {
         return lane
     }
 
+    private _userStepScope(key = this._laneKey()): string {
+        return key ? `lane:${key}` : `cid:${this._currentCid()}`
+    }
+
+    // a new test or hook: a later user command result does not close its steps
+    private _resetUserSteps(key = this._laneKey()): void {
+        const scope = this._userStepScope(key)
+        // the end of the test ends their steps: their results must not end another step
+        for (const step of this._userSteps.get(scope) ?? []) {
+            if (step.kind === 'protocol' && !step.done) { this._addLateResult(scope, step) }
+        }
+        this._userSteps.delete(scope)
+    }
+
     private _pushRuntimeMessage(message: WDIORuntimeMessage, key = this._laneKey()): void {
+        if (EXECUTABLE_BOUNDARIES.has(message.type)) {
+            this._resetUserSteps(key)
+        }
         if (!key) {
             this._ensureState(this._currentCid()).pushRuntimeMessage(message)
             return
@@ -430,6 +485,7 @@ export default class AllureReporter extends WDIOReporter {
 
     private _handleCucumberStepStart(t: TestStats): void {
         if (!this._hasPendingTest) { return }
+        this._resetUserSteps()
 
         const start = AllureReporter.getTimeOrNow(t.start)
         this._startStep({ name: t.title, start })
@@ -453,6 +509,7 @@ export default class AllureReporter extends WDIOReporter {
         details?: StatusDetails
     ): void {
         this._attachLogs()
+        this._resetUserSteps()
         const stop = AllureReporter.getTimeOrNow((t as TestStats).end)
         this._endStep({ status, stop, statusDetails: details })
     }
@@ -740,6 +797,10 @@ export default class AllureReporter extends WDIOReporter {
         for (const key of [...this._lanes.keys()]) {
             this._closeLane(key, key)
         }
+        // the steps of user commands that got no result
+        this._userSteps.clear()
+        this._userStepOf.clear()
+        this._lateResults.clear()
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
          * cannot report the reporter as synchronised while this pass is still writing
@@ -1168,61 +1229,193 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs): void {
-        const cid = this._currentCid()
-        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(cid)
-        if (!allow) { return }
+    // test or hook open, not skipped by the test plan, steps enabled
+    private _commandStepsAllowed(): boolean {
+        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
+        return allow && !this._options.disableWebdriverStepsReporting && !this._isMultiRemote
+    }
 
-        const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiRemote) { return }
+    private _startCommandStep(name: string, body: unknown): void {
+        this._startStep({ name, start: Date.now() })
+        if (body !== undefined && !(isObject(body) && isEmptyObject(body))) {
+            this._attachJSON({ name: 'Request', json: body })
+        }
+    }
+
+    private _attachCommandResponse(result: unknown): void {
+        const resObj = isObject(result) ? (result as Record<string, unknown>) : undefined
+        const errVal = resObj?.error
+        if (errVal instanceof Error) {
+            this._attachFile({
+                name: 'Response',
+                content: Buffer.from(String(errVal), 'utf8'),
+                contentType: AllureContentType.TEXT
+            })
+            return
+        }
+        const commandResult = resObj && 'value' in resObj ? resObj['value'] : result
+        const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
+        if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+    }
+
+    onBeforeCommand(command: BeforeCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
 
         const { method, endpoint } = command
         const named = typeof command.command === 'string' && command.command.length > 0
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
         const body = (command as unknown as MaybeBody).body
-
-        this._startStep({ name: stepName, start: Date.now() })
-        if (body !== undefined && !(isObject(body) && isEmptyObject(body))) {
-            this._attachJSON({ name: 'Request', json: body })
+        const open = this._userSteps.get(this._userStepScope())
+        // a WebDriver Classic session has no open user step, so its steps stay as they are
+        if (!open?.length) {
+            this._startCommandStep(stepName, body)
+            return
         }
+        open.push({ kind: 'protocol', parent: command.parent, command: command.command, endpoint })
+        if (!method || !endpoint) {
+            this._startCommandStep(stepName, body)
+            return
+        }
+        // a child of a user step: the compact request as a parameter, the resolved request as an attachment
+        this._startStep({ name: stepName, start: Date.now() })
+        this._pushRuntimeMessage({ type: 'step_metadata', data: { parameters: [{ name: 'request', value: compactRequest(method, endpoint) }] } })
+        const path = resolvedPath(endpoint, command.sessionId)
+        const hasBody = body !== undefined && !(isObject(body) && isEmptyObject(body))
+        this._attachJSON({ name: 'Request', json: hasBody ? { method, path, body } : { method, path } })
+    }
+
+    // no request id: the parent, the command and the endpoint name the request
+    private _lateResultKey(scope: string, command: { parent?: number; command?: string; endpoint?: string }): string {
+        return `${scope}:${command.parent ?? ''}:${command.command ?? ''}:${command.endpoint ?? ''}`
+    }
+
+    private _addLateResult(scope: string, step: ProtocolStep): void {
+        const key = this._lateResultKey(scope, step)
+        this._lateResults.set(key, (this._lateResults.get(key) ?? 0) + 1)
+    }
+
+    // true when its user command or its test already ended the step of this result
+    private _takeLateResult(scope: string, command: AfterCommandArgs): boolean {
+        const key = this._lateResultKey(scope, command)
+        const count = this._lateResults.get(key) ?? 0
+        if (count > 1) {
+            this._lateResults.set(key, count - 1)
+        } else if (count === 1) {
+            this._lateResults.delete(key)
+        }
+        return count > 0
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+        const { disableWebdriverScreenshotsReporting } = this._options
         const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
         const resUnknown: unknown = (command as unknown as MaybeResult).result
-        const resObj = isObject(resUnknown) ? (resUnknown as Record<string, unknown>) : undefined
-        const errVal = resObj?.error
 
         const isShot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isShot && allow) {
-            const res: unknown = (command as unknown as MaybeResult).result
             const val =
-                isObject(res) && 'value' in (res as Record<string, unknown>)
-                    ? (res as Record<string, unknown>)['value']
-                    : res
+                isObject(resUnknown) && 'value' in (resUnknown as Record<string, unknown>)
+                    ? (resUnknown as Record<string, unknown>)['value']
+                    : resUnknown
             if (typeof val === 'string') {
                 this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(val, 'base64') })
             }
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiRemote || !allow) { return }
-
-        const commandResult = resObj && 'value' in resObj ? resObj['value'] : resUnknown
-
-        if (!isShot && errVal instanceof Error) {
-            this._attachFile({
-                name: 'Response',
-                content: Buffer.from(String(errVal), 'utf8'),
-                contentType: AllureContentType.TEXT
-            })
-        } else if (!isShot) {
-            const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
-            if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+        if (!this._commandStepsAllowed()) { return }
+        const scope = this._userStepScope()
+        const open = this._userSteps.get(scope)
+        const step = open?.findLast((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
+            s.parent === command.parent && s.command === command.command && s.endpoint === command.endpoint)
+        if (step) {
+            // a step that is not the last one waits: the runtime ends the last open step
+            step.done = { result: resUnknown, stop: Date.now(), isShot }
+            this._endDoneSteps(open!, scope)
+            return
         }
-
+        if (this._takeLateResult(scope, command)) { return }
+        if (!isShot) { this._attachCommandResponse(resUnknown) }
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
+    }
+
+    // the protocol commands of a user command start inside its open step: they are its child steps
+    onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
+        const name = userCommandTitle(payload.command, payload.body)
+        // the arguments are in the name: the Request attachment only when the name does not show them all
+        this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
+        const scope = this._userStepScope()
+        const open = this._userSteps.get(scope) ?? []
+        this._userSteps.set(scope, open)
+        const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
+        open.push(step)
+        this._userStepOf.set(payload.id, { scope, open, step })
+    }
+
+    onAfterUserCommand(payload: AfterUserCommandArgs): void {
+        const entry = this._userStepOf.get(payload.id)
+        this._userStepOf.delete(payload.id)
+        // no step, or its test ended: the end of the test closed the step
+        if (!entry || this._userSteps.get(entry.scope) !== entry.open) { return }
+        entry.step.done = { result: payload.result, stop: Date.now() }
+        this._endDoneSteps(entry.open, entry.scope)
+    }
+
+    // the last step ends when it is done; a request still in flight ends with its user command,
+    // as open steps do at the end of a test; a user command that did not end makes the steps under it wait
+    private _endDoneSteps(open: OpenStep[], scope: string): void {
+        for (let step = open.at(-1); step; step = open.at(-1)) {
+            if (!step.done) {
+                const owner = step.kind === 'protocol' ? userStepOf(open, step) : undefined
+                if (!owner?.done) { break }
+                step.done = { ended: { ...userStepStatus(owner.done.result), stop: owner.done.stop } }
+                this._addLateResult(scope, step as ProtocolStep)
+            }
+            open.pop()
+            if (step.kind === 'user') {
+                this._endUserStep(step)
+            } else {
+                this._endProtocolStep(step)
+            }
+        }
+        if (!open.length) { this._userSteps.delete(scope) }
+    }
+
+    private _endProtocolStep(step: ProtocolStep): void {
+        const done = step.done!
+        if ('ended' in done) {
+            this._endStep(done.ended)
+            return
+        }
+        if (!done.isShot) { this._attachCommandResponse(done.result) }
+        const inline = done.isShot ? undefined : inlineResult(done.result, step.command)
+        if (inline && step.command) {
+            this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${step.command} → ${inline}` } })
+        }
+        this._endStep({ status: AllureStatusEnum.PASSED, stop: done.stop })
+    }
+
+    private _endUserStep(step: UserStep): void {
+        const { result, stop } = step.done!
+        const { name, command } = step
+        const { status, statusDetails } = userStepStatus(result)
+        if (!('error' in result)) {
+            if (!isNoDataResult(result, command)) { this._attachCommandResponse(result) }
+            const inline = inlineResult(result, command)
+            if (inline && name) {
+                this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${name} → ${inline}` } })
+            }
+        } else if (result.error instanceof Error) {
+            this._attachCommandResponse(result)
+        } else {
+            // an error from another realm or a thrown value
+            const error = userCommandError(result.error)
+            const fields = isObject(error) ? error as { name?: unknown } : {}
+            const text = typeof fields.name === 'string' && fields.name ? `${fields.name}: ${statusDetails!.message}` : statusDetails!.message!
+            this._attachFile({ name: 'Response', content: Buffer.from(text, 'utf8'), contentType: AllureContentType.TEXT })
+        }
+        this._endStep({ status, stop, statusDetails })
     }
 
     onTestEnd(test: TestStats): void {

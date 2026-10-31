@@ -11,11 +11,13 @@ import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
+import { wrapAssertions } from '../src/assertions.js'
 import type { CustomStubCommand } from '../src/types.js'
 
 vi.mock('expect-webdriverio', () => ({
     setDefaultOptions: vi.fn(),
     expect: vi.fn(),
+    wdioCustomMatchers: {},
     SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
@@ -23,6 +25,7 @@ vi.mock('expect-webdriverio', () => ({
         })
     }
 }))
+vi.mock('../src/assertions.js', () => ({ wrapAssertions: vi.fn() }))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -652,6 +655,57 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
+        it('should forward user command events with the session and the parallel context id', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi' }
+
+            store.run('ctx-1', () => listener('userCommand')(event))
+            store.run('ctx-1', () => listener('userResult')({ ...event, result: { value: 'foo' } }))
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'fakeid', contextId: 'ctx-1' })
+            // other listeners of the browser event get it as it was sent
+            expect(event).toEqual({ id: 1, command: 'getTitle', body: [], protocol: 'bidi' })
+        })
+
+        it('should not listen to user command events when no reporter gets them', async () => {
+            const runner = new WDIORunner()
+            runner['_reporter'] = { emit: vi.fn(), showsUserCommands: false } as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const events = vi.mocked(browser!.on).mock.calls.map(([event]) => event)
+            expect(events).toContain('command')
+            expect(events).not.toContain('userCommand')
+            expect(events).not.toContain('userResult')
+        })
+
+        it('should keep the session of the instance that sends the user command events', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi', sessionId: 'instance-a' }
+
+            listener('userCommand')(event)
+            listener('userResult')({ ...event, result: { value: 'foo' } })
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'instance-a' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'instance-a' })
+        })
+
         it('should return null if initiating session fails', async () => {
             // @ts-ignore test scenario
             global.throwRemoteCall = true
@@ -678,6 +732,18 @@ describe('wdio-runner', () => {
             expect(typeof browser?.deleteSession).toBe('function')
             expect(_setGlobal).toBeCalledTimes(3)
             expect(setDefaultOptions).toBeCalledTimes(1)
+        })
+
+        it('makes each assertion a user command with the local runner only', async () => {
+            const runner = new WDIORunner()
+            vi.mocked(wrapAssertions).mockClear()
+            await runner['_startSession']({ runner: 'browser' } as any, {} as any)
+            expect(wrapAssertions).not.toBeCalled()
+
+            const browser = await runner['_startSession']({ runner: 'local' } as any, {} as any)
+            expect(wrapAssertions).toBeCalledTimes(1)
+            const [, , getBrowser] = vi.mocked(wrapAssertions).mock.calls[0]
+            expect(getBrowser()).toBe(browser)
         })
 
         it('transfers stubbed custom commands onto the new session', async () => {

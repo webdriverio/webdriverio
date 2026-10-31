@@ -1,11 +1,13 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import vm from 'node:vm'
 import { describe, expect, it } from 'vitest'
 import WDIOReporter from '@wdio/reporter'
 import type { SuiteStats } from '@wdio/reporter'
 
 import JsonGenerator from '../src/jsonGenerator.js'
+import HtmlReporter from '../src/htmlReporter.js'
 import { HtmlReporterOptions, ReportData } from '../src/types.js'
 
 describe('JsonGenerator.removeOutput', () => {
@@ -161,5 +163,65 @@ describe('JsonGenerator.jsonOutput, commands of a hook', () => {
             emit('suite:end', { uid: 'S', title: 'S', fullTitle: 'S' })
         })
         expect(roots[0].hooks[0]).not.toHaveProperty('output')
+    })
+})
+
+describe('JsonGenerator.jsonOutput, user commands', () => {
+    const write = async (events: [string, Record<string, unknown>][], extra: Record<string, unknown> = {}) => {
+        const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-json-'))
+        const base = new HtmlReporter({ stdout: true, writeStream: { write: () => true }, outputDir, ...extra } as never)
+        const emit = (event: string, payload: Record<string, unknown>) => base.emit(event, { cid: '0-0', file: '/spec.js', ...payload })
+        emit('runner:start', { specs: ['/spec.js'], config: { framework: 'mocha' }, capabilities: { browserName: 'chrome' }, sessionId: 's', isMultiRemote: false, instanceOptions: {} })
+        emit('suite:start', { uid: 's1', title: 'A', fullTitle: 'A', type: 'suite' })
+        const test = { uid: 't1', title: 't1', fullTitle: 'A t1', type: 'test', parent: 'A' }
+        emit('test:start', test)
+        events.forEach(([name, payload]) => emit(name, { sessionId: 's', ...payload }))
+        emit('test:pass', test)
+        emit('test:end', test)
+        emit('suite:end', { uid: 's1', title: 'A', fullTitle: 'A' })
+        const reportFile = path.join(outputDir, 'report-0-0.html')
+        const options = Object.assign(new HtmlReporterOptions(), { outputDir, removeOutput: false, produceJson: true })
+        await JsonGenerator.jsonOutput(options, new ReportData('t', {} as never, [base.suites.s1], {} as never, reportFile, 'chrome'))
+        const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf8'))
+        fs.rmSync(outputDir, { recursive: true, force: true })
+        return json.suites[0].tests[0].output as Record<string, unknown>[]
+    }
+
+    it('writes the user command, its protocol commands with their parent, and the one-line text of each', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'getText', body: [], protocol: 'bidi' }],
+            ['client:beforeCommand', { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', body: {}, parent: 1 }],
+            ['client:afterCommand', { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', body: {}, result: { value: 'clicked' }, parent: 1 }],
+            ['client:afterUserCommand', { id: 1, command: 'getText', body: [], protocol: 'bidi', result: { value: 'clicked' } }]
+        ])
+        expect(output.map((entry) => [entry.type, entry.parent, entry.text])).toEqual([
+            ['userCommand', undefined, 'getText() → "clicked"'],
+            ['command', 1, 'getElementText → "clicked"  GET /element/:elementId/text'],
+            ['result', 1, undefined],
+            ['userResult', undefined, undefined]
+        ])
+    })
+
+    it('writes the protocol commands of a run with no user command with no text', async () => {
+        const output = await write([
+            ['client:beforeCommand', { command: 'navigateTo', method: 'POST', endpoint: '/session/:sessionId/url', body: { url: '/home' } }]
+        ])
+        expect(output.map((entry) => [entry.type, entry.text])).toEqual([['command', undefined]])
+    })
+
+    it('writes the message of an Error from a user command', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: new Error('boom') } }]
+        ])
+        expect(output[1].result).toEqual({ error: { name: 'Error', message: 'boom' } })
+    })
+
+    it('writes the message of an error from another realm', async () => {
+        const output = await write([
+            ['client:beforeUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi' }],
+            ['client:afterUserCommand', { id: 1, command: 'click', body: [], protocol: 'bidi', result: { error: vm.runInNewContext('new TypeError("boom")') } }]
+        ])
+        expect(output[1].result).toEqual({ error: { name: 'TypeError', message: 'boom' } })
     })
 })

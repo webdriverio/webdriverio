@@ -73,6 +73,8 @@ export default class CustomReporter extends WDIOReporter {
     onRunnerStart() {}
     onBeforeCommand() {}
     onAfterCommand() {}
+    onBeforeUserCommand() {} // experimental, see "User commands"
+    onAfterUserCommand() {} // experimental, see "User commands"
     onSuiteStart() {}
     onHookStart() {}
     onHookEnd() {}
@@ -273,6 +275,81 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 :::warning Experimental
 
 The unit API, `getBrowserNames`, `getSessionNames`, `getSessions` and `sanitizeCaps` are experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `suite.isRoot`, `test.file`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
+
+:::
+
+## User commands
+
+A user command is a command that your test code calls directly: a WebdriverIO command or a custom command. In a WebDriver BiDi session, WebdriverIO sends an event before and after each user command: by default in a session with the `wdio:experimentalBiDiCommands` capability, and in other WebDriver BiDi sessions when you set [`userCommandEvents: true`](./Configuration.md#usercommandevents). WebDriver Classic and Appium sessions do not send these events.
+
+To get the user commands, override `onBeforeUserCommand`, `onAfterUserCommand` or both:
+
+```js
+import WDIOReporter from '@wdio/reporter'
+
+export default class CustomReporter extends WDIOReporter {
+    onBeforeUserCommand(command) {
+        this.write(`${command.command}(${JSON.stringify(command.body)})\n`)
+    }
+    onAfterUserCommand(command) {
+        this.write('error' in command.result ? `${command.command} failed\n` : `${command.command} passed\n`)
+    }
+}
+```
+
+A reporter that only reads `output` (for example when it writes a file at the end of the run) does not need these methods. It returns `true` from the `showsUserCommands` getter:
+
+```js
+export default class CustomReporter extends WDIOReporter {
+    get showsUserCommands() {
+        return true
+    }
+}
+```
+
+The payload has these fields:
+
+| Field | Description |
+|-------|-------------|
+| `id` | A number for each user command. The protocol commands that the user command runs have this number in their `parent` field. |
+| `command` | The name of the command, for example `click` or the name of a custom command. |
+| `body` | The arguments of the command. |
+| `protocol` | `'bidi'` |
+| `sessionId` | The session of the command. In a multi-remote run, the session of the instance. |
+| `contextId` | The parallel-mode context of the command, as for `onBeforeCommand`. |
+| `result` | `onAfterUserCommand` only: `{ value }` when the command passed, `{ error }` when it failed. |
+
+WebdriverIO masks and shortens the `body` and the `value` before it sends the event, so your reporter does not have to do it. Text that you give with the `mask: true` option is `**MASKED**`. Binary data is a label, for example `<Buffer n bytes>` or `<Uint8Array n bytes>`, and a `Map` or a `Set` is `Map(n)` or `Set(n)`. A string that is longer than 1024 characters is cut. An array or an object keeps 50 items and a `… [n more]` marker, and a value that is deeper than 4 levels is `[…]`. One copy keeps at most 1000 values: after that, each array or object ends with the `… [n more]` marker. An element is a short label with its selector, then its id or `(not found)`, for example `WebdriverIO.Element<#btn> (id f.1.d.2.e.3)`. An element list is `WebdriverIO.ElementArray<selector> (n)`, with the number of elements found, also as the result of `$$`. A function is `[Function name]`.
+
+The `error` of a `result` is the value that the command threw. To write it as JSON, use `userCommandError(error)` from `@wdio/reporter`: it gives `{ name, message }` for an error (also an error from another realm), and the value as it is for other values. `userOutputReplacer` is a `JSON.stringify` replacer that does this for each `userResult` entry of `output`.
+
+When your reporter overrides one of these methods or returns `true` from `showsUserCommands`, the base reporter does these steps:
+
+- It calls the method in the unit of the command, as it does for `onBeforeCommand`. In parallel mode, the owner is the test of the context.
+- It adds an entry with `type: 'userCommand'` and an entry with `type: 'userResult'` to the `output` of the owner. The owner is the owner at the start of the user command: a result that comes after the end of its test (for example after a test timeout) goes to the `output` of that test, and the reporter gets `onAfterUserCommand` in the unit of that test. The type of an `output` entry is `'command' | 'result' | 'userCommand' | 'userResult'` and the other fields keep the types of a protocol entry. Call `isUserCommandOutput(entry)` or `isUserResultOutput(entry)` to get the fields of a user entry (`UserCommandOutput`, `UserResultOutput`). For `execute` and `executeAsync`, a script string in the first value of `body` is shortened as the script of a protocol command. A function stays `[Function name]`.
+- It keeps the protocol commands that a user command runs, with its `id` in their `parent` field, so you can show them as children of the user command: it calls `onBeforeCommand` and `onAfterCommand` for them and adds them to `output` after the `userCommand` entry. To hide them, return `true` from the `hidesProtocolCommands` getter. `takeScreenshot` and `takeElementScreenshot` have no `parent` field, and you can get the screenshots from them as before. These two commands never send user command events, because their result is a base64 screenshot.
+- It hides the old `command` and `result` events of a custom command (no HTTP method, the name of its user command), so your reporter does not see the custom command two times, and the protocol commands of a user command that sent no user command events (an excluded command).
+
+A reporter that does neither gets no user commands, and it gets all protocol commands as before.
+
+Only the outer user command sends events. The commands that a custom command or `waitUntil` runs send no events. `call` does not hide its commands: it sends no events, and the commands that run in it send their events, as in your test code. In a multi-remote run, the multi-remote browser sends no events: each instance sends the events of its own commands, also for the commands that a custom command of the multi-remote browser runs. The commands that a WebDriver BiDi event listener runs (for example `browser.on('log.entryAdded', …)`) are outer commands, also after `reloadSession`. The commands that a `beforeCommand` or `afterCommand` hook runs, and the commands that a reporter runs, send no events. An excluded command (see [`userCommandEvents`](./Configuration.md#usercommandevents)) is still the outer command, so the commands that it runs send no events, and its protocol commands have the `parent` field. For example, when you exclude `waitUntil`, its polls are hidden too. A custom command and a command that you overwrite with `overwriteCommand` (for example `click`) send one `userCommand` and one `userResult` event, as a WebdriverIO command does. A command of a browsing context (for example `tab.navigate()`, or a command that you add with `attachToBrowsingContext: true`) also sends one pair of events, with its own name. In the testrunner, an `expect-webdriverio` assertion is one user command: `expect.toHaveText`, or `expect.not.toHaveText` for `.not`, with the received value and the expected values as `body`. The commands of its polls send no events, and their protocol commands have its `parent`. Its `userResult` has no value when the assertion passes, and the message of the assertion as `error` when it fails. A matcher that you add later with `expect.extend` (for example in a service) is not a user command. `toMatchInlineSnapshot` is not a user command either, because the snapshot finds its place in the test file from the call stack. The old `command` and `result` events of a custom command that runs in a user command have the `parent` field. When the custom command is itself the user command, its old events also have `custom: true`: a reporter that gets user commands does not get them, because the user command replaces them, and other reporters get these events as before. The old events of a custom command that another user command runs have no `custom` field, and a reporter that gets user commands gets them as children.
+
+`@wdio/reporter` exports helpers that give the one-line text that the Allure and JUnit reporters show:
+
+| Helper | Example |
+|--------|---------|
+| `userCommandTitle(command, body)` | `setValue("**MASKED**", {"mask":true})`, `dragAndDrop($("#drop"))`: functions as `function name`, element arguments as their query, arguments cut at 120 characters |
+| `inlineResult(result, command?)` | `"Hello"`, `found`, `not found`, `3 found` (cut at 60 characters); nothing for an error, a result with no data or a window handle |
+| `isNoDataResult(result, command?)` | `true` for no value, `null`, `{}`, a tab or mock placeholder, and the handle of `newWindow`, `emulate`, `addInitScript`, `debug` and `getPuppeteer` |
+| `compactRequest(method, endpoint)` | `GET /element/:elementId/text` |
+| `resolvedPath(endpoint, sessionId)` | `/session/abc/element/f.1.d.2.e.3/text` |
+| `userCommandTexts(output)` | The text of each user command entry (`getText() → "clicked"`) and of each protocol command entry with `parent` (`getElementText → "clicked"  GET /element/:elementId/text`) |
+
+`userOutputReplacer` also adds this text as a `text` field to these entries.
+
+:::warning Experimental
+
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `hidesProtocolCommands`, `userCommandError`, `userOutputReplacer`, `isUserCommandOutput`, `isUserResultOutput`, `userCommandTitle`, `userCommandTitleIsCut`, `inlineResult`, `isNoDataResult`, `compactRequest`, `resolvedPath`, `userCommandTexts`, the `text` field, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, the `parent` and `custom` fields, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 

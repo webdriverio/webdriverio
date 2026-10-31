@@ -3,7 +3,8 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, queryCall, queryPrefix, setWdioKind, type WdioKind } from './kind.js'
+import { runCustomCommand, runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -50,7 +51,7 @@ export function setCommandHookStore (store: CommandHookStore) {
     commandHookScope = store
 }
 
-const isInCommandHook = () => commandHookScope.getStore() === true
+export const isInCommandHook = () => commandHookScope.getStore() === true
 const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
@@ -234,7 +235,7 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * Proxy around a promise of an element (or element list) so commands and
  * properties can be chained before the promise resolves.
  */
-export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false): T {
+export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false, query?: () => string | undefined): T {
     return createElementPromiseProxy(
         promise,
         function (this: T) {
@@ -244,7 +245,8 @@ export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRe
         '$',
         undefined,
         'element',
-        multiRemote
+        multiRemote,
+        query
     ) as T
 }
 
@@ -255,7 +257,9 @@ function createElementPromiseProxy (
     commandName: string,
     prevInnerArgs?: { prop: string | number, args: unknown[] },
     kind?: WdioKind,
-    multiRemote = false
+    multiRemote = false,
+    // the query as in the test code, see `WDIO_QUERY`
+    query: () => string | undefined = () => undefined
 ): unknown {
     /**
      * only an unresolved element is chainable: a pending element list (for example
@@ -285,6 +289,9 @@ function createElementPromiseProxy (
                 }
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
+                }
+                if ((prop as string | symbol) === WDIO_QUERY) {
+                    return chainable || kind === 'element-array' ? query() : undefined
                 }
 
                 /**
@@ -367,7 +374,11 @@ function createElementPromiseProxy (
                          * only wraps a value that is not an ElementArray, and its item is unknown
                          */
                         kind === 'element-array' ? 'element' : undefined,
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && `${list}[${numValue}]`
+                        }
                     )
                 }
 
@@ -385,7 +396,11 @@ function createElementPromiseProxy (
                         commandName,
                         { prop, args: [index] },
                         'element',
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && `${list}.at(${index})`
+                        }
                     )
                 }
 
@@ -513,7 +528,11 @@ function attachElementArrayHooks (
 
         let commandError: unknown
         try {
-            await load()
+            // the event gets a labeled list, so reporters can show the count
+            await runUserCommand(self, commandName, args, async () => {
+                const loaded = await load()
+                return Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], { selector: args[0] }), 'element-array') : loaded
+            })
         } catch (err) {
             commandError = err
         }
@@ -535,6 +554,20 @@ function attachElementArrayHooks (
  * @param fn          command function
  */
 export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return wrapCommandWith<T>(commandName, fn, runUserCommand)
+}
+
+/**
+ * `wrapCommand` for a command that is a user command with its own name, also when the name is not
+ * registered (the commands of a browsing context)
+ */
+export function wrapCustomCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return wrapCommandWith<T>(commandName, fn, runCustomCommand)
+}
+
+type RunCommand = (scope: unknown, command: string, args: unknown[], run: () => Promise<unknown>) => Promise<unknown>
+
+function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCommand): (...args: unknown[]) => Promise<T> {
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
@@ -545,7 +578,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         let commandResult
         let commandError
         try {
-            commandResult = await fn.apply(this, args)
+            commandResult = await runCommand(this, commandName, args, () => fn.apply(this, args))
         } catch (err) {
             commandError = err
         }
@@ -568,7 +601,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
          * previous link of the chain, so the multi-remote origin passes along
          */
         return createElementPromiseProxy(
-            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise)
+            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise),
+            () => `${queryPrefix(promise)}${queryCall(commandName, args)}`
         )
     }
 
@@ -662,7 +696,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     commandName,
                     undefined,
                     isPending ? 'element-array' : undefined,
-                    isMultiRemoteOrigin(this)
+                    isMultiRemoteOrigin(this),
+                    () => `${queryPrefix(this)}${queryCall(commandName, args)}`
                 )
             }
         }

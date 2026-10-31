@@ -1,4 +1,4 @@
-import { resolveCustomCommandOptions, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { resolveCustomCommandOptions, setWdioKind, webdriverMonad, wrapCustomCommand } from '@wdio/utils'
 
 import { $ } from './commands/browser/$.js'
 import { $$ } from './commands/browser/$$.js'
@@ -200,7 +200,7 @@ function applyToLiveContexts (registry: BrowsingContextCommands, name: string) {
     }
     for (const context of liveContexts(registry)) {
         Object.defineProperty(context, name, {
-            value: wrapCommand(name, command as (...args: unknown[]) => Promise<unknown>),
+            value: wrapCustomCommand(name, command),
             configurable: true,
             writable: true
         })
@@ -366,7 +366,11 @@ export function getBrowsingContext (
         return setWdioKind(client, 'browsing-context')
     }, contextProperties(registry))
 
-    const context = monad(browser.sessionId, wrapCommand) as WebdriverIO.BrowsingContext
+    /**
+     * a context command is a user command with its own name, as a custom command. Its names are not
+     * registered: several are also protocol commands of the browser (`getTitle`, `refresh`)
+     */
+    const context = monad(browser.sessionId, wrapCustomCommand) as WebdriverIO.BrowsingContext
     context.addCommand = rejectCommand('addCommand')
     context.overwriteCommand = rejectCommand('overwriteCommand')
     const ref = new WeakRef(context)

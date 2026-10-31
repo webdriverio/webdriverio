@@ -11,6 +11,7 @@ import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities, CustomCommands } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
+import { wrapAssertions } from './assertions.js'
 import BaseReporter from './reporter.js'
 import { initializeInstance, getInstancesData } from './utils.js'
 import type {
@@ -180,6 +181,8 @@ export default class Runner extends EventEmitter {
 
         this._reporter.caps = browser.capabilities
         this._reporter.setContextIdResolver(() => (getContextIdPayload(browser as WebdriverIO.Browser) as { contextId?: string }).contextId)
+        // WebDriver BiDi sessions only, see `@wdio/utils` `userCommands.ts`; the instances of a multi-remote browser can be such sessions
+        this._reporter.setUserCommandSession(() => Boolean(browser.isMultiRemote || (browser.isBidi && !browser.isMobile)))
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
@@ -358,6 +361,21 @@ export default class Runner extends EventEmitter {
             Object.assign(result, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
+        /**
+         * register user command events (WebDriver BiDi sessions only); a copy, as other listeners get the same object.
+         * With no listener, the browser makes no copies of the values.
+         */
+        if (this._reporter?.showsUserCommands !== false) {
+            browser.on('userCommand', (event) => this._reporter?.emit(
+                'client:beforeUserCommand',
+                { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
+            ))
+            browser.on('userResult', (event) => this._reporter?.emit(
+                'client:afterUserCommand',
+                { ...event, sessionId: event.sessionId ?? browser.sessionId, ...getContextIdPayload(browser) }
+            ))
+        }
+
         return browser
     }
 
@@ -424,6 +442,15 @@ export default class Runner extends EventEmitter {
                     ])
                 }
             })
+
+            /**
+             * each assertion is one user command (WebDriver BiDi sessions only); the browser runner runs
+             * its matchers in another way
+             */
+            const runner = Array.isArray(config.runner) ? config.runner[0] : config.runner
+            if (runner === 'local') {
+                wrapAssertions(expect, wdioCustomMatchers, () => this._browser)
+            }
 
             /**
              * attach browser to `multiRemoteBrowser` so user have better typing support

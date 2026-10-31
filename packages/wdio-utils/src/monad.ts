@@ -4,6 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
+import { HAS_USER_COMMAND_LISTENERS, needsDerivedPromise, registerUserCommands, runCustomCommand, userCommandParent } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -41,6 +42,13 @@ function composeElementOverrides(previousCommand: Function | undefined, nextComm
         }
 
         return nextCommand.call(element, previousCommandAsOriginal, ...args)
+    }
+}
+
+// the user command of an element overwrite has the arguments of the caller, not the original command
+function elementOverride(name: string, command: Function) {
+    return function (this: WebdriverIO.Element, origCommand: Function, ...args: unknown[]) {
+        return runCustomCommand(this, name, args, () => command.call(this, origCommand, ...args))
     }
 }
 
@@ -345,6 +353,8 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                // no lift for an element command: its command wrapper sends the user command events
+                registerUserCommands([name])
                 if (disableElementImplicitWait && elementCmdImplicitWaitExclusionList && !elementCmdImplicitWaitExclusionList.includes(name)) {
                     elementCmdImplicitWaitExclusionList.push(name)
                 }
@@ -410,18 +420,19 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                const elementCommand = elementOverride(name, customCommand)
                 if (instances) {
                     /**
                      * add command to every multi-remote instance
                      */
                     Object.values(instances).forEach((instance: { __propertiesObject__: { __elementOverrides__: { value: Record<string, Function> } } }) => {
-                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)
+                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, elementCommand)
                     })
                 } else {
                     /**
                      * regular mode
                      */
-                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, customCommand)
+                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, elementCommand)
                 }
             } else if (client[name]) {
                 const origCommand = client[name]
@@ -445,8 +456,16 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
         setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
+            return runCustomCommand(this, name, args, (outer) => liftedCall.call(this, args, outer))
+        })
+
+        function liftedCall(this: { emit: (event: string, payload: unknown) => unknown }, args: unknown[], outer: boolean) {
+            // the old events of a custom command inside a user command get its id; `custom` marks the events
+            // that the user command replaces, so opt-in reporters hide them
+            const userParent = userCommandParent(name)
+            const parent = outer && userParent.parent !== undefined ? { ...userParent, custom: true } : userParent
             log.info('COMMAND', commandCallStructure(name, args))
-            this.emit('command', { command: name, body: args })
+            this.emit('command', { command: name, body: args, ...parent })
 
             /**
              * set name of function for better error stack
@@ -456,42 +475,62 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 writable: false,
             })
 
+            const emitValue = (res: unknown) => {
+                const elem = res as { elementId: string, selector?: string }
+                let resultLog = res
+                if (elem instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
+                } else if (res instanceof SCOPE_TYPES.browser) {
+                    resultLog = 'WebdriverIO.Browser'
+                }
+
+                log.info('RESULT', resultLog)
+                this.emit('result', {
+                    command: name,
+                    result: { value: res },
+                    ...parent
+                })
+            }
+            const emitError = (error: unknown) => this.emit('result', { command: name, result: { error }, ...parent })
+
             try {
                 const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
+                // a second reaction on the promise of the command cuts its async stack (the code frame of a BiDi error)
+                if ((this as { isBidi?: boolean }).isBidi && needsDerivedPromise(result)) {
+                    return result.then((res) => {
+                        try {
+                            emitValue(res)
+                        } catch {
+                            // a listener that throws does not change the result
+                        }
+                        return res
+                    }, (error) => {
+                        try {
+                            emitError(error)
+                        } catch {
+                            // ignore
+                        }
+                        throw error
+                    })
+                }
+
                 // When the result is a promise, we want to emit on then & catch
                 if (isPromiseLike(result)) {
-                    result.then((res: unknown) => {
-
-                        const elem = res as { elementId: string, selector?: string }
-                        let resultLog = res
-                        if (elem instanceof SCOPE_TYPES.element) {
-                            resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
-                        } else if (res instanceof SCOPE_TYPES.browser) {
-                            resultLog = 'WebdriverIO.Browser'
-                        }
-
-                        log.info('RESULT', resultLog)
-                        this.emit('result', {
-                            command: name,
-                            result: { value: res }
-                        })
-                    }).catch((error: Error) => {
-                        this.emit('result', { command: name, result: { error } })
-                    })
+                    result.then(emitValue).catch(emitError)
                 } else {
                     // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
                     // When a function we can emit the result immediately
-                    this.emit('result', { command: name, result: { value: result } })
+                    this.emit('result', { command: name, result: { value: result }, ...parent })
                 }
 
                 return result
             } catch (error) {
                 // The function should always be a promise and not trigger this error but for the sake of being bullet proof let's do it
-                this.emit('result', { command: name, result: { error } })
+                this.emit('result', { command: name, result: { error }, ...parent })
                 throw error
             }
-        })
+        }
     }
 
     /**
@@ -523,6 +562,10 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             return this
         })
     }
+    Object.defineProperty(prototype, HAS_USER_COMMAND_LISTENERS, {
+        configurable: true,
+        value: () => Boolean(mittInstance.all.get('userCommand')?.length || mittInstance.all.get('userResult')?.length)
+    })
 
     return unit
 }

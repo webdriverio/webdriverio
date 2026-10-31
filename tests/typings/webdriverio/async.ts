@@ -141,6 +141,16 @@ async function bar() {
 
     // remote
     const remoteBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+    remoteBrowser.on('userCommand', (event) => {
+        expectType<number>(event.id)
+        expectType<string>(event.command)
+        expectType<unknown[]>(event.body)
+        expectType<'bidi'>(event.protocol)
+    })
+    remoteBrowser.on('userResult', (event) => {
+        expectType<number>(event.id)
+        expectType<{ value: unknown } | { error: unknown }>(event.result)
+    })
     remote({ capabilities: { browserName: 'chrome' } }).then(
         () => {}, () => {})
     const rElem = await browser.$('')

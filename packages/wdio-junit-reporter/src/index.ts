@@ -3,7 +3,7 @@ import path from 'node:path'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, specFilePath } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTexts, specFilePath } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -671,7 +671,34 @@ class JunitReporter extends WDIOReporter {
 
     private _getCommandStandardOutput(test: Pick<TestStats, 'output'>) {
         const standardOutput: string[] = []
+        const texts = userCommandTexts(test.output)
+        const userCommands = new Map(test.output.flatMap((entry) => isUserCommandOutput(entry) ? [[entry.id, entry] as const] : []))
         test.output.forEach((data) => {
+            // a user command: one line with its arguments and result, its protocol commands indented under it
+            if (isUserCommandOutput(data)) {
+                standardOutput.push(`COMMAND: ${texts.get(data)}`)
+                return
+            }
+            if (isUserResultOutput(data)) {
+                if ('error' in data.result) {
+                    standardOutput.push(`RESULT: ${this._format({ error: userCommandError(data.result.error) })}`)
+                    return
+                }
+                // the line shows a cut result: the whole value under it
+                const start = userCommands.get(data.id)
+                if (start && texts.get(start)?.endsWith('…')) {
+                    standardOutput.push(`RESULT: ${this._format(data.result.value)}`)
+                }
+                return
+            }
+            if (data.parent !== undefined) {
+                if (data.type === 'command') {
+                    standardOutput.push(`  COMMAND: ${texts.get(data)}`)
+                } else if (data.result && typeof data.result === 'object' && 'error' in data.result) {
+                    standardOutput.push(`  RESULT: ${this._format(data.result)}`)
+                }
+                return
+            }
             switch (data.type) {
             case 'command':
                 standardOutput.push(
@@ -687,6 +714,11 @@ class JunitReporter extends WDIOReporter {
             }
         })
         return standardOutput.length ? standardOutput.join('\n') : ''
+    }
+
+    // the base adds the user commands of WebDriver BiDi sessions to `output`
+    protected get showsUserCommands(): boolean {
+        return true
     }
 
     private _format(val: any) {
