@@ -282,6 +282,8 @@ const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const TITLE_JSON_VALUES = 200
 
 const ASSERTION_PREFIX = 'expect.'
+// `$`, `$$`, `shadow$`, `custom$$` …: the first argument is the selector
+const QUERY_COMMAND = /\$\$?$/
 // the received value of an assertion as in the test code
 const RECEIVED_NAMES: Record<string, string> = { 'WebdriverIO.Browser': 'browser', 'WebdriverIO.Mock': 'mock' }
 
@@ -354,17 +356,18 @@ function formatArgument(arg: unknown) {
     if (matcher) {
         return matcher[1]
     }
-    // an element argument: its query, as in the test code
-    const elem = typeof arg === 'string' && /^WebdriverIO\.Element(Array)?(?:<(.*)>)?(?: \(.*\))?$/.exec(arg)
+    // an element argument: its query as in the test code, written by the producer
+    const elem = typeof arg === 'string' && /^WebdriverIO\.Element(?:Array)?(?:<(.*)>)?(?: \([^()]*\))?$/s.exec(arg)
     if (elem) {
-        return elem[2] !== undefined ? `$${elem[1] ? '$' : ''}(${JSON.stringify(elem[2])})` : 'Element'
+        return elem[1] ?? 'Element'
     }
     return titleJson(arg)
 }
 
 /**
- * The title of a user command as in the test code, e.g. `$("#btn")` or `setValue("**MASKED**", {"mask":true})`:
- * functions as `function name`, element arguments as their query, arguments cut at 120 characters.
+ * The title of a user command as in the test code, e.g. `` $(`#btn`) `` or `setValue("**MASKED**", {"mask":true})`:
+ * the selector of a query in backticks, functions as `function name`, element arguments as their query,
+ * arguments cut at 120 characters.
  * @experimental the name and the format may change
  */
 export function userCommandTitle(command: string, body: unknown): string {
@@ -377,7 +380,8 @@ export function userCommandTitle(command: string, body: unknown): string {
         const target = RECEIVED_NAMES[received as string] ?? formatArgument(received)
         return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
     }
-    return `${command}(${cut(body.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
+    const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) && typeof arg === 'string' ? `\`${arg}\`` : formatArgument(arg))
+    return `${command}(${cut(args.join(', '), TITLE_ARGS_LENGTH)})`
 }
 
 /**
@@ -428,13 +432,13 @@ export function inlineResult(result: unknown, command?: string): string | undefi
         return `${value.length} found`
     }
     if (typeof value === 'string') {
-        if (/^WebdriverIO\.Element(?:<.*>)? \(not found\)$/.test(value)) {
+        if (/^WebdriverIO\.Element(?:<.*>)? \(not found\)$/s.test(value)) {
             return 'not found'
         }
-        if (/^WebdriverIO\.Element(?:<.*>)? \(id .*\)$/.test(value)) {
+        if (/^WebdriverIO\.Element(?:<.*>)? \(id .*\)$/s.test(value)) {
             return 'found'
         }
-        const many = /^WebdriverIO\.ElementArray(?:<.*>)? \((\d+)\)$/.exec(value)
+        const many = /^WebdriverIO\.ElementArray(?:<.*>)? \((\d+)\)$/s.exec(value)
         if (many) {
             return `${many[1]} found`
         }

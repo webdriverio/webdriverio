@@ -15,9 +15,18 @@ describe('userCommandTitle', () => {
     })
 
     it('writes an element argument as its query, with no id', () => {
-        expect(userCommandTitle('dragAndDrop', ['WebdriverIO.Element<#drop> (id f.1.d.2.e.3)'])).toBe('dragAndDrop($("#drop"))')
+        expect(userCommandTitle('dragAndDrop', ['WebdriverIO.Element<$(`#drop`)> (id f.1.d.2.e.3)'])).toBe('dragAndDrop($(`#drop`))')
         expect(userCommandTitle('isEqual', ['WebdriverIO.Element (id abc)'])).toBe('isEqual(Element)')
-        expect(userCommandTitle('foo', ['WebdriverIO.ElementArray<li> (2)'])).toBe('foo($$("li"))')
+        expect(userCommandTitle('foo', ['WebdriverIO.ElementArray<$(`ul > li`).$$(`a`)> (2)'])).toBe('foo($(`ul > li`).$$(`a`))')
+        expect(userCommandTitle('foo', ['WebdriverIO.Element<$(`#form`).shadow$(`input[name="email"]`)>'])).toBe('foo($(`#form`).shadow$(`input[name="email"]`))')
+    })
+
+    it('writes the selector of a query in backticks', () => {
+        expect(userCommandTitle('$', ['input[name="email"]'])).toBe('$(`input[name="email"]`)')
+        expect(userCommandTitle('$$', ['li'])).toBe('$$(`li`)')
+        expect(userCommandTitle('custom$', ['byTestId', 'name'])).toBe('custom$(`byTestId`, "name")')
+        expect(userCommandTitle('react$', ['MyComp', { props: { id: 1 } }])).toBe('react$(`MyComp`, {"props":{"id":1}})')
+        expect(userCommandTitle('getValue', ['a'])).toBe('getValue("a")')
     })
 
     it('cuts the arguments at 120 characters', () => {
@@ -28,11 +37,11 @@ describe('userCommandTitle', () => {
     })
 
     it('writes an assertion as in the test code', () => {
-        expect(userCommandTitle('expect.toHaveText', ['WebdriverIO.Element<#btn>', 'Done'])).toBe('expect($("#btn")).toHaveText("Done")')
-        expect(userCommandTitle('expect.not.toBeDisplayed', ['WebdriverIO.Element<#x> (not found)'])).toBe('expect($("#x")).not.toBeDisplayed()')
+        expect(userCommandTitle('expect.toHaveText', ['WebdriverIO.Element<$(`#btn`)>', 'Done'])).toBe('expect($(`#btn`)).toHaveText("Done")')
+        expect(userCommandTitle('expect.not.toBeDisplayed', ['WebdriverIO.Element<$(`#x`)> (not found)'])).toBe('expect($(`#x`)).not.toBeDisplayed()')
         expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.Browser', 'https://webdriver.io'])).toBe('expect(browser).toHaveUrl("https://webdriver.io")')
         expect(userCommandTitle('expect.toBeRequested', ['WebdriverIO.Mock'])).toBe('expect(mock).toBeRequested()')
-        expect(userCommandTitle('expect.toBeElementsArrayOfSize', ['WebdriverIO.ElementArray<li> (3)', 3])).toBe('expect($$("li")).toBeElementsArrayOfSize(3)')
+        expect(userCommandTitle('expect.toBeElementsArrayOfSize', ['WebdriverIO.ElementArray<$$(`li`)> (3)', 3])).toBe('expect($$(`li`)).toBeElementsArrayOfSize(3)')
         expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.Browser', '[Matcher StringContaining "Docs"]'])).toBe('expect(browser).toHaveTitle(StringContaining "Docs")')
     })
 
@@ -87,8 +96,8 @@ describe('inlineResult', () => {
     })
 
     it('gives found, not found or the number of elements found, with no id', () => {
-        expect(inlineResult({ value: 'WebdriverIO.Element<#btn> (id f.1.d.2.e.3)' })).toBe('found')
-        expect(inlineResult({ value: 'WebdriverIO.Element<#missing> (not found)' })).toBe('not found')
+        expect(inlineResult({ value: 'WebdriverIO.Element<$(`#btn`)> (id f.1.d.2.e.3)' })).toBe('found')
+        expect(inlineResult({ value: 'WebdriverIO.Element<$(`#missing`)> (not found)' })).toBe('not found')
         expect(inlineResult({ value: 'WebdriverIO.ElementArray<li> (3)' })).toBe('3 found')
         expect(inlineResult({ value: { [ELEMENT]: 'f.1.d.2.e.3' } })).toBe('found')
         expect(inlineResult({ value: [{ [ELEMENT]: 'a' }, { [ELEMENT]: 'b' }] })).toBe('2 found')
@@ -136,7 +145,7 @@ describe('isNoDataResult', () => {
         expect(isNoDataResult({ value: 'Hello' })).toBe(false)
         expect(isNoDataResult({ value: '' })).toBe(false)
         expect(isNoDataResult({ value: [] })).toBe(false)
-        expect(isNoDataResult({ value: 'WebdriverIO.Element<#btn> (id abc)' })).toBe(false)
+        expect(isNoDataResult({ value: 'WebdriverIO.Element<$(`#btn`)> (id abc)' })).toBe(false)
     })
 })
 

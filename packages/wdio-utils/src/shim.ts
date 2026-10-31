@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, WDIO_CHAIN_SELECTOR, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, queryCall, queryPrefix, setWdioKind, type WdioKind } from './kind.js'
 import { runCustomCommand, runUserCommand } from './userCommands.js'
 
 const log = logger('@wdio/utils:shim')
@@ -235,7 +235,7 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * Proxy around a promise of an element (or element list) so commands and
  * properties can be chained before the promise resolves.
  */
-export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false): T {
+export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false, query?: () => string | undefined): T {
     return createElementPromiseProxy(
         promise,
         function (this: T) {
@@ -245,7 +245,8 @@ export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRe
         '$',
         undefined,
         'element',
-        multiRemote
+        multiRemote,
+        query
     ) as T
 }
 
@@ -256,7 +257,9 @@ function createElementPromiseProxy (
     commandName: string,
     prevInnerArgs?: { prop: string | number, args: unknown[] },
     kind?: WdioKind,
-    multiRemote = false
+    multiRemote = false,
+    // the query as in the test code, see `WDIO_QUERY`
+    query: () => string | undefined = () => undefined
 ): unknown {
     /**
      * only an unresolved element is chainable: a pending element list (for example
@@ -287,11 +290,8 @@ function createElementPromiseProxy (
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
                 }
-                // for the title of a user command that gets the pending element
-                if ((prop as string | symbol) === WDIO_CHAIN_SELECTOR) {
-                    return chainable && !prevInnerArgs && (commandName === '$' || commandName === 'shadow$') && typeof args[0] === 'string'
-                        ? args[0]
-                        : undefined
+                if ((prop as string | symbol) === WDIO_QUERY) {
+                    return chainable || kind === 'element-array' ? query() : undefined
                 }
 
                 /**
@@ -374,7 +374,11 @@ function createElementPromiseProxy (
                          * only wraps a value that is not an ElementArray, and its item is unknown
                          */
                         kind === 'element-array' ? 'element' : undefined,
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && `${list}[${numValue}]`
+                        }
                     )
                 }
 
@@ -392,7 +396,11 @@ function createElementPromiseProxy (
                         commandName,
                         { prop, args: [index] },
                         'element',
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && `${list}.at(${index})`
+                        }
                     )
                 }
 
@@ -593,7 +601,8 @@ function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCo
          * previous link of the chain, so the multi-remote origin passes along
          */
         return createElementPromiseProxy(
-            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise)
+            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise),
+            () => `${queryPrefix(promise)}${queryCall(commandName, args)}`
         )
     }
 
@@ -687,7 +696,8 @@ function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCo
                     commandName,
                     undefined,
                     isPending ? 'element-array' : undefined,
-                    isMultiRemoteOrigin(this)
+                    isMultiRemoteOrigin(this),
+                    () => `${queryPrefix(this)}${queryCall(commandName, args)}`
                 )
             }
         }
