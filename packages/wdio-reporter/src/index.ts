@@ -16,7 +16,6 @@ import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
-const EXECUTE_COMMANDS = ['execute', 'executeAsync']
 // the producer sends a function script as its name only
 const isFunctionLabel = (value: unknown) => typeof value === 'string' && /^\[Function [^\]]*\]$/.test(value)
 // the producer cuts a long script at 1024 characters and writes the size of the full script: keep that size
@@ -583,7 +582,7 @@ export default class WDIOReporter extends EventEmitter {
         if (!owner) {
             return
         }
-        const body = EXECUTE_COMMANDS.includes(payload.command) && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
+        const body = payload.command === 'execute' && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
             ? [userScript(payload.body[0] as string), ...payload.body.slice(1)]
             : payload.body
         const entry: UserCommandOutput | UserResultOutput = type === 'userCommand'
