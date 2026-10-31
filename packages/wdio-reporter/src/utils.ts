@@ -456,7 +456,8 @@ export function userCommandTitle(command: string, body: unknown, index?: number)
  * @experimental the name may change
  */
 export function userCommandTitleIsCut(title: string): boolean {
-    return title.endsWith('…)')
+    // the item of a list ends with its index: `` $$(`li…`)[3] ``
+    return /…\)(\[\d+\]|\.at\(-\d+\))?$/.test(title)
 }
 
 /**

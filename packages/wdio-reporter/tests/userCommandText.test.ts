@@ -83,6 +83,13 @@ describe('userCommandTitle', () => {
         expect(userCommandTitleIsCut('getText()')).toBe(false)
     })
 
+    it('finds the cut arguments of the item of a list', () => {
+        const selector = `li.${'a'.repeat(200)}`
+        expect(userCommandTitleIsCut(userCommandTitle('$$', [selector], 3))).toBe(true)
+        expect(userCommandTitleIsCut(userCommandTitle('$$', [selector], -1))).toBe(true)
+        expect(userCommandTitleIsCut(userCommandTitle('$$', ['li'], 3))).toBe(false)
+    })
+
     it('writes an assertion as in the test code', () => {
         expect(userCommandTitle('expect.toHaveText', [element([{ foundWith: '$', selector: '#btn' }]), 'Done'])).toBe('expect($(`#btn`)).toHaveText("Done")')
         expect(userCommandTitle('expect.not.toBeDisplayed', [element([{ foundWith: '$', selector: '#x' }], { found: false })])).toBe('expect($(`#x`)).not.toBeDisplayed()')
