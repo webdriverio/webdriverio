@@ -2,6 +2,7 @@ import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { expect as wdioExpect, wdioCustomMatchers, SnapshotService } from 'expect-webdriverio'
+import { some } from 'expect-webdriverio/api'
 import { registerUserCommands, runUserCommand, setUserCommandStore, setWdioKind, WDIO_CHAINABLE, WDIO_QUERY } from '@wdio/utils'
 
 import { wrapAssertions } from '../src/assertions.js'
@@ -110,11 +111,19 @@ describe('wrapAssertions session of the subject', () => {
         ['a pending element of instance A', () => Object.assign(setWdioKind({}, 'element'), { [WDIO_CHAINABLE]: true, [WDIO_QUERY]: { foundWith: '$', selector: '#x', parent: instanceA } })],
         ['an element list of instance A', () => setWdioKind(Object.assign([], { parent: instanceA }), 'element-array')],
         ['instance A', () => instanceA],
-        ['a browsing context of instance A', () => setWdioKind({ contextId: 'tab-1', browser: instanceA }, 'browsing-context')]
+        ['a browsing context of instance A', () => setWdioKind({ contextId: 'tab-1', browser: instanceA }, 'browsing-context')],
+        ['the some() of an element list of instance A', () => some(setWdioKind(Object.assign([], { parent: instanceA }), 'element-array'))]
     ])('sends one user command on the session of %s', async (_name, subject) => {
         await wrapped.call({ isNot: false }, subject(), 'Done')
         expect(commandsOf(instanceA)).toEqual(assertion)
         expect(commandsOf(fallback)).toEqual([])
+    })
+
+    it('sends the some() of expect-webdriverio as data around its elements', async () => {
+        const list = setWdioKind(Object.assign([], { foundWith: '$$', selector: 'li', props: [], parent: instanceA }), 'element-array')
+        await wrapped.call({ isNot: false }, some(list), 'Done')
+        const [, { body }] = instanceA.emit.mock.calls[0]
+        expect(body).toEqual([{ wdio: 'some', elements: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 0 } }, 'Done'])
     })
 
     it('uses the browser of the runner for a subject with no session, for example a mock', async () => {

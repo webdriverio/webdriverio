@@ -382,6 +382,11 @@ export function elementQueryText(element: ElementPlaceholder): string {
     }).join('.')
 }
 
+// the `some()` of expect-webdriverio as the subject of an assertion, e.g. `` some($$(`li`)) ``
+function isSomePlaceholder(value: unknown): value is { wdio: 'some', elements: unknown } {
+    return Boolean(value) && typeof value === 'object' && (value as { wdio?: unknown }).wdio === 'some'
+}
+
 function isPlaceholder(value: unknown) {
     return typeof value === 'string' && value.startsWith('WebdriverIO.') && !value.startsWith('WebdriverIO.Element')
 }
@@ -390,7 +395,7 @@ function isElementReference(value: unknown) {
     return Boolean(value) && typeof value === 'object' && ELEMENT_REFERENCE_KEY in (value as object)
 }
 
-function formatArgument(arg: unknown) {
+function formatArgument(arg: unknown): string {
     const fn = typeof arg === 'string' && /^\[Function (.*)\]$/.exec(arg)
     if (fn) {
         return `function ${fn[1]}`
@@ -402,6 +407,9 @@ function formatArgument(arg: unknown) {
     }
     if (isElementPlaceholder(arg)) {
         return elementQueryText(arg)
+    }
+    if (isSomePlaceholder(arg)) {
+        return `some(${formatArgument(arg.elements)})`
     }
     return titleJson(arg)
 }

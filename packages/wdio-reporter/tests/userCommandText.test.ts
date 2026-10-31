@@ -73,6 +73,12 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.Browser', '[Matcher StringContaining "Docs"]'])).toBe('expect(browser).toHaveTitle(StringContaining "Docs")')
     })
 
+    it('writes the some() of expect-webdriverio around its elements', () => {
+        const some = { wdio: 'some', elements: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 3 } }
+        expect(userCommandTitle('expect.toHaveText', [some, 'test'])).toBe('expect(some($$(`li`))).toHaveText("test")')
+        expect(userCommandTitle('expect.not.toBeDisplayed', [some])).toBe('expect(some($$(`li`))).not.toBeDisplayed()')
+    })
+
     it('keeps the name of a command with no list of arguments', () => {
         expect(userCommandTitle('action', undefined)).toBe('action')
     })
