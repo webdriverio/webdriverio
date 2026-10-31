@@ -1,10 +1,11 @@
-import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
+import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND, WDIO_QUERY } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Selector } from '../types.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
 import { INDEX_NOT_FOUND, itemOf } from '../utils/findElementAgain.js'
+import { listQuery } from '../utils/elementQuery.js'
 
 /**
  * A plain element or a multi-remote element. Both travel in the same list
@@ -182,8 +183,9 @@ function readIndex (array: ElementList, index: number) {
     const normalized = integerIndex(index)
     const state = stateOf(array)
     const multiRemote = state.metadata.isMultiRemote === true
+    const query = () => `${listQuery(state.metadata)}[${normalized}]`
     if (!state.resolved) {
-        return chainElementPromise(elementAt(array, normalized), multiRemote)
+        return chainElementPromise(elementAt(array, normalized), multiRemote, query)
     }
     if (normalized < 0 || !Number.isFinite(normalized) || state.metadata.refetch === false) {
         return itemAt(array, normalized)
@@ -191,7 +193,7 @@ function readIndex (array: ElementList, index: number) {
     if (normalized < array.length) {
         return array[normalized]
     }
-    return chainElementPromise(elementAt(array, normalized), multiRemote)
+    return chainElementPromise(elementAt(array, normalized), multiRemote, query)
 }
 
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | WebdriverIO.MultiRemoteElement | undefined> {
@@ -431,6 +433,10 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
 
             if (prop === 'selector' || prop === 'parent' || prop === 'foundWith' || prop === 'props') {
                 return current.metadata[prop]
+            }
+
+            if (prop === WDIO_QUERY) {
+                return listQuery(current.metadata)
             }
 
             if (prop === 'isMultiRemote') {
