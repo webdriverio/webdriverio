@@ -46,9 +46,19 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
          * the following deps are CJS packages and need to be optimized (compiled to ESM) by Vite
          */
         include: [
-            'expect', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'ws',
-            'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
-            'css-value', 'rgb2hex', 'p-iteration', 'deepmerge-ts', 'jest-util', 'jest-matcher-utils', 'split2'
+            '@wdio/browser-runner > expect',
+            '@wdio/browser-runner > expect > jest-util',
+            '@wdio/browser-runner > expect > jest-matcher-utils',
+            '@wdio/browser-runner > deepmerge-ts',
+            '@wdio/browser-runner > webdriver > ws',
+            '@wdio/browser-runner > @wdio/utils > split2',
+            '@wdio/browser-runner > @wdio/utils > aria-query',
+            '@wdio/browser-runner > webdriverio > css-shorthand-properties',
+            '@wdio/browser-runner > webdriverio > lodash.clonedeep',
+            '@wdio/browser-runner > webdriverio > aria-query',
+            '@wdio/browser-runner > webdriverio > grapheme-splitter',
+            '@wdio/browser-runner > webdriverio > css-value',
+            '@wdio/browser-runner > webdriverio > rgb2hex'
         ],
         esbuildOptions: {
             logLevel: 'silent',
