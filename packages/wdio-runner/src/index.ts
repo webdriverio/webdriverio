@@ -226,23 +226,7 @@ export default class Runner extends EventEmitter {
             retry: this._specFileRetryAttempts
         } as Options.RunnerStart)
 
-        /**
-         * report sessionId and target connection information to worker
-         */
-        const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
-        const { sessionId } = browser
-        const instances = getInstancesData(browser, isMultiRemote)
-        process.send!(<SessionStartedMessage>{
-            origin: 'worker',
-            name: 'sessionStarted',
-            specFileRetries: this._specFileRetryAttempts,
-            content: {
-                automationProtocol, sessionId, protocol, hostname, port, path, queryParams, isMultiRemote, instances,
-                capabilities: browser.capabilities,
-                injectGlobals: this._config.injectGlobals,
-                headers
-            }
-        })
+        this._reportSession(browser)
 
         /**
          * Mark setup phase complete, execution phase start
@@ -276,6 +260,10 @@ export default class Runner extends EventEmitter {
          */
         if (!args.watch) {
             await this.endSession()
+        } else {
+            // reloadSession can replace sessions during the run. Keep the parent
+            // up to date before it reuses this worker or closes retained sessions.
+            this._reportSession(browser)
         }
 
         /**
@@ -288,6 +276,27 @@ export default class Runner extends EventEmitter {
         })
 
         return this._shutdown(failures, retries)
+    }
+
+    private _reportSession (browser: WebdriverIO.Browser) {
+        const isMultiRemote = this._isMultiRemote
+        /**
+         * report current session and connection information to the parent
+         */
+        const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
+        const { sessionId } = browser
+        const instances = getInstancesData(browser, isMultiRemote)
+        process.send!(<SessionStartedMessage>{
+            origin: 'worker',
+            name: 'sessionStarted',
+            specFileRetries: this._specFileRetryAttempts,
+            content: {
+                automationProtocol, sessionId, protocol, hostname, port, path, queryParams, isMultiRemote, instances,
+                capabilities: browser.capabilities,
+                injectGlobals: this._config?.injectGlobals,
+                headers
+            }
+        })
     }
 
     async #initFramework (

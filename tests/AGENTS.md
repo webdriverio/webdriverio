@@ -57,6 +57,10 @@ Plugins: `customService`, `customCJSService`, `customReporterString`,
 Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
 `retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`
 
+Watch mode: `watchMode`, `watchFilesToWatch`, `watchMultiRemote`,
+`watchParallelMultiRemote`, `watchReloadMultiRemote`,
+`watchReloadParallelMultiRemote`
+
 Unknown names fail with a list of valid suite names.
 
 ## Guardrails

@@ -27,6 +27,7 @@ import { headlessCapsLog } from './helpers/headless.conf.js'
 import watchMode from './watch-mode/spec-change/run.js'
 import watchFilesToWatch from './watch-mode/files-to-watch/run.js'
 import watchMultiRemote, { watchParallelMultiRemote } from './watch-mode/multiremote/run.js'
+import watchReloadMultiRemote, { watchReloadParallelMultiRemote } from './watch-mode/multiremote/reload.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -1793,6 +1794,8 @@ const jasmineAfterHookArgsValidation = async () => {
         watchFilesToWatch,
         watchMultiRemote,
         watchParallelMultiRemote,
+        watchReloadMultiRemote,
+        watchReloadParallelMultiRemote,
         mochaTestrunner,
         jasmineTestrunner,
         multiRemote,

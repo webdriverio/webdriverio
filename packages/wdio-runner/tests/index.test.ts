@@ -446,6 +446,72 @@ describe('wdio-runner', () => {
             expect(endSession).toBeCalledTimes(1)
         })
 
+        it.each([
+            [false, 0],
+            [false, 1],
+            [false, 'throw'],
+            [true, 0],
+            [true, 1],
+            [true, 'throw']
+        ])('should refresh retained sessions with multi-remote=%s and %s failures', async (isMultiRemote, failures) => {
+            const runner = new WDIORunner()
+            const original = {
+                sessionId: 'original',
+                capabilities: { browserName: 'chrome' },
+                options: { protocol: 'http', hostname: 'original-host', port: 4444, path: '/', queryParams: {} }
+            }
+            const replacement = {
+                sessionId: 'replacement',
+                capabilities: { browserName: 'firefox', webSocketUrl: 'ws://replacement-host/session' },
+                options: { protocol: 'https', hostname: 'replacement-host', port: 5555, path: '/wd/hub', queryParams: { token: 'new' } }
+            }
+            const unchanged = { ...original, sessionId: 'unchanged' }
+            const multiRemoteBrowser = {
+                options: {}, capabilities: {}, instances: ['browserA', 'browserB'],
+                getInstance: (name: string) => name === 'browserA' ? original : unchanged
+            }
+            const browser = isMultiRemote ? multiRemoteBrowser : original
+            const framework: any = {
+                init: () => framework,
+                hasTests: () => true,
+                run: vi.fn(async () => {
+                    Object.assign(original, replacement)
+                    if (failures === 'throw') {
+                        throw new Error('Framework failed after reloading the session')
+                    }
+                    return failures
+                })
+            }
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: framework } as any)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue({
+                framework: 'testNoFailures', reporters: [], beforeSession: [], runner: 'local'
+            } as any)
+            runner['_startSession'] = vi.fn().mockReturnValue({})
+            runner['_initSession'] = vi.fn().mockReturnValue(browser)
+            runner['_shutdown'] = vi.fn()
+            runner.on('error', vi.fn())
+            const endSession = vi.spyOn(runner, 'endSession')
+
+            await runner.run({
+                args: { watch: true }, configFile: '/foo/bar',
+                caps: isMultiRemote ? {
+                    browserA: { capabilities: { browserName: 'chrome' } },
+                    browserB: { capabilities: { browserName: 'chrome' } }
+                } : { browserName: 'chrome' }
+            } as any)
+
+            expect(process.send).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'sessionStarted',
+                content: expect.objectContaining(isMultiRemote ? {
+                    instances: {
+                        browserA: { sessionId: replacement.sessionId, capabilities: replacement.capabilities, ...replacement.options },
+                        browserB: { sessionId: unchanged.sessionId, capabilities: unchanged.capabilities, ...unchanged.options }
+                    }
+                } : { sessionId: replacement.sessionId, capabilities: replacement.capabilities, ...replacement.options })
+            }))
+            expect(endSession).not.toHaveBeenCalled()
+        })
+
         it('should keep retained instances out of the protocol stub', async () => {
             const instances = {
                 browserA: { sessionId: 'session-a' },
