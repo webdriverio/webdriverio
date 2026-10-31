@@ -20,3 +20,34 @@ https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows
 ```
 
 Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.
+
+## Firefox on Windows runners
+
+On a GitHub-hosted Windows runner, Geckodriver creates each temporary Firefox profile in `%TEMP%`, which is on the `C:` system disk. When several Firefox sessions start at the same time, their profiles fill the disk queue of `C:`. The running Firefox sessions then stop answering for 5 to 20 seconds while they start their content processes, and tests time out.
+
+Create the profiles on `D:` instead: set the Geckodriver option `profileRoot` to `RUNNER_TEMP`, a folder on `D:` that GitHub Actions sets in every job.
+
+```ts title="wdio.conf.ts"
+import os from 'node:os'
+
+const profileRoot = os.platform() === 'win32' ? process.env.RUNNER_TEMP : undefined
+
+export const config: WebdriverIO.Config = {
+    // ...
+    maxInstances: 4,
+    capabilities: [{
+        browserName: 'firefox',
+        'moz:firefoxOptions': { args: ['-headless'] },
+        ...(profileRoot ? { 'wdio:geckodriverOptions': { profileRoot } } : {})
+    }]
+}
+```
+
+Geckodriver still deletes each profile when the session ends. Outside of GitHub Actions, `RUNNER_TEMP` is not set and the profiles stay in the default folder.
+
+Measured on `windows-latest` (2 cores), with up to 4 Chrome and Firefox sessions at the same time, 10 jobs each:
+
+| Profiles in | Firefox stalls of 5 s or more | New Firefox session, median / max |
+|---|---|---|
+| `%TEMP%` on `C:` (default) | 14, in 7 of 10 jobs | 7.3 s / 36.0 s |
+| `RUNNER_TEMP` on `D:` | 0 | 2.3 s / 13.0 s |

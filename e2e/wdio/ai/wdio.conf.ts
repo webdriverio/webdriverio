@@ -3,6 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 
 import { actModel, cacheDir } from './model.js'
+import { firefoxDriverOptions } from '../firefoxProfileRoot.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const isLinux = os.platform() === 'linux'
@@ -14,11 +15,6 @@ export const config: WebdriverIO.Config = {
      * CI machine has cores make the steps time out
      */
     maxInstances: 4,
-    /**
-     * several Firefox sessions start at once on a Windows CI runner: a busy Firefox
-     * can accept the BiDi connection more than 10 s after the session starts
-     */
-    bidiConnectTimeout: 30000,
     capabilities: [{
         browserName: 'chrome',
         /**
@@ -33,7 +29,8 @@ export const config: WebdriverIO.Config = {
     }, {
         browserName: 'firefox',
         webSocketUrl: true,
-        'moz:firefoxOptions': { args: ['-headless'] }
+        'moz:firefoxOptions': { args: ['-headless'] },
+        ...firefoxDriverOptions
     }],
     services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') }, effects: { ignore: ['/telemetry'] } }]],
     /**

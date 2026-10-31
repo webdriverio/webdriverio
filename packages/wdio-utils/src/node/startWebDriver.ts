@@ -8,10 +8,8 @@ import logger from '@wdio/logger'
 import split2 from 'split2'
 import { deepmerge } from 'deepmerge-ts'
 
-import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
-import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import type { InstallOptions } from '@puppeteer/browsers'
-import type { EdgedriverParameters } from 'edgedriver'
+import { start as startSafaridriver } from 'safaridriver'
+import { start as startGeckodriver } from 'geckodriver'
 
 import type { Capabilities } from '@wdio/types'
 
@@ -19,19 +17,7 @@ import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, gen
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability, sleep } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = (
-    Partial<InstallOptions> &
-    Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'> &
-    Pick<GeckodriverParameters, 'spawnOpts'>
-)
-declare global {
-    namespace WebdriverIO {
-        interface ChromedriverOptions extends ChromedriverParameters { }
-        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> { }
-        interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> { }
-        interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> { }
-    }
-}
+export type { ChromedriverParameters } from '../driverOptions.js'
 
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s

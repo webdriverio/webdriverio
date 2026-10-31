@@ -46,7 +46,7 @@ Specific options passed into Chromedriver when starting it.
 
 #### `wdio:geckodriverOptions`
 
-Specific options passed into Geckodriver when starting it.
+Specific options passed into Geckodriver when starting it. For example, `profileRoot` is the folder in which Geckodriver creates the temporary Firefox profile; see [Firefox on Windows runners](githubactions#firefox-on-windows-runners).
 
 #### `wdio:edgedriverOptions`
 

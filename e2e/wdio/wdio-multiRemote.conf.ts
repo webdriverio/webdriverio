@@ -5,18 +5,14 @@ import { config as baseConfig } from './wdio.conf.js'
 
 import { setValue } from '@wdio/shared-store-service'
 
+import { firefoxDriverOptions } from './firefoxProfileRoot.js'
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const isLinux = os.platform() === 'linux'
 
 export const config: WebdriverIO.MultiRemoteConfig = {
     ...baseConfig,
-    /**
-     * several Firefox sessions start at once on a Windows CI runner: a busy Firefox
-     * can accept the BiDi connection more than 10 s after the session starts
-     */
-    bidiConnectTimeout: 30000,
-
     specs: [
         path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts'),
         path.resolve(__dirname, 'headless', 'multiRemoteExpect.e2e.ts'),
@@ -40,7 +36,8 @@ export const config: WebdriverIO.MultiRemoteConfig = {
                     browserVersion: 'stable',
                     'moz:firefoxOptions': {
                         args: ['-headless']
-                    }
+                    },
+                    ...firefoxDriverOptions
                 }
             },
             browserC: {
