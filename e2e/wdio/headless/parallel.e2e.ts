@@ -132,4 +132,32 @@ describe('parallel mode e2e test', () => {
         expect(await browser.getCookies({ name: 'parallel-e2e' })).toEqual([])
         expect(await browser.execute(() => document.cookie)).not.toContain('parallel-e2e=')
     })
+
+    // the jar of the window holds the cookies of every host and path; the commands keep those of the page
+    it('reads and deletes only the cookies that the page sees', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        const names = async (sourceOrigin?: null) => (await browser.getCookies(undefined, sourceOrigin))
+            .map((cookie) => cookie.name).filter((name) => name.startsWith('scope-')).sort()
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN.replace('127.0.0.1', 'localhost')}/checkboxes`)
+        await browser.setCookies({ name: 'scope-other-host', value: '1' })
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+        await browser.setCookies([
+            { name: 'scope-page', value: '1', sameSite: 'Strict' },
+            { name: 'scope-other-path', value: '1', path: '/login' }
+        ])
+
+        expect(await names()).toEqual(['scope-page'])
+        expect((await browser.getCookies({ name: 'scope-page' }))[0].sameSite).toBe('strict')
+        expect(await names(null)).toEqual(['scope-other-host', 'scope-other-path', 'scope-page'])
+
+        await browser.deleteCookies(['scope-page', 'scope-other-path', 'scope-other-host'])
+        expect(await names(null)).toEqual(['scope-other-host', 'scope-other-path'])
+
+        await browser.url('about:blank')
+        expect(await names()).toEqual([])
+        await expect(browser.setCookies({ name: 'scope-blank', value: '1' })).rejects.toThrow('the page has no host')
+    })
 })
