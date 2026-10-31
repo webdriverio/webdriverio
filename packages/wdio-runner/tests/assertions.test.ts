@@ -100,6 +100,10 @@ describe('wrapAssertions session of the subject', () => {
     const [[{ toPollOnA: wrapped }]] = extend.mock.calls
     const commandsOf = (session: { emit: ReturnType<typeof vi.fn> }) => session.emit.mock.calls.map(([event, payload]) => `${event} ${payload.command}`)
     const assertion = ['userCommand expect.toPollOnA', 'userResult expect.toPollOnA']
+    // a chainable `$()`: a field of the proxy is a promise of the field of the element
+    const pendingOf = (parent: unknown) => Object.assign(setWdioKind({}, 'element'), {
+        [WDIO_CHAINABLE]: true, [WDIO_QUERY]: { foundWith: '$', selector: '#form', parent }, parent: Promise.resolve(undefined)
+    })
 
     beforeEach(() => {
         instanceA.emit.mockClear()
@@ -110,6 +114,8 @@ describe('wrapAssertions session of the subject', () => {
         ['an element of instance A', () => setWdioKind({ elementId: 'e1', parent: instanceA }, 'element')],
         ['a pending element of instance A', () => Object.assign(setWdioKind({}, 'element'), { [WDIO_CHAINABLE]: true, [WDIO_QUERY]: { foundWith: '$', selector: '#x', parent: instanceA } })],
         ['an element list of instance A', () => setWdioKind(Object.assign([], { parent: instanceA }), 'element-array')],
+        // `$('#form').$$('li')`: the parent of the list is the pending element, whose fields are promises
+        ['an element list of a pending element of instance A', () => setWdioKind(Object.assign([], { parent: pendingOf(instanceA) }), 'element-array')],
         ['instance A', () => instanceA],
         ['a browsing context of instance A', () => setWdioKind({ contextId: 'tab-1', browser: instanceA }, 'browsing-context')],
         ['the some() of an element list of instance A', () => some(setWdioKind(Object.assign([], { parent: instanceA }), 'element-array'))]
@@ -124,6 +130,18 @@ describe('wrapAssertions session of the subject', () => {
         await wrapped.call({ isNot: false }, some(list), 'Done')
         const [, { body }] = instanceA.emit.mock.calls[0]
         expect(body).toEqual([{ wdio: 'some', elements: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 0 } }, 'Done'])
+    })
+
+    it('uses the browser of the runner for a pending subject with no query, and does not read its fields', async () => {
+        const runner = { isBidi: true, sessionId: 'r', options: { userCommandEvents: true }, emit: vi.fn() }
+        const ext = vi.fn()
+        wrapAssertions({ extend: ext }, { toPollOnA }, () => runner)
+        const [[{ toPollOnA: onRunner }]] = ext.mock.calls
+        const parent = vi.fn()
+        const pending = Object.defineProperty(setWdioKind({ then: () => {} }, 'element-array'), 'parent', { get: parent })
+        await onRunner.call({ isNot: false }, pending, 'Done')
+        expect(parent).not.toHaveBeenCalled()
+        expect(commandsOf(runner)).toEqual(assertion)
     })
 
     it('uses the browser of the runner for a subject with no session, for example a mock', async () => {
