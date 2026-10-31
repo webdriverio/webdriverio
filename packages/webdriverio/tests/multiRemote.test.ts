@@ -36,6 +36,8 @@ describe('Multi-Remote tests', () => {
         expect(browser.getInstance('browserA').sessionId).toBe('browser-a-session')
         expect(browser.getInstance('browserB').sessionId).toBe('browser-b-session')
         expect(fetch).not.toHaveBeenCalled()
+    })
+
     describe('listenerCount', () => {
         test('counts the listeners of each instance', async () => {
             const browser = await multiRemote(caps())
