@@ -18,10 +18,12 @@ import { markAttachedSession } from './utils/scriptTimeout.js'
 import { enableBrowsingContextCommands } from './browsingContext.js'
 import { environment } from './environment.js'
 
+import { applyBidiBrowserOverwrites } from './utils/bidi/browserOverwrites.js'
 import type { AttachOptions, CustomCommandOptions } from './types.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
+export { PARALLEL_CONTEXT_STORE_KEY } from './session/context.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 /**
@@ -113,6 +115,9 @@ export const remote = async function (
     if (!isStub(options.automationProtocol)) {
         await registerSessionManager(instance)
     }
+
+    applyBidiBrowserOverwrites(instance)
+
     return instance
 }
 
@@ -148,6 +153,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         await (driver['_bidiHandler'] as WebDriverTypes.BidiHandler).waitForConnected()
     }
     await registerSessionManager(driver)
+
+    applyBidiBrowserOverwrites(driver)
+
     return driver
 }
 

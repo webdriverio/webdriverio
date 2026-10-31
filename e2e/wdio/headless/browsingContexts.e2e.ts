@@ -95,7 +95,9 @@ describe('browsing contexts', () => {
         </script>`),
         '/api/scoped': () => 'real',
         '/api/restored': () => 'real',
-        '/api/closed': () => 'real'
+        '/api/closed': () => 'real',
+        '/api/session': () => 'real',
+        '/api/own': () => 'real'
     }
 
     const server = createServer((request, response) => {
@@ -433,6 +435,30 @@ describe('browsing contexts', () => {
             await mock.restore()
             await b.navigate(`${origin}/fetch?endpoint=restored`)
             await expect(b.$('#result')).toHaveText('real')
+        })
+
+        it('restores only the mocks of the tab it was called on', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-a')
+
+            try {
+                const sessionWide = await browser.mock('**/api/session')
+                sessionWide.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                const own = await b.mock('**/api/own')
+                own.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+
+                await b.mockRestoreAll()
+                await b.navigate(`${origin}/fetch?endpoint=own`)
+                await expect(b.$('#result')).toHaveText('real')
+                await a.navigate(`${origin}/fetch?endpoint=session`)
+                await expect(a.$('#result')).toHaveText('mocked')
+
+                await browser.mockRestoreAll()
+                await a.navigate(`${origin}/fetch?endpoint=session`)
+                await expect(a.$('#result')).toHaveText('real')
+            } finally {
+                await browser.mockRestoreAll()
+            }
         })
 
         it('shares cookies between tabs of the same origin', async () => {
@@ -954,6 +980,33 @@ describe('browsing contexts', () => {
                 for (const [command, run] of Object.entries(scenarios)) {
                     it(command, async () => run(await target()))
                 }
+            })
+        }
+
+        /**
+         * BiDi resolves a stale element: the command finds it again, like classic WebDriver
+         */
+        for (const [where, target] of Object.entries(targets)) {
+            it(`finds a stale element of ${where} again`, async () => {
+                const context = await target()
+                const item = await second(context)
+                const check = await context.$('#check')
+                await context.execute(() => {
+                    document.getElementById('list')!.innerHTML = '<li class="item">uno</li><li class="item">dos</li><li class="item">tres</li>'
+                    const old = document.getElementById('check') as HTMLInputElement
+                    const copy = old.cloneNode() as HTMLInputElement
+                    copy.checked = false
+                    old.replaceWith(copy)
+                })
+                expect(await item.getText()).toBe('dos')
+                expect(await check.isSelected()).toBe(false)
+
+                const list = await context.$('#list')
+                await context.execute(() => {
+                    document.getElementById('list')!.dataset.state = 'before reload'
+                })
+                await context.refresh()
+                expect(await list.getAttribute('data-state')).toBeNull()
             })
         }
     })

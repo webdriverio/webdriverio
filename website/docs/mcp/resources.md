@@ -90,7 +90,7 @@ Accessibility tree for the current page. Returns all nodes by default with role,
 }
 ```
 
-For filtered results (by role, paginated), use the `get_accessibility_tree` tool.
+For filtered results (by role, paginated), use the `get_accessibility_tree` tool. It is listed only for Electron sessions; in browsers, use `snapshot`.
 
 ---
 
@@ -291,3 +291,17 @@ Download URL and daemon setup instructions for TestingBot Tunnel. The tunnel is 
   }
 }
 ```
+
+## WebdriverIO Documentation
+
+The docs resources serve the official WebdriverIO documentation. The corpus is fetched from `https://webdriver.io/llms-full.txt` and cached locally; `WDIO_MCP_CACHE_DIR` moves the cache. Use these resources when an excerpt from `query_docs` is not enough.
+
+### `wdio://docs/index`
+
+Every docs page as tab-separated lines: title, source path, and slug. Find the exact title here before searching with `query_docs`, then read the page through `wdio://docs/page/{slug}`. Pages without a docs-site path are omitted, because they are sections of third-party package pages and have no slug.
+
+---
+
+### `wdio://docs/page/{slug}`
+
+URI template: replace `{slug}` with a slug from `wdio://docs/index`. Returns the page as markdown, truncated at 40,000 characters with a note. A slug is the page path without the leading `/`, with each remaining `/` replaced by `~`. For example, `/docs/appium.md` becomes `docs~appium.md`. An unknown slug returns a plain-text message.

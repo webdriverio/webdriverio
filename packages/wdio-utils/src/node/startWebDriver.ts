@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -141,25 +140,6 @@ export async function startWebDriver(options: Capabilities.RemoteConfig & Pick<O
                 prefs,
                 caps['goog:chromeOptions'] || {}
             )
-
-            /**
-             * Add unique user data directory for each worker to prevent
-             * "user data directory is already in use" errors on Windows
-             * when multiple workers start Chrome simultaneously
-             */
-            if (process.platform === 'win32' && process.env.WDIO_WORKER_ID) {
-                const existingArgs = caps['goog:chromeOptions']?.args || []
-                const hasUserDataDir = existingArgs.some(arg =>
-                    typeof arg === 'string' && arg.includes('user-data-dir'))
-
-                if (!hasUserDataDir) {
-                    const userDataDir = path.join(
-                        options.outputDir || os.tmpdir(),
-                        `wdio-chrome-${process.env.WDIO_WORKER_ID}-${Date.now()}`
-                    )
-                    caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
-                }
-            }
 
             addWaylandFlag(caps['goog:chromeOptions'])
         }

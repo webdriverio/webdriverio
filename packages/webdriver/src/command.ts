@@ -8,7 +8,7 @@ import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
 import { CommandRuntimeOptions } from './types.js'
 import { mask } from './utils.js'
-import { APPIUM_MASKING_HEADER } from './constants.js'
+import { APPIUM_MASKING_HEADER, SESSION_ENDED_ERROR } from './constants.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -151,7 +151,9 @@ export default function (
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
-            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            const error = new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            error.name = SESSION_ENDED_ERROR
+            throw error
         }
 
         const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {
@@ -164,6 +166,9 @@ export default function (
             onRetry: (data) => this.emit('request.retry', data),
             onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data)))
         })
+        if (isMasked) {
+            request.maskedBody = maskedBody
+        }
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
@@ -176,7 +181,7 @@ export default function (
          * timeout or a lost network), so the driver process does not keep running.
          */
         let sessionCleanedUp = false
-        const cleanUpSession = () => {
+        const cleanUpSession = async (deleted: boolean) => {
             if (command !== 'deleteSession' || sessionCleanedUp) {
                 return
             }
@@ -192,7 +197,8 @@ export default function (
              * kill driver process if there is one
              */
             const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-            environment.value.killDriverProcess(this.capabilities, shutdownDriver)
+            // a driver that did not end the session did not delete its profile: no wait for it
+            await environment.value.killDriverProcess(this.capabilities, shutdownDriver, deleted ? this.requestedCapabilities as WebdriverIO.Capabilities : undefined)
 
             /**
              * clear logger stream if session has been terminated
@@ -219,12 +225,14 @@ export default function (
             }
 
             this.emit('result', { command, method, endpoint, body: maskedBody, result })
-            cleanUpSession()
-
-            return result.value as WebDriverResponse | BidiResponses
+            const value = result.value as WebDriverResponse | BidiResponses
+            // `deleteSession` resolves once the driver is stopped, if it is shut down
+            return command === 'deleteSession' ? cleanUpSession(true).then(() => value) : value
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
-            cleanUpSession()
+            if (command === 'deleteSession') {
+                return cleanUpSession(false).then(() => { throw error })
+            }
             throw error
         }).finally(() => {
             cleanup()
@@ -255,7 +263,7 @@ function manageSessionAbortions (this: BaseClient): {
             abortListeners.clear()
             sessionAbortListeners.set(this.sessionId, null)
         }
-
+        this.off('result', abortOnSessionEnd)
     }
 
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
@@ -281,7 +289,10 @@ function manageSessionAbortions (this: BaseClient): {
         isAborted: false,
         abortSignal: abort.signal,
         cleanup: () => {
-            this.off('result', abortOnSessionEnd)
+            /**
+             * only drop this command's controller, the session-wide listener
+             * has to stay registered until the session has been deleted
+             */
             abortListenerForCurrentSession?.delete(abort)
         }
     }

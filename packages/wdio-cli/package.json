@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "10.0.2",
+  "version": "10.1.0",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -9,7 +9,7 @@
     "wdio": "./bin/wdio.js"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -49,13 +49,14 @@
     "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "chalk": "^6.0.1",
-    "chokidar": "^5.0.0",
+    "chokidar": "^6.0.0",
     "create-wdio": "workspace:*",
     "dotenv": "^18.0.6",
     "import-meta-resolve": "^4.0.0",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
+    "minimatch": "^10.2.6",
     "read-package-up": "^12.0.0",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",

@@ -88,7 +88,12 @@ function defineScenarios () {
     const sizes = [
         { name: 'small', count: 20, skips: 0 },
         { name: 'large', count: 200, skips: 0 },
-        { name: 'skips', count: 20, skips: 40 }
+        { name: 'skips', count: 20, skips: 40 },
+        /**
+         * element objects: each test finds a list of 200 elements, then finds it
+         * again through `isExisting()` of its last item (Mocha only)
+         */
+        { name: 'lists', count: 20, skips: 0, listSize: 200 }
     ]
     const profiles = [
         { name: 'info', logLevel: 'info' },
@@ -110,6 +115,9 @@ function defineScenarios () {
                     mochaOpts: { ui: 'bdd', timeout: 10000 }
                 })
             })
+            if (size.listSize) {
+                continue
+            }
             scenarios.push({
                 id: `jasmine-${size.name}-${profile.name}`,
                 framework: 'jasmine',
@@ -164,7 +172,8 @@ async function runOnce (scenario, fixtures) {
 async function measureScenario (scenario, iterations) {
     const sized = await generateFixtures({
         testCount: scenario.size.count,
-        includeSkips: scenario.size.skips
+        includeSkips: scenario.size.skips,
+        listSize: scenario.size.listSize
     })
 
     try {
@@ -309,9 +318,11 @@ async function main () {
         ? allScenarios.filter((s) => s.id === opts.scenario)
         : allScenarios.filter((s) =>
             // Default set: large+quiet (isolates framework), large+info (realistic),
-            // and mocha-skips-quiet for skip-path work.
+            // mocha-skips-quiet for skip-path work, and mocha-lists-quiet for
+            // element objects.
             (s.size.name === 'large') ||
-            (s.id === 'mocha-skips-quiet')
+            (s.id === 'mocha-skips-quiet') ||
+            (s.id === 'mocha-lists-quiet')
         )
 
     if (selected.length === 0) {

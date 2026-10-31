@@ -6,7 +6,7 @@ import { initializeWorkerService, initializePlugin, executeHooksWithArgs, Timing
 import { ConfigParser, SUPPORTED_HOOKS } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
-import { attach } from 'webdriverio'
+import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities, CustomCommands, Workers } from '@wdio/types'
 
@@ -20,6 +20,12 @@ import type {
 } from './types.js'
 
 const log = logger('@wdio/runner')
+
+function getContextIdPayload(browser: WebdriverIO.Browser) {
+    const store = (browser as unknown as Record<string, { getStore?: () => unknown } | undefined>)[PARALLEL_CONTEXT_STORE_KEY]
+    const contextId = store?.getStore?.()
+    return typeof contextId === 'string' ? { contextId } : {}
+}
 
 export default class Runner extends EventEmitter {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
@@ -88,7 +94,7 @@ export default class Runner extends EventEmitter {
          * add built-in services
          */
         const softAssertionService = new SoftAssertionService({
-            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
+            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd ?? true
         })
 
         const snapshotService = SnapshotService.initiate({
@@ -177,6 +183,7 @@ export default class Runner extends EventEmitter {
         }
 
         this._reporter.caps = browser.capabilities
+        this._reporter.setContextIdResolver(() => (getContextIdPayload(browser as WebdriverIO.Browser) as { contextId?: string }).contextId)
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
@@ -248,6 +255,9 @@ export default class Runner extends EventEmitter {
          */
         let failures = 0
         try {
+            if (!this._isMultiRemote) {
+                this._framework.setBrowser?.(browser as WebdriverIO.Browser)
+            }
             failures = await this._framework.run()
         } catch (err: any) {
             log.error(err)
@@ -342,7 +352,7 @@ export default class Runner extends EventEmitter {
          */
         browser.on('command', (command: any) => this._reporter?.emit(
             'client:beforeCommand',
-            Object.assign(command, { sessionId: browser.sessionId })
+            Object.assign(command, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
         /**
@@ -350,7 +360,7 @@ export default class Runner extends EventEmitter {
          */
         browser.on('result', (result: any) => this._reporter?.emit(
             'client:afterCommand',
-            Object.assign(result, { sessionId: browser.sessionId })
+            Object.assign(result, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
         return browser

@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import webdriverMonad from './monad.js'
+import webdriverMonad, { shareCommands } from './monad.js'
 import { resolveCustomCommandOptions } from './customCommands.js'
 import initializePlugin from './initializePlugin.js'
 import { startWebDriver } from './startWebDriver.js'
@@ -8,9 +8,9 @@ import { initializeLauncherService, initializeWorkerService } from './initialize
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
-    userImport, getBrowserObject, enableFileLogging,
+    userImport, getBrowserObject, enableFileLogging, specFilePath,
 } from './utils.js'
-import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS } from './shim.js'
+import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAgent.js'
@@ -20,6 +20,7 @@ import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.
 import {
     WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
 } from './kind.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
 
 export {
@@ -30,6 +31,7 @@ export {
     isFunctionAsync,
     transformCommandLogResult,
     webdriverMonad,
+    shareCommands,
     resolveCustomCommandOptions,
     commandCallStructure,
     isValidParameter,
@@ -40,6 +42,7 @@ export {
     userImport,
     getBrowserObject,
     enableFileLogging,
+    specFilePath,
     asyncIterators,
 
     /**
@@ -48,8 +51,10 @@ export {
     wrapCommand,
     chainElementPromise,
     ELEMENT_ARRAY_WRAP,
+    unwrapCommand,
     ELEMENT_ARRAY_COMMANDS,
     registerElementArrayFactory,
+    setCommandHookStore,
     executeAsync,
     wrapGlobalTestMethod,
     testFnWrapper,
@@ -97,5 +102,15 @@ export {
     knownRoles,
     ROLE_SYNONYMS,
     type AttributeTest,
-    type RoleRule
+    type RoleRule,
+
+    /**
+     * BiDi context allocation for parallel test execution
+     */
+    allocateContext,
+    cleanupAllocation,
+    resolveMaxContexts,
+    type ParallelMode,
+    type ParallelContextAllocation,
+    type ParallelContextBrowser
 }

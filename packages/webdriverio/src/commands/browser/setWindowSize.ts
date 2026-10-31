@@ -1,4 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
+import { assertNotInParallelScope } from '../../utils/parallelGuard.js'
+
+const WINDOW_REASON = 'parallel tests share one OS window, use setViewport to size a test\'s page'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -41,6 +44,8 @@ export async function setWindowSize(
     if (width < minWindowSize || width > maxWindowSize || height < minWindowSize || height > maxWindowSize) {
         throw new Error('setWindowSize expects width and height to be a number in the 0 to 2^31 − 1 range')
     }
+
+    assertNotInParallelScope('setWindowSize', WINDOW_REASON)
 
     const browser = getBrowserObject(this)
 

@@ -7,7 +7,51 @@ import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js
 
 const log = logger('@wdio/utils:shim')
 
-let inCommandHook = false
+export interface CommandHookStore {
+    getStore(): true | undefined
+    run<T>(value: true, fn: () => T): T
+}
+
+/**
+ * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
+ * flag, so a hook still does not trigger itself via the commands it issues.
+ */
+const flagCommandHookStore: CommandHookStore = (() => {
+    let active = false
+    return {
+        getStore: () => active ? true : undefined,
+        run: <T>(_: true, fn: () => T): T => {
+            const previous = active
+            active = true
+            let result: T
+            try {
+                result = fn()
+            } catch (err) {
+                active = previous
+                throw err
+            }
+            if (result instanceof Promise) {
+                return result.finally(() => { active = previous }) as T
+            }
+            active = previous
+            return result
+        }
+    }
+})()
+
+let commandHookScope: CommandHookStore = flagCommandHookStore
+
+/**
+ * Node entry points register an `AsyncLocalStorage` so a hook running for one
+ * concurrent test (parallel mode) does not suppress hooks of commands issued by
+ * other tests.
+ */
+export function setCommandHookStore (store: CommandHookStore) {
+    commandHookScope = store
+}
+
+const isInCommandHook = () => commandHookScope.getStore() === true
+const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -26,6 +70,17 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
+// marks a function of `wrapCommand` with the command it wraps, see `unwrapCommand`
+const WRAPPED_COMMAND = Symbol.for('webdriverio.wrappedCommand')
+
+/**
+ * The command that `wrapCommand` wrapped, or the value as it is. An element copies the commands
+ * of the browser, which the browser already wrapped: it wraps the command itself, so the command
+ * hooks run once for each command.
+ */
+export function unwrapCommand<T> (value: T): T | Function {
+    return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
+}
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
 
 /**
@@ -452,10 +507,8 @@ function attachElementArrayHooks (
     const self = this
     wrap(async (load) => {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && self.options?.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(self, 'beforeCommand', self.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && self.options?.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'beforeCommand', self.options!.beforeCommand, beforeHookArgs))
         }
 
         let commandError: unknown
@@ -465,11 +518,9 @@ function attachElementArrayHooks (
             commandError = err
         }
 
-        if (!inCommandHook && self.options?.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && self.options?.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, elementArray, commandError]
-            await executeHooksWithArgs.call(self, 'afterCommand', self.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'afterCommand', self.options!.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -487,10 +538,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && this.options.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && this.options.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
         }
 
         let commandResult
@@ -501,11 +550,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && this.options.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -529,7 +576,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
+    const wrapped = function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
         /**
          * `$$` and the other multi-element queries return an ElementArray, which
          * is itself thenable and async-iterable. Don't wrap that result in
@@ -636,6 +683,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
         return command.apply(this, args)
     }
+    Object.defineProperty(wrapped, WRAPPED_COMMAND, { value: fn })
+    return wrapped
 }
 
 /**
@@ -688,6 +737,26 @@ export function followFrameworkTimer (runnable: unknown) {
      * a hook runs again for each test; Mocha starts its timer right after this
      */
     timer.startedAt = Date.now()
+}
+
+/**
+ * Add the WebdriverIO attempt to a framework timeout error, for a test or hook
+ * with WebdriverIO retries
+ */
+function withAttempt (err: Error, attempt: number, totalAttempts: number) {
+    if (totalAttempts < 2) {
+        return err
+    }
+    const message = err.message
+    /**
+     * read the stack first: V8 builds its text on the first read, with the message of that time
+     */
+    const stack = err.stack
+    err.message = `${message} (WDIO attempt ${attempt}/${totalAttempts})`
+    if (typeof stack === 'string') {
+        err.stack = stack.replace(message, () => err.message)
+    }
+    return err
 }
 
 /**
@@ -774,7 +843,7 @@ export async function executeAsync(
                      * Mocha would fail the runnable TIME_BUFFER ms later and not wait for it, so
                      * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
                      * timer so it waits for them, and fail with Mocha's own timeout error so the
-                     * report stays the same.
+                     * report stays the same, plus the attempt when the test has WebdriverIO retries.
                      */
                     if (frameworkTimer) {
                         frameworkTimer.onRestart = undefined
@@ -782,7 +851,7 @@ export async function executeAsync(
                     runnable?.resetTimeout?.()
                     mochaTimedOut = typeof runnable?._timeoutError === 'function'
                     reject(typeof runnable?._timeoutError === 'function'
-                        ? runnable._timeoutError(current)
+                        ? withAttempt(runnable._timeoutError(current), attempt, totalAttempts)
                         : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
                 }
                 if (frameworkTimer) {

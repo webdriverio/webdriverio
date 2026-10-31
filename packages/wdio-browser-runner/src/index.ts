@@ -64,7 +64,7 @@ export default class BrowserRunner extends LocalRunner {
      */
     async initialize() {
         log.info('Initiate browser environment')
-        if (typeof this.#coverageOptions.clean === 'undefined' || this.#coverageOptions.clean) {
+        if (this.#coverageOptions.enabled && (typeof this.#coverageOptions.clean === 'undefined' || this.#coverageOptions.clean)) {
             const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
                 .then(() => true, () => false)
             if (reportsDirectoryExist) {

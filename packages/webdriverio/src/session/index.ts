@@ -3,7 +3,8 @@ import { getShadowRootManager } from './shadowRoot.js'
 import { getNetworkManager } from './networkManager.js'
 import { getDialogManager } from './dialog.js'
 import { getContextManager } from './context.js'
-import { trackScriptTimeout } from '../utils/scriptTimeout.js'
+import { getBidiMapperLogManager } from './bidiMapperLog.js'
+import { setIOSScriptTimeout, trackScriptTimeout } from '../utils/scriptTimeout.js'
 
 /**
  * register all session relevant singletons on the instance
@@ -12,6 +13,7 @@ export function registerSessionManager(instance: WebdriverIO.Browser) {
     // Register ContextManager for all sessions
     const initializationPromises: Promise<unknown>[] = [
         getContextManager(instance).initialize(),
+        setIOSScriptTimeout(instance)
     ]
 
     /**
@@ -24,7 +26,8 @@ export function registerSessionManager(instance: WebdriverIO.Browser) {
             getPolyfillManager(instance).initialize(),
             getShadowRootManager(instance).initialize(),
             getNetworkManager(instance).initialize(),
-            getDialogManager(instance).initialize()
+            getDialogManager(instance).initialize(),
+            getBidiMapperLogManager(instance).initialize()
         )
     }
 

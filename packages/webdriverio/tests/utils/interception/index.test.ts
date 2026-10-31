@@ -1,12 +1,17 @@
 import { EventEmitter } from 'node:events'
 import { Buffer } from 'node:buffer'
 import { runInNewContext } from 'node:vm'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import { type local } from 'webdriver'
+import { setWdioKind } from '@wdio/utils'
+import { type local, SESSION_ENDED_ERROR } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
+import { mockRestoreAll } from '../../../src/commands/browser/mockRestoreAll.js'
+import { mockClearAll } from '../../../src/commands/browser/mockClearAll.js'
+import { getParallelContextStore, setParallelContextStore } from '../../../src/session/context.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
 
@@ -44,6 +49,7 @@ describe('WebDriverInterception', () => {
             })),
             networkContinueRequest: vi.fn().mockReturnValue(Promise.resolve()),
             networkFailRequest: vi.fn().mockReturnValue(Promise.resolve()),
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
             call: vi.fn(),
         } satisfies Partial<WebdriverIO.Browser>
         const browser = Object.assign(new EventEmitter(), defaults, overrides) as unknown as WebdriverIO.Browser
@@ -764,6 +770,120 @@ describe('WebDriverInterception', () => {
 
         expect(mock.calls.length).toBe(1)
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('ignores network events of contexts other than its own', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkAddIntercept)
+            .mockResolvedValueOnce({ intercept: 'id-A' })
+            .mockResolvedValueOnce({ intercept: 'id-B' })
+        const mockA = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['A'] })
+        const mockB = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['B'] })
+
+        mockB.abort()
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), intercepts: ['id-A'], context: 'A' })
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-2'), intercepts: ['id-B'], context: 'B' })
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-2' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'A' })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-4'), isBlocked: false, context: null })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+    })
+
+    it('answers a blocked iframe request of a held context', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        mock.abort()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), context: 'child' })
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+    })
+
+    it('ignores a blocked request paused by another mock', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        mock.abort()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), intercepts: ['other-id'], context: 'top' })
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+    })
+
+    it('records observed events of descendant contexts only', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+
+        browser.emit('browsingContext.contextCreated', { context: 'child', parent: 'top' })
+        browser.emit('browsingContext.contextCreated', { context: 'grandchild', parent: 'child' })
+        browser.emit('browsingContext.contextCreated', { context: 'foreign', parent: 'other' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-2'), isBlocked: false, context: 'foreign' })
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('browsingContext.contextDestroyed', { context: 'grandchild' })
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('records a completed response of a descendant context but not of an unrelated one', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        browser.emit('browsingContext.contextCreated', { context: 'child', parent: 'top' })
+
+        const event = (context: string, request = getResponseCollectionRequestStub().request) => ({ ...getResponseCollectionRequestStub(), request, isBlocked: false, context })
+        browser.emit('network.responseStarted', event('child'))
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('network.responseCompleted', event('unrelated', { ...getResponseCollectionRequestStub().request, request: 'req-other' }))
+        await waitForAsyncHandlers()
+        expect(browser.networkGetData).not.toHaveBeenCalled()
+
+        browser.emit('network.responseCompleted', event('child'))
+        await waitForAsyncHandlers()
+        expect(mock.calls[0].body).toBe('response-body')
+    })
+
+    it('records observed events of iframes that existed before the mock', async () => {
+        const browser = getResponseCollectionBrowserMock({}, {
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [{
+                context: 'top',
+                children: [{ context: 'child', children: [{ context: 'grandchild', children: [] }] }]
+            }] })
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        expect(browser.browsingContextGetTree).toHaveBeenCalledWith({ root: 'top' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('collects the response body of a blocked request from an iframe unknown to the mock', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+
+        browser.emit('network.responseStarted', { ...getResponseCollectionRequestStub(), intercepts: ['mock-id'], context: 'child' })
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('network.responseCompleted', { ...getResponseCollectionRequestStub(), isBlocked: false, context: 'child' })
+        await waitForAsyncHandlers()
+        expect(mock.calls[0].body).toBe('response-body')
+    })
+
+    it('handles network events of any context without contexts', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'A' })
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-2'), isBlocked: false, context: null })
+        expect(mock.calls).toHaveLength(2)
     })
 
     it('should not record requests that do not match the mock pattern', async () => {
@@ -1822,7 +1942,6 @@ describe('WebDriverInterception', () => {
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             SESSION_MOCKS['handle-1'] = new Set([mock])
 
-            mock.respond({ ok: true })
             browser.emit('network.responseStarted', {
                 ...getResponseCollectionRequestStub(),
                 intercepts: ['mock-id']
@@ -1837,6 +1956,179 @@ describe('WebDriverInterception', () => {
 
             resolveProvideResponse!()
             delete SESSION_MOCKS['handle-1']
+        })
+
+        /**
+         * mimics the browser: removing an intercept that was already removed fails
+         */
+        const removeInterceptOnce = () => {
+            const removed = new Set<string>()
+            return vi.fn(async ({ intercept }: { intercept: string }) => {
+                if (removed.has(intercept)) {
+                    throw new Error(`WebDriver Bidi command "network.removeIntercept" failed with error: no such intercept - Intercept '${intercept}' does not exist.`)
+                }
+                removed.add(intercept)
+            })
+        }
+
+        const getRestorableBrowserMock = (handle: string, interceptId: string, sessionId = `session-${handle}`) => getResponseCollectionBrowserMock({}, {
+            sessionId,
+            networkAddIntercept: vi.fn().mockResolvedValue({ intercept: interceptId }),
+            networkRemoveIntercept: removeInterceptOnce(),
+            getWindowHandle: vi.fn().mockResolvedValue(handle),
+        })
+
+        it('should only remove the intercept once when restored concurrently or repeatedly', async () => {
+            const browser = getRestorableBrowserMock('handle-1', 'mock-id')
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(Promise.all([mock.restore(), mock.restore()])).resolves.toEqual([mock, mock])
+            await expect(mock.restore()).resolves.toBe(mock)
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        it('should allow to retry restore if removing the intercept failed', async () => {
+            const browser = getRestorableBrowserMock('handle-1', 'mock-id')
+            vi.mocked(browser.networkRemoveIntercept).mockRejectedValueOnce(new Error('boom'))
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(mock.restore()).rejects.toThrow('boom')
+            await expect(mock.restore()).resolves.toBe(mock)
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(2)
+
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        describe('mockRestoreAll on a multi-remote browser', () => {
+            const setup = async () => {
+                const browserA = getRestorableBrowserMock('handle-a', 'intercept-a')
+                const browserB = getRestorableBrowserMock('handle-b', 'intercept-b')
+                SESSION_MOCKS['handle-a'] = new Set([await WebDriverInterception.initiate('http://test.com/**', {}, browserA)])
+                SESSION_MOCKS['handle-b'] = new Set([await WebDriverInterception.initiate('http://test.com/**', {}, browserB)])
+                return { browserA, browserB }
+            }
+
+            afterEach(() => {
+                delete SESSION_MOCKS['handle-a']
+                delete SESSION_MOCKS['handle-b']
+            })
+
+            it('should only restore the mocks of the calling instance', async () => {
+                const { browserA, browserB } = await setup()
+
+                await mockRestoreAll.call(browserA)
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).not.toHaveBeenCalled()
+                expect(SESSION_MOCKS['handle-b'].size).toBe(1)
+            })
+
+            it('should restore mocks created by another client attached to the same session', async () => {
+                const { browserA, browserB } = await setup()
+                // e.g. a client created with `attach()` for browserA's session
+                const attachedA = getRestorableBrowserMock('handle-a', 'unused', browserA.sessionId)
+
+                await mockRestoreAll.call(attachedA)
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).not.toHaveBeenCalled()
+            })
+
+            it('should restore every mock once when run on all instances in parallel', async () => {
+                const { browserA, browserB } = await setup()
+
+                // a multi-remote command runs once per instance, in parallel
+                await Promise.all([mockRestoreAll.call(browserA), mockRestoreAll.call(browserB)])
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserB.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-b' })
+            })
+        })
+
+        describe('mockRestoreAll and mockClearAll on a tab or in a parallel test', () => {
+            const store = new AsyncLocalStorage<string>()
+            const setup = async () => {
+                const browser = getRestorableBrowserMock('handle-a', 'unused')
+                vi.mocked(browser.networkAddIntercept)
+                    .mockResolvedValueOnce({ intercept: 'session-wide' })
+                    .mockResolvedValueOnce({ intercept: 'tab-a' })
+                    .mockResolvedValueOnce({ intercept: 'tab-b' })
+                    .mockResolvedValueOnce({ intercept: 'opened-by-b' })
+                const sessionWide = await WebDriverInterception.initiate('http://test.com/session', {}, browser, { sessionKey: 'tab-a' })
+                const tabA = await WebDriverInterception.initiate('http://test.com/a', {}, browser, { contexts: ['tab-a'], sessionKey: 'tab-a' })
+                // made in the parallel test of window tab-b, the last one on a tab that test opened
+                const tabB = await WebDriverInterception.initiate('http://test.com/b', {}, browser, { contexts: ['tab-b'], sessionKey: 'tab-b', test: 'tab-b' })
+                const openedByB = await WebDriverInterception.initiate('http://test.com/c', {}, browser, { contexts: ['tab-c'], sessionKey: 'tab-c', test: 'tab-b' })
+                SESSION_MOCKS['tab-a'] = new Set([sessionWide, tabA])
+                SESSION_MOCKS['tab-b'] = new Set([tabB])
+                SESSION_MOCKS['tab-c'] = new Set([openedByB])
+                const tab = setWdioKind({ contextId: 'tab-a', browser, parent: browser }, 'browsing-context') as unknown as WebdriverIO.BrowsingContext
+                return { browser, tab, sessionWide, tabA, tabB, openedByB }
+            }
+            const removedIntercepts = (browser: WebdriverIO.Browser) =>
+                vi.mocked(browser.networkRemoveIntercept).mock.calls.map(([{ intercept }]) => intercept).sort()
+
+            let previousStore: ReturnType<typeof getParallelContextStore>
+            beforeEach(() => {
+                previousStore = getParallelContextStore()
+                setParallelContextStore(store)
+            })
+            afterEach(() => {
+                setParallelContextStore(previousStore)
+                delete SESSION_MOCKS['tab-a']
+                delete SESSION_MOCKS['tab-b']
+                delete SESSION_MOCKS['tab-c']
+            })
+
+            it('should only restore the mocks of the tab, not the session-wide ones', async () => {
+                const { browser, tab } = await setup()
+
+                await mockRestoreAll.call(tab)
+
+                expect(removedIntercepts(browser)).toEqual(['tab-a'])
+                expect(SESSION_MOCKS['tab-a'].size).toBe(1)
+                expect(SESSION_MOCKS['tab-b'].size).toBe(1)
+                expect(SESSION_MOCKS['tab-c'].size).toBe(1)
+            })
+
+            it('should only restore the mocks of the parallel test that calls it, also on a tab it opened', async () => {
+                const { browser } = await setup()
+
+                await store.run('tab-b', () => mockRestoreAll.call(browser))
+
+                expect(removedIntercepts(browser)).toEqual(['opened-by-b', 'tab-b'])
+                expect(SESSION_MOCKS['tab-a'].size).toBe(2)
+            })
+
+            it('should restore every mock of the session outside of a tab or parallel test', async () => {
+                const { browser } = await setup()
+
+                await mockRestoreAll.call(browser)
+
+                expect(removedIntercepts(browser)).toEqual(['opened-by-b', 'session-wide', 'tab-a', 'tab-b'])
+            })
+
+            it('should only clear the mocks of the tab or parallel test', async () => {
+                const { browser, tab, sessionWide, tabA, tabB, openedByB } = await setup()
+                const clears = [sessionWide, tabA, tabB, openedByB].map((mock) => vi.spyOn(mock, 'clear'))
+
+                await mockClearAll.call(tab)
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([0, 1, 0, 0])
+
+                await store.run('tab-b', () => mockClearAll.call(browser))
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([0, 1, 1, 1])
+
+                await mockClearAll.call(browser)
+                expect(clears.map((clear) => clear.mock.calls.length)).toEqual([1, 2, 2, 2])
+            })
         })
     })
 
@@ -2131,6 +2423,129 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+    })
+
+    /**
+     * A mock answers a paused request in a network event listener, with no caller to give
+     * an error to. When the session ends while the answer is in flight, the WebDriver BiDi
+     * command is rejected: that is no unhandled rejection
+     */
+    describe('a network command of a mock when the session ends', () => {
+        const CLOSED = 'WebDriver Bidi command "network.continueRequest" with id 7 got no result: the connection was closed'
+        /**
+         * the error that `webdriver` gives a command when the connection closes
+         */
+        const sessionEnded = () => Object.assign(new Error(CLOSED), { name: SESSION_ENDED_ERROR })
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+
+        beforeEach(() => {
+            unhandled.length = 0
+            process.on('unhandledRejection', onUnhandled)
+        })
+
+        afterEach(() => {
+            process.off('unhandledRejection', onUnhandled)
+        })
+
+        const expectNoUnhandledRejection = async () => {
+            await waitForAsyncHandlers()
+            expect(unhandled).toEqual([])
+            expect(loggerMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended'))
+        }
+
+        it('continues a request', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a request with an overwrite', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.redirect('https://webdriver.io')
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalled()
+            await expectNoUnhandledRejection()
+        })
+
+        it('fails a request', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkFailRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.abort()
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a paused request that does not match the mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+            browser.emit('network.beforeRequestSent', {
+                ...getBlockedRequestStub(),
+                request: { ...getBlockedRequestStub().request, url: 'http://other.com/bar' }
+            })
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a request whose method does not match a postData mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            await WebDriverInterception.initiate('http://test.com/**', { method: 'post', postData: 'request-body' }, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a request whose body does not match a postData mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            await WebDriverInterception.initiate('http://test.com/**', { postData: 'other-body' }, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            await waitForAsyncHandlers()
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        /**
+         * no caller waits for the answer of a paused request: another error is a warning,
+         * not an unhandled rejection
+         */
+        it('logs another error of a network command as a warning', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error('invalid argument: the URL is not valid'))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.redirect('https://webdriver.io')
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            await waitForAsyncHandlers()
+            expect(unhandled).toEqual([])
+            expect(loggerMock.warn).toHaveBeenCalledWith('Failed to answer a paused request: invalid argument: the URL is not valid')
+        })
+
+        it('responds without fetching', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkProvideResponse: vi.fn().mockRejectedValue(sessionEnded())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.respond('mocked response', { fetchResponse: false })
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkProvideResponse).toHaveBeenCalled()
+            await expectNoUnhandledRejection()
         })
     })
 })

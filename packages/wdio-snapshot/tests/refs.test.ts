@@ -35,4 +35,13 @@ describe('RefRegistry errors', () => {
         const gone = { $$: () => ({ getElements: async () => [] }) } as unknown as WebdriverIO.Browser
         await expect(refs.resolve(gone, 'e1')).rejects.toMatchObject({ code: 'REF_STALE', message: 'e1 no longer exists on the page.' })
     })
+
+    it('reports a ref with no candidates as REF_STALE on stableSelector', async () => {
+        const refs = new RefRegistry()
+        refs.set({ id: 'e1', kind: 'web', role: 'button', candidates: [], generation: 1 })
+        await expect(refs.stableSelector(browser, 'e1')).rejects.toMatchObject({
+            code: 'REF_STALE',
+            message: 'e1 has no selector matching its element.'
+        })
+    })
 })

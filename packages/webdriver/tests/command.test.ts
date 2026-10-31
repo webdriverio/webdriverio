@@ -8,6 +8,7 @@ import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
 import { environment } from '../src/environment.js'
+import { SESSION_ENDED_ERROR } from '../src/constants.js'
 // @ts-expect-error mock feature
 import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
@@ -236,6 +237,19 @@ describe('command wrapper', () => {
         expect(scope.on).toHaveBeenLastCalledWith('result', expect.any(Function))
     })
 
+    it('names the error of a command after deleteSession as a session end', async () => {
+        scope.sessionId = 'deleted-session'
+        vi.mocked(scope.on).mockClear()
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        const onResult = vi.mocked(scope.on).mock.calls.find(([event]) => event === 'result')![1] as (result: { command: string }) => void
+        onResult({ command: 'deleteSession' })
+
+        const error = await (commandFn.call(scope, '/path', 'css selector', '#body', 123) as Promise<unknown>).catch((err: Error) => err) as Error
+        expect(error.message).toContain('after session has been deleted')
+        expect(error.name).toBe(SESSION_ENDED_ERROR)
+    })
+
     it('should register abort listener once when request was called multiple times', async () => {
         scope.sessionId = '789' // Emulate new session
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
@@ -307,6 +321,24 @@ describe('command wrapper', () => {
                 false,
                 requestHandler
             )
+        })
+
+        it('should hand the masked body to the request so errors never show the text', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            const request = vi.mocked(RequestMock).mock.instances.at(-1) as unknown as { maskedBody?: unknown }
+            expect(request.maskedBody).toEqual({ text: '**MASKED**' })
+        })
+
+        it('should not set a masked body when masking is not requested', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text)
+
+            const request = vi.mocked(RequestMock).mock.instances.at(-1) as unknown as { maskedBody?: unknown }
+            expect(request.maskedBody).toBeUndefined()
         })
 
         it('should emit "result" with masked text on success', async () => {
@@ -560,7 +592,7 @@ describe('command wrapper result log', () => {
             deleteSessionCmd.path,
             deleteSessionCmd.endpoint
         ) as unknown as mockResponse
-        resultFunction({})
+        await resultFunction({})
         expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
     })
@@ -577,6 +609,7 @@ describe('deleteSession clean up', () => {
     function createScope () {
         const client = new FakeClient() as unknown as BaseClient & { _bidiHandler: { close: () => void } }
         client.capabilities = { 'wdio:driverPID': 1234 } as WebdriverIO.Capabilities
+        client.requestedCapabilities = { browserName: 'chrome' } as WebdriverIO.Capabilities
         client._bidiHandler = { close: vi.fn() }
         return client
     }
@@ -601,18 +634,33 @@ describe('deleteSession clean up', () => {
     it('kills the driver and closes the Bidi socket when the session is deleted', async () => {
         const client = createScope()
         const { onResult } = await runDeleteSession(client)
-        onResult({ value: null })
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        await onResult({ value: null })
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, client.requestedCapabilities)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
+    })
+
+    it('resolves deleteSession only after the driver is killed', async () => {
+        const client = createScope()
+        let killed!: () => void
+        environment.value.killDriverProcess = vi.fn(() => new Promise<void>((resolve) => { killed = resolve }))
+        const { onResult } = await runDeleteSession(client)
+        let resolved = false
+        const result = onResult({ value: null }).then(() => { resolved = true })
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(resolved).toBe(false)
+        killed()
+        await result
+        expect(resolved).toBe(true)
     })
 
     it('still kills the driver and closes the Bidi socket when deleteSession fails, then throws', async () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client)
         const error = new Error('invalid session id: A session is either terminated or not started')
-        expect(() => onError(error)).toThrow(error)
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        await expect(onError(error)).rejects.toThrow(error)
+        // the driver did not delete its profile: no wait for it
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true, undefined)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
         expect(logger.clearLogger).toHaveBeenCalledTimes(1)
     })
@@ -620,15 +668,15 @@ describe('deleteSession clean up', () => {
     it('keeps the driver running on a failed deleteSession with shutdownDriver: false', async () => {
         const client = createScope()
         const { onError } = await runDeleteSession(client, { shutdownDriver: false })
-        expect(() => onError(new Error('fetch failed'))).toThrow('fetch failed')
-        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false)
+        await expect(onError(new Error('fetch failed'))).rejects.toThrow('fetch failed')
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false, undefined)
     })
 
     it('cleans up only once when the result handler already did it', async () => {
         const client = createScope()
         const { onResult, onError } = await runDeleteSession(client)
-        onResult({ value: null })
-        expect(() => onError(new Error('later failure'))).toThrow('later failure')
+        await onResult({ value: null })
+        await expect(onError(new Error('later failure'))).rejects.toThrow('later failure')
         expect(environment.value.killDriverProcess).toHaveBeenCalledTimes(1)
         expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
     })

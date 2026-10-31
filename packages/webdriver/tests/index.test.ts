@@ -387,18 +387,34 @@ describe('WebDriver', () => {
             expect(utils.initiateBidi).toHaveBeenLastCalledWith('ws://foo/bar', undefined, undefined, undefined, 30000)
         })
 
-        it.each([true, false])('only subscribes to BiDi events after a successful connection (%s)', async (connected) => {
-            const on = vi.fn()
-            const socket = vi.fn(() => connected ? { on } : undefined)
-            const handler = { waitForConnected: () => Promise.resolve(connected), get socket() { return socket() } }
-            vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({ _bidiHandler: { value: handler } })
+        it('listens to the Bidi messages of an attached session once it connects', async () => {
+            const socket = { on: vi.fn() }
+            vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({
+                _bidiHandler: { value: { waitForConnected: () => Promise.resolve(true), socket } }
+            })
+            const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
+            WebDriver.attachToSession({ ...sessionOptions, capabilities })
+            await vi.waitFor(() => expect(socket.on).toHaveBeenCalledWith('message', expect.any(Function)))
+        })
 
-            WebDriver.attachToSession({ sessionId: '123', capabilities: { webSocketUrl: 'ws://foo/bar' } })
-            await Promise.resolve()
+        it('does not crash the process when the Bidi connection of an attached session fails (#16240)', async () => {
+            const onUnhandledRejection = vi.fn()
+            process.on('unhandledRejection', onUnhandledRejection)
+            try {
+                /**
+                 * a failed connection has no socket
+                 */
+                vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({
+                    _bidiHandler: { value: { waitForConnected: () => Promise.resolve(false), socket: undefined } }
+                })
+                const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
+                const client = WebDriver.attachToSession({ ...sessionOptions, capabilities })
+                await new Promise((resolve) => setTimeout(resolve, 10))
 
-            expect(socket).toHaveBeenCalledTimes(connected ? 1 : 0)
-            if (connected) {
-                expect(on).toHaveBeenCalledWith('message', expect.any(Function))
+                expect(onUnhandledRejection).not.toHaveBeenCalled()
+                expect(client.sessionId).toBe('foobar')
+            } finally {
+                process.off('unhandledRejection', onUnhandledRejection)
             }
         })
 

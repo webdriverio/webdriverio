@@ -10,7 +10,7 @@
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-d.ts": "^2.0.1",
-    "camelcase": "^9.0.0",
+    "camelcase": "^10.0.0",
     "tsx": "^4.23.15",
     "type-fest": "^5.10.0"
   }

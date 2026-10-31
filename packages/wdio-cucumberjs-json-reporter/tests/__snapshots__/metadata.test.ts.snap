@@ -1,0 +1,175 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`metadata > determineAppData > should return that no app metadata could be determined 1`] = `
+{
+  "app": {
+    "name": "No metadata.app.name available",
+    "version": "No metadata.app.version available",
+  },
+}
+`;
+
+exports[`metadata > determineAppData > should return that the app name and version based on the metadata 1`] = `
+{
+  "app": {
+    "name": "metadata app name",
+    "version": "metadata version 1.2.3",
+  },
+}
+`;
+
+exports[`metadata > determineAppData > should return that the app name based on the config.app 1`] = `
+{
+  "app": {
+    "name": "app.apk",
+    "version": "No metadata.app.version available",
+  },
+}
+`;
+
+exports[`metadata > determineBrowserData > should return that no browser metadata could be determined 1`] = `
+{
+  "browser": {
+    "name": "No metadata.browser.name available",
+    "version": "No metadata.browser.version available",
+  },
+}
+`;
+
+exports[`metadata > determineBrowserData > should return that the browser name and version based on the capabilities when browserVersion is used 1`] = `
+{
+  "browser": {
+    "name": "capabilities browser name",
+    "version": "capabilities browserVersion",
+  },
+}
+`;
+
+exports[`metadata > determineBrowserData > should return that the browser name and version based on the metadata 1`] = `
+{
+  "browser": {
+    "name": "metadata browser name",
+    "version": "metadata version 1.2.3",
+  },
+}
+`;
+
+exports[`metadata > determineDeviceName > should be able to return the device metadata based on the current.config.capabilities.deviceName 1`] = `"current.config.capabilities.deviceName"`;
+
+exports[`metadata > determineDeviceName > should be able to return the device metadata based on the metadata.device 1`] = `"metadata.device"`;
+
+exports[`metadata > determineDeviceName > should be able to return the not known deviceName 1`] = `"Device name not known"`;
+
+exports[`metadata > determineMetadata > should be able to return browser metadata 1`] = `
+{
+  "browser": {
+    "name": "mock-browserName",
+    "version": "mock-browserVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return app metadata based on the current.config.capabilities['cjson:metadata'].app 1`] = `
+{
+  "app": {
+    "name": "mock-appName",
+    "version": "mock-appVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return app metadata based on the currentCapabilities.app 1`] = `
+{
+  "app": {
+    "name": "mock-appName",
+    "version": "mock-appVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return metadata based on the browser.options.capabilities 1`] = `
+{
+  "browser": {
+    "name": "mock-browserName",
+    "version": "mock-browserVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return metadata based on the browser.options.capabilities if w3cCaps is empty 1`] = `
+{
+  "browser": {
+    "name": "mock-browserName",
+    "version": "mock-browserVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return metadata based on the data.config.capabilities["cjson:metadata"] 1`] = `
+{
+  "browser": {
+    "name": "mock-browserName",
+    "version": "mock-browserVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determineMetadata > should return metadata based on the requestedCapabilities.w3cCaps.alwaysMatch 1`] = `
+{
+  "browser": {
+    "name": "mock-browserName",
+    "version": "mock-browserVersion",
+  },
+  "device": "not known",
+  "platform": {
+    "name": "not known",
+    "version": "not known",
+  },
+}
+`;
+
+exports[`metadata > determinePlatformName > should be able to return the not known platform name 1`] = `"Platform name not known"`;
+
+exports[`metadata > determinePlatformName > should be able to return the platform name based on the currentCapabilities.platformName 1`] = `"currentCapabilities.platformName"`;
+
+exports[`metadata > determinePlatformName > should be able to return the platform name based on the currentCapabilities.platformName for mac properly 1`] = `"osx"`;
+
+exports[`metadata > determinePlatformName > should be able to return the platform name based on the currentCapabilities.platformName for windows properly 1`] = `"windows"`;
+
+exports[`metadata > determinePlatformName > should be able to return the platform name based on the metadata.platform 1`] = `"platform.name"`;
+
+exports[`metadata > determinePlatformVersion > should be able to return the not known platform version 1`] = `"Version not known"`;
+
+exports[`metadata > determinePlatformVersion > should be able to return the platform version based on the metadata.platform 1`] = `"platform.version"`;
+
+exports[`metadata > determinePlatformVersion > should be able to return the platform version based on the metadata.platform from desired capabilities 1`] = `"10.1"`;

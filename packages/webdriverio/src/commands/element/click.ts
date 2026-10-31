@@ -1,11 +1,14 @@
 import logger from '@wdio/logger'
 
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, sleep } from '@wdio/utils'
+import { bidiAssertClickable, bidiGetRect, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 
 import type { ClickOptions } from '../../types.js'
 
 const log = logger('webdriver')
+// the longest wait in ms for the two animation frames after a scroll
+const MAX_FRAME_WAIT = 100
 /**
  *
  * Click on an element.
@@ -17,10 +20,12 @@ const log = logger('webdriver')
  * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
  * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
  * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
- * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
- * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
- * giving the page its `scroll` events first. When something intercepts a click without options in any browser
- * (for example a sticky header), the element is brought under the pointer in the same way and clicked again.
+ * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, and in Safari
+ * and web views on iOS with Appium, a click without options does the same before the WebDriver `click` command, because
+ * geckodriver and Appium scroll and click without giving the page its `scroll` events first. With an Appium XCUITest
+ * driver older than 12.18.2, a click on iOS that scrolls waits 100 ms more. When something intercepts a click without
+ * options in any browser (for example a sticky header), the element is brought under the pointer in the same way and
+ * clicked again.
  *
  * :::info
  *
@@ -125,6 +130,11 @@ export function click(
         return actionClick(this, options)
     }
 
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return actionClick(this, {}, browser)
+    }
+
     return elementClick(this)
 }
 
@@ -172,7 +182,7 @@ async function workaround(element: WebdriverIO.Element) {
  */
 async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element, offset: { x: number, y: number }) {
     try {
-        await browser.execute((elem: HTMLElement, offset: { x: number, y: number }) => {
+        const result: unknown = await browser.execute((elem: HTMLElement, offset: { x: number, y: number }, maxFrameWait: number) => {
             const hitTest = () => {
                 const rect = elem.getClientRects()[0]
                 if (!rect) {
@@ -230,9 +240,19 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
             }
             return new Promise<void>((resolve) => {
                 requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-                setTimeout(resolve, 100)
+                setTimeout(resolve, maxFrameWait)
             })
-        }, element as unknown as HTMLElement, offset)
+        }, element as unknown as HTMLElement, offset, MAX_FRAME_WAIT)
+
+        /**
+         * TODO: remove in the next major version. appium-xcuitest-driver before 12.18.2
+         * (appium-remote-debugger before 17.7.3, appium/appium#22978) does not wait for the
+         * promise of the script after a scroll: it gives `{}` at once. Wait here instead,
+         * as long as the page waits at most.
+         */
+        if (browser.isIOS && result && typeof result === 'object') {
+            await sleep(MAX_FRAME_WAIT)
+        }
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
     }
@@ -244,9 +264,11 @@ async function elementClick(element: WebdriverIO.Element) {
      * geckodriver scrolls the element into view and clicks it in one step, so the page
      * gets its `scroll` events after the click. ChromeDriver almost always gives the page
      * a frame between the scroll and the click (it missed about 1 click in 300),
-     * safaridriver always does. This costs one more request, so only Firefox pays it.
+     * safaridriver always does. Appium (XCUITest) does the same as geckodriver on iOS
+     * (Safari and web views). This costs one more request, so only Firefox and Appium on
+     * iOS pay it.
      */
-    if (browser.isFirefox) {
+    if (browser.isFirefox || (browser.isMobile && browser.isIOS && !await browser.isNativeContext)) {
         await bringIntoView(browser, element, { x: 0, y: 0 })
     }
     try {
@@ -282,7 +304,11 @@ async function elementClick(element: WebdriverIO.Element) {
     }
 }
 
-async function actionClick(element: WebdriverIO.Element, options: Partial<ClickOptions>) {
+async function actionClick(
+    element: WebdriverIO.Element,
+    options: Partial<ClickOptions>,
+    bidiBrowser?: WebdriverIO.Browser
+) {
     const defaultOptions: ClickOptions = {
         button: 0,
         x: 0,
@@ -306,9 +332,11 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         throw new Error('Button type not supported.')
     }
 
-    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    const browser = bidiBrowser ?? getBrowserObject(element) as WebdriverIO.Browser
     if (x || y) {
-        const { width, height } = await browser.getElementRect(element.elementId)
+        const { width, height } = isBidiCommandsEnabled(browser)
+            ? await bidiGetRect(element)
+            : await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
             log.warn('x would cause a out of bounds error as it goes outside of element')
         }
@@ -316,19 +344,23 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             log.warn('y would cause a out of bounds error as it goes outside of element')
         }
     }
+    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+    if (!isNativeApp) {
+        await bringIntoView(browser, element, { x, y })
+    }
+    if (bidiBrowser) {
+        await bidiAssertClickable(element)
+    }
+    const moveDuration = bidiBrowser ? { duration: 0 } : {}
     const clickNested = async () => {
         await browser.action('pointer', {
             parameters: { pointerType: browser.isMobile ? 'touch' : 'mouse' }
         })
-            .move({ origin: element, x, y })
+            .move({ origin: element, x, y, ...moveDuration })
             .down({ button })
             .pause(duration)
             .up({ button })
             .perform(skipRelease)
-    }
-    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
-    if (!isNativeApp) {
-        await bringIntoView(browser, element, { x, y })
     }
     try {
         return await clickNested()

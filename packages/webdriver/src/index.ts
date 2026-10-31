@@ -161,9 +161,13 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (isBidi(options.capabilities || {})) {
-            client._bidiHandler?.waitForConnected().then((connected: boolean) => {
-                if (connected) {
-                    client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            /**
+             * attaching doesn't wait for the connection: when it fails, there is no socket
+             * to listen on, and an error here would crash the process (#16240)
+             */
+            client._bidiHandler?.waitForConnected().then((isConnected: boolean) => {
+                if (isConnected) {
+                    client._bidiHandler?.socket?.on('message', parseBidiMessage.bind(client))
                 }
             })
         }
@@ -252,5 +256,6 @@ export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'
 export { BIDI_MASK, BIDI_SCRIPT_TIMEOUT } from './bidi/core.js'
+export { isSessionEndedError, isBidiConnectionClosed } from './sessionEnded.js'
 export * as local from './bidi/localTypes.js'
 export * as remote from './bidi/remoteTypes.js'

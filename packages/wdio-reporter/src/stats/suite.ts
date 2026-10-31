@@ -2,11 +2,16 @@ import type HookStats from './hook.js'
 import RunnableStats from './runnable.js'
 import type TestStats from './test.js'
 import type { Tag } from '../types.js'
+import { specFilePath } from '../utils.js'
 
 export interface Suite {
     type?: string
     title: string
     parent?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
+    /** the browsing context of a parallel Cucumber scenario */
+    contextId?: string
     fullTitle: string
     pending?: boolean
     file: string
@@ -41,12 +46,20 @@ export default class SuiteStats extends RunnableStats {
     hooksAndTests: (HookStats | TestStats)[] = []
     description?: string
     rule?: string
+    // `declare`: no own property when the payload has no value, so these stats stay the same
+    /** the uid of the parent suite (`null` for a top-level suite) */
+    declare parentUid?: string | null
+    /** the browsing context of a parallel Cucumber scenario */
+    declare contextId?: string
+    /** @experimental the root suite of the reporter: the tests and hooks outside every suite (Mocha `it()` / `before()` with no `describe()`) */
+    declare isRoot?: true
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
-        this.file = suite.file
+        // a file that is not a text stays out, as on the test stats (a framework can send no file)
+        this.file = typeof suite.file === 'string' ? specFilePath(suite.file) : undefined as unknown as string
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
@@ -56,6 +69,7 @@ export default class SuiteStats extends RunnableStats {
          */
         this.description = suite.description
         this.rule = suite.rule
+        this.keepParallelFields(suite)
     }
 
     /**
@@ -63,6 +77,14 @@ export default class SuiteStats extends RunnableStats {
      */
     retry () {
         this.retries++
+        this.clearAttempt()
+    }
+
+    /**
+     * Remove the tests and hooks of the failed attempt; the suite keeps the start of its first attempt, as main.
+     * @experimental the name may change
+     */
+    clearAttempt () {
         this.tests = []
         this.hooks = []
         this.hooksAndTests = []

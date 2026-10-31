@@ -4,9 +4,115 @@ import logger from '@wdio/logger'
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
 import { environment } from '../environment.js'
+import { logBackgroundError } from '../utils/sessionEnded.js'
+import { isBidiCaptureEvent } from '../utils/screenshotEvents.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
+
+/**
+ * Any HTTP command (Classic, Chromium, Appium, Selenium) reaches the session's
+ * single focused window/frame, which concurrent tests share. An allowlist fails
+ * closed for any command not explicitly vetted. Safe means: does not read or
+ * mutate the focused window/frame AND does not change state shared by every
+ * concurrent test.
+ */
+export const PARALLEL_SAFE_CLASSIC_COMMANDS: readonly string[] = ['status', 'getTimeouts', 'getWindowHandles']
+
+const SESSION_GLOBAL_COMMANDS: readonly string[] = ['deleteSession', 'newSession', 'setTimeouts']
+const ALERT_COMMANDS: readonly string[] = ['acceptAlert', 'dismissAlert', 'getAlertText', 'sendAlertText']
+const COMPUTED_A11Y_COMMANDS: readonly string[] = ['getElementComputedRole', 'getElementComputedLabel']
+
+function parallelModeError(command: string) {
+    if (SESSION_GLOBAL_COMMANDS.includes(command)) {
+        return `${command} cannot run inside a parallel test: it changes the session that all concurrently running tests share ` +
+            '(browser.reloadSession() sends deleteSession, browser.setTimeout() sends setTimeouts). ' +
+            'Call it outside the test, e.g. in the `before` config hook.'
+    }
+    if (ALERT_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: alerts belong to a browsing context. ` +
+            'Use the per-context API instead on the context `browser.url()` returns, e.g. `const page = await browser.url(url); await page.acceptAlert()` ' +
+            '(also `dismissAlert()` and `getAlertText()` on the BrowsingContext).'
+    }
+    if (COMPUTED_A11Y_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: WebDriver BiDi has no command to read an element's computed role or label.`
+    }
+    return `${command} is not supported in parallel mode — ` +
+        "WebDriver Classic commands act on the session's focused window, which concurrent tests share. " +
+        `If you did not call ${command} yourself, a WebdriverIO command fell back to WebDriver Classic — please report it.`
+}
+
+/**
+ * Per-test context override for parallel it() execution.
+ *
+ * When tests run in parallel (each in its own browsing context), the
+ * framework sets a context ID here via `AsyncLocalStorage.run()`.
+ * `getCurrentContext()` checks this first, so every command
+ * (url, $, click, setValue, getText, etc.) automatically targets
+ * the correct browsing context.
+ *
+ * Outside parallel execution (sequential mode), the store is empty
+ * and behavior falls back to the session-global `#currentContext`.
+ */
+/** Key used to expose the parallel context store on the browser instance. */
+export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
+
+/** Key used to expose the set of framework-managed parallel contexts. */
+export const PARALLEL_CONTEXTS_KEY = '__parallelContexts'
+
+/**
+ * Minimal surface of `AsyncLocalStorage<string>`. The browser bundle must not
+ * import `node:async_hooks`, so the Node entry registers the real store.
+ */
+export interface ParallelContextStore {
+    getStore(): string | undefined
+    run<T>(contextId: string, fn: () => T): T
+}
+
+const noopParallelContextStore: ParallelContextStore = {
+    getStore: () => undefined,
+    run: (_contextId, fn) => fn()
+}
+
+let parallelContextStore: ParallelContextStore = noopParallelContextStore
+
+export function setParallelContextStore(store: ParallelContextStore) {
+    parallelContextStore = store
+}
+
+/**
+ * Contexts created by the parallel framework adapters (one tab per test).
+ * The session-global ContextManager must not re-anchor on navigations that
+ * happen inside these: each test owns its context via the ALS store, and
+ * re-anchoring (browsingContextGetTree + switchToWindow) would add a round
+ * trip per test navigation and mutate shared session-global state across
+ * concurrent tests.
+ */
+const parallelContexts = new Set<string>()
+
+export function registerParallelContext(contextId: string) {
+    parallelContexts.add(contextId)
+}
+
+export function unregisterParallelContext(contextId: string) {
+    parallelContexts.delete(contextId)
+}
+
+export function isParallelContext(contextId: string): boolean {
+    return parallelContexts.has(contextId)
+}
+
+/**
+ * Returns the parallel context store. The framework uses this to
+ * create per-test scopes:
+ *
+ *   parallelContextStore.run(contextId, async () => {
+ *       await test.fn()  // all commands target contextId
+ *   })
+ */
+export function getParallelContextStore() {
+    return parallelContextStore
+}
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
@@ -27,7 +133,7 @@ export class ContextManager extends SessionManager {
     #getContextSupport = true
     #currentWindowHandle?: string
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
-    #onCommandListener: (event: { command: string, body: unknown }) => void
+    #onCommandListener: (event: { command: string, body: unknown, endpoint?: string }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
     #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
     #destroyedListener: (destroyed: local.BrowsingContextInfo) => void
@@ -36,6 +142,22 @@ export class ContextManager extends SessionManager {
         super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
+        /**
+         * Expose the parallel context store and experimental Bidi flag
+         * on the browser instance so the Mocha framework adapter can
+         * access them without importing from 'webdriverio'.
+         */
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        // Expose the parallel-context registry so the framework adapters can
+        // register/unregister the tabs they create per test.
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY] = parallelContexts
+        // Cache the capability flag so per-command checks are O(1)
+        const reqCaps = browser.requestedCapabilities as unknown as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as unknown as Record<string, unknown> | undefined
+        ;(browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = !!(
+            reqCaps?.['wdio:experimentalBiDiCommands'] || sessCaps?.['wdio:experimentalBiDiCommands']
+        )
+
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
         this.#mobileContext = getMobileContext({
             capabilities,
@@ -78,9 +200,12 @@ export class ContextManager extends SessionManager {
              * Listen to the 'browsingContext.navigationStarted' event to handle context changes
              * through navigation within e.g. frames.
              */
+            /**
+             * not awaited: an error has no caller, e.g. when the session ends at once
+             */
             this.#browser.sessionSubscribe({
                 events: ['browsingContext.navigationStarted', 'browsingContext.contextDestroyed']
-            })
+            }).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err, this.#browser))
             this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
             this.#browser.on('browsingContext.contextDestroyed', this.#destroyedListener)
         }
@@ -107,23 +232,41 @@ export class ContextManager extends SessionManager {
         }
 
         /**
+         * Parallel test tabs are owned by their ALS-scoped test. Do not
+         * re-anchor the session-global context on their navigations — that
+         * would trigger a browsingContextGetTree + switchToWindow per test
+         * navigation and mutate shared state across concurrent tests.
+         */
+        if (isParallelContext(nav.context)) {
+            return
+        }
+
+        /**
          * a navigation event may have changed the tree structure, so we need to get the
          * current tree and see if our context is still there, if not, we need to reset
          * the context to the first context in the tree.
          */
-        const { contexts } = await this.#browser.browsingContextGetTree({})
-        /**
-         * check if the context is still in the tree, if not, switch to...
-         */
-        const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
-        /**
-         * ...the context we are navigating to
-         */
-        const newContext = contexts.find((context) => context.context === nav.context)
-        if (!hasContext && newContext) {
-            this.setCurrentContext(newContext.context)
-            await this.#browser.switchToWindow(this.#currentContext)
-            return
+        try {
+            const { contexts } = await this.#browser.browsingContextGetTree({})
+            /**
+             * check if the context is still in the tree, if not, switch to...
+             */
+            const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            /**
+             * ...the context we are navigating to
+             */
+            const newContext = contexts.find((context) => context.context === nav.context)
+            if (!hasContext && newContext) {
+                this.setCurrentContext(newContext.context)
+                await this.#browser.switchToWindow(this.#currentContext)
+                return
+            }
+        } catch (err) {
+            /**
+             * an event handler has no caller to give the error to, e.g. when the
+             * session ends while the tree is requested
+             */
+            logBackgroundError(log, `Failed to update the context after a navigation in "${nav.context}"`, err, this.#browser)
         }
     }
 
@@ -195,7 +338,7 @@ export class ContextManager extends SessionManager {
                 this.#currentContext = undefined
                 this.#currentWindowHandle = undefined
             }
-            log.warn(`Failed to switch context after "${destroyed.context}" was destroyed: ${(err as Error).message}`)
+            logBackgroundError(log, `Failed to switch context after "${destroyed.context}" was destroyed`, err, this.#browser)
         }
     }
 
@@ -227,7 +370,11 @@ export class ContextManager extends SessionManager {
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]
+            /**
+             * an event listener: the error has no caller, e.g. when the session ends at once
+             */
             return this.#browser.switchToWindow(this.#currentContext)
+                .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser))
         }
 
         /**
@@ -253,7 +400,18 @@ export class ContextManager extends SessionManager {
         }
     }
 
-    #onCommand(event: { command: string, body: unknown }) {
+    #onCommand(event: { command: string, body: unknown, endpoint?: string }) {
+        // wrapper events also fire for BiDi overrides; only the HTTP request (with `endpoint`) reaches the focused window,
+        // except the reporter events of a BiDi capture, which copy the Classic `endpoint`
+        if (
+            typeof event.endpoint === 'string' &&
+            parallelContextStore.getStore() &&
+            !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command) &&
+            !isBidiCaptureEvent(event)
+        ) {
+            throw new Error(parallelModeError(event.command))
+        }
+
         /**
          * update frame context if user switches using 'switchToParentFrame'
          */
@@ -284,6 +442,8 @@ export class ContextManager extends SessionManager {
                     return
                 }
                 this.setCurrentContext(parentContext.context)
+            }).catch((err: Error) => {
+                logBackgroundError(log, 'Failed to update the context after switchToParentFrame', err, this.#browser)
             })
         }
 
@@ -412,6 +572,21 @@ export class ContextManager extends SessionManager {
     }
 
     async getCurrentContext () {
+        /**
+         * If a parallel test scope is active, return that test's
+         * assigned context instead of the session-global one.
+         * Commands that resolve their target through the
+         * ContextManager (url, $, click, setValue, getText, etc.)
+         * pick up the correct context this way. Commands without
+         * a context parameter — the classic element endpoints in
+         * the element command files, url.ts and actions/base.ts —
+         * need explicit Bidi branches instead. No Proxy is used.
+         */
+        const parallelCtx = parallelContextStore.getStore()
+        if (parallelCtx) {
+            return parallelCtx
+        }
+
         if (!this.#currentContext) {
             return this.initialize()
         }

@@ -5,8 +5,9 @@ import { getShadowRootManager } from '../../src/session/shadowRoot.js'
 import { getNetworkManager } from '../../src/session/networkManager.js'
 import { getDialogManager } from '../../src/session/dialog.js'
 import { getContextManager } from '../../src/session/context.js'
+import { getBidiMapperLogManager } from '../../src/session/bidiMapperLog.js'
 import { registerSessionManager } from '../../src/session/index.js'
-import { trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
+import { setIOSScriptTimeout, trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
 
 vi.mock('../../src/session/polyfill.js', () => ({
     getPolyfillManager: vi.fn(() => ({ initialize: vi.fn() }))
@@ -20,11 +21,15 @@ vi.mock('../../src/session/networkManager.js', () => ({
 vi.mock('../../src/session/dialog.js', () => ({
     getDialogManager: vi.fn(() => ({ initialize: vi.fn() }))
 }))
+vi.mock('../../src/session/bidiMapperLog.js', () => ({
+    getBidiMapperLogManager: vi.fn(() => ({ initialize: vi.fn() }))
+}))
 vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({ initialize: vi.fn() }))
 }))
 vi.mock('../../src/utils/scriptTimeout.js', () => ({
-    trackScriptTimeout: vi.fn()
+    trackScriptTimeout: vi.fn(),
+    setIOSScriptTimeout: vi.fn()
 }))
 
 describe('webdriverio session manager', () => {
@@ -39,8 +44,10 @@ describe('webdriverio session manager', () => {
         expect(getShadowRootManager).toBeCalledWith(browser)
         expect(getNetworkManager).toBeCalledWith(browser)
         expect(getDialogManager).toBeCalledWith(browser)
+        expect(getBidiMapperLogManager).toBeCalledWith(browser)
         expect(getContextManager).toBeCalledWith(browser)
         expect(trackScriptTimeout).toBeCalledWith(browser)
+        expect(setIOSScriptTimeout).toBeCalledWith(browser)
     })
 
     it('does not register for protocol stub', async () => {
@@ -52,6 +59,7 @@ describe('webdriverio session manager', () => {
         expect(getShadowRootManager).not.toBeCalledWith(browser)
         expect(getNetworkManager).not.toBeCalledWith(browser)
         expect(getDialogManager).not.toBeCalledWith(browser)
+        expect(getBidiMapperLogManager).not.toBeCalledWith(browser)
         expect(trackScriptTimeout).not.toBeCalledWith(browser)
         // ContextManager is always registered for caching current window handle
         expect(getContextManager).toBeCalledWith(browser)

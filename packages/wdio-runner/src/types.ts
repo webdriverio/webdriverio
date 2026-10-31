@@ -49,6 +49,7 @@ export interface TestFramework {
         wdioMatchers: typeof wdioCustomMatchers,
         getExpectConfig: typeof getDefaultOptions
     ) => void | Promise<void>
+    setBrowser?: (browser: WebdriverIO.Browser) => void
 }
 
 export interface SessionStartedMessage {

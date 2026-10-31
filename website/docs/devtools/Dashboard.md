@@ -12,8 +12,8 @@ When you run your tests, the DevTools UI automatically opens in an external brow
 
 - **Live browser preview** — watch the browser under test as commands execute.
 - **Test progress** — suites and tests update as they run.
-- **Command execution** — each action streams in as it happens.
-- **Workbench tabs** — explore Actions, Console, Network, Metadata, and Source for the selected test.
+- **Command execution** — each action streams in as it happens. A wait appears as soon as it starts, as one row with the commands its condition issues nested under it; see [Waits](/docs/devtools/wdio/trace-mode#waits).
+- **Workbench tabs** — Actions and Metadata, plus Source, Log, Console, Network and Errors (each badged with a count), and Compare after a [Preserve & Rerun](/docs/devtools/wdio/preserve-and-rerun).
 
 ## Live-mode features
 
@@ -47,12 +47,12 @@ Options:
   -h, --help          Show this message
 ```
 
-`--port` is a *preference*, not a promise: if that port is taken the server binds a free one instead of failing. It prints the port it actually bound, which is the line to read rather than the one you asked for:
+Both `--port 8080` and `--port=8080` forms are accepted. `--port` is a *preference*, not a promise: if that port is taken the server binds a free one instead of failing. It prints the port it actually bound, which is the line to read rather than the one you asked for:
 
 ```
 devtools-backend listening at http://localhost:3000
 ```
 
-Point a run at an already-listening server with `DEVTOOLS_PORT` (every adapter honours it), and the run will attach instead of starting a second one.
+The Python adapter attaches to an already-listening server when `DEVTOOLS_PORT` is set, instead of starting a second one. The JavaScript adapters start their backend in-process; use their `port` option to choose the port.
 
 A second binary, `show-trace`, opens a trace archive in the offline player - see [Trace Player](/docs/devtools/trace-player).

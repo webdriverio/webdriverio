@@ -16,7 +16,7 @@ export default async function initializePlugin (name: string, type?: string): Pr
     /**
      * directly import packages that are scoped or start with an absolute path
      */
-    if (name[0] === '@' || isAbsolute(name)) {
+    if (name[0] === '@' || name.startsWith(FILE_PROTOCOL) || isAbsolute(name)) {
         const fileUrl = name[0] === '@' ? name : ensureFileURL(name)
         const service = await safeImport(fileUrl)
 

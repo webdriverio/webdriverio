@@ -105,7 +105,12 @@ async function install (
 
 function isUnsupportedCommand (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    return message.includes('unknown command') || message.includes('unsupported operation')
+    return message.includes('unknown command') ||
+        message.includes('unsupported operation') ||
+        /**
+         * Chrome 155: `unknown error - Method emulation.setViewportMetaOverride is not implemented.`
+         */
+        /\bMethod \S+ is not implemented\b/.test(message)
 }
 
 function setCapturedViewport (
@@ -435,7 +440,8 @@ export async function emulate(scope: 'forcedColors', theme: ColorScheme): Promis
  * targets that same context.
  *
  * A browser that does not implement a command rejects the call with its own
- * error (`unknown command` or `unsupported operation`). WebdriverIO does not
+ * error (`unknown command`, `unsupported operation`, or `unknown error` with
+ * "Method ... is not implemented" in Chrome). WebdriverIO does not
  * fall back to a preload script or to CDP. For `device`, text layout and
  * viewport meta are best effort: a browser that does not implement those
  * commands still gets the user agent, viewport and touch. If `device` is

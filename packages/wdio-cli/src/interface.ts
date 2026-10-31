@@ -189,7 +189,7 @@ export default class WDIOCLInterface extends EventEmitter {
 
     getFilenames(specs: string[] = []) {
         if (specs.length > 0) {
-            return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
+            return '- ' + specs.join(', ')
         }
         return ''
     }

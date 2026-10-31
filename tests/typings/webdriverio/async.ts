@@ -144,6 +144,13 @@ async function bar() {
     const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
 
+    // a list before `await` has `at()` and `slice()`, like the loaded list
+    expectType<string>(await browser.$$('li').at(1).getText())
+    expectType<string>(await browser.$$('li').at(-1).getText())
+    expectType<WebdriverIO.ElementArray>(await browser.$$('li').slice(0, 2))
+    expectType<string>(await browser.$$('li').slice(1)[0].getText())
+    expectType<string>(await browser.$('ul').$$('li').at(0).getText())
+
     ////////////////////////////////////////////////////////////////////////////////
 
     // remote

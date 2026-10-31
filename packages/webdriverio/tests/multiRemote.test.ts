@@ -62,6 +62,40 @@ describe('Multi-Remote tests', () => {
             }
         })
 
+        test('gives the entries of a list one set of wrapped commands (#16086)', async () => {
+            const browser = await multiRemote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements[0].getText).toBe(elements[2].getText)
+            expect(Object.prototype.hasOwnProperty.call(elements[1], 'getText')).toBe(false)
+            expect(elements[1].getInstance('browserA').elementId).toBe('some-elem-456')
+            expect(elements[0].getInstance('browserA')).not.toBe(elements[1].getInstance('browserA'))
+        })
+
+        test('keeps a command that one entry adds for the elements that this entry finds (#16086)', async () => {
+            const browser = await multiRemote(caps())
+            const elements = await browser.$$('#foo')
+
+            elements[0].addCommand('entryCommand', function () { return 'x' }, { attachToElement: true })
+
+            expect(typeof (await elements[0].$('.bar') as unknown as Record<string, unknown>).entryCommand).toBe('function')
+            expect((await elements[1].$('.bar') as unknown as Record<string, unknown>).entryCommand).toBeUndefined()
+        })
+
+        test('gives an entry past the end of a list the commands added after the list (#16086)', async () => {
+            const fast = caps()
+            for (const instance of Object.values(fast)) {
+                Object.assign(instance, { waitforTimeout: 100, waitforInterval: 20 })
+            }
+            const browser = await multiRemote(fast)
+            const elements = await browser.$$('#foo')
+
+            browser.addCommand('addedLater', function () { return 'later' }, { attachToElement: true })
+
+            expect(typeof (await elements[5] as unknown as Record<string, unknown>).addedLater).toBe('function')
+        })
+
         test('gives no element to an instance that finds fewer elements (#15845)', async () => {
             const browser = await multiRemote(caps())
             vi.spyOn(browser.getInstance('browserB'), 'findElements')

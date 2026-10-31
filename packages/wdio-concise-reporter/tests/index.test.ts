@@ -47,6 +47,62 @@ describe('ConciseReporter', () => {
             ))
         })
 
+        // Mocha `failHookAffectedTests: false`: a failed root before() reports no test
+        it('prints only the failed hook when a hook failed and no test ran', () => {
+            printReporter.onHookEnd({ uid: 'h1', title: '"before all" hook in "{root}"', error: { type: 'Error', message: 'before fails' } } as any)
+            printReporter.onRunnerEnd(RUNNER as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'chrome',
+                [
+                    '❌ Hook failed (1):',
+                    '  Fail : red "before all" hook in "{root}"',
+                    '    Error : yellow before fails'
+                ].join('\n')
+            ))
+        })
+
+        it('names the browser of each instance of a multi-remote run', () => {
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { myChrome: { browserName: 'chrome' }, myPhone: { platformName: 'iOS', deviceName: 'iPhone 17' } }
+            } as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'chrome, iPhone 17',
+                '❌ Failed to setup tests, no tests found'
+            ))
+        })
+
+        it('names a remote app URL by its file name, without credentials and token', () => {
+            const app = 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { a: { platformName: 'Android', 'appium:app': app }, b: { browserName: 'chrome' } }
+            } as any)
+            printReporter.onRunnerEnd({ ...RUNNER, capabilities: { platformName: 'Android', 'appium:app': app } } as any)
+
+            const written = (printReporter.write as any).mock.calls.map((call: string[]) => call[0]).join('')
+            expect(written).toContain('my.apk, chrome')
+            expect(written).toContain('my.apk on Android')
+            expect(written).not.toMatch(/secret|abc123/)
+        })
+
+        it('names a multi-remote run with no known browser like the spec reporter', () => {
+            printReporter.onRunnerEnd({
+                ...RUNNER,
+                isMultiRemote: true,
+                capabilities: { a: { platformName: 'linux' }, b: {} }
+            } as any)
+
+            expect(printReporter.write).toHaveBeenCalledWith(conciseReport(
+                'MultiRemoteBrowser',
+                '❌ Failed to setup tests, no tests found'
+            ))
+        })
+
         it('should print the all-clear report when every test passed', () => {
             // Failure totals live on this reporter. Passes stay on the base
             // counts object, which the reporter mock does not increment.
@@ -125,6 +181,18 @@ describe('ConciseReporter', () => {
                 'appium:platformVersion' : '9.2',
                 platformName : 'iOS',
                 'appium:app' : 'sauce-storage:myApp.app'
+            }, 'iPhone 6 Plus on iOS 9.2 executing myApp.app'],
+            ['mobile app from a remote URL', {
+                deviceName : 'Pixel 9',
+                'appium:platformVersion' : '15',
+                platformName : 'Android',
+                'appium:app' : 'https://user:secret@storage.example.com/apps/my.apk?token=abc123'
+            }, 'Pixel 9 on Android 15 executing my.apk'],
+            ['mobile app from a local path', {
+                deviceName : 'iPhone 6 Plus',
+                'appium:platformVersion' : '9.2',
+                platformName : 'iOS',
+                'appium:app' : '/Users/me/builds/myApp.app'
             }, 'iPhone 6 Plus on iOS 9.2 executing myApp.app'],
             ['mobile browser', {
                 deviceName : 'iPhone 6 Plus',

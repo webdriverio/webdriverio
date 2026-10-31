@@ -197,6 +197,43 @@ describe('reporter runtime implementation', () => {
         expect(results[0].steps[0].attachments).toHaveLength(1)
     })
 
+    it('start/end step and runtime messages via reporter instance events', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onTestStart(testStart())
+        reporter.emit(events.startStep, 'bar')
+        reporter.emit(events.endStep, Status.FAILED)
+        reporter.emit(events.runtimeMessage, { type: 'metadata', data: { labels: [{ name: 'tag', value: 'relayed' }] } })
+        reporter.onTestPass(testPassed())
+        await reporter.onRunnerEnd(runnerEnd())
+        const { results } = getResults(outputDir)
+        expect(results[0].steps[0].name).toBe('bar')
+        expect(results[0].steps[0].status).toBe(Status.FAILED)
+        expect(results[0].labels).toContainEqual({ name: 'tag', value: 'relayed' })
+    })
+
+    it('enables lane mode for the vitest framework only', () => {
+        const laneModeFor = (framework: string) => {
+            const reporter = new AllureReporter({ outputDir })
+            reporter.onRunnerStart({ ...runnerStart(), config: { framework } } as any)
+            return reporter['_laneMode']
+        }
+        expect(laneModeFor('vitest')).toBe(true)
+        expect(laneModeFor('mocha')).toBe(false)
+    })
+
+    it('falls back to sequential handling without a context id in lane mode', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart({ ...runnerStart(), config: { framework: 'vitest' } } as any)
+        reporter.onTestStart(testStart())
+        reporter.emit(events.startStep, 'bar')
+        reporter.emit(events.endStep, Status.PASSED)
+        reporter.onTestPass(testPassed())
+        await reporter.onRunnerEnd(runnerEnd())
+        const { results } = getResults(outputDir)
+        expect(results[0].steps[0].name).toBe('bar')
+    })
+
     it('start/end step via process events', async () => {
         const reporter = new AllureReporter({ outputDir })
         reporter.onRunnerStart(runnerStart())

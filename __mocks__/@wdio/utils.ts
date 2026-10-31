@@ -5,7 +5,8 @@ import {
     isFunctionAsync as isFnAsync,
     getArgumentType as getArgumentTypeOrig,
     isValidParameter as isValidParameterOrig,
-    commandCallStructure as commandCallStructureOrig
+    commandCallStructure as commandCallStructureOrig,
+    specFilePath as specFilePathOrig
 } from '../../packages/wdio-utils/src/utils.js'
 import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
@@ -90,6 +91,7 @@ export const isFunctionAsync = isFnAsync
 export const safeRequire = vi.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig
 export const getArgumentType = getArgumentTypeOrig
+export const specFilePath = specFilePathOrig
 
 /**
  * shim
@@ -97,6 +99,7 @@ export const getArgumentType = getArgumentTypeOrig
 export const executeSync = vi.fn()
 export const executeAsync = vi.fn()
 export const wrapCommand = (_: any, origFn: any) => origFn
+export const setCommandHookStore = vi.fn()
 /**
  * Element lists register their constructor at import time. Launcher tests mock
  * this module, so the registration has to exist or loading `webdriverio` throws.

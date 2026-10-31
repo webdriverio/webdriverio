@@ -21,7 +21,33 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'move target out of bounds',
     'element click intercepted',
     'element not interactable',
-    'invalid element state'
+    'invalid element state',
+    /**
+     * Well-formed W3C errors the driver answers deterministically. Repeating
+     * the request gives the same answer and re-runs its side effects.
+     * `unknown error` stays retryable, it is what a Grid or proxy sends when
+     * it hiccups.
+     */
+    'invalid argument',
+    'invalid cookie domain',
+    'invalid selector',
+    'invalid session id',
+    'javascript error',
+    'no such alert',
+    'no such cookie',
+    'no such element',
+    'no such frame',
+    'no such shadow root',
+    'no such window',
+    'script timeout',
+    'session not created',
+    'timeout',
+    'unable to capture screen',
+    'unable to set cookie',
+    'unexpected alert open',
+    'unknown command',
+    'unknown method',
+    'unsupported operation'
 ]
 
 const DEFAULT_HEADERS = {
@@ -68,6 +94,10 @@ export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
+    /**
+     * body with sensitive values replaced, shown in errors instead of `body`
+     */
+    maskedBody?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
@@ -90,6 +120,13 @@ export abstract class WebDriverRequest {
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
         this.eventHandler = eventHandler
         this.abortSignal = abortSignal
+    }
+
+    /**
+     * errors carry the request options, they must never expose masked values
+     */
+    private errorOptions (opts: RequestInit): RequestInit {
+        return this.maskedBody ? { ...opts, body: JSON.stringify(this.maskedBody) } : opts
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
@@ -165,11 +202,11 @@ export abstract class WebDriverRequest {
                 throw new WebDriverRequestError(
                     new Error(`Failed to fetch ${url.href}: ${(err as Error).message || err || 'Unknown error'}`),
                     url,
-                    opts
+                    this.errorOptions(opts)
                 )
             }
 
-            throw new WebDriverRequestError(err, url, opts)
+            throw new WebDriverRequestError(err, url, this.errorOptions(opts))
         }
     }
 
@@ -235,7 +272,7 @@ export abstract class WebDriverRequest {
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
              */
-            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+            if (retryCount >= totalRetryCount || error.name === 'invalid session id') {
                 log.error(error.message)
                 this.eventHandler.onResponse?.({ error })
                 this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
@@ -299,7 +336,7 @@ export abstract class WebDriverRequest {
             return response.body as WebDriverResponse<unknown>
         }
 
-        const error = new WebDriverResponseError(response, url, fullRequestOptions)
+        const error = new WebDriverResponseError(response, url, this.errorOptions(fullRequestOptions))
 
         /**
          * hub commands don't follow standard response formats
@@ -334,6 +371,8 @@ export abstract class WebDriverRequest {
          * it likely does not changes anything and the error is handled within the command.
          */
         if (ERRORS_TO_EXCLUDE_FROM_RETRY.includes(error.name)) {
+            this.eventHandler.onResponse?.({ error })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 

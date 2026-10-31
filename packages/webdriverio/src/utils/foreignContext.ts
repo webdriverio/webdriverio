@@ -3,6 +3,7 @@ import { BIDI_MASK, ELEMENT_KEY, type remote } from 'webdriver'
 import { getContextManager } from '../session/context.js'
 import { contextIdValue, heldBrowsingContext } from '../session/browsingContext.js'
 import { frameOffset } from './frameOffset.js'
+import { withScreenshotEvents } from './screenshotEvents.js'
 import { GET_VISIBLE_TEXT } from './thirdParty/getVisibleText.js'
 
 /**
@@ -61,6 +62,47 @@ function throwOnFailure<T> (result: T | ScriptFailure): T {
         throw driverError(result.error, result.message)
     }
     return result
+}
+
+const AsyncFunction = (async () => {}).constructor as FunctionConstructor
+
+/**
+ * W3C "get a known element": a detached element, or one of an inactive document,
+ * is stale. BiDi still resolves it. Firefox gives the old document the new window
+ * as `defaultView` after a reload.
+ *
+ * @param script  a function, or the source of one (not a function body)
+ * @param at      the index of the element argument, or a list of them
+ * @see https://w3c.github.io/webdriver/#dfn-get-a-known-element
+ */
+export function withKnownElement<T extends Function> (script: T | string, at: number | number[] = 0): T {
+    /**
+     * `execute` sends an async function to Classic as an async script
+     */
+    const isAsync = typeof script === 'function' && script.constructor.name === 'AsyncFunction'
+    const elements = (Array.isArray(at) ? at : [at]).map((index) => `arguments[${index}]`).join(', ')
+    return new (isAsync ? AsyncFunction : Function)(
+        `for (const el of [${elements}]) {
+            const doc = el && el.ownerDocument
+            if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
+                throw new Error('stale element reference: the element is not attached to the active document')
+            }
+        }
+        return (${script}).apply(this, arguments)`
+    ) as T
+}
+
+/**
+ * Run `script` on the element, after the stale check
+ */
+function inElement<T> (
+    held: WebdriverIO.BrowsingContext,
+    elementId: string | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    script: ((el: any, ...args: any[]) => T) | string,
+    ...args: unknown[]
+): Promise<Awaited<T>> {
+    return held.execute(withKnownElement(script), elementId ? ref(elementId) : null, ...args) as Promise<Awaited<T>>
 }
 
 /**
@@ -265,7 +307,7 @@ async function findInContext (
      * BiDi xpath locator does not take relative expressions with a start node.
      */
     if (using === 'xpath') {
-        const found = await held.execute((root: Element, expression: string) => {
+        const found = await inElement(held, elementId, (root: Element, expression: string) => {
             let result: XPathResult
             try {
                 result = root.ownerDocument.evaluate(expression, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
@@ -277,7 +319,7 @@ async function findInContext (
             }
             return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i))
                 .filter((node): node is Element => node?.nodeType === Node.ELEMENT_NODE)
-        }, ref(elementId), value)
+        }, value)
         /**
          * `execute` returns DOM nodes as element references.
          */
@@ -290,6 +332,10 @@ async function findInContext (
     if (!locator) {
         throw driverError('invalid argument', `Locator strategy "${using}" is not supported for an element of another browsing context`)
     }
+    /**
+     * `locateNodes` also searches below a detached start node
+     */
+    await inElement(held, elementId, () => null)
     const { nodes } = await held.browser.browsingContextLocateNodes({
         context: held.contextId,
         locator,
@@ -316,14 +362,17 @@ export async function findLinksInContext (
     elementId?: string,
     maxNodeCount?: number
 ): Promise<Record<string, string>[]> {
-    const found = await held.execute(
-        `const getVisibleText = ${GET_VISIBLE_TEXT}
-        const [root, partial, value] = arguments
-        return Array.from((root || document).querySelectorAll('a')).filter((a) => {
-            const text = getVisibleText(a).trim()
-            return partial ? text.includes(value) : text === value
-        })`,
-        elementId ? ref(elementId) : null, using === 'partial link text', value
+    const found = await inElement(
+        held,
+        elementId,
+        `function (root, partial, value) {
+            const getVisibleText = ${GET_VISIBLE_TEXT}
+            return Array.from((root || document).querySelectorAll('a')).filter((a) => {
+                const text = getVisibleText(a).trim()
+                return partial ? text.includes(value) : text === value
+            })
+        }`,
+        using === 'partial link text', value
     )
     /**
      * `execute` returns DOM nodes as element references.
@@ -336,12 +385,19 @@ export async function findLinksInContext (
  * own document and clip a capture of the top-level context it is shown in.
  * Chromium only captures top-level contexts.
  */
-async function screenshotInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
-    await held.execute(prepareInteraction, ref(elementId), 'screenshot', held.isFrame)
-    const rect = await held.execute((el: Element) => {
+function screenshotInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
+    /**
+     * the Classic `takeElementScreenshot` that this replaces sends events to the reporters
+     */
+    return withScreenshotEvents(held.browser, 'takeElementScreenshot', () => captureInContext(held, elementId), elementId)
+}
+
+async function captureInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
+    await inElement(held, elementId, prepareInteraction, 'screenshot', held.isFrame)
+    const rect = await inElement(held, elementId, (el: Element) => {
         const { x, y, width, height } = el.getBoundingClientRect()
         return { x, y, width, height }
-    }, ref(elementId))
+    })
     const { top, x, y } = held.isFrame ? await frameOffset(held) : { top: held, x: 0, y: 0 }
     /**
      * Clip against the whole document, so an element of a frame that reaches
@@ -365,9 +421,9 @@ async function screenshotInContext (held: WebdriverIO.BrowsingContext, elementId
  * @see https://w3c.github.io/webdriver/#element-click
  */
 async function clickInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
-    throwOnFailure(await held.execute(prepareInteraction, ref(elementId), 'click', held.isFrame))
+    throwOnFailure(await inElement(held, elementId, prepareInteraction, 'click', held.isFrame))
 
-    const isOption = await held.execute((el: HTMLElement) => {
+    const isOption = await inElement(held, elementId, (el: HTMLElement) => {
         if (el.localName !== 'option') {
             return false
         }
@@ -404,7 +460,7 @@ async function clickInContext (held: WebdriverIO.BrowsingContext, elementId: str
         fire('mouseup')
         fire('click')
         return true
-    }, ref(elementId))
+    })
     if (isOption) {
         return null
     }
@@ -444,8 +500,8 @@ async function clickInContext (held: WebdriverIO.BrowsingContext, elementId: str
  * @see https://w3c.github.io/webdriver/#element-clear
  */
 async function clearInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
-    throwOnFailure(await held.execute(prepareInteraction, ref(elementId), 'clear', held.isFrame))
-    await held.execute((el: HTMLElement) => {
+    throwOnFailure(await inElement(held, elementId, prepareInteraction, 'clear', held.isFrame))
+    await inElement(held, elementId, (el: HTMLElement) => {
         if (el.isContentEditable || el.ownerDocument.designMode === 'on') {
             if (el.innerHTML === '') {
                 return
@@ -464,7 +520,7 @@ async function clearInContext (held: WebdriverIO.BrowsingContext, elementId: str
         field.value = ''
         field.dispatchEvent(new Event('change', { bubbles: true }))
         field.blur()
-    }, ref(elementId))
+    })
     return null
 }
 
@@ -483,7 +539,7 @@ async function sendKeysInContext (
     text: string,
     options: { mask?: boolean } = {}
 ) {
-    const kind = await held.execute((el: HTMLElement) => {
+    const kind = await inElement(held, elementId, (el: HTMLElement) => {
         const input = el as HTMLInputElement
         if (el.localName !== 'input') {
             return 'text'
@@ -492,7 +548,7 @@ async function sendKeysInContext (
             return input.hasAttribute('multiple') ? 'files' : 'file'
         }
         return input.type === 'date' || input.type === 'time' ? 'value' : 'text'
-    }, ref(elementId))
+    })
 
     if (kind === 'file' || kind === 'files') {
         const files = text.split('\n')
@@ -506,11 +562,11 @@ async function sendKeysInContext (
         return null
     }
 
-    const hadFocus = await held.execute((el: HTMLElement) => el.ownerDocument.activeElement === el, ref(elementId))
-    throwOnFailure(await held.execute(prepareInteraction, ref(elementId), 'keys', held.isFrame))
+    const hadFocus = await inElement(held, elementId, (el: HTMLElement) => el.ownerDocument.activeElement === el)
+    throwOnFailure(await inElement(held, elementId, prepareInteraction, 'keys', held.isFrame))
 
     if (kind === 'value') {
-        throwOnFailure(await held.execute((el: HTMLInputElement, value: string) => {
+        throwOnFailure(await inElement(held, elementId, (el: HTMLInputElement, value: string) => {
             if (el.readOnly || el.disabled) {
                 return { error: 'element not interactable', message: 'The element is not mutable' }
             }
@@ -518,12 +574,12 @@ async function sendKeysInContext (
             el.dispatchEvent(new Event('input', { bubbles: true }))
             el.dispatchEvent(new Event('change', { bubbles: true }))
             return null
-        }, ref(elementId) as HTMLInputElement, text))
+        }, text))
         return null
     }
 
     if (!hadFocus) {
-        await held.execute((el: HTMLElement) => {
+        await inElement(held, elementId, (el: HTMLElement) => {
             if (el.isContentEditable) {
                 const selection = el.ownerDocument.getSelection()
                 selection?.setPosition(el, el.childNodes.length)
@@ -537,7 +593,7 @@ async function sendKeysInContext (
                     // e.g. `type="email"` or `type="number"` have no selection API
                 }
             }
-        }, ref(elementId))
+        })
     }
 
     if (text.length === 0) {
@@ -613,19 +669,19 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
         return first
     },
     findElementsFromElement: (held, elementId, using: string, value: string) => findInContext(held, elementId, using, value),
-    isElementSelected: (held, elementId) => held.execute((el: Element) => {
+    isElementSelected: (held, elementId) => inElement(held, elementId, (el: Element) => {
         if (el.localName === 'option') {
             return (el as HTMLOptionElement).selected
         }
         const type = el.localName === 'input' ? (el as HTMLInputElement).type : ''
         return (type === 'checkbox' || type === 'radio') && (el as HTMLInputElement).checked
-    }, ref(elementId)),
+    }),
     /**
      * An `<option>` or `<optgroup>` in a disabled `<optgroup>` or `<select>`
      * counts as disabled, like the drivers report it. An XML document has no
      * enabled form controls.
      */
-    isElementEnabled: (held, elementId) => held.execute((el: Element) => {
+    isElementEnabled: (held, elementId) => inElement(held, elementId, (el: Element) => {
         if (['text/xml', 'application/xml'].includes(el.ownerDocument.contentType)) {
             return false
         }
@@ -637,8 +693,8 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
             return node.matches(':disabled')
         }
         return !isDisabled(el)
-    }, ref(elementId)),
-    getElementAttribute: (held, elementId, name: string) => held.execute(
+    }),
+    getElementAttribute: (held, elementId, name: string) => inElement(held, elementId,
         (el: Element, name: string, booleanAttributes: Record<string, string[]>) => {
             /**
              * Boolean attributes are an HTML concept: HTML attribute names are
@@ -657,27 +713,27 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
             }
             return el.getAttribute(name)
         },
-        ref(elementId), name, BOOLEAN_ATTRIBUTES
+        name, BOOLEAN_ATTRIBUTES
     ),
-    getElementProperty: (held, elementId, name: string) => held.execute(
+    getElementProperty: (held, elementId, name: string) => inElement(held, elementId,
         (el: Element, name: string) => {
             const value = (el as unknown as Record<string, unknown>)[name]
             return value === undefined ? null : value
         },
-        ref(elementId), name
+        name
     ),
     /**
      * The computed value, or `""` in an XML document. chromedriver reports
      * colors as `rgba(r, g, b, a)`, so in Chromium `rgb()` gets an alpha of 1.
      */
     getElementCSSValue: async (held, elementId, name: string) => {
-        const value = await held.execute(
+        const value = await inElement(held, elementId,
             (el: Element, name: string) => (
                 ['text/xml', 'application/xml'].includes(el.ownerDocument.contentType)
                     ? ''
                     : getComputedStyle(el).getPropertyValue(name)
             ),
-            ref(elementId), name
+            name
         ) as string
         /**
          * `isChromium` misses a Chrome session whose capabilities have no
@@ -689,12 +745,9 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
             ? value.replace(/rgb\((\s*\d+\s*),(\s*\d+\s*),(\s*\d+\s*)\)/g, 'rgba($1,$2,$3, 1)')
             : value
     },
-    getElementText: (held, elementId) => held.execute(
-        `return (${GET_VISIBLE_TEXT}).apply(null, arguments)`,
-        ref(elementId)
-    ),
-    getElementTagName: (held, elementId) => held.execute((el: Element) => el.tagName.toLowerCase(), ref(elementId)),
-    getElementRect: (held, elementId) => held.execute((el: Element) => {
+    getElementText: (held, elementId) => inElement(held, elementId, GET_VISIBLE_TEXT),
+    getElementTagName: (held, elementId) => inElement(held, elementId, (el: Element) => el.tagName.toLowerCase()),
+    getElementRect: (held, elementId) => inElement(held, elementId, (el: Element) => {
         const rect = el.getBoundingClientRect()
         const view = el.ownerDocument.defaultView
         return {
@@ -703,7 +756,7 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
             width: rect.width,
             height: rect.height
         }
-    }, ref(elementId)),
+    }),
     elementClick: (held, elementId) => clickInContext(held, elementId),
     elementClear: (held, elementId) => clearInContext(held, elementId),
     elementSendKeys: (held, elementId, text: string, runtime?: { mask?: boolean }) => sendKeysInContext(held, elementId, String(text), {

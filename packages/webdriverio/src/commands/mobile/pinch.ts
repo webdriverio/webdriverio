@@ -9,7 +9,7 @@ import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '
  * :::info
  *
  * Pinching is done based on native mobile gestures. It is only supported for the following drivers:
- * - [appium-uiautomator2-driver](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-pinchclosegesture) for Android
+ * - [appium-uiautomator2-driver](https://appium.github.io/appium-uiautomator2-driver/latest/reference/execute-methods/#mobile-pinchclosegesture) for Android
  * - [appium-xcuitest-driver](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-pinch) for iOS
  *
  * This command only works with the following up-to-date components:

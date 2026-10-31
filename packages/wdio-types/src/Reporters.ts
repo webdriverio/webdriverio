@@ -59,6 +59,7 @@ export interface Options {
 
 export interface ReporterInstance extends EventEmitter {
     isSynchronised: boolean
+    setContextIdResolver?(resolver: () => string | undefined): void
 }
 
 export interface ReporterClass {

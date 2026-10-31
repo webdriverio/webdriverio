@@ -9,7 +9,7 @@ import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 import { isBase64Safe } from './utils.js'
-import { DEFAULT_RESPONSE_TIMEOUT } from '../constants.js'
+import { DEFAULT_RESPONSE_TIMEOUT, SESSION_ENDED_ERROR } from '../constants.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
@@ -82,6 +82,10 @@ export class BidiCore {
      * @private
      */
     private _isConnected = false
+    /**
+     * the connection was open and is closed now (not: it never connected)
+     */
+    #closed = false
 
     constructor (
         webSocketUrl: string,
@@ -117,11 +121,20 @@ export class BidiCore {
 
     public async connect () {
         log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
+        this.#closed = false
 
         /**
          * try to connect to different websocket urls depending on the protocol
          */
-        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        try {
+            this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        } catch (err) {
+            /**
+             * e.g. an invalid url: `waitForConnected()` must not wait forever
+             */
+            this.#resolveWaitForConnected(false)
+            throw err
+        }
         this._isConnected = Boolean(this.#ws)
         this.#resolveWaitForConnected(this._isConnected)
 
@@ -150,6 +163,7 @@ export class BidiCore {
 
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
+        this.#closed = true
         this.#expiredCommands.clear()
         /**
          * first: the socket teardown below can throw
@@ -179,6 +193,7 @@ export class BidiCore {
     #handleClose (code?: number) {
         log.info(`Bidi connection to ${this.#webSocketUrl} closed${typeof code === 'number' ? ` (code ${code})` : ''}`)
         this._isConnected = false
+        this.#closed = true
         this.#expiredCommands.clear()
         this.#ws = undefined
         this.#rejectPendingCommands(
@@ -220,6 +235,15 @@ export class BidiCore {
 
     get isConnected () {
         return this._isConnected
+    }
+
+    /**
+     * `true` when the connection was open and is closed now: after `close()` (e.g. by
+     * `deleteSession`), or when the browser or the driver closed the socket. `false` before
+     * the first connection and when the connection could not be made.
+     */
+    get isClosed () {
+        return this.#closed
     }
 
     #handleResponse (data: RawData) {
@@ -303,6 +327,7 @@ export class BidiCore {
                     clearTimeout(t)
                     clearTimeout(scriptTimer)
                     failError.message = `WebDriver Bidi command "${params.method}" with id ${id} got no result: ${reason}`
+                    failError.name = SESSION_ENDED_ERROR
                     reject(failError)
                 }
             })
@@ -328,13 +353,20 @@ export class BidiCore {
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
         if (!this.#ws || !this._isConnected) {
-            throw new Error('No connection to WebDriver Bidi was established')
+            const error = new Error('No connection to WebDriver Bidi was established')
+            /**
+             * the connection was open: the session ended
+             */
+            if (this.#closed) {
+                error.name = SESSION_ENDED_ERROR
+            }
+            throw error
         }
 
         const logged = maskBidiCommand(params)
         log.info('BIDI COMMAND', ...parseBidiCommand(logged))
         const id = ++this.#id
-        this.client?.emit('bidiCommand', logged)
+        this.client?.emit('bidiCommand', { ...logged, id })
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }
