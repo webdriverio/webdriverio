@@ -5,8 +5,6 @@ import { config as baseConfig } from './wdio.conf.js'
 
 import { setValue } from '@wdio/shared-store-service'
 
-import { firefoxDriverOptions } from './firefoxProfileRoot.js'
-
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const isLinux = os.platform() === 'linux'
@@ -36,8 +34,7 @@ export const config: WebdriverIO.MultiRemoteConfig = {
                     browserVersion: 'stable',
                     'moz:firefoxOptions': {
                         args: ['-headless']
-                    },
-                    ...firefoxDriverOptions
+                    }
                 }
             },
             browserC: {

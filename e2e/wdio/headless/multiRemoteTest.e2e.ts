@@ -1,8 +1,6 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
 import { Key, multiRemote } from 'webdriverio'
 
-import { firefoxDriverOptions } from '../firefoxProfileRoot.js'
-
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
 
@@ -204,8 +202,7 @@ describe('multi remote test', () => {
                                 browserVersion: 'stable',
                                 'moz:firefoxOptions': {
                                     args: ['-headless']
-                                },
-                                ...firefoxDriverOptions
+                                }
                             } }
                     })
                 })

@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -177,6 +178,13 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
         if (binary) {
             geckodriverOptions.customGeckoDriverPath = binary
+        }
+
+        // on a Windows runner of GitHub Actions, profiles in %TEMP% fill the system disk queue and Firefox stalls
+        const runnerTemp = process.env.RUNNER_TEMP
+        if (os.platform() === 'win32' && runnerTemp && !geckodriverOptions.profileRoot && !caps['moz:firefoxOptions']?.androidPackage) {
+            geckodriverOptions.profileRoot = runnerTemp
+            log.info(`Create the Firefox profiles in RUNNER_TEMP (${runnerTemp}). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }`)
         }
 
         driver = 'GeckoDriver'

@@ -3,7 +3,6 @@ import url from 'node:url'
 import path from 'node:path'
 
 import { actModel, cacheDir } from './model.js'
-import { firefoxDriverOptions } from '../firefoxProfileRoot.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const isLinux = os.platform() === 'linux'
@@ -29,8 +28,7 @@ export const config: WebdriverIO.Config = {
     }, {
         browserName: 'firefox',
         webSocketUrl: true,
-        'moz:firefoxOptions': { args: ['-headless'] },
-        ...firefoxDriverOptions
+        'moz:firefoxOptions': { args: ['-headless'] }
     }],
     services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') }, effects: { ignore: ['/telemetry'] } }]],
     /**
