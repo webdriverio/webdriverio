@@ -12,9 +12,9 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
+      "types": "./build/node/index.d.ts",
       "source": "./src/node/index.ts",
-      "import": "./build/node.js",
-      "types": "./build/node/index.d.ts"
+      "import": "./build/node.js"
     }
   },
   "types": "./build/index.d.ts",

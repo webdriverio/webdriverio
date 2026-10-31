@@ -25,7 +25,7 @@ Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workfl
 
 On a GitHub-hosted Windows runner, Geckodriver creates each temporary Firefox profile in `%TEMP%`, which is on the `C:` system disk. When several Firefox sessions start at the same time, their profiles fill the disk queue of `C:`. The running Firefox sessions then stop answering for 5 to 20 seconds while they start their content processes, and tests time out.
 
-Create the profiles on `D:` instead: set the Geckodriver option `profileRoot` to `RUNNER_TEMP`, a folder on `D:` that GitHub Actions sets in every job.
+Create the profiles on `D:` instead: set the Geckodriver option `profileRoot` to `RUNNER_TEMP`, the temporary folder that GitHub Actions sets in every job. On GitHub-hosted Windows runners it is on `D:`; on a self-hosted runner, check that it is on a different disk than the system disk.
 
 ```ts title="wdio.conf.ts"
 import os from 'node:os'
@@ -47,7 +47,7 @@ Geckodriver still deletes each profile when the session ends. Outside of GitHub 
 
 Measured on `windows-latest` (2 cores), with up to 4 Chrome and Firefox sessions at the same time, 10 jobs each:
 
-| Profiles in | Firefox stalls of 5 s or more | New Firefox session, median / max |
+| Profiles in | Firefox stalls of 5 s or more | Session start (`POST /session`), median / max |
 |---|---|---|
 | `%TEMP%` on `C:` (default) | 14, in 7 of 10 jobs | 7.3 s / 36.0 s |
 | `RUNNER_TEMP` on `D:` | 0 | 2.3 s / 13.0 s |

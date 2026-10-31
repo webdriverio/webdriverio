@@ -14,7 +14,8 @@ export type ChromedriverParameters = (
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters { }
-        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> { }
+        // `binary` is the path to Geckodriver in WebdriverIO, not to Firefox as in the geckodriver package
+        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port' | 'binary'> { }
         interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> { }
         interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> { }
     }
