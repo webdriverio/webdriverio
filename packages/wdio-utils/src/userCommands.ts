@@ -311,8 +311,8 @@ interface AsymmetricMatcher {
     toAsymmetricMatcher?(): string
 }
 
-// for example `StringContaining "Docs"`, as the message of a failed assertion writes it
-function matcherText (matcher: AsymmetricMatcher) {
+// for example `StringContaining "Docs"`, as the message of a failed assertion writes it; the sample has the limits of a copy
+function matcherText (matcher: AsymmetricMatcher, state: CopyState, depth: number) {
     if (typeof matcher.toAsymmetricMatcher === 'function') {
         return matcher.toAsymmetricMatcher()
     }
@@ -322,7 +322,7 @@ function matcherText (matcher: AsymmetricMatcher) {
     }
     let text: string
     try {
-        text = sample instanceof RegExp ? String(sample) : JSON.stringify(sample) ?? String(sample)
+        text = sample instanceof RegExp ? String(sample) : JSON.stringify(copyValue(sample, state, depth + 1)) ?? String(sample)
     } catch {
         text = UNREADABLE
     }
@@ -417,7 +417,7 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
         return '[Promise]'
     }
     if ((value as { $$typeof?: unknown }).$$typeof === ASYMMETRIC_MATCHER) {
-        return `[Matcher ${matcherText(value as AsymmetricMatcher)}]`
+        return `[Matcher ${matcherText(value as AsymmetricMatcher, state, depth)}]`
     }
     if (state.ancestors.has(value as object)) {
         return '[Circular]'
