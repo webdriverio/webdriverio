@@ -694,7 +694,7 @@ describe('ConfigParser', () => {
 
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
             const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
-            const getSpecs = () => configParser.getSpecs([INDEX_PATH], [requireLibPath])
+            const getSpecs = () => configParser.getSpecs([configParserPath, requireLibPath], [requireLibPath])
 
             expect(getSpecs()).toContain(configParserPath)
 
@@ -703,6 +703,40 @@ describe('ConfigParser', () => {
             configParser['_config'].exclude = []
             expect(getSpecs()).not.toContain(requireLibPath)
             expect(getSpecs()).toContain(configParserPath)
+        })
+
+        it('should use capability specs instead of suite specs and keep groups', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['mobile'] })
+
+            const configParserPath = path.join(__dirname, 'configparser.test.ts')
+            const mobilePath = path.join(__dirname, 'FileSystemPathService.test.ts')
+            expect(configParser.getSpecs()).toEqual([mobilePath])
+            expect(configParser.getSpecs([[INDEX_PATH, configParserPath]])).toEqual([[INDEX_PATH, configParserPath]])
+        })
+
+        it('should not run a suite for a capability with an empty spec list', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['mobile'] })
+
+            expect(configParser.getSpecs()).toEqual([path.join(__dirname, 'FileSystemPathService.test.ts')])
+            expect(configParser.getSpecs([])).toEqual([])
+        })
+
+        it('should prefer explicit CLI specs and suites to capability specs', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['mobile'], spec: [INDEX_PATH] })
+
+            const expected = [INDEX_PATH, path.join(__dirname, 'FileSystemPathService.test.ts')]
+            expect(configParser.getSpecs([__filename])).toEqual(expected)
+            expect(configParser.getSpecs([])).toEqual(expected)
+        })
+
+        it('should still validate requested suites when capability specs are provided', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['missing'] })
+
+            expect(() => configParser.getSpecs([INDEX_PATH])).toThrow(/The suite\(s\) "missing" you specified don't exist/)
         })
 
         it('should include typescript files', async () => {
