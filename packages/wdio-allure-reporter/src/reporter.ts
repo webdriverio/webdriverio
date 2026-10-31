@@ -87,7 +87,7 @@ const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
 const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
 // the result of a user command, until the steps that started after it end
-type UserStep = { kind: 'user'; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
+type UserStep = { kind: 'user'; id: number; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
 // a protocol step that started in a user step; `ended`: its user command ended it before its result
 type ProtocolStep = {
     kind: 'protocol'; parent?: number; command?: string; endpoint?: string
@@ -95,6 +95,13 @@ type ProtocolStep = {
 }
 // the steps of a test that are still open, in start order: a step ends when all steps after it ended
 type OpenStep = UserStep | ProtocolStep
+
+// the user step of a request: its parent, else (no parent) the user step it started in
+function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined {
+    const index = open.indexOf(step)
+    const parent = step.parent === undefined ? undefined : open.find((s): s is UserStep => s.kind === 'user' && s.id === step.parent)
+    return parent ?? open.slice(0, index).findLast((s): s is UserStep => s.kind === 'user')
+}
 
 // the status of a user step: an error from another realm or a thrown value fails it with its text
 function userStepStatus(result: AfterUserCommandArgs['result']): { status: AllureStatus; statusDetails?: StatusDetails } {
@@ -1341,7 +1348,7 @@ export default class AllureReporter extends WDIOReporter {
         const scope = this._userStepScope()
         const open = this._userSteps.get(scope) ?? []
         this._userSteps.set(scope, open)
-        const step: UserStep = { kind: 'user', name, command: payload.command }
+        const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
         open.push(step)
         this._userStepOf.set(payload.id, { scope, open, step })
     }
@@ -1351,26 +1358,21 @@ export default class AllureReporter extends WDIOReporter {
         this._userStepOf.delete(payload.id)
         // no step, or its test ended: the end of the test closed the step
         if (!entry || this._userSteps.get(entry.scope) !== entry.open) { return }
-        const { open, step, scope } = entry
-        step.done = { result: payload.result, stop: Date.now() }
-        // its protocol steps still in flight end with it, as open steps do at the end of a test;
-        // a user command that started after it and did not end makes it wait
-        const after = open.slice(open.indexOf(step) + 1)
-        if (after.every((s) => s.kind === 'protocol' || s.done)) {
-            const ended = { ...userStepStatus(payload.result), stop: step.done.stop }
-            for (const s of after) {
-                if (s.kind === 'protocol' && !s.done) {
-                    s.done = { ended }
-                    this._addLateResult(scope, s)
-                }
-            }
-        }
-        this._endDoneSteps(open, scope)
+        entry.step.done = { result: payload.result, stop: Date.now() }
+        this._endDoneSteps(entry.open, entry.scope)
     }
 
+    // the last step ends when it is done; a request still in flight ends with its user command,
+    // as open steps do at the end of a test; a user command that did not end makes the steps under it wait
     private _endDoneSteps(open: OpenStep[], scope: string): void {
-        while (open.at(-1)?.done) {
-            const step = open.pop()!
+        for (let step = open.at(-1); step; step = open.at(-1)) {
+            if (!step.done) {
+                const owner = step.kind === 'protocol' ? userStepOf(open, step) : undefined
+                if (!owner?.done) { break }
+                step.done = { ended: { ...userStepStatus(owner.done.result), stop: owner.done.stop } }
+                this._addLateResult(scope, step as ProtocolStep)
+            }
+            open.pop()
             if (step.kind === 'user') {
                 this._endUserStep(step)
             } else {
