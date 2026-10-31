@@ -1046,6 +1046,19 @@ describe('shortCopy', () => {
         expect(mod.shortCopy(matcher('Any', String, 'Any<String>'))).toBe('[Matcher Any<String>]')
     })
 
+    it('writes the sample of an asymmetric matcher with the limits of a copy', () => {
+        const matcher = (sample: unknown) => ({ $$typeof: Symbol.for('jest.asymmetricMatcher'), sample, toString: () => 'ArrayContaining' })
+        const items = Array.from({ length: 60 }, (_, i) => i)
+        expect(mod.shortCopy(matcher(items))).toBe(`[Matcher ArrayContaining ${JSON.stringify([...items.slice(0, 50), '… [10 more]'])}]`)
+        let reads = 0
+        const sample = {}
+        for (let i = 0; i < 1000; i++) {
+            Object.defineProperty(sample, `k${i}`, { enumerable: true, get: () => ++reads })
+        }
+        mod.shortCopy(matcher(sample))
+        expect(reads).toBe(50)
+    })
+
     it('labels an element list with its selector and its number of elements', () => {
         const list = kind.setWdioKind(Object.assign([{}, {}, {}], { selector: 'li' }), 'element-array')
         expect(mod.shortCopy(list)).toBe('WebdriverIO.ElementArray<li> (3)')
