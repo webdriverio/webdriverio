@@ -89,4 +89,29 @@ describe('handle windows in webdriver classic', () => {
         // Verify we're on the original window
         expect(await $('h1').getText()).toBe('Window Demo')
     })
+
+    it('should continue in the remaining window after closeWindow when the switch is slow', async () => {
+        // a slow switch, as on a loaded runner: a command right after closeWindow must not run in the closed window
+        let delaySwitch = false
+        // @ts-expect-error the types of overwriteCommand have only WebdriverIO commands, not protocol commands
+        browser.overwriteCommand('switchToWindow', async (origSwitchToWindow: (handle: string) => Promise<void>, handle: string) => {
+            if (delaySwitch) {
+                await new Promise((resolve) => setTimeout(resolve, 500))
+            }
+            return origSwitchToWindow(handle)
+        })
+
+        await browser.url('https://guinea-pig.webdriver.io/window.html')
+        await $('#openWindow').click()
+        await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
+        await browser.switchWindow('https://guinea-pig.webdriver.io/windowTarget.html')
+
+        delaySwitch = true
+        try {
+            await browser.closeWindow()
+            expect(await $('h1').getText()).toBe('Window Demo')
+        } finally {
+            delaySwitch = false
+        }
+    })
 })
