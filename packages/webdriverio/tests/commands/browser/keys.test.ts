@@ -31,9 +31,9 @@ describe('keys', () => {
     })
 
     it.each([
-        { description: 'a string', value: '𠮷𝄞😀' },
-        { description: 'an array', value: ['𠮷', '𝄞', '😀'] }
-    ])('sends non-BMP Unicode characters supplied as $description', async ({ value }) => {
+        { description: 'a string', value: '𠮷𝄞😀👍🏽🇫🇷👨‍👩‍👧e\u0301' },
+        { description: 'an array', value: ['𠮷', '𝄞', '😀', '👍🏽', '🇫🇷', '👨‍👩‍👧', 'e\u0301'] }
+    ])('sends Unicode graphemes supplied as $description', async ({ value }) => {
         const browser = await remote({
             capabilities: { browserName: 'foobar' }
         })
@@ -54,10 +54,18 @@ describe('keys', () => {
                 { type: 'keyDown', value: '𠮷' },
                 { type: 'keyDown', value: '𝄞' },
                 { type: 'keyDown', value: '😀' },
+                { type: 'keyDown', value: '👍🏽' },
+                { type: 'keyDown', value: '🇫🇷' },
+                { type: 'keyDown', value: '👨‍👩‍👧' },
+                { type: 'keyDown', value: 'e\u0301' },
                 { type: 'pause', duration: 10 },
                 { type: 'keyUp', value: '𠮷' },
                 { type: 'keyUp', value: '𝄞' },
-                { type: 'keyUp', value: '😀' }
+                { type: 'keyUp', value: '😀' },
+                { type: 'keyUp', value: '👍🏽' },
+                { type: 'keyUp', value: '🇫🇷' },
+                { type: 'keyUp', value: '👨‍👩‍👧' },
+                { type: 'keyUp', value: 'e\u0301' }
             ]
         }])
     })

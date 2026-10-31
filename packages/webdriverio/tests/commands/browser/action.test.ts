@@ -55,7 +55,7 @@ describe('action command', () => {
             .toThrowError(/more than one/)
     })
 
-    it.each(['𠮷', '𝄞', '😀'])('supports a non-BMP Unicode character %s in key actions', async (value) => {
+    it.each(['𠮷', '𝄞', '😀', '👍🏽', '🇫🇷', '👨‍👩‍👧', 'e\u0301'])('supports a single Unicode grapheme %s in key actions', async (value) => {
         await browser.action('key', { id: 'unicode' })
             .down(value)
             .up(value)
@@ -72,8 +72,10 @@ describe('action command', () => {
         })
     })
 
-    it.each(['down', 'up'] as const)('rejects multiple non-BMP Unicode characters in key %s', (action) => {
-        expect(() => browser.action('key')[action]('𠮷𝄞')).toThrowError(/more than one/)
+    it.each(['down', 'up'] as const)('rejects multiple Unicode graphemes in key %s', (action) => {
+        for (const value of ['𠮷𝄞', '👍🏽🇫🇷', '👍🏽a', '🇫🇷🇫🇷', 'e\u0301a']) {
+            expect(() => browser.action('key')[action](value)).toThrowError(/more than one/)
+        }
     })
 
     it('should trigger command key when Key.Ctrl is used', async () => {
