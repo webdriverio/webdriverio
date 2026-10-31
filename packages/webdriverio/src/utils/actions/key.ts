@@ -25,7 +25,7 @@ export default class KeyAction extends BaseAction {
             return isMac ? Key.Command : Key.Control
         }
 
-        if (value.length > 1) {
+        if ([...value].length > 1) {
             throw new Error(`Your key input contains more than one character: "${value}", only one is allowed though!`)
         }
 

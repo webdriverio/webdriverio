@@ -55,6 +55,27 @@ describe('action command', () => {
             .toThrowError(/more than one/)
     })
 
+    it.each(['𠮷', '𝄞', '😀'])('supports a non-BMP Unicode character %s in key actions', async (value) => {
+        await browser.action('key', { id: 'unicode' })
+            .down(value)
+            .up(value)
+            .perform()
+
+        const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)
+        expect(body).toEqual({
+            actions: [{
+                type: 'key',
+                id: 'unicode',
+                parameters: {},
+                actions: [{ type: 'keyDown', value }, { type: 'keyUp', value }]
+            }]
+        })
+    })
+
+    it.each(['down', 'up'] as const)('rejects multiple non-BMP Unicode characters in key %s', (action) => {
+        expect(() => browser.action('key')[action]('𠮷𝄞')).toThrowError(/more than one/)
+    })
+
     it('should trigger command key when Key.Ctrl is used', async () => {
         vi.mocked(os.type).mockReturnValue('Darwin')
         await browser.action('key', { id: 'foobar' })
