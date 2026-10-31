@@ -70,6 +70,8 @@ describe.each(Object.entries(BROWSERS))('cookies in %s', (_, capabilities) => {
             if (mode !== 'bidi') {
                 expect(sameSite).toMatchObject(mode === 'classic' ? { pascal: 'Strict', lower: 'Lax' } : { pascal: 'strict', lower: 'lax' })
             }
+            // a sameSite filter matches in any spelling
+            expect((await browser.getCookies({ sameSite: 'Strict' as never })).map((cookie) => cookie.name)).toEqual(['pascal'])
             await browser.deleteCookies(['pascal', 'lower'])
         })
 

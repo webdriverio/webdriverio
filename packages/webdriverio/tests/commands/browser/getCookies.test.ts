@@ -216,6 +216,19 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['other'])
         })
 
+        // WebDriver BiDi only accepts a lowercase sameSite; the type also allows the Classic spelling
+        it('should send a sameSite filter in lowercase to BiDi inside a parallel scope', async () => {
+            page('https://app.example.com/page')
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
+            await parallelStore.run('ctx-1', () => browser.getCookies({ sameSite: 'Lax' as never }))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey', userContext: 'uc-1' }, filter: { sameSite: 'lax' } })
+        })
+
+        it('should send a sameSite filter as given to BiDi in a sequential run', async () => {
+            await browser.getCookies({ sameSite: 'Lax' as never })
+            expect(storageGetCookies.mock.calls[0][0].filter).toEqual({ sameSite: 'Lax' })
+        })
+
         it('should keep only the cookies of the page path inside a parallel scope', async () => {
             page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce({ cookies: [

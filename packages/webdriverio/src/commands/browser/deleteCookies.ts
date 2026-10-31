@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { cookieMatchesUrl, getCookiePartition, toCookieFilters, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
+import { cookieMatchesUrl, getCookiePartition, toBidiCookieFilter, toCookieFilters, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -43,7 +43,7 @@ export async function deleteCookies(
             type: 'context',
             context: this.contextId
         }
-        await deleteBidiCookies(this.browser, partition, filters)
+        await deleteBidiCookies(this.browser, partition, filters?.map(toBidiCookieFilter))
         return
     }
 
@@ -93,7 +93,7 @@ async function deleteWindowCookies(
     const { browser, partition, url } = scope
     const found = await Promise.all((filters ?? [undefined]).map(async (filter) => ({
         filter,
-        cookies: (await browser.storageGetCookies({ partition, ...(filter ? { filter } : {}) })).cookies
+        cookies: (await browser.storageGetCookies({ partition, ...(filter ? { filter: toBidiCookieFilter(filter) } : {}) })).cookies
     })))
     const isVisible = cookieMatchesUrl(url)
     const cookies = new Map(found.flatMap(({ filter, cookies }) => (

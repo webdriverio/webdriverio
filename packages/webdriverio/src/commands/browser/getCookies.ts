@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { cookieMatchesUrl, getCookiePartition, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
+import { cookieMatchesUrl, getCookiePartition, toBidiCookieFilter, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -65,7 +65,7 @@ export async function getCookies(
             ...(sourceOrigin === null ? {} : {
                 partition: { type: 'context', context: this.contextId }
             }),
-            ...(typeof filter !== 'undefined' ? { filter } : {})
+            ...(typeof filter !== 'undefined' ? { filter: toBidiCookieFilter(filter) } : {})
         }, filter)
     }
 
@@ -100,7 +100,7 @@ async function getWindowCookies(
         partition: sourceOrigin
             ? { type: 'storageKey', sourceOrigin, ...(userContext ? { userContext } : {}) }
             : partition,
-        ...(typeof filter !== 'undefined' ? { filter } : {})
+        ...(typeof filter !== 'undefined' ? { filter: toBidiCookieFilter(filter) } : {})
     }
     const cookies = await readBidiCookies(browser, params, filter, true)
     /**

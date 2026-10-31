@@ -191,6 +191,12 @@ describe('deleteCookies', () => {
             ])
         })
 
+        it('should send a sameSite filter in lowercase to BiDi inside a parallel scope', async () => {
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies({ name: 'a', sameSite: 'Strict' as never }))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey', userContext: 'uc-1' }, filter: { name: 'a', sameSite: 'strict' } })
+        })
+
         it('should delete a cookie once when two filters match it inside a parallel scope', async () => {
             const page = { name: 'page', domain: 'webdriver.io', path: '/' }
             storageGetCookies.mockResolvedValueOnce({ cookies: [page] }).mockResolvedValueOnce({ cookies: [page] })

@@ -165,6 +165,16 @@ describe('browsing context', () => {
         })
     })
 
+    it('sends a sameSite cookie filter of a held context in lowercase to BiDi', async () => {
+        const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com/' })
+        vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({ cookies: [] } as never)
+        vi.spyOn(browser, 'storageDeleteCookies').mockResolvedValue({} as never)
+        await page.getCookies({ sameSite: 'Strict' as never })
+        expect(browser.storageGetCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { sameSite: 'strict' } })
+        await page.deleteCookies({ name: 'a', sameSite: 'Lax' as never })
+        expect(browser.storageDeleteCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { name: 'a', sameSite: 'lax' } })
+    })
+
     it('scopes navigation, cookies, history, and prompts to the held context', async () => {
         const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com/' })
         vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({

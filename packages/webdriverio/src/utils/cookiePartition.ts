@@ -95,6 +95,13 @@ export function toCookieFilters(filterArray: unknown[]): remote.StorageCookieFil
     })
 }
 
+/** WebDriver BiDi only accepts a lowercase sameSite; the cookie types also allow the Classic spelling */
+export function toBidiCookieFilter(filter: remote.StorageCookieFilter): remote.StorageCookieFilter {
+    return typeof filter.sameSite === 'string'
+        ? { ...filter, sameSite: filter.sameSite.toLowerCase() as remote.NetworkSameSite }
+        : filter
+}
+
 export function getCookiePartition(sourceOrigin: string): remote.StoragePartitionDescriptor {
     return { type: 'storageKey', sourceOrigin }
 }
