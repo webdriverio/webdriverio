@@ -2,7 +2,7 @@ import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { expect as wdioExpect, wdioCustomMatchers, SnapshotService } from 'expect-webdriverio'
-import { registerUserCommands, runUserCommand, setUserCommandStore } from '@wdio/utils'
+import { registerUserCommands, runUserCommand, setUserCommandStore, setWdioKind, WDIO_CHAINABLE, WDIO_QUERY } from '@wdio/utils'
 
 import { wrapAssertions } from '../src/assertions.js'
 
@@ -80,5 +80,55 @@ describe('wrapAssertions', () => {
         const frames = (assert.mock.calls[0][0].error.stack as string).split('\n')
         const callSite = frames[frames.findIndex((line) => line.includes('__INLINE_SNAPSHOT__')) + 2]
         expect(callSite).toContain('assertions.test.ts')
+    })
+})
+
+describe('wrapAssertions session of the subject', () => {
+    // instance A of a multi-remote browser, the session of the polls; `fallback` is the browser of the runner
+    const instanceA = setWdioKind({ isBidi: true, sessionId: 'a', options: { userCommandEvents: true }, emit: vi.fn() }, 'browser')
+    const fallback = setWdioKind({ isMultiRemote: true, instances: ['a'], emit: vi.fn() }, 'browser')
+    async function toPollOnA (this: unknown, _received: unknown, text: string) {
+        let value = ''
+        for (let poll = 0; poll < 3; poll++) {
+            value = await runUserCommand(instanceA, 'getText', [], async () => poll < 2 ? 'Click' : 'Done')
+        }
+        return { pass: value === text, message: () => `expected ${text}` }
+    }
+    const extend = vi.fn()
+    wrapAssertions({ extend }, { toPollOnA }, () => fallback)
+    const [[{ toPollOnA: wrapped }]] = extend.mock.calls
+    const commandsOf = (session: { emit: ReturnType<typeof vi.fn> }) => session.emit.mock.calls.map(([event, payload]) => `${event} ${payload.command}`)
+    const assertion = ['userCommand expect.toPollOnA', 'userResult expect.toPollOnA']
+
+    beforeEach(() => {
+        instanceA.emit.mockClear()
+        fallback.emit.mockClear()
+    })
+
+    it.each([
+        ['an element of instance A', () => setWdioKind({ elementId: 'e1', parent: instanceA }, 'element')],
+        ['a pending element of instance A', () => Object.assign(setWdioKind({}, 'element'), { [WDIO_CHAINABLE]: true, [WDIO_QUERY]: { foundWith: '$', selector: '#x', parent: instanceA } })],
+        ['an element list of instance A', () => setWdioKind(Object.assign([], { parent: instanceA }), 'element-array')],
+        ['instance A', () => instanceA],
+        ['a browsing context of instance A', () => setWdioKind({ contextId: 'tab-1', browser: instanceA }, 'browsing-context')]
+    ])('sends one user command on the session of %s', async (_name, subject) => {
+        await wrapped.call({ isNot: false }, subject(), 'Done')
+        expect(commandsOf(instanceA)).toEqual(assertion)
+        expect(commandsOf(fallback)).toEqual([])
+    })
+
+    it('uses the browser of the runner for a subject with no session, for example a mock', async () => {
+        const runner = { isBidi: true, sessionId: 'r', options: { userCommandEvents: true }, emit: vi.fn() }
+        const ext = vi.fn()
+        wrapAssertions({ extend: ext }, { toPollOnA }, () => runner)
+        const [[{ toPollOnA: onRunner }]] = ext.mock.calls
+        await onRunner.call({ isNot: false }, setWdioKind({ url: '**/api' }, 'mock'), 'Done')
+        expect(commandsOf(runner)).toEqual(assertion)
+        expect(commandsOf(instanceA)).toEqual([])
+    })
+
+    it('keeps the commands of an element of all instances as the commands of each instance', async () => {
+        await wrapped.call({ isNot: false }, setWdioKind({ elementId: 'e1', isMultiRemote: true }, 'element'), 'Done')
+        expect(commandsOf(instanceA)).toEqual(Array(3).fill(['userCommand getText', 'userResult getText']).flat())
     })
 })
