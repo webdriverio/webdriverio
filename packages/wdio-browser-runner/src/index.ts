@@ -103,7 +103,11 @@ export default class BrowserRunner extends LocalRunner {
              */
             const capability = getEffectiveCapability(runArgs.caps)
             if (capability.browserName?.toLowerCase() === 'firefox') {
-                const allowOrigins = new Set([`http://localhost:${port}`])
+                /**
+                 * keep the user's driver options (e.g. a custom `binary`) and origins
+                 */
+                const geckodriverOptions = capability['wdio:geckodriverOptions'] || {}
+                const allowOrigins = new Set([...(geckodriverOptions.allowOrigins || []), `http://localhost:${port}`])
                 try {
                     const hostUrl = new URL(host)
                     hostUrl.port = String(port)
@@ -112,6 +116,7 @@ export default class BrowserRunner extends LocalRunner {
                     // an invalid `host` is no valid origin, keep localhost only
                 }
                 capability['wdio:geckodriverOptions'] = {
+                    ...geckodriverOptions,
                     allowOrigins: [...allowOrigins]
                 }
             }

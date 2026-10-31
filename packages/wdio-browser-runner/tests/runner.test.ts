@@ -177,6 +177,23 @@ describe('BrowserRunner', () => {
         }
     })
 
+    it('keeps the user\'s geckodriver options when adding the allowed origins', async () => {
+        for (const caps of [
+            { browserName: 'firefox', 'wdio:geckodriverOptions': { binary: '/geckodriver', allowOrigins: ['http://other:1'] } },
+            { alwaysMatch: { browserName: 'firefox', 'wdio:geckodriverOptions': { binary: '/geckodriver', allowOrigins: ['http://other:1'] } }, firstMatch: [{}] }
+        ]) {
+            const runner = new BrowserRunner({}, { rootDir: '/foo/bar', framework: 'mocha' } as any)
+            await runner.initialize()
+            vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+            const runArgs = { caps, command: 'run', args: {} } as any
+            await runner.run(runArgs)
+            expect((runArgs.caps.alwaysMatch || runArgs.caps)['wdio:geckodriverOptions']).toEqual({
+                binary: '/geckodriver',
+                allowOrigins: ['http://other:1', 'http://localhost:1234']
+            })
+        }
+    })
+
     it('passes mochaOpts.require to the browser as decoded paths', () => {
         const rootDir = path.resolve('/My Project')
         const config: any = { rootDir, framework: 'mocha', mochaOpts: { require: ['./setup.js'] } }
