@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import util from 'node:util'
 
 import logger from '@wdio/logger'
-import { initializeWorkerService, initializePlugin, executeHooksWithArgs, sleep, specFilePath, TimingTracker } from '@wdio/utils'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs, sleep, specFilePath, TimingTracker, sendsUserCommands } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
@@ -354,8 +354,8 @@ export default class Runner extends EventEmitter {
 
         this._reporter.caps = browser.capabilities
         this._reporter.setContextIdResolver(() => (getContextIdPayload(browser as WebdriverIO.Browser) as { contextId?: string }).contextId)
-        // WebDriver BiDi sessions only, see `@wdio/utils` `userCommands.ts`; the instances of a multi-remote browser can be such sessions
-        this._reporter.setUserCommandSession(() => Boolean(browser.isMultiRemote || (browser.isBidi && !browser.isMobile)))
+        // the instances of a multi-remote browser can be such sessions
+        this._reporter.setUserCommandSession(() => Boolean(browser.isMultiRemote) || sendsUserCommands(browser))
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)

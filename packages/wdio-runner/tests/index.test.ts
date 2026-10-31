@@ -221,6 +221,36 @@ describe('wdio-runner', () => {
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
         })
 
+        it('should keep reporter events out of user commands only in sessions that send them', async () => {
+            const runner = new WDIORunner()
+            const config: any = { reporters: [], before: [], beforeSession: [], framework: 'testWithFailures', runner: 'local' }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn()
+            const stubBrowser: Record<string, unknown> = { capabilities: { browserName: 'chrome' }, options: {} }
+            runner['_initSession'] = vi.fn().mockReturnValue(stubBrowser)
+            await runner.run({ args: { reporters: [] }, cid: '0-0', caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+
+            const flag = { 'wdio:experimentalBiDiCommands': true }
+            const rows: [string, Record<string, unknown>, boolean][] = [
+                ['Classic', { capabilities: flag }, false],
+                ['Appium with WebDriver BiDi', { isBidi: true, isMobile: true, capabilities: flag }, false],
+                ['WebDriver BiDi with the capability', { isBidi: true, capabilities: flag }, true],
+                ['WebDriver BiDi with userCommandEvents true', { isBidi: true, options: { userCommandEvents: true } }, true],
+                ['WebDriver BiDi with no capability', { isBidi: true }, false],
+                ['WebDriver BiDi with userCommandEvents false', { isBidi: true, capabilities: flag, options: { userCommandEvents: false } }, false],
+                ['multi-remote', { isMultiRemote: true }, true]
+            ]
+            const sends = rows.map(([name, props]) => {
+                // the check reads the browser at each reporter event
+                for (const key of Object.keys(stubBrowser)) {
+                    delete stubBrowser[key]
+                }
+                Object.assign(stubBrowser, { capabilities: {}, options: {} }, props)
+                return [name, runner['_reporter']!['_sendsUserCommands']()]
+            })
+            expect(sends).toEqual(rows.map(([name, , expected]) => [name, expected]))
+        })
+
         it('should shut down and report when the session is already gone at the end', async () => {
             const log = logger('wdio-runner')
             vi.spyOn(log, 'error').mockImplementation(() => {})
