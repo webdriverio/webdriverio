@@ -22,11 +22,6 @@ export class DialogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
-        /**
-         * the browser keeps its listeners when `reloadSession()` rebuilds the manager, which
-         * otherwise learns of them only when one is added or the last one is removed
-         */
-        this.#autoHandleDialog = browser.listenerCount('dialog') === 0
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
@@ -35,6 +30,12 @@ export class DialogManager extends SessionManager {
             this.#initialize = Promise.resolve(true)
             return
         }
+
+        /**
+         * the browser keeps its listeners when `reloadSession()` rebuilds the manager, which
+         * otherwise learns of them only when one is added or the last one is removed
+         */
+        this.#autoHandleDialog = browser.listenerCount('dialog') === 0
 
         /**
          * listen on required bidi events

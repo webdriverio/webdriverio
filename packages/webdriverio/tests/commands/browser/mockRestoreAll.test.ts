@@ -51,12 +51,12 @@ describe('mockClearAll', () => {
         await expect(browser.mockRestoreAll()).rejects.toThrow('no such intercept')
         expect(other.restore).toHaveBeenCalledTimes(1)
 
-        const second = { restore: vi.fn().mockRejectedValue(new Error('session gone')), isOwnedBy: () => true }
+        const second = { restore: vi.fn().mockRejectedValue('session gone'), isOwnedBy: () => true }
         SESSION_MOCKS.contextC = new Set([failing, other, second])
         const error = await browser.mockRestoreAll().catch((err) => err)
         expect(error).toBeInstanceOf(AggregateError)
-        expect(error.errors.map((err: Error) => err.message)).toEqual(['no such intercept', 'session gone'])
-        expect(error.message).toContain('2 of 3 mocks could not be restored')
+        expect(error.errors).toEqual([new Error('no such intercept'), 'session gone'])
+        expect(error.message).toContain('2 of 3 mocks could not be restored: no such intercept, session gone')
 
         delete SESSION_MOCKS.contextC
         for (const [key, mocks] of original) {

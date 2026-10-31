@@ -12,6 +12,11 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
+
+/**
+ * exclude paths already warned about: the config is parsed several times in a process
+ */
+const warnedExcludes = new Set<string>()
 const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
@@ -276,7 +281,11 @@ export default class ConfigParser {
                     if (excludeKeywords.length === 0) {
                         throw err
                     }
-                    log.warn(`${(err as Error).message}, excluding by ${excludeKeywords.join(', ')} only`)
+                    const message = `--exclude path(s) ${exclude.filter(isPathEntry).join(', ')} match no file, excluding by ${excludeKeywords.join(', ')} only`
+                    if (!warnedExcludes.has(message)) {
+                        warnedExcludes.add(message)
+                        log.warn(message)
+                    }
                 }
             }
             this._config.exclude = [...excludedFiles, ...excludeKeywords]

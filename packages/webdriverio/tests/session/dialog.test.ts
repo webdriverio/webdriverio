@@ -35,6 +35,12 @@ describe('DialogManager', () => {
         dialogManager = new DialogManager(browser)
     })
 
+    it('should not need the listeners of a browser it is disabled for', () => {
+        vi.mocked(DialogManager.prototype.isEnabled).mockReturnValueOnce(false)
+        const { listenerCount: _, ...browserWithoutListenerCount } = browser
+        expect(() => new DialogManager(browserWithoutListenerCount)).not.toThrow()
+    })
+
     it('should keep a registered dialog listener when the manager is rebuilt for the same browser', async () => {
         // as after `reloadSession()`: a new manager, the user listener stays on the browser
         browser.listenerCount.mockImplementation((event: string) => event === 'dialog' ? 1 : 0)

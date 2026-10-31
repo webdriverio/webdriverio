@@ -105,12 +105,17 @@ export async function navigateInContext (
     let mock: WebDriverInterception | undefined
     /**
      * restores the headers mock once: right after the navigation, or in the cleanup when
-     * the navigation failed before
+     * the navigation failed before. A failed restore only warns, the navigation is done or
+     * has its own error, and the session may be gone.
      */
     const restoreHeadersMock = async () => {
         const headersMock = mock
         mock = undefined
-        await headersMock?.restore()
+        try {
+            await headersMock?.restore()
+        } catch (err) {
+            log.warn(`Failed to restore the headers mock of the navigation to '${path}': ${err instanceof Error ? err.message : String(err)}`)
+        }
     }
     try {
         /**
@@ -223,15 +228,7 @@ export async function navigateInContext (
     } catch (err) {
         navigationError = err
     } finally {
-        try {
-            await restoreHeadersMock()
-        } catch (cleanupError) {
-            // the navigation error is the one to throw, the session may be gone
-            log.warn(`Failed to restore the headers mock of the navigation to '${path}': ${(cleanupError as Error).message}`)
-            if (!navigationError) {
-                navigationError = cleanupError
-            }
-        }
+        await restoreHeadersMock()
         if (resetPreloadScript) {
             try {
                 await resetPreloadScript.remove()

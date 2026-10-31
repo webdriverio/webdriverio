@@ -2,6 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 
 import { vi, describe, it, expect, } from 'vitest'
+import logger from '@wdio/logger'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
@@ -692,6 +693,18 @@ describe('ConfigParser', () => {
             await configParser.initialize({ exclude: ['./not/there.test.ts', 'FileSystemPathService'] })
 
             expect(configParser.getSpecs()).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
+        it('should warn once about an exclude path that matches nothing, however often the config is parsed', async () => {
+            const warn = vi.mocked(logger('@wdio/config:ConfigParser').warn)
+            warn.mockClear()
+            for (let i = 0; i < 2; i++) {
+                const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+                await configParser.initialize({ exclude: ['./not/warned-once.test.ts', 'FileSystemPathService'] })
+            }
+
+            const warnings = warn.mock.calls.filter(([message]) => String(message).includes('warned-once'))
+            expect(warnings).toEqual([['--exclude path(s) ./not/warned-once.test.ts match no file, excluding by FileSystemPathService only']])
         })
 
         it('should fail when every exclude path matches nothing', async () => {

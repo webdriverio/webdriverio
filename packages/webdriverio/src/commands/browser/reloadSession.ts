@@ -71,13 +71,16 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
 
     /**
      * mocks belong to the session they were made in, the ones of the old session must not
-     * answer in the new one: restore them while the session is still there. All of them,
-     * also in a parallel test, where `mockRestoreAll()` only restores the mocks of the test
+     * answer in the new one: restore them while the session is still there. First through
+     * `mockRestoreAll()`, which can be overwritten, then the ones it leaves, as in a parallel
+     * test, where it only restores the mocks of the test. A restored mock leaves the session.
      */
-    try {
-        await restoreMocks(sessionMocksOf(this))
-    } catch (err) {
-        log.warn(`Suppressing error restoring the mocks of the session: ${(err as Error).stack}`)
+    for (const restore of [() => this.mockRestoreAll(), () => restoreMocks(sessionMocksOf(this))]) {
+        try {
+            await restore()
+        } catch (err) {
+            log.warn(`Suppressing error restoring the mocks of the session: ${(err as Error).stack}`)
+        }
     }
 
     /**

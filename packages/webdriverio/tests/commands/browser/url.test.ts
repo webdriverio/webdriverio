@@ -279,6 +279,12 @@ describe('url', () => {
             expect(mockMock.restore).toBeCalledTimes(1)
         })
 
+        it('should not fail a navigation that succeeded when restoring the headers mock fails', async () => {
+            mockMock.restore.mockRejectedValueOnce(new Error('no such intercept'))
+            await expect(browser.url('http://google.com', { headers: { 'X-Custom': 'value' } })).resolves.toBeDefined()
+            expect(mockMock.restore).toBeCalledTimes(1)
+        })
+
         it('should fallback to url on concurrent navigation', async () => {
             browsingContextNavigate.mockImplementation((async () => {
                 throw new Error('navigation canceled by concurrent navigation')

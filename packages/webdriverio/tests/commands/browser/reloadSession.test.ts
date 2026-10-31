@@ -66,8 +66,9 @@ describe('reloadSession test', () => {
             capabilities: { browserName: 'foobar' }
         })
         const order: string[] = []
-        const mock = { restore: vi.fn(async () => { order.push('restore') }), isOwnedBy: () => true }
-        SESSION_MOCKS.reloadTest = new Set([mock as any])
+        // a restored mock leaves the session, as a real one does
+        const mock: any = { restore: vi.fn(async () => { SESSION_MOCKS.reloadTest.delete(mock); order.push('restore') }), isOwnedBy: () => true }
+        SESSION_MOCKS.reloadTest = new Set([mock])
         const deleteSession = vi.fn(async () => { order.push('delete') })
         Object.defineProperty(browser, 'deleteSession', { value: deleteSession, configurable: true, writable: true })
 
@@ -76,6 +77,21 @@ describe('reloadSession test', () => {
         delete SESSION_MOCKS.reloadTest
 
         expect(order).toEqual(['restore', 'delete'])
+    })
+
+    it('should restore the mocks through an overwritten mockRestoreAll', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' }
+        })
+        const mockRestoreAll = vi.fn()
+        Object.defineProperty(browser, 'mockRestoreAll', { value: mockRestoreAll, configurable: true, writable: true })
+        Object.defineProperty(browser, 'deleteSession', { value: vi.fn(), configurable: true, writable: true })
+
+        vi.mocked(fetch).setMockResponse([sessionResponse])
+        await browser.reloadSession()
+
+        expect(mockRestoreAll).toHaveBeenCalledTimes(1)
     })
 
     it('should restore every mock of the old session in a parallel test, not only the ones of the test', async () => {
