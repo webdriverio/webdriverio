@@ -93,6 +93,40 @@ describe('utils', () => {
             const test = { error: { stack: 'MyError stack trace' } }
             expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
         })
+
+        it('failed for an expect assertion with a custom message when the error message has only its first line', () => {
+            const config: any = { framework: 'cucumber' }
+            const test = {
+                error: {
+                    name: 'Error',
+                    message: 'Page is not in English.',
+                    stack: [
+                        'Error: Page is not in English.',
+                        'Expect $(`html`) to have attribute lang',
+                        '',
+                        'Expected: "en"',
+                        'Received: "de"',
+                        '    at World.<anonymous> (/project/features/steps.js:5:9)'
+                    ].join('\n')
+                }
+            }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('broken for a runtime error thrown from a stack frame of an expect library', () => {
+            const config: any = { framework: 'cucumber' }
+            const test = {
+                error: {
+                    name: 'Error',
+                    message: 'element not interactable',
+                    stack: [
+                        'Error: element not interactable',
+                        '    at toHaveText (/project/node_modules/expect-webdriverio/lib/matchers.js:10:5)'
+                    ].join('\n')
+                }
+            }
+            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
+        })
     })
 
     describe('getErrorFromFailedTest', () => {
