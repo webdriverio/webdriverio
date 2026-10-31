@@ -1050,6 +1050,7 @@ describe('shortCopy', () => {
         expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: 'a' }, 'element'))).toEqual({ wdio: 'element', query: [{ selector: 'a' }], elementId: 'abc' })
         expect(mod.shortCopy(kind.setWdioKind({ selector: 'a' }, 'element'))).toEqual({ wdio: 'element', query: [{ selector: 'a' }], found: false })
         expect(mod.shortCopy(kind.setWdioKind({}, 'browser'))).toBe('WebdriverIO.Browser')
+        expect(mod.shortCopy(kind.setWdioKind({ isMultiRemote: true }, 'browser'))).toBe('WebdriverIO.MultiRemoteBrowser')
 
         const circular: Record<string, unknown> = { a: 1, list: [Buffer.from('x')] }
         circular.self = circular

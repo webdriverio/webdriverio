@@ -23,6 +23,13 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('custom$', ['byTestId', 'submit'])).toBe('custom$(`byTestId`, "submit")')
     })
 
+    it('writes a WebdriverIO object argument by its name', () => {
+        expect(userCommandTitle('checkPage', ['WebdriverIO.Browser', 'home'])).toBe('checkPage(browser, "home")')
+        expect(userCommandTitle('expect.toBe', ['WebdriverIO.Mock', 'WebdriverIO.Mock'])).toBe('expect(mock).toBe(mock)')
+        expect(userCommandTitle('switchToTab', ['WebdriverIO.BrowsingContext'])).toBe('switchToTab(browsingContext)')
+        expect(userCommandTitle('compare', ['WebdriverIO.MultiRemoteBrowser'])).toBe('compare(multiRemoteBrowser)')
+    })
+
     it('writes an element argument as its query, with no id', () => {
         expect(userCommandTitle('dragAndDrop', [element([{ foundWith: '$', selector: '#drop' }], { elementId: 'f.1.d.2.e.3' })])).toBe('dragAndDrop($(`#drop`))')
         expect(userCommandTitle('isEqual', [{ wdio: 'element', elementId: 'abc' }])).toBe('isEqual(Element)')
@@ -76,7 +83,8 @@ describe('userCommandTitle', () => {
         expect(userCommandTitle('expect.not.toBeDisplayed', [element([{ foundWith: '$', selector: '#x' }], { found: false })])).toBe('expect($(`#x`)).not.toBeDisplayed()')
         expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.Browser', 'https://webdriver.io'])).toBe('expect(browser).toHaveUrl("https://webdriver.io")')
         expect(userCommandTitle('expect.toBeRequested', ['WebdriverIO.Mock'])).toBe('expect(mock).toBeRequested()')
-        expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.BrowsingContext', 'https://webdriver.io'])).toBe('expect(context).toHaveUrl("https://webdriver.io")')
+        expect(userCommandTitle('expect.toHaveUrl', ['WebdriverIO.BrowsingContext', 'https://webdriver.io'])).toBe('expect(browsingContext).toHaveUrl("https://webdriver.io")')
+        expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.MultiRemoteBrowser', 'x'])).toBe('expect(multiRemoteBrowser).toHaveTitle("x")')
         expect(userCommandTitle('expect.toBeElementsArrayOfSize', [{ wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 3 }, 3])).toBe('expect($$(`li`)).toBeElementsArrayOfSize(3)')
         expect(userCommandTitle('expect.toHaveTitle', ['WebdriverIO.Browser', '[Matcher StringContaining "Docs"]'])).toBe('expect(browser).toHaveTitle(StringContaining "Docs")')
     })

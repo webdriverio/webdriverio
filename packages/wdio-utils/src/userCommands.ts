@@ -422,7 +422,7 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
         return Array.isArray(value) && typeof length === 'number' ? { ...placeholder, length } : placeholder
     }
     if (kind === 'browser') {
-        return 'WebdriverIO.Browser'
+        return (value as { isMultiRemote?: unknown }).isMultiRemote ? 'WebdriverIO.MultiRemoteBrowser' : 'WebdriverIO.Browser'
     }
     if (kind === 'mock') {
         return 'WebdriverIO.Mock'
