@@ -315,6 +315,10 @@ async function bar() {
         secure: true,
         httpOnly: true
     }])
+    // WebDriver Classic spells sameSite "Strict" / "Lax" / "None"
+    await browser.setCookies({ name: '', value: '', sameSite: 'Strict' })
+    // @ts-expect-error not a sameSite value
+    await browser.setCookies({ name: '', value: '', sameSite: 'STRICT' })
     await browser.deleteCookies('foobar')
     await browser.deleteCookies(['foobar'])
 

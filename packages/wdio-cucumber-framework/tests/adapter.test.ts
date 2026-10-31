@@ -1394,6 +1394,18 @@ describe('CucumberAdapter', () => {
         )
     })
 
+    it('wrapSteps should prefer the own timeout of a hook over cucumberOpts.timeout', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
+        adapter.wrapStep = vi.fn()
+        adapter.wrapSteps()
+        const wrapper = vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0]
+        const hook = Object.assign(function userHookFn () {}, { hookTimeout: -1 })
+        wrapper(hook)
+        expect(adapter.wrapStep).toBeCalledWith(
+            hook, false, undefined, '0-0', { retry: 0 }, expect.any(Function), -1
+        )
+    })
+
     it('wrapSteps should not wrap wdio hooks', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.wrapStep  = vi.fn()

@@ -6067,10 +6067,12 @@ packages:
   '@smithy/core@3.36.2':
     resolution: {integrity: sha512-oRw0rB9QSUiCZfEs23G5F4Af+b2rQt1lItIICWu5IejFNd+uPM8SWqiKLMpQ6bX1Q7slsLbjuoE2niErFtkVPQ==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/core@3.37.0':
     resolution: {integrity: sha512-97imTcCyiPd8k0e9+ts/Sp0W65Dn9Ti357J7M09Ov4tI8Q1JDJVFSoAJtjEVKqfHEr3Pdo2jfolqKCaaiszH0g==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/credential-provider-imds@4.5.2':
     resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}
@@ -9176,9 +9178,6 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.464:
-    resolution: {integrity: sha512-nRa65aFge40viPAKxMKULIY8tcXKwKboJWNn4RoKwyWXJ6SP7BnrDGKUTzc64818jIciH0PK7LSF8QzZes19GA==}
-
   electron-to-chromium@1.5.465:
     resolution: {integrity: sha512-zg4iUpbeGw7YNZsswc2xKr2uiBex2d8dELAXo92Icw3but1ULbrvK8USe6wVLaWjgJnKBARv0pchx9Owktx6wQ==}
 
@@ -9894,8 +9893,8 @@ packages:
   fn.name@1.1.0:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+  follow-redirects@1.16.2:
+    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -22124,7 +22123,7 @@ snapshots:
 
   axios@1.20.0(debug@4.4.3(supports-color@11.0.0))(supports-color@11.0.0):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@11.0.0))
+      follow-redirects: 1.16.2(debug@4.4.3(supports-color@11.0.0))
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@11.0.0)
       proxy-from-env: 2.1.0
@@ -22364,7 +22363,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.11
       caniuse-lite: 1.0.30001806
-      electron-to-chromium: 1.5.464
+      electron-to-chromium: 1.5.465
       node-releases: 2.0.51
       update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
@@ -23825,8 +23824,6 @@ snapshots:
 
   ejs@7.0.2: {}
 
-  electron-to-chromium@1.5.464: {}
-
   electron-to-chromium@1.5.465: {}
 
   electron@44.4.5(supports-color@11.0.0):
@@ -24683,7 +24680,7 @@ snapshots:
 
   fn.name@1.1.0: {}
 
-  follow-redirects@1.16.0(debug@4.4.3(supports-color@11.0.0)):
+  follow-redirects@1.16.2(debug@4.4.3(supports-color@11.0.0)):
     optionalDependencies:
       debug: 4.4.3(supports-color@11.0.0)
 
@@ -25394,7 +25391,7 @@ snapshots:
   http-proxy@1.18.1(debug@4.4.3(supports-color@11.0.0)):
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@11.0.0))
+      follow-redirects: 1.16.2(debug@4.4.3(supports-color@11.0.0))
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug

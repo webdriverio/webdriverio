@@ -12,6 +12,11 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
+
+/**
+ * exclude paths already warned about: the config is parsed several times in a process
+ */
+const warnedExcludes = new Set<string>()
 const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
@@ -194,6 +199,8 @@ export default class ConfigParser {
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
+        // the exclude list of the config, before the one of the command line replaces it
+        const ownExclude = this._config.exclude ?? []
 
         /**
          * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
@@ -253,17 +260,35 @@ export default class ConfigParser {
             this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!, object.group)
         }
         /**
-         * At this step function allKeywordsContainPath() allows us to make sure
-         * that all arguments, passed to '--exclude' param, are paths to specs.
-         * So they can be processed in setFilePathToFilterOptions()
-         * Otherwise, the application crashes with an error.
-         * Therefore, if --exclude contains not paths, but keywords, e.g. 'dialog', 'test.component' etc.,
-         * then filtering of excluded specs occurs in the filterSpecs() method
+         * Every argument of '--exclude' is either a path (or glob) to specs or a keyword,
+         * e.g. 'dialog', 'test.component'. Only the paths can be processed in
+         * setFilePathToFilterOptions(), otherwise the application crashes with an error.
+         * Keywords stay as they are, the filtering of excluded specs for them occurs in the
+         * filterSpecs() method. A relative path is relative to the current working directory,
+         * like the one of '--spec'.
          */
-        if (exclude.length > 0 && allKeywordsContainPath(exclude)) {
-            this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
-        } else if (exclude.length > 0) {
-            this._config.exclude = exclude
+        if (exclude.length > 0) {
+            const excludePaths = exclude.filter(isPathEntry).map((entry) => resolveFromCwd(entry, this._pathService))
+            const excludeKeywords = exclude.filter((entry) => !isPathEntry(entry))
+            let excludedFiles: string[] = []
+            if (excludePaths.length > 0) {
+                try {
+                    excludedFiles = this.setFilePathToFilterOptions(excludePaths, ownExclude)
+                } catch (err) {
+                    /**
+                     * paths that match nothing do not keep the keywords next to them from applying
+                     */
+                    if (excludeKeywords.length === 0) {
+                        throw err
+                    }
+                    const message = `--exclude path(s) ${exclude.filter(isPathEntry).join(', ')} match no file, excluding by ${excludeKeywords.join(', ')} only`
+                    if (!warnedExcludes.has(message)) {
+                        warnedExcludes.add(message)
+                        log.warn(message)
+                    }
+                }
+            }
+            this._config.exclude = [...excludedFiles, ...excludeKeywords]
         }
     }
 
@@ -329,13 +354,14 @@ export default class ConfigParser {
             }
         }
 
-        let exclude = allKeywordsContainPath(excludeSpecPatterns)
-            ? ConfigParser.getFilePaths(excludeSpecPatterns, this._config.rootDir, this._pathService)
-            : excludeSpecPatterns
+        let exclude: string[] = [
+            ...<string[]>ConfigParser.getFilePaths(excludeSpecPatterns.filter(isPathEntry), this._config.rootDir, this._pathService),
+            ...excludeSpecPatterns.filter((entry) => !isPathEntry(entry))
+        ]
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         if (Array.isArray(capExclude)) {
-            exclude = [...exclude, ...ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
+            exclude = [...exclude, ...<string[]>ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
         }
 
         // only use capability specs if (CLI) --spec is not defined
@@ -538,28 +564,28 @@ export default class ConfigParser {
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
     filterSpecs(specs: Spec[], excludeList: string[]) {
-        // If 'exclude' is array of paths
-        if (allKeywordsContainPath(excludeList)) {
-            const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
-                if (Array.isArray(currSpec)) {
-                    returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
-                } else if (excludeList.indexOf(currSpec) === -1) {
-                    returnVal.push(currSpec)
-                }
-                return returnVal
-            }, [])
-            return filterEmptyArrayItems(filteredSpec)
-        }
-        // If 'exclude' is array of keywords
+        // a path excludes that spec only, a keyword every spec that contains it
+        const isExcluded = (spec: string) => excludeList.some((entry) => isPathEntry(entry) ? entry === spec : spec.includes(entry))
         const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
-                returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
-            } else if (!excludeList.some(excludedVal => currSpec.includes(excludedVal))) {
+                returnVal.push(currSpec.filter(specItem => !isExcluded(specItem)))
+            } else if (!isExcluded(currSpec)) {
                 returnVal.push(currSpec)
             }
             return returnVal
         }, [])
         return filterEmptyArrayItems(filteredSpec)
+    }
+
+    /**
+     * the specs of a multi-remote instance: the specs of the worker without the ones of the
+     * `wdio:exclude` of the instance, independent of the CLI selection (--spec, --suite, --shard)
+     */
+    getInstanceSpecs(capSpecs: Spec[], capExclude: Spec[]) {
+        return this.filterSpecs(
+            ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService),
+            <string[]>ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
+        )
     }
 
     shard(specs: Spec[]) {
@@ -575,8 +601,32 @@ export default class ConfigParser {
     }
 }
 
-function allKeywordsContainPath(excludedSpecList: string[]) {
-    return excludedSpecList.every(val => val.includes('/') || val.includes('\\') || val.includes('*'))
+/**
+ * an entry of an exclude list is a path (or glob) when it has a separator or a wildcard,
+ * else it is a keyword
+ */
+function isPathEntry(entry: string) {
+    return entry.includes('/') || entry.includes('\\') || entry.includes('*')
+}
+
+/**
+ * a relative path of the command line is relative to the current working directory
+ */
+function resolveFromCwd(entry: string, pathService: PathService) {
+    if (entry.startsWith('file://') || path.isAbsolute(entry)) {
+        return entry
+    }
+    /**
+     * keep a path that matches nothing from the working directory as it is: it stays
+     * relative to the config file, as before. A Cucumber line number (`:12`) is no part
+     * of the file name, so it is left out of the check and kept on the resolved path.
+     */
+    const file = removeLineNumbers(entry)
+    const fromCwd = path.resolve(process.cwd(), file)
+    const matches = file.includes('*')
+        ? pathService.glob(fromCwd.replace(/\\/g, '/'), process.cwd()).length > 0
+        : pathService.isFile(fromCwd)
+    return matches ? fromCwd + entry.slice(file.length) : entry
 }
 
 /**

@@ -206,6 +206,59 @@ describe('startWebDriver', () => {
         })
     })
 
+    describe('Firefox profiles on a Windows runner of GitHub Actions', () => {
+        const setPlatform = (os as unknown as { __setPlatform: (val: string) => void }).__setPlatform
+        const runnerTemp = process.env.RUNNER_TEMP
+        const start = async (capabilities: WebdriverIO.Capabilities) => {
+            vi.mocked(startGeckodriver).mockClear()
+            await startWebDriver({ capabilities: { browserName: 'firefox', ...capabilities } } as never)
+            return vi.mocked(startGeckodriver).mock.calls[0][0]
+        }
+        beforeEach(() => {
+            vi.mocked(logMock.info).mockClear()
+            setPlatform('win32')
+            process.env.RUNNER_TEMP = 'D:\\a\\_temp'
+        })
+        afterEach(() => {
+            setPlatform('linux')
+            if (runnerTemp === undefined) {
+                delete process.env.RUNNER_TEMP
+            } else {
+                process.env.RUNNER_TEMP = runnerTemp
+            }
+        })
+
+        it('creates them in RUNNER_TEMP and says so one time', async () => {
+            expect((await start({})).profileRoot).toBe('D:\\a\\_temp')
+            expect((await start({})).profileRoot).toBe('D:\\a\\_temp')
+            const said = vi.mocked(logMock.info).mock.calls.filter(([message]) => String(message).includes('RUNNER_TEMP'))
+            expect(said).toEqual([["Create the Firefox profiles in RUNNER_TEMP (D:\\a\\_temp). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }"]])
+        })
+
+        it('also with a custom driver binary', async () => {
+            const options = await start({ 'wdio:geckodriverOptions': { binary: '/path/to/geckodriver' } })
+            expect(options).toEqual(expect.objectContaining({ profileRoot: 'D:\\a\\_temp', customGeckoDriverPath: '/path/to/geckodriver' }))
+        })
+
+        it('keeps the folder of the user', async () => {
+            const capabilities = { 'wdio:geckodriverOptions': { profileRoot: 'C:\\Temp' } }
+            expect((await start(capabilities)).profileRoot).toBe('C:\\Temp')
+            expect(capabilities['wdio:geckodriverOptions']).toEqual({ profileRoot: 'C:\\Temp' })
+            expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('RUNNER_TEMP'))
+        })
+
+        it('does not set it outside of GitHub Actions, on other platforms, or for Firefox on Android', async () => {
+            delete process.env.RUNNER_TEMP
+            expect((await start({})).profileRoot).toBe(undefined)
+            process.env.RUNNER_TEMP = 'D:\\a\\_temp'
+            expect((await start({ 'moz:firefoxOptions': { androidPackage: 'org.mozilla.firefox' } })).profileRoot).toBe(undefined)
+            for (const platform of ['linux', 'darwin']) {
+                setPlatform(platform)
+                expect((await start({})).profileRoot).toBe(undefined)
+            }
+        })
+    })
+
     it('should start edge driver', async () => {
         process.env.EDGEDRIVER_CDNURL = 'https://msedgedriver.azureedge.net'
         const options = {
@@ -902,6 +955,7 @@ describe('startWebDriver', () => {
             (caps['goog:chromeOptions']?.args || []).filter((arg) => arg.includes('user-data-dir'))
 
         beforeEach(() => {
+            vi.mocked(logMock.info).mockClear()
             setPlatform('win32')
             process.env.WDIO_WORKER_ID = '0-1'
         })

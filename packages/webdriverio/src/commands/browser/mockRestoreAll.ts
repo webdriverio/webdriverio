@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { mocksOf } from '../../utils/interception/scope.js'
+import { mocksOf, restoreMocks } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
@@ -32,7 +32,5 @@ const log = logger('webdriverio:mockRestoreAll')
 export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
     const mocks = mocksOf(this)
     log.trace(`Restoring ${mocks.length} mock(s)`)
-    for (const mock of mocks) {
-        await mock.restore()
-    }
+    await restoreMocks(mocks)
 }

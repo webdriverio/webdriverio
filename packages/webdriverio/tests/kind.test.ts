@@ -6,6 +6,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/index.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import WebDriverInterception from '../src/utils/interception/index.js'
+import { SESSION_MOCKS } from '../src/commands/browser/mock.js'
 import { getBrowsingContext } from '../src/browsingContext.js'
 import { contextIdOf, isBrowsingContext } from '../src/session/browsingContext.js'
 import { getContextManager } from '../src/session/context.js'
@@ -429,6 +430,8 @@ describe('WebdriverIO object brand matrix', () => {
     }
 
     async function bidiSession () {
+        // every test makes a browser with the same fake session id, so mocks of the one before would be found again
+        for (const key of Object.keys(SESSION_MOCKS)) { delete SESSION_MOCKS[key] }
         const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'bidi' } })
         stubBidi(browser)
         return browser as unknown as Loose
