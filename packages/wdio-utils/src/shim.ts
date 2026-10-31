@@ -555,7 +555,7 @@ function attachElementArrayHooks (
  * @param fn          command function
  */
 export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
-    return wrapCommandWith<T>(commandName, fn, runUserCommand)
+    return createCommandWrapper<T>(commandName, fn, runUserCommand)
 }
 
 /**
@@ -563,12 +563,12 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
  * registered (the commands of a browsing context)
  */
 export function wrapCustomCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
-    return wrapCommandWith<T>(commandName, fn, runCustomCommand)
+    return createCommandWrapper<T>(commandName, fn, runCustomCommand)
 }
 
 type RunCommand = (scope: unknown, command: string, args: unknown[], run: () => Promise<unknown>) => Promise<unknown>
 
-function wrapCommandWith<T>(commandName: string, fn: Function, runCommand: RunCommand): (...args: unknown[]) => Promise<T> {
+function createCommandWrapper<T>(commandName: string, fn: Function, runCommand: RunCommand): (...args: unknown[]) => Promise<T> {
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
