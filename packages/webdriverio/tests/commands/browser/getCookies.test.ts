@@ -250,6 +250,12 @@ describe('getCookies', () => {
             expect(cookies.map((c) => c.name)).toEqual(['page', 'parent', 'other'])
         })
 
+        it('should propagate a browsingContext.getTree error inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockRejectedValueOnce(new Error('no such frame'))
+            storageGetCookies.mockResolvedValueOnce(hostCookies)
+            await expect(parallelStore.run('ctx-1', () => browser.getCookies())).rejects.toThrow('no such frame')
+        })
+
         it('should not fall back to classic on an empty origin partition inside a parallel scope', async () => {
             page('https://app.example.com/page')
             storageGetCookies.mockResolvedValueOnce({ cookies: [] })

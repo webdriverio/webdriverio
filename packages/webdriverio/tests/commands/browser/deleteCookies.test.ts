@@ -175,6 +175,12 @@ describe('deleteCookies', () => {
             ])
         })
 
+        it('should propagate a browsingContext.getTree error inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockRejectedValueOnce(new Error('no such frame'))
+            await expect(parallelStore.run('ctx-1', () => browser.deleteCookies())).rejects.toThrow('no such frame')
+            expect(storageDeleteCookies).not.toBeCalled()
+        })
+
         it('should delete a cookie once when two filters match it inside a parallel scope', async () => {
             const page = { name: 'page', domain: 'webdriver.io', path: '/' }
             storageGetCookies.mockResolvedValueOnce({ cookies: [page] }).mockResolvedValueOnce({ cookies: [page] })
