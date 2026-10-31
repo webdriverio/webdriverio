@@ -19,6 +19,8 @@ export default class BaseReporter {
     lastEventTime = 0
     /** title of the last test or hook that ended, to name where a late error comes from */
     lastEndedTitle?: string
+    // a session that can send user command events: only then a reporter command needs a frame that hides it
+    private _sendsUserCommands: () => boolean = () => true
 
     constructor(
         private _config: Options.Testrunner,
@@ -87,7 +89,7 @@ export default class BaseReporter {
         }
 
         // the commands that a reporter runs are no user commands
-        runWithoutUserCommands(() => this._reporters.forEach((reporter) => {
+        const emitToReporters = () => this._reporters.forEach((reporter) => {
             try {
                 reporter.emit(e, payload)
             } catch (err) {
@@ -107,7 +109,12 @@ export default class BaseReporter {
                     }
                 })
             }
-        }))
+        })
+        if (this._sendsUserCommands()) {
+            runWithoutUserCommands(emitToReporters)
+        } else {
+            emitToReporters()
+        }
     }
 
     /**
@@ -118,6 +125,10 @@ export default class BaseReporter {
             const shows = (reporter as { showsUserCommands?: unknown }).showsUserCommands
             return typeof shows === 'boolean' ? shows : true
         })
+    }
+
+    setUserCommandSession (sendsUserCommands: () => boolean) {
+        this._sendsUserCommands = sendsUserCommands
     }
 
     setContextIdResolver (resolver: () => string | undefined) {
