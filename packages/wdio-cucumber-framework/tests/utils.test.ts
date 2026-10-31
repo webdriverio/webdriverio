@@ -21,6 +21,7 @@ import {
     userRunHooks,
     testRunHookStart,
     testRunHookEnd,
+    setUserHookNames,
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
@@ -648,3 +649,19 @@ describe('getScenarioResult', () => {
     })
 })
 
+describe('setUserHookNames', () => {
+    it('keeps the own timeout of a hook on its wrapper', () => {
+        const withTimeout = { code: async function hook () {}, options: { timeout: -1 } }
+        const withoutTimeout = { code: function hook () {}, options: {} }
+        setUserHookNames({
+            beforeTestRunHookDefinitionConfigs: [],
+            beforeTestCaseHookDefinitionConfigs: [withTimeout, withoutTimeout],
+            afterTestCaseHookDefinitionConfigs: [],
+            afterTestRunHookDefinitionConfigs: []
+        } as any)
+        expect(withTimeout.code.name).toBe('userHookAsyncFn')
+        expect((withTimeout.code as any).hookTimeout).toBe(-1)
+        expect(withoutTimeout.code.name).toBe('userHookFn')
+        expect(withoutTimeout.code).not.toHaveProperty('hookTimeout')
+    })
+})

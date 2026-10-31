@@ -245,6 +245,36 @@ describe('executeAsync', () => {
             expect(vi.getTimerCount()).toBe(0)
         })
 
+        it('should let a Jasmine spec timeout win over the default timeout', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise((resolve) => setTimeout(resolve, 3000)), { attempts: 0, limit: 0 }, [], 5000
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(3000)
+            expect(await result).toBeUndefined()
+        })
+
+        it('should leave a Jasmine spec timeout shorter than the default to Jasmine', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 5000 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise((resolve) => setTimeout(resolve, 3000)), { attempts: 0, limit: 0 }, [], 1000
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(3000)
+            expect(await result).toBeUndefined()
+        })
+
+        it('should use the Jasmine default timeout when the spec has none', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 0
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(97)
+            expect(await result).toEqual(new Error('Timeout after 97ms in "unknown test or hook" (WDIO attempt 1/1)'))
+        })
+
         it.each([undefined, 'non-callable metadata'])('should identify a hook when fullTitle is %s', async (fullTitle) => {
             const scope = { _runnable: { title: 'before each hook', fullTitle } }
             const result = executeAsync.call(
@@ -275,15 +305,15 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
-        it('should use the Jasmine deadline when no runnable is available', async () => {
+        it('should use the timeout of a Jasmine hook over the default when no runnable is available', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             function jasmineHook () { return new Promise(() => {}) }
             const result = executeAsync.call(
                 {}, jasmineHook, { attempts: 0, limit: 0 }, [], 200
             ).catch((err: Error) => err)
 
-            await vi.advanceTimersByTimeAsync(97)
-            expect(await result).toEqual(new Error('Timeout after 97ms in "jasmineHook" (WDIO attempt 1/1)'))
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "jasmineHook" (WDIO attempt 1/1)'))
         })
 
         it('should report the final WDIO attempt after timeout retries are exhausted', async () => {

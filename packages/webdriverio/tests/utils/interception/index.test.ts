@@ -2091,6 +2091,19 @@ describe('WebDriverInterception', () => {
             delete SESSION_MOCKS['handle-1']
         })
 
+        it('should stop answering requests when removing the intercept failed', async () => {
+            const browser = getRestorableBrowserMock('handle-1', 'mock-id')
+            vi.mocked(browser.networkRemoveIntercept).mockRejectedValueOnce(new Error('session gone'))
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+            mock.respond({ from: 'old mock' })
+
+            await expect(mock.restore()).rejects.toThrow('session gone')
+            expect(() => mock.respond({ from: 'again' })).toThrow()
+
+            delete SESSION_MOCKS['handle-1']
+        })
+
         describe('mockRestoreAll on a multi-remote browser', () => {
             const setup = async () => {
                 const browserA = getRestorableBrowserMock('handle-a', 'intercept-a')
@@ -2315,8 +2328,22 @@ describe('WebDriverInterception', () => {
 
             browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
 
-            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            await vi.waitFor(() => expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1))
             expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('is continued with the overwrite of the mock that has one, not by a plain spy that was made first', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const [, second] = await initiateOverlappingMocks(browser)
+            second.requestOnce({ headers: { 'x-test': 'yes' } })
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+
+            await vi.waitFor(() => expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1))
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({
+                request: 123,
+                headers: [{ name: 'x-test', value: { type: 'string', value: 'yes' } }]
+            })
         })
 
         it('is responded to once, not once per mock', async () => {

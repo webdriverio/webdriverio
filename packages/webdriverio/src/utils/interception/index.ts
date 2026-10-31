@@ -920,12 +920,15 @@ export default class WebDriverInterception {
 
         // Remove the network intercept BEFORE setting #restored flag
         // This prevents new requests from being blocked while we're cleaning up
-        if (this.#mockId) {
-            await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+        try {
+            if (this.#mockId) {
+                await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+            }
+        } finally {
+            // Now it's safe to mark as restored, also when the intercept could not be removed
+            // (its session is gone): the mock must not answer requests of a later intercept
+            this.#restored = true
         }
-
-        // Now it's safe to mark as restored
-        this.#restored = true
 
         return this
     }
@@ -1162,6 +1165,31 @@ export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern
     return new URLPattern({
         pathname: url
     })
+}
+
+/**
+ * A pattern that matches exactly the given URL: the characters that are pattern syntax in
+ * `parseUrlPattern` (`+` and `:` of a query, for example) are matched literally. The request
+ * the browser sends for the URL has no fragment and no credentials, so these match anything.
+ */
+export function parseLiteralUrlPattern(url: string): URLPattern {
+    const escape = (value: string) => value.replace(/[*:(){}?+\\]/g, '\\$&')
+
+    if (url.startsWith('http')) {
+        const { protocol, hostname, port, pathname, search } = new URL(url)
+        return new URLPattern({
+            protocol: protocol.slice(0, -1),
+            username: '*',
+            password: '*',
+            hostname: escape(hostname),
+            port,
+            pathname: escape(pathname),
+            search: escape(search.slice(1)),
+            hash: '*'
+        })
+    }
+
+    return new URLPattern({ pathname: escape(url) })
 }
 
 function getPatternId(pattern: URLPattern) {
