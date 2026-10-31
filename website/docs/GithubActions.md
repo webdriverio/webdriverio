@@ -39,7 +39,7 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Measured on `windows-latest` (2 cores), with up to 4 Chrome and Firefox sessions at the same time, 10 jobs each:
+Measured on `windows-latest` (Windows Server 2025, 2 cores, 4 logical processors), with up to 4 Chrome and Firefox sessions at the same time, 10 jobs each:
 
 | Profiles in | Firefox stalls of 5 s or more | Session start (`POST /session`), median / max |
 |---|---|---|

@@ -116,7 +116,7 @@ export {
     type ParallelContextBrowser,
 
     /**
-     * the options of each browser driver, also as `WebdriverIO.GeckodriverOptions` etc.
+     * the Chromedriver options; loading this entry also types `WebdriverIO.GeckodriverOptions` etc.
      */
     type ChromedriverParameters
 }

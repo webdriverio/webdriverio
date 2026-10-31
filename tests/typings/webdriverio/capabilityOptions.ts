@@ -24,6 +24,6 @@ const config: myConfig = {
 const driverOptions: WebdriverIO.Capabilities[] = [
     { browserName: 'chrome', 'wdio:chromedriverOptions': { logPath: 'chromedriver.log', verbose: true, binary: '/path/to/chromedriver' } },
     { browserName: 'firefox', 'wdio:geckodriverOptions': { profileRoot: 'D:\\a\\_temp', log: 'trace', geckoDriverVersion: '0.36.0' } },
-    { browserName: 'msedge', 'wdio:edgedriverOptions': { logPath: 'msedgedriver.log', allowedIps: ['127.0.0.1'] } },
+    { browserName: 'msedge', 'wdio:edgedriverOptions': { logPath: 'msedgedriver.log', verbose: true } },
     { browserName: 'safari', 'wdio:safaridriverOptions': { useTechnologyPreview: true, diagnose: true } }
 ]
