@@ -210,6 +210,9 @@ describe('multi remote test', () => {
                     })
                 })
 
+                // the runner does not end a session the spec started: its drivers and profiles would stay
+                after(() => customMultiRemoteBrowser?.deleteSession())
+
                 it('should be able to select 2 instances on the browser', async () => {
                     const selected = await customMultiRemoteBrowser.select('browserA', 'browserB')
 
