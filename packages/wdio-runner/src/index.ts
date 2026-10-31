@@ -354,8 +354,11 @@ export default class Runner extends EventEmitter {
 
         this._reporter.caps = browser.capabilities
         this._reporter.setContextIdResolver(() => (getContextIdPayload(browser as WebdriverIO.Browser) as { contextId?: string }).contextId)
-        // the instances of a multi-remote browser can be such sessions
-        this._reporter.setUserCommandSession(() => Boolean(browser.isMultiRemote) || sendsUserCommands(browser))
+        // the instances of a multi-remote browser are the sessions
+        const multiRemoteBrowser = browser as unknown as WebdriverIO.MultiRemoteBrowser
+        this._reporter.setUserCommandSession(() => browser.isMultiRemote
+            ? multiRemoteBrowser.instances.some((name) => sendsUserCommands(multiRemoteBrowser.getInstance(name)))
+            : sendsUserCommands(browser))
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
@@ -377,7 +380,6 @@ export default class Runner extends EventEmitter {
         /**
          * initialization successful, send start message
          */
-        const multiRemoteBrowser = browser as unknown as WebdriverIO.MultiRemoteBrowser
         this._reporter.emit('runner:start', {
             cid,
             specs,
