@@ -104,11 +104,13 @@ export async function navigateInContext (
         /**
          * The headers go through a mock of this navigation only: it matches the URL literally,
          * is not one of the mocks of the user (`browser.mock()` would reuse and later restore
-         * the user's mock of the same URL) and is not registered with them
+         * the user's mock of the same URL) and is not registered with them. It only intercepts
+         * the tab that navigates, so a request to the same URL from another tab does not take
+         * the headers.
          */
         if (options.headers) {
             mock = await WebDriverInterception.initiate(parseLiteralUrlPattern(path), {}, browser, {
-                contexts: getParallelContextStore().getStore() ? [contextIdValue(context)] : undefined,
+                contexts: [contextIdValue(context)],
                 sessionKey: contextIdValue(context)
             })
             mock.requestOnce({ headers: options.headers })

@@ -22,6 +22,10 @@ const log = logger('webdriverio')
  * If you start from remote service, you can pass in 0.0.0.0 for hostname if you want
  * to switch to local drivers.
  *
+ * The mocks of the old session are restored before it ends: they stop answering requests
+ * and their recorded `calls` are cleared, so assertions like `toBeRequested()` on such a
+ * mock fail after the reload. Create the mocks you need again after `reloadSession()`.
+ *
  * <example>
     :reloadSync.js
     it('should reload my session with current capabilities', async () => {
