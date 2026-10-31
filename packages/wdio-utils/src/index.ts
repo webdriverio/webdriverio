@@ -10,7 +10,7 @@ import {
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
     userImport, getBrowserObject, enableFileLogging, specFilePath,
 } from './utils.js'
-import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
+import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, DEFERRED_USER_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
 import { setUserCommandStore, registerUserCommands, userCommandParent, runUserCommand, runCustomCommand, runWithoutUserCommands, runOutsideUserCommands, type UserCommandFrame, type UserCommandStore } from './userCommands.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
@@ -56,6 +56,7 @@ export {
     ELEMENT_ARRAY_WRAP,
     unwrapCommand,
     ELEMENT_ARRAY_COMMANDS,
+    DEFERRED_USER_COMMANDS,
     registerElementArrayFactory,
     setCommandHookStore,
     executeAsync,
