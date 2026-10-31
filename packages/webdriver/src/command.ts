@@ -166,6 +166,9 @@ export default function (
             onRetry: (data) => this.emit('request.retry', data),
             onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data)))
         })
+        if (isMasked) {
+            request.maskedBody = maskedBody
+        }
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 

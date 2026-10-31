@@ -5,9 +5,9 @@ import type {
     RunnerStats,
     TestStats
 } from '@wdio/reporter'
-import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, SuiteStats } from '@wdio/reporter'
+import WDIOReporter, { getSessionNames, hookCountsAsFailure, knownFramework, specFilePath, SuiteStats } from '@wdio/reporter'
 
-import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
+import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData, type RootReportSuite } from './types.js'
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
@@ -537,18 +537,28 @@ export default class HtmlReporter extends WDIOReporter {
      * suite (Mocha `it()` with no `describe()`): no suite start event adds it. Its
      * child suites are already in the report.
      */
-    rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
+    rootSuiteWithTests(runner: RunnerStats): RootReportSuite[] {
         const root = this.currentSuites[0]
         // a root hook keeps its commands in its own output, which only `removeOutput: false` writes
         const keep = (hook: HookStats) => hook.error || (!this.options.removeOutput && hook.output?.length)
         if (!root || (!root.tests.length && !root.hooks.some(keep))) {
             return []
         }
-        return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
+        /**
+         * the spec files of the root tests (Mocha gives each test its file); a root hook runs for all spec
+         * files of the worker and has none, so only the one spec file of a worker names it
+         */
+        const testFiles = [...new Set(root.tests.map((test) => test.file).filter((file): file is string => Boolean(file)))]
+        const [spec, ...others] = runner.specs
+        const paths = testFiles.length ? testFiles : spec && !others.length ? [specFilePath(spec)] : []
+        // `file` stays one path, as on the other suites; `files` has all of them when the root tests come from several
+        const fields: Pick<RootReportSuite, 'suites' | 'file' | 'files' | 'end'> = {
             suites: [],
-            file: root.file || runner.specs[0],
+            file: paths[0] ?? '',
+            files: paths.length > 1 ? paths : undefined,
             end: new Date()
-        })]
+        }
+        return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, fields)]
     }
 
     removeSuite(uid: string | undefined) {
