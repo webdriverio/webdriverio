@@ -2,7 +2,7 @@ import { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import { getBrowserObject, transformCommandLogResult } from './utils.js'
-import { WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, queryCall } from './kind.js'
+import { WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, type WdioQuery } from './kind.js'
 import { isInCommandHook } from './shim.js'
 
 const MAX_STRING_LENGTH = 1024
@@ -10,6 +10,8 @@ const MAX_ITEMS = 50
 const MAX_DEPTH = 4
 // a wide object stays small and fast: 20 times one level, so a normal result (a list of cookies) is whole
 const MAX_VALUES = 1000
+// the steps of the query of an element: a deeper chain keeps its last steps
+const MAX_QUERY_STEPS = 10
 // a copy never makes the command fail
 const UNREADABLE = '<unreadable>'
 // their result is base64 and reporters get them from the protocol events
@@ -329,23 +331,42 @@ function matcherText (matcher: AsymmetricMatcher, state: CopyState, depth: numbe
     return `${String(matcher)} ${text.length > MAX_STRING_LENGTH ? `${text.slice(0, MAX_STRING_LENGTH)}…` : text}`
 }
 
-// the query as in the test code; a chainable element gives a promise for each other property
-function wdioLabel (value: object, name: string, list: boolean) {
-    let query = (value as { [WDIO_QUERY]?: unknown })[WDIO_QUERY]
-    if (typeof query !== 'string' && !(value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
-        const { selector } = value as { selector?: unknown }
-        query = typeof selector === 'string' && selector ? queryCall(list ? '$$' : '$', [selector]) : undefined
+/**
+ * The query of an element or an element list, as steps from the browser: `foundWith`, `selector`,
+ * `props` and `index` of each element of the chain. An unresolved element gives them with
+ * `WDIO_QUERY`, as its own fields are promises. The selector of a custom strategy is its name.
+ */
+function queryOf (value: object, state: CopyState, depth: number) {
+    const steps: Record<string, unknown>[] = []
+    for (let current: unknown = value; steps.length < MAX_QUERY_STEPS;) {
+        const kind = getWdioKind(current)
+        if (kind !== 'element' && kind !== 'element-array') {
+            break
+        }
+        // the fields of an unresolved element are promises; its call can have no selector (`nextElement()`)
+        const pending = (current as { [WDIO_QUERY]?: WdioQuery })[WDIO_QUERY]
+        const query = pending ?? ((current as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE] ? undefined : current as WdioQuery)
+        const { foundWith, selector, props, index } = query ?? {}
+        if (selector === undefined && !(pending && typeof foundWith === 'string')) {
+            break
+        }
+        const strategyName = selector && typeof selector === 'object' && isPlainObject(selector) ? (selector as { strategyName?: unknown }).strategyName : undefined
+        steps.unshift({
+            ...(typeof foundWith === 'string' ? { foundWith } : {}),
+            ...(selector === undefined ? {} : { selector: typeof strategyName === 'string' ? strategyName : copyValue(selector, state, depth + 1) }),
+            ...(Array.isArray(props) && props.length ? { props: copyValue(props, state, depth + 1) } : {}),
+            ...(typeof index === 'number' ? { index } : {})
+        })
+        current = query!.parent
     }
-    if (typeof query !== 'string') {
-        return `WebdriverIO.${name}`
-    }
-    return `WebdriverIO.${name}<${query.length > MAX_STRING_LENGTH ? `${query.slice(0, MAX_STRING_LENGTH)}…` : query}>`
+    return steps.length ? { query: steps } : {}
 }
 
 /**
  * A copy of `value` that is small and safe to send: no binary data, long
- * strings cut, at most 50 items, 4 levels and 1000 values, WebdriverIO objects and functions
- * as a name, cycles as `[Circular]`.
+ * strings cut, at most 50 items, 4 levels and 1000 values, an element or an element list as
+ * `{ wdio, query, elementId | found | length }`, other WebdriverIO objects and functions as a
+ * name, cycles as `[Circular]`.
  * @experimental
  */
 export function shortCopy (value: unknown): unknown {
@@ -377,17 +398,17 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
 
     const kind = getWdioKind(value)
     if (kind === 'element') {
-        const elem = value as { elementId?: unknown, selector?: unknown }
-        // the query, then the id or "not found"
-        const label = wdioLabel(value as object, 'Element', false)
+        const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
+        // an unresolved element has no id yet
         if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
-            return label
+            return placeholder
         }
-        return elem.elementId ? `${label} (id ${String(elem.elementId)})` : `${label} (not found)`
+        const { elementId } = value as { elementId?: unknown }
+        return elementId ? { ...placeholder, elementId: String(elementId) } : { ...placeholder, found: false }
     }
     if (kind === 'element-array') {
-        const label = wdioLabel(value as object, 'ElementArray', true)
-        return Array.isArray(value) ? `${label} (${value.length})` : label
+        const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
+        return Array.isArray(value) ? { ...placeholder, length: value.length } : placeholder
     }
     if (kind === 'browser') {
         return 'WebdriverIO.Browser'

@@ -338,6 +338,46 @@ function resultValue(result: unknown): unknown {
     return result && typeof result === 'object' && 'value' in result ? (result as { value: unknown }).value : result
 }
 
+/**
+ * An element or an element list in the body or the result of a user command: how it was found, as
+ * steps from the browser (`foundWith(selector, ...props)`, `index` for an item of a list), and its
+ * `elementId`, `found: false` or the `length` of a list
+ * @experimental the format may change
+ */
+export interface ElementPlaceholder {
+    wdio: 'element' | 'element-array'
+    query?: { foundWith?: string, selector?: unknown, props?: unknown[], index?: number }[]
+    elementId?: string
+    found?: boolean
+    length?: number
+}
+
+function isElementPlaceholder(value: unknown): value is ElementPlaceholder {
+    const wdio = value && typeof value === 'object' ? (value as { wdio?: unknown }).wdio : undefined
+    return wdio === 'element' || wdio === 'element-array'
+}
+
+/**
+ * The query of an element or an element list as in the test code, the selector in backticks, e.g.
+ * `` $(`#form`).shadow$(`#name`) ``, `` $$(`li`)[2] `` or `` custom$(`byTestId`, "submit") ``
+ * @experimental the name and the format may change
+ */
+export function elementQueryText(element: ElementPlaceholder): string {
+    if (!element.query?.length) {
+        return 'Element'
+    }
+    return element.query.map((step, i) => {
+        const list = step.index !== undefined || (element.wdio === 'element-array' && i === element.query!.length - 1)
+        const command = step.foundWith ?? (list ? '$$' : '$')
+        const selector = typeof step.selector === 'string' && !/^\[Function .*\]$/.test(step.selector)
+            ? `\`${step.selector}\``
+            : formatArgument(step.selector)
+        const args = [...(step.selector === undefined ? [] : [selector]), ...(step.props ?? []).map(formatArgument)].join(', ')
+        const item = step.index === undefined ? '' : step.index < 0 ? `.at(${step.index})` : `[${step.index}]`
+        return `${command}(${args})${item}`
+    }).join('.')
+}
+
 function isPlaceholder(value: unknown) {
     return typeof value === 'string' && value.startsWith('WebdriverIO.') && !value.startsWith('WebdriverIO.Element')
 }
@@ -356,10 +396,8 @@ function formatArgument(arg: unknown) {
     if (matcher) {
         return matcher[1]
     }
-    // an element argument: its query as in the test code, written by the producer
-    const elem = typeof arg === 'string' && /^WebdriverIO\.Element(?:Array)?(?:<(.*)>)?(?: \([^()]*\))?$/s.exec(arg)
-    if (elem) {
-        return elem[1] ?? 'Element'
+    if (isElementPlaceholder(arg)) {
+        return elementQueryText(arg)
     }
     return titleJson(arg)
 }
@@ -431,20 +469,13 @@ export function inlineResult(result: unknown, command?: string): string | undefi
     if (Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) {
         return `${value.length} found`
     }
-    if (typeof value === 'string') {
-        if (/^WebdriverIO\.Element(?:<.*>)? \(not found\)$/s.test(value)) {
-            return 'not found'
-        }
-        if (/^WebdriverIO\.Element(?:<.*>)? \(id .*\)$/s.test(value)) {
-            return 'found'
-        }
-        const many = /^WebdriverIO\.ElementArray(?:<.*>)? \((\d+)\)$/s.exec(value)
-        if (many) {
-            return `${many[1]} found`
-        }
-        if (/^<Buffer \d+ bytes>$/.test(value)) {
-            return value
-        }
+    if (isElementPlaceholder(value)) {
+        return value.wdio === 'element-array'
+            ? `${value.length ?? 0} found`
+            : value.found === false ? 'not found' : 'found'
+    }
+    if (typeof value === 'string' && /^<Buffer \d+ bytes>$/.test(value)) {
+        return value
     }
     return cut(titleJson(value), INLINE_RESULT_LENGTH)
 }

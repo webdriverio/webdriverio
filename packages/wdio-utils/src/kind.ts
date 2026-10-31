@@ -43,42 +43,21 @@ export const WDIO_KIND: unique symbol = Symbol.for('wdio.kind') as typeof WDIO_K
 export const WDIO_CHAINABLE: unique symbol = Symbol.for('wdio.chainable') as typeof WDIO_CHAINABLE
 
 /**
- * Internal: the query of an element or an element list as in the test code, for example
- * `` $(`#form`).shadow$(`#name`) `` or `` $$(`li`)[2] ``. Read with no command, also on an
- * unresolved element; `undefined` when the query is not known.
+ * Internal: the query of an unresolved element or element list, read with no command (its
+ * `selector`, `parent` and `index` are promises there): the same fields as a resolved element.
  */
 export const WDIO_QUERY: unique symbol = Symbol.for('wdio.query') as typeof WDIO_QUERY
 
 /**
- * Internal: a query call as in the test code, the selector in backticks and the other
- * arguments as JSON, for example `` custom$(`byTestId`, "name") ``
+ * Internal: how an element or an element list was found. `foundWith(selector, ...props)` on
+ * `parent` is the call of the test code, `index` the item of a list.
  */
-export function queryCall (command: string, args: unknown[]): string {
-    const text = args
-        .filter((arg) => getWdioKind(arg) === undefined)
-        .map((arg, i) => i === 0 && (typeof arg === 'string' || typeof arg === 'function')
-            ? `\`${typeof arg === 'string' ? arg : '<fn>'}\``
-            : queryArgument(arg))
-    return `${command}(${text.join(', ')})`
-}
-
-function queryArgument (arg: unknown) {
-    if (typeof arg === 'function') {
-        return '<fn>'
-    }
-    try {
-        return JSON.stringify(arg) ?? String(arg)
-    } catch {
-        return String(arg)
-    }
-}
-
-/**
- * Internal: the query of `parent` and a dot, or nothing for a browser or an unknown query
- */
-export function queryPrefix (parent: unknown): string {
-    const query = parent && typeof parent === 'object' ? (parent as { [WDIO_QUERY]?: unknown })[WDIO_QUERY] : undefined
-    return typeof query === 'string' ? `${query}.` : ''
+export interface WdioQuery {
+    foundWith?: string
+    selector?: unknown
+    props?: unknown[]
+    index?: number
+    parent?: unknown
 }
 
 export const WDIO_KINDS = ['browser', 'element', 'element-array', 'mock', 'browsing-context'] as const

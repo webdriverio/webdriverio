@@ -1,4 +1,4 @@
-import { WDIO_QUERY, shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -9,7 +9,6 @@ import { elementErrorHandler } from '../middlewares.js'
 import { routeElementEndpoints } from './foreignContext.js'
 import * as browserCommands from '../commands/browser.js'
 import { REACT_OPTIONS } from './findElementAgain.js'
-import { elementQuery } from './elementQuery.js'
 import type { Selector, AddCommandFn, ExtendedElementReference, ReactSelectorOptions } from '../types.js'
 
 interface GetElementProps {
@@ -25,6 +24,20 @@ interface GetElementProps {
      * that finding the element again keeps them
      */
     reactOptions?: ReactSelectorOptions
+    /**
+     * the command that found the element, `$` or `$$` by default, and its arguments after the
+     * selector: `foundWith(selector, ...queryProps)` is the call of the test code
+     */
+    foundWith?: string
+    queryProps?: unknown[]
+}
+
+/**
+ * The options of a `react$` / `react$$` query for `queryProps`: none when they are empty, as in the test code
+ */
+export function reactArguments ({ props, state }: ReactSelectorOptions): unknown[] {
+    const filled = (value: unknown) => value !== undefined && !(typeof value === 'object' && value !== null && Object.keys(value).length === 0)
+    return filled(props) || filled(state) ? [{ ...(filled(props) ? { props } : {}), ...(filled(state) ? { state } : {}) }] : []
 }
 
 interface WebDriverErrorResponse {
@@ -69,13 +82,7 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
             return commands
         }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element'),
-        scope: { value: 'element' },
-        // computed when it is read, see `WDIO_QUERY` in `@wdio/utils`
-        [WDIO_QUERY]: {
-            get (this: WebdriverIO.Element) {
-                return elementQuery(this)
-            }
-        }
+        scope: { value: 'element' }
     }
     routeElementEndpoints(propertiesObject)
     propertiesObject.emit = { value: parent.emit.bind(parent) }
@@ -125,6 +132,8 @@ export function getElement(
             client.selector = selector
         }
         client.parent = this
+        client.foundWith = props.foundWith ?? '$'
+        client.props = props.queryProps ?? []
         client.isReactElement = props.isReactElement
         client.isShadowElement = props.isShadowElement
         if (typeof props.strict === 'boolean') {
@@ -158,8 +167,9 @@ export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
-    props: GetElementProps = { isReactElement: false, isShadowElement: false }
+    propsParam: GetElementProps = {}
 ): WebdriverIO.Element[] {
+    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
     if (elemResponse.length === 0) {
         return []
     }
@@ -212,6 +222,8 @@ export const getElements = function getElements(
                 : selector
             client.parent = this
             client.index = i
+            client.foundWith = props.foundWith ?? '$$'
+            client.props = props.queryProps ?? []
             client.isReactElement = props.isReactElement
             client.isShadowElement = props.isShadowElement
             /**

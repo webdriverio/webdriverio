@@ -71,8 +71,8 @@ export async function custom$ (
      * element) must not suddenly apply the global strict `$` default either
      */
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategyRef, res, { strict: false })
+        return await getElement.call(this, strategyRef, res, { strict: false, foundWith: 'custom$', queryProps: strategyArguments })
     }
 
-    return await getElement.call(this, strategyRef, new Error('no such element'), { strict: false })
+    return await getElement.call(this, strategyRef, new Error('no such element'), { strict: false, foundWith: 'custom$', queryProps: strategyArguments })
 }

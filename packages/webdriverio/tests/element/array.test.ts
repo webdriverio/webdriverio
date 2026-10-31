@@ -320,7 +320,7 @@ describe('ElementArray', () => {
             })
 
             const item = await elements[1] as unknown as { props: object }
-            expect(item.props).toEqual({ isShadowElement: false, isReactElement: true, reactOptions })
+            expect(item.props).toEqual({ isShadowElement: false, isReactElement: true, foundWith: 'react$$', queryProps: [reactOptions], reactOptions })
             expect(browser.react$$).toHaveBeenCalledWith('Comp', reactOptions)
         })
 
@@ -338,7 +338,7 @@ describe('ElementArray', () => {
             })
 
             const item = await elements[1] as unknown as { props: object, index: number }
-            expect(item.props).toEqual({ isShadowElement: true, isReactElement: false })
+            expect(item.props).toEqual({ isShadowElement: true, isReactElement: false, foundWith: 'shadow$$', queryProps: [] })
             expect(item.index).toBe(1)
         })
 
@@ -359,7 +359,7 @@ describe('ElementArray', () => {
 
             const item = await elements[1] as unknown as { selector: object, props: object, index: number }
             expect(item.selector).toEqual({ strategy, strategyName: 'items', strategyArguments: ['x'] })
-            expect(item.props).toEqual({ isShadowElement: false, isReactElement: false })
+            expect(item.props).toEqual({ isShadowElement: false, isReactElement: false, foundWith: 'custom$$', queryProps: ['x'] })
             expect(item.index).toBe(1)
             expect(browser.custom$$).toHaveBeenCalledWith('items', 'x')
         })

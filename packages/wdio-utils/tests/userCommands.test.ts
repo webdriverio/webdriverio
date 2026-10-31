@@ -286,8 +286,8 @@ describe('runUserCommand', () => {
         await wrapper!(async () => [{ elementId: 'x' }, { elementId: 'y' }])
         expect(pairs(browser)).toEqual([
             ['userCommand', { id: 1, command: '$$', body: ['a'], protocol: 'bidi' }],
-            // the result is labeled with the number of elements found
-            ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: 'WebdriverIO.ElementArray<$$(`a`)> (2)' } }]
+            // the result gives the query of the list and the number of elements found
+            ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'a' }], length: 2 } } }]
         ])
     })
 })
@@ -1028,8 +1028,8 @@ describe('shortCopy', () => {
         expect(mod.shortCopy('a'.repeat(1024))).toBe('a'.repeat(1024))
 
         expect(mod.shortCopy(function foo () {})).toBe('[Function foo]')
-        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<$(`a`)> (id abc)')
-        expect(mod.shortCopy(kind.setWdioKind({ selector: 'a' }, 'element'))).toBe('WebdriverIO.Element<$(`a`)> (not found)')
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: 'a' }, 'element'))).toEqual({ wdio: 'element', query: [{ selector: 'a' }], elementId: 'abc' })
+        expect(mod.shortCopy(kind.setWdioKind({ selector: 'a' }, 'element'))).toEqual({ wdio: 'element', query: [{ selector: 'a' }], found: false })
         expect(mod.shortCopy(kind.setWdioKind({}, 'browser'))).toBe('WebdriverIO.Browser')
 
         const circular: Record<string, unknown> = { a: 1, list: [Buffer.from('x')] }
@@ -1038,24 +1038,36 @@ describe('shortCopy', () => {
         expect(mod.shortCopy(circular)).toEqual({ a: 1, list: ['<Buffer 1 bytes>'], self: '[Circular]' })
     })
 
-    it('labels an element with its query, then its id or "not found"', () => {
-        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: '#btn' }, 'element'))).toBe('WebdriverIO.Element<$(`#btn`)> (id abc)')
-        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', selector: () => null }, 'element'))).toBe('WebdriverIO.Element (id abc)')
-        expect(mod.shortCopy(kind.setWdioKind({ selector: '#missing', error: new Error('no') }, 'element'))).toBe('WebdriverIO.Element<$(`#missing`)> (not found)')
-        expect(mod.shortCopy(kind.setWdioKind({}, 'element'))).toBe('WebdriverIO.Element (not found)')
+    it('gives an element its query from the browser, then its id or "found: false"', () => {
+        const parent = kind.setWdioKind({ foundWith: '$', selector: '#form', props: [] }, 'element')
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', foundWith: 'shadow$', selector: '#btn', parent }, 'element'))).toEqual({
+            wdio: 'element', query: [{ foundWith: '$', selector: '#form' }, { foundWith: 'shadow$', selector: '#btn' }], elementId: 'abc'
+        })
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', foundWith: '$', selector: function nextElement () {} }, 'element'))).toEqual({
+            wdio: 'element', query: [{ foundWith: '$', selector: '[Function nextElement]' }], elementId: 'abc'
+        })
+        expect(mod.shortCopy(kind.setWdioKind({ selector: '#missing', error: new Error('no') }, 'element'))).toEqual({ wdio: 'element', query: [{ selector: '#missing' }], found: false })
+        expect(mod.shortCopy(kind.setWdioKind({}, 'element'))).toEqual({ wdio: 'element', found: false })
+    })
+
+    it('gives a custom strategy by its name and the item of a list with its index', () => {
+        const strategy = { strategy: () => null, strategyName: 'byTestId', strategyArguments: ['row'] }
+        expect(mod.shortCopy(kind.setWdioKind({ elementId: 'abc', foundWith: 'custom$$', selector: strategy, props: ['row'], index: 1 }, 'element'))).toEqual({
+            wdio: 'element', query: [{ foundWith: 'custom$$', selector: 'byTestId', props: ['row'], index: 1 }], elementId: 'abc'
+        })
     })
 
     it('gives a pending chainable element no id and no "not found"', () => {
         const chainable = Object.assign(kind.setWdioKind({ selector: '#btn' }, 'element'), { [kind.WDIO_CHAINABLE]: true })
-        expect(mod.shortCopy(chainable)).toBe('WebdriverIO.Element')
+        expect(mod.shortCopy(chainable)).toEqual({ wdio: 'element' })
     })
 
-    it('gives a pending chainable element of $ its query, with no command', async () => {
+    it('gives a pending element of $ its query, with no command', async () => {
         const browser = fakeBrowser()
         const query = vi.fn(async (selector: string) => ({ elementId: 'abc', selector }))
         const $ = shim.wrapCommand('$', query)
         const chainable = $.call(browser, '#btn') as unknown as Promise<unknown>
-        expect(mod.shortCopy(chainable)).toBe('WebdriverIO.Element<$(`#btn`)>')
+        expect(mod.shortCopy(chainable)).toEqual({ wdio: 'element', query: [{ foundWith: '$', selector: '#btn' }] })
         await chainable
         expect(query).toHaveBeenCalledTimes(1)
     })
@@ -1065,20 +1077,23 @@ describe('shortCopy', () => {
         const element = { elementId: 'abc', selector: '#a', options: {} }
         const query = vi.fn(async () => Object.assign(element, {
             $: async () => ({ elementId: 'def' }),
+            nextElement: async () => ({ elementId: 'mno' }),
             shadow$: async () => ({ elementId: 'ghi' }),
             custom$: async () => ({ elementId: 'jkl' })
         }))
         const $ = shim.wrapCommand('$', query)
         const root = $.call(browser, '#a') as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>
-        const chain = [root.$('#b'), root.shadow$('input[name="email"]'), root.custom$('byTestId', 'name')]
+        const chain = [root.$('#b'), root.shadow$('input[name="email"]'), root.custom$('byTestId', 'name'), root.nextElement()]
+        const root$ = { foundWith: '$', selector: '#a' }
         expect(chain.map((pending) => mod.shortCopy(pending))).toEqual([
-            'WebdriverIO.Element<$(`#a`).$(`#b`)>',
-            'WebdriverIO.Element<$(`#a`).shadow$(`input[name="email"]`)>',
-            'WebdriverIO.Element<$(`#a`).custom$(`byTestId`, "name")>'
+            { wdio: 'element', query: [root$, { foundWith: '$', selector: '#b' }] },
+            { wdio: 'element', query: [root$, { foundWith: 'shadow$', selector: 'input[name="email"]' }] },
+            { wdio: 'element', query: [root$, { foundWith: 'custom$', selector: 'byTestId', props: ['name'] }] },
+            { wdio: 'element', query: [root$, { foundWith: 'nextElement' }] }
         ])
         const list = shim.wrapCommand('$$', async () => [element, element]).call(browser, 'li') as unknown as Record<number, unknown>
-        expect(mod.shortCopy(list)).toBe('WebdriverIO.ElementArray<$$(`li`)>')
-        expect(mod.shortCopy(list[1])).toBe('WebdriverIO.Element<$$(`li`)[1]>')
+        expect(mod.shortCopy(list)).toEqual({ wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }] })
+        expect(mod.shortCopy(list[1])).toEqual({ wdio: 'element', query: [{ foundWith: '$$', selector: 'li', index: 1 }] })
         await Promise.all([...chain, list, list[1]])
         expect(query).toHaveBeenCalledTimes(1)
     })
@@ -1106,9 +1121,9 @@ describe('shortCopy', () => {
         expect(reads).toBe(50)
     })
 
-    it('labels an element list with its selector and its number of elements', () => {
+    it('gives an element list its query and its number of elements', () => {
         const list = kind.setWdioKind(Object.assign([{}, {}, {}], { selector: 'li' }), 'element-array')
-        expect(mod.shortCopy(list)).toBe('WebdriverIO.ElementArray<$$(`li`)> (3)')
+        expect(mod.shortCopy(list)).toEqual({ wdio: 'element-array', query: [{ selector: 'li' }], length: 3 })
     })
 
     it('keeps a shared value that is not a cycle', () => {

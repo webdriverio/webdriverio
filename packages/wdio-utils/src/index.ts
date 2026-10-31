@@ -19,7 +19,7 @@ import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } f
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
 import {
-    WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, WDIO_KINDS, queryCall, queryPrefix, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind, type WdioQuery
 } from './kind.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
@@ -106,14 +106,13 @@ export {
     WDIO_CHAINABLE,
     WDIO_QUERY,
     WDIO_KINDS,
-    queryCall,
-    queryPrefix,
     setWdioKind,
     getWdioKind,
     getLoadedWdioKind,
     isLoadedElement,
     isArrayOfElements,
     type WdioKind,
+    type WdioQuery,
 
     /**
      * implicit ARIA roles from `aria-query`

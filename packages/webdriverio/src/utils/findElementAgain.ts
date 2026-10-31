@@ -85,12 +85,14 @@ export function itemOf (foundWith: string, selector: unknown, props: unknown[], 
         }
         const strategyArguments = getWdioKind(parent) === 'element' ? [...props, parent] : props
         const strategyRef = { strategy, strategyName: selector, strategyArguments } as CustomStrategyReference
-        return { selector: strategyRef as unknown as Selector, props: { ...flags } }
+        return { selector: strategyRef as unknown as Selector, props: { ...flags, foundWith, queryProps: props } }
     }
     return {
         selector: selector as Selector,
         props: {
             ...flags,
+            foundWith,
+            queryProps: props,
             ...(flags.isReactElement && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {})
         }
     }

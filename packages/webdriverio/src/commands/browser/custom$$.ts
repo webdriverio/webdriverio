@@ -56,7 +56,7 @@ export function custom$$ (
 
         res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-        return res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
+        return res.length ? await getElements.call(this, strategyRef, res, { foundWith: 'custom$$', queryProps: strategyArguments }) : [] as WebdriverIO.Element[]
     }, {
         selector: strategyName,
         foundWith: 'custom$$',
