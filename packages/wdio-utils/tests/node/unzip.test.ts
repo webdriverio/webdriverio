@@ -148,7 +148,8 @@ describe('unzipWithOsTool', () => {
 
         await expect(unzipWithOsTool(args)).rejects.toThrow('ENOSPC: no space left on device')
 
-        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+        // the code joins the archive path itself, with the separator of the platform
+        expect(fsp.rm).toHaveBeenCalledWith(path.join('/cache/chromedriver', '133.0.6943.141-chromedriver-linux64.zip'), { recursive: true, force: true })
         expect(cp.execFile).not.toHaveBeenCalled()
     })
 
