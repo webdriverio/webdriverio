@@ -1323,8 +1323,12 @@ export default class AllureReporter extends WDIOReporter {
             }
         }
 
-        if (!this._commandStepsAllowed()) { return }
         const scope = this._userStepScope()
+        if (!this._commandStepsAllowed()) {
+            // a late result between two tests: it must not take the result of a later command
+            this._takeLateResult(scope, command)
+            return
+        }
         const open = this._userSteps.get(scope)
         const step = open?.findLast((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
             s.parent === command.parent && s.command === command.command && s.endpoint === command.endpoint)

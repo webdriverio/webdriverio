@@ -338,6 +338,33 @@ describe('user commands that overlap or end after their test', () => {
         ])
     })
 
+    it('uses a late result that comes between two tests, so it does not take the result of the next test', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            const shot = { command: 'takeScreenshot', method: 'GET', endpoint: '/session/:sessionId/screenshot', sessionId: 's' }
+            const title = { command: 'getTitle', method: 'GET', endpoint: '/session/:sessionId/title', sessionId: 's' }
+            // t1 times out while a screenshot (no parent) is in flight; its result comes before t2 starts
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(4, 'checkScreen', ['home']))
+            emit('client:beforeCommand', shot)
+            emit('test:fail', { ...test('t1'), error: new Error('timed out') })
+            emit('test:end', test('t1'))
+            emit('client:afterCommand', { ...shot, result: { value: PNG } })
+            emit('client:afterUserCommand', { ...user(4, 'checkScreen', ['home']), result: { error: new Error('timed out') } })
+            emit('test:start', test('t2'))
+            emit('client:beforeCommand', shot)
+            emit('client:afterCommand', { ...shot, result: { value: PNG } })
+            emit('client:beforeCommand', title)
+            emit('client:afterCommand', { ...title, result: { value: 'T' } })
+            emit('test:pass', { ...test('t2'), passed: true })
+            emit('test:end', test('t2'))
+        })
+
+        expect(steps(byName('t2'), attachment).map(([name, status, , , children]) => [name, status, children])).toEqual([
+            ['takeScreenshot', 'passed', []],
+            ['getTitle', 'passed', []]
+        ])
+    })
+
     it('ends the protocol step of a failed user command when a user command that started after it ends', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
