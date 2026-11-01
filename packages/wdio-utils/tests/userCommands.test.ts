@@ -802,6 +802,14 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('sends a command of another session inside waitUntil as an outer command of that session', async () => {
+        const a = fakeBrowser({ sessionId: 'a' })
+        const b = fakeBrowser({ sessionId: 'b' })
+        await mod.runUserCommand(a, 'waitUntil', [], () => mod.runUserCommand(b, 'getTitle', [], async () => 't'))
+        expect(events(b)).toEqual([['userCommand', 'getTitle', 2, undefined], ['userResult', 'getTitle', 2, undefined]])
+        expect(events(a).map(([event, command]) => `${event} ${command}`)).toEqual(['userCommand waitUntil', 'userResult waitUntil'])
+    })
+
     it('keeps a top-level exclude with exact names, and ignores an exclude that is not a list of names', async () => {
         const star = fakeBrowser({ options: { userCommandEvents: { exclude: ['waitFor*'] } } })
         await mod.runUserCommand(star, 'waitForDisplayed', [], async () => true)
