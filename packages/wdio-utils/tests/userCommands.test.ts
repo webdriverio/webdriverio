@@ -53,6 +53,15 @@ describe('runUserCommand', () => {
         expect(mod.runUserCommand(browser, 'getText', [], () => result)).toBe(result)
     })
 
+    it.each([
+        ['a WebDriver Classic session', { isBidi: false }],
+        ['user command events off', { options: { userCommandEvents: false } }]
+    ])('runs a command with no frame in %s, as it can send no events', async (_name, props) => {
+        const browser = fakeBrowser(props)
+        expect(await mod.runUserCommand(browser, 'getText', [], async () => store.getStore())).toBeUndefined()
+        expect(await mod.runCustomCommand(browser, 'myCmd', [], async () => store.getStore())).toBeUndefined()
+    })
+
     it('sends one userCommand and one userResult with the same id for an outer call', async () => {
         const browser = fakeBrowser()
         expect(await mod.runUserCommand(browser, 'getText', [], async () => 'hello')).toBe('hello')
@@ -757,7 +766,7 @@ describe('nested calls', () => {
 
     it('is used by a custom command of the monad', async () => {
         const browser = fakeBrowser()
-        const client = monad.default({}, (c: unknown) => c, {})('sessionId') as Record<string, Function>
+        const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId') as Record<string, Function>
         client.addCommand('myCommand', () => mod.runUserCommand(browser, 'getText', [], async () => 'hello'))
         expect(await client.myCommand()).toBe('hello')
         expect(browser.emit).not.toHaveBeenCalled()
