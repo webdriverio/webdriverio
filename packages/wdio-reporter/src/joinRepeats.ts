@@ -1,4 +1,4 @@
-import { isUserCommandOutput, isUserResultOutput, pairUserCommandOutput, textsOf, userCommandError } from './utils.js'
+import { isUserCommandOutput, isUserResultOutput, pairUserCommandOutput, textsOf, userCommandError, userCommandTexts } from './utils.js'
 
 const MAX_GROUP_SIZE = 4
 
@@ -132,9 +132,8 @@ export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[]
 
 /**
  * A `JSON.stringify` replacer for a report of `TestStats.output`: the error of a `userResult` gets its name and
- * message (see `userCommandError`), and an output with user commands becomes the entries of its joined tree (see
- * `joinUserCommandTree`). Each user command entry and protocol command entry that a user command runs gets its
- * one-line `text`, and the first entry of joined repeats gets `repeat: { count, size }`. Other values stay as they are.
+ * message (see `userCommandError`), and each user command entry and protocol command entry that a user command
+ * runs gets its one-line `text` (see `userCommandTexts`). Other values stay as they are.
  * @experimental the name and the rule may change
  */
 export function userOutputReplacer(this: unknown, key: string, value: unknown): unknown {
@@ -142,24 +141,37 @@ export function userOutputReplacer(this: unknown, key: string, value: unknown): 
         return { error: userCommandError((value as { error: unknown }).error) }
     }
     if (key === 'output' && Array.isArray(value) && value.some((entry) => entry && isUserCommandOutput(entry))) {
-        const entries: object[] = []
-        const flatten = (nodes: UserCommandNode[]) => {
-            for (const node of nodes) {
-                if (node.group) {
-                    const [first, ...rest] = node.group
-                    flatten([{ ...first, repeatOf: { count: node.repeat!, size: node.group.length } } as UserCommandNode, ...rest])
-                    continue
-                }
-                const repeat = (node as { repeatOf?: unknown }).repeatOf ?? (node.repeat ? { count: node.repeat, size: 1 } : undefined)
-                entries.push({ ...node.entry, ...(node.text === undefined ? {} : { text: node.text }), ...(repeat ? { repeat } : {}) })
-                flatten(node.children)
-                if (node.result) {
-                    entries.push(node.result)
-                }
-            }
-        }
-        flatten(joinUserCommandTree(userCommandTree(value)))
-        return entries
+        const texts = userCommandTexts(value)
+        return value.map((entry) => texts.has(entry) ? { ...entry, text: texts.get(entry) } : entry)
     }
     return value
+}
+
+/**
+ * `userOutputReplacer` for a report that shows the user commands as a tree: an output with user commands becomes
+ * the entries of its joined tree (see `joinUserCommandTree`). The entries of joined repeats are removed, and the
+ * first entry of a joined step or group gets `repeat: { count, size }`.
+ * @experimental the name and the rule may change
+ */
+export function joinedOutputReplacer(this: unknown, key: string, value: unknown): unknown {
+    if (!(key === 'output' && Array.isArray(value) && value.some((entry) => entry && isUserCommandOutput(entry)))) {
+        return userOutputReplacer.call(this, key, value)
+    }
+    const entries: object[] = []
+    const flatten = (nodes: UserCommandNode[], repeatOf?: { count: number, size: number }) => {
+        for (const [index, node] of nodes.entries()) {
+            if (node.group) {
+                flatten(node.group, { count: node.repeat!, size: node.group.length })
+                continue
+            }
+            const repeat = index === 0 && repeatOf ? repeatOf : node.repeat ? { count: node.repeat, size: 1 } : undefined
+            entries.push({ ...node.entry, ...(node.text === undefined ? {} : { text: node.text }), ...(repeat ? { repeat } : {}) })
+            flatten(node.children)
+            if (node.result) {
+                entries.push(node.result)
+            }
+        }
+    }
+    flatten(joinUserCommandTree(userCommandTree(value)))
+    return entries
 }

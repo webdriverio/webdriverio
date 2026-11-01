@@ -350,13 +350,13 @@ The outer user command sends events. Its direct calls send their own events only
 | `joinRepeats(items, keyOf, join)` | The generic join rule, for a reporter with its own step objects |
 | `userCommandTexts(output)` | The text of each user command entry (`getText() → "clicked"`) and of each protocol command entry with `parent` (`getElementText → "clicked"  GET /element/:elementId/text`) |
 
-`userOutputReplacer` also adds this text as a `text` field to these entries, and it writes the entries of the joined tree: the entries of joined repeats are removed, and the first entry of a joined step or group gets `repeat: { count, size }`.
+`userOutputReplacer` also adds this text as a `text` field to these entries, and it keeps every entry. `joinedOutputReplacer` (used by the html reporter JSON) writes the entries of the joined tree instead: the entries of joined repeats are removed, and the first entry of a joined step or group gets `repeat: { count, size }`.
 
 `onBeforeUserCommand` and `onAfterUserCommand` also get the nested user commands. A reporter that shows only the user commands of the test code checks `command.parent === undefined`.
 
 :::warning Experimental
 
-`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `hidesProtocolCommands`, `userCommandError`, `userOutputReplacer`, `isUserCommandOutput`, `isUserResultOutput`, `userCommandTitle`, `userCommandTitleIsCut`, `inlineResult`, `isNoDataResult`, `compactRequest`, `resolvedPath`, `userCommandTexts`, the `text` field, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, `userCommandTree`, `joinUserCommandTree`, `joinRepeats`, `UserCommandNode`, the `repeat` field, the `parent`, `owner`, `custom` and `index` fields, the `nested` option, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
+`onBeforeUserCommand`, `onAfterUserCommand`, `showsUserCommands`, `hidesProtocolCommands`, `userCommandError`, `userOutputReplacer`, `isUserCommandOutput`, `isUserResultOutput`, `userCommandTitle`, `userCommandTitleIsCut`, `inlineResult`, `isNoDataResult`, `compactRequest`, `resolvedPath`, `userCommandTexts`, the `text` field, `UserCommandOutput`, `UserResultOutput`, `BeforeUserCommandArgs`, `AfterUserCommandArgs`, `userCommandTree`, `joinUserCommandTree`, `joinRepeats`, `joinedOutputReplacer`, `UserCommandNode`, the `repeat` field, the `parent`, `owner`, `custom` and `index` fields, the `nested` option, the `'userCommand'` and `'userResult'` entries of `output` and the `userCommandEvents` option are experimental. The names and the payloads can change.
 
 :::
 
