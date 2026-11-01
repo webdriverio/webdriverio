@@ -802,6 +802,21 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('sends no events for a direct call that starts after the result of its parent', async () => {
+        const browser = fakeBrowser()
+        let release!: () => void
+        const gate = new Promise<void>((resolve) => { release = resolve })
+        let late: Promise<unknown> | undefined
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            // a poll that still runs when waitUntil ends
+            late = gate.then(() => mod.runUserCommand(browser, 'getText', [], async () => 'late'))
+            return true
+        })
+        release()
+        await late
+        expect(events(browser).map(([event, command]) => `${event} ${command}`)).toEqual(['userCommand waitUntil', 'userResult waitUntil'])
+    })
+
     it('sends no events for the calls of a command that does not expand', async () => {
         const browser = fakeBrowser()
         await mod.runUserCommand(browser, 'click', [], () => mod.runUserCommand(browser, 'getText', [], async () => 'a'))

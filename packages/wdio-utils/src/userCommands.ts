@@ -245,7 +245,10 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             // ignore
         }
     }
+    // after its result, the frame shows no more direct calls (a poll that still runs after a timeout)
+    const frame: UserCommandFrame = { id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command }
     const sendValue = (value: unknown) => {
+        frame.expands = false
         let result: UserCommandEventResult | undefined
         try {
             result = eventResult?.(value)
@@ -254,10 +257,12 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         }
         send('userResult', { ...event, result: result && 'error' in result ? result : { value: shortCopy(result ? result.value : value) } })
     }
-    const sendError = (error: unknown) => send('userResult', { ...event, result: { error } })
+    const sendError = (error: unknown) => {
+        frame.expands = false
+        send('userResult', { ...event, result: { error } })
+    }
     // the events are sent in the frame, so a listener that runs a command does not loop
-    const expands = expandsUserCommand(browser!.options?.userCommandEvents, command)
-    return store.run({ id: event.id, expands, command }, () => {
+    return store.run(frame, () => {
         send('userCommand', event)
         let result: T
         try {
