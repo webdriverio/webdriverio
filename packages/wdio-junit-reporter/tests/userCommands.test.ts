@@ -25,6 +25,28 @@ describe('JUnit user commands', () => {
         process.removeAllListeners('junit:addProperty')
     })
 
+    it('writes nested user commands indented, and joins repeats as × N', () => {
+        const user = (id: number, command: string, body: unknown[], parent?: number) => ({ id, command, body, protocol: 'bidi', ...(parent ? { parent } : {}) })
+        const element = { wdio: 'element', query: [{ foundWith: '$', selector: '#x' }], elementId: 'e' }
+        const events: [string, Record<string, unknown>][] = [['client:beforeUserCommand', user(1, 'waitUntil', [])]]
+        let id = 2
+        for (const text of [...Array(8).fill('Click'), 'Done']) {
+            const query = user(id++, '$', ['#x'], 1)
+            const read = user(id++, 'getText', [], 1)
+            events.push(['client:beforeUserCommand', query], ['client:afterUserCommand', { ...query, result: { value: element } }])
+            events.push(['client:beforeUserCommand', read], ['client:afterUserCommand', { ...read, result: { value: text } }])
+        }
+        events.push(['client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { value: true } }])
+        expect(xmlOf(events)).toContain([
+            'COMMAND: waitUntil() → true',
+            '  COMMAND: × 8',
+            '    COMMAND: $(`#x`) → found',
+            '    COMMAND: getText() → "Click"',
+            '  COMMAND: $(`#x`) → found',
+            '  COMMAND: getText() → "Done"'
+        ].join('\n'))
+    })
+
     it('writes the user command on one line, with its arguments and its result', () => {
         const xml = xmlOf([
             ['client:beforeUserCommand', { id: 1, command: 'getText', body: [], protocol: 'bidi' }],

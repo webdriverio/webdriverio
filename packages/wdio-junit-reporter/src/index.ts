@@ -3,7 +3,8 @@ import path from 'node:path'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTexts, specFilePath } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTree, joinUserCommandTree, specFilePath } from '@wdio/reporter'
+import type { UserCommandNode } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -671,49 +672,68 @@ class JunitReporter extends WDIOReporter {
 
     private _getCommandStandardOutput(test: Pick<TestStats, 'output'>) {
         const standardOutput: string[] = []
-        const texts = userCommandTexts(test.output)
-        const userCommands = new Map(test.output.flatMap((entry) => isUserCommandOutput(entry) ? [[entry.id, entry] as const] : []))
-        test.output.forEach((data) => {
-            // a user command: one line with its arguments and result, its protocol commands indented under it
-            if (isUserCommandOutput(data)) {
-                standardOutput.push(`COMMAND: ${texts.get(data)}`)
-                return
-            }
-            if (isUserResultOutput(data)) {
-                if ('error' in data.result) {
-                    standardOutput.push(`RESULT: ${this._format({ error: userCommandError(data.result.error) })}`)
-                    return
+        const hasUserEntries = test.output.some((entry) => isUserCommandOutput(entry) || entry.parent !== undefined)
+        if (!hasUserEntries) {
+            test.output.forEach((data) => this._pushProtocolLine(standardOutput, data))
+            return standardOutput.length ? standardOutput.join('\n') : ''
+        }
+        // the user commands as a tree: a child is indented under its parent, identical repeats are one line with × N
+        const walk = (nodes: UserCommandNode[], depth: number) => {
+            const pad = '  '.repeat(depth)
+            for (const node of nodes) {
+                const entry = node.entry as TestStats['output'][number]
+                if (node.group || node.text !== undefined) {
+                    standardOutput.push(`${pad}COMMAND: ${node.text}`)
+                    walk(node.children, depth + 1)
+                    this._pushResultLine(standardOutput, pad, node)
+                    continue
                 }
-                // the line shows a cut result: the whole value under it
-                const start = userCommands.get(data.id)
-                if (start && texts.get(start)?.endsWith('…')) {
-                    standardOutput.push(`RESULT: ${this._format(data.result.value)}`)
+                // the result of a user command that started in another output: only its error
+                if (isUserResultOutput(entry)) {
+                    if ('error' in entry.result) {
+                        standardOutput.push(`${pad}RESULT: ${this._format({ error: userCommandError(entry.result.error) })}`)
+                    }
+                    continue
                 }
-                return
+                this._pushProtocolLine(standardOutput, entry)
             }
-            if (data.parent !== undefined) {
-                if (data.type === 'command') {
-                    standardOutput.push(`  COMMAND: ${texts.get(data)}`)
-                } else if (data.result && typeof data.result === 'object' && 'error' in data.result) {
-                    standardOutput.push(`  RESULT: ${this._format(data.result)}`)
-                }
-                return
-            }
-            switch (data.type) {
-            case 'command':
-                standardOutput.push(
-                    data.method
-                        ? `COMMAND: ${data.method.toUpperCase()} ` +
-                            `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
-                        : `COMMAND: ${data.command} - ${this._format(data.params)}`
-                )
-                break
-            case 'result':
-                standardOutput.push(`RESULT: ${this._format(data.body)}`)
-                break
-            }
-        })
+        }
+        walk(joinUserCommandTree(userCommandTree(test.output)), 0)
         return standardOutput.length ? standardOutput.join('\n') : ''
+    }
+
+    // the error of a step, and the whole result of a user command whose line cuts it
+    private _pushResultLine(standardOutput: string[], pad: string, node: UserCommandNode) {
+        const result = (node.result as { result?: unknown } | undefined)?.result
+        if (node.group || !result || typeof result !== 'object') {
+            return
+        }
+        if ('error' in result) {
+            const error = isUserCommandOutput(node.entry as TestStats['output'][number]) ? { error: userCommandError(result.error) } : result
+            standardOutput.push(`${pad}RESULT: ${this._format(error)}`)
+            return
+        }
+        const text = node.repeat ? node.text!.slice(0, -` × ${node.repeat}`.length) : node.text!
+        if (isUserCommandOutput(node.entry as TestStats['output'][number]) && text.endsWith('…') && 'value' in result) {
+            standardOutput.push(`${pad}RESULT: ${this._format(result.value)}`)
+        }
+    }
+
+    // a protocol command with no user command, as in a WebDriver Classic session
+    private _pushProtocolLine(standardOutput: string[], data: TestStats['output'][number]) {
+        switch (data.type) {
+        case 'command':
+            standardOutput.push(
+                data.method
+                    ? `COMMAND: ${data.method.toUpperCase()} ` +
+                        `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
+                    : `COMMAND: ${data.command} - ${this._format(data.params)}`
+            )
+            break
+        case 'result':
+            standardOutput.push(`RESULT: ${this._format(data.body)}`)
+            break
+        }
     }
 
     // the base adds the user commands of WebDriver BiDi sessions to `output`
