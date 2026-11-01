@@ -16,15 +16,22 @@ ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 #   return a non-zero exit code on "already installed" which fails the build.
 # - npm ships inside the `nodejs` package on Void — it is NOT a separate
 #   package and xbps will error with "not found in repository pool".
-RUN xbps-install -Suy xbps && \
-    xbps-install -Sy \
-        bash \
-        curl \
-        shadow \
-        sudo \
-        nodejs \
-        weston \
-        chromium && \
+# Fastly CDN first: repo-default is one mirror and can be slow (13 min builds). If Fastly fails, install again
+# from repo-default (the downloaded packages stay in the cache). /etc/xbps.d overrides /usr/share/xbps.d.
+RUN repo() { echo "repository=https://$1/current" > /etc/xbps.d/00-repository-main.conf; } && \
+    void_install() { \
+        xbps-install -Suy xbps && \
+        xbps-install -Sy \
+            bash \
+            curl \
+            shadow \
+            sudo \
+            nodejs \
+            weston \
+            chromium; \
+    } && \
+    { { repo repo-fastly.voidlinux.org && void_install; } || \
+      { echo "Fastly mirror failed, use repo-default" && repo repo-default.voidlinux.org && void_install; }; } && \
     xbps-install -Scc
 
 RUN npm install -g pnpm@11.27.1
