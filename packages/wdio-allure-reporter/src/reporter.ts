@@ -95,6 +95,12 @@ type ProtocolStep = {
 }
 // the steps of a test that are still open, in start order: a step ends when all steps after it ended
 type OpenStep = UserStep | ProtocolStep
+/**
+ * a user command that starts while the step of another one is open: the runtime would make its step a child,
+ * but each user command that is sent is an outer call. Its messages wait, and go to the runtime as a sibling
+ * when the open steps end
+ */
+type WaitingUserStep = { key?: string; open: OpenStep[]; messages: WDIORuntimeMessage[]; waiting: boolean }
 
 // the user step of a request: its parent, else (no parent) the user step it started in
 function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined {
@@ -206,7 +212,12 @@ export default class AllureReporter extends WDIOReporter {
     private _closedLaneKeys = new Set<string>()
     // the open user command steps of each test, hook or Cucumber step, in start order
     private _userSteps = new Map<string, OpenStep[]>()
-    private _userStepOf = new Map<number, { scope: string, open: OpenStep[], step: UserStep }>()
+    private _userStepOf = new Map<number, { scope: string, open: OpenStep[], step: UserStep, waiting?: WaitingUserStep }>()
+    // the user steps that wait for the open steps of their scope, in start order, by scope and by id
+    private _waitingSteps = new Map<string, WaitingUserStep[]>()
+    private _waitingStepOf = new Map<number, WaitingUserStep>()
+    // the messages of a waiting user step go to its list
+    private _messageSink?: WDIORuntimeMessage[]
     // the protocol steps that their user command ended before their result, by scope and parent id
     private _lateResults = new Map<string, number>()
 
@@ -322,18 +333,69 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     // a new test or hook: a later user command result does not close its steps
-    private _resetUserSteps(key = this._laneKey()): void {
+    private _resetUserSteps(key = this._laneKey(), end?: { status: AllureStatus; statusDetails?: StatusDetails; stop?: number }): void {
         const scope = this._userStepScope(key)
+        const live = this._userSteps.get(scope) ?? []
+        const waiting = this._waitingSteps.get(scope) ?? []
+        this._userSteps.delete(scope)
+        this._waitingSteps.delete(scope)
+        if (waiting.length) {
+            // the end of the test ends the open steps as the runtime does, so the waiting steps are not their children
+            for (let count = end ? live.length : 0; count > 0; count--) {
+                this._endStep({ status: end!.status, statusDetails: end!.statusDetails, stop: end!.stop ?? Date.now() })
+            }
+            for (const step of waiting) {
+                this._releaseWaitingStep(step, key)
+            }
+        }
         // the end of the test ends their steps: their results must not end another step
-        for (const step of this._userSteps.get(scope) ?? []) {
+        for (const step of [live, ...waiting.map(({ open }) => open)].flat()) {
             if (step.kind === 'protocol' && !step.done) { this._addLateResult(scope, step) }
         }
-        this._userSteps.delete(scope)
+    }
+
+    // the messages of a waiting user step go to the runtime; the steps after it keep their place
+    private _releaseWaitingStep(step: WaitingUserStep, key = step.key): void {
+        step.waiting = false
+        for (const entry of this._waitingStepOf) {
+            if (entry[1] === step) { this._waitingStepOf.delete(entry[0]) }
+        }
+        for (const message of step.messages.splice(0)) {
+            this._pushRuntimeMessage(message, key)
+        }
+    }
+
+    // the waiting user steps of a scope whose open steps all ended: in start order, until one is still open
+    private _releaseWaitingSteps(scope: string): void {
+        const waiting = this._waitingSteps.get(scope)
+        while (waiting?.length && !this._userSteps.has(scope)) {
+            const step = waiting.shift()!
+            this._releaseWaitingStep(step)
+            if (step.open.length) {
+                this._userSteps.set(scope, step.open)
+            }
+        }
+        if (!waiting?.length) { this._waitingSteps.delete(scope) }
+    }
+
+    private _toWaitingStep<T>(step: WaitingUserStep | undefined, run: () => T): T {
+        if (!step) { return run() }
+        const sink = this._messageSink
+        this._messageSink = step.messages
+        try {
+            return run()
+        } finally {
+            this._messageSink = sink
+        }
     }
 
     private _pushRuntimeMessage(message: WDIORuntimeMessage, key = this._laneKey()): void {
+        if (this._messageSink) {
+            this._messageSink.push(message)
+            return
+        }
         if (EXECUTABLE_BOUNDARIES.has(message.type)) {
-            this._resetUserSteps(key)
+            this._resetUserSteps(key, message.type === 'allure:test:end' || message.type === 'allure:hook:end' ? message.data : undefined)
         }
         if (!key) {
             this._ensureState(this._currentCid()).pushRuntimeMessage(message)
@@ -509,8 +571,8 @@ export default class AllureReporter extends WDIOReporter {
         details?: StatusDetails
     ): void {
         this._attachLogs()
-        this._resetUserSteps()
         const stop = AllureReporter.getTimeOrNow((t as TestStats).end)
+        this._resetUserSteps(undefined, { status, statusDetails: details, stop })
         this._endStep({ status, stop, statusDetails: details })
     }
 
@@ -1266,23 +1328,26 @@ export default class AllureReporter extends WDIOReporter {
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
         const body = (command as unknown as MaybeBody).body
-        const open = this._userSteps.get(this._userStepScope())
+        const waiting = this._waitingStepOf.get(command.parent ?? NaN)
+        const open = waiting ? waiting.open : this._userSteps.get(this._userStepScope())
         // a WebDriver Classic session has no open user step, so its steps stay as they are
         if (!open?.length) {
             this._startCommandStep(stepName, body)
             return
         }
         open.push({ kind: 'protocol', parent: command.parent, command: command.command, endpoint })
-        if (!method || !endpoint) {
-            this._startCommandStep(stepName, body)
-            return
-        }
-        // a child of a user step: the compact request as a parameter, the resolved request as an attachment
-        this._startStep({ name: stepName, start: Date.now() })
-        this._pushRuntimeMessage({ type: 'step_metadata', data: { parameters: [{ name: 'request', value: compactRequest(method, endpoint) }] } })
-        const path = resolvedPath(endpoint, command.sessionId)
-        const hasBody = body !== undefined && !(isObject(body) && isEmptyObject(body))
-        this._attachJSON({ name: 'Request', json: hasBody ? { method, path, body } : { method, path } })
+        this._toWaitingStep(waiting, () => {
+            if (!method || !endpoint) {
+                this._startCommandStep(stepName, body)
+                return
+            }
+            // a child of a user step: the compact request as a parameter, the resolved request as an attachment
+            this._startStep({ name: stepName, start: Date.now() })
+            this._pushRuntimeMessage({ type: 'step_metadata', data: { parameters: [{ name: 'request', value: compactRequest(method, endpoint) }] } })
+            const path = resolvedPath(endpoint, command.sessionId)
+            const hasBody = body !== undefined && !(isObject(body) && isEmptyObject(body))
+            this._attachJSON({ name: 'Request', json: hasBody ? { method, path, body } : { method, path } })
+        })
     }
 
     // no request id: the parent, the command and the endpoint name the request
@@ -1308,6 +1373,11 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
+        const waiting = this._waitingStepOf.get(command.parent ?? NaN)
+        this._toWaitingStep(waiting, () => this._afterCommand(command, waiting))
+    }
+
+    private _afterCommand(command: AfterCommandArgs, waiting: WaitingUserStep | undefined): void {
         const { disableWebdriverScreenshotsReporting } = this._options
         const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
         const resUnknown: unknown = (command as unknown as MaybeResult).result
@@ -1329,7 +1399,7 @@ export default class AllureReporter extends WDIOReporter {
             this._takeLateResult(scope, command)
             return
         }
-        const open = this._userSteps.get(scope)
+        const open = waiting ? waiting.open : this._userSteps.get(scope)
         const step = open?.findLast((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
             s.parent === command.parent && s.command === command.command && s.endpoint === command.endpoint)
         if (step) {
@@ -1347,23 +1417,33 @@ export default class AllureReporter extends WDIOReporter {
     onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
         if (!this._commandStepsAllowed()) { return }
         const name = userCommandTitle(payload.command, payload.body, payload.index)
-        // the arguments are in the name: the Request attachment only when the name does not show them all
-        this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
         const scope = this._userStepScope()
-        const open = this._userSteps.get(scope) ?? []
-        this._userSteps.set(scope, open)
+        const live = this._userSteps.get(scope)
+        const waiting: WaitingUserStep | undefined = live?.length || this._waitingSteps.get(scope)?.length
+            ? { key: this._laneKey(), open: [], messages: [], waiting: true }
+            : undefined
+        // the arguments are in the name: the Request attachment only when the name does not show them all
+        this._toWaitingStep(waiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+        const open = waiting ? waiting.open : live ?? []
+        if (waiting) {
+            this._waitingSteps.set(scope, [...this._waitingSteps.get(scope) ?? [], waiting])
+            this._waitingStepOf.set(payload.id, waiting)
+        } else {
+            this._userSteps.set(scope, open)
+        }
         const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
         open.push(step)
-        this._userStepOf.set(payload.id, { scope, open, step })
+        this._userStepOf.set(payload.id, { scope, open, step, waiting })
     }
 
     onAfterUserCommand(payload: AfterUserCommandArgs): void {
         const entry = this._userStepOf.get(payload.id)
         this._userStepOf.delete(payload.id)
         // no step, or its test ended: the end of the test closed the step
-        if (!entry || this._userSteps.get(entry.scope) !== entry.open) { return }
+        if (!entry || (this._userSteps.get(entry.scope) !== entry.open && !entry.waiting?.waiting)) { return }
         entry.step.done = { result: payload.result, stop: Date.now() }
-        this._endDoneSteps(entry.open, entry.scope)
+        const waiting = entry.waiting?.waiting ? entry.waiting : undefined
+        this._toWaitingStep(waiting, () => this._endDoneSteps(entry.open, entry.scope))
     }
 
     // the last step ends when it is done; a request still in flight ends with its user command,
@@ -1383,7 +1463,10 @@ export default class AllureReporter extends WDIOReporter {
                 this._endProtocolStep(step)
             }
         }
-        if (!open.length) { this._userSteps.delete(scope) }
+        if (!open.length && this._userSteps.get(scope) === open) {
+            this._userSteps.delete(scope)
+            this._releaseWaitingSteps(scope)
+        }
     }
 
     private _endProtocolStep(step: ProtocolStep): void {
