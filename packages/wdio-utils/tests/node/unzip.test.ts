@@ -178,8 +178,7 @@ describe('unzipWithOsTool', () => {
         const error = await unzipWithOsTool(args).catch((err) => err)
 
         expect(error).toBeInstanceOf(MissingUnzipToolError)
-        expect(error.message).toBe('No unzip tool found to install chromedriver v133.0.6943.141. On Node.js 26, install `unzip` (Linux, macOS) ' +
-            'or `tar.exe`/PowerShell (Windows), or override `yauzl` to ^3.3.1 in your package manager (https://github.com/webdriverio/webdriverio/issues/15608).')
+        expect(error.message).toBe('No unzip tool found to install chromedriver. On Node 26, install an unzip tool or override yauzl to >= ^3.3.1 in your package.json')
         expect(fsp.rm).toHaveBeenCalledTimes(2)
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
