@@ -217,6 +217,7 @@ describe('executeAsync', () => {
     describe('timeout context', () => {
         beforeEach(() => vi.useFakeTimers())
         afterEach(() => {
+            vi.restoreAllMocks()
             vi.clearAllTimers()
             vi.useRealTimers()
             vi.unstubAllGlobals()
@@ -500,7 +501,7 @@ describe('executeAsync', () => {
             expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
         })
 
-        it('should fail a retried Mocha test at its deadline when the system clock is set back', async () => {
+        it('should fail a retried Mocha test at its deadline when the system clock is set back during the retry', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'retried mocha test',
@@ -518,6 +519,8 @@ describe('executeAsync', () => {
             ).catch((err: Error) => err)
             const settled = vi.fn()
             result.then(settled)
+            await vi.advanceTimersByTimeAsync(0)
+            expect(fn).toHaveBeenCalledTimes(2)
 
             // a clock adjustment moves Date.now() back, the timers keep their time
             vi.setSystemTime(Date.now() - 5)
