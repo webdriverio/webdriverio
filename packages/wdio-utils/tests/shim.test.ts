@@ -457,7 +457,50 @@ describe('executeAsync', () => {
             expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
         })
 
-        it('should fail a retried Mocha test before Mocha when the system clock is set back', async () => {
+        it('should fail a Mocha test at its deadline when the system clock is set back before the first check', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            followFrameworkTimer(runnable)
+            vi.setSystemTime(Date.now() - 5)
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            result.then(settled)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
+        })
+
+        it('should fail a Mocha test at its deadline when its timer fires less than 1 ms early', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            followFrameworkTimer(runnable)
+            runnable.resetTimeout()
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            result.then(settled)
+
+            // Node timers count whole milliseconds: a timer can fire before performance.now() reaches its end
+            const now = performance.now.bind(performance)
+            vi.spyOn(performance, 'now').mockImplementation(() => now() - 0.5)
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
+        })
+
+        it('should fail a retried Mocha test at its deadline when the system clock is set back', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'retried mocha test',

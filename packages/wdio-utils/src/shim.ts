@@ -703,7 +703,7 @@ interface FrameworkRunnable {
  * starts it again
  */
 interface FrameworkTimer {
-    // performance.now(): the clock of the timers; a clock adjustment can set Date.now() back
+    /** `performance.now()`, the clock of the timers: a clock adjustment can set `Date.now()` back */
     startedAt: number
     onRestart?: () => void
 }
@@ -847,7 +847,8 @@ export async function executeAsync(
                         return
                     }
                     const remaining = current - TIME_BUFFER - (performance.now() - timerStart())
-                    if (remaining > 0) {
+                    // timers count whole milliseconds and can fire a fraction early: one more would use the buffer
+                    if (remaining >= 1) {
                         timer = setTimeout(check, remaining)
                         return
                     }
