@@ -151,6 +151,22 @@ describe('TestStats', () => {
         expect(stat.error?.message).toContain('expected')
     })
 
+    it('preserves assertion fields and serializes them', () => {
+        stat.fail([new AssertionError({ message: 'foobar', actual: 1, expected: 2, operator: 'strictEqual' })])
+        const error = stat.error as AssertionError
+        expect(error.name).toBe('AssertionError')
+        expect(error.actual).toBe(1)
+        expect(error.expected).toBe(2)
+        expect(error.operator).toBe('strictEqual')
+        expect(JSON.parse(JSON.stringify(error))).toMatchObject({
+            name: 'AssertionError',
+            message: expect.stringContaining('foobar'),
+            actual: 1,
+            expected: 2,
+            operator: 'strictEqual'
+        })
+    })
+
     it('should not diff if "actual" and "expected" are empty', () => {
         stat.fail([new AssertionError({ message: 'foobar', actual: '', expected: '' })])
         expect(stat.error?.message).not.toContain('actual')

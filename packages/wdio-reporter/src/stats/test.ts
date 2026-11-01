@@ -183,7 +183,15 @@ export default class TestStats extends RunnableStats {
         // indent
         msg = msg.replace(/^/gm, '      ')
         const newError = new Error(err.message + msg)
+        Object.assign(newError, err)
+        newError.name = err.name
         newError.stack = err.stack
+        // Error's own `message` and `stack` are non-enumerable, so reporters
+        // that serialize the test stats (JSON, Sumo Logic, ...) would write
+        // an empty object and lose the failure. Make the fields reporters
+        // rely on enumerable.
+        Object.defineProperty(newError, 'message', { value: newError.message, enumerable: true })
+        Object.defineProperty(newError, 'stack', { value: newError.stack, enumerable: true })
         return newError
     }
 }
