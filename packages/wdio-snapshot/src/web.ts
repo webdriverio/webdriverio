@@ -805,7 +805,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return extendedCounts
     }
 
-    // runs in the page and cannot import `toXPathStringLiteral` from `@wdio/utils`, so it repeats it
+    /**
+     * Copy of `toXPathStringLiteral` from `@wdio/utils`: this function runs in the page and cannot import it.
+     * Keep the two in sync.
+     * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-utils/src/xpath.ts} `toXPathStringLiteral`
+     */
     function xpathLiteral (value: string) {
         if (!value.includes('"')) {
             return `"${value}"`

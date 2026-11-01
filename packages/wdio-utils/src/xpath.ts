@@ -5,6 +5,9 @@
  * XPath 1.0 has no escape sequences inside quoted strings (`"12\" monitor"`
  * is a syntax error). Use the quote type that the value does not contain,
  * or assemble the value with `concat()` when it contains both.
+ *
+ * Keep in sync with its in-page copy.
+ * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-snapshot/src/web.ts} `collectInPage` > `xpathLiteral`
  */
 export function toXPathStringLiteral(value: string): string {
     if (!value.includes('"')) {
