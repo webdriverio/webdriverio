@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
     userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts
 } from '../src/utils.js'
-import { userOutputReplacer } from '../src/joinRepeats.js'
+import { joinedOutputReplacer, userOutputReplacer } from '../src/joinRepeats.js'
 
 const ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
 // an element in the body or the result of a user command
@@ -347,6 +347,18 @@ describe('userOutputReplacer text', () => {
         ])
     })
 
+    it('keeps every entry of repeated user commands, with its text (for sumologic and other reporters)', () => {
+        const user = (id: number, command: string, parent?: number) => ({ type: 'userCommand', id, command, body: [], ...(parent ? { parent } : {}) })
+        const output: object[] = [user(1, 'waitUntil')]
+        for (let i = 0; i < 3; i++) {
+            output.push(user(i + 2, 'getText', 1), { ...user(i + 2, 'getText', 1), type: 'userResult', result: { value: 'Click' } })
+        }
+        output.push({ ...user(1, 'waitUntil'), type: 'userResult', result: { value: true } })
+        const json = JSON.parse(JSON.stringify({ output }, userOutputReplacer))
+        expect(json.output).toHaveLength(8)
+        expect(json.output[1].text).toBe('getText() → "Click"')
+    })
+
     it('writes the joined output with a repeat count', () => {
         const user = (id: number, command: string, parent?: number) => ({ type: 'userCommand', id, command, body: [], ...(parent ? { parent } : {}) })
         const output: object[] = [user(1, 'waitUntil')]
@@ -354,7 +366,7 @@ describe('userOutputReplacer text', () => {
             output.push(user(i + 2, 'getText', 1), { ...user(i + 2, 'getText', 1), type: 'userResult', result: { value: i < 8 ? 'Click' : 'Done' } })
         }
         output.push({ ...user(1, 'waitUntil'), type: 'userResult', result: { value: true } })
-        const json = JSON.parse(JSON.stringify({ output }, userOutputReplacer))
+        const json = JSON.parse(JSON.stringify({ output }, joinedOutputReplacer))
         expect(json.output.map((entry: { type: string, text?: string, repeat?: unknown }) => [entry.type, entry.text, entry.repeat])).toEqual([
             ['userCommand', 'waitUntil() → true', undefined],
             ['userCommand', 'getText() → "Click" × 8', { count: 8, size: 1 }],

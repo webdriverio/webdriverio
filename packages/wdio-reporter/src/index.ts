@@ -1058,5 +1058,5 @@ export {
 }
 export type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
 export type { ElementPlaceholder } from './utils.js'
-export { joinRepeats, userCommandTree, joinUserCommandTree } from './joinRepeats.js'
+export { joinRepeats, userCommandTree, joinUserCommandTree, joinedOutputReplacer } from './joinRepeats.js'
 export type { UserCommandNode } from './joinRepeats.js'
