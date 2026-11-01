@@ -82,6 +82,7 @@ export function expandsUserCommand (option: Options.Testrunner['userCommandEvent
     if (rule.expand(command) || rule.mode === 'all') {
         return true
     }
-    // custom commands are not in the default list: a tight loop of nested calls costs worker CPU
+    // custom commands are not in the default list (a tight loop of nested calls costs worker CPU), except the ones
+    // named `waitFor…`: a wait sleeps between its polls
     return rule.mode === 'default' && DEFAULT_EXPANDED(command)
 }
