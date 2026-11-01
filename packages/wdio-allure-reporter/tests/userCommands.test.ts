@@ -325,6 +325,46 @@ describe('user commands that overlap or end after their test', () => {
         expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
     })
 
+    it.each([
+        ['in start order', [2, 3, 4]],
+        ['in another order', [3, 4, 2]]
+    ])('writes nested user commands that run at the same time as siblings, with results %s', async (_name, order) => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'expect.toHaveText', ['list', ['a', 'b', 'c']]))
+            for (const id of [2, 3, 4]) {
+                emit('client:beforeUserCommand', nested(id, 'getText', 1))
+            }
+            for (const id of order) {
+                emit('client:afterUserCommand', { ...nested(id, 'getText', 1), result: { value: 'xabc'[id - 1] } })
+            }
+            emit('client:afterUserCommand', { ...user(1, 'expect.toHaveText', ['list', ['a', 'b', 'c']]), result: { value: undefined } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        const [assertion] = byName('t1').steps
+        expect(assertion.steps.map((s: Result) => [s.name, s.steps.length])).toEqual([
+            ['getText() → "a"', 0], ['getText() → "b"', 0], ['getText() → "c"', 0]
+        ])
+    })
+
+    it('writes nested user commands that run at the same time as siblings, also under a parent that waits behind an overlapping user command', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'pause', [100]))
+            emit('client:beforeUserCommand', user(2, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(3, 'getText', 2))
+            emit('client:beforeUserCommand', nested(4, 'isDisplayed', 2))
+            emit('client:afterUserCommand', { ...nested(3, 'getText', 2), result: { value: 'x' } })
+            emit('client:afterUserCommand', { ...nested(4, 'isDisplayed', 2), result: { value: true } })
+            emit('client:afterUserCommand', { ...user(2, 'waitUntil', []), result: { value: true } })
+            emit('client:afterUserCommand', { ...user(1, 'pause', [100]), result: { value: undefined } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual(['pause(100)', ['waitUntil() → true', ['getText() → "x"', 'isDisplayed() → true']]])
+    })
+
     it('writes no step in the next test for a nested user command that starts after the end of its test', async () => {
         const { byName } = await runTests((emit) => {
             emit('test:start', test('t1'))
