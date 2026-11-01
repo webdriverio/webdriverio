@@ -60,6 +60,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `MultiremoteConfig` | `MultiRemoteConfig` |
 | a script or CI step that reads `wdio-chrome-*` Chrome profile folders in `outputDir` on Windows | v10 adds no profile folder: each session gets ChromeDriver's own temporary profile in the system temporary folder. Set your own `--user-data-dir` to keep one; WebdriverIO never changes or deletes it. |
 | capability `specs` / `exclude` | `wdio:specs` / `wdio:exclude`. Top-level config keys stay `specs` and `exclude`. A bare capability list is ignored. |
+| `--spec "../dir/*.js"` written relative to the config file | `--spec "./dir/*.js"` relative to the current working directory. A `--spec` glob with a directory now resolves like a file path. |
 | Sauce `tunnelIdentifier` / `parentTunnel` | `tunnelName` / `tunnelOwner` |
 | `import type { Element }` from `webdriverio` | `WebdriverIO.Element` (also `MultiRemoteBrowser`, `MultiRemoteElement`) |
 | `onAfterCommand` argument `name` | `command` |
