@@ -91,6 +91,7 @@ export default class Runner extends EventEmitter {
     private _endWorkerRun?: Promise<number>
     private _frameworkFailures = 0
     private _testsStarted = false
+    private _sessionStarting = false
     private _runnerStarted = false
     private _watch = false
     private _sessionReported = false
@@ -143,7 +144,7 @@ export default class Runner extends EventEmitter {
         this._lateRejectionSince = Date.now()
         const check = () => {
             const idle = Date.now() - Math.max(this._lateRejectionSince, this._reporter?.lastEventTime ?? 0)
-            if (hasFrameworkListener() || idle < LATE_REJECTION_TIMEOUT) {
+            if (hasFrameworkListener() || this._sessionStarting || idle < LATE_REJECTION_TIMEOUT) {
                 this._lateRejectionTimer = setTimeout(check, Math.max(LATE_REJECTION_TIMEOUT - idle, 1_000)).unref()
                 return
             }
@@ -326,7 +327,14 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries, true)
         }
 
-        browser = await this._initSession(this._config, this._caps)
+        // a session start can wait long in a grid queue: the watchdog must not end the worker meanwhile, or the session leaks
+        this._sessionStarting = true
+        try {
+            browser = await this._initSession(this._config, this._caps)
+        } finally {
+            this._sessionStarting = false
+            this._lateRejectionSince = Date.now()
+        }
 
         /**
          * return if session initialization failed
@@ -348,7 +356,7 @@ export default class Runner extends EventEmitter {
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
-        // a late uncaught error ends the worker: do not start the tests
+        // the watchdog ended the worker while this hook waited for a rejected promise: do not start the tests
         if (this._endWorkerRun) {
             return this._endWorkerRun
         }

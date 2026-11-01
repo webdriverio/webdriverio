@@ -1045,6 +1045,35 @@ describe('wdio-runner', () => {
                     expect(runnerEnds()).toHaveLength(1)
                 })
 
+                it('does not end the worker while a slow session start is in flight after a rejection', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'beforeSession') {
+                            lateRejection()
+                        }
+                        if (name === 'before') {
+                            // 30s of work with no browser command, right after the slow session start
+                            await new Promise((resolve) => setTimeout(resolve, 30_000))
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const deleteSession = vi.fn().mockResolvedValue(undefined)
+                    const { runner, errors, exits, done } = startWith(() => 0)
+                    // a cloud grid that queues the session request for 70s
+                    runner['_initSession'] = vi.fn(() => new Promise((resolve) => setTimeout(() => {
+                        const stub = { sessionId: 's', capabilities: {}, options: {}, deleteSession }
+                        runner['_browser'] = stub as unknown as BrowserObject
+                        resolve(stub)
+                    }, 70_000))) as any
+
+                    await vi.advanceTimersByTimeAsync(100_000)
+                    await done
+                    expect(exits).toEqual([1])
+                    expect(deleteSession).toBeCalledTimes(1)
+                    expect(errors.map((e) => e.message)).not.toContainEqual(expect.stringMatching(/^The worker did not finish/))
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
