@@ -12,7 +12,7 @@ import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
     canAccess, getCacheDir, setupChromedriver
 } from '../../src/node/utils.js'
-import { unzipWithOsTool } from '../../src/node/unzip.js'
+import { MissingUnzipToolError, unzipWithOsTool } from '../../src/node/unzip.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -70,6 +70,7 @@ vi.mock('node:child_process', () => ({
 }))
 
 vi.mock('../../src/node/unzip.js', () => ({
+    MissingUnzipToolError: class MissingUnzipToolError extends Error {},
     unzipWithOsTool: vi.fn().mockResolvedValue(undefined)
 }))
 
@@ -417,6 +418,34 @@ describe('driver utils', () => {
                 expect(logMock.warn).not.toHaveBeenCalled()
                 expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('Keeping'))
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            it('retries once when the OS unzip fails', async () => {
+                vi.mocked(unzipWithOsTool).mockClear().mockRejectedValueOnce(new Error('Failed to unzip /cache/x.zip with unzip: short read'))
+                logMock.error.mockClear()
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(unzipWithOsTool).toHaveBeenCalledTimes(2)
+                expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('short read, retrying ...'))
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            /**
+             * Node 26 can not unzip without an OS tool: a retry can not install it, and
+             * the clear message must not get a "Failed downloading" prefix
+             */
+            it('throws a missing unzip tool error at once, without a retry', async () => {
+                const missing = new MissingUnzipToolError('No unzip tool found to install firefox vstable_157.0. WebdriverIO v9 on Node.js 26 and later requires one')
+                vi.mocked(unzipWithOsTool).mockClear().mockRejectedValueOnce(missing)
+                vi.mocked(install).mockClear()
+                logMock.error.mockClear()
+
+                await expect(setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })).rejects.toBe(missing)
+
+                expect(unzipWithOsTool).toHaveBeenCalledTimes(1)
+                expect(install).not.toHaveBeenCalled()
+                expect(logMock.error).not.toHaveBeenCalled()
             })
 
             it('still retries when the build folder cannot be removed', async () => {

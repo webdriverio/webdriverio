@@ -84,6 +84,7 @@ vi.mock('@puppeteer/browsers', () => ({
 }))
 
 vi.mock('../../src/node/unzip.js', () => ({
+    MissingUnzipToolError: class MissingUnzipToolError extends Error {},
     unzipWithOsTool: vi.fn().mockResolvedValue(undefined)
 }))
 

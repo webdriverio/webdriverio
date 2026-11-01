@@ -9,12 +9,20 @@ import { install, Cache, detectBrowserPlatform, getDownloadUrl, type InstallOpti
 const log = logger('webdriver')
 
 /**
+ * Node 26 can not unzip with `extract-zip`, so an OS tool is required there.
+ * A retry can not install the tool, so `_install` does not retry this error.
+ */
+export class MissingUnzipToolError extends Error {
+    name = 'MissingUnzipToolError'
+}
+
+/**
  * `@puppeteer/browsers` v2 unzips with `extract-zip` and `yauzl` 2. On Node 26 that
  * promise never settles and the extracted folder has no executable (#15608).
  * Like `@puppeteer/browsers` v3, unzip the archive with an OS tool first, so that
  * `install()` finds a complete build folder and only runs its setup.
- * Other archive types (Firefox `.tar.xz`, `.tar.bz2`, `.dmg`, `.exe`) and the case without
- * an OS tool stay with `install()`, as before.
+ * Other archive types (Firefox `.tar.xz`, `.tar.bz2`, `.dmg`, `.exe`) stay with `install()`,
+ * as before. Without an OS tool, a clear error is thrown, as `extract-zip` would hang.
  * Only on Node 26 and later: older versions keep `extract-zip`, which works there.
  */
 export async function unzipWithOsTool (args: InstallOptions) {
@@ -47,6 +55,8 @@ export async function unzipWithOsTool (args: InstallOptions) {
         await removeOrWarn(path.join(cache.browserRoot(args.browser), `${args.buildId}-${fileName}`))
         throw err
     })
+    // the download progress line is done: clear it before the unzip logs
+    log.progress('')
 
     try {
         await fsp.mkdir(outputPath, { recursive: true })
@@ -62,10 +72,12 @@ export async function unzipWithOsTool (args: InstallOptions) {
         throw err
     }
 
+    // keep the archive: once a tool is installed, the next run uses it without a new download
     await removeOrWarn(outputPath)
-    log.warn(
-        `No unzip tool found, ${args.browser} v${args.buildId} is unzipped with extract-zip, which fails on Node 26. ` +
-        'Install `unzip` (or `tar.exe`/PowerShell on Windows) to fix this.'
+    throw new MissingUnzipToolError(
+        `No unzip tool found to install ${args.browser} v${args.buildId}. WebdriverIO v9 on Node.js 26 and later requires one: ` +
+        'install `unzip` on Linux or macOS (for example `apt-get install unzip`), or make `tar.exe`, `powershell.exe` or `pwsh.exe` available on Windows. ' +
+        '`@puppeteer/browsers` 2 unzips with `extract-zip`, which does not work on Node.js 26 (https://github.com/webdriverio/webdriverio/issues/15608).'
     )
 }
 
@@ -84,7 +96,8 @@ async function extractZip (archivePath: string, folderPath: string): Promise<str
     const execFile = promisify(cp.execFile)
     const systemRoot = process.env.SystemRoot ?? process.env.SYSTEMROOT ?? 'C:\\Windows'
     // PowerShell joins and parses again all arguments after -Command, which splits paths with spaces
-    const expandArchive = ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force']
+    // no progress bar: Windows PowerShell 5.1 is very slow with it for archives with many files
+    const expandArchive = ['-NoProfile', '-NonInteractive', '-Command', "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force"]
     const powershellOptions = { env: { ...process.env, WDIO_ZIP_ARCHIVE: archivePath, WDIO_ZIP_FOLDER: folderPath } }
     const tools: [string, string, string[], cp.ExecFileOptions][] = process.platform === 'win32'
         ? [
@@ -100,12 +113,13 @@ async function extractZip (archivePath: string, folderPath: string): Promise<str
             await execFile(file, toolArgs, options)
             return name
         } catch (err) {
-            const { code, stderr } = err as { code?: string | number, stderr?: string | Buffer }
+            const { code, stdout, stderr } = err as { code?: string | number, stdout?: string | Buffer, stderr?: string | Buffer }
             if (code === 'ENOENT') {
                 continue
             }
-            // unzip exits with 1 when it printed warnings but extracted all files
-            if (name === 'unzip' && code === 1) {
+            // Info-ZIP exits with 1 when it printed warnings but extracted all files;
+            // BusyBox unzip (Alpine) exits with 1 on any error, with no warning text
+            if (name === 'unzip' && code === 1 && /\bwarning\b/i.test(`${stdout ?? ''}\n${stderr ?? ''}`)) {
                 log.info(`unzip exited with code 1 (warnings) for ${archivePath}: ${stderr?.toString().trim()}`)
                 return name
             }

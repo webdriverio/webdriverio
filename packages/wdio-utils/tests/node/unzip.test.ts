@@ -4,7 +4,7 @@ import cp from 'node:child_process'
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { install, getDownloadUrl } from '@puppeteer/browsers'
 
-import { unzipWithOsTool } from '../../src/node/unzip.js'
+import { MissingUnzipToolError, unzipWithOsTool } from '../../src/node/unzip.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const { logMock } = await import(path.join(process.cwd(), '__mocks__', '@wdio/logger')) as { logMock: Record<string, Mock> }
@@ -162,14 +162,20 @@ describe('unzipWithOsTool', () => {
         expect(cp.execFile).not.toHaveBeenCalled()
     })
 
-    it('leaves the archive to extract-zip with a warning when unzip is not installed', async () => {
+    /**
+     * extract-zip never settles on Node 26, so no fallback to it: a clear error, and the
+     * archive is kept for the next run once a tool is installed
+     */
+    it('throws a clear error and keeps the archive when unzip is not installed', async () => {
         execFileResults({ unzip: errnoError('ENOENT') })
 
-        await unzipWithOsTool(args)
+        const error = await unzipWithOsTool(args).catch((err) => err)
 
+        expect(error).toBeInstanceOf(MissingUnzipToolError)
+        expect(error.message).toContain('No unzip tool found to install chromedriver v133.0.6943.141. WebdriverIO v9 on Node.js 26 and later requires one')
+        expect(error.message).toContain('apt-get install unzip')
         expect(fsp.rm).toHaveBeenCalledTimes(1)
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
-        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('Install `unzip`'))
     })
 
     it('removes the build folder and the archive when unzip fails', async () => {
@@ -205,6 +211,27 @@ describe('unzipWithOsTool', () => {
         expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with unzip')
     })
 
+    /**
+     * BusyBox unzip (Alpine) exits with 1 on any error, with no warning text
+     */
+    it('treats exit code 1 without a warning as a failure', async () => {
+        execFileResults({ unzip: exitError(1, 'unzip: short read') })
+
+        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with unzip: unzip: short read`)
+
+        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+    })
+
+    it('clears the download progress line before the unzip logs', async () => {
+        execFileResults({})
+        logMock.progress.mockClear()
+
+        await unzipWithOsTool(args)
+
+        expect(logMock.progress).toHaveBeenCalledWith('')
+        expect(logMock.progress.mock.invocationCallOrder[0]).toBeLessThan(logMock.info.mock.invocationCallOrder.at(-1)!)
+    })
+
     describe('on Windows', () => {
         beforeEach(() => {
             restore.push(stubProcess('platform', 'win32'))
@@ -237,7 +264,7 @@ describe('unzipWithOsTool', () => {
             const [file, toolArgs, options] = vi.mocked(cp.execFile).mock.lastCall as unknown as [string, string[], { env: Record<string, string> }]
             expect(file).toBe('powershell.exe')
             expect(toolArgs).not.toContain(archivePath)
-            expect(toolArgs.at(-1)).toBe('Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force')
+            expect(toolArgs.at(-1)).toBe("$ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force")
             expect(options.env).toEqual(expect.objectContaining({ WDIO_ZIP_ARCHIVE: archivePath, WDIO_ZIP_FOLDER: outputPath }))
             expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with powershell.exe')
         })
@@ -255,14 +282,14 @@ describe('unzipWithOsTool', () => {
             expect(logMock.warn).not.toHaveBeenCalledWith(expect.stringContaining('No unzip tool found'))
         })
 
-        it('leaves the archive to extract-zip when no tool is installed', async () => {
+        it('throws a clear error when no tool is installed', async () => {
             execFileResults({
                 'C:\\Windows\\System32\\tar.exe': errnoError('ENOENT'),
                 'powershell.exe': errnoError('ENOENT'),
                 'pwsh.exe': errnoError('ENOENT')
             })
 
-            await unzipWithOsTool(args)
+            await expect(unzipWithOsTool(args)).rejects.toBeInstanceOf(MissingUnzipToolError)
 
             expect(cp.execFile).toHaveBeenLastCalledWith('pwsh.exe', expect.any(Array), expect.any(Object), expect.any(Function))
             expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
