@@ -305,6 +305,34 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
+        it('should name a test without a runnable by the given title', async () => {
+            const result = executeAsync.call(
+                {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'checkout pays the order'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays the order" (WDIO attempt 1/1)'))
+        })
+
+        it('should keep the given title on a retried attempt', async () => {
+            const result = executeAsync.call(
+                { wdioRetries: 0 } as any, () => new Promise(() => {}), { attempts: 0, limit: 1 }, [], 200, 'checkout pays the order'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays the order" (WDIO attempt 2/2)'))
+        })
+
+        it('should prefer the runnable title over the given title', async () => {
+            const scope = { _runnable: { title: 'pays', fullTitle: () => 'checkout pays' } }
+            const result = executeAsync.call(
+                scope as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'other title'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays" (WDIO attempt 1/1)'))
+        })
+
         it('should use the timeout of a Jasmine hook over the default when no runnable is available', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             function jasmineHook () { return new Promise(() => {}) }
