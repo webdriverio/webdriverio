@@ -51,8 +51,9 @@ export default class WDIORepl {
     private _isCommandRunning = false
     private _replServer: repl.REPLServer | undefined
 
-    constructor(config?: ReplConfig) {
+    constructor(config?: Partial<ReplConfig>) {
         this._config = Object.assign(
+            {},
             DEFAULT_CONFIG,
             { eval: this.eval.bind(this) },
             config

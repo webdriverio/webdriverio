@@ -46,6 +46,22 @@ See [timeouts](timeouts) for more information on how to do that using other fram
 
 To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
 
+### Accessing Local Variables and Modules in the REPL
+
+Inside the `browser.debug()` REPL, `require` is available out of the box (resolved from your project working directory) along with all Node.js globals. You can also expose local variables, page objects, or helpers from your test scope by passing a `context` object to `browser.debug()`:
+
+```js
+import LoginPage from './pageobjects/login.page.js'
+
+it('should debug with local page objects', async () => {
+    const expectedUser = 'tomsmith'
+    await browser.debug({
+        commandTimeout: 10000,
+        context: { LoginPage, expectedUser }
+    })
+})
+```
+
 ### Pause for a coding agent (`--debug=agent`)
 
 `wdio run --debug=agent` raises the framework timeout to 24 hours and pauses the worker when a spec calls `await browser.debug()` or when a test fails. The run prints a line like:
