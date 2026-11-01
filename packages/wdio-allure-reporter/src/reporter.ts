@@ -102,6 +102,11 @@ type OpenStep = UserStep | ProtocolStep
  */
 type WaitingUserStep = { key?: string; open: OpenStep[]; messages: WDIORuntimeMessage[]; waiting: boolean }
 
+// the user command of a protocol command: its parent, or the owner of a screenshot, which has no parent
+function ownerOf(command: { parent?: number; owner?: number }): number | undefined {
+    return command.parent ?? command.owner
+}
+
 // the user step of a request: its parent, else (no parent) the user step it started in
 function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined {
     const index = open.indexOf(step)
@@ -1328,14 +1333,14 @@ export default class AllureReporter extends WDIOReporter {
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
         const body = (command as unknown as MaybeBody).body
-        const waiting = this._waitingStepOf.get(command.parent ?? NaN)
+        const waiting = this._waitingStepOf.get(ownerOf(command) ?? NaN)
         const open = waiting ? waiting.open : this._userSteps.get(this._userStepScope())
         // a WebDriver Classic session has no open user step, so its steps stay as they are
         if (!open?.length) {
             this._startCommandStep(stepName, body)
             return
         }
-        open.push({ kind: 'protocol', parent: command.parent, command: command.command, endpoint })
+        open.push({ kind: 'protocol', parent: ownerOf(command), command: command.command, endpoint })
         this._toWaitingStep(waiting, () => {
             if (!method || !endpoint) {
                 this._startCommandStep(stepName, body)
@@ -1351,8 +1356,8 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     // no request id: the parent, the command and the endpoint name the request
-    private _lateResultKey(scope: string, command: { parent?: number; command?: string; endpoint?: string }): string {
-        return `${scope}:${command.parent ?? ''}:${command.command ?? ''}:${command.endpoint ?? ''}`
+    private _lateResultKey(scope: string, command: { parent?: number; owner?: number; command?: string; endpoint?: string }): string {
+        return `${scope}:${ownerOf(command) ?? ''}:${command.command ?? ''}:${command.endpoint ?? ''}`
     }
 
     private _addLateResult(scope: string, step: ProtocolStep): void {
@@ -1373,7 +1378,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
-        const waiting = this._waitingStepOf.get(command.parent ?? NaN)
+        const waiting = this._waitingStepOf.get(ownerOf(command) ?? NaN)
         this._toWaitingStep(waiting, () => this._afterCommand(command, waiting))
     }
 
@@ -1401,7 +1406,7 @@ export default class AllureReporter extends WDIOReporter {
         }
         const open = waiting ? waiting.open : this._userSteps.get(scope)
         const step = open?.findLast((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
-            s.parent === command.parent && s.command === command.command && s.endpoint === command.endpoint)
+            s.parent === ownerOf(command) && s.command === command.command && s.endpoint === command.endpoint)
         if (step) {
             // a step that is not the last one waits: the runtime ends the last open step
             step.done = { result: resUnknown, stop: Date.now(), isShot }

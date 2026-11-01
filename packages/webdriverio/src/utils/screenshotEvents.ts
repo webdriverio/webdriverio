@@ -1,3 +1,5 @@
+import { userCommandParent } from '@wdio/utils'
+
 /**
  * the events of a WebDriver BiDi capture: the parallel mode guard lets them pass
  */
@@ -28,7 +30,9 @@ export async function withScreenshotEvents (
         endpoint: command === 'takeElementScreenshot'
             ? `/session/:sessionId/element/${elementId}/screenshot`
             : '/session/:sessionId/screenshot',
-        body: {}
+        body: {},
+        // the user command that takes the screenshot, as for the Classic command
+        ...userCommandParent(command)
     }
     bidiCaptureEvents.add(event)
     browser.emit('command', event)

@@ -46,6 +46,8 @@ export interface WebDriverCommandEvent {
     body: unknown
     /** id of the `userCommand` event that ran this command, in a WebDriver BiDi session */
     parent?: number
+    /** id of the `userCommand` event that ran this screenshot command, which has no `parent` */
+    owner?: number
 }
 export interface WebDriverResultEvent {
     command: string
@@ -55,6 +57,8 @@ export interface WebDriverResultEvent {
     result: unknown
     /** id of the `userCommand` event that ran this command, in a WebDriver BiDi session */
     parent?: number
+    /** id of the `userCommand` event that ran this screenshot command, which has no `parent` */
+    owner?: number
 }
 /**
  * A command that the test code calls directly (a WebdriverIO command or a custom command), sent in a
