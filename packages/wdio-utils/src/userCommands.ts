@@ -193,12 +193,12 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
  * command get its id as `parent`. `run` gets `true` when this call is the user command.
  * @experimental
  */
-export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T, custom = true): T {
+export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T): T {
     const frame = userCommandStore?.getStore()
     if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
     }
-    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id }, custom)
+    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id })
 }
 
 /**
@@ -216,7 +216,7 @@ export function runListItem<T> (scope: unknown, command: string, args: unknown[]
 
 const expandsFrame = (frame: UserCommandFrame) => frame.id !== undefined && frame.expands === true
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number } = {}, custom = false): T {
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number } = {}): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -256,7 +256,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     }
     const sendError = (error: unknown) => send('userResult', { ...event, result: { error } })
     // the events are sent in the frame, so a listener that runs a command does not loop
-    const expands = expandsUserCommand(browser!.options?.userCommandEvents, command, custom)
+    const expands = expandsUserCommand(browser!.options?.userCommandEvents, command)
     return store.run({ id: event.id, expands, command }, () => {
         send('userCommand', event)
         let result: T

@@ -18,7 +18,8 @@ describe('expandsUserCommand', () => {
         [true, 'waitForDisplayed', false, true],
         [{}, 'expect.toHaveText', false, true],
         [{}, 'expect.not.toHaveText', false, true],
-        [{}, 'login', true, true],
+        [{}, 'login', true, false],
+        [{ nested: { expand: ['login'] } }, 'login', true, true],
         [{}, 'click', false, false],
         [{ nested: 'none' }, 'waitUntil', false, false],
         [{ nested: 'all' }, 'click', false, true],
@@ -28,17 +29,17 @@ describe('expandsUserCommand', () => {
         [{ nested: { mode: 'none', expand: ['waitUntil'] } }, 'waitUntil', false, true],
         [{ nested: { expand: ['x'], collapse: ['x'] } }, 'x', false, false],
         [{ exclude: ['waitUntil'] }, 'waitUntil', false, false]
-    ] as const)('%j: %s (custom %s) expands: %s', (option, command, custom, expected) => {
-        expect(expandsUserCommand(option as never, command, custom)).toBe(expected)
+    ] as const)('%j: %s (custom %s) expands: %s', (option, command, _custom, expected) => {
+        expect(expandsUserCommand(option as never, command)).toBe(expected)
     })
 
     it('uses the default rule and warns once for a value that is not valid', () => {
         const option = { nested: 'Default' }
-        expect(expandsUserCommand(option as never, 'waitUntil', false)).toBe(true)
-        expect(expandsUserCommand(option as never, 'click', false)).toBe(false)
+        expect(expandsUserCommand(option as never, 'waitUntil')).toBe(true)
+        expect(expandsUserCommand(option as never, 'click')).toBe(false)
         const list = { nested: { expand: 'x' } }
-        expect(expandsUserCommand(list as never, 'x', false)).toBe(false)
-        expect(expandsUserCommand(list as never, 'waitUntil', false)).toBe(true)
+        expect(expandsUserCommand(list as never, 'x')).toBe(false)
+        expect(expandsUserCommand(list as never, 'waitUntil')).toBe(true)
         expect(warn).toHaveBeenCalledTimes(2)
     })
 })

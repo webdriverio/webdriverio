@@ -217,7 +217,7 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * to send none, or `{ exclude: ['waitUntil'] }` to send all except the named commands (the
      * commands that an excluded command runs are not sent either).
      * `nested` sets which commands show their direct calls as child user commands: `'default'`
-     * (`waitUntil`, `waitFor*`, `expect.*` and the custom commands), `'none'`, `'all'`, or an object
+     * (`waitUntil`, `waitFor*` and `expect.*`), `'none'`, `'all'`, or an object
      * with a `mode` and the `expand` / `collapse` lists of names (a name can end with `*`).
      *
      * @default undefined
@@ -231,7 +231,7 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
  * @experimental
  */
 export type NestedUserCommands = 'default' | 'none' | 'all' | {
-    /** the start list: `'default'` (`waitUntil`, `waitFor*`, `expect.*` and the custom commands), `'none'` or `'all'` */
+    /** the start list: `'default'` (`waitUntil`, `waitFor*` and `expect.*`), `'none'` or `'all'` */
     mode?: 'default' | 'none' | 'all'
     /** commands that also show their direct calls */
     expand?: string[]

@@ -871,7 +871,7 @@ describe('nested user commands', () => {
     })
 
     it('keeps the commands of the instances of a multi-remote custom command as outer commands, and expands an instance custom command', async () => {
-        const instance = fakeBrowser()
+        const instance = fakeBrowser({ options: { userCommandEvents: { nested: { expand: ['mine'] } } } })
         const multiRemote = fakeBrowser({ isMultiRemote: true })
         await mod.runCustomCommand(multiRemote, 'both', [], () => mod.runUserCommand(instance, 'getText', [], async () => 'a'))
         await mod.runCustomCommand(instance, 'mine', [], () => mod.runUserCommand(instance, 'getText', [], async () => 'b'))
