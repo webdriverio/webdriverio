@@ -9,7 +9,7 @@ import { CLI_EPILOGUE } from '../constants.js'
 import type { ReplCommandArguments } from '../types.js'
 
 const IGNORED_ARGS = [
-    'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
+    'bail', 'globalTimeout', 'framework', 'reporters', 'suite', 'spec', 'exclude',
     'mochaOpts', 'jasmineOpts', 'cucumberOpts'
 ]
 

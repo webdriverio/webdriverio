@@ -418,6 +418,25 @@ describe('cli interface', () => {
         })
     })
 
+    describe('globalTimeoutTrigger', () => {
+        it('should print the timeout and how many spec files will not start', () => {
+            const [message] = wdioClInterface.globalTimeoutTrigger(1000, 3) as string[]
+            expect(message).toContain('exceeded the globalTimeout of 1000ms')
+            expect(message).toContain('3 spec files will not be started')
+            expect(message).toContain('Ending WebDriver sessions gracefully')
+        })
+
+        it('should use the singular for one spec file', () => {
+            const [message] = wdioClInterface.globalTimeoutTrigger(1000, 1) as string[]
+            expect(message).toContain('1 spec file will not be started')
+        })
+
+        it('should not mention spec files if none are left', () => {
+            const [message] = wdioClInterface.globalTimeoutTrigger(1000, 0) as string[]
+            expect(message).not.toContain('will not be started')
+        })
+    })
+
     describe('printReporters', () => {
         it('finalise should print reporters and summary', () => {
             wdioClInterface['_messages'] = {
