@@ -46,36 +46,27 @@ export const testFnWrapper = function (
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
 }
 
-/** Jasmine hook names in the format of Mocha and of the Jasmine reporter events */
+/** Jasmine hook names as Mocha and the Jasmine reporter events write them */
 const HOOK_LABELS: Record<string, string> = {
     beforeEach: 'before each', afterEach: 'after each', beforeAll: 'before all', afterAll: 'after all'
 }
 
 /**
  * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable
- * (Mocha: `undefined`, its runnable title is used). A hook gets the order of a Mocha
- * hook `fullTitle()`: `<suite> "before each" hook: <function> for "<test>"`. The identity
- * of a `beforeAll` / `afterAll` is the previous spec, so it gets no suite or test.
+ * (Mocha: `undefined`, its runnable title is used): `'before each' hook: <function> for
+ * '<full spec name>'`. Single quotes, as the error quotes the name with `JSON.stringify`.
+ * The identity of a `beforeAll` / `afterAll` is the previous spec, so it gets no spec.
  */
 function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown, fnName?: string) {
     if (type === 'Test') {
         return fullTestNameFrom(identity)
     }
-    const label = type === 'Hook' && hookName ? HOOK_LABELS[hookName] : undefined
-    if (!label) {
+    if (type !== 'Hook' || !hookName || !Object.hasOwn(HOOK_LABELS, hookName)) {
         return undefined
     }
-    const hook = `"${label}" hook${fnName ? `: ${fnName}` : ''}`
-    if (!hookName?.endsWith('Each')) {
-        return hook
-    }
-    const fullName = fullTestNameFrom(identity)
-    const test = runnableFrom(identity).test ?? fullName
-    if (!test) {
-        return hook
-    }
-    const suite = fullName && fullName !== test && fullName.endsWith(test) ? fullName.slice(0, -test.length).trim() : ''
-    return `${suite ? `${suite} ` : ''}${hook} for "${test}"`
+    const hook = `'${HOOK_LABELS[hookName]}' hook${fnName ? `: ${fnName}` : ''}`
+    const spec = hookName.endsWith('Each') ? fullTestNameFrom(identity) : undefined
+    return spec ? `${hook} for '${spec}'` : hook
 }
 
 /**
