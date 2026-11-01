@@ -884,6 +884,53 @@ describe('wdio-runner', () => {
                     expect(deleteSession).not.toBeCalled()
                 })
 
+                it('shows at most 10 late errors and then the number of the others', async () => {
+                    const { errors, exits } = startWith(() => {
+                        for (let i = 0; i < 25; i++) { lateRejection() }
+                        return 0
+                    })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(errors.map((e) => e.message.split(' (')[0])).toEqual([
+                        ...Array(10).fill('Unhandled promise rejection that no test reports, for example of a command without await in the last hook'),
+                        '15 more late errors that no test reports were not shown'
+                    ])
+                    expect(runnerEnds()[0][1]).toMatchObject({ failures: 25 })
+                })
+
+                it('still shows the watchdog message after 10 late errors', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    const { errors, exits } = startWith(() => {
+                        for (let i = 0; i < 12; i++) { lateRejection() }
+                        return never()
+                    })
+
+                    await vi.advanceTimersByTimeAsync(60_000)
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(errors.slice(10).map((e) => e.message)).toEqual([
+                        expect.stringMatching(/^The worker did not finish 60s after an unhandled rejection/),
+                        '2 more late errors that no test reports were not shown'
+                    ])
+                })
+
+                it('stops a loop where reporting a late error causes the next one', async () => {
+                    let turns = 0
+                    const { runner, exits } = startWith(() => {
+                        lateRejection()
+                        return 0
+                    })
+                    // like a report that fails again (a broken log or IPC channel): each report gives a new late error
+                    runner.on('error', () => {
+                        if (++turns < 1000) {
+                            setImmediate(lateRejection)
+                        }
+                    })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                    expect(turns).toBeLessThanOrEqual(11)
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
