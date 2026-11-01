@@ -145,8 +145,9 @@ function eventMode (browser: EventBrowser | undefined, command: string): 'send' 
     if (!browser || !sendsUserCommands(browser) || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return undefined
     }
-    const option = browser.options?.userCommandEvents
-    return (typeof option === 'object' && option?.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
+    // `exclude` has exact names; a value that is not a list is ignored (the nested rule warns about it)
+    const exclude = (browser.options?.userCommandEvents as { exclude?: unknown } | null | undefined)?.exclude
+    return (Array.isArray(exclude) && exclude.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
 }
 
 function hasBidiCommandsFlag (browser: EventBrowser) {

@@ -802,6 +802,15 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('keeps a top-level exclude with exact names, and ignores an exclude that is not a list of names', async () => {
+        const star = fakeBrowser({ options: { userCommandEvents: { exclude: ['waitFor*'] } } })
+        await mod.runUserCommand(star, 'waitForDisplayed', [], async () => true)
+        expect(events(star).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+        const broken = fakeBrowser({ options: { userCommandEvents: { exclude: true } } })
+        await expect(mod.runUserCommand(broken, 'getText', [], async () => 'x')).resolves.toBe('x')
+        expect(events(broken).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
+    })
+
     it('sends one pair for a command that two overwrites wrap', async () => {
         const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         const names: string[] = []

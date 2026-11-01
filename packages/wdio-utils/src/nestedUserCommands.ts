@@ -29,7 +29,13 @@ const isNameList = (value: unknown): value is string[] =>
     Array.isArray(value) && value.every((name) => typeof name === 'string')
 
 function parse (option: Exclude<Options.Testrunner['userCommandEvents'], boolean | undefined>): NestedRule {
-    const exclude = isNameList(option.exclude) ? matcherOf(option.exclude) : NONE
+    // the top-level `exclude` has exact names
+    const names = option.exclude
+    if (names !== undefined && !isNameList(names)) {
+        log.warn(`userCommandEvents.exclude is not a list of command names (${JSON.stringify(names)}), it is ignored`)
+    }
+    const excluded = new Set(isNameList(names) ? names : [])
+    const exclude: Matcher = (command) => excluded.has(command)
     const nested: unknown = option.nested
     const fallback = { mode: 'default' as const, expand: NONE, collapse: NONE, exclude }
     if (nested === undefined) {
