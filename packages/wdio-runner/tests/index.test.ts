@@ -945,6 +945,64 @@ describe('wdio-runner', () => {
                     expect(vi.mocked(process.send!).mock.calls.filter(([m]: any) => m.name === 'sessionEnded')).toHaveLength(1)
                 })
 
+                it('adds no listener for the browser runner, which ends the worker on a failed state check itself', async () => {
+                    const runner = new WDIORunner()
+                    const config: any = { reporters: [], before: [], beforeSession: [], after: [], framework: 'late', runner: ['browser', {}] }
+                    vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+                    runner['_initSession'] = vi.fn().mockResolvedValue(undefined)
+                    runner['_shutdown'] = vi.fn().mockResolvedValue(1)
+                    await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+
+                    expect(process.listeners('uncaughtException').map((listener) => listener.name)).not.toContain('onLateError')
+                })
+
+                it('does not start the tests when an uncaught error comes during the before hook', async () => {
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'before') {
+                            setImmediate(() => process.emit('uncaughtException', new Error('timer error'), 'uncaughtException'))
+                            await new Promise((resolve) => setTimeout(resolve, 30))
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const frameworkRun = vi.fn(() => 0)
+                    const { exits, done } = startWith(frameworkRun, {}, { sessionId: 's', deleteSession: vi.fn().mockResolvedValue(undefined) })
+
+                    await done
+                    expect(exits).toEqual([1])
+                    expect(frameworkRun).not.toBeCalled()
+                    expect(vi.mocked(BaseReporter.prototype.emit).mock.calls.filter(([event]) => event === 'runner:start')).toHaveLength(1)
+                    expect(vi.mocked(process.send!).mock.calls.filter(([m]: any) => m.name === 'sessionStarted')).toHaveLength(0)
+                })
+
+                it('keeps the test failures when a late error ends the worker after the tests', async () => {
+                    // a timer that throws while the session ends
+                    const deleteSession = vi.fn(() => {
+                        setImmediate(() => process.emit('uncaughtException', new Error('timer error'), 'uncaughtException'))
+                        return new Promise((resolve) => setTimeout(resolve, 30))
+                    })
+                    const { exits, done } = startWith(() => 3, {}, { sessionId: 's', deleteSession })
+
+                    expect(await done).toBe(4)
+                    expect(exits).toEqual([1])
+                    expect(runnerEnds()).toHaveLength(1)
+                    expect(runnerEnds()[0][1]).toMatchObject({ failures: 4 })
+                })
+
+                it('runs the shutdown once when a late error comes while the worker ends normally', async () => {
+                    const { exits, done } = startWith(() => {
+                        // comes in the task after the tests, while the normal shutdown waits
+                        setImmediate(() => process.emit('uncaughtException', new Error('timer error'), 'uncaughtException'))
+                        return 0
+                    }, {}, { sessionId: 's', deleteSession: vi.fn().mockResolvedValue(undefined) })
+
+                    await done
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    await new Promise((resolve) => setTimeout(resolve, 20))
+                    expect(exits).toEqual([1])
+                    expect(runnerEnds()).toHaveLength(1)
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))

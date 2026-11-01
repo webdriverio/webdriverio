@@ -88,7 +88,8 @@ export default class Runner extends EventEmitter {
     private _lateRejectionSince = 0
     private _lateRejectionTimer?: NodeJS.Timeout
     private _shutdownStarted = false
-    private _endingWorker = false
+    private _endWorkerRun?: Promise<number>
+    private _frameworkFailures = 0
     private _runnerStarted = false
     private _watch = false
     private _sessionReported = false
@@ -106,7 +107,7 @@ export default class Runner extends EventEmitter {
         }
         if (uncaught) {
             // the state of the process can be broken after an uncaught exception, so do not go on with the run
-            void this.#endWorker()
+            void this.#startEndWorker()
             return
         }
         this.#watchLateRejection()
@@ -145,19 +146,26 @@ export default class Runner extends EventEmitter {
                 `The worker did not finish ${LATE_REJECTION_TIMEOUT / 1000}s after an unhandled rejection that no test reports: ` +
                 'a hook can wait for the rejected promise. The worker ends now.'
             )
-            void this.#endWorker()
+            void this.#startEndWorker()
         }
         this._lateRejectionTimer = setTimeout(check, LATE_REJECTION_TIMEOUT).unref()
+    }
+
+    /**
+     * once per run; `run()` waits for it at its next step instead of going on
+     */
+    #startEndWorker () {
+        this._endWorkerRun ??= this.#endWorker()
+        return this._endWorkerRun
     }
 
     /**
      * end the worker with its reports; closing the session can be what does not answer
      */
     async #endWorker () {
-        if (this._shutdownStarted || this._endingWorker) {
-            return
+        if (this._shutdownStarted) {
+            return 1
         }
-        this._endingWorker = true
         // watch mode keeps the session for the next run, as `run()` does, once the parent knows it
         if (!(this._watch && this._sessionReported) && this.#hasSessions()) {
             await Promise.race([this.#closeSessions(), sleep(CLOSE_SESSION_TIMEOUT)])
@@ -166,10 +174,10 @@ export default class Runner extends EventEmitter {
         if (!this._reporter) {
             this._shutdownStarted = true
             this.emit('exit', 1)
-            return
+            return 1
         }
         // before `runner:start` (e.g. in the `before` hook) the reporters need it to write `runner:end`
-        await this._shutdown(0, this._retries, !this._runnerStarted)
+        return this._shutdown(this._frameworkFailures, this._retries, !this._runnerStarted)
     }
 
     /**
@@ -185,7 +193,8 @@ export default class Runner extends EventEmitter {
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
         this._lateErrors = 0
         this._shutdownStarted = false
-        this._endingWorker = false
+        this._endWorkerRun = undefined
+        this._frameworkFailures = 0
         this._runnerStarted = false
         this._watch = Boolean(args.watch)
         // a watch rerun attaches to the session that the parent already saved
@@ -210,7 +219,9 @@ export default class Runner extends EventEmitter {
 
         this._config = this._configParser.getConfig()
         lateErrorHandler = this._onLateError
-        if (!process.listeners('uncaughtException').includes(onLateError)) {
+        // the browser runner ends the worker itself on a failed state check, through an unhandled rejection
+        const runnerName = Array.isArray(this._config.runner) ? this._config.runner[0] : this._config.runner
+        if (runnerName !== 'browser' && !process.listeners('uncaughtException').includes(onLateError)) {
             process.on('uncaughtException', onLateError)
         }
         if (args.debug === 'agent') {
@@ -327,6 +338,10 @@ export default class Runner extends EventEmitter {
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
+        // a late uncaught error ends the worker: do not start the tests
+        if (this._endWorkerRun) {
+            return this._endWorkerRun
+        }
 
         /**
          * kill session of SIGINT signal showed up while trying to
@@ -406,6 +421,7 @@ export default class Runner extends EventEmitter {
             this.emit('error', err)
             failures = 1
         }
+        this._frameworkFailures = failures
 
         /**
          * Mark execution phase complete, teardown phase start
@@ -416,8 +432,11 @@ export default class Runner extends EventEmitter {
         /**
          * in watch mode we don't close the session and leave current page opened
          */
-        if (!args.watch) {
+        if (!args.watch && !this._endWorkerRun) {
             await this.endSession()
+        }
+        if (this._endWorkerRun) {
+            return this._endWorkerRun
         }
 
         /**
