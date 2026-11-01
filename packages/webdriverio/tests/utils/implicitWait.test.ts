@@ -36,6 +36,12 @@ const notExisting = async () => { throw Object.assign(new Error('element ("#miss
  * element was waited for (#16072)
  */
 describe('implicitWait', () => {
+    it('does not wait for a parent while constructing a single-element query', async () => {
+        const el = missing(notExisting)
+        expect(await implicitWait(el, '$')).toBe(el)
+        expect(el.waitForExist).not.toHaveBeenCalled()
+    })
+
     it('flags the error when the wait ends without the element', async () => {
         const el = missing(notExisting)
         const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)

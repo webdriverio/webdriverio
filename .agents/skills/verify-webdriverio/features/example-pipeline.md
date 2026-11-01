@@ -27,6 +27,7 @@ Preconditions:
 - The machine can reach the URL the script opens.
 
 - **Standalone Chrome.** Run `cd examples/standalone && node sample.js`. Exit 0 and stdout contains `https://webdriver.io/`. The script deletes the session. A thrown error prints `Something went wrong:` and still deletes the session; that is a failure.
+- **Nested element waits.** Run `cd examples/standalone && node nested-wait.js`. Exit 0 must include `Classic: 13 nested-wait checks passed` and `BiDi: 13 nested-wait checks passed`. The local-data fixture checks reverse waits after parent removal, late parent reacquisition, action/positive-wait guards, the single parent wait and error of stale child and shadow-host actions, strict matching and scoped invalid-selector errors. Optional `CHROME_BINARY` and `CHROMEDRIVER_BINARY` use existing local executables; each session is isolated and deleted.
 - **Mocha testrunner.** Run `cd examples/wdio && pnpm run test:mocha`. Exit 0. The spec reporter shows the title assertion passing. `onPrepare` prints `let's go` and `onComplete` prints `that's it`.
 - **Page objects.** Run `cd examples/pageobject && pnpm run test`. Exit 0. Specs assert `Your username is invalid!` and `You logged into a secure area!` on `http://the-internet.herokuapp.com`.
 - **Other testrunner examples.** Run the matching script from `examples/wdio/package.json` (`test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`). Exit 0 and the spec reporter shows passing tests.
