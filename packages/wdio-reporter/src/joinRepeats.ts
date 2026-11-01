@@ -148,9 +148,15 @@ export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[]
         const joined = level.map((node) => ({ ...node, children: joinLevel(node.children) }))
         const cheap = joined.map(cheapKey)
         // a node can be in a run only when a sibling at most 4 places away has the same cheap key
-        const keys = new Map(joined.map((node, i) => [node, cheap.some((key, j) => j !== i && Math.abs(j - i) <= 4 && key === cheap[i])
-            ? fullKey(node)
-            : uniqueKey()]))
+        const nearMatch = (i: number) => {
+            for (let j = Math.max(0, i - MAX_GROUP_SIZE); j <= Math.min(cheap.length - 1, i + MAX_GROUP_SIZE); j++) {
+                if (j !== i && cheap[j] === cheap[i]) {
+                    return true
+                }
+            }
+            return false
+        }
+        const keys = new Map(joined.map((node, i) => [node, nearMatch(i) ? fullKey(node) : uniqueKey()]))
         return joinRepeats(
             joined,
             (node) => keys.get(node)!,

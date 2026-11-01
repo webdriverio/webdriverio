@@ -72,6 +72,14 @@ describe('userCommandTree and joinUserCommandTree', () => {
         expect(joined[0].children[0].text).toBe(joined[0].children[1].text)
     })
 
+    it('joins 30 000 distinct nested steps fast', () => {
+        const results = Array.from({ length: 30_000 }, (_, i) => ({ value: `v${i}` }))
+        const start = Date.now()
+        const [wait] = joinUserCommandTree(userCommandTree(waitOutput(results)))
+        expect(Date.now() - start).toBeLessThan(1000)
+        expect(wait.children).toHaveLength(30_000)
+    })
+
     it('joins 10 000 nested polls fast', () => {
         const results = Array.from({ length: 10_000 }, (_, i) => ({ value: i % 3 === 0 ? 'a' : 'b' }))
         const start = Date.now()
