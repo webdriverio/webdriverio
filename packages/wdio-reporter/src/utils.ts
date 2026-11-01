@@ -543,6 +543,13 @@ export function resolvedPath(endpoint: string, sessionId?: string): string {
  * @experimental the name and the format may change
  */
 export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<object, string> {
+    return textsOf(output, pairUserCommandOutput(output))
+}
+
+/**
+ * Internal: the result of each user command (by id) and of each protocol command that a user command runs
+ */
+export function pairUserCommandOutput(output: ReadonlyArray<{ type: string }>) {
     // one pass: a user result by id; a protocol result goes to the first open command with the same parent and
     // name, and the same request when the result has one, so concurrent commands do not swap their results
     const userResults = new Map<number, UserResultOutput>()
@@ -571,7 +578,13 @@ export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<o
             childResults.set(command, e)
         }
     }
+    return { userResults, childResults }
+}
 
+/**
+ * Internal: the texts of `userCommandTexts`, from the results of `pairUserCommandOutput`
+ */
+export function textsOf(output: ReadonlyArray<{ type: string }>, { userResults, childResults }: ReturnType<typeof pairUserCommandOutput>): Map<object, string> {
     const texts = new Map<object, string>()
     for (const entry of output) {
         if (isUserCommandOutput(entry)) {
