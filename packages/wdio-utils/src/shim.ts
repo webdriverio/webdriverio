@@ -5,54 +5,11 @@ import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, setWdioKind, type WdioKind, type WdioQuery } from './kind.js'
 import { runCustomCommand, runListItem, runUserCommand } from './userCommands.js'
+import { isInCommandHook, runInCommandHook } from './commandHooks.js'
+
+export { setCommandHookStore, type CommandHookStore } from './commandHooks.js'
 
 const log = logger('@wdio/utils:shim')
-
-export interface CommandHookStore {
-    getStore(): true | undefined
-    run<T>(value: true, fn: () => T): T
-}
-
-/**
- * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
- * flag, so a hook still does not trigger itself via the commands it issues.
- */
-const flagCommandHookStore: CommandHookStore = (() => {
-    let active = false
-    return {
-        getStore: () => active ? true : undefined,
-        run: <T>(_: true, fn: () => T): T => {
-            const previous = active
-            active = true
-            let result: T
-            try {
-                result = fn()
-            } catch (err) {
-                active = previous
-                throw err
-            }
-            if (result instanceof Promise) {
-                return result.finally(() => { active = previous }) as T
-            }
-            active = previous
-            return result
-        }
-    }
-})()
-
-let commandHookScope: CommandHookStore = flagCommandHookStore
-
-/**
- * Node entry points register an `AsyncLocalStorage` so a hook running for one
- * concurrent test (parallel mode) does not suppress hooks of commands issued by
- * other tests.
- */
-export function setCommandHookStore (store: CommandHookStore) {
-    commandHookScope = store
-}
-
-export const isInCommandHook = () => commandHookScope.getStore() === true
-const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',

@@ -3,7 +3,7 @@ import type { Options } from '@wdio/types'
 
 import { getBrowserObject, transformCommandLogResult } from './utils.js'
 import { WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, type WdioQuery } from './kind.js'
-import { isInCommandHook } from './shim.js'
+import { isInCommandHook } from './commandHooks.js'
 
 const MAX_STRING_LENGTH = 1024
 const MAX_ITEMS = 50
