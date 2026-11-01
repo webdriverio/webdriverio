@@ -48,6 +48,8 @@ export interface WebDriverCommandEvent {
     parent?: number
     /** id of the `userCommand` event that ran this screenshot command, which has no `parent` */
     owner?: number
+    /** `true` on the old events of a custom command that is itself the user command: the user command replaces them */
+    custom?: boolean
 }
 export interface WebDriverResultEvent {
     command: string
@@ -59,6 +61,8 @@ export interface WebDriverResultEvent {
     parent?: number
     /** id of the `userCommand` event that ran this screenshot command, which has no `parent` */
     owner?: number
+    /** `true` on the old events of a custom command that is itself the user command: the user command replaces them */
+    custom?: boolean
 }
 /**
  * A command that the test code calls directly (a WebdriverIO command or a custom command), sent in a
@@ -71,6 +75,8 @@ export interface UserCommandEvent {
     command: string
     body: unknown[]
     protocol: 'bidi'
+    /** the item of the list of `command` that this user command waits for: `` $$(`li`)[3] ``, negative for `.at(-1)` */
+    index?: number
     /** the session of the browser (of the multi-remote instance) that runs the command */
     sessionId?: string
 }
