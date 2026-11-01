@@ -38,6 +38,19 @@ describe('joinRepeats', () => {
         })
         expect(dropped).toEqual([['a'], ['a']])
     })
+
+    it('with a full key, reads it only for an item that a sibling at most 4 places away matches by the cheap key', () => {
+        // the cheap key is the letter, the full key also the digit
+        const items = ['a1', 'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'a2']
+        const full: string[] = []
+        const joined = joinRepeats(items, (item) => item[0], (group, count) => `${group.join('')}×${count}`, (item) => {
+            full.push(item)
+            return item
+        })
+        expect(joined).toEqual(['a1×2', 'b1', 'c1', 'd1', 'e1', 'f1', 'a2'])
+        expect(full).toEqual(['a1', 'a1'])
+        expect(joinRepeats(['a1', 'a2'], (item) => item[0], (group, count) => `${group.join('')}×${count}`, (item) => item)).toEqual(['a1', 'a2'])
+    })
 })
 
 const user = (id: number, command: string, parent?: number) => ({ type: 'userCommand', id, command, body: [], protocol: 'bidi', ...(parent === undefined ? {} : { parent }) })
