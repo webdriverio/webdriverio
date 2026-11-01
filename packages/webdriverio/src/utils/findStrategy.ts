@@ -2,9 +2,8 @@ import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationCo
 import { roleElements } from 'aria-query'
 
 import { environment } from '../environment.js'
-import { toXPathStringLiteral } from './xpath.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR, ROLE_SELECTOR } from '../constants.js'
-import { knownRoles, ROLE_SYNONYMS } from '@wdio/utils'
+import { knownRoles, ROLE_SYNONYMS, toXPathStringLiteral } from '@wdio/utils'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -125,6 +124,28 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (/^\[role=[A-Za-z]+]$/.test(stringSelector)){
         return 'role'
     }
+}
+
+const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+
+/**
+ * `translate()` arguments that lowercase the text for a case-insensitive
+ * selector. XPath 1.0 has no `lower-case()`, so map A-Z and the other letters
+ * of the query (e.g. `É` → `é`); letters that are not in the query can not match.
+ */
+function lowerCaseTranslation (query: string) {
+    let upper = UPPERCASE_LETTERS
+    let lower = LOWERCASE_LETTERS
+    for (const char of new Set(query.toLowerCase())) {
+        const upperChar = char.toUpperCase()
+        // skip multi-character case mappings (`ß` → `SS`), translate() maps one character to one
+        if (upperChar !== char && upperChar.length === 1 && char.length === 1 && !upper.includes(upperChar)) {
+            upper += upperChar
+            lower += char
+        }
+    }
+    return `${toXPathStringLiteral(upper)}, ${toXPathStringLiteral(lower)}`
 }
 
 /**
@@ -371,11 +392,12 @@ export const findStrategy = function (
         }
         const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
         const literal = toXPathStringLiteral(insensitive ? query.toLowerCase() : query)
+        const translation = insensitive ? lowerCaseTranslation(query) : ''
         if (insensitive) {
             conditions.push(
                 partial
-                    ? `contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), ${literal})${partialNot}`
-                    : `normalize-space(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")) = ${literal}`)
+                    ? `contains(translate(., ${translation}), ${literal})${partialNot}`
+                    : `normalize-space(translate(text(), ${translation})) = ${literal}`)
         } else {
             conditions.push(partial ? `contains(., ${literal})${partialNot}` : `normalize-space(text()) = ${literal}`)
         }
@@ -385,7 +407,7 @@ export const findStrategy = function (
             conditions.pop()
             conditions.push(
                 `not(${value})`,
-                `normalize-space() = ${literal}`
+                insensitive ? `normalize-space(translate(., ${translation})) = ${literal}` : `normalize-space() = ${literal}`
             )
             value = value + ' | ' + getValue()
         }

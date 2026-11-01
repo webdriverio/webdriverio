@@ -4,7 +4,8 @@ import { describe, it, expect } from 'vitest'
 
 import { parseNativeSource, scopeNativeTree } from '../src/native.js'
 import { formatSnapshot } from '../src/format.js'
-import { attachSelectors, uiSelectorLiteral } from '../src/selectors.js'
+import { attachSelectors } from '../src/selectors.js'
+import { uiSelectorLiteral } from '../src/nativeSelectors.js'
 
 const fixture = (name: string) => fs.readFileSync(path.join(__dirname, '__fixtures__', 'pagesource', name), 'utf-8')
 

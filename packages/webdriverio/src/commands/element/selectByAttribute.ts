@@ -3,8 +3,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getElementFromResponse } from '../../utils/index.js'
 import { bidiDisabledSelectError, bidiSelectByAttribute, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
-import { getBrowserObject } from '@wdio/utils'
-import { toXPathStringLiteral } from '../../utils/xpath.js'
+import { getBrowserObject, toXPathStringLiteral } from '@wdio/utils'
 
 /**
  *

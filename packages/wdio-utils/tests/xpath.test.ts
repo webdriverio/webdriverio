@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { toXPathStringLiteral } from '../../src/utils/xpath.js'
+import { toXPathStringLiteral } from '../src/xpath.js'
 
 const evaluate = (literal: string) => document.evaluate(`string(${literal})`, document, null, XPathResult.STRING_TYPE, null).stringValue
 

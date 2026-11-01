@@ -1,4 +1,4 @@
-import { toXPathStringLiteral } from './xpath.js'
+import { toXPathStringLiteral } from '@wdio/utils'
 
 /**
  * iOS SpringBoard bundle ID used to activate the system UI so permission
