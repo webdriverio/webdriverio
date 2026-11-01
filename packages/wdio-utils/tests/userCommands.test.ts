@@ -962,6 +962,27 @@ describe('nested user commands', () => {
         expect(pairs(browser)[1]).toEqual(['userCommand', expect.objectContaining({ command: '$$', index: 3, parent: 1 })])
     })
 
+    it('gives the old event of a multi-remote custom command in an instance user command no custom mark, as no user command replaces it', async () => {
+        const instance = fakeBrowser({ sessionId: 'a' })
+        const multiRemote = monad.default({}, (c: unknown) => c, { isMultiRemote: { value: true } })('multiRemote', shim.wrapCommand) as Record<string, Function>
+        const old: Record<string, unknown>[] = []
+        multiRemote.on('command', (payload: Record<string, unknown>) => old.push(payload))
+        multiRemote.addCommand('both', async () => 'x')
+        await mod.runUserCommand(instance, 'waitUntil', [], async () => multiRemote.both())
+        expect(old).toEqual([expect.objectContaining({ command: 'both', parent: 1 })])
+        expect(old[0].custom).toBeUndefined()
+    })
+
+    it('keeps the parent of a nested call after the session of the same browser changed (reloadSession)', async () => {
+        const browser = fakeBrowser({ sessionId: 's1', options: { userCommandEvents: { nested: 'all' } } })
+        await mod.runCustomCommand(browser, 'flow', [], async () => {
+            browser.sessionId = 's2'
+            await mod.runUserCommand(browser, 'getText', [], async () => 'x')
+        })
+        expect(pairs(browser)[1]).toEqual(['userCommand', expect.objectContaining({ command: 'getText', parent: 1, sessionId: 's2' })])
+        expect(pairs(browser)[1][1].owner).toBeUndefined()
+    })
+
     it('keeps the commands of the instances of a multi-remote custom command as outer commands, and expands an instance custom command', async () => {
         const instance = fakeBrowser({ options: { userCommandEvents: { nested: { expand: ['mine'] } } } })
         const multiRemote = fakeBrowser({ isMultiRemote: true })
@@ -1350,6 +1371,13 @@ describe('userCommandBody', () => {
             .toEqual([{ user: '**MASKED**', password: '**MASKED**', tries: ['**MASKED**', true] }, { mask: true }])
     })
 
+    it('keeps an element and an element list of a masked value as they are', () => {
+        const elem = { wdio: 'element', query: [{ foundWith: '$', selector: '#form' }], elementId: 'e1' }
+        const list = { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 2 }
+        expect(mod.userCommandBody([elem, { list, pw: 'secret' }, { mask: true }]))
+            .toEqual([elem, { list, pw: '**MASKED**' }, { mask: true }])
+    })
+
     it('masks the result of a masked user command', async () => {
         const browser = fakeBrowser()
         await mod.runCustomCommand(browser, 'login', [{ user: 'u', password: 's3cret' }, { mask: true }], async () => 'token-s3cret')
@@ -1610,6 +1638,16 @@ describe('values that cannot be copied', () => {
         expect(mod.userCommandBody(['x', unreadable()])).toEqual(['x', '<unreadable>'])
         const option = { get mask () { throw new Error('getter') } }
         expect(mod.userCommandBody(['secret', option])).toEqual(['<unreadable>', '<unreadable>'])
+    })
+
+    it('checks the mask option of an outer call one time', async () => {
+        const browser = fakeBrowser()
+        let reads = 0
+        const option = { get mask () { reads++; return true } }
+        await mod.runUserCommand(browser, 'setValue', ['secret', option], async () => undefined)
+        // one check, and one read for the copy of the option in the body
+        expect(reads).toBe(2)
+        expect(pairs(browser)[0][1].body).toEqual(['**MASKED**', { mask: true }])
     })
 
     it.each([

@@ -30,7 +30,8 @@ export interface UserCommandFrame {
     // the direct calls of this user command send their own events
     expands?: boolean
     command?: string
-    sessionId?: string
+    // the browser of the user command: a command of another browser is an outer command of its own session
+    browser?: object
     // a user command with `mask: true`: its nested calls send masked values
     masked?: boolean
     // the call of the original command of an overwrite of this name: it is part of the user command
@@ -193,7 +194,7 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     if (frame && (!expandsFrame(frame) || frame.command === command)) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
+    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentBrowser: frame?.browser, masked: frame?.masked })
 }
 
 /**
@@ -209,10 +210,11 @@ export function runCustomCommand<T> (scope: unknown, command: string, args: unkn
     if (frame?.layerOf === command) {
         return userCommandStore!.run(Object.getPrototypeOf(frame) as UserCommandFrame, () => run(true))
     }
-    if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command)) {
+    // a multi-remote command is not a user command: its instances send their own
+    if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command) || isMultiRemoteScope(scope)) {
         return run(false)
     }
-    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
+    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentBrowser: frame?.browser, masked: frame?.masked })
 }
 
 /**
@@ -234,17 +236,20 @@ export function runListItem<T> (scope: unknown, command: string, args: unknown[]
     if (!userCommandStore || (frame && !expandsFrame(frame))) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
+    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id, parentBrowser: frame?.browser, masked: frame?.masked })
 }
 
 const expandsFrame = (frame: UserCommandFrame) => frame.id !== undefined && frame.expands === true
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number, parentSession?: string, masked?: boolean } = {}): T {
-    const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
+const isMultiRemoteScope = (scope: unknown) => Boolean((scope as EventBrowser | undefined)?.isMultiRemote ||
+    (scope && (getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser).isMultiRemote))
+
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number, parentBrowser?: object, masked?: boolean } = {}): T {
     // each instance of a multi-remote command is the outer call of its own session
-    if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
+    if (isMultiRemoteScope(scope)) {
         return run()
     }
+    const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
 
     // an outer call that sends nothing still has a frame, so its nested calls send nothing
     const mode = eventMode(browser, command)
@@ -253,12 +258,13 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     }
 
     const emit = browser!.emit!.bind(browser)
+    const maskOption = fields.masked ? true : maskOptionOf(args)
     const event = {
-        id: ++lastUserCommandId, command, body: fields.masked ? maskedCopy(args) : userCommandBody(args), protocol: 'bidi' as const,
+        id: ++lastUserCommandId, command, body: fields.masked ? maskedCopy(args) : userCommandBody(args, maskOption), protocol: 'bidi' as const,
         ...(fields.index === undefined ? {} : { index: fields.index }),
-        // a command of another session is an outer command of its own session, as for multi-remote instances;
+        // a command of another browser is an outer command of its own session, as for multi-remote instances;
         // `owner` keeps the link to the test of the user command that runs it
-        ...(fields.parent === undefined ? {} : fields.parentSession === browser!.sessionId ? { parent: fields.parent } : { owner: fields.parent }),
+        ...(fields.parent === undefined ? {} : fields.parentBrowser === browser ? { parent: fields.parent } : { owner: fields.parent }),
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }
@@ -273,8 +279,9 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     }
     // after its result, the frame shows no more direct calls (a poll that still runs after a timeout)
     const frame: UserCommandFrame = {
-        id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command, sessionId: browser!.sessionId,
-        masked: fields.masked || hasMaskOption(args)
+        id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command, browser,
+        // an option that cannot be read masks too
+        masked: maskOption !== false
     }
     const sendValue = (value: unknown) => {
         frame.expands = false
@@ -341,21 +348,25 @@ const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
 
 const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'object' && (value as { mask?: unknown }).mask === true
 
-const hasMaskOption = (args: unknown[]) => {
+// `undefined` when the option cannot be read
+const maskOptionOf = (args: unknown[]) => {
     try {
         return isMaskOption(args[args.length - 1])
     } catch {
-        return true
+        return undefined
     }
 }
 
-// a short copy with every string and number masked: the values of a masked user command and of its nested calls
+const isElementCopy = (item: object) => ['element', 'element-array'].includes((item as { wdio?: unknown }).wdio as string)
+
+// a short copy with every string and number masked: the values of a masked user command and of its nested calls;
+// an element keeps its query, so reporters can show it
 function maskedCopy (value: unknown): unknown {
     const mask = (item: unknown): unknown => typeof item === 'string' || typeof item === 'number'
         ? SENSITIVE_DATA_REPLACER
         : Array.isArray(item)
             ? item.map(mask)
-            : item && typeof item === 'object'
+            : item && typeof item === 'object' && !isElementCopy(item)
                 ? Object.fromEntries(Object.entries(item).map(([key, entry]) => [key, mask(entry)]))
                 : item
     return mask(shortCopy(value))
@@ -365,11 +376,8 @@ function maskedCopy (value: unknown): unknown {
  * The arguments of a user command for an event: masked text and short copies.
  * @experimental
  */
-export function userCommandBody (args: unknown[]): unknown[] {
-    let masked: boolean
-    try {
-        masked = isMaskOption(args[args.length - 1])
-    } catch {
+export function userCommandBody (args: unknown[], masked = maskOptionOf(args)): unknown[] {
+    if (masked === undefined) {
         // the mask option is unknown, so no value is sent
         return args.map(() => UNREADABLE)
     }
