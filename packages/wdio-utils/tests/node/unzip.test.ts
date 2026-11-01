@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import { install, getDownloadUrl } from '@puppeteer/browsers'
 
 import { MissingUnzipToolError, unzipWithOsTool } from '../../src/node/unzip.js'
+import { extractZipUsesFaultyYauzl } from '../../src/node/yauzl.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const { logMock } = await import(path.join(process.cwd(), '__mocks__', '@wdio/logger')) as { logMock: Record<string, Mock> }
@@ -19,6 +20,10 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('node:child_process', () => ({
     default: { execFile: vi.fn() }
+}))
+
+vi.mock('../../src/node/yauzl.js', () => ({
+    extractZipUsesFaultyYauzl: vi.fn().mockReturnValue(true)
 }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -178,6 +183,21 @@ describe('unzipWithOsTool', () => {
         expect(fsp.rm).toHaveBeenCalledTimes(2)
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+    })
+
+    /**
+     * `yauzl` 3 (an `overrides` entry, or this repository) works on Node 26: no error, and
+     * `install()` unzips the archive that was downloaded here
+     */
+    it('leaves the archive to extract-zip when unzip is not installed and its yauzl works on Node 26', async () => {
+        execFileResults({ unzip: errnoError('ENOENT') })
+        vi.mocked(extractZipUsesFaultyYauzl).mockReturnValueOnce(false)
+
+        await unzipWithOsTool(args)
+
+        expect(fsp.rm).toHaveBeenCalledTimes(1)
+        expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
+        expect(logMock.info).toHaveBeenCalledWith('No unzip tool found, chromedriver v133.0.6943.141 is unzipped with extract-zip')
     })
 
     it('removes the build folder and the archive when unzip fails, and keeps the tool error as cause', async () => {

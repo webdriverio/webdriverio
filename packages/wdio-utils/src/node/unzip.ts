@@ -6,10 +6,12 @@ import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import { install, Cache, detectBrowserPlatform, getDownloadUrl, type InstallOptions } from '@puppeteer/browsers'
 
+import { extractZipUsesFaultyYauzl } from './yauzl.js'
+
 const log = logger('webdriver')
 
 /**
- * Node 26 can not unzip with `extract-zip`, so an OS tool is required there.
+ * Node 26 can not unzip with `extract-zip` and a `yauzl` older than 3.3.1, so an OS tool is required there.
  * A retry can not install the tool, so `_install` does not retry this error.
  */
 export class MissingUnzipToolError extends Error {
@@ -22,7 +24,8 @@ export class MissingUnzipToolError extends Error {
  * Like `@puppeteer/browsers` v3, unzip the archive with an OS tool first, so that
  * `install()` finds a complete build folder and only runs its setup.
  * Other archive types (Firefox `.tar.xz`, `.tar.bz2`, `.dmg`, `.exe`) stay with `install()`,
- * as before. Without an OS tool, a clear error is thrown, as `extract-zip` would hang.
+ * as before. Without an OS tool, `install()` unzips with `extract-zip`, as before, unless its
+ * `yauzl` is older than 3.3.1: then a clear error is thrown, as `extract-zip` would hang.
  * Only on Node 26 and later: older versions keep `extract-zip`, which works there.
  */
 export async function unzipWithOsTool (args: InstallOptions) {
@@ -72,13 +75,18 @@ export async function unzipWithOsTool (args: InstallOptions) {
         throw err
     }
 
-    // as `@puppeteer/browsers` 3: never keep the folder or the archive
     await removeOrWarn(outputPath)
+    if (!extractZipUsesFaultyYauzl()) {
+        // `yauzl` 3.3.1 and later work on Node 26: `install()` unzips the downloaded archive, as before
+        log.info(`No unzip tool found, ${args.browser} v${args.buildId} is unzipped with extract-zip`)
+        return
+    }
+    // as `@puppeteer/browsers` 3: never keep the folder or the archive
     await removeOrWarn(archivePath)
     throw new MissingUnzipToolError(
         `No unzip tool found to install ${args.browser} v${args.buildId}. WebdriverIO v9 on Node.js 26 and later requires one: ` +
         'install `unzip` on Linux or macOS (for example `apt-get install unzip`), or make `tar.exe`, `powershell.exe` or `pwsh.exe` available on Windows. ' +
-        '`@puppeteer/browsers` 2 unzips with `extract-zip`, which does not work on Node.js 26 (https://github.com/webdriverio/webdriverio/issues/15608).'
+        '`@puppeteer/browsers` 2 unzips with `extract-zip` and a `yauzl` older than 3.3.1, which hang on Node.js 26 (https://github.com/webdriverio/webdriverio/issues/15608).'
     )
 }
 
