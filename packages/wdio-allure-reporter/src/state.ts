@@ -10,6 +10,7 @@ import type {
     WDIOTestStartMessage,
 } from './types.js'
 import { findLast, findLastIndex, last } from './utils.js'
+import { joinSteps } from './joinSteps.js'
 import type { Status as AllureStatus } from 'allure-js-commons'
 import { Stage as AllureStage } from 'allure-js-commons'
 
@@ -54,7 +55,7 @@ export class AllureReportState {
     // the fixture that was open when the current test started
     private _testStartFixture?: string
 
-    constructor(private allureRuntime: ReporterRuntime) {
+    constructor(private allureRuntime: ReporterRuntime, private resultsDir: string) {
     }
 
     private _isRuntimeMessage(message: WDIORuntimeMessage): message is RuntimeMessage {
@@ -366,6 +367,8 @@ export class AllureReportState {
         await this._closeOpenedHookSteps(hookUuid, status, stop, statusDetails)
 
         this.allureRuntime.updateFixture(hookUuid, r => {
+            // the repeated steps are joined in the finished hook, before it is written
+            r.steps = joinSteps(r.steps, this.resultsDir)
             r.status = status
             if (statusDetails) {
                 r.statusDetails = statusDetails

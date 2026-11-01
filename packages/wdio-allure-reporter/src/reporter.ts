@@ -37,6 +37,7 @@ import { LinkingFileSystemWriter } from './writer.js'
 import { resolveResultsDir } from './worker.js'
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState, isOpen } from './state.js'
+import { joinSteps } from './joinSteps.js'
 import {
     absPosix,
     convertSuiteTagsToLabels,
@@ -115,6 +116,9 @@ function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined 
 }
 
 // the status of a user step: an error from another realm or a thrown value fails it with its text
+const isShownInFull = (value: unknown, inline: string) =>
+    (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') && !inline.endsWith('…')
+
 function userStepStatus(result: AfterUserCommandArgs['result']): { status: AllureStatus; statusDetails?: StatusDetails } {
     if (!('error' in result)) {
         return { status: AllureStatusEnum.PASSED }
@@ -183,6 +187,7 @@ function splitTitlePathPart(part?: string): string[] {
 
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
+    private _resultsDir: string
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
     private _isMultiRemote?: boolean
     private _config?: Options.Testrunner
@@ -253,11 +258,14 @@ export default class AllureReporter extends WDIOReporter {
 
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
 
+        this._resultsDir = resolveResultsDir(options)
         this._allureRuntime = new ReporterRuntime({
             ...rest,
             links,
             environmentInfo: options.reportedEnvironmentVars,
-            writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
+            writer: new LinkingFileSystemWriter(this._resultsDir),
+            // the repeated steps are joined in the finished test, before it is written
+            listeners: [{ beforeTestResultWrite: (result) => { result.steps = joinSteps(result.steps, this._resultsDir) } }],
         })
 
         this._capabilities = {}
@@ -303,7 +311,7 @@ export default class AllureReporter extends WDIOReporter {
 
     private _ensureState(cid: string): AllureReportState {
         if (!this.allureStatesByCid.has(cid)) {
-            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime))
+            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime, this._resultsDir))
         }
         return this.allureStatesByCid.get(cid)!
     }
@@ -1511,8 +1519,9 @@ export default class AllureReporter extends WDIOReporter {
         const { name, command } = step
         const { status, statusDetails } = userStepStatus(result)
         if (!('error' in result)) {
-            if (!isNoDataResult(result, command)) { this._attachCommandResponse(result) }
             const inline = inlineResult(result, command)
+            // the name shows a whole string, number or boolean: no Response
+            if (!isNoDataResult(result, command) && !(inline && isShownInFull(result.value, inline))) { this._attachCommandResponse(result) }
             if (inline && name) {
                 this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${name} → ${inline}` } })
             }
