@@ -57,6 +57,8 @@ export interface BeforeUserCommandArgs {
     contextId?: string
     /** The item of the list of `command` that this user command waits for: `` $$(`li`)[3] `` */
     index?: number
+    /** Id of the user command that runs this one, when that command shows its direct calls (`userCommandEvents.nested`) */
+    parent?: number
 }
 
 /**

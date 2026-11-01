@@ -12,7 +12,8 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 setUserCommandStore(new AsyncLocalStorage())
 registerUserCommands(['getText'])
 
-const browser = { isBidi: true, options: { userCommandEvents: true }, emit: vi.fn() }
+// `nested: 'none'`: the polls send nothing; the test of the default sets `true`
+const browser = { isBidi: true, options: { userCommandEvents: { nested: 'none' } as object | boolean }, emit: vi.fn() }
 // polls like an expect-webdriverio matcher: one getText for each poll, "Done" at the third poll
 async function toPollText (this: unknown, _received: unknown, text: string) {
     let value = ''
@@ -32,7 +33,26 @@ beforeEach(() => {
 })
 
 describe('wrapAssertions', () => {
-    it('sends one user command for an assertion, and its polls send nothing', async () => {
+    it('sends the polls of an assertion as its children with the default nested option', async () => {
+        const option = browser.options.userCommandEvents
+        browser.options.userCommandEvents = true
+        try {
+            await (wdioExpect('el') as any).toPollText('Done')
+        } finally {
+            browser.options.userCommandEvents = option
+        }
+        const calls = browser.emit.mock.calls
+        expect(events().map(([event, command]) => `${event} ${command}`)).toEqual([
+            'userCommand expect.toPollText',
+            'userCommand getText', 'userResult getText',
+            'userCommand getText', 'userResult getText',
+            'userCommand getText', 'userResult getText',
+            'userResult expect.toPollText'
+        ])
+        expect(calls[1][1].parent).toBe(calls[0][1].id)
+    })
+
+    it('sends one user command for an assertion, and its polls send nothing with nested: none', async () => {
         await (wdioExpect('el') as any).toPollText('Done')
         expect(events()).toEqual([
             ['userCommand', 'expect.toPollText', ['el', 'Done'], undefined],
@@ -86,7 +106,7 @@ describe('wrapAssertions', () => {
 
 describe('wrapAssertions session of the subject', () => {
     // instance A of a multi-remote browser, the session of the polls; `fallback` is the browser of the runner
-    const instanceA = setWdioKind({ isBidi: true, sessionId: 'a', options: { userCommandEvents: true }, emit: vi.fn() }, 'browser')
+    const instanceA = setWdioKind({ isBidi: true, sessionId: 'a', options: { userCommandEvents: { nested: 'none' } }, emit: vi.fn() }, 'browser')
     const fallback = setWdioKind({ isMultiRemote: true, instances: ['a'], emit: vi.fn() }, 'browser')
     async function toPollOnA (this: unknown, _received: unknown, text: string) {
         let value = ''
@@ -161,7 +181,7 @@ describe('wrapAssertions session of the subject', () => {
     })
 
     it('uses the browser of the runner for a subject with no session, for example a mock', async () => {
-        const runner = { isBidi: true, sessionId: 'r', options: { userCommandEvents: true }, emit: vi.fn() }
+        const runner = { isBidi: true, sessionId: 'r', options: { userCommandEvents: { nested: 'none' } }, emit: vi.fn() }
         const ext = vi.fn()
         wrapAssertions({ extend: ext }, { toPollOnA }, () => runner)
         const [[{ toPollOnA: onRunner }]] = ext.mock.calls
