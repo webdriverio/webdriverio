@@ -260,4 +260,10 @@ export type WDIOHookEndMessage = {
     }
 }
 
-export type WDIORuntimeMessage = RuntimeMessage | WDIOSuiteStartMessage | WDIOSuiteEndMessage | WDIOTestStartMessage | WDIOTestEndMessage | WDIOTestInfoMessage | WDIOHookStartMessage | WDIOHookEndMessage
+// the open test or hook has user command steps: its repeated steps are joined before the write
+export type WDIOUserCommandMessage = {
+    type: 'allure:user:command'
+    data: Record<string, never>
+}
+
+export type WDIORuntimeMessage = RuntimeMessage | WDIOSuiteStartMessage | WDIOSuiteEndMessage | WDIOTestStartMessage | WDIOTestEndMessage | WDIOTestInfoMessage | WDIOHookStartMessage | WDIOHookEndMessage | WDIOUserCommandMessage

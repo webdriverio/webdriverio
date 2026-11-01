@@ -41,6 +41,8 @@ export class AllureReportState {
     private _testScopePendingClose: boolean = false
     private _executablesStack: string[] = []
     private _fixturesStack: string[] = []
+    // the tests and hooks with user command steps: only their repeated steps are joined
+    private _userCommandResults = new Set<string>()
     private _currentTestUuid?: string
     private _currentTestName?: string
     messages: WDIORuntimeMessage[] = []
@@ -66,7 +68,8 @@ export class AllureReportState {
             'allure:test:end',
             'allure:test:info',
             'allure:hook:start',
-            'allure:hook:end'
+            'allure:hook:end',
+            'allure:user:command'
         ]
         return !wdioSpecificTypes.includes(message.type)
     }
@@ -368,7 +371,7 @@ export class AllureReportState {
 
         this.allureRuntime.updateFixture(hookUuid, r => {
             // the repeated steps are joined in the finished hook, before it is written
-            r.steps = joinSteps(r.steps, this.resultsDir)
+            if (this._userCommandResults.delete(hookUuid)) { r.steps = joinSteps(r.steps, this.resultsDir) }
             r.status = status
             if (statusDetails) {
                 r.statusDetails = statusDetails
@@ -387,6 +390,11 @@ export class AllureReportState {
                 result.fixtures = fixtures
             })
         }
+    }
+
+    /** `true` once for a test with user command steps */
+    takeUserCommandResult(uuid: string): boolean {
+        return this._userCommandResults.delete(uuid)
     }
 
     pushRuntimeMessage(message: WDIORuntimeMessage): void {
@@ -438,6 +446,17 @@ export class AllureReportState {
             case 'allure:hook:start':
                 await this._startHook(message)
                 continue
+
+            case 'allure:user:command': {
+                const uuid = last(this._fixturesStack) ?? this._currentTestUuid
+                if (uuid) {
+                    this._userCommandResults.add(uuid)
+                } else if (this._isCapturingPendingHook) {
+                    // a hook before its test: the mark goes to the hook when it is attached
+                    this._pendingHookMessages.push(message)
+                }
+                continue
+            }
 
             case 'allure:hook:end':
                 if (this._fixturesStack.length === 0 && this._currentTestUuid && this._pendingHookMessages.length > 0 && !this.currentFeature) {
@@ -555,6 +574,9 @@ export class AllureReportState {
                 }
                 if (msg.type === 'step_stop') {
                     this._decHookSteps(currentHookUuid)
+                }
+                if (msg.type === 'allure:user:command') {
+                    this._userCommandResults.add(currentHookUuid)
                 }
                 if (this._isRuntimeMessage(msg)) {
                     this.allureRuntime.applyRuntimeMessages(currentHookUuid, [msg])

@@ -138,6 +138,15 @@ describe('user commands of WebDriver BiDi sessions', () => {
         expect(result.steps[3].steps[0].name).toBe('findElementFromElement → found')
     })
 
+    it('keeps the repeated protocol steps of a test with no user command, as on a WebDriver Classic session', async () => {
+        const { result } = await run((emit) => {
+            for (let i = 0; i < 3; i++) {
+                protocol(emit, 'getElementText', { value: 'x' }, undefined, getElementText)
+            }
+        })
+        expect(result.steps.map((s: Result) => s.name)).toEqual(['getElementText', 'getElementText', 'getElementText'])
+    })
+
     it('keeps a protocol command with no user command as on a WebDriver Classic session: no result in its name, no request parameter', async () => {
         const { result, attachment } = await run((emit) => protocol(emit, 'getElementText', { value: 'hello' }, undefined, { ...getElementText, body: { a: 1 } }))
 

@@ -284,7 +284,12 @@ export default class AllureReporter extends WDIOReporter {
             // the repeated steps are joined first, so the listeners of the user get the written steps
             // the host is last, so a host that a listener of the user adds is kept
             listeners: [
-                { beforeTestResultWrite: (result) => { result.steps = joinSteps(result.steps, this._resultsDir) } },
+                {
+                    beforeTestResultWrite: (result) => {
+                        const states = [...this.allureStatesByCid.values()]
+                        if (states.some((state) => state.takeUserCommandResult(result.uuid))) { result.steps = joinSteps(result.steps, this._resultsDir) }
+                    }
+                },
                 ...(rest.listeners ?? []),
                 { beforeTestResultWrite: (result) => { result.labels = withDefaultHost(result.labels) } }
             ],
@@ -1476,7 +1481,10 @@ export default class AllureReporter extends WDIOReporter {
             ? { key: this._laneKey(), open: [], messages: [], waiting: true }
             : undefined
         // the arguments are in the name: the Request attachment only when the name does not show them all
-        this._toWaitingStep(waiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+        this._toWaitingStep(waiting, () => {
+            this._pushRuntimeMessage({ type: 'allure:user:command', data: {} })
+            this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
+        })
         const open = waiting ? waiting.open : live ?? []
         if (waiting) {
             this._waitingSteps.set(scope, [...this._waitingSteps.get(scope) ?? [], waiting])
