@@ -818,6 +818,8 @@ describe('nested user commands', () => {
         const b = fakeBrowser({ sessionId: 'b' })
         await mod.runUserCommand(a, 'waitUntil', [], () => mod.runUserCommand(b, 'getTitle', [], async () => 't'))
         expect(events(b)).toEqual([['userCommand', 'getTitle', 2, undefined], ['userResult', 'getTitle', 2, undefined]])
+        // the id of the user command that runs it, for its owner test
+        expect(pairs(b)[0][1].owner).toBe(1)
         expect(events(a).map(([event, command]) => `${event} ${command}`)).toEqual(['userCommand waitUntil', 'userResult waitUntil'])
     })
 

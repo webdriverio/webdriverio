@@ -79,6 +79,8 @@ export interface UserCommandEvent {
     index?: number
     /** id of the user command that runs this one, when that command shows its direct calls (`userCommandEvents.nested`) */
     parent?: number
+    /** id of the user command of another session that runs this one: its test owns this one, which is an outer command */
+    owner?: number
     /** the session of the browser (of the multi-remote instance) that runs the command */
     sessionId?: string
 }

@@ -190,12 +190,13 @@ export default class WDIOReporter extends EventEmitter {
             }
             // the owner at the start: a result after the end of its test (a test timeout) stays in that test;
             // a nested user command has the owner of its parent
-            const owner = payload.parent !== undefined && this.#userCommandOwners.has(payload.parent)
-                ? this.#userCommandOwners.get(payload.parent)
+            const runBy = payload.parent ?? payload.owner
+            const owner = runBy !== undefined && this.#userCommandOwners.has(runBy)
+                ? this.#userCommandOwners.get(runBy)
                 : getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
             // a nested call of a test that ended (an abandoned poll): only its entry, in that test
-            if (payload.parent !== undefined && owner?.end) {
+            if (runBy !== undefined && owner?.end) {
                 this.#lateUserCommands.add(payload.id)
             } else {
                 this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
