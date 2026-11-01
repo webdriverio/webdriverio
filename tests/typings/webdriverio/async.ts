@@ -1,3 +1,5 @@
+// Exercise the CLI's compiled public entry without adding an unrelated package dependency.
+import { Launcher, type LauncherResult } from '../../../packages/wdio-cli/build/index.js'
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
@@ -819,3 +821,16 @@ allure.addFeature('')
 allure.addDescription('with wrong param:', 123)
 
 export default {}
+
+async function launcherResults() {
+    const result = await new Launcher('./wdio.conf.js').run()
+    expectType<LauncherResult>(result)
+    expectType<number>(result.exitCode)
+    expectType<number>(result.duration)
+    expectType<number>(result.tests.passed)
+    expectType<number>(result.tests.failed)
+    expectType<number>(result.tests.skipped)
+    expectType<number>(result.tests.retries)
+    expectType<number>(result.specs.passed)
+}
+void launcherResults

@@ -57,6 +57,15 @@ export interface Options {
     [key: string]: unknown
 }
 
+/** Framework outcome events across executed worker attempts, including spec reruns. */
+export interface TestCounts {
+    passed: number
+    failed: number
+    skipped: number
+    /** Native framework retries (Mocha tests or Cucumber scenarios), separate from whole-spec retries. */
+    retries: number
+}
+
 export interface ReporterInstance extends EventEmitter {
     isSynchronised: boolean
     setContextIdResolver?(resolver: () => string | undefined): void

@@ -447,6 +447,7 @@ export default class CucumberFormatter extends Formatter {
             file: scenario.uri,
             tags: reporterScenario.tags,
             rule: reporterScenario.rule,
+            ...(this.scenarioLevelReporter && typeof testcase.attempt === 'number' && testcase.attempt > 0 ? { retry: testcase.attempt } : {}),
         }
 
         /**

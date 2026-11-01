@@ -181,10 +181,10 @@ export function launchWithStdin(wdioConfPath: string, params: Partial<RunCommand
 export async function launch(wdioConfPath: string, params: Partial<RunCommandArguments>) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
-        .then((...args) => {
+        .then(({ exitCode }) => {
             /* istanbul ignore if */
             if (!process.env.WDIO_UNIT_TESTS) {
-                process.exit(...args)
+                process.exit(exitCode)
             }
         })
         .catch(err => {

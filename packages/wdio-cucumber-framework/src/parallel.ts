@@ -572,6 +572,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams): ScenarioTrans
             formatMessage({
                 payload: {
                     ...buildScenarioPayload(scenarioPayloadParams),
+                    ...(scenarioLevel && typeof started.attempt === 'number' && started.attempt > 0 ? { retry: started.attempt } : {}),
                     contextId,
                     parentUid: featureUID,
                 },
