@@ -371,11 +371,18 @@ function isSomePlaceholder(value: unknown): value is { wdio: 'some', elements: u
     return Boolean(value) && typeof value === 'object' && (value as { wdio?: unknown }).wdio === 'some'
 }
 
+/**
+ * Internal: the name in the `[Function name]` label of the producer, `undefined` for other values
+ */
+export function functionLabelName(value: unknown): string | undefined {
+    return typeof value === 'string' ? /^\[Function (.*)\]$/.exec(value)?.[1] : undefined
+}
+
 // a selector as in the test code: a string in backticks, a function as in expect-webdriverio (`<fn>`, or `<fn name>` with its name)
 function selectorText(selector: unknown): string {
-    const fn = typeof selector === 'string' && /^\[Function (.*)\]$/.exec(selector)
-    if (fn) {
-        return fn[1] === 'anonymous' ? '<fn>' : `<fn ${fn[1]}>`
+    const fn = functionLabelName(selector)
+    if (fn !== undefined) {
+        return fn === 'anonymous' ? '<fn>' : `<fn ${fn}>`
     }
     return typeof selector === 'string' ? `\`${selector}\`` : formatArgument(selector)
 }
@@ -392,9 +399,9 @@ function formatArgument(arg: unknown): string {
     if (typeof arg === 'string' && Object.hasOwn(OBJECT_NAMES, arg)) {
         return OBJECT_NAMES[arg]
     }
-    const fn = typeof arg === 'string' && /^\[Function (.*)\]$/.exec(arg)
-    if (fn) {
-        return `function ${fn[1]}`
+    const fn = functionLabelName(arg)
+    if (fn !== undefined) {
+        return `function ${fn}`
     }
     // an asymmetric matcher of an assertion, e.g. `StringContaining "Docs"`
     const matcher = typeof arg === 'string' && /^\[Matcher (.*)\]$/s.exec(arg)

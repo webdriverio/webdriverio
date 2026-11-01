@@ -2,7 +2,7 @@ import vm from 'node:vm'
 import { describe, expect, it, vi } from 'vitest'
 import tmp from 'tmp'
 
-import WDIOReporter, { userCommandError, userOutputReplacer } from '../src/index.js'
+import WDIOReporter, { userCommandError, userCommandTitle, userOutputReplacer } from '../src/index.js'
 import type { AfterUserCommandArgs, BeforeUserCommandArgs } from '../src/index.js'
 
 const runnerSpecs = ['/path/to/fileA.js']
@@ -418,6 +418,17 @@ describe('user command events', () => {
             ['[Function getTitle]', 1],
             ['[Function getTitle]', 1]
         ])
+    })
+
+    it('reads the function label of execute as the title does, also for a name with a bracket', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const execute = { ...userCommand, command: 'execute', body: ['[Function a]b]'], contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', execute)
+
+        expect(reporter.tests.A.output.map((entry: any) => entry.body)).toEqual([['[Function a]b]']])
+        expect(userCommandTitle('execute', execute.body)).toBe('execute(function a]b)')
     })
 
     it('puts a result that comes after the end of its test in that test, not in the next test', () => {
