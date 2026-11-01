@@ -84,7 +84,7 @@ export async function unzipWithOsTool (args: InstallOptions) {
     // as `@puppeteer/browsers` 3: never keep the folder or the archive
     await removeOrWarn(archivePath)
     throw new MissingUnzipToolError(
-        `No unzip tool found to install ${args.browser}. On Node 26, install an unzip tool or override yauzl to >= ^3.3.1 in your package.json`
+        `No unzip tool found to install ${args.browser}. On Node 26, install an unzip tool or override yauzl to ^3.3.1 in your package.json`
     )
 }
 
