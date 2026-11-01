@@ -387,6 +387,7 @@ userCommandEvents: {
 - A name in `expand` or `collapse` is a command name, or a name that ends with `*` (for example `waitFor*`).
 - The order of the rules: the top-level `exclude` wins over everything, then `collapse`, then `expand`, then `mode`.
 - A direct call shows its own direct calls only when its own command matches the rules.
+- An item of `exclude`, `expand` or `collapse` that is not a string is ignored.
 - A value that is not valid gives one warning in the log, and `'default'` is used.
 
 </Option>
