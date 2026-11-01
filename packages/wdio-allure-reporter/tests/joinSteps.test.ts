@@ -41,6 +41,13 @@ describe('joinSteps', () => {
         expect(joined.steps.map((s) => s.name)).toEqual(['$(`#x`) → found', 'getText() → "Click"'])
     })
 
+    it('gives a repeated group the worst status of its steps', () => {
+        const dir = temporaryDirectory()
+        const poll = (i: number) => [step(dir, '$(`#x`) → found', i * 100), { ...step(dir, 'getText() → error', i * 100 + 50), status: 'broken' } as StepResult]
+        const [joined] = joinSteps([...poll(0), ...poll(1)], dir)
+        expect(joined).toMatchObject({ name: '× 2', status: 'broken' })
+    })
+
     it('reads no attachment file of a step that no near sibling matches', () => {
         const dir = temporaryDirectory()
         const steps = ['a', 'b', 'c'].map((name, i) => step(dir, name, i, 'response'))
