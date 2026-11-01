@@ -559,6 +559,41 @@ Under the hood a strict `$` issues a `findElements` request instead of `findElem
 
 :::
 
+## Text selectors match `#id` and `[attr]` exactly
+
+The `#id` and `[attribute="value"]` parts of a [text selector](/docs/selectors#element-with-certain-text) now match the exact value, as in CSS and as the `.class` part already did. In v9 they matched a part of the value:
+
+```html
+<button id="save">OK</button>
+<button id="autosave">OK</button>
+<ul id="menu" role="menu"><li role="menuitem">Settings</li></ul>
+```
+
+```js
+// v9
+await $$('button#save=OK')          // both buttons
+await $('[role="menu"]*=Settings')  // the menuitem, not the menu
+
+// v10
+await $$('button#save=OK')          // only #save
+await $('[role="menu"]*=Settings')  // the menu
+```
+
+A selector that relied on the partial match now finds nothing. Use the exact value, or an xPath with `contains()` for a partial match:
+
+```js
+await $('//button[contains(@id, "save") and normalize-space() = "OK"]')
+```
+
+To keep the v9 behavior while you update your selectors, set the deprecated [`partialAttributeSelectors`](/docs/configuration#partialattributeselectors) option. It will be removed in v11, and WebdriverIO logs a warning when it is set:
+
+```js title="wdio.conf.js"
+export const config = {
+    // ...
+    partialAttributeSelectors: true
+}
+```
+
 ## Element lists before `await`
 
 Since v10, `$$()` returns an [`ElementArray`](/docs/api/browser/$$): a real array that you can `await`. In v9, a `$$()` that you did not await was a promise.

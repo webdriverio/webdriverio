@@ -42,6 +42,7 @@ const browser = await remote({
     capabilities: window.__wdioEnv__.capabilities,
     bidiResponseTimeout: window.__wdioEnv__.config.bidiResponseTimeout,
     strictSelectors: window.__wdioEnv__.config.strictSelectors,
+    // deprecated, remove in v11
     partialAttributeSelectors: window.__wdioEnv__.config.partialAttributeSelectors
 })
 _setGlobal('browser', browser, window.__wdioEnv__.injectGlobals)

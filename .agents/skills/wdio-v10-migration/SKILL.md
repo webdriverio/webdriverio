@@ -148,6 +148,16 @@ await $$('button')[0].click()
 await $('button', { strict: false }).click()
 ```
 
+### Exact `#id` and `[attr]` in text selectors
+
+In a text selector (`button#save=OK`, `[data-test="row"]*=Item`), the `#id` and `[attr="value"]` parts match the exact value. In v9 they matched a part of the value. If such a selector finds nothing or another element after the update, use the exact value, or an xPath with `contains()`:
+
+```ts
+await $('//button[contains(@id, "save") and normalize-space() = "OK"]')
+```
+
+Do not set `partialAttributeSelectors: true` unless the user asks to keep the v9 behavior. It is deprecated and will be removed in v11.
+
 ## Codemod
 
 The codemod rewrites boolean `addCommand` / `overwriteCommand`, boolean `getHTML`, and `getCookies` when the filter is a string or a one-element array. It does not rewrite strict selectors. Install it first. WebdriverIO does not depend on it.
@@ -176,5 +186,6 @@ Passing a string or string array to `getCookies` was removed in WebdriverIO v10.
 Passing a boolean to `getHTML` was removed in WebdriverIO v10.
 The `page load` timeout key was removed in WebdriverIO v10.
 strict mode violation
+The "partialAttributeSelectors" option is deprecated and will be removed in v11.
 WebDriver new session response is missing a session id or capabilities.
 ```

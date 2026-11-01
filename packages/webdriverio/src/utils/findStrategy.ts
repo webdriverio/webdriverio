@@ -234,7 +234,7 @@ export function parseRoleSelector (selector: string): RoleSelector {
 }
 
 /**
- * exact value, as CSS `#id` and `[attr="value"]`; `partial` keeps the former `contains()`
+ * exact value, as CSS `#id` and `[attr="value"]`; `partial` keeps the former `contains()` (remove in v11)
  */
 function attributeCondition (name: string, value: string, partial?: boolean) {
     const literal = toXPathStringLiteral(value)
