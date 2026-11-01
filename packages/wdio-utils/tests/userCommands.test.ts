@@ -802,6 +802,19 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('sends no events for a command that a listener of the events of waitUntil runs', async () => {
+        const browser = fakeBrowser()
+        const listened: Promise<unknown>[] = []
+        browser.emit.mockImplementation((event: string, payload: { command: string }) => {
+            if (event === 'userCommand' && payload.command === 'waitUntil') {
+                listened.push(mod.runUserCommand(browser, 'getTitle', [], async () => 't'))
+            }
+        })
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => true)
+        await Promise.all(listened)
+        expect(events(browser).map(([event, command]) => `${event} ${command}`)).toEqual(['userCommand waitUntil', 'userResult waitUntil'])
+    })
+
     it('sends no events for a direct call that starts after the result of its parent', async () => {
         const browser = fakeBrowser()
         let release!: () => void

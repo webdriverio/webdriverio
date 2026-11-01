@@ -237,10 +237,11 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }
-    // a listener that throws does not change the result of the command
+    // a listener that throws does not change the result of the command; the commands that a listener runs send
+    // nothing, also in a frame that shows its direct calls
     const send = (name: string, payload: object) => {
         try {
-            emit(name, payload)
+            store.run({ id: event.id, command }, () => emit(name, payload))
         } catch {
             // ignore
         }
