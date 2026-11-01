@@ -364,6 +364,31 @@ Maximum size of the response body (in bytes) that can be returned when using the
 
 Sends an event before and after each user command, in WebDriver BiDi sessions only. The testrunner gives them to the reporters, and a standalone script can listen to `userCommand` and `userResult` on the browser. A user command is a command that your test code calls directly: a WebdriverIO command, a custom command or, in the testrunner, an `expect-webdriverio` assertion (`expect.toHaveText`, `expect.not.toHaveText`). When the option is not set, a session with the `wdio:experimentalBiDiCommands` capability (also parallel mode, which needs it) sends the user commands, and other sessions do not, so their reports stay as before. Set `true` to send them in every WebDriver BiDi session, `false` to send no user commands, or `{ exclude: ['waitUntil'] }` to send all except the commands in the list. WebDriver Classic and Appium sessions never send them. The commands that an excluded command runs are not sent either. `takeScreenshot` and `takeElementScreenshot` are never sent as user commands, because their result is a base64 screenshot. See [User commands](./CustomReporter.md#user-commands). This option is experimental.
 
+`nested` sets which user commands show their direct calls as child user commands, with the `id` of the user command that runs them as `parent`. The reporters show them as child steps, and they join identical repeated steps into one step with `× N` (for example `getText() → "Click" × 8`):
+
+```js
+// the easy form
+userCommandEvents: { nested: 'default' } // 'default' | 'none' | 'all'
+
+// the complex form
+userCommandEvents: {
+    exclude: ['pause'],
+    nested: {
+        mode: 'default',       // the start list: 'default' | 'none' | 'all'
+        expand: ['getText'],   // these also show their direct calls
+        collapse: ['login']    // these stay one closed step
+    }
+}
+```
+
+- `'default'` (also when `nested` is not set): `waitUntil`, the `waitFor*` commands, the assertions (`expect.*`) and your custom commands (`addCommand`, `overwriteCommand`) show their direct calls. All other commands stay one step.
+- `'none'`: no command shows its direct calls.
+- `'all'`: every command shows its direct calls, at every level. Use it for deep debugging, because it sends many more events.
+- A name in `expand` or `collapse` is a command name, or a name that ends with `*` (for example `waitFor*`).
+- The order of the rules: the top-level `exclude` wins over everything, then `collapse`, then `expand`, then `mode`.
+- A direct call shows its own direct calls only when its own command matches the rules.
+- A value that is not valid gives one warning in the log, and `'default'` is used.
+
 </Option>
 
 ### region
