@@ -216,11 +216,27 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * and other sessions do not. Set `true` to send them in every WebDriver BiDi session, `false`
      * to send none, or `{ exclude: ['waitUntil'] }` to send all except the named commands (the
      * commands that an excluded command runs are not sent either).
+     * `nested` sets which commands show their direct calls as child user commands: `'default'`
+     * (`waitUntil`, `waitFor*`, `expect.*` and the custom commands), `'none'`, `'all'`, or an object
+     * with a `mode` and the `expand` / `collapse` lists of names (a name can end with `*`).
      *
      * @default undefined
      * @experimental
      */
-    userCommandEvents?: boolean | { exclude?: string[] }
+    userCommandEvents?: boolean | { exclude?: string[], nested?: NestedUserCommands }
+}
+
+/**
+ * Which user commands show their direct calls as child user commands
+ * @experimental
+ */
+export type NestedUserCommands = 'default' | 'none' | 'all' | {
+    /** the start list: `'default'` (`waitUntil`, `waitFor*`, `expect.*` and the custom commands), `'none'` or `'all'` */
+    mode?: 'default' | 'none' | 'all'
+    /** commands that also show their direct calls */
+    expand?: string[]
+    /** commands that stay one closed step */
+    collapse?: string[]
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {
