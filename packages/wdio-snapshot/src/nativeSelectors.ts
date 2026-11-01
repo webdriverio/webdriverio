@@ -2,7 +2,7 @@ import { toXPathStringLiteral } from '@wdio/utils'
 
 import type { SnapshotCandidate } from './format.js'
 
-// Node.js only: `selectors.ts` stays free of `@wdio/utils` because it is also loaded in the page
+// apart from `selectors.ts`: `candidates.browser.test.ts` loads that file in a real browser, where the `@wdio/utils` entry needs Node.js
 
 export interface SelectorNode {
     platform: 'android' | 'ios' | 'mac' | 'windows'
