@@ -185,8 +185,11 @@ export default class WDIOReporter extends EventEmitter {
             if (!this.showsUserCommands) {
                 return
             }
-            // the owner at the start: a result after the end of its test (a test timeout) stays in that test
-            const owner = getCommandTarget(payload)
+            // the owner at the start: a result after the end of its test (a test timeout) stays in that test;
+            // a nested user command has the owner of its parent
+            const owner = payload.parent !== undefined && this.#userCommandOwners.has(payload.parent)
+                ? this.#userCommandOwners.get(payload.parent)
+                : getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
             this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
             this.#addUserEntry(owner, payload, 'userCommand')
