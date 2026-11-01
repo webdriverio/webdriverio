@@ -11,6 +11,7 @@ import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
+import BaseReporter from '../src/reporter.js'
 import type { CustomStubCommand } from '../src/types.js'
 
 vi.mock('expect-webdriverio', () => ({
@@ -577,21 +578,32 @@ describe('wdio-runner', () => {
         })
 
         describe('error that no framework reports', () => {
-            const runWith = async (frameworkRun: () => unknown, args: Record<string, unknown> = {}) => {
+            const startWith = (frameworkRun: () => unknown, args: Record<string, unknown> = {}, browser: Record<string, unknown> = {}) => {
                 const runner = new WDIORunner()
                 const config: any = { reporters: [], before: [], beforeSession: [], framework: 'late', runner: 'local' }
                 vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
                 vi.mocked(initializePlugin).mockResolvedValueOnce({
                     default: { init () { return this }, hasTests: () => true, run: frameworkRun }
                 } as any)
-                runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
+                const stub = { capabilities: {}, options: {}, ...browser }
+                runner['_initSession'] = vi.fn().mockImplementation(async () => {
+                    runner['_browser'] = stub as unknown as BrowserObject
+                    return stub
+                })
                 const errors: { message: string }[] = []
                 const exits: number[] = []
                 runner.on('error', (err) => errors.push(err))
                 runner.on('exit', (code) => exits.push(code))
-                const failures = await runner.run({ args: { reporters: [], ...args }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
-                return { runner, errors, exits, failures }
+                const done = runner.run({ args: { reporters: [], ...args }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+                return { runner, errors, exits, done }
             }
+            const runWith = async (frameworkRun: () => unknown, args: Record<string, unknown> = {}) => {
+                const { done, ...rest } = startWith(frameworkRun, args)
+                return { ...rest, failures: await done }
+            }
+            const runnerEnds = () => vi.mocked(BaseReporter.prototype.emit).mock.calls.filter(([event]) => event === 'runner:end')
+            const lateRejection = () => process.emit('uncaughtException', new Error('late rejection'), 'unhandledRejection')
+            const never = () => new Promise(() => {})
 
             // Jasmine removes every listener during its run and puts them back after it, so do the same here
             const withOnlyRunnerListeners = () => {
@@ -671,21 +683,155 @@ describe('wdio-runner', () => {
                 expect(listeners).toContain('onLateError')
             })
 
-            it('still ends the worker on an uncaught exception, which can leave a hook promise unfinished', async () => {
-                withOnlyRunnerListeners()
-                let thrown: unknown
-                const { errors, failures } = await runWith(() => {
-                    try {
-                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
-                    } catch (err) {
-                        thrown = err
-                    }
-                    return 0
+            describe('forced end', () => {
+                beforeEach(() => {
+                    withOnlyRunnerListeners()
+                    vi.spyOn(logger('@wdio/runner'), 'error').mockImplementation(() => {})
+                    vi.spyOn(BaseReporter.prototype, 'emit')
+                    return () => { vi.useRealTimers() }
                 })
 
-                expect((thrown as Error).message).toBe('timer error')
-                expect(failures).toBe(0)
-                expect(errors).toHaveLength(0)
+                it('ends the worker with the reports on an uncaught exception', async () => {
+                    const deleteSession = vi.fn().mockResolvedValue(undefined)
+                    const { errors, exits } = startWith(() => {
+                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                        return never()
+                    }, {}, { sessionId: 's', deleteSession })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(errors[0].message).toMatch(/^Uncaught error that no test reports/)
+                    expect(deleteSession).toBeCalledTimes(1)
+                    expect(runnerEnds()).toHaveLength(1)
+                    expect(runnerEnds()[0][1]).toMatchObject({ failures: 1 })
+                })
+
+                it('runs the shutdown once when the hook resolves after the forced end', async () => {
+                    let release = () => {}
+                    const { exits, done } = startWith(() => {
+                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                        return new Promise<number>((resolve) => { release = () => resolve(0) })
+                    }, {}, { sessionId: 's', deleteSession: vi.fn().mockResolvedValue(undefined) })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    release()
+                    await done
+                    expect(exits).toEqual([1])
+                    expect(runnerEnds()).toHaveLength(1)
+                })
+
+                it('ends the worker also when closing the session does not answer', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    const { exits } = startWith(() => {
+                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                        return never()
+                    }, {}, { sessionId: 's', deleteSession: vi.fn(never) })
+
+                    await vi.advanceTimersByTimeAsync(4_900)
+                    expect(exits).toEqual([])
+                    await vi.advanceTimersByTimeAsync(200)
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                })
+
+                it('ends the worker with the reports when a hook waits for the rejected promise', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    const { errors, exits } = startWith(() => {
+                        lateRejection()
+                        return never()
+                    })
+
+                    await vi.advanceTimersByTimeAsync(29_000)
+                    expect(exits).toEqual([])
+                    await vi.advanceTimersByTimeAsync(1_000)
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(errors.map((e) => e.message)).toEqual([
+                        expect.stringMatching(/^Unhandled promise rejection that no test reports/),
+                        expect.stringMatching(/^The worker did not finish 30s after an unhandled rejection/)
+                    ])
+                    expect(runnerEnds()).toHaveLength(1)
+                })
+
+                it('does not end the worker while reporter events go on', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    let release = () => {}
+                    const { runner, errors, exits, done } = startWith(() => {
+                        lateRejection()
+                        return new Promise<number>((resolve) => { release = () => resolve(0) })
+                    })
+                    await vi.advanceTimersByTimeAsync(0)
+                    for (let i = 0; i < 6; i++) {
+                        runner['_reporter']!.emit('client:beforeCommand', {})
+                        await vi.advanceTimersByTimeAsync(10_000)
+                    }
+                    release()
+                    await done
+                    expect(exits).toEqual([1])
+                    expect(errors).toHaveLength(1)
+                })
+
+                it('does not end the worker while a framework listener is there', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    let release = () => {}
+                    const frameworkListener = () => {}
+                    const { errors, exits, done } = startWith(() => {
+                        lateRejection()
+                        process.on('uncaughtException', frameworkListener)
+                        return new Promise<number>((resolve) => { release = () => resolve(0) })
+                    })
+
+                    await vi.advanceTimersByTimeAsync(60_000)
+                    expect(exits).toEqual([])
+                    process.removeListener('uncaughtException', frameworkListener)
+                    release()
+                    await done
+                    expect(exits).toEqual([1])
+                    expect(errors).toHaveLength(1)
+                })
+
+                it('ends the worker on an uncaught exception that comes before the reporters exist', async () => {
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'beforeSession') {
+                            process.emit('uncaughtException', new Error('service timer error'), 'uncaughtException')
+                            await new Promise((resolve) => setTimeout(resolve, 50))
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const { exits, done } = startWith(() => 0)
+                    await done
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                })
+
+                it('fails the run for a rejection that comes while the reporters write', async () => {
+                    vi.spyOn(BaseReporter.prototype, 'waitForSync').mockImplementationOnce(async () => {
+                        lateRejection()
+                        return true
+                    })
+                    const { exits, done } = startWith(() => 0)
+                    await done
+                    expect(exits).toEqual([1])
+                })
+
+                it('closes the session once for two uncaught exceptions', async () => {
+                    const deleteSession = vi.fn(() => new Promise((resolve) => setTimeout(resolve, 50)))
+                    const { exits } = startWith(() => {
+                        process.emit('uncaughtException', new Error('first'), 'uncaughtException')
+                        process.emit('uncaughtException', new Error('second'), 'uncaughtException')
+                        return never()
+                    }, {}, { sessionId: 's', deleteSession })
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(deleteSession).toBeCalledTimes(1)
+                    expect(vi.mocked(process.send!).mock.calls.filter(([m]: any) => m.name === 'sessionEnded')).toHaveLength(1)
+                })
+
+                it('starts no watchdog without a late rejection', async () => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+                    const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 60_000)))
+
+                    await vi.advanceTimersByTimeAsync(60_000)
+                    await done
+                    expect(exits).toEqual([0])
+                    expect(errors).toHaveLength(0)
+                })
             })
 
             it('leaves the error to the framework when it has its own listener', async () => {

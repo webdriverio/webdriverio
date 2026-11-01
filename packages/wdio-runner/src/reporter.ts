@@ -15,6 +15,8 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: unknown) => void)[] = []
+    /** time of the last event, to see that the worker still makes progress */
+    lastEventTime = 0
 
     constructor(
         private _config: Options.Testrunner,
@@ -59,6 +61,7 @@ export default class BaseReporter {
         contextId?: string
     }) {
         payload.cid = this._cid
+        this.lastEventTime = Date.now()
 
         /**
          * Send failure message (only once) in case of test or hook failure
