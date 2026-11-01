@@ -226,6 +226,10 @@ describe('compactRequest and resolvedPath', () => {
         expect(compactRequest('DELETE', '/session/:sessionId')).toBe('DELETE /')
     })
 
+    it('keeps the fixed path of the active element', () => {
+        expect(compactRequest('GET', '/session/:sessionId/element/active')).toBe('GET /element/active')
+    })
+
     it('puts the session id in the path', () => {
         expect(resolvedPath('/session/:sessionId/element/e.3/text', 'abc')).toBe('/session/abc/element/e.3/text')
         expect(resolvedPath('/status')).toBe('/status')

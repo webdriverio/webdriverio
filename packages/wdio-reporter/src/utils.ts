@@ -523,7 +523,8 @@ export function inlineResult(result: unknown, command?: string): string | undefi
  * @experimental the name and the format may change
  */
 export function compactRequest(method: string, endpoint: string): string {
-    const path = endpoint.replace(/^\/session\/[^/]+/, '').replace(/\/(element|shadow)\/[^/]+/g, '/$1/:$1Id')
+    // `/element/active` is a fixed path, not an element id
+    const path = endpoint.replace(/^\/session\/[^/]+/, '').replace(/\/(element|shadow)\/(?!active(?:\/|$))[^/]+/g, '/$1/:$1Id')
     return `${method.toUpperCase()} ${path || '/'}`
 }
 
