@@ -388,6 +388,19 @@ describe('user commands that overlap or end after their test', () => {
         expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
     })
 
+    it('keeps concurrent nested user steps as siblings under their waiting parent at a test timeout', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'pause', [100]))
+            emit('client:beforeUserCommand', user(2, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(3, 'getText', 2))
+            emit('client:beforeUserCommand', nested(4, 'isDisplayed', 2))
+            emit('test:fail', { ...test('t1'), error: new Error('test timeout') })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual(['pause(100)', ['waitUntil()', ['getText()', 'isDisplayed()']]])
+    })
+
     it('writes no step in the next test for a nested user command that starts after the end of its test', async () => {
         const { byName } = await runTests((emit) => {
             emit('test:start', test('t1'))

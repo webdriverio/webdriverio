@@ -362,11 +362,32 @@ export default class AllureReporter extends WDIOReporter {
     // a new test or hook: a later user command result does not close its steps
     private _resetUserSteps(key = this._laneKey(), end?: { status: AllureStatus; statusDetails?: StatusDetails; stop?: number }): void {
         const scope = this._userStepScope(key)
-        // the waiting nested user commands go first, under their parent that is still open in the runtime
+        // the waiting nested user commands go first, under their parent, through its buffer when the parent waits
         const nested: OpenStep[][] = []
         for (const [parentId, queue] of this._nestedWaiting) {
+            const parent = this._userStepOf.get(parentId)
+            const parentWaiting = parent?.waiting?.waiting ? parent.waiting : undefined
             for (const step of queue.filter((w) => w.key === key)) {
-                this._releaseWaitingStep(step, key)
+                // the earlier sibling ends first, so this one is no child of it
+                if (end && parent) {
+                    this._toWaitingStep(parentWaiting, () => {
+                        for (let open = parent.open.at(-1); open && open !== parent.step; open = parent.open.at(-1)) {
+                            parent.open.pop()
+                            nested.push([open])
+                            this._endStep({ status: end.status, statusDetails: end.statusDetails, stop: end.stop ?? Date.now() })
+                        }
+                    })
+                }
+                if (parentWaiting) {
+                    step.waiting = false
+                    parentWaiting.messages.push(...step.messages.splice(0))
+                    for (const [id, waitingStep] of this._waitingStepOf) {
+                        if (waitingStep === step) { this._waitingStepOf.set(id, parentWaiting) }
+                    }
+                } else {
+                    this._releaseWaitingStep(step, key)
+                }
+                parent?.open.push(...step.open)
                 nested.push(step.open)
             }
             const rest = queue.filter((w) => w.key !== key)
