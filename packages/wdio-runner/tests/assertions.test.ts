@@ -132,6 +132,22 @@ describe('wrapAssertions session of the subject', () => {
         expect(body).toEqual([{ wdio: 'some', elements: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 0 } }, 'Done'])
     })
 
+    it('finds the session of an element with many parents', async () => {
+        let element: unknown = instanceA
+        for (let depth = 0; depth < 12; depth++) {
+            element = setWdioKind({ elementId: `e${depth}`, parent: element }, 'element')
+        }
+        await wrapped.call({ isNot: false }, element, 'Done')
+        expect(commandsOf(instanceA)).toEqual(assertion)
+    })
+
+    it('stops at a cycle in the parents of an element', async () => {
+        const element = setWdioKind({ elementId: 'e1' } as { elementId: string, parent?: unknown }, 'element')
+        element.parent = element
+        await expect(wrapped.call({ isNot: false }, element, 'Done')).resolves.toBeDefined()
+        expect(commandsOf(instanceA)).toEqual(Array(3).fill(['userCommand getText', 'userResult getText']).flat())
+    })
+
     it('uses the browser of the runner for a pending subject with no query, and does not read its fields', async () => {
         const runner = { isBidi: true, sessionId: 'r', options: { userCommandEvents: true }, emit: vi.fn() }
         const ext = vi.fn()

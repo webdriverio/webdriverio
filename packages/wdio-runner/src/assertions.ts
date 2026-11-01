@@ -7,7 +7,6 @@ type Matcher = (this: { isNot?: boolean } | undefined, ...args: unknown[]) => un
 const ASSERTION_WRAPPER = Symbol('wdio.assertionWrapper')
 // Vitest finds an inline snapshot in the test file from the frames of its call: a wrapper frame moves it
 const UNWRAPPED_MATCHERS = ['toMatchInlineSnapshot']
-const MAX_QUERY_STEPS = 10
 // the brand of the `some()` wrapper of expect-webdriverio, through the global symbol registry as in expect-webdriverio
 const SOME_SYMBOL = Symbol.for('expect-webdriverio.some')
 
@@ -51,8 +50,10 @@ function isSome (value: unknown) {
 
 // the session of the subject, so an assertion on a multi-remote instance is a user command of that instance
 function sessionOf (subject: unknown) {
-    let current = subject
-    for (let step = 0; step < MAX_QUERY_STEPS; step++) {
+    // no limit on the length of the chain, only a guard against a cycle
+    const seen = new Set<unknown>()
+    for (let current = subject; !seen.has(current);) {
+        seen.add(current)
         const kind = getWdioKind(current)
         if (kind === 'browser') {
             return current
