@@ -356,26 +356,37 @@ describe('filterStackTrace', () => {
 })
 
 describe('timeout title', () => {
-    const titleOf = async (type: string, identity: unknown) => {
+    const titleOf = async (type: string, identity: unknown, hookName?: string) => {
         const executeAsync = vi.fn(async () => undefined)
         await testFrameworkFnWrapper.call(
             {}, { executeHooksWithArgs: vi.fn(), executeAsync } as any, type,
             { specFn: () => {}, specFnArgs: [] },
             { beforeFn: [], beforeFnArgs: () => [] },
             { afterFn: [], afterFnArgs: (ctx: unknown) => [identity, ctx] },
-            '0-0', 0, undefined, 5000
+            '0-0', 0, hookName, 5000
         )
         return (executeAsync.mock.calls[0] as unknown[])[4]
     }
+    const spec = { description: 'pays the order', fullName: 'checkout pays the order' }
 
-    it('gives the spec name of a Jasmine test to the timeout error', async () => {
-        expect(await titleOf('Test', { description: 'pays the order', fullName: 'checkout pays the order' })).toBe('checkout pays the order')
+    it('gives the full name of a Jasmine spec', async () => {
+        expect(await titleOf('Test', spec)).toBe('checkout pays the order')
         expect(await titleOf('Test', { description: 'pays the order' })).toBe('pays the order')
+        expect(await titleOf('Test', { fullName: 42, description: 'pays the order' })).toBe('pays the order')
     })
 
-    it('gives no title for a hook, a Cucumber step or an identity without a name', async () => {
-        expect(await titleOf('Hook', { fullName: 'checkout pays the order' })).toBeUndefined()
+    it('names a Jasmine hook, with the spec only for a beforeEach / afterEach', async () => {
+        expect(await titleOf('Hook', spec, 'beforeEach')).toBe('beforeEach hook for checkout pays the order')
+        expect(await titleOf('Hook', spec, 'afterEach')).toBe('afterEach hook for checkout pays the order')
+        expect(await titleOf('Hook', {}, 'beforeEach')).toBe('beforeEach hook')
+        // the identity of a beforeAll / afterAll is the previous spec
+        expect(await titleOf('Hook', spec, 'beforeAll')).toBe('beforeAll hook')
+        expect(await titleOf('Hook', spec, 'afterAll')).toBe('afterAll hook')
+    })
+
+    it('gives no title for a Cucumber step or hook, or an identity without a name', async () => {
         expect(await titleOf('Step', { text: 'I pay the order' })).toBeUndefined()
+        expect(await titleOf('Hook', { text: 'I pay the order' })).toBeUndefined()
         expect(await titleOf('Test', {})).toBeUndefined()
         expect(await titleOf('Test', undefined)).toBeUndefined()
     })

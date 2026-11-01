@@ -1,6 +1,6 @@
 import { logHookError } from './errorHandler.js'
 import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
-import { getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
+import { fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
 
 import type {
     WrapperMethods,
@@ -60,6 +60,27 @@ export const testFnWrapper = function (
  * @param   {number} timeout        the maximum time (in milliseconds) to wait for
  * @return  {*}                     specFn result
  */
+/**
+ * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable.
+ * The identity of a `beforeAll` / `afterAll` is the previous spec, so only its hook name is used.
+ */
+function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown) {
+    if (type === 'Test') {
+        return fullTestNameFrom(identity)
+    }
+    if (type !== 'Hook') {
+        return undefined
+    }
+    if (hookName === 'beforeAll' || hookName === 'afterAll') {
+        return `${hookName} hook`
+    }
+    if (hookName === 'beforeEach' || hookName === 'afterEach') {
+        const spec = fullTestNameFrom(identity)
+        return spec ? `${hookName} hook for ${spec}` : `${hookName} hook`
+    }
+    return undefined
+}
+
 export const testFrameworkFnWrapper = async function (
     this: unknown,
     { executeHooksWithArgs, executeAsync }: WrapperMethods,
@@ -102,10 +123,7 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
-    // Jasmine has no runnable to name the test in a timeout error: use its spec name
-    const identity = identitySnapshot?.[0] as { fullName?: unknown, description?: unknown } | undefined
-    const specName = identity?.fullName || identity?.description
-    const timeoutTitle = type === 'Test' && typeof specName === 'string' ? specName : undefined
+    const timeoutTitle = timeoutTitleOf(type, hookName, identitySnapshot?.[0])
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
