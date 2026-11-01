@@ -187,7 +187,10 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     // a nested call runs in the frame of the outer call, or as a child when the outer call expands
     const frame = userCommandStore.getStore()
     // the original command that an overwrite calls is part of the overwrite
-    if (frame && (!expandsFrame(frame) || frame.command === command || frame.layerOf === command)) {
+    if (frame?.layerOf === command) {
+        return userCommandStore.run(Object.getPrototypeOf(frame) as UserCommandFrame, run)
+    }
+    if (frame && (!expandsFrame(frame) || frame.command === command)) {
         return run()
     }
     return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
@@ -201,9 +204,10 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
  */
 export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T): T {
     const frame = userCommandStore?.getStore()
-    // the next layer of an overwrite is part of that user command: its old events are replaced too
+    // the next layer of an overwrite is part of that user command: its old events are replaced too. Its body runs
+    // with no mark, so a recursive call in it is a nested call
     if (frame?.layerOf === command) {
-        return run(true)
+        return userCommandStore!.run(Object.getPrototypeOf(frame) as UserCommandFrame, () => run(true))
     }
     if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
