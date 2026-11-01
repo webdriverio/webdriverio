@@ -47,7 +47,7 @@ function hasFrameworkListener () {
     ))
 }
 
-const LATE_REJECTION_TIMEOUT = 30_000
+const LATE_REJECTION_TIMEOUT = 60_000
 const CLOSE_SESSION_TIMEOUT = 5_000
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms).unref())
 
@@ -72,6 +72,7 @@ export default class Runner extends EventEmitter {
     private _shutdownStarted = false
     private _endingWorker = false
     private _runnerStarted = false
+    private _watch = false
     private _retries = 0
 
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
@@ -126,7 +127,8 @@ export default class Runner extends EventEmitter {
             return
         }
         this._endingWorker = true
-        if (this.#hasSessions()) {
+        // watch mode keeps the session for the next run, as `run()` does
+        if (!this._watch && this.#hasSessions()) {
             await Promise.race([this.#closeSessions(), wait(CLOSE_SESSION_TIMEOUT)])
         }
         // no reporter yet (e.g. a service fails before the session): there is no report to write
@@ -154,6 +156,7 @@ export default class Runner extends EventEmitter {
         this._shutdownStarted = false
         this._endingWorker = false
         this._runnerStarted = false
+        this._watch = Boolean(args.watch)
         this._retries = retries
         clearTimeout(this._lateRejectionTimer)
         this._lateRejectionTimer = undefined

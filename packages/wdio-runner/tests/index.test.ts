@@ -739,13 +739,13 @@ describe('wdio-runner', () => {
                         return never()
                     })
 
-                    await vi.advanceTimersByTimeAsync(29_000)
+                    await vi.advanceTimersByTimeAsync(59_000)
                     expect(exits).toEqual([])
                     await vi.advanceTimersByTimeAsync(1_000)
                     await vi.waitFor(() => expect(exits).toEqual([1]))
                     expect(errors.map((e) => e.message)).toEqual([
                         expect.stringMatching(/^Unhandled promise rejection that no test reports/),
-                        expect.stringMatching(/^The worker did not finish 30s after an unhandled rejection/)
+                        expect.stringMatching(/^The worker did not finish 60s after an unhandled rejection/)
                     ])
                     expect(runnerEnds()).toHaveLength(1)
                 })
@@ -758,7 +758,7 @@ describe('wdio-runner', () => {
                         return new Promise<number>((resolve) => { release = () => resolve(0) })
                     })
                     await vi.advanceTimersByTimeAsync(0)
-                    for (let i = 0; i < 6; i++) {
+                    for (let i = 0; i < 12; i++) {
                         runner['_reporter']!.emit('client:beforeCommand', {})
                         await vi.advanceTimersByTimeAsync(10_000)
                     }
@@ -778,7 +778,7 @@ describe('wdio-runner', () => {
                         return new Promise<number>((resolve) => { release = () => resolve(0) })
                     })
 
-                    await vi.advanceTimersByTimeAsync(60_000)
+                    await vi.advanceTimersByTimeAsync(120_000)
                     expect(exits).toEqual([])
                     process.removeListener('uncaughtException', frameworkListener)
                     release()
@@ -839,11 +839,23 @@ describe('wdio-runner', () => {
                     expect(events.filter((e) => e.startsWith('runner:'))).toEqual(['runner:start', 'runner:end'])
                 })
 
+                it('keeps the session in watch mode when the worker ends early', async () => {
+                    const deleteSession = vi.fn().mockResolvedValue(undefined)
+                    const { exits } = startWith(() => {
+                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                        return never()
+                    }, { watch: true }, { sessionId: 's', deleteSession })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(deleteSession).not.toBeCalled()
+                    expect(runnerEnds()).toHaveLength(1)
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-                    const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 60_000)))
+                    const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
 
-                    await vi.advanceTimersByTimeAsync(60_000)
+                    await vi.advanceTimersByTimeAsync(120_000)
                     await done
                     expect(exits).toEqual([0])
                     expect(errors).toHaveLength(0)
