@@ -2,7 +2,7 @@ import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import * as shim from '../../src/shim.js'
-import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'
+import { testFnWrapper, testFrameworkFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'
 import { setDebugAgentPause } from '../../src/test-framework/debugAgent.js'
 
 vi.mock('../../src/shim', () => ({
@@ -352,5 +352,31 @@ describe('filterStackTrace', () => {
         `
 
         expect(filteredStack).toBe(filterStackTrace(stacktrace))
+    })
+})
+
+describe('timeout title', () => {
+    const titleOf = async (type: string, identity: unknown) => {
+        const executeAsync = vi.fn(async () => undefined)
+        await testFrameworkFnWrapper.call(
+            {}, { executeHooksWithArgs: vi.fn(), executeAsync } as any, type,
+            { specFn: () => {}, specFnArgs: [] },
+            { beforeFn: [], beforeFnArgs: () => [] },
+            { afterFn: [], afterFnArgs: (ctx: unknown) => [identity, ctx] },
+            '0-0', 0, undefined, 5000
+        )
+        return (executeAsync.mock.calls[0] as unknown[])[4]
+    }
+
+    it('gives the spec name of a Jasmine test to the timeout error', async () => {
+        expect(await titleOf('Test', { description: 'pays the order', fullName: 'checkout pays the order' })).toBe('checkout pays the order')
+        expect(await titleOf('Test', { description: 'pays the order' })).toBe('pays the order')
+    })
+
+    it('gives no title for a hook, a Cucumber step or an identity without a name', async () => {
+        expect(await titleOf('Hook', { fullName: 'checkout pays the order' })).toBeUndefined()
+        expect(await titleOf('Step', { text: 'I pay the order' })).toBeUndefined()
+        expect(await titleOf('Test', {})).toBeUndefined()
+        expect(await titleOf('Test', undefined)).toBeUndefined()
     })
 })

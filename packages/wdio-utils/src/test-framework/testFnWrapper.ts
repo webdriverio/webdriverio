@@ -102,6 +102,10 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
+    // Jasmine has no runnable to name the test in a timeout error: use its spec name
+    const identity = identitySnapshot?.[0] as { fullName?: unknown, description?: unknown } | undefined
+    const specName = identity?.fullName || identity?.description
+    const timeoutTitle = type === 'Test' && typeof specName === 'string' ? specName : undefined
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
@@ -110,7 +114,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
             if (frameworkResult.result !== undefined) {
