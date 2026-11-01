@@ -69,8 +69,7 @@ export default class WDIOReporter extends EventEmitter {
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
     // the owner of each open user command, from its start
     #userCommandOwners = new Map<number, TestStats | HookStats | undefined>()
-    // the name of each open user command, the hidden protocol commands that wait for their result, the hidden events
-    #userCommandNames = new Map<number, string>()
+    // the hidden protocol commands that wait for their result
     #hiddenChildren = new Map<string, number>()
     // the owner of each ended user command of the suite: a late call (a waitUntil condition after its timeout) is no
     // excluded one while that owner runs
@@ -189,7 +188,6 @@ export default class WDIOReporter extends EventEmitter {
             // the owner at the start: a result after the end of its test (a test timeout) stays in that test
             const owner = getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
-            this.#userCommandNames.set(payload.id, payload.command)
             this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
             this.#addUserEntry(owner, payload, 'userCommand')
         })
@@ -200,7 +198,6 @@ export default class WDIOReporter extends EventEmitter {
             const known = this.#userCommandOwners.has(payload.id)
             const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
             this.#userCommandOwners.delete(payload.id)
-            this.#userCommandNames.delete(payload.id)
             this.#endedUserCommands.set(payload.id, owner)
             const unit = owner && this.#unitOfStats.get(owner)
             if (unit) {
@@ -545,7 +542,6 @@ export default class WDIOReporter extends EventEmitter {
             try {
                 this.#openAllHooks.clear()
                 this.#userCommandOwners.clear()
-                this.#userCommandNames.clear()
                 this.#hiddenChildren.clear()
                 this.#endedUserCommands.clear()
                 rootSuite.complete()
@@ -639,7 +635,7 @@ export default class WDIOReporter extends EventEmitter {
         }
         // a user command with no entry: excluded, sent to no listener, or ended with its owner (else the call goes to the next test)
         const endedOwner = this.#endedUserCommands.get(payload.parent)
-        if (this.#userCommandNames.has(payload.parent) || (endedOwner && !endedOwner.end)) {
+        if (this.#userCommandOwners.has(payload.parent) || (endedOwner && !endedOwner.end)) {
             return false
         }
         this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
