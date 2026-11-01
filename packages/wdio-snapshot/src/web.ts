@@ -805,12 +805,23 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return extendedCounts
     }
 
-    // runs in the page and cannot import `toXPathStringLiteral` from `@wdio/utils`; skips values with both quote types
+    // runs in the page and cannot import `toXPathStringLiteral` from `@wdio/utils`, so it repeats it
     function xpathLiteral (value: string) {
         if (!value.includes('"')) {
             return `"${value}"`
         }
-        return value.includes("'") ? undefined : `'${value}'`
+        if (!value.includes("'")) {
+            return `'${value}'`
+        }
+        const parts: string[] = []
+        for (const segment of value.split('"')) {
+            if (segment.length > 0) {
+                parts.push(`"${segment}"`)
+            }
+            parts.push('\'"\'')
+        }
+        parts.pop()
+        return `concat(${parts.join(', ')})`
     }
 
     function candidates (el: Element, role: string, name: string): SnapshotCandidate[] {
