@@ -587,13 +587,14 @@ describe('currentUserCommandId', () => {
 })
 
 describe('userCommandParent', () => {
-    it('is the id of the outer call, except for a screenshot', async () => {
+    it('is the id of the outer call; a screenshot gets it as its owner', async () => {
         const browser = fakeBrowser()
         expect(mod.userCommandParent('getElementText')).toEqual({})
+        expect(mod.userCommandParent('takeScreenshot')).toEqual({})
         await mod.runUserCommand(browser, 'waitUntil', [], async () => {
             expect(mod.userCommandParent('getElementText')).toEqual({ parent: 1 })
-            expect(mod.userCommandParent('takeScreenshot')).toEqual({})
-            expect(mod.userCommandParent('takeElementScreenshot')).toEqual({})
+            expect(mod.userCommandParent('takeScreenshot')).toEqual({ owner: 1 })
+            expect(mod.userCommandParent('takeElementScreenshot')).toEqual({ owner: 1 })
         })
     })
 })

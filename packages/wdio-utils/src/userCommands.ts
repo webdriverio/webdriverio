@@ -89,13 +89,16 @@ export function currentUserCommandId (): number | undefined {
 }
 
 /**
- * The `parent` field of a protocol event: the id of the outer user command. A screenshot gets none, because
- * reporters take screenshots from its event.
+ * The `parent` field of a protocol event: the id of the outer user command. A screenshot gets no `parent`, because
+ * reporters take screenshots from its event: it gets the id as `owner`.
  * @experimental
  */
-export function userCommandParent (command: string): { parent?: number } {
-    const id = NO_EVENT_COMMANDS.includes(command) ? undefined : currentUserCommandId()
-    return id === undefined ? {} : { parent: id }
+export function userCommandParent (command: string): { parent?: number, owner?: number } {
+    const id = currentUserCommandId()
+    if (id === undefined) {
+        return {}
+    }
+    return NO_EVENT_COMMANDS.includes(command) ? { owner: id } : { parent: id }
 }
 
 /**

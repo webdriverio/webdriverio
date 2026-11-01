@@ -23,6 +23,11 @@ export interface CommandArgs {
      */
     parent?: number
     /**
+     * Id of the user command that runs this screenshot command, which has no `parent` so that every reporter gets it
+     * @experimental
+     */
+    owner?: number
+    /**
      * `true` for the old event of a custom command that is itself the user command `parent`: the user command replaces it
      * @experimental
      */
