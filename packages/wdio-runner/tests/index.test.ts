@@ -575,6 +575,136 @@ describe('wdio-runner', () => {
                 expect.any(Array)
             )
         })
+
+        describe('error that no framework reports', () => {
+            const runWith = async (frameworkRun: () => unknown, args: Record<string, unknown> = {}) => {
+                const runner = new WDIORunner()
+                const config: any = { reporters: [], before: [], beforeSession: [], framework: 'late', runner: 'local' }
+                vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+                vi.mocked(initializePlugin).mockResolvedValueOnce({
+                    default: { init () { return this }, hasTests: () => true, run: frameworkRun }
+                } as any)
+                runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
+                const errors: { message: string }[] = []
+                const exits: number[] = []
+                runner.on('error', (err) => errors.push(err))
+                runner.on('exit', (code) => exits.push(code))
+                const failures = await runner.run({ args: { reporters: [], ...args }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+                return { runner, errors, exits, failures }
+            }
+
+            // Jasmine removes every listener during its run and puts them back after it, so do the same here
+            const withOnlyRunnerListeners = () => {
+                const saved = process.listeners('uncaughtException')
+                process.removeAllListeners('uncaughtException')
+                onTestFinished(() => {
+                    process.removeAllListeners('uncaughtException')
+                    saved.forEach((listener) => process.on('uncaughtException', listener))
+                })
+            }
+
+            it('keeps the worker alive, shows the error and fails the run', async () => {
+                withOnlyRunnerListeners()
+                const log = logger('@wdio/runner')
+                vi.spyOn(log, 'error').mockImplementation(() => {})
+                const late = new Error('late rejection')
+                let listeners = 0
+                const { errors, exits, failures } = await runWith(() => {
+                    listeners = process.listenerCount('uncaughtException')
+                    process.emit('uncaughtException', late, 'unhandledRejection')
+                    return 0
+                })
+
+                expect(listeners).toBe(1)
+                expect(failures).toBe(1)
+                expect(exits).toEqual([1])
+                expect(errors).toHaveLength(1)
+                expect(errors[0].message).toContain('Unhandled promise rejection')
+                expect(errors[0].message).toContain(late.stack)
+                expect(log.error).toBeCalledWith(errors[0].message)
+            })
+
+            it('also fails the run when Node\'s domain module adds its own listener', async () => {
+                withOnlyRunnerListeners()
+                await import('node:domain')
+                const log = logger('@wdio/runner')
+                vi.spyOn(log, 'error').mockImplementation(() => {})
+                let listeners: string[] = []
+                const { errors, failures } = await runWith(() => {
+                    listeners = process.listeners('uncaughtException').map((listener) => listener.name)
+                    process.emit('uncaughtException', new Error('late rejection'), 'unhandledRejection')
+                    return 0
+                })
+
+                expect(listeners).toContain('domainUncaughtExceptionClear')
+                expect(failures).toBe(1)
+                expect(errors).toHaveLength(1)
+            })
+
+            it('fails the run for an error that comes after the end of the session', async () => {
+                withOnlyRunnerListeners()
+                const log = logger('@wdio/runner')
+                vi.spyOn(log, 'error').mockImplementation(() => {})
+                const { failures, exits } = await runWith(() => {
+                    setImmediate(() => process.emit('uncaughtException', new Error('late rejection'), 'unhandledRejection'))
+                    return 0
+                })
+
+                expect(failures).toBe(1)
+                expect(exits).toEqual([1])
+            })
+
+            it('adds no listener with mochaOpts.allowUncaught, so that an uncaught error still ends the worker', async () => {
+                withOnlyRunnerListeners()
+                let listeners = -1
+                const runner = new WDIORunner()
+                const config: any = { reporters: [], before: [], beforeSession: [], framework: 'late', runner: 'local', mochaOpts: { allowUncaught: true } }
+                vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+                vi.mocked(initializePlugin).mockResolvedValueOnce({
+                    default: { init () { return this }, hasTests: () => true, run: () => {
+                        listeners = process.listenerCount('uncaughtException')
+                        return 0
+                    } }
+                } as any)
+                runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
+                await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+
+                expect(listeners).toBe(0)
+            })
+
+            it('leaves the error to the framework when it has its own listener', async () => {
+                withOnlyRunnerListeners()
+                const frameworkListener = vi.fn()
+                const { errors, exits, failures } = await runWith(() => {
+                    process.on('uncaughtException', frameworkListener)
+                    process.emit('uncaughtException', new Error('in a test'), 'uncaughtException')
+                    process.removeListener('uncaughtException', frameworkListener)
+                    return 0
+                })
+
+                expect(frameworkListener).toBeCalledTimes(1)
+                expect(failures).toBe(0)
+                expect(exits).toEqual([0])
+                expect(errors).toHaveLength(0)
+            })
+
+            it('adds one listener and counts the errors of each run (watch mode)', async () => {
+                withOnlyRunnerListeners()
+                const log = logger('@wdio/runner')
+                vi.spyOn(log, 'error').mockImplementation(() => {})
+                const { runner, failures } = await runWith(() => {
+                    process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                    return 2
+                }, { watch: true })
+                expect(failures).toBe(3)
+
+                vi.mocked(initializePlugin).mockResolvedValueOnce({
+                    default: { init () { return this }, hasTests: () => true, run: () => 0 }
+                } as any)
+                expect(await runner.run({ args: { reporters: [], watch: true }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })).toBe(0)
+                expect(process.listeners('uncaughtException').filter((listener) => listener.name === 'onLateError')).toHaveLength(1)
+            })
+        })
     })
 
     describe('_initSession', () => {
@@ -731,7 +861,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_browser'] = {} as unknown as BrowserObject
             runner['_reporter'] = {
-                waitForSync: vi.fn().mockReturnValue(Promise.reject('foo')),
+                waitForSync: vi.fn().mockRejectedValue('foo'),
                 emit: vi.fn()
             } as any
             runner.emit = vi.fn()

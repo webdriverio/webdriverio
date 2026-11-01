@@ -40,11 +40,11 @@ Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberTestrunnerMultipleByLineNumber`, `cucumberFailAmbiguousDefinitions`,
 `cucumberPendingTest`, `cucumberReporter`, `cucumberFileOption`,
 `cucumberSkipTag`, `cucumberGroupedSpecsRandomOrder`,
-`cucumberGroupedSpecsRandomOrderHistory`, `cucumberSameFeatureFileName`
+`cucumberGroupedSpecsRandomOrderHistory`, `cucumberSameFeatureFileName`, `cucumberLateRejection`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineAfterAll`, `jasmineFailingAfterAll`, `jasmineFailSpecWithNoExpectations`,
-`jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`
+`jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`, `jasmineLateRejection`
 
 CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
 `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,

@@ -353,6 +353,40 @@ const jasmineFailingAfterAll = async () => {
 }
 
 /**
+ * A promise without await in the last hook or step fails the run, and the worker still writes the reports
+ */
+const lateRejection = async (name, framework, specs, configPath = baseConfig) => {
+    const logFile = path.resolve(__dirname, `${name}.spec.log`)
+    const outputDir = path.resolve(__dirname, 'helpers', name)
+    await fs.rm(logFile, { force: true })
+    await fs.rm(outputDir, { recursive: true, force: true })
+    const error = await launch(name, configPath, {
+        specs,
+        reporters: [
+            ['spec', { outputDir: __dirname, stdout: false, logFile }],
+            ['smoke-test', { outputDir }]
+        ],
+        framework
+    }).then(() => undefined, (err) => err)
+
+    assert.ok(error, 'run passed although a promise rejected after the last test')
+    await sleep(100)
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    const reporterLogs = (await fs.readFile(path.join(outputDir, 'wdio-0-0-smoke-test-reporter.log'))).toString()
+    await fs.rm(outputDir, { recursive: true, force: true })
+    assert.ok(specLogs.includes('Should pass'), `spec reporter did not report the test:\n${specLogs}`)
+    assert.ok(reporterLogs.trim().endsWith('onRunnerEnd'), `expected the report to end with onRunnerEnd, got:\n${reporterLogs}`)
+}
+
+const jasmineLateRejection = () => lateRejection('jasmineLateRejection', 'jasmine', [
+    path.resolve(__dirname, 'jasmine', 'late-rejection.js')
+])
+
+const cucumberLateRejection = () => lateRejection('cucumberLateRejection', 'cucumber', [
+    path.resolve(__dirname, 'cucumber', 'late-rejection.feature')
+], path.resolve(__dirname, 'helpers', 'cucumber-late-rejection.conf.js'))
+
+/**
  * Jasmine verify failSpecWithNoExpectations support
  */
 const jasmineFailSpecWithNoExpectations = async () => {
@@ -1828,6 +1862,8 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaTimeout,
         jasmineAfterAll,
         jasmineFailingAfterAll,
+        jasmineLateRejection,
+        cucumberLateRejection,
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
