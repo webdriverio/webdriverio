@@ -92,6 +92,19 @@ describe('user command events', () => {
         expect(body).toEqual([{ wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }] }])
     })
 
+    it('sends a pending react$$ list with the options of the test code only', async () => {
+        const browser = await bidiSession()
+        browser.addCommand('countItems', async () => 0)
+        const events = recordEvents(browser)
+        await (browser as unknown as { countItems: (list: unknown) => Promise<number> }).countItems(browser.react$$('MyComp'))
+        await (browser as unknown as { countItems: (list: unknown) => Promise<number> }).countItems(browser.react$$('MyComp', { props: { id: 1 } }))
+        const bodies = events.filter(([event, payload]) => event === 'userCommand' && payload.command === 'countItems').map(([, { body }]) => body)
+        expect(bodies).toEqual([
+            [{ wdio: 'element-array', query: [{ foundWith: 'react$$', selector: 'MyComp' }] }],
+            [{ wdio: 'element-array', query: [{ foundWith: 'react$$', selector: 'MyComp', props: [{ props: { id: 1 } }] }] }]
+        ])
+    })
+
     it('sends a pair for url and for $ called from a test', async () => {
         const browser = await bidiSession()
         const events = recordEvents(browser)
