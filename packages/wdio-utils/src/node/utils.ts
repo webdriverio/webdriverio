@@ -208,7 +208,6 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
     await unzipWithOsTool(args).then(() => install(args)).catch(async (err) => {
         if (err instanceof MissingUnzipToolError) {
             // a retry can not install the tool, and its message must stay clear
-            log.progress('')
             throw err
         }
         /**

@@ -72,8 +72,9 @@ export async function unzipWithOsTool (args: InstallOptions) {
         throw err
     }
 
-    // keep the archive: once a tool is installed, the next run uses it without a new download
+    // as `@puppeteer/browsers` 3: never keep the folder or the archive
     await removeOrWarn(outputPath)
+    await removeOrWarn(archivePath)
     throw new MissingUnzipToolError(
         `No unzip tool found to install ${args.browser} v${args.buildId}. WebdriverIO v9 on Node.js 26 and later requires one: ` +
         'install `unzip` on Linux or macOS (for example `apt-get install unzip`), or make `tar.exe`, `powershell.exe` or `pwsh.exe` available on Windows. ' +
@@ -113,18 +114,14 @@ async function extractZip (archivePath: string, folderPath: string): Promise<str
             await execFile(file, toolArgs, options)
             return name
         } catch (err) {
-            const { code, stdout, stderr } = err as { code?: string | number, stdout?: string | Buffer, stderr?: string | Buffer }
+            const { code, stderr } = err as { code?: string | number, stderr?: string | Buffer }
             if (code === 'ENOENT') {
                 continue
             }
-            // Info-ZIP exits with 1 when it printed warnings but extracted all files;
-            // BusyBox unzip (Alpine) exits with 1 on any error, with no warning text
-            if (name === 'unzip' && code === 1 && /\bwarning\b/i.test(`${stdout ?? ''}\n${stderr ?? ''}`)) {
-                log.info(`unzip exited with code 1 (warnings) for ${archivePath}: ${stderr?.toString().trim()}`)
-                return name
-            }
+            // any other exit code is a failure, as in `@puppeteer/browsers` 3: Info-ZIP exits
+            // with 1 also when it skipped files, BusyBox unzip (Alpine) on any error
             log.debug(`${name} failed to unzip ${archivePath}: ${err}`)
-            failure ??= new Error(`Failed to unzip ${archivePath} with ${name}: ${stderr?.toString().trim() || (err as Error)?.message || err}`)
+            failure ??= new Error(`Failed to unzip ${archivePath} with ${name}: ${stderr?.toString().trim() || (err as Error)?.message || err}`, { cause: err })
         }
     }
     if (failure) {

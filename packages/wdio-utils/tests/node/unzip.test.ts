@@ -163,10 +163,10 @@ describe('unzipWithOsTool', () => {
     })
 
     /**
-     * extract-zip never settles on Node 26, so no fallback to it: a clear error, and the
-     * archive is kept for the next run once a tool is installed
+     * extract-zip never settles on Node 26, so no fallback to it: a clear error, and no
+     * folder or archive is kept, as in `@puppeteer/browsers` 3
      */
-    it('throws a clear error and keeps the archive when unzip is not installed', async () => {
+    it('throws a clear error and removes the folder and the archive when unzip is not installed', async () => {
         execFileResults({ unzip: errnoError('ENOENT') })
 
         const error = await unzipWithOsTool(args).catch((err) => err)
@@ -174,14 +174,19 @@ describe('unzipWithOsTool', () => {
         expect(error).toBeInstanceOf(MissingUnzipToolError)
         expect(error.message).toContain('No unzip tool found to install chromedriver v133.0.6943.141. WebdriverIO v9 on Node.js 26 and later requires one')
         expect(error.message).toContain('apt-get install unzip')
-        expect(fsp.rm).toHaveBeenCalledTimes(1)
+        expect(fsp.rm).toHaveBeenCalledTimes(2)
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
+        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
     })
 
-    it('removes the build folder and the archive when unzip fails', async () => {
-        execFileResults({ unzip: exitError(9, 'End-of-central-directory signature not found') })
+    it('removes the build folder and the archive when unzip fails, and keeps the tool error as cause', async () => {
+        const toolError = exitError(9, 'End-of-central-directory signature not found')
+        execFileResults({ unzip: toolError })
 
-        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with unzip: End-of-central-directory signature not found`)
+        const error = await unzipWithOsTool(args).catch((err) => err)
+
+        expect(error.message).toBe(`Failed to unzip ${archivePath} with unzip: End-of-central-directory signature not found`)
+        expect(error.cause).toBe(toolError)
 
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
@@ -198,27 +203,18 @@ describe('unzipWithOsTool', () => {
     })
 
     /**
-     * unzip exits with 1 when it printed warnings but extracted all files,
-     * e.g. for a zip with extra bytes at the start
+     * as in `@puppeteer/browsers` 3: Info-ZIP exits with 1 also when it skipped files
+     * (unsupported compression or encryption), BusyBox unzip (Alpine) on any error
      */
-    it('accepts the unzip warning exit code and logs it', async () => {
-        execFileResults({ unzip: exitError(1, 'warning: 4 extra bytes at beginning or within zipfile') })
+    it.each([
+        ['an Info-ZIP warning', 'warning: 4 extra bytes at beginning or within zipfile'],
+        ['a BusyBox error', 'unzip: short read']
+    ])('treats unzip exit code 1 with %s as a failure', async (_, stderr) => {
+        execFileResults({ unzip: exitError(1, stderr) })
 
-        await unzipWithOsTool(args)
+        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with unzip: ${stderr}`)
 
-        expect(fsp.rm).not.toHaveBeenCalled()
-        expect(logMock.info).toHaveBeenCalledWith(`unzip exited with code 1 (warnings) for ${archivePath}: warning: 4 extra bytes at beginning or within zipfile`)
-        expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with unzip')
-    })
-
-    /**
-     * BusyBox unzip (Alpine) exits with 1 on any error, with no warning text
-     */
-    it('treats exit code 1 without a warning as a failure', async () => {
-        execFileResults({ unzip: exitError(1, 'unzip: short read') })
-
-        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with unzip: unzip: short read`)
-
+        expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
     })
 
