@@ -72,6 +72,31 @@ describe('userCommandTree and joinUserCommandTree', () => {
         expect(joined[0].children[0].text).toBe(joined[0].children[1].text)
     })
 
+    it('joins 10 000 nested polls fast', () => {
+        const results = Array.from({ length: 10_000 }, (_, i) => ({ value: i % 3 === 0 ? 'a' : 'b' }))
+        const start = Date.now()
+        const [wait] = joinUserCommandTree(userCommandTree(waitOutput(results)))
+        expect(Date.now() - start).toBeLessThan(1000)
+        expect(wait.children.length).toBeLessThan(10)
+    })
+
+    it('reads no big raw body of a step that cannot be joined, and never joins two steps with a big body', () => {
+        let reads = 0
+        const big = new Proxy({ data: 'x'.repeat(100_000) }, { get: (target, prop, receiver) => { reads++; return Reflect.get(target, prop, receiver) } })
+        const call = (id: number, value: number) => [
+            { type: 'command', command: 'upload', body: [big], parent: 1, id },
+            { type: 'result', command: 'upload', parent: 1, result: { value } }
+        ]
+        // different results: these steps cannot be joined
+        const unique = [user(1, 'waitUntil'), ...call(1, 1), ...call(2, 2), ...call(3, 3), userResult(1, 'waitUntil', { value: true })]
+        joinUserCommandTree(userCommandTree(unique))
+        expect(reads).toBe(0)
+        // the same result and the same big body: the body is too big to compare, so the steps stay apart
+        const same = [user(1, 'waitUntil'), ...call(1, 1), ...call(2, 1), userResult(1, 'waitUntil', { value: true })]
+        const [wait] = joinUserCommandTree(userCommandTree(same))
+        expect(wait.children).toHaveLength(2)
+    })
+
     it('does not join two calls whose arguments differ after the title limit, or two requests with different bodies', () => {
         const long = (end: string) => `${'x'.repeat(130)}${end}`
         const setValue = (id: number, value: string) => [
