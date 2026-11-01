@@ -80,12 +80,26 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Build test container
+        timeout-minutes: 5 # a build takes about 2 min
+        shell: bash
         run: |
-          docker build \
-            ${{ matrix.build_args }} \
-            -f e2e/wdio/display-server/docker/${{ matrix.distro }}.dockerfile \
-            -t "$IMAGE" \
-            e2e/wdio/display-server/docker/
+          # Package mirrors and registries have short outages. Retry once, only after a network or server error, with
+          # jitter so the matrix jobs do not retry together; the cached layers are not fetched again.
+          transient='Connection (refused|failed|reset|timed out)|Could not resolve|Temporary failure|temporarily unaccessible|repositories have not been refreshed|Operation timed out|TLS handshake timeout|HTTP/2 stream [0-9]+ was not closed cleanly|unexpected status code|returned error: (429|5[0-9][0-9])|Status (429|5[0-9][0-9])|Gateway Time-?out'
+          for attempt in 1 2; do
+            if docker build \
+              ${{ matrix.build_args }} \
+              -f e2e/wdio/display-server/docker/${{ matrix.distro }}.dockerfile \
+              -t "$IMAGE" \
+              e2e/wdio/display-server/docker/ 2>&1 | tee "$RUNNER_TEMP/docker-build.log"; then
+              exit 0
+            fi
+            cause=$(grep -m1 -oE "$transient" "$RUNNER_TEMP/docker-build.log") || exit 1
+            [ "$attempt" -lt 2 ] || exit 1
+            wait=$((5 + RANDOM % 5))
+            echo "::warning::Image build failed on a download (\"$cause\"), retry in ${wait}s"
+            sleep "$wait"
+          done
 
       - name: Run Display Server E2E tests in container
         timeout-minutes: 15 # a step timeout counts as a failure, so the failure() steps below still run; a job timeout would skip them
