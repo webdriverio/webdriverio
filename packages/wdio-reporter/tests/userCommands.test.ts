@@ -54,6 +54,18 @@ describe('user command events', () => {
         expect(reporter.calls).toEqual(['before getTitle -> B', 'after getTitle -> B'])
     })
 
+    it('calls both methods of a nested user command in the unit of its owner, also when its context is another one', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const nested = { ...userCommand, id: 2, command: 'getText', parent: 1, contextId: 'ctx-b' }
+
+        reporter.emit('client:beforeUserCommand', { ...userCommand, command: 'waitUntil', contextId: 'ctx-a' })
+        reporter.emit('client:beforeUserCommand', nested)
+        reporter.emit('client:afterUserCommand', { ...nested, result: { value: 'x' } })
+
+        expect(reporter.calls).toEqual(['before waitUntil -> A', 'before getText -> A', 'after getText -> A'])
+    })
+
     it('adds the user commands to the output of the owner', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
@@ -211,6 +223,25 @@ describe('user command events', () => {
         expect(reporter.commands).toEqual([])
         expect(reporter.tests.B.output).toEqual([])
         expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand', 'userResult'])
+    })
+
+    it('hides a protocol command of a user command that is still open after the end of its test', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        const click = { ...userCommand, id: 7, command: 'click' }
+        const find = { ...protocolCommand, command: 'findElement', endpoint: '/session/:sessionId/element', parent: 7 }
+        reporter.emit('client:beforeUserCommand', click)
+        reporter.emit('test:fail', { ...base, uid: 'A', title: 'A', error: new Error('timeout') })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:start', { ...base, uid: 'B', title: 'B' })
+        // the click of test A still waits for its element
+        reporter.emit('client:beforeCommand', find)
+        reporter.emit('client:afterCommand', { ...find, result: { value: {} } })
+
+        expect(reporter.commands).toEqual([])
+        expect(reporter.tests.B.output).toEqual([])
     })
 
     it('keeps a protocol command that starts after the end of its user command (a waitUntil condition after the timeout)', () => {
