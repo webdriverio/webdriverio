@@ -126,6 +126,30 @@ describe('user command events', () => {
         expect(reporter.tests.A.output).toEqual([])
     })
 
+    it('keeps a protocol command that starts after the end of its user command (a waitUntil condition after the timeout)', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        start(reporter)
+        const waitUntil = { ...userCommand, id: 7, command: 'waitUntil', contextId: 'ctx-a' }
+        const poll = { ...protocolCommand, command: 'getElementText', endpoint: '/session/:sessionId/element/e/text', parent: 7, contextId: 'ctx-a' }
+
+        reporter.emit('client:beforeUserCommand', waitUntil)
+        reporter.emit('client:beforeCommand', poll)
+        reporter.emit('client:afterCommand', { ...poll, result: { value: 'x' } })
+        reporter.emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('timeout') } })
+        reporter.emit('client:beforeCommand', poll)
+        reporter.emit('client:afterCommand', { ...poll, result: { value: 'y' } })
+
+        expect(reporter.commands).toEqual(['before getElementText', 'after getElementText', 'before getElementText', 'after getElementText'])
+        expect(reporter.tests.A.output.map((entry: any) => [entry.command, entry.type])).toEqual([
+            ['waitUntil', 'userCommand'],
+            ['getElementText', 'command'],
+            ['getElementText', 'result'],
+            ['waitUntil', 'userResult'],
+            ['getElementText', 'command'],
+            ['getElementText', 'result']
+        ])
+    })
+
     it('keeps a protocol event with no HTTP method and another name than its user command (a WebDriver BiDi overwrite)', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
