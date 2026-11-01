@@ -289,7 +289,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             return
         }
         const copy = shortCopy(result ? result.value : value)
-        send('userResult', { ...event, result: { value: fields.masked ? maskedCopy(copy) : copy } })
+        send('userResult', { ...event, result: { value: frame.masked ? maskedCopy(copy) : copy } })
     }
     const sendError = (error: unknown) => {
         frame.expands = false
@@ -349,7 +349,7 @@ const hasMaskOption = (args: unknown[]) => {
     }
 }
 
-// a short copy with every string and number masked: the values of a nested call of a masked user command
+// a short copy with every string and number masked: the values of a masked user command and of its nested calls
 function maskedCopy (value: unknown): unknown {
     const mask = (item: unknown): unknown => typeof item === 'string' || typeof item === 'number'
         ? SENSITIVE_DATA_REPLACER
@@ -373,9 +373,7 @@ export function userCommandBody (args: unknown[]): unknown[] {
         // the mask option is unknown, so no value is sent
         return args.map(() => UNREADABLE)
     }
-    return args.map((arg, i) => masked && i < args.length - 1 && (typeof arg === 'string' || typeof arg === 'number')
-        ? SENSITIVE_DATA_REPLACER
-        : shortCopy(arg))
+    return args.map((arg, i) => masked && i < args.length - 1 ? maskedCopy(arg) : shortCopy(arg))
 }
 
 function byteLength (text: string) {
