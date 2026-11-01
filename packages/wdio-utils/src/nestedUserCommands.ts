@@ -62,10 +62,9 @@ const DEFAULT_RULE: NestedRule = { mode: 'default', expand: NONE, collapse: NONE
  * The order: the top-level `exclude`, then `collapse`, then `expand`, then the mode.
  * @param option  the `userCommandEvents` option of the session
  * @param command the name of the user command
- * @param custom  `true` for a custom command (`addCommand`, `overwriteCommand`)
  * @experimental
  */
-export function expandsUserCommand (option: Options.Testrunner['userCommandEvents'], command: string, custom: boolean): boolean {
+export function expandsUserCommand (option: Options.Testrunner['userCommandEvents'], command: string): boolean {
     let rule = DEFAULT_RULE
     if (option && typeof option === 'object') {
         rule = rules.get(option) ?? parse(option)
@@ -77,5 +76,6 @@ export function expandsUserCommand (option: Options.Testrunner['userCommandEvent
     if (rule.expand(command) || rule.mode === 'all') {
         return true
     }
-    return rule.mode === 'default' && (custom || DEFAULT_EXPANDED(command))
+    // custom commands are not in the default list: a tight loop of nested calls costs worker CPU
+    return rule.mode === 'default' && DEFAULT_EXPANDED(command)
 }

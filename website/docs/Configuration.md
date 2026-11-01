@@ -381,7 +381,7 @@ userCommandEvents: {
 }
 ```
 
-- `'default'` (also when `nested` is not set): `waitUntil`, the `waitFor*` commands, the assertions (`expect.*`) and your custom commands (`addCommand`, `overwriteCommand`) show their direct calls. All other commands stay one step.
+- `'default'` (also when `nested` is not set): `waitUntil`, the `waitFor*` commands and the assertions (`expect.*`) show their direct calls. All other commands stay one step, also your custom commands: add a custom command to `expand` to see its direct calls (a custom command that calls many commands in a loop sends many more events).
 - `'none'`: no command shows its direct calls.
 - `'all'`: every command shows its direct calls, at every level. Use it for deep debugging, because it sends many more events.
 - A name in `expand` or `collapse` is a command name, or a name that ends with `*` (for example `waitFor*`).
