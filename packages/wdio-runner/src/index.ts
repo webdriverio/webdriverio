@@ -71,6 +71,7 @@ export default class Runner extends EventEmitter {
     private _lateRejectionTimer?: NodeJS.Timeout
     private _shutdownStarted = false
     private _endingWorker = false
+    private _runnerStarted = false
     private _retries = 0
 
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
@@ -134,7 +135,8 @@ export default class Runner extends EventEmitter {
             this.emit('exit', 1)
             return
         }
-        await this._shutdown(0, this._retries)
+        // before `runner:start` (e.g. in the `before` hook) the reporters need it to write `runner:end`
+        await this._shutdown(0, this._retries, !this._runnerStarted)
     }
 
     /**
@@ -151,6 +153,7 @@ export default class Runner extends EventEmitter {
         this._lateErrors = 0
         this._shutdownStarted = false
         this._endingWorker = false
+        this._runnerStarted = false
         this._retries = retries
         clearTimeout(this._lateRejectionTimer)
         this._lateRejectionTimer = undefined
@@ -325,6 +328,7 @@ export default class Runner extends EventEmitter {
                 : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this._specFileRetryAttempts
         } as Options.RunnerStart)
+        this._runnerStarted = true
 
         /**
          * report sessionId and target connection information to worker

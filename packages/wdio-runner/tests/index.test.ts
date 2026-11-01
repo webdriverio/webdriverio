@@ -823,6 +823,22 @@ describe('wdio-runner', () => {
                     expect(vi.mocked(process.send!).mock.calls.filter(([m]: any) => m.name === 'sessionEnded')).toHaveLength(1)
                 })
 
+                it('sends runner:start before runner:end when the worker ends in the before hook', async () => {
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'before') {
+                            process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                            await never()
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const { exits } = startWith(() => 0, {}, { sessionId: 's', deleteSession: vi.fn().mockResolvedValue(undefined) })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    const events = vi.mocked(BaseReporter.prototype.emit).mock.calls.map(([event]) => event)
+                    expect(events.filter((e) => e.startsWith('runner:'))).toEqual(['runner:start', 'runner:end'])
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 60_000)))
