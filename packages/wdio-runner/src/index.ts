@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import util from 'node:util'
 
 import logger from '@wdio/logger'
-import { initializeWorkerService, initializePlugin, executeHooksWithArgs, specFilePath, TimingTracker } from '@wdio/utils'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs, sleep, specFilePath, TimingTracker } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
@@ -34,9 +34,14 @@ function getContextIdPayload(browser: WebdriverIO.Browser) {
  */
 let lateErrorHandler: ((err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => void) | undefined
 function onLateError (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) {
-    if (!hasFrameworkListener()) {
-        lateErrorHandler?.(err, origin)
+    if (hasFrameworkListener()) {
+        return
     }
+    // without the parent, the report itself fails (`process.send`) and comes back here: end as without this listener
+    if (process.connected === false) {
+        throw err
+    }
+    lateErrorHandler?.(err, origin)
 }
 
 /**
@@ -61,7 +66,6 @@ function toPath (spec: string) {
 
 const LATE_REJECTION_TIMEOUT = 60_000
 const CLOSE_SESSION_TIMEOUT = 5_000
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms).unref())
 
 export default class Runner extends EventEmitter {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
@@ -151,7 +155,7 @@ export default class Runner extends EventEmitter {
         this._endingWorker = true
         // watch mode keeps the session for the next run, as `run()` does, once the parent knows it
         if (!(this._watch && this._sessionReported) && this.#hasSessions()) {
-            await Promise.race([this.#closeSessions(), wait(CLOSE_SESSION_TIMEOUT)])
+            await Promise.race([this.#closeSessions(), sleep(CLOSE_SESSION_TIMEOUT)])
         }
         // no reporter yet (e.g. a service fails before the session): there is no report to write
         if (!this._reporter) {

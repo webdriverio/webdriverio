@@ -933,6 +933,33 @@ describe('wdio-runner', () => {
                 expect(errors[0].message).toMatch(/\[Object: null prototype\] \{\}$/)
             })
 
+            it('ends the worker at once, as without the listener, when the parent process is gone', async () => {
+                withOnlyRunnerListeners()
+                const connected = Object.getOwnPropertyDescriptor(process, 'connected')
+                Object.defineProperty(process, 'connected', { value: false, configurable: true, writable: true })
+                onTestFinished(() => {
+                    if (connected) {
+                        Object.defineProperty(process, 'connected', connected)
+                    } else {
+                        delete (process as { connected?: boolean }).connected
+                    }
+                })
+                const thrown: string[] = []
+                const { errors } = await runWith(() => {
+                    for (const origin of ['uncaughtException', 'unhandledRejection'] as const) {
+                        try {
+                            process.emit('uncaughtException', Object.assign(new Error('Channel closed'), { code: 'ERR_IPC_CHANNEL_CLOSED' }), origin)
+                        } catch (err) {
+                            thrown.push((err as Error).message)
+                        }
+                    }
+                    return 0
+                })
+
+                expect(thrown).toEqual(['Channel closed', 'Channel closed'])
+                expect(errors).toHaveLength(0)
+            })
+
             it('leaves the error to the framework when it has its own listener', async () => {
                 withOnlyRunnerListeners()
                 const frameworkListener = vi.fn()
