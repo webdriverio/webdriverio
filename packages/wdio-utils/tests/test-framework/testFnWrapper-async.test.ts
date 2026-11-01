@@ -377,15 +377,21 @@ describe('timeout title', () => {
         expect(await titleOf('Test', { fullName: 42, description: 'pays the order' })).toBe('pays the order')
     })
 
-    it('names a Jasmine hook as Mocha does, with the spec only for a beforeEach / afterEach', async () => {
+    it('names a Jasmine hook in the order of a Mocha hook title, with the spec only for a beforeEach / afterEach', async () => {
         function loginAsAdmin () {}
-        expect(await titleOf('Hook', spec, 'beforeEach')).toBe('"before each" hook for "checkout pays the order"')
-        expect(await titleOf('Hook', spec, 'beforeEach', loginAsAdmin)).toBe('"before each" hook: loginAsAdmin for "checkout pays the order"')
-        expect(await titleOf('Hook', spec, 'afterEach')).toBe('"after each" hook for "checkout pays the order"')
+        expect(await titleOf('Hook', spec, 'beforeEach')).toBe('checkout "before each" hook for "pays the order"')
+        expect(await titleOf('Hook', spec, 'beforeEach', loginAsAdmin)).toBe('checkout "before each" hook: loginAsAdmin for "pays the order"')
+        expect(await titleOf('Hook', spec, 'afterEach')).toBe('checkout "after each" hook for "pays the order"')
+        expect(await titleOf('Hook', { description: 'pays the order' }, 'beforeEach')).toBe('"before each" hook for "pays the order"')
+        expect(await titleOf('Hook', { fullName: 'checkout pays the order' }, 'beforeEach')).toBe('"before each" hook for "checkout pays the order"')
         expect(await titleOf('Hook', {}, 'beforeEach')).toBe('"before each" hook')
         // the identity of a beforeAll / afterAll is the previous spec
         expect(await titleOf('Hook', spec, 'beforeAll')).toBe('"before all" hook')
         expect(await titleOf('Hook', spec, 'afterAll', loginAsAdmin)).toBe('"after all" hook: loginAsAdmin')
+    })
+
+    it('reports a hook with no function as an error, not as a TypeError of the wrapper', async () => {
+        expect(await titleOf('Hook', spec, 'beforeEach', null as unknown as Function)).toBe('checkout "before each" hook for "pays the order"')
     })
 
     it('gives no title with a Mocha runnable, for a Cucumber step or hook, or an identity without a name', async () => {

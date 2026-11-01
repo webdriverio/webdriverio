@@ -53,10 +53,11 @@ const HOOK_LABELS: Record<string, string> = {
 
 /**
  * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable
- * (Mocha: `undefined`, its runnable title is used). The identity of a `beforeAll` /
- * `afterAll` is the previous spec, so it gets no spec name.
+ * (Mocha: `undefined`, its runnable title is used). A hook gets the order of a Mocha
+ * hook `fullTitle()`: `<suite> "before each" hook: <function> for "<test>"`. The identity
+ * of a `beforeAll` / `afterAll` is the previous spec, so it gets no suite or test.
  */
-function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown, fnName: string) {
+function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown, fnName?: string) {
     if (type === 'Test') {
         return fullTestNameFrom(identity)
     }
@@ -65,8 +66,16 @@ function timeoutTitleOf (type: string, hookName: string | undefined, identity: u
         return undefined
     }
     const hook = `"${label}" hook${fnName ? `: ${fnName}` : ''}`
-    const spec = hookName?.endsWith('Each') ? fullTestNameFrom(identity) : undefined
-    return spec ? `${hook} for "${spec}"` : hook
+    if (!hookName?.endsWith('Each')) {
+        return hook
+    }
+    const fullName = fullTestNameFrom(identity)
+    const test = runnableFrom(identity).test ?? fullName
+    if (!test) {
+        return hook
+    }
+    const suite = fullName && fullName !== test && fullName.endsWith(test) ? fullName.slice(0, -test.length).trim() : ''
+    return `${suite ? `${suite} ` : ''}${hook} for "${test}"`
 }
 
 /**
@@ -127,7 +136,7 @@ export const testFrameworkFnWrapper = async function (
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
     const timeoutTitle = (this as { _runnable?: unknown } | undefined)?._runnable
         ? undefined
-        : timeoutTitleOf(type, hookName, identitySnapshot?.[0], specFn.name)
+        : timeoutTitleOf(type, hookName, identitySnapshot?.[0], (specFn as Function | undefined)?.name)
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined

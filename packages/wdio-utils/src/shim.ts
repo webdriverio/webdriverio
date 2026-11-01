@@ -766,7 +766,7 @@ function withAttempt (err: Error, attempt: number, totalAttempts: number) {
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
  * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
- * @param  {string}   title      name of the test for the timeout error when the framework has no runnable (Jasmine)
+ * @param  {string}   title      name of the test or hook for the timeout error when the framework has no runnable (Jasmine)
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 export async function executeAsync(
