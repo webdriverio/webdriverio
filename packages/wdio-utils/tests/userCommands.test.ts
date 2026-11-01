@@ -1003,7 +1003,7 @@ describe('custom commands', () => {
             ['userResult', 'myCmd', undefined]
         ])
         expect(events[0][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 'sessionId' })
-        expect(events[3][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 'sessionId', result: { value: 'secret!' } })
+        expect(events[3][1]).toEqual({ id: 1, command: 'myCmd', body: ['**MASKED**', { mask: true }], protocol: 'bidi', sessionId: 'sessionId', result: { value: '**MASKED**' } })
     })
 
     it('sends the error of a custom command', async () => {
@@ -1343,6 +1343,17 @@ describe('userCommandBody', () => {
         expect(mod.userCommandBody(['secret', { mask: true }])).toEqual(['**MASKED**', { mask: true }])
         expect(mod.userCommandBody([42, { mask: true }])).toEqual(['**MASKED**', { mask: true }])
         expect(mod.userCommandBody(['visible', { mask: false }])).toEqual(['visible', { mask: false }])
+    })
+
+    it('masks every string and number of a masked value, except the mask option', () => {
+        expect(mod.userCommandBody([{ user: 'u', password: 's3cret', tries: [1, true] }, { mask: true }]))
+            .toEqual([{ user: '**MASKED**', password: '**MASKED**', tries: ['**MASKED**', true] }, { mask: true }])
+    })
+
+    it('masks the result of a masked user command', async () => {
+        const browser = fakeBrowser()
+        await mod.runCustomCommand(browser, 'login', [{ user: 'u', password: 's3cret' }, { mask: true }], async () => 'token-s3cret')
+        expect(JSON.stringify(pairs(browser))).not.toContain('s3cret')
     })
 
     it('never sends a masked value', async () => {
