@@ -1,5 +1,7 @@
+import { toXPathStringLiteral } from '@wdio/utils'
+
 import type { SnapshotCandidate, SnapshotNode, SnapshotRef } from './format.js'
-import { nativeCandidates, uiSelectorLiteral, xpathLiteral, type SelectorNode } from './selectors.js'
+import { nativeCandidates, uiSelectorLiteral, type SelectorNode } from './nativeSelectors.js'
 import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import { SnapshotError } from './errors.js'
@@ -309,7 +311,7 @@ function positionalOf (platform: NativePlatform, tag: string, attrs: Record<stri
         return { own: bare, all, at: (n: number) => `(${bare})[${n}]` }
     }
     const names = POSITIONAL_ATTRS[platform]
-    const keyOf = (attr: string) => `${bare}[@${attr}=${xpathLiteral(attrs[attr])}]`
+    const keyOf = (attr: string) => `${bare}[@${attr}=${toXPathStringLiteral(attrs[attr])}]`
     const present = names.filter((name) => attrs[name])
     const own = present.length ? keyOf(present[0]) : bare
     return { own, all: [bare, ...present.map(keyOf)], at: (n: number) => `(${own})[${n}]` }

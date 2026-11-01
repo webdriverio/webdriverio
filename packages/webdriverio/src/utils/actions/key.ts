@@ -1,7 +1,11 @@
+import GraphemeSplitter from 'grapheme-splitter'
+
 import type { BaseActionParams } from './base.js'
 import BaseAction from './base.js'
 import { environment } from '../../environment.js'
 import { Key } from '../../constants.js'
+
+const graphemeSplitter = new GraphemeSplitter()
 
 export default class KeyAction extends BaseAction {
     constructor (instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext, params?: BaseActionParams) {
@@ -25,7 +29,7 @@ export default class KeyAction extends BaseAction {
             return isMac ? Key.Command : Key.Control
         }
 
-        if (value.length > 1) {
+        if (graphemeSplitter.countGraphemes(value) > 1) {
             throw new Error(`Your key input contains more than one character: "${value}", only one is allowed though!`)
         }
 

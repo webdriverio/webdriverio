@@ -805,11 +805,27 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return extendedCounts
     }
 
+    /**
+     * Copy of `toXPathStringLiteral` from `@wdio/utils`: this function runs in the page and cannot import it.
+     * Keep the two in sync.
+     * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-utils/src/xpath.ts} `toXPathStringLiteral`
+     */
     function xpathLiteral (value: string) {
         if (!value.includes('"')) {
             return `"${value}"`
         }
-        return value.includes("'") ? undefined : `'${value}'`
+        if (!value.includes("'")) {
+            return `'${value}'`
+        }
+        const parts: string[] = []
+        for (const segment of value.split('"')) {
+            if (segment.length > 0) {
+                parts.push(`"${segment}"`)
+            }
+            parts.push('\'"\'')
+        }
+        parts.pop()
+        return `concat(${parts.join(', ')})`
     }
 
     function candidates (el: Element, role: string, name: string): SnapshotCandidate[] {

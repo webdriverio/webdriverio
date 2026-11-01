@@ -22,6 +22,8 @@ import {
 } from './kind.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
+import { toXPathStringLiteral } from './xpath.js'
+import type { ChromedriverParameters } from './driverOptions.js'
 
 export {
     startWebDriver,
@@ -105,6 +107,11 @@ export {
     type RoleRule,
 
     /**
+     * XPath 1.0 string literal of a value with any quotes
+     */
+    toXPathStringLiteral,
+
+    /**
      * BiDi context allocation for parallel test execution
      */
     allocateContext,
@@ -112,5 +119,10 @@ export {
     resolveMaxContexts,
     type ParallelMode,
     type ParallelContextAllocation,
-    type ParallelContextBrowser
+    type ParallelContextBrowser,
+
+    /**
+     * the Chromedriver options; loading this entry also types `WebdriverIO.GeckodriverOptions` etc.
+     */
+    type ChromedriverParameters
 }
