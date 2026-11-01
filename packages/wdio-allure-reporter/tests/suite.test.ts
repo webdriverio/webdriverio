@@ -753,6 +753,7 @@ describe('Hook reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].statusDetails.trace).toEqual('Error: element ("body") still existing after 100ms')
         expect(results[0].historyId).toBeTruthy()
     })
 
@@ -774,6 +775,7 @@ describe('Hook reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].statusDetails.trace).toEqual('Error: element ("body") still existing after 100ms')
         expect(results[0].historyId).toBeTruthy()
     })
 
