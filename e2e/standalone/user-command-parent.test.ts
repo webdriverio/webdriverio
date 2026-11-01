@@ -6,7 +6,7 @@ import { startStandaloneChrome } from './helpers.js'
 
 const PAGE = 'data:text/html,' + encodeURIComponent('<p id="a">wait</p><p id="b">wait</p>')
 
-interface UserCommandEvent { id: number, command: string }
+interface UserCommandEvent { id: number, command: string, parent?: number }
 interface ProtocolEvent { command: string, endpoint?: string, parent?: number, owner?: number }
 
 // WebDriver BiDi session with user command events: the element commands send HTTP requests, the children of the user command
@@ -50,10 +50,12 @@ describe('user commands that run at the same time', () => {
         const waits = userCommands.filter(({ command }) => command === 'waitUntil')
         expect(waits).toHaveLength(2)
         const [idOfA, idOfB] = waits.map(({ id }) => id)
+        // a request has its getText as parent, and that getText is a nested user command of its waitUntil
+        const waitOf = new Map(userCommands.filter(({ command }) => command === 'getText').map(({ id, parent }) => [id, parent]))
         const textRequests = requests.filter(([, { command }]) => command === 'getElementText')
         const parentOf = (element: WebdriverIO.Element) => textRequests
             .filter(([, { endpoint }]) => endpoint?.includes(`/element/${element.elementId}/`))
-            .map(([event, { parent }]) => [event, parent])
+            .map(([event, { parent }]) => [event, parent === undefined ? undefined : waitOf.get(parent)])
         expect(parentOf(a).length).toBeGreaterThan(2)
         expect(parentOf(b).length).toBeGreaterThan(0)
         expect(parentOf(a).every(([, parent]) => parent === idOfA)).toBe(true)
@@ -61,7 +63,7 @@ describe('user commands that run at the same time', () => {
         expect(parentOf(a).length + parentOf(b).length).toBe(textRequests.length)
 
         // the polls of the two waits overlap: a poll of b comes before the last poll of a
-        const order = textRequests.map(([, { parent }]) => parent)
+        const order = textRequests.map(([, { parent }]) => parent === undefined ? undefined : waitOf.get(parent))
         expect(order.indexOf(idOfB)).toBeLessThan(order.lastIndexOf(idOfA))
     })
 
