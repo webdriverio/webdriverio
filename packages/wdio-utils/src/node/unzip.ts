@@ -84,10 +84,9 @@ export async function unzipWithOsTool (args: InstallOptions) {
     // as `@puppeteer/browsers` 3: never keep the folder or the archive
     await removeOrWarn(archivePath)
     throw new MissingUnzipToolError(
-        `No unzip tool found to install ${args.browser} v${args.buildId}. WebdriverIO v9 on Node.js 26 and later requires one: ` +
-        'install `unzip` on Linux or macOS (for example `apt-get install unzip`), or make `tar.exe`, `powershell.exe` or `pwsh.exe` available on Windows. ' +
-        'You can also add `"overrides": { "yauzl": "^3.3.1" }` to your package.json (`pnpm.overrides` with pnpm, `resolutions` with Yarn). ' +
-        '`@puppeteer/browsers` 2 unzips with `extract-zip` and a `yauzl` older than 3.3.1, which hang on Node.js 26 (https://github.com/webdriverio/webdriverio/issues/15608).'
+        `No unzip tool found to install ${args.browser} v${args.buildId}. On Node.js 26, install \`unzip\` ` +
+        '(Linux, macOS) or `tar.exe`/PowerShell (Windows), or override `yauzl` to ^3.3.1 in your package manager ' +
+        '(https://github.com/webdriverio/webdriverio/issues/15608).'
     )
 }
 
