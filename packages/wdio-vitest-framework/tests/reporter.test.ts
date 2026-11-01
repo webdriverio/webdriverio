@@ -1177,6 +1177,42 @@ describe('WdioBridgeReporter', () => {
             expect(resolver()).toBeUndefined()
         })
 
+        it('emits runner:start and suite:start outside any test context for a module-level test or after a failing root beforeAll', async () => {
+            const module = makeModule()
+            const top = makeTest(module, module, 'top', passed, 1, { options: { concurrent: true } })
+            const suite = makeSuite(module, module, 's')
+            const skipped = makeTest(module, suite, 'skipped', { state: 'skipped' }, undefined, { options: { concurrent: true } })
+            reporter.onTestModuleStart(module)
+            const instance = instances[0] as any
+            const seen: [string, string | undefined][] = []
+            instance.emit = (event: string, payload: Record<string, any>) => {
+                seen.push([event, instance.resolver?.()])
+                instance.emitted.push([event, { ...payload }])
+            }
+            await reporter.onTestCaseReady(top)
+            await reporter.onTestCaseResult(top)
+            await reporter.onTestCaseResult(skipped)
+            await reporter.onTestSuiteResult(suite)
+            await reporter.onTestModuleEnd(module)
+
+            expect(seen).toEqual([
+                ['runner:start', undefined],
+                ['suite:start', undefined],
+                ['test:start', top.id],
+                ['test:pass', top.id],
+                ['test:end', top.id],
+                ['context:end', top.id],
+                ['suite:end', undefined],
+                ['suite:start', undefined],
+                ['test:start', skipped.id],
+                ['test:pending', skipped.id],
+                ['test:end', skipped.id],
+                ['context:end', skipped.id],
+                ['suite:end', undefined],
+                ['runner:end', undefined]
+            ])
+        })
+
         it('adds the contextId to the concurrent test payloads', async () => {
             const module = makeModule()
             const concurrent = makeTest(module, module, 'c', passed, 1, { options: { concurrent: true } })
