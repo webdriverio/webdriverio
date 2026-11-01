@@ -802,6 +802,17 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('masks the arguments and results of the nested calls of a masked user command', async () => {
+        mod.registerUserCommands(['getValue'])
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'all' } } })
+        await mod.runUserCommand(browser, 'setValue', ['secret', { mask: true }], async () => {
+            await mod.runUserCommand(browser, 'execute', ['[Function setInputValue]', { value: 'secret', length: 6 }], async () => undefined)
+            await mod.runUserCommand(browser, 'getValue', [], async () => 'secret')
+        })
+        expect(JSON.stringify(pairs(browser))).not.toContain('secret')
+        expect(pairs(browser).filter(([event]) => event === 'userCommand').map(([, payload]) => payload.command)).toEqual(['setValue', 'execute', 'getValue'])
+    })
+
     it('sends a command of another session inside waitUntil as an outer command of that session', async () => {
         const a = fakeBrowser({ sessionId: 'a' })
         const b = fakeBrowser({ sessionId: 'b' })

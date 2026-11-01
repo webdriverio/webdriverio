@@ -31,6 +31,8 @@ export interface UserCommandFrame {
     expands?: boolean
     command?: string
     sessionId?: string
+    // a user command with `mask: true`: its nested calls send masked values
+    masked?: boolean
 }
 
 /**
@@ -186,7 +188,7 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     if (frame && (!expandsFrame(frame) || frame.command === command)) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId })
+    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
 }
 
 /**
@@ -201,7 +203,7 @@ export function runCustomCommand<T> (scope: unknown, command: string, args: unkn
     if (!userCommandStore || (frame && (!expandsFrame(frame) || frame.command === command)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
     }
-    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentSession: frame?.sessionId })
+    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
 }
 
 /**
@@ -214,12 +216,12 @@ export function runListItem<T> (scope: unknown, command: string, args: unknown[]
     if (!userCommandStore || (frame && !expandsFrame(frame))) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id, parentSession: frame?.sessionId })
+    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
 }
 
 const expandsFrame = (frame: UserCommandFrame) => frame.id !== undefined && frame.expands === true
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number, parentSession?: string } = {}): T {
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number, parentSession?: string, masked?: boolean } = {}): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -234,7 +236,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
 
     const emit = browser!.emit!.bind(browser)
     const event = {
-        id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const,
+        id: ++lastUserCommandId, command, body: fields.masked ? maskedCopy(args) : userCommandBody(args), protocol: 'bidi' as const,
         ...(fields.index === undefined ? {} : { index: fields.index }),
         // a command of another session is an outer command of its own session, as for multi-remote instances
         ...(fields.parent === undefined || fields.parentSession !== browser!.sessionId ? {} : { parent: fields.parent }),
@@ -251,7 +253,10 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         }
     }
     // after its result, the frame shows no more direct calls (a poll that still runs after a timeout)
-    const frame: UserCommandFrame = { id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command, sessionId: browser!.sessionId }
+    const frame: UserCommandFrame = {
+        id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command, sessionId: browser!.sessionId,
+        masked: fields.masked || hasMaskOption(args)
+    }
     const sendValue = (value: unknown) => {
         frame.expands = false
         let result: UserCommandEventResult | undefined
@@ -260,7 +265,12 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         } catch {
             // the event gets the result of the command
         }
-        send('userResult', { ...event, result: result && 'error' in result ? result : { value: shortCopy(result ? result.value : value) } })
+        if (result && 'error' in result) {
+            send('userResult', { ...event, result })
+            return
+        }
+        const copy = shortCopy(result ? result.value : value)
+        send('userResult', { ...event, result: { value: fields.masked ? maskedCopy(copy) : copy } })
     }
     const sendError = (error: unknown) => {
         frame.expands = false
@@ -311,6 +321,26 @@ const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
     Boolean(value) && typeof (value as { then?: unknown }).then === 'function'
 
 const isMaskOption = (value: unknown) => Boolean(value) && typeof value === 'object' && (value as { mask?: unknown }).mask === true
+
+const hasMaskOption = (args: unknown[]) => {
+    try {
+        return isMaskOption(args[args.length - 1])
+    } catch {
+        return true
+    }
+}
+
+// a short copy with every string and number masked: the values of a nested call of a masked user command
+function maskedCopy (value: unknown): unknown {
+    const mask = (item: unknown): unknown => typeof item === 'string' || typeof item === 'number'
+        ? SENSITIVE_DATA_REPLACER
+        : Array.isArray(item)
+            ? item.map(mask)
+            : item && typeof item === 'object'
+                ? Object.fromEntries(Object.entries(item).map(([key, entry]) => [key, mask(entry)]))
+                : item
+    return mask(shortCopy(value))
+}
 
 /**
  * The arguments of a user command for an event: masked text and short copies.
