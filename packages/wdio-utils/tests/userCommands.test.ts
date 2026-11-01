@@ -802,6 +802,17 @@ describe('nested user commands', () => {
         ])
     })
 
+    it('sends one pair for a command that two overwrites wrap', async () => {
+        const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const names: string[] = []
+        client.on('userCommand', (payload: { command: string }) => names.push(payload.command))
+        client.addCommand('waitUntil', async () => true)
+        client.overwriteCommand('waitUntil', async (orig: Function) => orig())
+        client.overwriteCommand('waitUntil', async (orig: Function) => orig())
+        await client.waitUntil()
+        expect(names).toEqual(['waitUntil'])
+    })
+
     it('sends no events for a command that a listener of the events of waitUntil runs', async () => {
         const browser = fakeBrowser()
         const listened: Promise<unknown>[] = []
