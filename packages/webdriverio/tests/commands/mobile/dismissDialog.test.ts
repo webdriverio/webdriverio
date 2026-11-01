@@ -140,7 +140,7 @@ describe('dismissDialog - Android', () => {
     it('should dismiss a dialog by button text on Android', async () => {
         await browser.dismissDialog('Cancel')
 
-        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Cancel']", { strict: false })
+        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Cancel"]', { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(dismissAlertSpy).not.toHaveBeenCalled()
     })

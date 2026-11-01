@@ -155,8 +155,8 @@ describe('selectByVisibleText test', () => {
 
     it('should select value by visible text with quotes', async () => {
         await elem.selectByVisibleText('"someValue1""')
-        const optionSelection = './option[. = concat("", \'"\', "someValue1", \'"\', "", \'"\', "")]|./option[normalize-space(text()) = concat("", \'"\', "someValue1", \'"\', "", \'"\', "")]'
-        const optgroupSelection = './optgroup/option[. = concat("", \'"\', "someValue1", \'"\', "", \'"\', "")]|./optgroup/option[normalize-space(text()) = concat("", \'"\', "someValue1", \'"\', "", \'"\', "")]'
+        const optionSelection = './option[. = \'"someValue1""\']|./option[normalize-space(text()) = \'"someValue1""\']'
+        const optgroupSelection = './optgroup/option[. = \'"someValue1""\']|./optgroup/option[normalize-space(text()) = \'"someValue1""\']'
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')

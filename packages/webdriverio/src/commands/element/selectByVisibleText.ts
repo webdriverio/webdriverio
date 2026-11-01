@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { toXPathStringLiteral } from '../../utils/xpath.js'
 import { bidiDisabledSelectError, bidiSelectByVisibleText, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
 
 /**
@@ -66,9 +67,7 @@ export async function selectByVisibleText (
     /**
     * find option element using xpath
     */
-    const formatted = /"/.test(normalized)
-        ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
-        : `"${normalized}"`
+    const formatted = toXPathStringLiteral(normalized)
     const dotFormat = `[. = ${formatted}]`
     const spaceFormat = `[normalize-space(text()) = ${formatted}]`
 
