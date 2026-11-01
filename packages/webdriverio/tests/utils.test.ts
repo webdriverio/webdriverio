@@ -189,6 +189,15 @@ describe('utils', () => {
                 .toBeCalledWith('foobar', 'css selector', '.elem')
         })
 
+        it('builds an exact text selector XPath, or a partial one with partialAttributeSelectors', async () => {
+            await findElement.call(scope as any, 'button#save=OK')
+            expect(scope.findElement).toBeCalledWith('xpath', expect.stringContaining('[@id = "save" and'))
+
+            ;(scope as any).options = { partialAttributeSelectors: true }
+            await findElement.call(scope as any, 'button#save=OK')
+            expect(scope.findElement).toHaveBeenLastCalledWith('xpath', expect.stringContaining('[contains(@id, "save") and'))
+        })
+
         it('fetches element using a function with browser scope', async () => {
             vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element
@@ -293,6 +302,15 @@ describe('utils', () => {
             await findElements.call(scope as any, '.elem')
             expect(scope.findElements).toBeCalledWith('css selector', '.elem')
             expect(scope.findElementsFromElement).not.toBeCalled()
+        })
+
+        it('builds an exact text selector XPath, or a partial one with partialAttributeSelectors', async () => {
+            await findElements.call(scope as any, '[data-test="row"]*=Item')
+            expect(scope.findElements).toBeCalledWith('xpath', expect.stringContaining('[@data-test = "row" and'))
+
+            ;(scope as any).options = { partialAttributeSelectors: true }
+            await findElements.call(scope as any, '[data-test="row"]*=Item')
+            expect(scope.findElements).toHaveBeenLastCalledWith('xpath', expect.stringContaining('[contains(@data-test, "row") and'))
         })
 
         it('fetches element using a selector string with element scope', async () => {

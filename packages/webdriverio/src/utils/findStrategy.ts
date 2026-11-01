@@ -3,7 +3,10 @@ import { roleElements } from 'aria-query'
 
 import { environment } from '../environment.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR, ROLE_SELECTOR } from '../constants.js'
-import { knownRoles, ROLE_SYNONYMS, toXPathStringLiteral } from '@wdio/utils'
+import logger from '@wdio/logger'
+import { getBrowserObject, knownRoles, ROLE_SYNONYMS, toXPathStringLiteral } from '@wdio/utils'
+
+const log = logger('webdriverio')
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -230,10 +233,41 @@ export function parseRoleSelector (selector: string): RoleSelector {
         : { role: canonicalRole, name: rawName.replace(/\\(.)/g, '$1') }
 }
 
+/**
+ * exact value, as CSS `#id` and `[attr="value"]`; `partial` keeps the former `contains()`
+ */
+function attributeCondition (name: string, value: string, partial?: boolean) {
+    const literal = toXPathStringLiteral(value)
+    return partial ? `contains(@${name}, ${literal})` : `@${name} = ${literal}`
+}
+
+const warnedPartialAttributeSelectors = new WeakSet<WebdriverIO.Browser>()
+
+/**
+ * Whether the `partialAttributeSelectors` option (deprecated, removed in v11) is set,
+ * with a warning once per browser.
+ */
+export function usesPartialAttributeSelectors (scope: WebdriverIO.Browser | WebdriverIO.Element) {
+    const browser = getBrowserObject(scope)
+    if (!browser.options?.partialAttributeSelectors) {
+        return false
+    }
+    if (!warnedPartialAttributeSelectors.has(browser)) {
+        warnedPartialAttributeSelectors.add(browser)
+        log.warn(
+            'The "partialAttributeSelectors" option is deprecated and will be removed in v11. ' +
+            'Use the exact value in the #id and [attribute="value"] parts of text selectors, ' +
+            'or an xPath with contains() for a partial match.'
+        )
+    }
+    return true
+}
+
 export const findStrategy = function (
     selector: SelectorStrategy,
     isMobile?: boolean,
-    isBidi?: boolean
+    isBidi?: boolean,
+    partialAttributeSelectors?: boolean
 ) {
     const stringSelector = selector as string
     let using: string = DEFAULT_STRATEGY
@@ -360,13 +394,13 @@ export const findStrategy = function (
                 // trick to match a class name exactly
                 conditions.push(`contains(concat(" ",@${PREFIX_NAME[prefix]}," "), " ${name} ")`)
             } else {
-                conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
+                conditions.push(attributeCondition(PREFIX_NAME[prefix], name, partialAttributeSelectors))
             }
         }
         if (attrName) {
             conditions.push(
                 attrValue
-                    ? `contains(@${attrName}, "${attrValue}")`
+                    ? attributeCondition(attrName, attrValue, partialAttributeSelectors)
                     : `@${attrName}`
             )
         }

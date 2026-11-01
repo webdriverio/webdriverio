@@ -200,6 +200,14 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default true
      */
     strictSelectors?: boolean
+    /**
+     * If set to `true`, the `#id` and `[attribute="value"]` parts of a text selector
+     * (e.g. `button#save=OK`) match a part of the value, as in earlier versions.
+     * By default they match the exact value, as in CSS.
+     * @deprecated Will be removed in v11. Use the exact value, or an xPath with `contains()`.
+     * @default false
+     */
+    partialAttributeSelectors?: boolean
 
     /**
      * Maximum size of the response body (in bytes) that can be returned when using the `mock` command.

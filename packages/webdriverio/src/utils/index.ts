@@ -13,7 +13,7 @@ import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { checkElementsContainedIn, checkElementsConnected, checkLinksMatchText } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
-import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
+import { findStrategy, getAriaXPathSelector, usesPartialAttributeSelectors, type RoleSelector } from './findStrategy.js'
 import findByRole, { ACCESSIBILITY_API_MISSING } from '../scripts/findByRole.js'
 import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
@@ -798,7 +798,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi, usesPartialAttributeSelectors(this))
     if (using === 'link text' || using === 'partial link text') {
         const held = await foreignContext(this)
         if (held) {
@@ -1006,7 +1006,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi, usesPartialAttributeSelectors(this))
     if (using === 'link text' || using === 'partial link text') {
         const held = await foreignContext(this)
         if (held) {
@@ -1277,7 +1277,7 @@ export async function findElement(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile, undefined, usesPartialAttributeSelectors(this))
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
@@ -1369,7 +1369,7 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile, undefined, usesPartialAttributeSelectors(this))
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]

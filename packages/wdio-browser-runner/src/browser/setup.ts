@@ -41,7 +41,8 @@ const browser = await remote({
     automationProtocol: automationProtocolPath as any,
     capabilities: window.__wdioEnv__.capabilities,
     bidiResponseTimeout: window.__wdioEnv__.config.bidiResponseTimeout,
-    strictSelectors: window.__wdioEnv__.config.strictSelectors
+    strictSelectors: window.__wdioEnv__.config.strictSelectors,
+    partialAttributeSelectors: window.__wdioEnv__.config.partialAttributeSelectors
 })
 _setGlobal('browser', browser, window.__wdioEnv__.injectGlobals)
 _setGlobal('driver', browser, window.__wdioEnv__.injectGlobals)

@@ -137,6 +137,8 @@ You can query this element by calling:
 https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
+The `#id`, `.class` and `[attribute="value"]` parts match the exact value, as in CSS: `button#save=OK` does not find `<button id="autosave">OK</button>`. To match a part of the value, use an [xPath](#xpath), e.g. `//button[contains(@id, "save") and normalize-space() = "OK"]`. Earlier versions matched a part of the `#id` and `[attribute="value"]` values. To keep that behavior until v11, set [`partialAttributeSelectors`](/docs/configuration#partialattributeselectors) to `true`.
+
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
 
 ```js

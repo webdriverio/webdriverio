@@ -350,6 +350,18 @@ See the [Selectors](/docs/selectors#strict-mode) guide for details.
 
 </Option>
 
+### partialAttributeSelectors
+
+<Option type="Boolean" default="false">
+
+__Deprecated:__ this option will be removed in v11.
+
+If set to `true`, the `#id` and `[attribute="value"]` parts of a [text selector](/docs/selectors#element-with-certain-text) match a part of the value, as in earlier versions: `button#save=OK` also finds `<button id="autosave">OK</button>`. By default these parts match the exact value, as in CSS.
+
+Use this option only to keep old selectors working while you update them. WebdriverIO logs a warning when it is set.
+
+</Option>
+
 ### maxSpyCollectedBodySize
 
 <Option type="Number" default="10485760 (10MB)">

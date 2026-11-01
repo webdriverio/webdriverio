@@ -5,7 +5,7 @@ import { SHADOW_ELEMENT_KEY } from 'webdriver'
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
-import { findStrategy } from '../../utils/findStrategy.js'
+import { findStrategy, usesPartialAttributeSelectors } from '../../utils/findStrategy.js'
 import type { Selector } from '../../types.js'
 import { foreignContext } from '../../utils/foreignContext.js'
 import { isParallelContextActive } from '../../utils/bidi/locate.js'
@@ -57,7 +57,7 @@ export function shadow$$ (
 
         try {
             const shadowRoot = await browser.getElementShadowRoot(this.elementId)
-            const { using, value } = findStrategy(selector as string, this.isMobile)
+            const { using, value } = findStrategy(selector as string, this.isMobile, undefined, usesPartialAttributeSelectors(this))
             const res = await browser.findElementsFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
             return await getElements.call(this, selector as Selector, res, { isShadowElement: true })
         } catch (err) {

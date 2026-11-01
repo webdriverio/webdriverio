@@ -416,7 +416,7 @@ describe('Lit Component testing', () => {
 
         it('fetches inner element by content correctly with class names', async () => {
             render(
-                html`<div class="foo" id="#bar"><div><span>Find me</span></div></div>`,
+                html`<div class="foo" id="bar"><div><span>Find me</span></div></div>`,
                 document.body
             )
             expect(await $('div.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')
@@ -441,9 +441,9 @@ describe('Lit Component testing', () => {
 
         it('fetches element by content correctly with nested class names', async () => {
             /**
-             * <div class="foo" id="#bar">
+             * <div class="foo" id="bar">
              *     <div>
-             *         <div class="foo" id="#bar">
+             *         <div class="foo" id="bar">
              *             <div>
              *                 <span>Find me</span>
              *             </div>
@@ -453,7 +453,7 @@ describe('Lit Component testing', () => {
              */
             render(
                 html`
-                <div class="foo" id="#bar"><div><div class="foo" id="#bar"><div><span>Find me</span></div></div></div></div>`,
+                <div class="foo" id="bar"><div><div class="foo" id="bar"><div><span>Find me</span></div></div></div></div>`,
                 document.body
             )
             expect(await $('div.foo*=me').getHTML(getHTMLOptions)).toBe('<div><span>Find me</span></div>')

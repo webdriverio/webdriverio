@@ -79,6 +79,13 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
         default: true
     },
     /**
+     * Partial match of the `#id` and `[attr="value"]` parts of text selectors (deprecated, removed in v11)
+     */
+    partialAttributeSelectors: {
+        type: 'boolean',
+        default: false
+    },
+    /**
      * Maximum size of the response body (in bytes) that `browser.mock` collects.
      * Use 0 to disable data collection of the spied response payload. Without
      * this entry, `remote()` drops the option in standalone mode.

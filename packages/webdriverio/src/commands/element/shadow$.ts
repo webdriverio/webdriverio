@@ -4,7 +4,7 @@ import { SHADOW_ELEMENT_KEY } from 'webdriver'
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@wdio/utils'
-import { findStrategy } from '../../utils/findStrategy.js'
+import { findStrategy, usesPartialAttributeSelectors } from '../../utils/findStrategy.js'
 import { foreignContext } from '../../utils/foreignContext.js'
 import { isParallelContextActive } from '../../utils/bidi/locate.js'
 
@@ -52,7 +52,7 @@ export async function shadow$ (
     }
     try {
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
-        const { using, value } = findStrategy(selector as string, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile, undefined, usesPartialAttributeSelectors(this))
         const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         /**
          * `shadow$` never counts matches itself, so a refetch (implicit wait, stale
