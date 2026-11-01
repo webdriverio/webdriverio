@@ -235,7 +235,7 @@ describe('spec reporter hooks of a feature', () => {
             '   ✓ step1',
             ''
         ])
-        expect(reporter.getCountDisplay('')).toEqual(['1 passing ', '2 failing'])
+        expect(reporter.getCountDisplay('')).toEqual(['1 passing ', '2 failing hooks'])
         expect(reporter.getFailureDisplay().filter((line) => /^\d\)/.test(line))).toEqual([
             '1) F BeforeAll (steps.ts:3)',
             '2) F AfterAll (steps.ts:9)'

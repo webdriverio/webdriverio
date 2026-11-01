@@ -44,7 +44,7 @@ Cucumber extras: `cucumberTestrunnerByLineNumber`,
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineAfterAll`, `jasmineFailingAfterAll`, `jasmineFailSpecWithNoExpectations`,
-`jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`
+`jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`, `jasmineSpecHookCounts`
 
 CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
 `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
@@ -55,7 +55,7 @@ Plugins: `customService`, `customCJSService`, `customReporterString`,
 `customReporterObject`, `reporterTestrunner`, `sharedStoreServiceTest`
 
 Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
-`retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`
+`retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`, `specHookCounts`
 
 Unknown names fail with a list of valid suite names.
 
