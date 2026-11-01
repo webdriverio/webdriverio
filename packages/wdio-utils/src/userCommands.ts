@@ -136,7 +136,8 @@ export function sendsUserCommands (browser: EventBrowser | undefined): boolean {
     if (!browser?.isBidi || browser.isMobile) {
         return false
     }
-    const option = browser.options?.userCommandEvents
+    // null (a JavaScript config) is as not set
+    const option = browser.options?.userCommandEvents ?? undefined
     return option !== false && (option !== undefined || hasBidiCommandsFlag(browser))
 }
 
@@ -146,7 +147,7 @@ function eventMode (browser: EventBrowser | undefined, command: string): 'send' 
         return undefined
     }
     const option = browser.options?.userCommandEvents
-    return (typeof option === 'object' && option.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
+    return (typeof option === 'object' && option?.exclude?.includes(command)) || !hasListeners(browser) ? 'hide' : 'send'
 }
 
 function hasBidiCommandsFlag (browser: EventBrowser) {

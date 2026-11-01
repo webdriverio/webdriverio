@@ -301,9 +301,18 @@ describe('sendsUserCommands', () => {
         ['WebDriver BiDi with no capability', { requestedCapabilities: {} }, false],
         ['WebDriver BiDi with userCommandEvents true', { requestedCapabilities: {}, options: { userCommandEvents: true } }, true],
         ['WebDriver BiDi with an exclude list', { requestedCapabilities: {}, options: { userCommandEvents: { exclude: ['pause'] } } }, true],
-        ['WebDriver BiDi with userCommandEvents false', { options: { userCommandEvents: false } }, false]
+        ['WebDriver BiDi with userCommandEvents false', { options: { userCommandEvents: false } }, false],
+        // null (a JavaScript config) is as not set
+        ['WebDriver BiDi with userCommandEvents null and no capability', { requestedCapabilities: {}, options: { userCommandEvents: null } }, false],
+        ['WebDriver BiDi with userCommandEvents null and the capability', { options: { userCommandEvents: null } }, true]
     ])('%s: %s', (_name, props, expected) => {
         expect(mod.sendsUserCommands(fakeBrowser(props))).toBe(expected)
+    })
+
+    it('runs a command with userCommandEvents null', async () => {
+        const browser = fakeBrowser({ options: { userCommandEvents: null } })
+        await expect(mod.runUserCommand(browser, 'getTitle', [], async () => 'title')).resolves.toBe('title')
+        expect(pairs(browser).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
     })
 
     it('is false with no browser', () => {
