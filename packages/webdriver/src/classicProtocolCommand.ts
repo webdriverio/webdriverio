@@ -6,11 +6,11 @@ import type { BaseClient } from './types.js'
 const protocol = WebDriverProtocol as Protocol
 
 /**
- * Classic history endpoints. WebdriverIO installs its own `back` and `forward`
- * on the session, so calling `this.back()` from those commands would recurse.
- * `browser.url()` can call `this.navigateTo()` because the names differ.
+ * Classic endpoints of commands that WebdriverIO installs with the same name
+ * (`back`, `forward`, `closeWindow`): calling `this.back()` from those commands
+ * would recurse. `browser.url()` can call `this.navigateTo()` because the names differ.
  */
-const CLASSIC_HISTORY_COMMANDS = {
+const CLASSIC_PROTOCOL_COMMANDS = {
     back: {
         method: 'POST',
         endpoint: '/session/:sessionId/back'
@@ -18,13 +18,18 @@ const CLASSIC_HISTORY_COMMANDS = {
     forward: {
         method: 'POST',
         endpoint: '/session/:sessionId/forward'
+    },
+    closeWindow: {
+        method: 'DELETE',
+        endpoint: '/session/:sessionId/window'
     }
 } as const
 
-export type ClassicHistoryCommand = keyof typeof CLASSIC_HISTORY_COMMANDS
+export type ClassicProtocolCommand = keyof typeof CLASSIC_PROTOCOL_COMMANDS
+export type ClassicHistoryCommand = Extract<ClassicProtocolCommand, 'back' | 'forward'>
 
 /**
- * Run the classic WebDriver `back` or `forward` command by name.
+ * Run a classic WebDriver command by name and return its value.
  *
  * The HTTP request is built from the protocol definition, not from the
  * instance method. A BiDi session whose connection is down (`isBidi === false`)
@@ -32,14 +37,14 @@ export type ClassicHistoryCommand = keyof typeof CLASSIC_HISTORY_COMMANDS
  */
 export async function runClassicProtocolCommand (
     this: Pick<BaseClient, 'sessionId' | 'options' | 'capabilities' | 'isSeleniumStandalone'>,
-    commandName: ClassicHistoryCommand
-): Promise<void> {
-    const definition = CLASSIC_HISTORY_COMMANDS[commandName]
+    commandName: ClassicProtocolCommand
+): Promise<unknown> {
+    const definition = CLASSIC_PROTOCOL_COMMANDS[commandName]
     if (!definition) {
         throw new Error(`Unknown classic protocol command "${String(commandName)}"`)
     }
 
-    const commandInfo = protocol[definition.endpoint]?.POST
+    const commandInfo = protocol[definition.endpoint]?.[definition.method]
     if (!commandInfo || commandInfo.command !== commandName) {
         throw new Error(`Classic protocol command "${commandName}" is not defined`)
     }
@@ -50,5 +55,5 @@ export async function runClassicProtocolCommand (
         commandInfo,
         Boolean(this.isSeleniumStandalone)
     )
-    await run.call(this as BaseClient)
+    return run.call(this as BaseClient)
 }
