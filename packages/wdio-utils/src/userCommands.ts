@@ -195,7 +195,8 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
  */
 export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T): T {
     const frame = userCommandStore?.getStore()
-    if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command)) {
+    // the next layer of an overwrite of the same command is part of it
+    if (!userCommandStore || (frame && (!expandsFrame(frame) || frame.command === command)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
     }
     return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id })
