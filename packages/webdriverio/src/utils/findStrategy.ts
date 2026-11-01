@@ -380,13 +380,14 @@ export const findStrategy = function (
                 // trick to match a class name exactly
                 conditions.push(`contains(concat(" ",@${PREFIX_NAME[prefix]}," "), " ${name} ")`)
             } else {
-                conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
+                // match the id exactly, like CSS `#id` does
+                conditions.push(`@${PREFIX_NAME[prefix]} = "${name}"`)
             }
         }
         if (attrName) {
             conditions.push(
                 attrValue
-                    ? `contains(@${attrName}, "${attrValue}")`
+                    ? `@${attrName} = "${attrValue}"`
                     : `@${attrName}`
             )
         }
