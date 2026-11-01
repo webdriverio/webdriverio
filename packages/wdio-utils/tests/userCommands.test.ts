@@ -830,6 +830,17 @@ describe('nested user commands', () => {
         expect(events(broken).map(([event]) => event)).toEqual(['userCommand', 'userResult'])
     })
 
+    it('marks the old events of every overwrite layer of a user command as replaced, so a masked value is not shown', async () => {
+        const client = monad.default({ userCommandEvents: { nested: 'all' } }, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const old: Record<string, unknown>[] = []
+        client.on('command', (payload: Record<string, unknown>) => old.push(payload))
+        client.addCommand('login', async () => true)
+        client.overwriteCommand('login', async (orig: Function, ...args: unknown[]) => orig(...args))
+        client.overwriteCommand('login', async (orig: Function, ...args: unknown[]) => orig(...args))
+        await client.login('secret', { mask: true })
+        expect(old.filter((payload) => !payload.custom && JSON.stringify(payload).includes('secret'))).toEqual([])
+    })
+
     it('sends one pair for a command that two overwrites wrap', async () => {
         const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         const names: string[] = []

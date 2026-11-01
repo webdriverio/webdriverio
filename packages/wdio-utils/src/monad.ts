@@ -4,7 +4,7 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
-import { needsDerivedPromise, registerUserCommands, runCustomCommand, userCommandParent } from './userCommands.js'
+import { needsDerivedPromise, registerUserCommands, runCustomCommand, runOverwriteLayer, userCommandParent } from './userCommands.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -48,7 +48,12 @@ function composeElementOverrides(previousCommand: Function | undefined, nextComm
 // the user command of an element overwrite has the arguments of the caller, not the original command
 function elementOverride(name: string, command: Function) {
     return function (this: WebdriverIO.Element, origCommand: Function, ...args: unknown[]) {
-        return runCustomCommand(this, name, args, () => command.call(this, origCommand, ...args))
+        const element = this
+        // the original command (or the previous overwrite) is part of this user command
+        function layer (this: WebdriverIO.Element, ...layerArgs: unknown[]) {
+            return runOverwriteLayer(name, () => origCommand.apply(this || element, layerArgs))
+        }
+        return runCustomCommand(this, name, args, () => command.call(this, typeof origCommand === 'function' ? layer : origCommand, ...args))
     }
 }
 
@@ -437,7 +442,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args: unknown[]) => origCommand.apply(this, args))
+                unit.lift(name, customCommand, proto, (...args: unknown[]) => runOverwriteLayer(name, () => origCommand.apply(this, args)))
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }

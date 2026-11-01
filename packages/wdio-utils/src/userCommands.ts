@@ -33,6 +33,8 @@ export interface UserCommandFrame {
     sessionId?: string
     // a user command with `mask: true`: its nested calls send masked values
     masked?: boolean
+    // the call of the original command of an overwrite of this name: it is part of the user command
+    layerOf?: string
 }
 
 /**
@@ -185,7 +187,7 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     // a nested call runs in the frame of the outer call, or as a child when the outer call expands
     const frame = userCommandStore.getStore()
     // the original command that an overwrite calls is part of the overwrite
-    if (frame && (!expandsFrame(frame) || frame.command === command)) {
+    if (frame && (!expandsFrame(frame) || frame.command === command || frame.layerOf === command)) {
         return run()
     }
     return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
@@ -199,11 +201,23 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
  */
 export function runCustomCommand<T> (scope: unknown, command: string, args: unknown[], run: (outer: boolean) => T): T {
     const frame = userCommandStore?.getStore()
-    // the next layer of an overwrite of the same command is part of it
-    if (!userCommandStore || (frame && (!expandsFrame(frame) || frame.command === command)) || TRANSPARENT_COMMANDS.includes(command)) {
+    // the next layer of an overwrite is part of that user command: its old events are replaced too
+    if (frame?.layerOf === command) {
+        return run(true)
+    }
+    if (!userCommandStore || (frame && !expandsFrame(frame)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
     }
     return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentSession: frame?.sessionId, masked: frame?.masked })
+}
+
+/**
+ * Internal: run the call of the original command of an overwrite of `command`, so its next layer is part of the
+ * same user command. The frame stays the same object for its other fields (a recursion is no layer).
+ */
+export function runOverwriteLayer<T> (command: string, run: () => T): T {
+    const frame = userCommandStore?.getStore()
+    return frame ? userCommandStore!.run(Object.create(frame, { layerOf: { value: command } }) as UserCommandFrame, run) : run()
 }
 
 /**
@@ -231,7 +245,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     // an outer call that sends nothing still has a frame, so its nested calls send nothing
     const mode = eventMode(browser, command)
     if (mode !== 'send') {
-        return store.run(mode === 'hide' ? { id: ++lastUserCommandId } : {}, run)
+        return store.run(mode === 'hide' ? { id: ++lastUserCommandId, command } : {}, run)
     }
 
     const emit = browser!.emit!.bind(browser)
