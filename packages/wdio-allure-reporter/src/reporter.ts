@@ -1410,9 +1410,10 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         const open = waiting ? waiting.open : this._userSteps.get(scope)
-        // the first open request of the same kind: the responses come in the order of the requests
-        const step = open?.find((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
-            s.parent === ownerOf(command) && s.command === command.command && s.endpoint === command.endpoint)
+        const match = (s: OpenStep): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
+            s.parent === ownerOf(command) && s.command === command.command && s.endpoint === command.endpoint
+        // a request: the first open one (responses come in order); no endpoint: the last one (the inner call ends first)
+        const step = command.endpoint ? open?.find(match) : open?.findLast(match)
         if (step) {
             // a step that is not the last one waits: the runtime ends the last open step
             step.done = { result: resUnknown, stop: Date.now(), isShot }
@@ -1429,6 +1430,17 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._commandStepsAllowed()) { return }
         const name = userCommandTitle(payload.command, payload.body, payload.index)
         const scope = this._userStepScope()
+        // a nested user command is a child of the user step of its parent, also when that step waits
+        const parent = payload.parent === undefined ? undefined : this._userStepOf.get(payload.parent)
+        if (parent) {
+            const inWaiting = parent.waiting?.waiting ? parent.waiting : undefined
+            this._toWaitingStep(inWaiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+            const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
+            parent.open.push(step)
+            if (inWaiting) { this._waitingStepOf.set(payload.id, inWaiting) }
+            this._userStepOf.set(payload.id, { scope: parent.scope, open: parent.open, step, waiting: parent.waiting })
+            return
+        }
         const live = this._userSteps.get(scope)
         const waiting: WaitingUserStep | undefined = live?.length || this._waitingSteps.get(scope)?.length
             ? { key: this._laneKey(), open: [], messages: [], waiting: true }

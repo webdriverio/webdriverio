@@ -262,6 +262,76 @@ describe('user commands that overlap or end after their test', () => {
         s.name, s.status, s.statusDetails?.message, s.attachments.map((a: Result) => attachment(a)), steps(s, attachment)
     ])
 
+    const nested = (id: number, command: string, parent: number, body: unknown[] = []) => ({ ...user(id, command, body), parent })
+    const names = (r: Result): unknown[] => r.steps.map((s: Result) => s.steps.length ? [s.name, names(s)] : s.name)
+
+    it('writes a nested user command as a child step of its parent', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            const request = { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/:elementId/text', body: {}, sessionId: 's', parent: 2 }
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(2, 'getText', 1))
+            emit('client:beforeCommand', request)
+            emit('client:afterCommand', { ...request, result: { value: 'x' } })
+            emit('client:afterUserCommand', { ...nested(2, 'getText', 1), result: { value: 'x' } })
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { value: true } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual([['waitUntil() → true', [['getText() → "x"', ['getElementText → "x"']]]]])
+    })
+
+    it('keeps a nested user command under its parent when the parent waits behind an overlapping user command', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'pause', [100]))
+            emit('client:beforeUserCommand', user(2, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(3, 'getText', 2))
+            emit('client:afterUserCommand', { ...nested(3, 'getText', 2), result: { value: 'x' } })
+            emit('client:afterUserCommand', { ...user(2, 'waitUntil', []), result: { value: true } })
+            emit('client:afterUserCommand', { ...user(1, 'pause', [100]), result: { value: undefined } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual(['pause(100)', ['waitUntil() → true', ['getText() → "x"']]])
+    })
+
+    it('ends an open nested step with its test, and its late results do not end a step of the next test', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(2, 'getText', 1))
+            emit('test:fail', { ...test('t1'), error: new Error('test timeout') })
+            emit('test:end', test('t1'))
+            emit('test:start', test('t2'))
+            emit('client:afterUserCommand', { ...nested(2, 'getText', 1), result: { value: 'x' } })
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { error: new Error('timeout') } })
+            emit('client:beforeUserCommand', user(3, 'getTitle', []))
+            emit('client:afterUserCommand', { ...user(3, 'getTitle', []), result: { value: 'T' } })
+            emit('test:pass', { ...test('t2'), passed: true })
+            emit('test:end', test('t2'))
+        })
+        expect(names(byName('t1'))).toEqual([['waitUntil()', ['getText()']]])
+        expect(byName('t1').steps[0].status).toBe('broken')
+        expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
+    })
+
+    it('gives the result of a nested custom command call with no endpoint to the call that started last', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            const old = (n: number) => ({ command: 'walk', body: [n], sessionId: 's', parent: 1 })
+            emit('client:beforeUserCommand', user(1, 'walk', [2]))
+            emit('client:beforeCommand', old(1))
+            emit('client:beforeCommand', old(0))
+            emit('client:afterCommand', { ...old(0), result: { value: 'inner' } })
+            emit('client:afterCommand', { ...old(1), result: { value: 'outer' } })
+            emit('client:afterUserCommand', { ...user(1, 'walk', [2]), result: { value: 'outer' } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual([['walk(2) → "outer"', [['walk → "outer"', ['walk → "inner"']]]]])
+    })
+
     it('closes each step of overlapping user commands with its own status and response', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
@@ -550,5 +620,45 @@ describe('user commands that overlap or end after their test', () => {
 
         const state = reporter as unknown as { _userStepOf: Map<number, unknown>, _userSteps: Map<string, unknown> }
         expect([state._userStepOf.size, state._userSteps.size]).toEqual([0, 0])
+    })
+})
+
+describe('nested user commands in parallel mode', () => {
+    it('keeps the nested user steps of two tests that run at the same time in their own test', async () => {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir, writeStream: { write: () => true } } as any)
+        let context: string | undefined
+        reporter.setContextIdResolver(() => context)
+        const emit = (type: string, payload: Record<string, unknown>, ctx?: string) => {
+            context = ctx
+            reporter.emit(type, { cid: CID, specs: [SPEC], ...(ctx ? { contextId: ctx } : {}), ...payload })
+            context = undefined
+        }
+        const t = (title: string) => ({ uid: `test-${title}`, title, fullTitle: `A ${title}`, parent: 'A', parentUid: 'suite-A', file: SPEC })
+        const u = (id: number, command: string, parent?: number) => ({ id, command, body: [], protocol: 'bidi', sessionId: 's', ...(parent ? { parent } : {}) })
+        emit('runner:start', { capabilities: { browserName: 'chrome' }, config: { framework: 'mocha', mochaOpts: { parallelMode: true } }, isMultiRemote: false, sessionId: 's', instanceOptions: {} })
+        emit('suite:start', { uid: 'suite-A', title: 'A', fullTitle: 'A', parentUid: null, file: SPEC })
+        emit('test:start', t('a'), 'ctx-a')
+        emit('test:start', t('b'), 'ctx-b')
+        emit('client:beforeUserCommand', u(1, 'waitUntil'), 'ctx-a')
+        emit('client:beforeUserCommand', u(2, 'waitUntil'), 'ctx-b')
+        emit('client:beforeUserCommand', u(3, 'getText', 1), 'ctx-a')
+        emit('client:beforeUserCommand', u(4, 'isDisplayed', 2), 'ctx-b')
+        emit('client:afterUserCommand', { ...u(4, 'isDisplayed', 2), result: { value: true } }, 'ctx-b')
+        emit('client:afterUserCommand', { ...u(3, 'getText', 1), result: { value: 'x' } }, 'ctx-a')
+        emit('client:afterUserCommand', { ...u(2, 'waitUntil'), result: { value: true } }, 'ctx-b')
+        emit('client:afterUserCommand', { ...u(1, 'waitUntil'), result: { value: true } }, 'ctx-a')
+        for (const [title, ctx] of [['a', 'ctx-a'], ['b', 'ctx-b']]) {
+            emit('test:pass', { ...t(title), passed: true }, ctx)
+            emit('test:end', t(title), ctx)
+        }
+        emit('suite:end', { uid: 'suite-A', title: 'A', fullTitle: 'A', parentUid: null, file: SPEC })
+        emit('runner:end', { failures: 0, retries: 0 })
+        await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+        const { results } = getResults(outputDir)
+        const tree = (r: Result): unknown[] => r.steps.map((s: Result) => s.steps.length ? [s.name, tree(s)] : s.name)
+        const byName = (name: string) => (results as Result[]).find((r) => r.name === name)!
+        expect(tree(byName('a'))).toEqual([['waitUntil() → true', ['getText() → "x"']]])
+        expect(tree(byName('b'))).toEqual([['waitUntil() → true', ['isDisplayed() → true']]])
     })
 })
