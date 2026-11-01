@@ -1865,15 +1865,21 @@ describe('runParallelTests — uncaught errors', () => {
         expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('after timeout boom'))
     })
 
-    test('lets an uncaught error through with allowUncaught, as Mocha does', async () => {
+    test('throws an uncaught error again with allowUncaught, as Mocha does, so that it ends the worker', async () => {
+        // a listener that throws ends the process, so emit the event here and catch the throw
+        let thrown: unknown
         const suite = mockSuite('root', {
             tests: [mockTest('throws later', async () => {
-                setTimeout(() => { throw new Error('allowed boom') }, 5)
-                await new Promise((r) => setTimeout(r, 20))
+                try {
+                    process.emit('uncaughtException', new Error('allowed boom'), 'uncaughtException')
+                } catch (err) {
+                    thrown = err
+                }
             })]
         })
         const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { allowUncaught: true })
 
+        expect((thrown as Error).message).toBe('allowed boom')
         expect(outcome('throws later')).toEqual(['test:pass'])
         expect(failures).toBe(0)
         expect(escaped.map((e) => (e as Error).message)).toEqual(['allowed boom'])

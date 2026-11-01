@@ -654,22 +654,21 @@ describe('wdio-runner', () => {
                 expect(exits).toEqual([1])
             })
 
-            it('adds no listener with mochaOpts.allowUncaught, so that an uncaught error still ends the worker', async () => {
+            it('keeps the listener with mochaOpts.allowUncaught of a shared config (the Mocha adapter owns that option)', async () => {
                 withOnlyRunnerListeners()
-                let listeners = -1
+                let listeners: string[] = []
                 const runner = new WDIORunner()
-                const config: any = { reporters: [], before: [], beforeSession: [], framework: 'late', runner: 'local', mochaOpts: { allowUncaught: true } }
+                const config: any = { reporters: [], before: [], beforeSession: [], framework: 'jasmine', runner: 'local', mochaOpts: { allowUncaught: true } }
                 vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
                 vi.mocked(initializePlugin).mockResolvedValueOnce({
                     default: { init () { return this }, hasTests: () => true, run: () => {
-                        listeners = process.listenerCount('uncaughtException')
+                        listeners = process.listeners('uncaughtException').map((listener) => listener.name)
                         return 0
                     } }
                 } as any)
                 runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
                 await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
-
-                expect(listeners).toBe(0)
+                expect(listeners).toContain('onLateError')
             })
 
             it('leaves the error to the framework when it has its own listener', async () => {

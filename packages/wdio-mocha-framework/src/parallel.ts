@@ -483,6 +483,10 @@ function keepWorkerOnUnhandledRejection() {
     }
 }
 
+function rethrowUncaught(err: unknown): never {
+    throw err
+}
+
 /** Mocha's isError (runner.js): an Error, also of another realm, or an object with a string message */
 function isError(value: unknown): value is Error {
     return value instanceof Error || typeof (value as { message?: unknown } | null)?.message === 'string'
@@ -871,7 +875,9 @@ export async function runParallelTests(
         }
     }
 
-    if (!mochaOptions?.allowUncaught) { process.on('uncaughtException', onUncaught) }
+    // `allowUncaught`: throw the error again, as Mocha's runner does, so that it ends the worker
+    const uncaughtListener = mochaOptions?.allowUncaught ? rethrowUncaught : onUncaught
+    process.on('uncaughtException', uncaughtListener)
     keepWorkerOnUnhandledRejection()
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
@@ -885,7 +891,7 @@ export async function runParallelTests(
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
         }
         // a test can still throw while its window closes
-        process.removeListener('uncaughtException', onUncaught)
+        process.removeListener('uncaughtException', uncaughtListener)
     }
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length

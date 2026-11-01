@@ -95,10 +95,7 @@ export default class Runner extends EventEmitter {
 
         this._config = this._configParser.getConfig()
         lateErrorHandler = this._onLateError
-        // with `allowUncaught` an uncaught error must still end the worker (Mocha parallel mode adds no listener then)
-        if ((this._config.mochaOpts as { allowUncaught?: boolean } | undefined)?.allowUncaught) {
-            process.removeListener('uncaughtException', onLateError)
-        } else if (!process.listeners('uncaughtException').includes(onLateError)) {
+        if (!process.listeners('uncaughtException').includes(onLateError)) {
             process.on('uncaughtException', onLateError)
         }
         if (args.debug === 'agent') {
