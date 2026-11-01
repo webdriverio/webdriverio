@@ -184,6 +184,10 @@ export default class TestStats extends RunnableStats {
         msg = msg.replace(/^/gm, '      ')
         const newError = new Error(err.message + msg)
         Object.assign(newError, err)
+        // Mocha's formatError returns a plain object with an enumerable
+        // `message`; Object.assign would overwrite the formatted message with
+        // the original one and drop the diff.
+        newError.message = err.message + msg
         newError.name = err.name
         newError.stack = err.stack
         // Error's own `message` and `stack` are non-enumerable, so reporters

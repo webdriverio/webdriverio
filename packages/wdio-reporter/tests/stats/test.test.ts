@@ -167,6 +167,22 @@ describe('TestStats', () => {
         })
     })
 
+    it('keeps the diff for Mocha-style errors with an enumerable message', () => {
+        const error = {
+            name: 'AssertionError',
+            message: 'grew unbounded',
+            stack: 'at test',
+            actual: 'a',
+            expected: 'b',
+            operator: 'strictEqual'
+        }
+        stat.fail([error as any])
+        expect(stat.error?.message).toContain('grew unbounded')
+        expect(stat.error?.message).toContain('actual')
+        expect(stat.error?.actual).toBe('a')
+        expect(stat.error?.expected).toBe('b')
+    })
+
     it('should not diff if "actual" and "expected" are empty', () => {
         stat.fail([new AssertionError({ message: 'foobar', actual: '', expected: '' })])
         expect(stat.error?.message).not.toContain('actual')
