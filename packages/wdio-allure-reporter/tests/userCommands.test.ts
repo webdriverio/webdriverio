@@ -72,7 +72,7 @@ describe('user commands of WebDriver BiDi sessions', () => {
         expect(result.steps.map((s: Result) => stepTree(s, attachment))).toEqual([{
             name: 'getText() → "hello"',
             parameters: [],
-            attachments: ['Response=hello'],
+            attachments: [],
             steps: [{
                 name: 'getElementText → "hello"',
                 // the compact request, and the resolved request with the session id
@@ -255,7 +255,7 @@ describe('user commands that overlap or end after their test', () => {
         const { results } = getResults(outputDir)
         const attachment = (a: Result) => fs.readFileSync(path.join(outputDir, a.source), 'utf8')
         const byName = (name: string) => (results as Result[]).find((r) => r.name === name)!
-        return { byName, attachment, reporter }
+        return { byName, attachment, reporter, containers: getResults(outputDir).containers as Result[] }
     }
     const test = (title: string) => ({ uid: `test-${title}`, title, fullTitle: `A ${title}`, parent: 'A', parentUid: 'suite-A', file: SPEC })
     const steps = (r: Result, attachment: (a: Result) => string): unknown[] => r.steps.map((s: Result) => [
@@ -332,6 +332,60 @@ describe('user commands that overlap or end after their test', () => {
         expect(names(byName('t1'))).toEqual([['walk(2) → "outer"', [['walk → "outer"', ['walk → "inner"']]]]])
     })
 
+    it('joins the repeated nested steps of a test before the write', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            for (let i = 0; i < 9; i++) {
+                emit('client:beforeUserCommand', nested(i + 2, 'getText', 1))
+                emit('client:afterUserCommand', { ...nested(i + 2, 'getText', 1), result: { value: i < 8 ? 'Click' : 'Done' } })
+            }
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { value: true } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(names(byName('t1'))).toEqual([['waitUntil() → true', ['getText() → "Click" × 8', 'getText() → "Done"']]])
+    })
+
+    it('joins the repeated nested steps of a hook before the write', async () => {
+        const { byName, containers } = await runTests((emit) => {
+            const hook = { uid: 'hook-1', title: '"before each" hook for A', fullTitle: '"before each" hook for A', parent: 'A', parentUid: 'suite-A' }
+            emit('hook:start', hook)
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            for (let i = 0; i < 3; i++) {
+                emit('client:beforeUserCommand', nested(i + 2, 'isDisplayed', 1))
+                emit('client:afterUserCommand', { ...nested(i + 2, 'isDisplayed', 1), result: { value: false } })
+            }
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { value: true } })
+            emit('hook:end', { ...hook, state: 'pass' })
+            emit('test:start', test('t1'))
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        const withSteps = [byName('t1'), ...containers.flatMap((c: Result) => [...(c.befores ?? []), ...(c.afters ?? [])])]
+        const wait = withSteps.flatMap((r: Result) => r.steps ?? []).find((s: Result) => s.name.startsWith('waitUntil'))
+        expect(wait.steps.map((s: Result) => s.name)).toEqual(['isDisplayed() → false × 3'])
+    })
+
+    it('writes no Response attachment when the step name shows the whole result', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            const values: unknown[] = ['hello', 42, true, 'x'.repeat(100), { a: 1 }]
+            values.forEach((value, i) => {
+                emit('client:beforeUserCommand', user(i + 1, 'getValue', []))
+                emit('client:afterUserCommand', { ...user(i + 1, 'getValue', []), result: { value } })
+            })
+            emit('client:beforeUserCommand', user(9, 'getValue', []))
+            emit('client:afterUserCommand', { ...user(9, 'getValue', []), result: { error: new Error('no value') } })
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+        })
+        expect(byName('t1').steps.map((s: Result) => s.attachments.map((a: Result) => a.name))).toEqual([
+            [], [], [], ['Response'], ['Response'], ['Response']
+        ])
+        expect(attachment(byName('t1').steps[3].attachments[0])).toBe('x'.repeat(100))
+    })
+
     it('closes each step of overlapping user commands with its own status and response', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))
@@ -346,7 +400,7 @@ describe('user commands that overlap or end after their test', () => {
 
         // each user command that is sent is an outer call: overlapping user commands are siblings
         expect(steps(byName('t1'), attachment)).toEqual([
-            ['pause() → "paused"', 'passed', undefined, ['paused'], []],
+            ['pause() → "paused"', 'passed', undefined, [], []],
             ['execute()', 'failed', 'boom', ['Error: boom'], []]
         ])
     })
@@ -375,7 +429,7 @@ describe('user commands that overlap or end after their test', () => {
                 ['executeScript → false', 'passed', undefined, [expect.stringContaining('/execute/sync'), 'false'], []],
                 ['executeScript', 'failed', message, [expect.stringContaining('/execute/sync')], []]
             ]],
-            ['getTitle() → "UCE demo"', 'passed', undefined, ['UCE demo'], []]
+            ['getTitle() → "UCE demo"', 'passed', undefined, [], []]
         ])
     })
 
@@ -427,13 +481,13 @@ describe('user commands that overlap or end after their test', () => {
         // the steps are siblings in start order; each step gets its own result
         const request = (id: string) => expect.stringContaining(`/element/${id}/text`)
         expect(steps(byName('t1'), attachment)).toEqual([
-            ['getText() → "A"', 'passed', undefined, ['A'], [
+            ['getText() → "A"', 'passed', undefined, [], [
                 ['getElementText → "A"', 'passed', undefined, [request('a'), 'A'], []]
             ]],
-            ['getText() → "B"', 'passed', undefined, ['B'], [
+            ['getText() → "B"', 'passed', undefined, [], [
                 ['getElementText → "B"', 'passed', undefined, [request('b'), 'B'], []]
             ]],
-            ['getTitle() → "T"', 'passed', undefined, ['T'], []]
+            ['getTitle() → "T"', 'passed', undefined, [], []]
         ])
     })
 
@@ -505,9 +559,9 @@ describe('user commands that overlap or end after their test', () => {
         })
 
         expect(steps(byName('t1'), attachment)).toEqual([
-            ['getText() → "a"', 'passed', undefined, ['a'], []],
-            ['getText() → "b"', 'passed', undefined, ['b'], []],
-            ['getText() → "c"', 'passed', undefined, ['c'], []]
+            ['getText() → "a"', 'passed', undefined, [], []],
+            ['getText() → "b"', 'passed', undefined, [], []],
+            ['getText() → "c"', 'passed', undefined, [], []]
         ])
     })
 
@@ -562,7 +616,7 @@ describe('user commands that overlap or end after their test', () => {
             ['pause(5000)', 'broken', []],
             ['getText()', 'broken', [['getElementText', 'broken']]]
         ])
-        expect(steps(byName('t2'), attachment)).toEqual([['getTitle() → "T"', 'passed', undefined, ['T'], []]])
+        expect(steps(byName('t2'), attachment)).toEqual([['getTitle() → "T"', 'passed', undefined, [], []]])
     })
 
     it('ends the protocol step of a failed user command when a user command that started after it ends', async () => {
