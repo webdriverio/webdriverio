@@ -531,10 +531,9 @@ function attachElementArrayHooks (
         let commandError: unknown
         try {
             // the event gets a list with the query of the list, so reporters can show it and the count
-            await runUserCommand(self, commandName, args, async () => {
-                const loaded = await load()
+            await runUserCommand(self, commandName, args, load, (loaded) => {
                 const query = { foundWith: commandName, selector: args[0], props: args.slice(1), parent: self }
-                return Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], query), 'element-array') : loaded
+                return { value: Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], query), 'element-array') : loaded }
             })
         } catch (err) {
             commandError = err
