@@ -88,11 +88,13 @@ const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
 const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
 // the result of a user command, until the steps that started after it end
-type UserStep = { kind: 'user'; id: number; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } }
+type EndedStep = { ended: { status: AllureStatus; stop: number; statusDetails?: StatusDetails } }
+// `ended`: a nested user step that its parent ended before its result
+type UserStep = { kind: 'user'; id: number; parent?: number; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } | EndedStep }
 // a protocol step that started in a user step; `ended`: its user command ended it before its result
 type ProtocolStep = {
     kind: 'protocol'; parent?: number; command?: string; endpoint?: string
-    done?: { result: unknown; stop: number; isShot: boolean } | { ended: { status: AllureStatus; stop: number; statusDetails?: StatusDetails } }
+    done?: { result: unknown; stop: number; isShot: boolean } | EndedStep
 }
 // the steps of a test that are still open, in start order: a step ends when all steps after it ended
 type OpenStep = UserStep | ProtocolStep
@@ -109,11 +111,16 @@ function ownerOf(command: { parent?: number; owner?: number }): number | undefin
 }
 
 // the user step of a request: its parent, else (no parent) the user step it started in
-function userStepOf(open: OpenStep[], step: ProtocolStep): UserStep | undefined {
+function userStepOf(open: OpenStep[], step: OpenStep): UserStep | undefined {
     const index = open.indexOf(step)
     const parent = step.parent === undefined ? undefined : open.find((s): s is UserStep => s.kind === 'user' && s.id === step.parent)
-    return parent ?? open.slice(0, index).findLast((s): s is UserStep => s.kind === 'user')
+    // a top-level user step has no owner
+    return parent ?? (step.kind === 'user' ? undefined : open.slice(0, index).findLast((s): s is UserStep => s.kind === 'user'))
 }
+
+// the status that a done user step gives to the steps under it that are still open
+const endedBy = (owner: UserStep & { done: NonNullable<UserStep['done']> }): EndedStep['ended'] =>
+    'ended' in owner.done ? owner.done.ended : { ...userStepStatus(owner.done.result), stop: owner.done.stop }
 
 // the status of a user step: an error from another realm or a thrown value fails it with its text
 const isShownInFull = (value: unknown, inline: string) =>
@@ -1459,7 +1466,7 @@ export default class AllureReporter extends WDIOReporter {
         // a nested user command is a child of the user step of its parent, also when that step waits
         const parent = payload.parent === undefined ? undefined : this._userStepOf.get(payload.parent)
         if (parent) {
-            const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
+            const step: UserStep = { kind: 'user', id: payload.id, parent: payload.parent, name, command: payload.command }
             // an earlier step of the same parent is still open: this one waits, so the two are siblings
             if (parent.open.at(-1) !== parent.step) {
                 const waiting: WaitingUserStep = { key: this._laneKey(), open: [step], messages: [], waiting: true }
@@ -1515,10 +1522,15 @@ export default class AllureReporter extends WDIOReporter {
                 continue
             }
             if (!step.done) {
-                const owner = step.kind === 'protocol' ? userStepOf(open, step) : undefined
+                const owner = userStepOf(open, step)
                 if (!owner?.done) { break }
-                step.done = { ended: { ...userStepStatus(owner.done.result), stop: owner.done.stop } }
-                this._addLateResult(scope, step as ProtocolStep)
+                step.done = { ended: endedBy(owner as UserStep & { done: NonNullable<UserStep['done']> }) }
+                if (step.kind === 'protocol') {
+                    this._addLateResult(scope, step)
+                } else {
+                    // its result comes later: it ends no step
+                    this._userStepOf.delete(step.id)
+                }
             }
             open.pop()
             if (step.kind === 'user') {
@@ -1570,6 +1582,10 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _endUserStep(step: UserStep): void {
+        if ('ended' in step.done!) {
+            this._endStep(step.done.ended)
+            return
+        }
         const { result, stop } = step.done!
         const { name, command } = step
         const { status, statusDetails } = userStepStatus(result)

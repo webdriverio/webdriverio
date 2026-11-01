@@ -365,6 +365,29 @@ describe('user commands that overlap or end after their test', () => {
         expect(names(byName('t1'))).toEqual(['pause(100)', ['waitUntil() → true', ['getText() → "x"', 'isDisplayed() → true']]])
     })
 
+    it('ends an open nested user step with the status of its parent that failed, and ignores its late result', async () => {
+        const message = 'waitUntil condition timed out after 500ms'
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(2, 'getText', 1))
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { error: new Error(message) } })
+            // the test catches the timeout and ends before the poll
+            emit('test:pass', { ...test('t1'), passed: true })
+            emit('test:end', test('t1'))
+            emit('test:start', test('t2'))
+            emit('client:afterUserCommand', { ...nested(2, 'getText', 1), result: { value: 'x' } })
+            emit('client:beforeUserCommand', user(3, 'getTitle', []))
+            emit('client:afterUserCommand', { ...user(3, 'getTitle', []), result: { value: 'T' } })
+            emit('test:pass', { ...test('t2'), passed: true })
+            emit('test:end', test('t2'))
+        })
+        expect(steps(byName('t1'), () => '').map(([name, status, text, , children]) => [name, status, text, (children as unknown[]).map((c) => (c as unknown[]).slice(0, 3))])).toEqual([
+            ['waitUntil()', 'failed', message, [['getText()', 'failed', message]]]
+        ])
+        expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
+    })
+
     it('writes no step in the next test for a nested user command that starts after the end of its test', async () => {
         const { byName } = await runTests((emit) => {
             emit('test:start', test('t1'))
