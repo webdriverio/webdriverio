@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    timeout-minutes: 30
+    timeout-minutes: 35 # more than setup + the build and test step limits, so the failure log steps still run
     env:
       IMAGE: display-server-test:${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
     strategy:
