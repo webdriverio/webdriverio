@@ -85,7 +85,6 @@ export default class Runner extends EventEmitter {
     private _sessionInitError?: Error
     private _timingTracker?: TimingTracker
     private _lateErrors = 0
-    private _hiddenLateErrors = 0
     private _lateRejectionSince = 0
     private _lateRejectionTimer?: NodeJS.Timeout
     private _shutdownStarted = false
@@ -99,9 +98,7 @@ export default class Runner extends EventEmitter {
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
         this._lateErrors++
         const uncaught = origin !== 'unhandledRejection'
-        if (this._lateErrors > LATE_ERROR_REPORT_LIMIT) {
-            this._hiddenLateErrors++
-        } else {
+        if (this._lateErrors <= LATE_ERROR_REPORT_LIMIT) {
             const kind = uncaught
                 ? 'Uncaught error that no test reports, for example of a timer that throws in a hook'
                 : 'Unhandled promise rejection that no test reports, for example of a command without await in the last hook'
@@ -187,7 +184,6 @@ export default class Runner extends EventEmitter {
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
         this._lateErrors = 0
-        this._hiddenLateErrors = 0
         this._shutdownStarted = false
         this._endingWorker = false
         this._runnerStarted = false
@@ -605,8 +601,9 @@ export default class Runner extends EventEmitter {
         }
         this._shutdownStarted = true
         clearTimeout(this._lateRejectionTimer)
-        if (this._hiddenLateErrors > 0) {
-            this.#reportLateError(`${this._hiddenLateErrors} more late errors that no test reports were not shown`)
+        const hiddenLateErrors = this._lateErrors - LATE_ERROR_REPORT_LIMIT
+        if (hiddenLateErrors > 0) {
+            this.#reportLateError(`${hiddenLateErrors} more late errors that no test reports were not shown`)
         }
         const lateErrors = this._lateErrors
         failures += lateErrors
