@@ -530,6 +530,8 @@ describe('watcher', () => {
             '1-0': new WorkerMock({ cid: '1-0', specs: [barFooPath] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
+        const instances = { browserA: { sessionId: 'retained-session' } }
+        watcher['_launcher'].runner!.workerPool['0-0'].instances = instances
         watcher.run({ spec: toFileUrl(fooBarPath) } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
@@ -540,6 +542,7 @@ describe('watcher', () => {
         const { postMessage, sessionId } = watcher['_launcher'].runner!.workerPool['0-0']
         expect(postMessage).toHaveBeenCalledWith('run', {
             sessionId,
+            instances,
             spec: toFileUrl(fooBarPath),
             baseUrl: 'http://localhost:1234'
         })

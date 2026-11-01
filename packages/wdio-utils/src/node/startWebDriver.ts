@@ -12,7 +12,7 @@ import { deepmerge } from 'deepmerge-ts'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs, setDefaultEdgedriverCdnUrl } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability, sleep } from '../utils.js'
@@ -66,7 +66,7 @@ function addWaylandFlag(browserOptions: { args?: string[] }) {
     browserOptions.args = [...args, '--ozone-platform=wayland']
 }
 
-export async function startWebDriver(options: Capabilities.RemoteConfig) {
+export async function startWebDriver(options: Capabilities.RemoteConfig & Pick<Options.Testrunner, 'watch'>) {
     /**
      * in case we are running unit tests, just return
      */
@@ -80,6 +80,10 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
     let driver = ''
     const start = Date.now()
     const caps = (options.capabilities as Capabilities.W3CCapabilities).alwaysMatch || options.capabilities as WebdriverIO.Capabilities
+    // Windows terminates attached child processes when their worker exits.
+    // Watch sessions must survive that exit until the shutdown worker deletes them.
+    const retainDriver = process.platform === 'win32' && options.watch
+    const spawnOpts = retainDriver ? { detached: true, windowsHide: true } : {}
 
     /**
      * session might be a mobile session so don't do anything
@@ -140,6 +144,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
          */
         driverProcess = await spawnDriver(chromedriverExcecuteablePath, driverParams, {
             env: { ...process.env, NODE_OPTIONS: '' },
+            ...spawnOpts,
             ...(chromedriverOptions.spawnOpts || {})
         })
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
@@ -192,7 +197,11 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         }
 
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['localhost'] })
+        driverProcess = await startGeckodriver({
+            ...geckodriverOptions,
+            ...(retainDriver ? { spawnOpts: { ...spawnOpts, ...geckodriverOptions.spawnOpts } } : {}),
+            cacheDir, port, allowHosts: ['localhost']
+        })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
@@ -205,9 +214,14 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         setDefaultEdgedriverCdnUrl()
         const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
         driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
+        const driverOptions = {
+            ...edgedriverOptions,
+            ...(retainDriver ? { spawnOpts: { ...spawnOpts, ...edgedriverOptions.spawnOpts } } : {}),
+            cacheDir, port
+        }
+        driverProcess = await startEdgedriver({ ...driverOptions, allowedIps: ['0.0.0.0'] }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
-            return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
+            return startEdgedriver(driverOptions)
         })
 
         /**

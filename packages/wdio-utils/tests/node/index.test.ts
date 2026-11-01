@@ -343,6 +343,46 @@ describe('startWebDriver', () => {
         )
     })
 
+    it.each([
+        ['win32', true, undefined, true],
+        ['win32', false, undefined, undefined],
+        ['linux', true, undefined, undefined],
+        ['win32', true, false, false],
+    ] as const)('sets driver detachment for %s watch=%s (override=%s)', async (platform, watch, detached, expected) => {
+        const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!
+        Object.defineProperty(process, 'platform', { value: platform, configurable: true })
+        try {
+            await startWebDriver({
+                watch,
+                capabilities: {
+                    browserName: 'chrome',
+                    'wdio:chromedriverOptions': { spawnOpts: detached === undefined ? {} : { detached } }
+                }
+            })
+            expect(cp.spawn).toHaveBeenCalledWith(expect.any(String), expect.any(Array),
+                expected === undefined
+                    ? expect.not.objectContaining({ detached: expect.anything() })
+                    : expect.objectContaining({ detached: expected }))
+
+            if (platform === 'win32' && watch) {
+                for (const [browserName, capability, start] of [
+                    ['firefox', 'wdio:geckodriverOptions', startGeckodriver],
+                    ['MicrosoftEdge', 'wdio:edgedriverOptions', startEdgedriver]
+                ] as const) {
+                    await startWebDriver({
+                        watch,
+                        capabilities: { browserName, [capability]: { spawnOpts: detached === undefined ? {} : { detached } } }
+                    })
+                    expect(start).toHaveBeenCalledWith(expect.objectContaining({
+                        spawnOpts: { detached: expected, windowsHide: true }
+                    }))
+                }
+            }
+        } finally {
+            Object.defineProperty(process, 'platform', originalPlatform)
+        }
+    })
+
     it('should retry Chromedriver spawn on EBUSY', async () => {
         const busy = Object.assign(new Error('spawn EBUSY'), { code: 'EBUSY', errno: -4082, syscall: 'spawn' })
         const child = {

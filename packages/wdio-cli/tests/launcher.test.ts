@@ -97,6 +97,18 @@ describe('launcher', () => {
     })
 
     describe('capabilities', () => {
+        it.each([
+            [{ browserA: { capabilities: { browserName: 'chrome' } } }, false],
+            [[{ browserA: { capabilities: { browserName: 'chrome' } } }], true]
+        ])('detects multi-remote before watch mode starts the launcher', async (capabilities, parallel) => {
+            vi.spyOn(launcher.configParser, 'getCapabilities').mockReturnValue(capabilities as any)
+
+            await launcher.initialize()
+
+            expect(launcher.isMultiRemote).toBe(true)
+            expect(launcher.isParallelMultiRemote).toBe(parallel)
+        })
+
         it('should NOT fail when capabilities are passed', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, [caps])
@@ -925,7 +937,7 @@ describe('launcher', () => {
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
 
-            expect(launcher.configParser.getCapabilities).toBeCalledTimes(3)
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(4)
             expect(launcher.configParser.getConfig).toBeCalledTimes(2)
             expect(launcher.runner!.initialize).toBeCalledTimes(1)
             // @ts-ignore

@@ -12,13 +12,14 @@ export type { WorkerInstance }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
-    args: Workers.WorkerMessageArgs
+    args: Workers.WorkerMessageArgs & { ignoredWorkerServices?: string[] }
     cid: string
 }
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
     private daemon: RunningDaemon | null = null
+    private ignoredWorkerServices: string[] = []
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -44,6 +45,7 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
+        this.ignoredWorkerServices = args.ignoredWorkerServices || this.ignoredWorkerServices
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -104,6 +106,7 @@ export default class LocalRunner {
                     watch: true,
                     isMultiRemote,
                     instances,
+                    ignoredWorkerServices: this.ignoredWorkerServices,
                 } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]

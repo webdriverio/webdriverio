@@ -73,17 +73,20 @@ async function removeTemporaryDirectory(temporaryDirectory, prefix) {
     await fs.rm(resolvedTemporaryDirectory, { recursive: true, force: true })
 }
 
-export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configPath, setup, execute }) {
+export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configPath, setup, execute, mockService = false, verifyShutdown }) {
     const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), temporaryDirectoryPrefix))
-    const driver = createWebDriverServer()
+    const driver = mockService ? undefined : createWebDriverServer()
+    const hooksPath = path.join(temporaryDirectory, 'hooks.jsonl')
     let child
     let exit
     let output = ''
     let failure
 
     try {
-        driver.server.listen(0, '127.0.0.1')
-        await once(driver.server, 'listening')
+        if (driver) {
+            driver.server.listen(0, '127.0.0.1')
+            await once(driver.server, 'listening')
+        }
         const env = await setup({ temporaryDirectory })
 
         child = fork(path.resolve(directory, '../../packages/wdio-cli/bin/wdio.js'), [
@@ -97,7 +100,8 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
             env: {
                 ...process.env,
                 WDIO_UNIT_TESTS: '1',
-                WDIO_WATCH_PORT: String(driver.server.address().port),
+                ...(driver ? { WDIO_WATCH_PORT: String(driver.server.address().port) } : {}),
+                WDIO_WATCH_HOOKS: hooksPath,
                 ...env
             }
         })
@@ -143,12 +147,13 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
             while (true) {
                 const counts = new Map()
                 for (const run of runs) {
+                    const runIndex = counts.get(run.cid) ?? 0
                     assert.equal(
                         run.exitCode,
-                        expectedExitCode,
+                        Array.isArray(expectedExitCode) ? expectedExitCode[runIndex] : expectedExitCode,
                         `${name} worker ${run.cid} exited with an unexpected code`
                     )
-                    counts.set(run.cid, (counts.get(run.cid) ?? 0) + 1)
+                    counts.set(run.cid, runIndex + 1)
                 }
                 const finished = [...counts.values()].filter((count) => count >= runsPerWorker).length
                 if (finished >= workerCount) {
@@ -168,10 +173,22 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
 
         const result = await stopWatchProcess(child, exit)
         assert.deepEqual(result, { code: 0, signal: null })
-        assert.equal(driver.deleted.length, driver.created.length, 'Shutdown must delete every retained session')
-        assert.deepEqual(new Set(driver.deleted), new Set(driver.created), 'Shutdown must delete the created sessions')
-        assert.equal(driver.sessions.size, 0, 'Shutdown must delete all retained sessions')
-        assert.deepEqual(driver.unexpected, [], 'The fixture received unexpected WebDriver commands')
+        const hooks = (await fs.readFile(hooksPath, 'utf8')).trim().split('\n').map(JSON.parse)
+        for (const cid of new Set(runs.map((run) => run.cid))) {
+            const workerHooks = hooks.filter((hook) => hook.cid === cid)
+            assert.deepEqual(workerHooks.map((hook) => hook.type).sort(), ['config', 'service'],
+                `Worker ${cid} must run config and service afterSession hooks exactly once`)
+            for (const hook of workerHooks) {
+                assert.ok(hook.specs.length > 0, 'afterSession must receive the worker specs')
+            }
+        }
+        if (driver) {
+            assert.equal(driver.deleted.length, driver.created.length, 'Shutdown must delete every retained session')
+            assert.deepEqual(new Set(driver.deleted), new Set(driver.created), 'Shutdown must delete the created sessions')
+            assert.equal(driver.sessions.size, 0, 'Shutdown must delete all retained sessions')
+            assert.deepEqual(driver.unexpected, [], 'The fixture received unexpected WebDriver commands')
+        }
+        await verifyShutdown?.()
     } catch (error) {
         failure = new Error(`${name} smoke test failed: ${error.message}\n${output}`, { cause: error })
     } finally {
@@ -184,8 +201,10 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
         }
 
         try {
-            driver.server.closeAllConnections()
-            await new Promise((resolve) => driver.server.close(resolve))
+            if (driver) {
+                driver.server.closeAllConnections()
+                await new Promise((resolve) => driver.server.close(resolve))
+            }
             await removeTemporaryDirectory(temporaryDirectory, temporaryDirectoryPrefix)
         } catch (cleanupError) {
             failure ??= cleanupError

@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { enableFileLogging, wrapCommand, isBidi, resolveCustomCommandOptions } from '@wdio/utils'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiRemote.js'
@@ -172,7 +172,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * </b>
  *
  * @param params capabilities to choose desired devices.
- * @param automationProtocol
+ * @param options Automation protocol and existing sessions to attach to.
  * @return All remote instances, the first result represents the capability defined first in the capability object,
  * the second result the second capability and so on.
  *
@@ -180,7 +180,10 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  */
 export const multiRemote = async function (
     params: Capabilities.RequestedMultiRemoteCapabilities,
-    { automationProtocol }: { automationProtocol?: string } = {}
+    {
+        automationProtocol,
+        instances
+    }: { automationProtocol?: string, instances?: Record<string, Workers.WorkerInstanceData> } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
@@ -195,7 +198,17 @@ export const multiRemote = async function (
     const started: WebdriverIO.Browser[] = []
     let startupFailed = false
     const pending = browserNames.map(async (browserName) => {
-        const instance = await remote(params[browserName])
+        const instanceData = instances?.[browserName]
+        const requestedCapabilities = params[browserName].capabilities as WebdriverIO.Capabilities
+        const capabilities = (instanceData?.capabilities ?? requestedCapabilities) as WebdriverIO.Capabilities
+        const instance = instanceData
+            ? await attach({
+                ...instanceData,
+                capabilities,
+                requestedCapabilities,
+                options: params[browserName]
+            })
+            : await remote(params[browserName])
         if (startupFailed) {
             await instance.deleteSession()
             return [browserName, instance] as const

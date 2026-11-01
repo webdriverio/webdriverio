@@ -1,4 +1,4 @@
-import type { AnyRunnerToBrowserMessage, Capabilities, Services } from '@wdio/types'
+import type { AnyRunnerToBrowserMessage, Capabilities, Services, Workers } from '@wdio/types'
 import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
 import type { AddCommandFunction, CustomCommandOptions } from 'webdriverio'
 
@@ -18,6 +18,7 @@ export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afte
 interface Args extends Partial<WebdriverIO.Config> {
     ignoredWorkerServices?: string[]
     watch?: boolean
+    instances?: Record<string, Workers.WorkerInstanceData>
     /**
      * `wdio run --debug=agent`
      */
@@ -64,6 +65,7 @@ export interface SessionStartedMessage {
         isMultiRemote: boolean
         injectGlobals: boolean
         capabilities: WebdriverIO.Capabilities
+        instances?: Record<string, Workers.WorkerInstanceData>
     },
     cid?: string
 }

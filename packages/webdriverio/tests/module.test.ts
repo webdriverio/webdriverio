@@ -247,6 +247,25 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('multi-remote', () => {
+        it('uses returned capabilities when attaching to retained sessions', async () => {
+            const requestedCapabilities = { browserName: 'chrome', webSocketUrl: true }
+            const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://localhost:4444/session/browser-a' }
+
+            await multiRemote({
+                browserA: { automationProtocol: 'webdriver', capabilities: requestedCapabilities }
+            }, {
+                instances: { browserA: { sessionId: 'browser-a', capabilities } }
+            })
+
+            expect(WebDriver.attachToSession).toHaveBeenCalledWith(
+                expect.objectContaining({ sessionId: 'browser-a', capabilities, requestedCapabilities }),
+                undefined,
+                expect.any(Object),
+                expect.any(Function)
+            )
+            expect(WebDriver.newSession).not.toHaveBeenCalled()
+        })
+
         it('deletes sessions that already started when another instance fails to start', async () => {
             const started = {
                 sessionId: 'started-session',

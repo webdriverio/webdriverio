@@ -107,6 +107,12 @@ describe('WebDriver', () => {
             )
         })
 
+        it('passes watch mode to local driver startup', async () => {
+            const options = { watch: true, capabilities: { browserName: 'chrome' } }
+            await WebDriver.newSession(options)
+            expect(startWebDriver).toHaveBeenCalledWith(expect.objectContaining({ watch: true }))
+        })
+
         it('should allow to create a new session using w3c compliant caps', async () => {
             await WebDriver.newSession({
                 path: '/',

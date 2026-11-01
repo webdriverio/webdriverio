@@ -93,10 +93,7 @@ class Launcher {
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
-        this.isParallelMultiRemote = Array.isArray(capabilities) &&
-            capabilities.length > 0 &&
-            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
-        this.isMultiRemote = this.isParallelMultiRemote || !Array.isArray(capabilities)
+        this._updateMultiRemoteMode(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         await enableFileLogging(config.outputDir)
@@ -325,6 +322,15 @@ class Launcher {
         )) {
             await enableTsx()
         }
+
+        this._updateMultiRemoteMode(this.configParser.getCapabilities())
+    }
+
+    private _updateMultiRemoteMode(capabilities: ReturnType<ConfigParser['getCapabilities']>) {
+        this.isParallelMultiRemote = Array.isArray(capabilities) &&
+            capabilities.length > 0 &&
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
+        this.isMultiRemote = this.isParallelMultiRemote || !Array.isArray(capabilities)
     }
 
     /**

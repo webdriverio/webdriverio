@@ -57,6 +57,11 @@ export default class WebDriver {
         }
 
         log.info('Initiate new session using the WebDriver protocol')
+        // `watch` is a runner option, so protocol validation does not retain it.
+        // Driver startup needs it to keep local drivers alive between workers.
+        if ((options as Options.Testrunner).watch) {
+            Object.assign(params, { watch: true })
+        }
         const driverProcess = await startWebDriver(params)
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
