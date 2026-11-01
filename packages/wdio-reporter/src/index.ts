@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, functionLabelName } from './utils.js'
 import { userOutputReplacer } from './joinRepeats.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
@@ -17,8 +17,6 @@ import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
-// the producer sends a function script as its name only
-const isFunctionLabel = (value: unknown) => typeof value === 'string' && /^\[Function [^\]]*\]$/.test(value)
 // the producer cuts a long script at 1024 characters and writes the size of the full script: keep that size
 const CUT_SCRIPT = /^([\s\S]{1024})… \[(\d+) bytes\]$/
 const userScript = (script: string) => {
@@ -602,7 +600,7 @@ export default class WDIOReporter extends EventEmitter {
         if (!owner) {
             return
         }
-        const body = payload.command === 'execute' && Array.isArray(payload.body) && payload.body.length > 0 && !isFunctionLabel(payload.body[0])
+        const body = payload.command === 'execute' && Array.isArray(payload.body) && payload.body.length > 0 && functionLabelName(payload.body[0]) === undefined
             ? [userScript(payload.body[0] as string), ...payload.body.slice(1)]
             : payload.body
         const entry: UserCommandOutput | UserResultOutput = type === 'userCommand'
