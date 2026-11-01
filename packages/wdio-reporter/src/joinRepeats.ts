@@ -88,12 +88,23 @@ export function userCommandTree(output: ReadonlyArray<{ type: string }>): UserCo
     return roots
 }
 
-// the full value, so two results or bodies with the same cut text are not joined
+const MAX_KEY_LENGTH = 4096
+const TOO_BIG = Symbol('too big')
+
+// the full value, so two results or bodies with the same cut text are not joined; `undefined` for a value that
+// is too big to compare (the compare stops after 4 KB) or that cannot be written
 function valueKey(value: unknown) {
+    let length = 0
     try {
-        return JSON.stringify(value, (_key, item) => item instanceof Error || (item && typeof item === 'object' && 'stack' in item && 'message' in item)
-            ? userCommandError(item)
-            : typeof item === 'bigint' ? String(item) : item)
+        return JSON.stringify(value, (key, item) => {
+            length += key.length + (typeof item === 'string' ? item.length : 8)
+            if (length > MAX_KEY_LENGTH) {
+                throw TOO_BIG
+            }
+            return item instanceof Error || (item && typeof item === 'object' && 'stack' in item && 'message' in item)
+                ? userCommandError(item)
+                : typeof item === 'bigint' ? String(item) : item
+        })
     } catch {
         return undefined
     }
@@ -105,28 +116,49 @@ function valueKey(value: unknown) {
  * @experimental the name and the rule may change
  */
 export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[] {
-    const keys = new WeakMap<UserCommandNode, string>()
     let unique = 0
-    const keyOf = (node: UserCommandNode): string => {
-        let key = keys.get(node)
-        if (key === undefined) {
-            const result = valueKey((node.result as { result?: unknown } | undefined)?.result)
-            const body = valueKey((node.entry as { body?: unknown }).body)
-            // a node with no text (a WebDriver Classic entry) or a value that cannot be compared is never joined
-            key = node.text === undefined || (node.result && result === undefined)
-                ? `\u0000${unique++}`
-                : JSON.stringify([node.text, result, body, node.children.map(keyOf)])
-            keys.set(node, key)
+    const uniqueKey = () => `\u0000${unique++}`
+    const memo = (compute: (node: UserCommandNode) => string) => {
+        const keys = new WeakMap<UserCommandNode, string>()
+        return (node: UserCommandNode) => {
+            let key = keys.get(node)
+            if (key === undefined) {
+                key = compute(node)
+                keys.set(node, key)
+            }
+            return key
         }
-        return key
     }
-    const joinLevel = (level: UserCommandNode[]): UserCommandNode[] => joinRepeats(
-        level.map((node) => ({ ...node, children: joinLevel(node.children) })),
-        keyOf,
-        (group, count) => group.length === 1
-            ? { ...group[0], text: `${group[0].text} × ${count}`, repeat: count }
-            : { entry: group[0].entry, text: `× ${count}`, repeat: count, group: [...group], children: [...group] }
-    )
+    // the text, the result and the children; a node with no text (a WebDriver Classic entry) is never joined
+    const cheapKey = memo((node) => {
+        const result = valueKey((node.result as { result?: unknown } | undefined)?.result)
+        return node.text === undefined || (node.result && result === undefined)
+            ? uniqueKey()
+            : JSON.stringify([node.text, result, node.children.map(cheapKey)])
+    })
+    // also the bodies: read only for a node that can be in a run
+    const fullKey = memo((node) => {
+        const body = (node.entry as { body?: unknown }).body
+        const bodyKey = valueKey(body)
+        return body !== undefined && bodyKey === undefined
+            ? uniqueKey()
+            : JSON.stringify([cheapKey(node), bodyKey, node.children.map(fullKey)])
+    })
+    const joinLevel = (level: UserCommandNode[]): UserCommandNode[] => {
+        const joined = level.map((node) => ({ ...node, children: joinLevel(node.children) }))
+        const cheap = joined.map(cheapKey)
+        // a node can be in a run only when a sibling at most 4 places away has the same cheap key
+        const keys = new Map(joined.map((node, i) => [node, cheap.some((key, j) => j !== i && Math.abs(j - i) <= 4 && key === cheap[i])
+            ? fullKey(node)
+            : uniqueKey()]))
+        return joinRepeats(
+            joined,
+            (node) => keys.get(node)!,
+            (group, count) => group.length === 1
+                ? { ...group[0], text: `${group[0].text} × ${count}`, repeat: count }
+                : { entry: group[0].entry, text: `× ${count}`, repeat: count, group: [...group], children: [...group] }
+        )
+    }
     return joinLevel(nodes)
 }
 
