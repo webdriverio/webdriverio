@@ -90,6 +90,7 @@ export default class Runner extends EventEmitter {
     private _shutdownStarted = false
     private _endWorkerRun?: Promise<number>
     private _frameworkFailures = 0
+    private _testsStarted = false
     private _runnerStarted = false
     private _watch = false
     private _sessionReported = false
@@ -97,8 +98,12 @@ export default class Runner extends EventEmitter {
     private _retries = 0
 
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
-        this._lateErrors++
         const uncaught = origin !== 'unhandledRejection'
+        // before the tests there is no report to keep, and the run would go on (session, hooks): end as without this listener
+        if (uncaught && !this._testsStarted) {
+            throw err
+        }
+        this._lateErrors++
         if (this._lateErrors <= LATE_ERROR_REPORT_LIMIT) {
             const kind = uncaught
                 ? 'Uncaught error that no test reports, for example of a timer that throws in a hook'
@@ -195,6 +200,7 @@ export default class Runner extends EventEmitter {
         this._shutdownStarted = false
         this._endWorkerRun = undefined
         this._frameworkFailures = 0
+        this._testsStarted = false
         this._runnerStarted = false
         this._watch = Boolean(args.watch)
         // a watch rerun attaches to the session that the parent already saved
@@ -295,6 +301,10 @@ export default class Runner extends EventEmitter {
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
+        // the worker ends already (the watchdog, while this hook waited): do not start a session
+        if (this._endWorkerRun) {
+            return this._endWorkerRun
+        }
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
@@ -415,6 +425,7 @@ export default class Runner extends EventEmitter {
             if (!this._isMultiRemote) {
                 this._framework.setBrowser?.(browser as WebdriverIO.Browser)
             }
+            this._testsStarted = true
             failures = await this._framework.run()
         } catch (err: any) {
             log.error(err)
