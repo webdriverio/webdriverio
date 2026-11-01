@@ -129,3 +129,37 @@ export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[]
     )
     return joinLevel(nodes)
 }
+
+/**
+ * A `JSON.stringify` replacer for a report of `TestStats.output`: the error of a `userResult` gets its name and
+ * message (see `userCommandError`), and an output with user commands becomes the entries of its joined tree (see
+ * `joinUserCommandTree`). Each user command entry and protocol command entry that a user command runs gets its
+ * one-line `text`, and the first entry of joined repeats gets `repeat: { count, size }`. Other values stay as they are.
+ * @experimental the name and the rule may change
+ */
+export function userOutputReplacer(this: unknown, key: string, value: unknown): unknown {
+    if ((this as { type?: unknown } | undefined)?.type === 'userResult' && key === 'result' && value && typeof value === 'object' && 'error' in value) {
+        return { error: userCommandError((value as { error: unknown }).error) }
+    }
+    if (key === 'output' && Array.isArray(value) && value.some((entry) => entry && isUserCommandOutput(entry))) {
+        const entries: object[] = []
+        const flatten = (nodes: UserCommandNode[]) => {
+            for (const node of nodes) {
+                if (node.group) {
+                    const [first, ...rest] = node.group
+                    flatten([{ ...first, repeatOf: { count: node.repeat!, size: node.group.length } } as UserCommandNode, ...rest])
+                    continue
+                }
+                const repeat = (node as { repeatOf?: unknown }).repeatOf ?? (node.repeat ? { count: node.repeat, size: 1 } : undefined)
+                entries.push({ ...node.entry, ...(node.text === undefined ? {} : { text: node.text }), ...(repeat ? { repeat } : {}) })
+                flatten(node.children)
+                if (node.result) {
+                    entries.push(node.result)
+                }
+            }
+        }
+        flatten(joinUserCommandTree(userCommandTree(value)))
+        return entries
+    }
+    return value
+}
