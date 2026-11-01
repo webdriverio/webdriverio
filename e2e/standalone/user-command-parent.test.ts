@@ -1,10 +1,13 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { startStandaloneChrome } from './helpers.js'
 
 const PAGE = 'data:text/html,' + encodeURIComponent('<p id="a">wait</p><p id="b">wait</p>')
 
 interface UserCommandEvent { id: number, command: string }
-interface ProtocolEvent { command: string, endpoint?: string, parent?: number }
+interface ProtocolEvent { command: string, endpoint?: string, parent?: number, owner?: number }
 
 // WebDriver BiDi session with user command events: the element commands send HTTP requests, the children of the user command
 describe('user commands that run at the same time', () => {
@@ -60,5 +63,31 @@ describe('user commands that run at the same time', () => {
         // the polls of the two waits overlap: a poll of b comes before the last poll of a
         const order = textRequests.map(([, { parent }]) => parent)
         expect(order.indexOf(idOfB)).toBeLessThan(order.lastIndexOf(idOfA))
+    })
+
+    // a screenshot has no parent, so every reporter gets it; its user command is its owner, also for a WebDriver BiDi capture
+    test('a screenshot gets the id of its own user command as owner', async () => {
+        await browser.url(PAGE)
+        const element = await browser.$('#a')
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-user-command-'))
+        const userCommands: UserCommandEvent[] = []
+        const screenshots: [string, ProtocolEvent][] = []
+        browser.on('userCommand', (event: UserCommandEvent) => userCommands.push(event))
+        browser.on('command', (event: ProtocolEvent) => /Screenshot$/.test(event.command) && screenshots.push(['command', event]))
+        browser.on('result', (event: ProtocolEvent) => /Screenshot$/.test(event.command) && screenshots.push(['result', event]))
+        try {
+            await Promise.all([browser.pause(300), browser.saveScreenshot(path.join(dir, 'page.png'))])
+            await Promise.all([browser.pause(300), element.saveScreenshot(path.join(dir, 'element.png'))])
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+
+        const [page, ofElement] = userCommands.filter(({ command }) => command === 'saveScreenshot').map(({ id }) => id)
+        expect(screenshots.map(([event, { command, parent, owner }]) => [event, command, parent, owner])).toEqual([
+            ['command', 'takeScreenshot', undefined, page],
+            ['result', 'takeScreenshot', undefined, page],
+            ['command', 'takeElementScreenshot', undefined, ofElement],
+            ['result', 'takeElementScreenshot', undefined, ofElement]
+        ])
     })
 })
