@@ -473,15 +473,9 @@ function createHookContext(testTitle: string | undefined, parentTitle: string | 
     }
 }
 
-// Mocha does not fail a test on an unhandled rejection of user code, and keeps its listener for the
-// whole worker (WebdriverIO never disposes the runner): without one, Node ends the worker on a late
-// rejection, for example of a command with no await when the session ends
-const ignoreUnhandledRejection = () => {}
-function keepWorkerOnUnhandledRejection() {
-    if (!process.listeners('unhandledRejection').includes(ignoreUnhandledRejection)) {
-        process.on('unhandledRejection', ignoreUnhandledRejection)
-    }
-}
+// Mocha does not fail a test on an unhandled rejection of user code: during the run, without a
+// listener, Node would turn it into an uncaught error; after the run the runner handles it
+const ignoreRejectionDuringRun = () => {}
 
 /** Mocha's isError (runner.js): an Error, also of another realm, or an object with a string message */
 function isError(value: unknown): value is Error {
@@ -872,7 +866,7 @@ export async function runParallelTests(
     }
 
     if (!mochaOptions?.allowUncaught) { process.on('uncaughtException', onUncaught) }
-    keepWorkerOnUnhandledRejection()
+    process.on('unhandledRejection', ignoreRejectionDuringRun)
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
@@ -886,6 +880,7 @@ export async function runParallelTests(
         }
         // a test can still throw while its window closes
         process.removeListener('uncaughtException', onUncaught)
+        process.removeListener('unhandledRejection', ignoreRejectionDuringRun)
     }
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length

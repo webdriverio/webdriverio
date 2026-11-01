@@ -1768,17 +1768,19 @@ describe('runParallelTests — uncaught errors', () => {
     })
 
     // a command with no await (`$('x').click()`) ends when its window closes or the session ends
-    test('keeps the worker alive on an unhandled rejection after the run, as Mocha does', async () => {
+    test('leaves no rejection listener of its own after the run, so a late rejection reaches the process listeners', async () => {
         let rejectCommand!: (err: Error) => void
         const suite = mockSuite('root', {
             tests: [mockTest('no await', () => { void new Promise((_, reject) => { rejectCommand = reject }) })]
         })
         await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        // only the listener of this test is left
         const listening = process.listenerCount('unhandledRejection') - 1
         rejectCommand(new Error('the connection was closed'))
         await new Promise((r) => setTimeout(r, 5))
 
-        expect(listening).toBe(1)
+        expect(listening).toBe(0)
+        expect(escaped.map((e) => (e as Error).message)).toEqual(['the connection was closed'])
     })
 
     test('logs an uncaught error that comes after its test timed out', async () => {
@@ -1879,14 +1881,17 @@ describe('runParallelTests — uncaught errors', () => {
         expect(escaped.map((e) => (e as Error).message)).toEqual(['allowed boom'])
     })
 
-    test('removes its uncaught error listener after the run and adds its rejection listener only one time', async () => {
-        const before = process.listenerCount('uncaughtException')
-        const run = () => runParallelTests(mockSuite('root', { tests: [mockTest('passes')] }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
-        await run()
-        const rejectionListeners = process.listenerCount('unhandledRejection')
-        await run()
-        expect(process.listenerCount('uncaughtException')).toBe(before)
-        expect(process.listenerCount('unhandledRejection')).toBe(rejectionListeners)
+    test('removes its uncaught error and rejection listeners after the run, so the runner handles a late error', async () => {
+        const uncaught = process.listenerCount('uncaughtException')
+        const rejections = process.listenerCount('unhandledRejection')
+        let rejectionsDuringTest = 0
+        await runParallelTests(mockSuite('root', { tests: [mockTest('passes', () => {
+            rejectionsDuringTest = process.listenerCount('unhandledRejection')
+        })] }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(rejectionsDuringTest).toBe(rejections + 1)
+        expect(process.listenerCount('uncaughtException')).toBe(uncaught)
+        expect(process.listenerCount('unhandledRejection')).toBe(rejections)
     })
 })
 

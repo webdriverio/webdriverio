@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi, type Mock } from 'vitest'
 
 export default class MochaMock {
     loadFiles = vi.fn()
@@ -9,20 +9,22 @@ export default class MochaMock {
     run = vi.fn()
 
     mockFailureCount: number
-    suite: { on: any }
+    suite: { on: Mock }
     runner: {
-        on: any
-        suite: any
-        test: any
+        on: Mock
+        dispose: Mock
+        suite: { beforeAll: Mock, beforeEach: Mock, afterEach: Mock, afterAll: Mock, suites: { title: string }[] }
+        test: { title: string }
     }
 
-    constructor (private mochaOpts: any) {
+    constructor (private mochaOpts: { mockFailureCount?: number, mockRuntimeError?: Error }) {
         this.suite = {
             on: vi.fn()
         }
 
         this.runner = {
             on: vi.fn(),
+            dispose: vi.fn(),
             suite: {
                 beforeAll: vi.fn(),
                 beforeEach: vi.fn(),
