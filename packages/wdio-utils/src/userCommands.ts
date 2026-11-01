@@ -30,6 +30,7 @@ export interface UserCommandFrame {
     // the direct calls of this user command send their own events
     expands?: boolean
     command?: string
+    sessionId?: string
 }
 
 /**
@@ -185,7 +186,7 @@ export function runUserCommand<T> (scope: unknown, command: string, args: unknow
     if (frame && (!expandsFrame(frame) || frame.command === command)) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id })
+    return runOuterCommand(userCommandStore, scope, command, args, run, eventResult as ((value: unknown) => UserCommandEventResult) | undefined, { parent: frame?.id, parentSession: frame?.sessionId })
 }
 
 /**
@@ -200,7 +201,7 @@ export function runCustomCommand<T> (scope: unknown, command: string, args: unkn
     if (!userCommandStore || (frame && (!expandsFrame(frame) || frame.command === command)) || TRANSPARENT_COMMANDS.includes(command)) {
         return run(false)
     }
-    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id })
+    return runOuterCommand(userCommandStore, scope, command, args, () => run(true), undefined, { parent: frame?.id, parentSession: frame?.sessionId })
 }
 
 /**
@@ -213,12 +214,12 @@ export function runListItem<T> (scope: unknown, command: string, args: unknown[]
     if (!userCommandStore || (frame && !expandsFrame(frame))) {
         return run()
     }
-    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id })
+    return runOuterCommand(userCommandStore, scope, command, args, run, undefined, { index, parent: frame?.id, parentSession: frame?.sessionId })
 }
 
 const expandsFrame = (frame: UserCommandFrame) => frame.id !== undefined && frame.expands === true
 
-function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number } = {}): T {
+function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: string, args: unknown[], run: () => T, eventResult?: (value: unknown) => UserCommandEventResult, fields: { index?: number, parent?: number, parentSession?: string } = {}): T {
     const browser = scope ? getBrowserObject(scope as WebdriverIO.Browser) as EventBrowser : undefined
     // each instance of a multi-remote command is the outer call of its own session
     if ((scope as EventBrowser | undefined)?.isMultiRemote || browser?.isMultiRemote) {
@@ -235,7 +236,8 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     const event = {
         id: ++lastUserCommandId, command, body: userCommandBody(args), protocol: 'bidi' as const,
         ...(fields.index === undefined ? {} : { index: fields.index }),
-        ...(fields.parent === undefined ? {} : { parent: fields.parent }),
+        // a command of another session is an outer command of its own session, as for multi-remote instances
+        ...(fields.parent === undefined || fields.parentSession !== browser!.sessionId ? {} : { parent: fields.parent }),
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }
@@ -249,7 +251,7 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         }
     }
     // after its result, the frame shows no more direct calls (a poll that still runs after a timeout)
-    const frame: UserCommandFrame = { id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command }
+    const frame: UserCommandFrame = { id: event.id, expands: expandsUserCommand(browser!.options?.userCommandEvents, command), command, sessionId: browser!.sessionId }
     const sendValue = (value: unknown) => {
         frame.expands = false
         let result: UserCommandEventResult | undefined
