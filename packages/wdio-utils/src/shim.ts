@@ -703,6 +703,7 @@ interface FrameworkRunnable {
  * starts it again
  */
 interface FrameworkTimer {
+    /** `performance.now()`, the clock of the timers: a clock adjustment can set `Date.now()` back */
     startedAt: number
     onRestart?: () => void
 }
@@ -722,10 +723,10 @@ export function followFrameworkTimer (runnable: unknown) {
     }
     let timer = frameworkTimers.get(target)
     if (!timer) {
-        const state: FrameworkTimer = { startedAt: Date.now() }
+        const state: FrameworkTimer = { startedAt: performance.now() }
         const resetTimeout = target.resetTimeout
         target.resetTimeout = function (this: FrameworkRunnable, ...args: unknown[]) {
-            state.startedAt = Date.now()
+            state.startedAt = performance.now()
             const result = resetTimeout.apply(this, args)
             state.onRestart?.()
             return result
@@ -736,7 +737,7 @@ export function followFrameworkTimer (runnable: unknown) {
     /**
      * a hook runs again for each test; Mocha starts its timer right after this
      */
-    timer.startedAt = Date.now()
+    timer.startedAt = performance.now()
 }
 
 /**
@@ -816,7 +817,7 @@ export async function executeAsync(
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
          */
         const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
-        const start = Date.now()
+        const start = performance.now()
         const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
@@ -845,8 +846,9 @@ export async function executeAsync(
                     if (!(current > 0)) {
                         return
                     }
-                    const remaining = current - TIME_BUFFER - (Date.now() - timerStart())
-                    if (remaining > 0) {
+                    const remaining = current - TIME_BUFFER - (performance.now() - timerStart())
+                    // timers count whole milliseconds and can fire a fraction early: one more would use the buffer
+                    if (remaining >= 1) {
                         timer = setTimeout(check, remaining)
                         return
                     }
