@@ -126,6 +126,26 @@ describe('user command events', () => {
         expect(reporter.tests.A.output).toEqual([])
     })
 
+    it('hides a protocol command that starts after the end of the test of its user command, so it does not go to the next test', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        const waitUntil = { ...userCommand, id: 7, command: 'waitUntil' }
+        const poll = { ...protocolCommand, command: 'getElementText', endpoint: '/session/:sessionId/element/e/text', parent: 7 }
+        reporter.emit('client:beforeUserCommand', waitUntil)
+        reporter.emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('timeout') } })
+        reporter.emit('test:fail', { ...base, uid: 'A', title: 'A', error: new Error('timeout') })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:start', { ...base, uid: 'B', title: 'B' })
+        reporter.emit('client:beforeCommand', poll)
+        reporter.emit('client:afterCommand', { ...poll, result: { value: 'y' } })
+
+        expect(reporter.commands).toEqual([])
+        expect(reporter.tests.B.output).toEqual([])
+        expect(reporter.tests.A.output.map((entry: any) => entry.type)).toEqual(['userCommand', 'userResult'])
+    })
+
     it('keeps a protocol command that starts after the end of its user command (a waitUntil condition after the timeout)', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)

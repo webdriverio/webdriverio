@@ -72,8 +72,9 @@ export default class WDIOReporter extends EventEmitter {
     // the name of each open user command, the hidden protocol commands that wait for their result, the hidden events
     #userCommandNames = new Map<number, string>()
     #hiddenChildren = new Map<string, number>()
-    // the ended user commands of the suite: a late call (a waitUntil condition after its timeout) is no excluded one
-    #endedUserCommands = new Set<number>()
+    // the owner of each ended user command of the suite: a late call (a waitUntil condition after its timeout) is no
+    // excluded one while that owner runs
+    #endedUserCommands = new Map<number, TestStats | HookStats | undefined>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -200,7 +201,7 @@ export default class WDIOReporter extends EventEmitter {
             const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
             this.#userCommandOwners.delete(payload.id)
             this.#userCommandNames.delete(payload.id)
-            this.#endedUserCommands.add(payload.id)
+            this.#endedUserCommands.set(payload.id, owner)
             const unit = owner && this.#unitOfStats.get(owner)
             if (unit) {
                 this.#call(unit, () => this.onAfterUserCommand(payload))
@@ -636,8 +637,9 @@ export default class WDIOReporter extends EventEmitter {
             }
             return open > 0
         }
-        // a user command with no entry: excluded, or sent to no listener
-        if (this.#userCommandNames.has(payload.parent) || this.#endedUserCommands.has(payload.parent)) {
+        // a user command with no entry: excluded, sent to no listener, or ended with its owner (else the call goes to the next test)
+        const endedOwner = this.#endedUserCommands.get(payload.parent)
+        if (this.#userCommandNames.has(payload.parent) || (endedOwner && !endedOwner.end)) {
             return false
         }
         this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
