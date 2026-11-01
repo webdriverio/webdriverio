@@ -80,7 +80,7 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Build test container
-        timeout-minutes: 5 # a build takes about 2 min
+        timeout-minutes: 6 # the slowest build takes about 2.5 min, so 2 builds and the wait fit
         shell: bash
         run: |
           # Package mirrors and registries have short outages. Retry once, only after a network or server error, with
