@@ -2,8 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 import type { StepResult } from 'allure-js-commons'
-import { Stage } from 'allure-js-commons'
+import { Stage, Status } from 'allure-js-commons'
 import { joinRepeats } from '@wdio/reporter'
+
+// the worst first: a group step shows the worst status of its steps
+const STATUS_ORDER = [Status.FAILED, Status.BROKEN, Status.SKIPPED, Status.PASSED]
 
 /**
  * The step tree with the identical repeated siblings joined as `× N` (see `joinRepeats` of `@wdio/reporter`).
@@ -52,31 +55,20 @@ export function joinSteps (steps: StepResult[], resultsDir: string): StepResult[
     }
     const sources = (list: readonly StepResult[]): string[] => list.flatMap((step) => [...step.attachments.map(({ source }) => source), ...sources(step.steps)])
     const joinLevel = (level: StepResult[]): StepResult[] => {
-        const joined = level.map((step) => ({ ...step, steps: joinLevel(step.steps) }))
-        const cheap = joined.map(cheapKey)
-        // a step can be in a run only when a sibling at most 4 places away has the same cheap key
-        const near = (i: number) => {
-            for (let j = Math.max(0, i - 4); j <= Math.min(cheap.length - 1, i + 4); j++) {
-                if (j !== i && cheap[j] === cheap[i]) {
-                    return true
-                }
-            }
-            return false
-        }
-        const keys = new Map(joined.map((step, i) => [step, near(i) ? fullKey(step) : `\u0000${unique++}`]))
         return joinRepeats(
-            joined,
-            (step) => keys.get(step)!,
+            level.map((step) => ({ ...step, steps: joinLevel(step.steps) })),
+            cheapKey,
             (group, count, repeats) => {
                 drop(repeats.flat(), new Set(sources(group)))
                 const stop = repeats.at(-1)!.at(-1)!.stop
                 return group.length === 1
                     ? { ...group[0], name: `${group[0].name} × ${count}`, stop }
                     : {
-                        name: `× ${count}`, status: group[0].status, statusDetails: {}, stage: Stage.FINISHED,
+                        name: `× ${count}`, status: STATUS_ORDER.find((status) => group.some((step) => step.status === status)) ?? group[0].status, statusDetails: {}, stage: Stage.FINISHED,
                         parameters: [], attachments: [], steps: [...group], start: group[0].start, stop
                     }
-            }
+            },
+            fullKey
         )
     }
     return joinLevel(steps)
