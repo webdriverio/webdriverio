@@ -37,7 +37,7 @@ function onLateError (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) {
     if (hasFrameworkListener()) {
         return
     }
-    // without the parent, the report itself fails (`process.send`) and comes back here: end as without this listener
+    // without the parent, the report itself fails (`process.send`) and comes back here: end the worker, as without this listener (Node exits with code 7)
     if (process.connected === false) {
         throw err
     }
@@ -93,6 +93,7 @@ export default class Runner extends EventEmitter {
     private _runnerStarted = false
     private _watch = false
     private _sessionReported = false
+    private _closingSessions?: Promise<void>
     private _retries = 0
 
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
@@ -193,6 +194,7 @@ export default class Runner extends EventEmitter {
         this._watch = Boolean(args.watch)
         // a watch rerun attaches to the session that the parent already saved
         this._sessionReported = Boolean((args as { sessionId?: string }).sessionId)
+        this._closingSessions = undefined
         this._retries = retries
         clearTimeout(this._lateRejectionTimer)
         this._lateRejectionTimer = undefined
@@ -729,7 +731,15 @@ export default class Runner extends EventEmitter {
         )
     }
 
-    async #closeSessions () {
+    /**
+     * once per run: `endSession` and the early end of a late error can both close the sessions
+     */
+    #closeSessions () {
+        this._closingSessions ??= this.#deleteAndForgetSessions()
+        return this._closingSessions
+    }
+
+    async #deleteAndForgetSessions () {
         await this.#deleteSessions()
         process.send!(<SessionEndedMessage>{
             origin: 'worker',

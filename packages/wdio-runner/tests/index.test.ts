@@ -931,6 +931,20 @@ describe('wdio-runner', () => {
                     expect(turns).toBeLessThanOrEqual(11)
                 })
 
+                it('deletes the session once when an uncaught error comes while the session ends', async () => {
+                    // a timer that throws while the slow DELETE of the session is in progress
+                    const deleteSession = vi.fn(() => {
+                        setImmediate(() => process.emit('uncaughtException', new Error('timer error'), 'uncaughtException'))
+                        return new Promise((resolve) => setTimeout(resolve, 50))
+                    })
+                    const { exits, done } = startWith(() => 0, {}, { sessionId: 's', deleteSession })
+
+                    await done
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(deleteSession).toBeCalledTimes(1)
+                    expect(vi.mocked(process.send!).mock.calls.filter(([m]: any) => m.name === 'sessionEnded')).toHaveLength(1)
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
