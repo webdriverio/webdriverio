@@ -266,6 +266,19 @@ describe('userCommandTexts', () => {
         expect([texts.get(first), texts.get(second)]).toEqual(['getTitle → "one"  GET /title', 'getTitle → "two"  GET /title'])
     })
 
+    it('pairs the result of a nested custom command call with no endpoint with the call that started last', () => {
+        const call = (n: number) => ({ type: 'command', command: 'walk', body: [n], parent: 1 })
+        const outer = call(1)
+        const inner = call(0)
+        const texts = userCommandTexts([
+            { type: 'userCommand', id: 1, command: 'walk', body: [2] },
+            outer, inner,
+            { type: 'result', command: 'walk', parent: 1, result: { value: 'inner' } },
+            { type: 'result', command: 'walk', parent: 1, result: { value: 'outer' } }
+        ])
+        expect([texts.get(outer), texts.get(inner)]).toEqual(['walk → "outer"', 'walk → "inner"'])
+    })
+
     it('gives a result with no command of its request to no command', () => {
         const child = { type: 'command', command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.1/text', parent: 1 }
         const texts = userCommandTexts([

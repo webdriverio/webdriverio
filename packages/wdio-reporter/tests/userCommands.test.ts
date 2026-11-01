@@ -126,6 +126,28 @@ describe('user command events', () => {
         expect(reporter.tests.A.output).toEqual([])
     })
 
+    it('gives a nested user command the owner of its parent, also when it starts after the end of the test', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        const outer = { ...userCommand, id: 1, command: 'waitUntil' }
+        const nested = { ...userCommand, id: 2, command: 'getText', parent: 1 }
+        reporter.emit('client:beforeUserCommand', outer)
+        reporter.emit('test:fail', { ...base, uid: 'A', title: 'A', error: new Error('timeout') })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:start', { ...base, uid: 'B', title: 'B' })
+        // the condition of the waitUntil of test A still runs
+        reporter.emit('client:beforeUserCommand', nested)
+        reporter.emit('client:afterUserCommand', { ...nested, result: { value: 'x' } })
+        reporter.emit('client:afterUserCommand', { ...outer, result: { error: new Error('timeout') } })
+
+        expect(reporter.tests.A.output.map((entry: any) => `${entry.type} ${entry.command}`)).toEqual([
+            'userCommand waitUntil', 'userCommand getText', 'userResult getText', 'userResult waitUntil'
+        ])
+        expect(reporter.tests.B.output).toEqual([])
+    })
+
     it('hides a protocol command that starts after the end of the test of its user command, so it does not go to the next test', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
