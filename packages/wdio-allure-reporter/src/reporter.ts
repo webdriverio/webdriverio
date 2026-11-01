@@ -1296,6 +1296,11 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
+    // no user commands when no step is written: the base reporter then makes no copies of them
+    protected get showsUserCommands(): boolean {
+        return !this._options?.disableWebdriverStepsReporting && !this._isMultiRemote && super.showsUserCommands
+    }
+
     // test or hook open, not skipped by the test plan, steps enabled
     private _commandStepsAllowed(): boolean {
         const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
