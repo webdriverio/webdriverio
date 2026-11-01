@@ -46,10 +46,10 @@ export const testFnWrapper = function (
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
 }
 
-/** Jasmine hook names as Mocha and the Jasmine reporter events write them */
-const HOOK_LABELS: Record<string, string> = {
-    beforeEach: 'before each', afterEach: 'after each', beforeAll: 'before all', afterAll: 'after all'
-}
+/** Jasmine hook names as words, as in Mocha hook titles */
+const HOOK_LABELS = new Map([
+    ['beforeEach', 'before each'], ['afterEach', 'after each'], ['beforeAll', 'before all'], ['afterAll', 'after all']
+])
 
 /**
  * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable
@@ -61,11 +61,12 @@ function timeoutTitleOf (type: string, hookName: string | undefined, identity: u
     if (type === 'Test') {
         return fullTestNameFrom(identity)
     }
-    if (type !== 'Hook' || !hookName || !Object.hasOwn(HOOK_LABELS, hookName)) {
+    const label = type === 'Hook' && hookName ? HOOK_LABELS.get(hookName) : undefined
+    if (!label) {
         return undefined
     }
-    const hook = `'${HOOK_LABELS[hookName]}' hook${fnName ? `: ${fnName}` : ''}`
-    const spec = hookName.endsWith('Each') ? fullTestNameFrom(identity) : undefined
+    const hook = `'${label}' hook${fnName ? `: ${fnName}` : ''}`
+    const spec = hookName?.endsWith('Each') ? fullTestNameFrom(identity) : undefined
     return spec ? `${hook} for '${spec}'` : hook
 }
 
