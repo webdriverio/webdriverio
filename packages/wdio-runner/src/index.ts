@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
-import url from 'node:url'
 import util from 'node:util'
 
 import logger from '@wdio/logger'
-import { initializeWorkerService, initializePlugin, executeHooksWithArgs, TimingTracker } from '@wdio/utils'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs, specFilePath, TimingTracker } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
@@ -50,11 +49,11 @@ function hasFrameworkListener () {
 }
 
 /**
- * the path of a spec file URL; this runs in an error listener, so it must not throw
+ * this runs in an error listener, so a URL that names no path must not throw
  */
 function toPath (spec: string) {
     try {
-        return spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
+        return specFilePath(spec)
     } catch {
         return spec
     }
