@@ -1410,7 +1410,8 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
         const open = waiting ? waiting.open : this._userSteps.get(scope)
-        const step = open?.findLast((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
+        // the first open request of the same kind: the responses come in the order of the requests
+        const step = open?.find((s): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
             s.parent === ownerOf(command) && s.command === command.command && s.endpoint === command.endpoint)
         if (step) {
             // a step that is not the last one waits: the runtime ends the last open step

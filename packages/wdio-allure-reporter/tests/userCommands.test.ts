@@ -214,6 +214,22 @@ describe('user commands of WebDriver BiDi sessions', () => {
         expect(reporter.tests['test-t1'].output.map((entry: Result) => entry.type)).toEqual([])
     })
 
+    it('gives each result of two identical requests in flight to the request that started first', async () => {
+        const { result } = await run((emit) => userCommand(emit, 1, 'readBoth', [], { value: null }, () => {
+            const request = { command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/:elementId/text', body: {}, sessionId: 's', parent: 1 }
+            emit('client:beforeCommand', request)
+            emit('client:beforeCommand', request)
+            emit('client:afterCommand', { ...request, result: { value: 'first' } })
+            emit('client:afterCommand', { ...request, result: { value: 'second' } })
+        }))
+        // the runtime nests the second request in the first one
+        const tree = (s: Result): unknown => [s.name, s.steps.map(tree)]
+
+        expect(result.steps.map(tree)).toEqual([
+            ['readBoth()', [['getElementText → "first"', [['getElementText → "second"', []]]]]]
+        ])
+    })
+
     it('keeps the historyId, testCaseId and fullName of the test', async () => {
         const ids = (r: Result) => [r.historyId, r.testCaseId, r.fullName]
         const { result: without } = await run(() => {})
