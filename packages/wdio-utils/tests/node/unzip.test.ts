@@ -180,6 +180,7 @@ describe('unzipWithOsTool', () => {
         expect(error).toBeInstanceOf(MissingUnzipToolError)
         expect(error.message).toContain('No unzip tool found to install chromedriver v133.0.6943.141. WebdriverIO v9 on Node.js 26 and later requires one')
         expect(error.message).toContain('apt-get install unzip')
+        expect(error.message).toContain('"overrides": { "yauzl": "^3.3.1" }')
         expect(fsp.rm).toHaveBeenCalledTimes(2)
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
