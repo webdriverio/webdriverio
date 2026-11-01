@@ -126,27 +126,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
     }
 }
 
-const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
-
-/**
- * `translate()` arguments that lowercase the text for a case-insensitive
- * selector. XPath 1.0 has no `lower-case()`, so map A-Z and the other letters
- * of the query (e.g. `É` → `é`); letters that are not in the query can not match.
- */
-function lowerCaseTranslation (query: string) {
-    let upper = UPPERCASE_LETTERS
-    let lower = LOWERCASE_LETTERS
-    for (const char of new Set(query.toLowerCase())) {
-        const upperChar = char.toUpperCase()
-        // skip multi-character case mappings (`ß` → `SS`), translate() maps one character to one
-        if (upperChar !== char && upperChar.length === 1 && char.length === 1 && !upper.includes(upperChar)) {
-            upper += upperChar
-            lower += char
-        }
-    }
-    return `${toXPathStringLiteral(upper)}, ${toXPathStringLiteral(lower)}`
-}
+const LOWER_CASE_TRANSLATION = '"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"'
 
 /**
  * XPath approximation of an accessible name lookup.
@@ -392,12 +372,11 @@ export const findStrategy = function (
         }
         const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
         const literal = toXPathStringLiteral(insensitive ? query.toLowerCase() : query)
-        const translation = insensitive ? lowerCaseTranslation(query) : ''
         if (insensitive) {
             conditions.push(
                 partial
-                    ? `contains(translate(., ${translation}), ${literal})${partialNot}`
-                    : `normalize-space(translate(text(), ${translation})) = ${literal}`)
+                    ? `contains(translate(., ${LOWER_CASE_TRANSLATION}), ${literal})${partialNot}`
+                    : `normalize-space(translate(text(), ${LOWER_CASE_TRANSLATION})) = ${literal}`)
         } else {
             conditions.push(partial ? `contains(., ${literal})${partialNot}` : `normalize-space(text()) = ${literal}`)
         }
@@ -407,7 +386,7 @@ export const findStrategy = function (
             conditions.pop()
             conditions.push(
                 `not(${value})`,
-                insensitive ? `normalize-space(translate(., ${translation})) = ${literal}` : `normalize-space() = ${literal}`
+                insensitive ? `normalize-space(translate(., ${LOWER_CASE_TRANSLATION})) = ${literal}` : `normalize-space() = ${literal}`
             )
             value = value + ' | ' + getValue()
         }

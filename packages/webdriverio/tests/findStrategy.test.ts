@@ -130,16 +130,6 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe(`.//button[contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), ${literal}) and not(.//button)]`)
     })
 
-    it('should lowercase the non-ASCII letters of a case-insensitive query in translate()', () => {
-        const translation = '"ABCDEFGHIJKLMNOPQRSTUVWXYZÉ", "abcdefghijklmnopqrstuvwxyzé"'
-        let element = findStrategy('h1.*=ÉCOLE')
-        expect(element.value).toBe(`.//h1[contains(translate(., ${translation}), "école") and not(.//h1)]`)
-
-        // `ß` uppercases to two letters, translate() maps one letter to one
-        element = findStrategy('p.*=Straße')
-        expect(element.value).toBe('.//p[contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "straße") and not(.//p)]')
-    })
-
     it('should lowercase the full text in the fallback of a case-insensitive exact query', () => {
         const element = findStrategy('button.=save draft')
         const translation = '"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"'
