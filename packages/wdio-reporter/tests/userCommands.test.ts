@@ -148,6 +148,31 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
+    it('calls no method for a nested user command that starts after the end of its test, and hides its protocol commands', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        const outer = { ...userCommand, id: 1, command: 'waitUntil' }
+        const late = { ...userCommand, id: 3, command: 'getText', parent: 1 }
+        const request = { ...protocolCommand, command: 'getElementText', parent: 3 }
+        reporter.emit('client:beforeUserCommand', outer)
+        reporter.emit('test:fail', { ...base, uid: 'A', title: 'A', error: new Error('timeout') })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:start', { ...base, uid: 'B', title: 'B' })
+        reporter.calls.length = 0
+        // the waitUntil of test A polls again during test B
+        reporter.emit('client:beforeUserCommand', late)
+        reporter.emit('client:beforeCommand', request)
+        reporter.emit('client:afterCommand', { ...request, result: { value: 'x' } })
+        reporter.emit('client:afterUserCommand', { ...late, result: { value: 'x' } })
+
+        expect(reporter.calls).toEqual([])
+        expect(reporter.commands).toEqual([])
+        expect(reporter.tests.B.output).toEqual([])
+        expect(reporter.tests.A.output.map((entry: any) => `${entry.type} ${entry.command}`)).toEqual(['userCommand waitUntil', 'userCommand getText', 'userResult getText'])
+    })
+
     it('hides a protocol command that starts after the end of the test of its user command, so it does not go to the next test', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
