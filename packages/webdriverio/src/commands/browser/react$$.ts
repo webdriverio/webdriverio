@@ -66,6 +66,6 @@ export function react$$ (
          * the arguments after the selector, so that
          * `parent[foundWith](selector, ...props)` runs the same query again
          */
-        props: [{ props, state }]
+        props: reactArguments({ props, state })
     })
 }
