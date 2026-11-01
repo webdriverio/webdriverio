@@ -29,17 +29,22 @@ function getContextIdPayload(browser: WebdriverIO.Browser) {
 
 /**
  * Jasmine and Cucumber keep no error listener after their run: without one, Node ends the worker
- * on a late error (e.g. a command without await in the last hook) before the reports are written
+ * on a late rejection (e.g. a command without await in the last hook) before the reports are written
  */
-let lateErrorHandler: ((err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => void) | undefined
+let lateErrorHandler: ((err: unknown) => void) | undefined
 function onLateError (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) {
     // a listener of the framework handles it (Node's domain module adds one that handles nothing)
     const others = process.listeners('uncaughtException').filter((listener) => (
         listener !== onLateError && listener.name !== 'domainUncaughtExceptionClear'
     ))
-    if (others.length === 0) {
-        lateErrorHandler?.(err, origin)
+    if (others.length > 0) {
+        return
     }
+    // an uncaught exception can leave awaited work unfinished (e.g. a hook promise), so it still ends the worker
+    if (origin !== 'unhandledRejection') {
+        throw err
+    }
+    lateErrorHandler?.(err)
 }
 
 export default class Runner extends EventEmitter {
@@ -59,10 +64,9 @@ export default class Runner extends EventEmitter {
     private _timingTracker?: TimingTracker
     private _lateErrors = 0
 
-    private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
+    private _onLateError = (err: unknown) => {
         this._lateErrors++
-        const kind = origin === 'unhandledRejection' ? 'Unhandled promise rejection' : 'Uncaught error'
-        const message = `${kind} that no test reports, for example of a command without await in the last hook: ${err instanceof Error ? err.stack || err.message : String(err)}`
+        const message = `Unhandled promise rejection that no test reports, for example of a command without await in the last hook: ${err instanceof Error ? err.stack || err.message : String(err)}`
         log.error(message)
         this.emit('error', new Error(message))
     }

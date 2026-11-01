@@ -671,6 +671,23 @@ describe('wdio-runner', () => {
                 expect(listeners).toContain('onLateError')
             })
 
+            it('still ends the worker on an uncaught exception, which can leave a hook promise unfinished', async () => {
+                withOnlyRunnerListeners()
+                let thrown: unknown
+                const { errors, failures } = await runWith(() => {
+                    try {
+                        process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                    } catch (err) {
+                        thrown = err
+                    }
+                    return 0
+                })
+
+                expect((thrown as Error).message).toBe('timer error')
+                expect(failures).toBe(0)
+                expect(errors).toHaveLength(0)
+            })
+
             it('leaves the error to the framework when it has its own listener', async () => {
                 withOnlyRunnerListeners()
                 const frameworkListener = vi.fn()
@@ -692,7 +709,7 @@ describe('wdio-runner', () => {
                 const log = logger('@wdio/runner')
                 vi.spyOn(log, 'error').mockImplementation(() => {})
                 const { runner, failures } = await runWith(() => {
-                    process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                    process.emit('uncaughtException', new Error('late rejection'), 'unhandledRejection')
                     return 2
                 }, { watch: true })
                 expect(failures).toBe(3)
