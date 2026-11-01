@@ -395,6 +395,42 @@ describe('async stack of a command that fails', () => {
         expect(events).toEqual(['userCommand', 'command', 'result', 'userResult'])
     })
 
+    it('keeps the async frames of the caller of a custom command of addCommand with no user command events', async () => {
+        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: {} } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const events: string[] = []
+        for (const event of ['command', 'result', 'userCommand', 'userResult']) {
+            browser.on(event, () => events.push(event))
+        }
+        browser.addCommand('myCmd', async () => {
+            await failing()
+        })
+        async function testFrameworkFrame () {
+            await browser.myCmd()
+        }
+        const error = await testFrameworkFrame().catch((err: Error) => err)
+        expect((error as Error).stack).toContain('testFrameworkFrame')
+        expect(events).toEqual(['command', 'result'])
+    })
+
+    for (const [session, isBidi, unhandledCount] of [['WebDriver BiDi', true, 1], ['WebDriver Classic', false, 0]] as const) {
+        it(`a failing custom command that the test does not await in a ${session} session`, async () => {
+            const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: isBidi }, requestedCapabilities: { value: {} } })('sessionId', shim.wrapCommand) as Record<string, Function>
+            browser.addCommand('myCmd', () => failing())
+            const unhandled: unknown[] = []
+            const listeners = process.listeners('unhandledRejection')
+            process.removeAllListeners('unhandledRejection')
+            process.on('unhandledRejection', (reason) => unhandled.push(reason))
+            try {
+                browser.myCmd()
+                await new Promise((resolve) => setTimeout(resolve, 20))
+            } finally {
+                process.removeAllListeners('unhandledRejection')
+                listeners.forEach((listener) => process.on('unhandledRejection', listener))
+            }
+            expect(unhandled).toHaveLength(unhandledCount)
+        })
+    }
+
     it('keeps the result of a custom command when a listener of its old events throws', async () => {
         const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         browser.on('result', () => {
