@@ -279,6 +279,31 @@ describe('user commands that overlap or end after their test', () => {
         ])
     })
 
+    it('gives a step to a protocol command that starts after the end of its user command', async () => {
+        const { byName, attachment } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            // waitUntil times out, then its condition sends one more command
+            const waitUntil = user(4, 'waitUntil', ['[Function anonymous]', { timeout: 600 }])
+            const execute = { command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body: {}, sessionId: 's', parent: 4 }
+            emit('client:beforeUserCommand', waitUntil)
+            emit('client:beforeCommand', execute)
+            emit('client:afterCommand', { ...execute, result: { value: false } })
+            emit('client:afterUserCommand', { ...waitUntil, result: { error: new Error('waitUntil condition timed out after 600ms') } })
+            emit('client:beforeCommand', execute)
+            emit('client:afterCommand', { ...execute, result: { value: true } })
+            emit('test:fail', { ...test('t1'), error: new Error('waitUntil condition timed out after 600ms') })
+            emit('test:end', test('t1'))
+        })
+
+        const message = 'waitUntil condition timed out after 600ms'
+        expect(steps(byName('t1'), attachment)).toEqual([
+            ['waitUntil(function anonymous, {"timeout":600})', 'failed', message, [`Error: ${message}`], [
+                ['executeScript → false', 'passed', undefined, [expect.stringContaining('/execute/sync'), 'false'], []]
+            ]],
+            ['executeScript', 'passed', undefined, ['true'], []]
+        ])
+    })
+
     it('ends each protocol step of overlapping user commands in its own user step', async () => {
         const { byName, attachment } = await runTests((emit) => {
             emit('test:start', test('t1'))

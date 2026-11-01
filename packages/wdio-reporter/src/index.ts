@@ -72,6 +72,8 @@ export default class WDIOReporter extends EventEmitter {
     // the name of each open user command, the hidden protocol commands that wait for their result, the hidden events
     #userCommandNames = new Map<number, string>()
     #hiddenChildren = new Map<string, number>()
+    // the ended user commands of the suite: a late call (a waitUntil condition after its timeout) is no excluded one
+    #endedUserCommands = new Set<number>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -198,6 +200,7 @@ export default class WDIOReporter extends EventEmitter {
             const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
             this.#userCommandOwners.delete(payload.id)
             this.#userCommandNames.delete(payload.id)
+            this.#endedUserCommands.add(payload.id)
             const unit = owner && this.#unitOfStats.get(owner)
             if (unit) {
                 this.#call(unit, () => this.onAfterUserCommand(payload))
@@ -516,6 +519,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('suite:end', (suite: Suite) => {
             this.#endEndedTestUnit()
+            this.#endedUserCommands.clear()
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             const index = this.currentSuites.lastIndexOf(suiteStat)
@@ -542,6 +546,7 @@ export default class WDIOReporter extends EventEmitter {
                 this.#userCommandOwners.clear()
                 this.#userCommandNames.clear()
                 this.#hiddenChildren.clear()
+                this.#endedUserCommands.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
@@ -632,7 +637,7 @@ export default class WDIOReporter extends EventEmitter {
             return open > 0
         }
         // a user command with no entry: excluded, or sent to no listener
-        if (this.#userCommandNames.has(payload.parent)) {
+        if (this.#userCommandNames.has(payload.parent) || this.#endedUserCommands.has(payload.parent)) {
             return false
         }
         this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
