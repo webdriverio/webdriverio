@@ -277,7 +277,11 @@ export default class AllureReporter extends WDIOReporter {
             listeners: [{
                 beforeTestResultWrite: (result) => {
                     const states = [...this.allureStatesByCid.values()]
-                    if (states.some((state) => state.takeUserCommandResult(result.uuid))) { result.steps = joinSteps(result.steps, this._resultsDir) }
+                    if (!states.some((state) => state.takeUserCommandResult(result.uuid))) { return }
+                    // the Gherkin steps of a scenario stay as in the feature file: only the steps inside them are joined
+                    result.steps = this._options.useCucumberStepReporter
+                        ? result.steps.map((step) => ({ ...step, steps: joinSteps(step.steps, this._resultsDir) }))
+                        : joinSteps(result.steps, this._resultsDir)
                 }
             }],
         })
