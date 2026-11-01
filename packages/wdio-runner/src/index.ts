@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
+import url from 'node:url'
 
 import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs, TimingTracker } from '@wdio/utils'
@@ -73,6 +74,7 @@ export default class Runner extends EventEmitter {
     private _endingWorker = false
     private _runnerStarted = false
     private _watch = false
+    private _sessionReported = false
     private _retries = 0
 
     private _onLateError = (err: unknown, origin: NodeJS.UncaughtExceptionOrigin) => {
@@ -81,13 +83,22 @@ export default class Runner extends EventEmitter {
         const kind = uncaught
             ? 'Uncaught error that no test reports, for example of a timer that throws in a hook'
             : 'Unhandled promise rejection that no test reports, for example of a command without await in the last hook'
-        this.#reportLateError(`${kind}: ${err instanceof Error ? err.stack || err.message : String(err)}`)
+        this.#reportLateError(`${kind} (${this.#lateErrorPlace()}): ${err instanceof Error ? err.stack || err.message : String(err)}`)
         if (uncaught) {
             // the state of the process can be broken after an uncaught exception, so do not go on with the run
             void this.#endWorker()
             return
         }
         this.#watchLateRejection()
+    }
+
+    /**
+     * the stack of a command has no test line, so name where the error comes from
+     */
+    #lateErrorPlace () {
+        const specs = (this._specs ?? []).map((spec) => spec.startsWith('file://') ? url.fileURLToPath(spec) : spec)
+        const last = this._reporter?.lastEndedTitle
+        return `spec file: ${specs.join(', ')}${last ? `, last test or hook: "${last}"` : ''}`
     }
 
     #reportLateError (message: string) {
@@ -127,8 +138,8 @@ export default class Runner extends EventEmitter {
             return
         }
         this._endingWorker = true
-        // watch mode keeps the session for the next run, as `run()` does
-        if (!this._watch && this.#hasSessions()) {
+        // watch mode keeps the session for the next run, as `run()` does, once the parent knows it
+        if (!(this._watch && this._sessionReported) && this.#hasSessions()) {
             await Promise.race([this.#closeSessions(), wait(CLOSE_SESSION_TIMEOUT)])
         }
         // no reporter yet (e.g. a service fails before the session): there is no report to write
@@ -157,6 +168,7 @@ export default class Runner extends EventEmitter {
         this._endingWorker = false
         this._runnerStarted = false
         this._watch = Boolean(args.watch)
+        this._sessionReported = false
         this._retries = retries
         clearTimeout(this._lateRejectionTimer)
         this._lateRejectionTimer = undefined
@@ -350,6 +362,7 @@ export default class Runner extends EventEmitter {
                 headers
             }
         })
+        this._sessionReported = true
 
         /**
          * Mark setup phase complete, execution phase start

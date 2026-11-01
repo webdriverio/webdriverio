@@ -851,6 +851,22 @@ describe('wdio-runner', () => {
                     expect(runnerEnds()).toHaveLength(1)
                 })
 
+                it('closes the session in watch mode when the parent does not know it yet', async () => {
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'before') {
+                            process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                            await never()
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const deleteSession = vi.fn().mockResolvedValue(undefined)
+                    const { exits } = startWith(() => 0, { watch: true }, { sessionId: 's', deleteSession })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(deleteSession).toBeCalledTimes(1)
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
@@ -860,6 +876,28 @@ describe('wdio-runner', () => {
                     expect(exits).toEqual([0])
                     expect(errors).toHaveLength(0)
                 })
+            })
+
+            it('names the spec file and the last test that ended in the message', async () => {
+                withOnlyRunnerListeners()
+                vi.spyOn(logger('@wdio/runner'), 'error').mockImplementation(() => {})
+                let reporter: BaseReporter | undefined
+                const runner = new WDIORunner()
+                const config: any = { reporters: [], before: [], beforeSession: [], framework: 'late', runner: 'local' }
+                vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+                vi.mocked(initializePlugin).mockResolvedValueOnce({
+                    default: { init (...args: any[]) { reporter = args[4]; return this }, hasTests: () => true, run: () => {
+                        reporter!.emit('test:end', { title: 'only test', fullTitle: 'suite only test' })
+                        lateRejection()
+                        return 0
+                    } }
+                } as any)
+                runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
+                const errors: { message: string }[] = []
+                runner.on('error', (err) => errors.push(err))
+                await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: ['file:///project/test/a.spec.ts'], configFile: '/foo/bar' })
+
+                expect(errors[0].message).toMatch(/^Unhandled promise rejection that no test reports, for example of a command without await in the last hook \(spec file: \/project\/test\/a\.spec\.ts, last test or hook: "suite only test"\): Error: late rejection/)
             })
 
             it('leaves the error to the framework when it has its own listener', async () => {
