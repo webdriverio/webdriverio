@@ -28,7 +28,9 @@ describe('expandsUserCommand', () => {
         [{ nested: { collapse: ['waitFor*'] } }, 'waitForExist', false, false],
         [{ nested: { mode: 'none', expand: ['waitUntil'] } }, 'waitUntil', false, true],
         [{ nested: { expand: ['x'], collapse: ['x'] } }, 'x', false, false],
-        [{ exclude: ['waitUntil'] }, 'waitUntil', false, false]
+        [{ exclude: ['waitUntil'] }, 'waitUntil', false, false],
+        // the top-level exclude has exact names
+        [{ exclude: ['waitFor*'] }, 'waitForExist', false, true]
     ] as const)('%j: %s (custom %s) expands: %s', (option, command, _custom, expected) => {
         expect(expandsUserCommand(option as never, command)).toBe(expected)
     })
