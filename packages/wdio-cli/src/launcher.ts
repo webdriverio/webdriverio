@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
-import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
+import { initializePlugin, initializeLauncherService, sleep, enableFileLogging, specFilePath } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Capabilities, Frameworks, Services } from '@wdio/types'
 
@@ -175,7 +174,7 @@ class Launcher {
                 this.#frameworkLaunch = framework.launch({
                     // ConfigParser keeps capabilities outside of getConfig()
                     config: { ...config, capabilities: caps } as WebdriverIO.Config,
-                    specs: this.configParser.getSpecs().flat().map((spec) => spec.startsWith('file://') ? fileURLToPath(spec) : spec),
+                    specs: this.configParser.getSpecs().flat().map(specFilePath),
                     configFile: this._configFilePath,
                     args: cloneableEntries(this._args),
                     signal: this.#frameworkAbort.signal,

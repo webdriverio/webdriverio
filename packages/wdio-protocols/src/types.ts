@@ -76,9 +76,10 @@ export interface Timeouts {
 }
 
 /**
- * TODO to review since when used with classic Api, the enum is PascalCase and not reflected in the types.
+ * WebDriver Classic uses "Lax" / "Strict" / "None", WebDriver BiDi uses lowercase values and "default".
+ * The cookie commands accept both and send each protocol its own spelling.
  */
-export type SameSiteOptions = 'lax' | 'strict' | 'none' | 'default'
+export type SameSiteOptions = 'Lax' | 'Strict' | 'None' | 'lax' | 'strict' | 'none' | 'default'
 export interface Cookie {
     /**
      * The name of the cookie.
@@ -114,7 +115,7 @@ export interface Cookie {
     expiry?: number;
     /**
      * Whether the cookie applies to a SameSite policy. Defaults to None if omitted when
-     * adding a cookie. Can be set to either "Lax" or "Strict".
+     * adding a cookie. Can be set to "Lax", "Strict" or "None", in any case.
      */
     sameSite?: SameSiteOptions
 }

@@ -323,6 +323,24 @@ describe('command wrapper', () => {
             )
         })
 
+        it('should hand the masked body to the request so errors never show the text', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            const request = vi.mocked(RequestMock).mock.instances.at(-1) as unknown as { maskedBody?: unknown }
+            expect(request.maskedBody).toEqual({ text: '**MASKED**' })
+        })
+
+        it('should not set a masked body when masking is not requested', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text)
+
+            const request = vi.mocked(RequestMock).mock.instances.at(-1) as unknown as { maskedBody?: unknown }
+            expect(request.maskedBody).toBeUndefined()
+        })
+
         it('should emit "result" with masked text on success', async () => {
             const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
 

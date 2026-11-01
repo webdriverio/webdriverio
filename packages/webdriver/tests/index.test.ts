@@ -10,7 +10,7 @@ import '../src/browser.js'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
-import { initCount } from '../src/bidi/core.js'
+import { initCount, BidiCore } from '../src/bidi/core.js'
 import * as utils from '../src/utils.js'
 import type { Client } from '../src/types.js'
 
@@ -256,6 +256,62 @@ describe('WebDriver', () => {
                 30000
             )
         })
+
+        describe('Appium browser session', () => {
+            const appiumCaps = { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'UiAutomator2' }
+            let wid: string | undefined
+
+            beforeEach(() => {
+                wid = process.env.WDIO_UNIT_TESTS
+                delete process.env.WDIO_UNIT_TESTS
+                vi.spyOn(BidiCore.prototype, 'waitForConnected').mockResolvedValue(true)
+            })
+
+            afterEach(() => {
+                if (wid === undefined) {
+                    delete process.env.WDIO_UNIT_TESTS
+                } else {
+                    process.env.WDIO_UNIT_TESTS = wid
+                }
+                vi.restoreAllMocks()
+            })
+
+            const startSession = (capabilities: WebdriverIO.Capabilities, options: Partial<Capabilities.RemoteConfig> = {}) => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                    value: { sessionId: 'bidi-session', capabilities: { ...capabilities, webSocketUrl: 'ws://foo/bar' } }
+                }))
+                return WebDriver.newSession({ path: '/', capabilities, ...options })
+            }
+
+            it('checks that the WebDriver Bidi server can run browser commands, within bidiConnectTimeout', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(false)
+                const browser = await startSession(appiumCaps)
+                expect(discard).toHaveBeenCalledOnce()
+                expect(discard).toHaveBeenCalledWith((browser as any)._bidiHandler, DEFAULTS.bidiConnectTimeout.default, 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. ')
+                await startSession(appiumCaps, { bidiConnectTimeout: 30_000 })
+                expect(discard).toHaveBeenLastCalledWith(expect.anything(), 30_000, expect.any(String))
+            })
+
+            it('drops webSocketUrl after a discard, so a later attach does not connect again', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                discard.mockResolvedValueOnce(false)
+                expect((await startSession(appiumCaps)).capabilities.webSocketUrl).toBe(undefined)
+                discard.mockResolvedValueOnce(true)
+                expect((await startSession(appiumCaps)).capabilities.webSocketUrl).toBe('ws://foo/bar')
+            })
+
+            it('does not check a desktop browser session', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                await startSession({ browserName: 'chrome' })
+                expect(discard).not.toHaveBeenCalled()
+            })
+
+            it('does not check a native app session, which keeps the events of Appium', async () => {
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext')
+                await startSession({ platformName: 'Android', 'appium:automationName': 'UiAutomator2', 'appium:app': '/app.apk' })
+                expect(discard).not.toHaveBeenCalled()
+            })
+        })
     })
 
     describe('attachToSession', () => {
@@ -381,6 +437,37 @@ describe('WebDriver', () => {
             expect(utils.initiateBidi).toHaveBeenLastCalledWith('ws://foo/bar', undefined, undefined, undefined, 30000)
         })
 
+        it('listens to the Bidi messages of an attached session once it connects', async () => {
+            const socket = { on: vi.fn() }
+            vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({
+                _bidiHandler: { value: { waitForConnected: () => Promise.resolve(true), socket } }
+            })
+            const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
+            WebDriver.attachToSession({ ...sessionOptions, capabilities })
+            await vi.waitFor(() => expect(socket.on).toHaveBeenCalledWith('message', expect.any(Function)))
+        })
+
+        it('does not crash the process when the Bidi connection of an attached session fails (#16240)', async () => {
+            const onUnhandledRejection = vi.fn()
+            process.on('unhandledRejection', onUnhandledRejection)
+            try {
+                /**
+                 * a failed connection has no socket
+                 */
+                vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({
+                    _bidiHandler: { value: { waitForConnected: () => Promise.resolve(false), socket: undefined } }
+                })
+                const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
+                const client = WebDriver.attachToSession({ ...sessionOptions, capabilities })
+                await new Promise((resolve) => setTimeout(resolve, 10))
+
+                expect(onUnhandledRejection).not.toHaveBeenCalled()
+                expect(client.sessionId).toBe('foobar')
+            } finally {
+                process.off('unhandledRejection', onUnhandledRejection)
+            }
+        })
+
         it('should fail attaching to session if sessionId is not given', () => {
             // @ts-ignore
             expect(() => WebDriver.attachToSession({}))
@@ -389,6 +476,26 @@ describe('WebDriver', () => {
     })
 
     describe('reloadSession', () => {
+        it('checks the WebDriver Bidi server of a new Appium browser session', async () => {
+            const capabilities = { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'UiAutomator2' }
+            for (const usable of [false, true]) {
+                // the first session is a desktop one: the check follows the new session
+                const session = await WebDriver.newSession({ path: '/', capabilities: { browserName: 'firefox' } })
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                    value: { sessionId: 'bidi-session', capabilities: { ...capabilities, webSocketUrl: 'ws://foo/bar' } }
+                }))
+                const on = vi.fn()
+                const handler = { reconnect: vi.fn().mockResolvedValue(true), socket: { on } }
+                ;(session as any)._bidiHandler = handler
+                const discard = vi.spyOn(utils, 'discardBidiWithoutBrowsingContext').mockResolvedValue(usable)
+                await WebDriver.reloadSession(session, capabilities)
+                expect(discard).toHaveBeenCalledWith(handler, DEFAULTS.bidiConnectTimeout.default, 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. ')
+                expect(on).toHaveBeenCalledTimes(usable ? 1 : 0)
+                expect(session.capabilities.webSocketUrl).toBe(usable ? 'ws://foo/bar' : undefined)
+                discard.mockRestore()
+            }
+        })
+
         it('should reload session', async () => {
             const session = await WebDriver.newSession({
                 path: '/',

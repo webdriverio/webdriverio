@@ -5,7 +5,8 @@ import {
     isFunctionAsync as isFnAsync,
     getArgumentType as getArgumentTypeOrig,
     isValidParameter as isValidParameterOrig,
-    commandCallStructure as commandCallStructureOrig
+    commandCallStructure as commandCallStructureOrig,
+    specFilePath as specFilePathOrig
 } from '../../packages/wdio-utils/src/utils.js'
 import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
@@ -90,6 +91,7 @@ export const isFunctionAsync = isFnAsync
 export const safeRequire = vi.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig
 export const getArgumentType = getArgumentTypeOrig
+export const specFilePath = specFilePathOrig
 
 /**
  * shim

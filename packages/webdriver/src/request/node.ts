@@ -17,17 +17,32 @@ export const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
  */
 export class FetchRequest extends WebDriverRequest {
     async fetch (url: URL, opts: RequestInit) {
-        const response = await fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
-        if (opts.method === 'DELETE') {
-            // regex should only target the delete session request, not other
-            // delete requests, full list: https://www.w3.org/TR/webdriver2/#endpoints
-            const match = url.pathname.match(/\/session\/([^/]+)$/)
-            const sessionId = match?.[1]
-            if (sessionId) {
-                this.cleanupSessionDispatcher(sessionId)
+        return await fetch(url, opts as UndiciRequestInit) as unknown as Response
+    }
+
+    async makeRequest (options: RequestOptions, sessionId?: string) {
+        try {
+            return await super.makeRequest(options, sessionId)
+        } finally {
+            /**
+             * Release the dispatcher once the delete session request is done,
+             * whatever the outcome. It has to survive the retries of that
+             * request, so it can't be closed per attempt.
+             */
+            const sessionIdToClean = this.method === 'DELETE' ? this.getDeletedSessionId(sessionId) : undefined
+            if (sessionIdToClean) {
+                this.cleanupSessionDispatcher(sessionIdToClean)
             }
         }
-        return response
+    }
+
+    /**
+     * regex should only target the delete session request, not other
+     * delete requests, full list: https://www.w3.org/TR/webdriver2/#endpoints
+     */
+    private getDeletedSessionId (sessionId?: string) {
+        const id = this.endpoint.match(/\/session\/([^/]+)$/)?.[1]
+        return id === ':sessionId' ? sessionId : id
     }
 
     private getDispatcher(url: URL, options: RequestOptions, sessionId?: string): Dispatcher {

@@ -126,7 +126,15 @@ export class BidiCore {
         /**
          * try to connect to different websocket urls depending on the protocol
          */
-        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        try {
+            this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
+        } catch (err) {
+            /**
+             * e.g. an invalid url: `waitForConnected()` must not wait forever
+             */
+            this.#resolveWaitForConnected(false)
+            throw err
+        }
         this._isConnected = Boolean(this.#ws)
         this.#resolveWaitForConnected(this._isConnected)
 
@@ -176,6 +184,18 @@ export class BidiCore {
                 ws.terminate()
             }
         }
+    }
+
+    /**
+     * Close a connection that can not serve the session: the handler is then in the
+     * state of a connection that could not be made, so the session does not count as ended
+     */
+    public discard () {
+        this.close()
+        /**
+         * also when the server closed the socket during the check: the session continues
+         */
+        this.#closed = false
     }
 
     /**

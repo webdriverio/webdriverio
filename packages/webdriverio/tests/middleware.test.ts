@@ -659,7 +659,7 @@ describe('middleware', () => {
         })
 
         it('sets the value of a date input that the page rendered again directly', async () => {
-            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: 'set' })
             vi.mocked(fetch).mockClear()
             const elem = await classicBrowser.$('#foo')
 
@@ -711,7 +711,7 @@ describe('middleware', () => {
                 new RegExp(`/element/${MID_ID}/property/type$`),
                 { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
             )
-            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: 'set' })
             const elem = await classicBrowser.$('#foo')
             vi.mocked(fetch).mockClear()
 

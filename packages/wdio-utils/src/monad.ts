@@ -14,7 +14,7 @@ const SCOPE_TYPES: Record<string, Function> = {
  * @see https://github.com/developit/mitt/issues/191
  */
 const mitt = _mitt as unknown as typeof _mitt.default
-const EVENTHANDLER_FUNCTIONS = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners'] as const
+const EVENTHANDLER_FUNCTIONS = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners', 'listenerCount'] as const
 
 interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
@@ -308,7 +308,10 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 emitDialogListenerTransition(previousCount)
                 mittInstance.all.clear()
             }
-        }
+        },
+        listenerCount: (type: string) => (
+            type === 'dialog' ? dialogListeners.length : (mittInstance.all.get(type)?.length ?? 0)
+        )
     }
 
     /**
@@ -514,6 +517,8 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             case 'removeAllListeners':
                 eventHandler.removeAllListeners(args[0] as string)
                 break
+            case 'listenerCount':
+                return eventHandler.listenerCount(args[0] as string)
             }
             return this
         })

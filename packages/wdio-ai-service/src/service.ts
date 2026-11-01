@@ -1,6 +1,5 @@
-import url from 'node:url'
-
 import type { Services } from '@wdio/types'
+import { specFilePath } from '@wdio/utils'
 
 import { AiRuntime, parallelContextOf } from './runtime.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
@@ -83,7 +82,7 @@ export default class AiService implements Services.ServiceInstance {
     }
 
     #testOf (test: TestLike): [spec: string, title: string, contextId?: string] {
-        return [specPath(test.file || this.#specs[0]), test.fullTitle || test.fullName || test.title || test.description || 'test', parallelContextOf(this.#browser)]
+        return [specFilePath(test.file || this.#specs[0] || 'spec'), test.fullTitle || test.fullName || test.title || test.description || 'test', parallelContextOf(this.#browser)]
     }
 
     /**
@@ -98,17 +97,10 @@ export default class AiService implements Services.ServiceInstance {
     }
 
     #scenarioOf (world: CucumberWorld): [spec: string, title: string, contextId?: string] {
-        return [specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario', parallelContextOf(this.#browser)]
+        return [specFilePath(world.pickle?.uri || this.#specs[0] || 'spec'), world.pickle?.name || 'scenario', parallelContextOf(this.#browser)]
     }
 
     async after () {
         await this.runtime.flush()
     }
-}
-
-/**
- * spec paths arrive as file URLs from the runner
- */
-function specPath (spec = 'spec') {
-    return spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
 }

@@ -244,6 +244,23 @@ describe('fill on an element that is not editable', () => {
         expect(result.history).toBe(result.code)
     })
 
+    it('rejects a date the browser rejected for the field inside', async () => {
+        const inner = {
+            setValue: async () => {
+                throw new Error('The browser rejected the value "10/04/2026" for this input, which keeps its previous value.')
+            },
+            getValue: async () => ''
+        }
+        const outer = {
+            execute: async () => wrapper({ count: 1, via: 'inside', selector: 'input', desc: 'date input', type: 'date' }),
+            $: () => ({ getElement: async () => inner })
+        }
+        const err = await fill(refSession(outer), { target: 'e2', text: '10/04/2026', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('date input in e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
     it('throws NOT_EDITABLE with a hint when the element holds several fields', async () => {
         const outer = { setValue: async () => { throw invalidState() }, execute: async () => wrapper({ count: 2 }) }
         const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
@@ -678,14 +695,81 @@ describe('fill on inputs that are not typed into', () => {
         expect(keys).toEqual(['ArrowLeft', 'ArrowRight'])
     })
 
-    it('rejects a date the input does not take', async () => {
+    /** a direct input: the first execute answers fillKind, the next ones how the browser stores the given value */
+    const direct = (type: string, stored?: string) => vi.fn()
+        .mockResolvedValueOnce({ kind: 'direct', type })
+        .mockResolvedValue(stored)
+
+    it('reports a value the input stores in its own format', async () => {
+        const element = {
+            execute: direct('color', '#ff8800'),
+            setValue: async () => {},
+            getValue: async () => '#ff8800'
+        }
+        const result = await fill(refSession(element), { target: 'e2', text: '#FF8800', $cwd: '/' })
+        expect(result.text).toBe('Set e2 (textbox "Name") to #ff8800 (it took #ff8800: the format of the input)')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'#FF8800\')')
+    })
+
+    it('rejects a date the page put back', async () => {
+        const element = {
+            execute: direct('date', '2026-10-04'),
+            setValue: async () => {},
+            getValue: async () => '2026-01-01'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take "2026-10-04"; it has "2026-01-01".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects an empty value a color input replaced with black', async () => {
+        const element = {
+            execute: direct('color', '#000000'),
+            setValue: async () => {},
+            getValue: async () => '#000000'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take ""; it has "#000000".')
+    })
+
+    it('rejects a date the browser rejected in setValue', async () => {
         const element = {
             execute: async () => ({ kind: 'direct', type: 'date' }),
-            setValue: async () => {},
+            setValue: async () => {
+                throw new Error('The browser rejected the value "10/04/2026" for this input, which keeps its previous value.')
+            },
             getValue: async () => ''
         }
-        await expect(fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }))
-            .rejects.toThrow('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        const err = await fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects a range value the browser rejected in setValue', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'range' }),
+            setValue: async () => {
+                throw new Error('The browser rejected the value "loud" for this input, which keeps its previous value.')
+            },
+            getValue: async () => '50'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: 'loud', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "loud"; it has "50".')
+        expect(err.hint).toBe('A range input takes values like 50.')
+    })
+
+    it('keeps other setValue errors', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'date' }),
+            setValue: async () => {
+                throw new Error('element not interactable')
+            },
+            getValue: async () => ''
+        }
+        await expect(fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }))
+            .rejects.toThrow('element not interactable')
     })
 
     it('moves an ARIA slider with arrow keys until it has the value', async () => {
