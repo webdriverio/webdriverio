@@ -200,6 +200,20 @@ describe('user commands of WebDriver BiDi sessions', () => {
         expect(result.steps).toEqual([])
     })
 
+    it.each([
+        ['with disableWebdriverStepsReporting', { disableWebdriverStepsReporting: true }, false],
+        ['in a multi-remote session', {}, true]
+    ])('gets no user commands from the base reporter %s, as it writes no step', (_name, options, isMultiRemote) => {
+        const reporter = new AllureReporter({ outputDir: temporaryDirectory(), writeStream: { write: () => true }, ...options } as any)
+        const emit = (type: string, payload: Record<string, unknown>) => reporter.emit(type, { cid: CID, specs: [SPEC], ...payload })
+        emit('runner:start', { capabilities: { browserName: 'chrome' }, config: { framework: 'mocha' }, isMultiRemote, sessionId: 's', instanceOptions: {} })
+        emit('suite:start', { uid: 'suite-A', title: 'A', fullTitle: 'A', parentUid: null, file: SPEC })
+        emit('test:start', { uid: 'test-t1', title: 't1', fullTitle: 'A t1', parent: 'A', parentUid: 'suite-A', file: SPEC })
+        userCommand(emit, 1, 'getText', [], { value: 'hello' })
+
+        expect(reporter.tests['test-t1'].output.map((entry: Result) => entry.type)).toEqual([])
+    })
+
     it('keeps the historyId, testCaseId and fullName of the test', async () => {
         const ids = (r: Result) => [r.historyId, r.testCaseId, r.fullName]
         const { result: without } = await run(() => {})
