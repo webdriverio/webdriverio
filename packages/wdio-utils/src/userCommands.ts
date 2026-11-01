@@ -36,10 +36,6 @@ export interface UserCommandStore {
     run<T>(frame: UserCommandFrame | undefined, fn: () => T): T
 }
 
-/**
- * Internal: the monad sets it on a client, as `true` when the client has a listener of a user command event.
- */
-export const HAS_USER_COMMAND_LISTENERS = Symbol('wdio.hasUserCommandListeners')
 const USER_COMMAND_EVENTS = ['userCommand', 'userResult']
 
 interface EventBrowser {
@@ -52,7 +48,6 @@ interface EventBrowser {
     requestedCapabilities?: unknown
     emit?: (event: string, payload: unknown) => unknown
     listenerCount?: (event: string) => number
-    [HAS_USER_COMMAND_LISTENERS]?: () => boolean
 }
 
 // no store (browser bundles): no events
@@ -158,10 +153,6 @@ function hasBidiCommandsFlag (browser: EventBrowser) {
 
 // with no listener, no copy is made
 function hasListeners (browser: EventBrowser) {
-    const check = browser[HAS_USER_COMMAND_LISTENERS]
-    if (typeof check === 'function') {
-        return check.call(browser)
-    }
     const count = browser.listenerCount
     return typeof count !== 'function' || USER_COMMAND_EVENTS.some((event) => count.call(browser, event) > 0)
 }
