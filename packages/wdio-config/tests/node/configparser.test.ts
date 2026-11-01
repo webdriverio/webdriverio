@@ -651,6 +651,188 @@ describe('ConfigParser', () => {
         })
     })
 
+    describe('spec discovery cache', () => {
+        async function parserWithGlob() {
+            const parser = await ConfigParserForTest(FIXTURES_CONF)
+            await parser.initialize()
+            parser.getConfig().exclude = []
+            const glob = vi.spyOn(parser['_pathService'], 'glob')
+            return { parser, glob }
+        }
+
+        it('reuses identical selections without repeating filesystem discovery', async () => {
+            const { parser, glob } = await parserWithGlob()
+            const expected = parser.getSpecs(undefined, undefined, { cache: true })
+            expect(expected.length).toBeGreaterThan(0)
+            glob.mockClear()
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(expected)
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(expected)
+            expect(glob).not.toHaveBeenCalled()
+        })
+
+        it('keeps capability selections and exclusions separate', async () => {
+            const { parser } = await parserWithGlob()
+            const first = path.resolve(root, 'tests/utils.test.ts')
+            const second = path.resolve(root, 'tests/node/FileSystemPathService.test.ts')
+            expect(parser.getSpecs([first, second], [first], { cache: true })).toEqual([second])
+            expect(parser.getSpecs([first, second], [second], { cache: true })).toEqual([first])
+            expect(parser.getSpecs([first], undefined, { cache: true })).toEqual([first])
+            const group = [first, second]
+            expect(parser.getSpecs([group], undefined, { cache: true })).toEqual([[first, second]])
+            group.pop()
+            expect(parser.getSpecs([group], undefined, { cache: true })).toEqual([[first]])
+        })
+
+        it('includes changes to suite definitions in the cache key', async () => {
+            const { parser } = await parserWithGlob()
+            parser.getConfig().suites!.unit = [path.resolve(root, 'tests/utils.test.ts')]
+            await parser.initialize({ suite: ['unit'] })
+            const expected = parser.getSpecs(undefined, undefined, { cache: true })
+            parser.getConfig().suites!.unit = [path.resolve(root, 'tests/node/FileSystemPathService.test.ts')]
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).not.toEqual(expected)
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual([path.resolve(root, 'tests/node/FileSystemPathService.test.ts')])
+        })
+
+        it('does not let a caller mutate cached grouped selections', async () => {
+            const { parser } = await parserWithGlob()
+            parser.getConfig().specs = [['file:///first.test.js', 'file:///second.test.js']]
+            const first = parser.getSpecs(undefined, undefined, { cache: true })
+            ;(first[0] as string[]).push('file:///unwanted.test.js')
+            first.push('file:///another.test.js')
+            const cached = parser.getSpecs(undefined, undefined, { cache: true })
+            expect(cached).toEqual([['file:///first.test.js', 'file:///second.test.js']])
+            ;(cached[0] as string[]).pop()
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual([['file:///first.test.js', 'file:///second.test.js']])
+        })
+
+        it('refreshes file discovery after config initialization', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue(['first.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js'])
+            glob.mockReturnValue(['first.test.js', 'added.test.js'])
+            await parser.initialize()
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js', 'added.test.js'])
+        })
+
+        it('supports explicit invalidation after files change', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue(['removed.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['removed.test.js'])
+            glob.mockReturnValue(['added.test.js'])
+            parser.clearSpecCache()
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['added.test.js'])
+        })
+
+        it('always discovers current files in watch mode', async () => {
+            const { parser, glob } = await parserWithGlob()
+            await parser.initialize({ watch: true })
+            glob.mockReturnValue(['first.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js'])
+            glob.mockReturnValue(['added.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['added.test.js'])
+        })
+
+        it('also caches an empty selection', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue([])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual([])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual([])
+            expect(glob).toHaveBeenCalledTimes(1)
+        })
+        it('discovers file changes by default, including after a cached lookup', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue(['removed.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['removed.test.js'])
+            glob.mockReturnValue(['added.test.js'])
+            expect(parser.getSpecs()).toEqual(['added.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['added.test.js'])
+            glob.mockReturnValue([])
+            expect(parser.getSpecs()).toEqual([])
+        })
+
+        it('does not restore a stale selection when watch mode is turned off', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue(['removed.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['removed.test.js'])
+            parser.getConfig().watch = true
+            glob.mockReturnValue(['added.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['added.test.js'])
+            parser.getConfig().watch = false
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['added.test.js'])
+        })
+
+        const first = 'file:///cache/first.test.js'
+        const second = 'file:///cache/second.test.js'
+        const third = 'file:///cache/third.test.js'
+        it.each([
+            { name: 'configured specs', before: {}, after: { specs: [third] }, expected: [third] },
+            { name: 'exclude keywords', before: {}, after: { exclude: ['first'] }, expected: [second] },
+            { name: 'selected suite', before: { suites: { a: [first], b: [second] }, suite: ['a'] }, after: { suite: ['b'] }, expected: [second] },
+            { name: 'suite exclusions', before: { suites: { a: [first], b: [second] }, suite: ['a', 'b'] }, after: { exclude: ['a'] }, expected: [second] },
+            { name: 'CLI spec precedence', before: {}, after: { spec: [first] }, capSpecs: [third], expected: [first, second] },
+            { name: 'shard selection', before: { shard: { current: 1, total: 2 } }, after: { shard: { current: 2, total: 2 } }, expected: [second] },
+            { name: 'repeat count', before: { spec: [first], repeat: 1 }, after: { repeat: 2 }, expected: [first, second, first, second] }
+        ])('refreshes a warm cache after changing $name', async ({ before, after, capSpecs, expected }) => {
+            const { parser, glob } = await parserWithGlob()
+            Object.assign(parser.getConfig(), { specs: [first, second] }, before)
+            const previous = parser.getSpecs(capSpecs, undefined, { cache: true })
+            Object.assign(parser.getConfig(), after)
+            expect(parser.getSpecs(capSpecs, undefined, { cache: true })).toEqual(expected)
+            expect(expected).not.toEqual(previous)
+            glob.mockClear()
+            expect(parser.getSpecs(capSpecs, undefined, { cache: true })).toEqual(expected)
+            expect(glob).not.toHaveBeenCalled()
+        })
+
+        it('distinguishes root directories and working directories', async () => {
+            const { parser, glob } = await parserWithGlob()
+            const cwd = vi.spyOn(process, 'cwd')
+            const originalRoot = parser.getConfig().rootDir
+            try {
+                cwd.mockReturnValue(root)
+                glob.mockReturnValue(['first.test.js'])
+                expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js'])
+                parser.getConfig().rootDir = path.join(originalRoot, 'other')
+                glob.mockReturnValue(['second.test.js'])
+                expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['second.test.js'])
+                cwd.mockReturnValue(path.dirname(root))
+                glob.mockReturnValue(['third.test.js'])
+                expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['third.test.js'])
+            } finally {
+                cwd.mockRestore()
+            }
+        })
+
+        it('does not cache failed discovery', async () => {
+            const { parser, glob } = await parserWithGlob()
+            parser.getConfig().suites = { dynamic: ['dynamic.test.js'] }
+            parser.getConfig().suite = ['dynamic']
+            glob.mockReturnValue([])
+            expect(() => parser.getSpecs(undefined, undefined, { cache: true })).toThrow('doesn\'t contain any files')
+            glob.mockReturnValue(['dynamic.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['dynamic.test.js'])
+        })
+
+        it('keeps parser instances with identical parameters isolated', async () => {
+            const { parser, glob } = await parserWithGlob()
+            glob.mockReturnValue(['first.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js'])
+            const other = await parserWithGlob()
+            other.glob.mockReturnValue(['other.test.js'])
+            expect(other.parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['other.test.js'])
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(['first.test.js'])
+        })
+
+        it('preserves Cucumber line selections on repeated cached discovery', async () => {
+            const parser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await parser.initialize({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12] })
+            const expected = [FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.replace(/:2:12$/, '')]
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(expected)
+            expect(parser.getSpecs(undefined, undefined, { cache: true })).toEqual(expected)
+            expect(parser.getConfig().cucumberFeaturesWithLineNumbers).toEqual([FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12])
+        })
+    })
+
     describe('getSpecs', () => {
         it('should exclude files', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
