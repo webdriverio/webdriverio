@@ -137,8 +137,8 @@ export function sendsUserCommands (browser: EventBrowser | undefined): boolean {
 }
 
 // 'hide': an id but no events (an excluded command, no listener), so opt-in reporters hide its protocol commands
-function eventMode (browser: EventBrowser, command: string): 'send' | 'hide' | undefined {
-    if (typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
+function eventMode (browser: EventBrowser | undefined, command: string): 'send' | 'hide' | undefined {
+    if (!browser || !sendsUserCommands(browser) || typeof browser.emit !== 'function' || isInCommandHook() || NO_EVENT_COMMANDS.includes(command)) {
         return undefined
     }
     const option = browser.options?.userCommandEvents
@@ -213,10 +213,6 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
         return run()
     }
 
-    // a session that can send no events needs no frame
-    if (!browser || !sendsUserCommands(browser)) {
-        return run()
-    }
     // an outer call that sends nothing still has a frame, so its nested calls send nothing
     const mode = eventMode(browser, command)
     if (mode !== 'send') {
