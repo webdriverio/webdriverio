@@ -843,6 +843,18 @@ describe('nested user commands', () => {
         expect(old.filter((payload) => !payload.custom && JSON.stringify(payload).includes('secret'))).toEqual([])
     })
 
+    it('keeps the recursive calls of an overwritten custom command as nested calls', async () => {
+        const client = monad.default({ userCommandEvents: { nested: 'all' } }, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const user: string[] = []
+        client.on('userCommand', (payload: { command: string, body: unknown[], parent?: number }) => user.push(`${payload.command}(${payload.body[0]})${payload.parent ? ` < ${payload.parent}` : ''}`))
+        client.addCommand('countDown', async function (this: Record<string, Function>, n: number) {
+            return n > 0 ? this.countDown(n - 1) : 'done'
+        })
+        client.overwriteCommand('countDown', async (orig: Function, n: number) => orig(n))
+        expect(await client.countDown(1)).toBe('done')
+        expect(user).toEqual(['countDown(1)', 'countDown(0) < 1'])
+    })
+
     it('sends one pair for a command that two overwrites wrap', async () => {
         const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
         const names: string[] = []
