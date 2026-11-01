@@ -303,6 +303,40 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
+function attemptOutcome(
+    task: RunnerTestCase,
+    errorsBefore: number,
+    test: { file: string, parent: string, title: string },
+    context: unknown
+): { error: unknown, expectedFailure: boolean, softError?: unknown } {
+    const attemptErrors = task.result?.errors?.slice(errorsBefore)
+    if (!task.fails) {
+        return {
+            error: task.result?.state === 'fail' ? attemptErrors?.[0] ?? new Error('test failed') : undefined,
+            expectedFailure: false
+        }
+    }
+    if (task.result?.state === 'fail') {
+        const syntaxError = attemptErrors?.find((err) => (err as { __vitest_test_syntax_error__?: boolean })?.__vitest_test_syntax_error__)
+        return { error: syntaxError, expectedFailure: syntaxError === undefined }
+    }
+    const skipped = task.mode === 'skip' || task.result?.state === 'skip' || Boolean((task.result as { pending?: boolean } | undefined)?.pending)
+    if (skipped) {
+        return { error: undefined, expectedFailure: false }
+    }
+    if (softAssertions) {
+        const softReport: { error?: unknown, passed: boolean } = { error: undefined, passed: true }
+        softAssertions.afterTest(test as never, context, softReport as never)
+        if (softReport.error !== undefined) {
+            return { error: undefined, expectedFailure: true, softError: softReport.error }
+        }
+    }
+    return {
+        error: new Error('Expect test to fail'),
+        expectedFailure: false
+    }
+}
+
 /**
  * Vitest parses the source of a hook's second parameter for fixture names and rejects
  * anything but object destructuring without rest, so the context is read from `args`
@@ -316,7 +350,9 @@ aroundEach(async (...args) => {
     const errorsBefore = task.result?.errors?.length ?? 0
     let error: unknown
     let serviceError: unknown
+    let softError: unknown
     let testRan = false
+    let expectedFailure = false
     const runAttempt = async () => {
         try {
             await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
@@ -328,11 +364,15 @@ aroundEach(async (...args) => {
             testRan = true
             await runTest()
             // runTest() resolves even when the test fails; the outcome is on the task
-            error = task.result?.state === 'fail' ? task.result.errors?.slice(errorsBefore)[0] ?? new Error('test failed') : undefined
+            // and Vitest only flips task.result.state for test.fails after aroundEach returns
+            ;({ error, expectedFailure, softError } = attemptOutcome(task, errorsBefore, test, context))
         } catch (err) {
             error = err
             throw err
         } finally {
+            if (expectedFailure && softAssertions) {
+                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+            }
             const report = {
                 error,
                 result: undefined,
@@ -346,7 +386,7 @@ aroundEach(async (...args) => {
             await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
             // afterTest services such as the soft assertion service report a failure by mutating the report
             if (error === undefined) {
-                serviceError = report.error
+                serviceError = report.error ?? softError
             } else if (softAssertions) {
                 // the service skips asserting a test that already failed and leaves its failures for the retry to throw
                 SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
@@ -360,8 +400,9 @@ aroundEach(async (...args) => {
         try {
             await runAttempt()
         } finally {
+            const attemptError = error ?? (expectedFailure && serviceError === softError ? undefined : serviceError)
             // before runTest the hook states are still the previous attempt's
-            recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore, error ?? serviceError) : undefined)
+            recordAttempt(task, startedAt, attemptError, testRan ? readAttemptHooks(task, errorsBefore, attemptError) : undefined)
         }
     }
 
