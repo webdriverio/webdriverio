@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
 import url from 'node:url'
+import util from 'node:util'
 
 import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs, TimingTracker } from '@wdio/utils'
@@ -48,6 +49,17 @@ function hasFrameworkListener () {
     ))
 }
 
+/**
+ * the path of a spec file URL; this runs in an error listener, so it must not throw
+ */
+function toPath (spec: string) {
+    try {
+        return spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
+    } catch {
+        return spec
+    }
+}
+
 const LATE_REJECTION_TIMEOUT = 60_000
 const CLOSE_SESSION_TIMEOUT = 5_000
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms).unref())
@@ -83,7 +95,7 @@ export default class Runner extends EventEmitter {
         const kind = uncaught
             ? 'Uncaught error that no test reports, for example of a timer that throws in a hook'
             : 'Unhandled promise rejection that no test reports, for example of a command without await in the last hook'
-        this.#reportLateError(`${kind} (${this.#lateErrorPlace()}): ${err instanceof Error ? err.stack || err.message : String(err)}`)
+        this.#reportLateError(`${kind} (${this.#lateErrorPlace()}): ${err instanceof Error ? err.stack || err.message : util.inspect(err)}`)
         if (uncaught) {
             // the state of the process can be broken after an uncaught exception, so do not go on with the run
             void this.#endWorker()
@@ -96,7 +108,7 @@ export default class Runner extends EventEmitter {
      * the stack of a command has no test line, so name where the error comes from
      */
     #lateErrorPlace () {
-        const specs = (this._specs ?? []).map((spec) => spec.startsWith('file://') ? url.fileURLToPath(spec) : spec)
+        const specs = (this._specs ?? []).map(toPath)
         const last = this._reporter?.lastEndedTitle
         return `spec file: ${specs.join(', ')}${last ? `, last test or hook: "${last}"` : ''}`
     }
@@ -168,7 +180,8 @@ export default class Runner extends EventEmitter {
         this._endingWorker = false
         this._runnerStarted = false
         this._watch = Boolean(args.watch)
-        this._sessionReported = false
+        // a watch rerun attaches to the session that the parent already saved
+        this._sessionReported = Boolean((args as { sessionId?: string }).sessionId)
         this._retries = retries
         clearTimeout(this._lateRejectionTimer)
         this._lateRejectionTimer = undefined

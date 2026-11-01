@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
+import url from 'node:url'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
@@ -867,6 +868,22 @@ describe('wdio-runner', () => {
                     expect(deleteSession).toBeCalledTimes(1)
                 })
 
+                it('keeps the session of a watch rerun, which the parent already knows', async () => {
+                    vi.mocked(executeHooksWithArgs).mockImplementation(async (name: string) => {
+                        if (name === 'before') {
+                            process.emit('uncaughtException', new Error('timer error'), 'uncaughtException')
+                            await never()
+                        }
+                        return []
+                    })
+                    onTestFinished(() => { vi.mocked(executeHooksWithArgs).mockReset() })
+                    const deleteSession = vi.fn().mockResolvedValue(undefined)
+                    const { exits } = startWith(() => 0, { watch: true, sessionId: 's' }, { sessionId: 's', deleteSession })
+
+                    await vi.waitFor(() => expect(exits).toEqual([1]))
+                    expect(deleteSession).not.toBeCalled()
+                })
+
                 it('starts no watchdog without a late rejection', async () => {
                     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
                     const { errors, exits, done } = startWith(() => new Promise<number>((resolve) => setTimeout(() => resolve(0), 120_000)))
@@ -895,9 +912,25 @@ describe('wdio-runner', () => {
                 runner['_initSession'] = vi.fn().mockReturnValue({ capabilities: {}, options: {} })
                 const errors: { message: string }[] = []
                 runner.on('error', (err) => errors.push(err))
-                await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: ['file:///project/test/a.spec.ts'], configFile: '/foo/bar' })
+                const spec = path.resolve('project', 'test', 'a.spec.ts')
+                await runner.run({ args: { reporters: [] }, cid: '0-0', retries: 0, caps: {}, specs: [url.pathToFileURL(spec).href, 'file://host/share/b.spec.ts'], configFile: '/foo/bar' })
 
-                expect(errors[0].message).toMatch(/^Unhandled promise rejection that no test reports, for example of a command without await in the last hook \(spec file: \/project\/test\/a\.spec\.ts, last test or hook: "suite only test"\): Error: late rejection/)
+                expect(errors[0].message).toContain(
+                    `Unhandled promise rejection that no test reports, for example of a command without await in the last hook (spec file: ${spec}, `
+                )
+                expect(errors[0].message).toContain(', last test or hook: "suite only test"): Error: late rejection')
+            })
+
+            it('describes a rejection reason that cannot be made a string', async () => {
+                withOnlyRunnerListeners()
+                vi.spyOn(logger('@wdio/runner'), 'error').mockImplementation(() => {})
+                const { errors, failures } = await runWith(() => {
+                    process.emit('uncaughtException', Object.create(null), 'unhandledRejection')
+                    return 0
+                })
+
+                expect(failures).toBe(1)
+                expect(errors[0].message).toMatch(/\[Object: null prototype\] \{\}$/)
             })
 
             it('leaves the error to the framework when it has its own listener', async () => {
