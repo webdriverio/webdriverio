@@ -564,8 +564,9 @@ export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<o
             queue.push(e)
             continue
         }
-        const index = e.endpoint === undefined ? 0 : Math.max(0, queue.findIndex((c) => c.method === e.method && c.endpoint === e.endpoint))
-        const [command] = queue.splice(index, 1)
+        // a result with no command of its request in this output gets no command
+        const index = e.endpoint === undefined ? 0 : queue.findIndex((c) => c.method === e.method && c.endpoint === e.endpoint)
+        const [command] = index === -1 ? [] : queue.splice(index, 1)
         if (command) {
             childResults.set(command, e)
         }
