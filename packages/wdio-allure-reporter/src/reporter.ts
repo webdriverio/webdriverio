@@ -226,6 +226,8 @@ export default class AllureReporter extends WDIOReporter {
     // the user steps that wait for the open steps of their scope, in start order, by scope and by id
     private _waitingSteps = new Map<string, WaitingUserStep[]>()
     private _waitingStepOf = new Map<number, WaitingUserStep>()
+    // the nested user commands that started while an earlier step of the same parent was open, by parent id
+    private _nestedWaiting = new Map<number, WaitingUserStep[]>()
     // the messages of a waiting user step go to its list
     private _messageSink?: WDIORuntimeMessage[]
     // the protocol steps that their user command ended before their result, by scope and parent id
@@ -353,6 +355,16 @@ export default class AllureReporter extends WDIOReporter {
     // a new test or hook: a later user command result does not close its steps
     private _resetUserSteps(key = this._laneKey(), end?: { status: AllureStatus; statusDetails?: StatusDetails; stop?: number }): void {
         const scope = this._userStepScope(key)
+        // the waiting nested user commands go first, under their parent that is still open in the runtime
+        const nested: OpenStep[][] = []
+        for (const [parentId, queue] of this._nestedWaiting) {
+            for (const step of queue.filter((w) => w.key === key)) {
+                this._releaseWaitingStep(step, key)
+                nested.push(step.open)
+            }
+            const rest = queue.filter((w) => w.key !== key)
+            if (rest.length) { this._nestedWaiting.set(parentId, rest) } else { this._nestedWaiting.delete(parentId) }
+        }
         const live = this._userSteps.get(scope) ?? []
         const waiting = this._waitingSteps.get(scope) ?? []
         this._userSteps.delete(scope)
@@ -367,7 +379,7 @@ export default class AllureReporter extends WDIOReporter {
             }
         }
         // the end of the test ends their steps: their results must not end another step
-        for (const step of [live, ...waiting.map(({ open }) => open)].flat()) {
+        for (const step of [live, ...nested, ...waiting.map(({ open }) => open)].flat()) {
             if (step.kind === 'protocol' && !step.done) { this._addLateResult(scope, step) }
         }
     }
@@ -880,6 +892,7 @@ export default class AllureReporter extends WDIOReporter {
         // the steps of user commands that got no result
         this._userSteps.clear()
         this._userStepOf.clear()
+        this._nestedWaiting.clear()
         this._lateResults.clear()
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
@@ -1446,9 +1459,18 @@ export default class AllureReporter extends WDIOReporter {
         // a nested user command is a child of the user step of its parent, also when that step waits
         const parent = payload.parent === undefined ? undefined : this._userStepOf.get(payload.parent)
         if (parent) {
+            const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
+            // an earlier step of the same parent is still open: this one waits, so the two are siblings
+            if (parent.open.at(-1) !== parent.step) {
+                const waiting: WaitingUserStep = { key: this._laneKey(), open: [step], messages: [], waiting: true }
+                this._toWaitingStep(waiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+                this._nestedWaiting.set(parent.step.id, [...this._nestedWaiting.get(parent.step.id) ?? [], waiting])
+                this._waitingStepOf.set(payload.id, waiting)
+                this._userStepOf.set(payload.id, { scope: parent.scope, open: waiting.open, step, waiting })
+                return
+            }
             const inWaiting = parent.waiting?.waiting ? parent.waiting : undefined
             this._toWaitingStep(inWaiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
-            const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
             parent.open.push(step)
             if (inWaiting) { this._waitingStepOf.set(payload.id, inWaiting) }
             this._userStepOf.set(payload.id, { scope: parent.scope, open: parent.open, step, waiting: parent.waiting })
@@ -1489,6 +1511,9 @@ export default class AllureReporter extends WDIOReporter {
     // as open steps do at the end of a test; a user command that did not end makes the steps under it wait
     private _endDoneSteps(open: OpenStep[], scope: string): void {
         for (let step = open.at(-1); step; step = open.at(-1)) {
+            if (step.kind === 'user' && this._releaseNestedWaiting(step, open)) {
+                continue
+            }
             if (!step.done) {
                 const owner = step.kind === 'protocol' ? userStepOf(open, step) : undefined
                 if (!owner?.done) { break }
@@ -1506,6 +1531,28 @@ export default class AllureReporter extends WDIOReporter {
             this._userSteps.delete(scope)
             this._releaseWaitingSteps(scope)
         }
+    }
+
+    // the next waiting nested user command of a user step that is the last open step again: its steps go on
+    private _releaseNestedWaiting(parent: UserStep, open: OpenStep[]): boolean {
+        const queue = this._nestedWaiting.get(parent.id)
+        const waiting = queue?.shift()
+        if (!waiting) {
+            return false
+        }
+        if (!queue!.length) { this._nestedWaiting.delete(parent.id) }
+        const released = waiting.open
+        // a parent that waits behind an overlapping user command keeps its buffer for the released steps
+        const parentWaiting = this._userStepOf.get(parent.id)?.waiting
+        this._releaseWaitingStep(waiting)
+        open.push(...released)
+        for (const [id, entry] of this._userStepOf) {
+            if (entry.open === released) {
+                this._userStepOf.set(id, { ...entry, open, waiting: parentWaiting })
+                if (parentWaiting?.waiting) { this._waitingStepOf.set(id, parentWaiting) }
+            }
+        }
+        return true
     }
 
     private _endProtocolStep(step: ProtocolStep): void {
