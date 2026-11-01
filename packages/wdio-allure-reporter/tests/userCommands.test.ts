@@ -325,6 +325,28 @@ describe('user commands that overlap or end after their test', () => {
         expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
     })
 
+    it('writes no step in the next test for a nested user command that starts after the end of its test', async () => {
+        const { byName } = await runTests((emit) => {
+            emit('test:start', test('t1'))
+            emit('client:beforeUserCommand', user(1, 'waitUntil', []))
+            emit('client:beforeUserCommand', nested(2, 'getText', 1))
+            emit('client:afterUserCommand', { ...nested(2, 'getText', 1), result: { value: 'x' } })
+            emit('test:fail', { ...test('t1'), error: new Error('test timeout') })
+            emit('test:end', test('t1'))
+            emit('test:start', test('t2'))
+            // the waitUntil of t1 polls again during t2
+            emit('client:beforeUserCommand', nested(3, 'getText', 1))
+            emit('client:afterUserCommand', { ...nested(3, 'getText', 1), result: { value: 'x' } })
+            emit('client:beforeUserCommand', user(4, 'getTitle', []))
+            emit('client:afterUserCommand', { ...user(4, 'getTitle', []), result: { value: 'T' } })
+            emit('client:afterUserCommand', { ...user(1, 'waitUntil', []), result: { error: new Error('timeout') } })
+            emit('test:pass', { ...test('t2'), passed: true })
+            emit('test:end', test('t2'))
+        })
+        expect(names(byName('t1'))).toEqual([['waitUntil()', ['getText() → "x"']]])
+        expect(names(byName('t2'))).toEqual(['getTitle() → "T"'])
+    })
+
     it('gives the result of a nested custom command call with no endpoint to the call that started last', async () => {
         const { byName } = await runTests((emit) => {
             emit('test:start', test('t1'))

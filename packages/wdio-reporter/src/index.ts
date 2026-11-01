@@ -75,6 +75,8 @@ export default class WDIOReporter extends EventEmitter {
     // the owner of each ended user command of the suite: a late call (a waitUntil condition after its timeout) is no
     // excluded one while that owner runs
     #endedUserCommands = new Map<number, TestStats | HookStats | undefined>()
+    // the nested user commands that started after the end of their test: no methods, their protocol commands hidden
+    #lateUserCommands = new Set<number>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -192,7 +194,12 @@ export default class WDIOReporter extends EventEmitter {
                 ? this.#userCommandOwners.get(payload.parent)
                 : getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
-            this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            // a nested call of a test that ended (an abandoned poll): only its entry, in that test
+            if (payload.parent !== undefined && owner?.end) {
+                this.#lateUserCommands.add(payload.id)
+            } else {
+                this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            }
             this.#addUserEntry(owner, payload, 'userCommand')
         })
         this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => {
@@ -204,9 +211,11 @@ export default class WDIOReporter extends EventEmitter {
             this.#userCommandOwners.delete(payload.id)
             this.#endedUserCommands.set(payload.id, owner)
             const unit = owner && this.#unitOfStats.get(owner)
-            if (unit) {
+            // a late nested call: its start called no method either
+            const late = this.#lateUserCommands.delete(payload.id)
+            if (!late && unit) {
                 this.#call(unit, () => this.onAfterUserCommand(payload))
-            } else {
+            } else if (!late) {
                 this.#callForCommand(payload, () => this.onAfterUserCommand(payload))
             }
             this.#addUserEntry(owner, payload, 'userResult')
@@ -548,6 +557,7 @@ export default class WDIOReporter extends EventEmitter {
                 this.#userCommandOwners.clear()
                 this.#hiddenChildren.clear()
                 this.#endedUserCommands.clear()
+                this.#lateUserCommands.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
@@ -639,7 +649,8 @@ export default class WDIOReporter extends EventEmitter {
         }
         // a user command with no entry: excluded, sent to no listener, or ended with its owner (else the call goes to the next test)
         const endedOwner = this.#endedUserCommands.get(payload.parent)
-        if (this.#userCommandOwners.has(payload.parent) || (endedOwner && !endedOwner.end)) {
+        const late = this.#lateUserCommands.has(payload.parent)
+        if (!late && (this.#userCommandOwners.has(payload.parent) || (endedOwner && !endedOwner.end))) {
             return false
         }
         this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
