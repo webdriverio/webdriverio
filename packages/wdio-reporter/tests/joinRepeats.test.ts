@@ -72,6 +72,21 @@ describe('userCommandTree and joinUserCommandTree', () => {
         expect(joined[0].children[0].text).toBe(joined[0].children[1].text)
     })
 
+    it('does not join two calls whose arguments differ after the title limit, or two requests with different bodies', () => {
+        const long = (end: string) => `${'x'.repeat(130)}${end}`
+        const setValue = (id: number, value: string) => [
+            { ...user(id, 'setValue', 1), body: [value] }, { ...userResult(id, 'setValue', { value: null }, 1), body: [value] }
+        ]
+        const request = (body: object) => [
+            { type: 'command', command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync', body, parent: 1 },
+            { type: 'result', command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync', parent: 1, result: { value: 1 } }
+        ]
+        const output = [user(1, 'waitUntil'), ...setValue(2, long('A')), ...setValue(3, long('B')), ...request({ script: 'a' }), ...request({ script: 'b' }), userResult(1, 'waitUntil', { value: true })]
+        const [wait] = joinUserCommandTree(userCommandTree(output))
+        expect(wait.children).toHaveLength(4)
+        expect(wait.children.some((node) => node.repeat)).toBe(false)
+    })
+
     it('joins two identical parents with their children, and never mixes the children of different parents', () => {
         const output = [
             user(1, 'waitUntil'), user(2, 'getText', 1), userResult(2, 'getText', { value: 'a' }, 1), userResult(1, 'waitUntil', { value: true }),

@@ -88,9 +88,8 @@ export function userCommandTree(output: ReadonlyArray<{ type: string }>): UserCo
     return roots
 }
 
-// the full result, so two results with the same cut text are not joined
-function resultKey(result: object | undefined) {
-    const value = (result as { result?: unknown } | undefined)?.result
+// the full value, so two results or bodies with the same cut text are not joined
+function valueKey(value: unknown) {
     try {
         return JSON.stringify(value, (_key, item) => item instanceof Error || (item && typeof item === 'object' && 'stack' in item && 'message' in item)
             ? userCommandError(item)
@@ -111,11 +110,12 @@ export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[]
     const keyOf = (node: UserCommandNode): string => {
         let key = keys.get(node)
         if (key === undefined) {
-            const result = resultKey(node.result)
-            // a node with no text (a WebDriver Classic entry) or a result that cannot be compared is never joined
+            const result = valueKey((node.result as { result?: unknown } | undefined)?.result)
+            const body = valueKey((node.entry as { body?: unknown }).body)
+            // a node with no text (a WebDriver Classic entry) or a value that cannot be compared is never joined
             key = node.text === undefined || (node.result && result === undefined)
                 ? `\u0000${unique++}`
-                : JSON.stringify([node.text, result, node.children.map(keyOf)])
+                : JSON.stringify([node.text, result, body, node.children.map(keyOf)])
             keys.set(node, key)
         }
         return key
