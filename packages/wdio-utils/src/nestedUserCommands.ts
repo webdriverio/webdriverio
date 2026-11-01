@@ -25,16 +25,17 @@ function matcherOf (names: readonly string[]): Matcher {
     return (command) => exact.has(command) || prefixes.some((prefix) => command.startsWith(prefix))
 }
 
-const isNameList = (value: unknown): value is string[] =>
-    Array.isArray(value) && value.every((name) => typeof name === 'string')
+// the names of a list; an item that is not a string is ignored, as the events do
+const namesOf = (value: unknown): string[] | undefined =>
+    Array.isArray(value) ? value.filter((name): name is string => typeof name === 'string') : undefined
 
 function parse (option: Exclude<Options.Testrunner['userCommandEvents'], boolean | undefined>): NestedRule {
     // the top-level `exclude` has exact names
     const names = option.exclude
-    if (names !== undefined && !isNameList(names)) {
+    if (names !== undefined && !Array.isArray(names)) {
         log.warn(`userCommandEvents.exclude is not a list of command names (${JSON.stringify(names)}), it is ignored`)
     }
-    const excluded = new Set(isNameList(names) ? names : [])
+    const excluded = new Set(namesOf(names))
     const exclude: Matcher = (command) => excluded.has(command)
     const nested: unknown = option.nested
     const fallback = { mode: 'default' as const, expand: NONE, collapse: NONE, exclude }
@@ -47,16 +48,16 @@ function parse (option: Exclude<Options.Testrunner['userCommandEvents'], boolean
     const value = nested as { mode?: unknown, expand?: unknown, collapse?: unknown }
     const valid = Boolean(nested) && typeof nested === 'object' && !Array.isArray(nested) &&
         (value.mode === undefined || (typeof value.mode === 'string' && MODES.includes(value.mode))) &&
-        (value.expand === undefined || isNameList(value.expand)) &&
-        (value.collapse === undefined || isNameList(value.collapse))
+        (value.expand === undefined || Array.isArray(value.expand)) &&
+        (value.collapse === undefined || Array.isArray(value.collapse))
     if (!valid) {
         log.warn(`userCommandEvents.nested has a value that is not valid (${JSON.stringify(nested)}), the default is used`)
         return fallback
     }
     return {
         mode: (value.mode as Mode | undefined) ?? 'default',
-        expand: value.expand ? matcherOf(value.expand as string[]) : NONE,
-        collapse: value.collapse ? matcherOf(value.collapse as string[]) : NONE,
+        expand: value.expand ? matcherOf(namesOf(value.expand)!) : NONE,
+        collapse: value.collapse ? matcherOf(namesOf(value.collapse)!) : NONE,
         exclude
     }
 }

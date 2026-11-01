@@ -44,4 +44,11 @@ describe('expandsUserCommand', () => {
         expect(expandsUserCommand(list as never, 'waitUntil')).toBe(true)
         expect(warn).toHaveBeenCalledTimes(2)
     })
+
+    it('ignores the items that are not names in a list, as the events do', () => {
+        expect(expandsUserCommand({ exclude: ['waitUntil', null] } as never, 'waitUntil')).toBe(false)
+        expect(expandsUserCommand({ nested: { expand: ['getText', 1] } } as never, 'getText')).toBe(true)
+        expect(expandsUserCommand({ nested: { collapse: [null, 'waitFor*'] } } as never, 'waitForExist')).toBe(false)
+        expect(warn).not.toHaveBeenCalled()
+    })
 })
