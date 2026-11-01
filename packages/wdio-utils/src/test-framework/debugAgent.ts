@@ -35,11 +35,11 @@ export function getCurrentRunnable () {
     return runnable
 }
 
+const firstString = (...values: unknown[]) => values.find((value): value is string => typeof value === 'string' && value.length > 0)
+
 /**
  * Mocha puts `title`/`file` on the test. Jasmine puts `description`.
  */
-const firstString = (...values: unknown[]) => values.find((value): value is string => typeof value === 'string' && value.length > 0)
-
 export function runnableFrom (identity: unknown): { spec?: string, test?: string } {
     if (!identity || typeof identity !== 'object') {
         return {}

@@ -356,11 +356,13 @@ describe('filterStackTrace', () => {
 })
 
 describe('timeout title', () => {
-    const titleOf = async (type: string, identity: unknown, hookName?: string) => {
+    // an array element keeps an arrow function without a name, like an inline hook
+    const [anonymous] = [() => {}]
+    const titleOf = async (type: string, identity: unknown, hookName?: string, specFn: Function = anonymous, scope: object = {}) => {
         const executeAsync = vi.fn(async () => undefined)
         await testFrameworkFnWrapper.call(
-            {}, { executeHooksWithArgs: vi.fn(), executeAsync } as any, type,
-            { specFn: () => {}, specFnArgs: [] },
+            scope, { executeHooksWithArgs: vi.fn(), executeAsync } as any, type,
+            { specFn, specFnArgs: [] },
             { beforeFn: [], beforeFnArgs: () => [] },
             { afterFn: [], afterFnArgs: (ctx: unknown) => [identity, ctx] },
             '0-0', 0, hookName, 5000
@@ -375,16 +377,20 @@ describe('timeout title', () => {
         expect(await titleOf('Test', { fullName: 42, description: 'pays the order' })).toBe('pays the order')
     })
 
-    it('names a Jasmine hook, with the spec only for a beforeEach / afterEach', async () => {
-        expect(await titleOf('Hook', spec, 'beforeEach')).toBe('beforeEach hook for checkout pays the order')
-        expect(await titleOf('Hook', spec, 'afterEach')).toBe('afterEach hook for checkout pays the order')
-        expect(await titleOf('Hook', {}, 'beforeEach')).toBe('beforeEach hook')
+    it('names a Jasmine hook as Mocha does, with the spec only for a beforeEach / afterEach', async () => {
+        function loginAsAdmin () {}
+        expect(await titleOf('Hook', spec, 'beforeEach')).toBe('"before each" hook for "checkout pays the order"')
+        expect(await titleOf('Hook', spec, 'beforeEach', loginAsAdmin)).toBe('"before each" hook: loginAsAdmin for "checkout pays the order"')
+        expect(await titleOf('Hook', spec, 'afterEach')).toBe('"after each" hook for "checkout pays the order"')
+        expect(await titleOf('Hook', {}, 'beforeEach')).toBe('"before each" hook')
         // the identity of a beforeAll / afterAll is the previous spec
-        expect(await titleOf('Hook', spec, 'beforeAll')).toBe('beforeAll hook')
-        expect(await titleOf('Hook', spec, 'afterAll')).toBe('afterAll hook')
+        expect(await titleOf('Hook', spec, 'beforeAll')).toBe('"before all" hook')
+        expect(await titleOf('Hook', spec, 'afterAll', loginAsAdmin)).toBe('"after all" hook: loginAsAdmin')
     })
 
-    it('gives no title for a Cucumber step or hook, or an identity without a name', async () => {
+    it('gives no title with a Mocha runnable, for a Cucumber step or hook, or an identity without a name', async () => {
+        expect(await titleOf('Test', spec, undefined, anonymous, { _runnable: { title: 'pays the order' } })).toBeUndefined()
+        expect(await titleOf('Hook', spec, 'beforeEach', anonymous, { _runnable: { title: 'hook' } })).toBeUndefined()
         expect(await titleOf('Step', { text: 'I pay the order' })).toBeUndefined()
         expect(await titleOf('Hook', { text: 'I pay the order' })).toBeUndefined()
         expect(await titleOf('Test', {})).toBeUndefined()

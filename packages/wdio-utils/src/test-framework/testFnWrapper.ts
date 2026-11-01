@@ -46,6 +46,29 @@ export const testFnWrapper = function (
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
 }
 
+/** Jasmine hook names in the format of Mocha and of the Jasmine reporter events */
+const HOOK_LABELS: Record<string, string> = {
+    beforeEach: 'before each', afterEach: 'after each', beforeAll: 'before all', afterAll: 'after all'
+}
+
+/**
+ * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable
+ * (Mocha: `undefined`, its runnable title is used). The identity of a `beforeAll` /
+ * `afterAll` is the previous spec, so it gets no spec name.
+ */
+function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown, fnName: string) {
+    if (type === 'Test') {
+        return fullTestNameFrom(identity)
+    }
+    const label = type === 'Hook' && hookName ? HOOK_LABELS[hookName] : undefined
+    if (!label) {
+        return undefined
+    }
+    const hook = `"${label}" hook${fnName ? `: ${fnName}` : ''}`
+    const spec = hookName?.endsWith('Each') ? fullTestNameFrom(identity) : undefined
+    return spec ? `${hook} for "${spec}"` : hook
+}
+
 /**
  * wraps test framework spec/hook function with WebdriverIO before/after hooks
  *
@@ -60,27 +83,6 @@ export const testFnWrapper = function (
  * @param   {number} timeout        the maximum time (in milliseconds) to wait for
  * @return  {*}                     specFn result
  */
-/**
- * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable.
- * The identity of a `beforeAll` / `afterAll` is the previous spec, so only its hook name is used.
- */
-function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown) {
-    if (type === 'Test') {
-        return fullTestNameFrom(identity)
-    }
-    if (type !== 'Hook') {
-        return undefined
-    }
-    if (hookName === 'beforeAll' || hookName === 'afterAll') {
-        return `${hookName} hook`
-    }
-    if (hookName === 'beforeEach' || hookName === 'afterEach') {
-        const spec = fullTestNameFrom(identity)
-        return spec ? `${hookName} hook for ${spec}` : `${hookName} hook`
-    }
-    return undefined
-}
-
 export const testFrameworkFnWrapper = async function (
     this: unknown,
     { executeHooksWithArgs, executeAsync }: WrapperMethods,
@@ -123,7 +125,9 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
-    const timeoutTitle = timeoutTitleOf(type, hookName, identitySnapshot?.[0])
+    const timeoutTitle = (this as { _runnable?: unknown } | undefined)?._runnable
+        ? undefined
+        : timeoutTitleOf(type, hookName, identitySnapshot?.[0], specFn.name)
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
