@@ -5,15 +5,18 @@ const MAX_GROUP_SIZE = 4
 /**
  * Joins the runs of identical items: a group of 1 to 4 items that repeats at least 2 times in a row. The run that
  * covers the most items wins, and the smaller group on a tie. `join` gets the first copy of the group, the
- * number of repeats and the dropped copies; the other items stay as they are.
+ * number of repeats and the dropped copies; the other items stay as they are. With `fullKeyOf`, `keyOf` is a cheap
+ * key, and the items are compared by their full key, which is read only for an item that a sibling at most 4 places
+ * away matches by the cheap key.
  * @experimental the name and the rule may change
  */
 export function joinRepeats<T>(
     items: readonly T[],
     keyOf: (item: T) => string,
-    join: (group: readonly T[], count: number, repeats: readonly (readonly T[])[]) => T
+    join: (group: readonly T[], count: number, repeats: readonly (readonly T[])[]) => T,
+    fullKeyOf?: (item: T) => string
 ): T[] {
-    const keys = items.map(keyOf)
+    const keys = fullKeyOf ? fullKeys(items.map(keyOf), items, fullKeyOf) : items.map(keyOf)
     const same = (a: number, b: number, size: number) => {
         for (let k = 0; k < size; k++) {
             if (keys[a + k] !== keys[b + k]) {
@@ -43,6 +46,19 @@ export function joinRepeats<T>(
         i += best.size * best.count
     }
     return joined
+}
+
+// an item that no near sibling matches by the cheap key gets a unique key: it cannot be in a run
+function fullKeys<T>(cheap: readonly string[], items: readonly T[], fullKeyOf: (item: T) => string) {
+    const nearMatch = (i: number) => {
+        for (let j = Math.max(0, i - MAX_GROUP_SIZE); j <= Math.min(cheap.length - 1, i + MAX_GROUP_SIZE); j++) {
+            if (j !== i && cheap[j] === cheap[i]) {
+                return true
+            }
+        }
+        return false
+    }
+    return items.map((item, i) => nearMatch(i) ? fullKeyOf(item) : `\u0000unique${i}`)
 }
 
 /**
@@ -145,24 +161,13 @@ export function joinUserCommandTree(nodes: UserCommandNode[]): UserCommandNode[]
             : JSON.stringify([cheapKey(node), bodyKey, node.children.map(fullKey)])
     })
     const joinLevel = (level: UserCommandNode[]): UserCommandNode[] => {
-        const joined = level.map((node) => ({ ...node, children: joinLevel(node.children) }))
-        const cheap = joined.map(cheapKey)
-        // a node can be in a run only when a sibling at most 4 places away has the same cheap key
-        const nearMatch = (i: number) => {
-            for (let j = Math.max(0, i - MAX_GROUP_SIZE); j <= Math.min(cheap.length - 1, i + MAX_GROUP_SIZE); j++) {
-                if (j !== i && cheap[j] === cheap[i]) {
-                    return true
-                }
-            }
-            return false
-        }
-        const keys = new Map(joined.map((node, i) => [node, nearMatch(i) ? fullKey(node) : uniqueKey()]))
         return joinRepeats(
-            joined,
-            (node) => keys.get(node)!,
+            level.map((node) => ({ ...node, children: joinLevel(node.children) })),
+            cheapKey,
             (group, count) => group.length === 1
                 ? { ...group[0], text: `${group[0].text} × ${count}`, repeat: count }
-                : { entry: group[0].entry, text: `× ${count}`, repeat: count, group: [...group], children: [...group] }
+                : { entry: group[0].entry, text: `× ${count}`, repeat: count, group: [...group], children: [...group] },
+            fullKey
         )
     }
     return joinLevel(nodes)
