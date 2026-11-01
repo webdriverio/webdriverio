@@ -265,7 +265,12 @@ export default class AllureReporter extends WDIOReporter {
             environmentInfo: options.reportedEnvironmentVars,
             writer: new LinkingFileSystemWriter(this._resultsDir),
             // the repeated steps are joined in the finished test, before it is written
-            listeners: [{ beforeTestResultWrite: (result) => { result.steps = joinSteps(result.steps, this._resultsDir) } }],
+            listeners: [{
+                beforeTestResultWrite: (result) => {
+                    const states = [...this.allureStatesByCid.values()]
+                    if (states.some((state) => state.takeUserCommandResult(result.uuid))) { result.steps = joinSteps(result.steps, this._resultsDir) }
+                }
+            }],
         })
 
         this._capabilities = {}
@@ -1454,7 +1459,10 @@ export default class AllureReporter extends WDIOReporter {
             ? { key: this._laneKey(), open: [], messages: [], waiting: true }
             : undefined
         // the arguments are in the name: the Request attachment only when the name does not show them all
-        this._toWaitingStep(waiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+        this._toWaitingStep(waiting, () => {
+            this._pushRuntimeMessage({ type: 'allure:user:command', data: {} })
+            this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
+        })
         const open = waiting ? waiting.open : live ?? []
         if (waiting) {
             this._waitingSteps.set(scope, [...this._waitingSteps.get(scope) ?? [], waiting])
