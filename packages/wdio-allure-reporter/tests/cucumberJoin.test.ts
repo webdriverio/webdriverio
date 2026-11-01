@@ -46,4 +46,26 @@ describe('the join of repeated steps with useCucumberStepReporter', () => {
             ['I do something', [['waitUntil() → true', ['getText() → "x" × 3']]]]
         ])
     })
+
+    it('joins the repeated user commands of a scenario that is a test (scenarioLevelReporter)', async () => {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true, writeStream: { write: () => true } } as any)
+        reporter.emit('runner:start', { ...runnerStart(), config: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } })
+        reporter.emit('suite:start', cucumberHelper.featureStart())
+        const scenario = { ...cucumberHelper.testStart(), uid: 'scenario-1', title: 'MyScenario' }
+        reporter.emit('test:start', scenario)
+        for (let id = 1; id <= 3; id++) {
+            reporter.emit('client:beforeUserCommand', user(id, 'getTitle'))
+            reporter.emit('client:afterUserCommand', { ...user(id, 'getTitle'), result: { value: 'T' } })
+        }
+        reporter.emit('test:pass', { ...cucumberHelper.testPass(), uid: 'scenario-1', title: 'MyScenario' })
+        reporter.emit('test:end', { ...cucumberHelper.testPass(), uid: 'scenario-1', title: 'MyScenario' })
+        reporter.emit('suite:end', cucumberHelper.featureEnd({ tests: [cucumberHelper.testPass()], hooks: [] }))
+        reporter.emit('runner:end', runnerEnd())
+        await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+        const results = getResults(outputDir).results as Result[]
+        const withSteps = results.find((r) => r.steps.length)!
+        expect(withSteps.steps.map((s: Result) => s.name)).toEqual(['getTitle() → "T" × 3'])
+    })
 })
+

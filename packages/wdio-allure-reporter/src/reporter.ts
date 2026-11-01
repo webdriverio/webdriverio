@@ -279,7 +279,7 @@ export default class AllureReporter extends WDIOReporter {
                     const states = [...this.allureStatesByCid.values()]
                     if (!states.some((state) => state.takeUserCommandResult(result.uuid))) { return }
                     // the Gherkin steps of a scenario stay as in the feature file: only the steps inside them are joined
-                    result.steps = this._options.useCucumberStepReporter
+                    result.steps = this._keepsGherkinSteps()
                         ? result.steps.map((step) => ({ ...step, steps: joinSteps(step.steps, this._resultsDir) }))
                         : joinSteps(result.steps, this._resultsDir)
                 }
@@ -1183,6 +1183,12 @@ export default class AllureReporter extends WDIOReporter {
         if (suite.description) {
             description(suite.description)
         }
+    }
+
+    // the steps of a scenario are its Gherkin steps (not with `scenarioLevelReporter`, where they are the commands)
+    private _keepsGherkinSteps(): boolean {
+        const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined)?.cucumberOpts
+        return Boolean(this._options.useCucumberStepReporter) && !cucumberOpts?.scenarioLevelReporter
     }
 
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
