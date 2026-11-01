@@ -16,7 +16,7 @@ const FIXTURE_ROOT = path.join(__dirname, '.tmp')
  * checks that its last item exists, which finds the list again: the cost of
  * building element objects.
  */
-export async function generateFixtures ({ testCount = 20, includeSkips = 0, listSize = 0 } = {}) {
+export async function generateFixtures ({ testCount = 20, includeSkips = 0, listSize = 0, discovery = false } = {}) {
     await fs.mkdir(FIXTURE_ROOT, { recursive: true })
     const root = await fs.mkdtemp(path.join(FIXTURE_ROOT, 'run-'))
     const mochaDir = path.join(root, 'mocha')
@@ -107,12 +107,27 @@ export async function generateFixtures ({ testCount = 20, includeSkips = 0, list
         fs.writeFile(stepsFile, stepsBody)
     ])
 
+    let discoveryPattern
+    if (discovery) {
+        const discoveryRoot = path.join(root, 'monorepo')
+        for (let page = 0; page < 512; page++) {
+            const assets = path.join(discoveryRoot, `page-${page}`, 'assets')
+            await fs.mkdir(assets, { recursive: true })
+            await Promise.all(Array.from({ length: 20 }, (_, index) => fs.writeFile(path.join(assets, `${index}.txt`), 'asset')))
+        }
+        const features = path.join(discoveryRoot, 'page-0', 'features')
+        await fs.mkdir(features, { recursive: true })
+        await fs.writeFile(path.join(features, 'bench.spec.js'), mochaBody)
+        discoveryPattern = path.join(discoveryRoot, '**/features/*.spec.js').replaceAll('\\', '/')
+    }
+
     return {
         root,
         mochaSpec,
         jasmineSpec,
         featureFile,
-        stepsFile
+        stepsFile,
+        discoveryPattern
     }
 }
 

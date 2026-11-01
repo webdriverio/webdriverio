@@ -138,6 +138,7 @@ class Launcher {
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
+            this.configParser.clearSpecCache()
 
             /**
              * For parallel multi-remote, only get the specs and excludes from the first object
@@ -148,11 +149,11 @@ class Launcher {
                         if (this.isParallelMultiRemote) {
                             const keys = Object.keys(c as Capabilities.RequestedMultiRemoteCapabilities)
                             const caps = (c as Capabilities.RequestedMultiRemoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
-                            return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
+                            return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude'], { cache: true }).length
                         }
                         const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
                         const cap = 'alwaysMatch' in standaloneCaps ? standaloneCaps.alwaysMatch : standaloneCaps
-                        return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude']).length
+                        return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude'], { cache: true }).length
                     })
                     .reduce((a, b) => a + b, 0)
                 : 1
@@ -177,7 +178,7 @@ class Launcher {
                 this.#frameworkLaunch = framework.launch({
                     // ConfigParser keeps capabilities outside of getConfig()
                     config: { ...config, capabilities: caps } as WebdriverIO.Config,
-                    specs: this.configParser.getSpecs().flat().map(specFilePath),
+                    specs: this.configParser.getSpecs(undefined, undefined, { cache: true }).flat().map(specFilePath),
                     configFile: this._configFilePath,
                     args: cloneableEntries(this._args),
                     signal: this.#frameworkAbort.signal,
@@ -459,7 +460,7 @@ class Launcher {
         }
         const specs = caps['wdio:specs']
         const excludes = caps['wdio:exclude']
-        const files = this.configParser.getSpecs(specs, excludes)
+        const files = this.configParser.getSpecs(specs, excludes, { cache: true })
 
         return files.map((file: string | string[]) => {
             if (typeof file === 'string') {

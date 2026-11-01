@@ -31,6 +31,8 @@ pnpm run bench:runner -- --baseline tests/benchmark/results/<sha>.json
 
 Results land in `tests/benchmark/results/` (gitignored).
 
+`mocha-discovery-quiet` measures repeated spec discovery across four capabilities in a generated tree with 10,240 asset files and one matching spec.
+
 ## Named suites (from `smoke.runner.js`)
 
 Frameworks: `mochaTestrunner`, `mochaAsyncTestrunner`, `jasmineTestrunner`,
@@ -47,7 +49,7 @@ Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`
 
 CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
-`runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
+`specDiscoveryCache`, `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
 `runSpecsWithFlagDirectPath`, `runSpecsWithFlagNoArg`, `headlessFlag`,
 `cliExcludeParamValidation*`, `cliSpecsWithWildCard*`, `cliExclude*WithWildCard*`
 
