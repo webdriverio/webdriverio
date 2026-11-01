@@ -521,7 +521,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
  * registered (the commands of a browsing context)
  */
 export function wrapCustomCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
-    return createCommandWrapper<T>(commandName, fn, runCustomCommand)
+    // a command of a browsing context is no custom command of `addCommand`: it expands only when it is named
+    return createCommandWrapper<T>(commandName, fn, (scope, command, args, run) => runCustomCommand(scope, command, args, run, false))
 }
 
 type RunCommand = (scope: unknown, command: string, args: unknown[], run: () => Promise<unknown>) => Promise<unknown>

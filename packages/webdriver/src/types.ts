@@ -77,6 +77,8 @@ export interface UserCommandEvent {
     protocol: 'bidi'
     /** the item of the list of `command` that this user command waits for: `` $$(`li`)[3] ``, negative for `.at(-1)` */
     index?: number
+    /** id of the user command that runs this one, when that command shows its direct calls (`userCommandEvents.nested`) */
+    parent?: number
     /** the session of the browser (of the multi-remote instance) that runs the command */
     sessionId?: string
 }

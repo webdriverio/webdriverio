@@ -193,6 +193,7 @@ describe('user command events', () => {
 
     it('sends no actions pair inside another user command', async () => {
         const browser = await bidiSession()
+        browser.options.userCommandEvents = { nested: 'none' }
         const events = recordEvents(browser)
         await browser.waitUntil(async () => {
             await browser.actions([browser.action('key').down('a').up('a')])
@@ -206,6 +207,7 @@ describe('user command events', () => {
 
     it('sends no action pair for a perform inside another user command', async () => {
         const browser = await bidiSession()
+        browser.options.userCommandEvents = { nested: 'none' }
         const events = recordEvents(browser)
         await browser.waitUntil(async () => {
             await browser.action('key').down('a').up('a').perform()

@@ -74,7 +74,7 @@ describe('runUserCommand', () => {
     })
 
     it('sends nothing for a nested registered command', async () => {
-        const browser = fakeBrowser()
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'none' } } })
         await mod.runUserCommand(browser, 'waitForDisplayed', [], async () => {
             for (let i = 0; i < 3; i++) {
                 await mod.runUserCommand(browser, 'isDisplayed', [], async () => i === 2)
@@ -259,7 +259,7 @@ describe('runUserCommand', () => {
 
     it('sends no pair for call, and its commands are outer commands', async () => {
         mod.registerUserCommands(['call'])
-        const browser = fakeBrowser()
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'none' } } })
         const call = shim.wrapCommand('call', (fn: () => unknown) => fn())
         const getText = shim.wrapCommand('getText', async () => 'hello')
         expect(await call.call(browser, () => getText.call(browser))).toBe('hello')
@@ -353,6 +353,7 @@ describe('wrapCustomCommand', () => {
         const browser = fakeBrowser()
         const calls: string[] = []
         browser.options = {
+            userCommandEvents: { nested: 'none' },
             beforeCommand: () => { calls.push('before') },
             afterCommand: () => { calls.push('after') }
         }
@@ -585,7 +586,7 @@ describe('runUserCommand with listeners and multi-remote', () => {
 
 describe('currentUserCommandId', () => {
     it('is the id of the outer call that sends events, also in a nested call', async () => {
-        const browser = fakeBrowser()
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'none' } } })
         expect(mod.currentUserCommandId()).toBeUndefined()
         await mod.runUserCommand(browser, 'waitForDisplayed', [], async () => {
             expect(mod.currentUserCommandId()).toBe(1)
@@ -635,6 +636,7 @@ describe('currentUserCommandId', () => {
         const browser = fakeBrowser()
         const ids: Record<string, number | undefined> = {}
         browser.options = {
+            userCommandEvents: { nested: 'none' },
             beforeCommand: () => { ids.before = mod.currentUserCommandId() },
             afterCommand: () => { ids.after = mod.currentUserCommandId() }
         }
@@ -734,7 +736,7 @@ describe('nested calls', () => {
     })
 
     it('runs in the frame of the outer call', async () => {
-        const browser = fakeBrowser()
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'none' } } })
         await mod.runUserCommand(browser, 'waitUntil', [], async () => {
             const frame = store.getStore()
             await mod.runUserCommand(browser, 'isDisplayed', [], async () => {
@@ -775,11 +777,121 @@ describe('nested calls', () => {
     })
 })
 
+describe('nested user commands', () => {
+    const events = (browser: { emit: ReturnType<typeof vi.fn> }) => pairs(browser)
+        .map(([event, payload]) => [event, payload.command, payload.id, payload.parent])
+
+    beforeEach(() => {
+        mod.registerUserCommands(['click', 'execute', 'takeScreenshot'])
+    })
+
+    it('sends the direct calls of waitUntil with the id of waitUntil as parent', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'waitUntil', [], async () => {
+            await mod.runUserCommand(browser, 'getText', [], async () => 'a')
+            await mod.runUserCommand(browser, 'getText', [], async () => 'b')
+            return true
+        })
+        expect(events(browser)).toEqual([
+            ['userCommand', 'waitUntil', 1, undefined],
+            ['userCommand', 'getText', 2, 1],
+            ['userResult', 'getText', 2, 1],
+            ['userCommand', 'getText', 3, 1],
+            ['userResult', 'getText', 3, 1],
+            ['userResult', 'waitUntil', 1, undefined]
+        ])
+    })
+
+    it('sends no events for the calls of a command that does not expand', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'click', [], () => mod.runUserCommand(browser, 'getText', [], async () => 'a'))
+        expect(events(browser)).toEqual([['userCommand', 'click', 1, undefined], ['userResult', 'click', 1, undefined]])
+    })
+
+    it('expands only the direct calls: the calls inside a nested getText send nothing', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'waitUntil', [], () => mod.runUserCommand(browser, 'getText', [], () =>
+            mod.runUserCommand(browser, 'execute', [], async () => 'a')))
+        expect(events(browser).map(([event, command]) => `${event} ${command}`)).toEqual([
+            'userCommand waitUntil', 'userCommand getText', 'userResult getText', 'userResult waitUntil'
+        ])
+    })
+
+    it('expands every command with nested: all', async () => {
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: 'all' } } })
+        await mod.runUserCommand(browser, 'click', [], () => mod.runUserCommand(browser, 'getText', [], () =>
+            mod.runUserCommand(browser, 'execute', [], async () => 'a')))
+        expect(events(browser)).toEqual([
+            ['userCommand', 'click', 1, undefined],
+            ['userCommand', 'getText', 2, 1],
+            ['userCommand', 'execute', 3, 2],
+            ['userResult', 'execute', 3, 2],
+            ['userResult', 'getText', 2, 1],
+            ['userResult', 'click', 1, undefined]
+        ])
+    })
+
+    it('keeps a collapsed custom command as one closed step', async () => {
+        const browser = fakeBrowser({ options: { userCommandEvents: { nested: { collapse: ['readX'] } } } })
+        await mod.runCustomCommand(browser, 'readX', [], () => mod.runUserCommand(browser, 'getText', [], async () => 'a'))
+        expect(events(browser)).toEqual([['userCommand', 'readX', 1, undefined], ['userResult', 'readX', 1, undefined]])
+    })
+
+    it('marks the old events of a nested custom command with custom: true', async () => {
+        const client = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS } })('sessionId', shim.wrapCommand) as Record<string, Function>
+        const old: Record<string, unknown>[] = []
+        const user: Record<string, unknown>[] = []
+        client.on('command', (payload: Record<string, unknown>) => old.push(payload))
+        client.on('userCommand', (payload: Record<string, unknown>) => user.push(payload))
+        client.addCommand('inner', async () => 'done')
+        await mod.runUserCommand(client, 'waitUntil', [], () => client.inner())
+        expect(user.map(({ command, parent }) => [command, parent])).toEqual([['waitUntil', undefined], ['inner', 1]])
+        expect(old).toEqual([expect.objectContaining({ command: 'inner', parent: 2, custom: true })])
+    })
+
+    it('sends no nested events in a command hook, a command with no events, an excluded command or a session with events off', async () => {
+        const hooks = await import('../src/commandHooks.js')
+        const nestedGetText = (browser: object) => () => mod.runUserCommand(browser, 'getText', [], async () => 'a')
+        const inHook = fakeBrowser()
+        await mod.runUserCommand(inHook, 'waitUntil', [], () => hooks.runInCommandHook(nestedGetText(inHook)))
+        const inScreenshot = fakeBrowser()
+        await mod.runUserCommand(inScreenshot, 'takeScreenshot', [], nestedGetText(inScreenshot))
+        const excluded = fakeBrowser({ options: { userCommandEvents: { exclude: ['waitUntil'] } } })
+        await mod.runUserCommand(excluded, 'waitUntil', [], nestedGetText(excluded))
+        const off = fakeBrowser({ options: { userCommandEvents: false } })
+        await mod.runUserCommand(off, 'waitUntil', [], nestedGetText(off))
+        expect(events(inHook).map(([event, command]) => `${event} ${command}`)).toEqual(['userCommand waitUntil', 'userResult waitUntil'])
+        expect([events(inScreenshot), events(excluded), events(off)]).toEqual([[], [], []])
+    })
+
+    it('sends a list item that waits inside waitUntil with its index and parent', async () => {
+        const browser = fakeBrowser()
+        await mod.runUserCommand(browser, 'waitUntil', [], () => mod.runListItem(browser, '$$', ['li'], 3, async () => 'item'))
+        expect(pairs(browser)[1]).toEqual(['userCommand', expect.objectContaining({ command: '$$', index: 3, parent: 1 })])
+    })
+
+    it('keeps the commands of the instances of a multi-remote custom command as outer commands, and expands an instance custom command', async () => {
+        const instance = fakeBrowser()
+        const multiRemote = fakeBrowser({ isMultiRemote: true })
+        await mod.runCustomCommand(multiRemote, 'both', [], () => mod.runUserCommand(instance, 'getText', [], async () => 'a'))
+        await mod.runCustomCommand(instance, 'mine', [], () => mod.runUserCommand(instance, 'getText', [], async () => 'b'))
+        expect(events(instance)).toEqual([
+            ['userCommand', 'getText', 1, undefined],
+            ['userResult', 'getText', 1, undefined],
+            ['userCommand', 'mine', 2, undefined],
+            ['userCommand', 'getText', 3, 2],
+            ['userResult', 'getText', 3, 2],
+            ['userResult', 'mine', 2, undefined]
+        ])
+        expect(events(multiRemote)).toEqual([])
+    })
+})
+
 describe('custom commands', () => {
     const EVENTS = ['command', 'result', 'userCommand', 'userResult']
 
-    function client (props: Record<string, PropertyDescriptor> = {}) {
-        const browser = monad.default({}, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS }, ...props })('sessionId', shim.wrapCommand) as Record<string, Function>
+    function client (props: Record<string, PropertyDescriptor> = {}, options: Record<string, unknown> = {}) {
+        const browser = monad.default(options, (c: unknown) => c, { isBidi: { value: true }, requestedCapabilities: { value: BIDI_COMMANDS }, ...props })('sessionId', shim.wrapCommand) as Record<string, Function>
         const events: [string, Record<string, unknown>][] = []
         for (const event of EVENTS) {
             browser.on(event, (payload: Record<string, unknown>) => events.push([event, payload]))
@@ -831,7 +943,7 @@ describe('custom commands', () => {
     })
 
     it('sends no pair for a nested custom command, and its old events get the outer id as parent', async () => {
-        const { browser, events } = client()
+        const { browser, events } = client({}, { userCommandEvents: { nested: 'none' } })
         browser.addCommand('inner', async () => 'inner')
         browser.addCommand('outer', async function (this: Record<string, Function>) {
             return this.inner()
@@ -848,7 +960,7 @@ describe('custom commands', () => {
     })
 
     it('marks the old events of the custom command that is the user command, not those of a nested call of the same name', async () => {
-        const { browser, events } = client()
+        const { browser, events } = client({}, { userCommandEvents: { nested: 'none' } })
         browser.addCommand('countDown', async function (this: Record<string, Function>, n: number) {
             return n > 0 ? this.countDown(n - 1) : 'done'
         })
