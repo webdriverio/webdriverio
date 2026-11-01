@@ -316,6 +316,7 @@ The payload has these fields:
 | `body` | The arguments of the command. |
 | `index` | Only for the item of an element list that waits for its index (for example `$$('li')[3]` when the list has fewer elements): the index, a negative number for `.at(-1)`. |
 | `parent` | Only for a nested user command: the `id` of the user command that runs it (see [`userCommandEvents.nested`](./Configuration.md#usercommandevents)). |
+| `owner` | Only for a user command that a user command of another session runs (for example in a multi-remote run): the `id` of that user command. The command is an outer command of its own session, and it belongs to the test of that user command. |
 | `protocol` | `'bidi'` |
 | `sessionId` | The session of the command. In a multi-remote run, the session of the instance. |
 | `contextId` | The parallel-mode context of the command, as for `onBeforeCommand`. |

@@ -148,6 +148,26 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
+    it('gives a user command of another session the owner test of the user command that runs it', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        const outer = { ...userCommand, id: 1, command: 'waitUntil', sessionId: 'a' }
+        const other = { ...userCommand, id: 2, command: 'getTitle', sessionId: 'b', owner: 1 }
+        reporter.emit('client:beforeUserCommand', outer)
+        reporter.emit('test:fail', { ...base, uid: 'A', title: 'A', error: new Error('timeout') })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:start', { ...base, uid: 'B', title: 'B' })
+        reporter.calls.length = 0
+        reporter.emit('client:beforeUserCommand', other)
+        reporter.emit('client:afterUserCommand', { ...other, result: { value: 't' } })
+
+        expect(reporter.calls).toEqual([])
+        expect(reporter.tests.B.output).toEqual([])
+        expect(reporter.tests.A.output.map((entry: any) => `${entry.type} ${entry.command}`)).toEqual(['userCommand waitUntil', 'userCommand getTitle', 'userResult getTitle'])
+    })
+
     it('calls no method for a nested user command that starts after the end of its test, and hides its protocol commands', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)

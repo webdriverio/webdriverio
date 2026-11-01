@@ -252,8 +252,9 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
     const event = {
         id: ++lastUserCommandId, command, body: fields.masked ? maskedCopy(args) : userCommandBody(args), protocol: 'bidi' as const,
         ...(fields.index === undefined ? {} : { index: fields.index }),
-        // a command of another session is an outer command of its own session, as for multi-remote instances
-        ...(fields.parent === undefined || fields.parentSession !== browser!.sessionId ? {} : { parent: fields.parent }),
+        // a command of another session is an outer command of its own session, as for multi-remote instances;
+        // `owner` keeps the link to the test of the user command that runs it
+        ...(fields.parent === undefined ? {} : fields.parentSession === browser!.sessionId ? { parent: fields.parent } : { owner: fields.parent }),
         // a multi-remote browser has no session: each instance sends its own
         ...(browser!.sessionId ? { sessionId: browser!.sessionId } : {})
     }
