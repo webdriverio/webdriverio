@@ -290,6 +290,23 @@ describe('runUserCommand', () => {
             ['userResult', { id: 1, command: '$$', body: ['a'], protocol: 'bidi', result: { value: { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'a' }], length: 2 } } }]
         ])
     })
+
+    it.each([
+        ['a WebDriver Classic session', { isBidi: false }],
+        ['user command events off', { options: { userCommandEvents: false } }]
+    ])('makes no copy of a loaded element list in %s', async (_name, props) => {
+        const browser = fakeBrowser(props)
+        let wrapper: ((load: () => Promise<unknown>) => Promise<unknown>) | undefined
+        const list = { [shim.ELEMENT_ARRAY_WRAP]: (fn: typeof wrapper) => { wrapper = fn } }
+        const query = shim.wrapCommand('$$', () => list)
+        query.call(browser, 'a')
+        let reads = 0
+        // `await` reads `then`: a copy reads the items
+        const loaded = new Proxy([{ elementId: 'x' }], { get: (target, prop, receiver) => { reads += prop === 'then' ? 0 : 1; return Reflect.get(target, prop, receiver) } })
+        await wrapper!(async () => loaded)
+        expect(reads).toBe(0)
+        expect(pairs(browser)).toEqual([])
+    })
 })
 
 describe('sendsUserCommands', () => {
