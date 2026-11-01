@@ -266,6 +266,17 @@ describe('userCommandTexts', () => {
         expect([texts.get(first), texts.get(second)]).toEqual(['getTitle → "one"  GET /title', 'getTitle → "two"  GET /title'])
     })
 
+    it('gives a result with no command of its request to no command', () => {
+        const child = { type: 'command', command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.1/text', parent: 1 }
+        const texts = userCommandTexts([
+            { type: 'userCommand', id: 1, command: 'readOne', body: [] },
+            child,
+            { ...child, endpoint: '/session/:sessionId/element/e.2/text', type: 'result', result: { value: 'other' } },
+            { ...child, type: 'result', result: { value: 'own' } }
+        ])
+        expect(texts.get(child)).toBe('getElementText → "own"  GET /element/:elementId/text')
+    })
+
     const userCommand = { type: 'userCommand', id: 1, command: 'getText', body: [] }
     const command = { type: 'command', command: 'getElementText', method: 'GET', endpoint: '/session/:sessionId/element/e.3/text', parent: 1 }
     const result = { type: 'result', command: 'getElementText', result: { value: 'clicked' }, parent: 1 }
