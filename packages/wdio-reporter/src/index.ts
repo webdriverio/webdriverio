@@ -196,8 +196,11 @@ export default class WDIOReporter extends EventEmitter {
                 : getCommandTarget(payload)
             this.#userCommandOwners.set(payload.id, owner)
             // a nested call of a test that ended (an abandoned poll): only its entry, in that test
+            const unit = owner && this.#unitOfStats.get(owner)
             if (runBy !== undefined && owner?.end) {
                 this.#lateUserCommands.add(payload.id)
+            } else if (unit) {
+                this.#call(unit, () => this.onBeforeUserCommand(payload))
             } else {
                 this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
             }
@@ -648,10 +651,10 @@ export default class WDIOReporter extends EventEmitter {
             }
             return open > 0
         }
-        // a user command with no entry: excluded, sent to no listener, or ended with its owner (else the call goes to the next test)
-        const endedOwner = this.#endedUserCommands.get(payload.parent)
-        const late = this.#lateUserCommands.has(payload.parent)
-        if (!late && (this.#userCommandOwners.has(payload.parent) || (endedOwner && !endedOwner.end))) {
+        // a user command with no entry: excluded, sent to no listener, or with an owner that ended (else the call goes to the next test)
+        const open = this.#userCommandOwners.has(payload.parent)
+        const owner = open ? this.#userCommandOwners.get(payload.parent) : this.#endedUserCommands.get(payload.parent)
+        if (!this.#lateUserCommands.has(payload.parent) && (open || owner) && !owner?.end) {
             return false
         }
         this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
