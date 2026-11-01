@@ -178,6 +178,14 @@ describe('BaseReporter', () => {
         expect(process.send).not.toBeCalled()
     })
 
+    it('keeps the time of the last event', async () => {
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', capability)
+        expect(reporter.lastEventTime).toBe(0)
+        const before = Date.now()
+        reporter.emit('client:beforeCommand', {})
+        expect(reporter.lastEventTime).toBeGreaterThanOrEqual(before)
+    })
+
     it('should send printFailureMessage on `test:fail`', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',

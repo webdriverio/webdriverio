@@ -15,6 +15,10 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: unknown) => void)[] = []
+    /** time of the last event, to see that the worker still makes progress */
+    lastEventTime = 0
+    /** title of the last test or hook that ended, to name where a late error comes from */
+    lastEndedTitle?: string
 
     constructor(
         private _config: Options.Testrunner,
@@ -49,6 +53,7 @@ export default class BaseReporter {
         uid?: string
         file?: string
         title?: string
+        fullTitle?: string
         error?: string
         sessionId?: string
         config?: unknown
@@ -59,6 +64,10 @@ export default class BaseReporter {
         contextId?: string
     }) {
         payload.cid = this._cid
+        this.lastEventTime = Date.now()
+        if (e === 'test:end' || e === 'hook:end') {
+            this.lastEndedTitle = payload.fullTitle || payload.title
+        }
 
         /**
          * Send failure message (only once) in case of test or hook failure
