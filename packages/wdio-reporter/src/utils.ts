@@ -424,7 +424,15 @@ function formatArgument(arg: unknown): string {
     if (isSomePlaceholder(arg)) {
         return `some(${formatArgument(arg.elements)})`
     }
+    // a plain array of elements, e.g. the result of `$$('li').map((li) => li)`
+    if (isElementList(arg)) {
+        return `[${arg.map(formatArgument).join(', ')}]`
+    }
     return titleJson(arg)
+}
+
+function isElementList(value: unknown): value is unknown[] {
+    return Array.isArray(value) && value.length > 0 && value.every((item) => isElementPlaceholder(item) && item.wdio === 'element')
 }
 
 /**
@@ -496,8 +504,8 @@ export function inlineResult(result: unknown, command?: string): string | undefi
         return 'found'
     }
     // an empty list is a list of elements only for an element query
-    if (Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) {
-        return `${value.length} found`
+    if ((Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) || isElementList(value)) {
+        return `${(value as unknown[]).length} found`
     }
     if (isElementPlaceholder(value)) {
         return value.wdio === 'element-array'

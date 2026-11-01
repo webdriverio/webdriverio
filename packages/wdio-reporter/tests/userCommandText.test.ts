@@ -90,6 +90,13 @@ describe('userCommandTitle', () => {
         expect(userCommandTitleIsCut(userCommandTitle('$$', ['li'], 3))).toBe(false)
     })
 
+    it('writes a plain array of elements as their queries', () => {
+        const item = (index: number) => ({ wdio: 'element', query: [{ foundWith: '$$', selector: 'li', index }], elementId: `e${index}` })
+        expect(userCommandTitle('expect.toBeDisplayed', [[item(0), item(1)]])).toBe('expect([$$(`li`)[0], $$(`li`)[1]]).toBeDisplayed()')
+        expect(inlineResult({ value: [item(0), item(1)] })).toBe('2 found')
+        expect(inlineResult({ value: [item(0), 'a'] })).not.toBe('2 found')
+    })
+
     it('writes an assertion as in the test code', () => {
         expect(userCommandTitle('expect.toHaveText', [element([{ foundWith: '$', selector: '#btn' }]), 'Done'])).toBe('expect($(`#btn`)).toHaveText("Done")')
         expect(userCommandTitle('expect.not.toBeDisplayed', [element([{ foundWith: '$', selector: '#x' }], { found: false })])).toBe('expect($(`#x`)).not.toBeDisplayed()')
