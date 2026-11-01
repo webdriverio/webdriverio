@@ -41,6 +41,18 @@ describe('joinSteps', () => {
         expect(joined.steps.map((s) => s.name)).toEqual(['$(`#x`) → found', 'getText() → "Click"'])
     })
 
+    it('reads no attachment file of a step that no near sibling matches', () => {
+        const dir = temporaryDirectory()
+        const steps = ['a', 'b', 'c'].map((name, i) => step(dir, name, i, 'response'))
+        const read = vi.spyOn(fs, 'readFileSync')
+        try {
+            joinSteps(steps, dir)
+            expect(read).not.toHaveBeenCalled()
+        } finally {
+            read.mockRestore()
+        }
+    })
+
     it('joins the children of a step first', () => {
         const dir = temporaryDirectory()
         const children = Array.from({ length: 3 }, (_, i) => step(dir, 'isDisplayed() → false', i))
