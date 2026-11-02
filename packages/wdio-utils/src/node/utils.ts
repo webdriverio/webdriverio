@@ -210,6 +210,9 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
             // a retry can not install the tool, and its message must stay clear
             throw err
         }
+        if (await isInstalledDespiteArchiveCleanup(args, err)) {
+            return
+        }
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
@@ -227,8 +230,9 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
          * Remove the whole build folder: the executable can sit in a sub-folder of
          * it (`core/firefox.exe` on Windows), and the check is on the build folder.
          * Keep the folder when the executable is there: the install can fail after
-         * the browser was extracted, e.g. when Windows still locks the Firefox
-         * installer that it tries to delete, and the retry then uses that browser.
+         * the browser was extracted, and the retry then uses that browser. (A failure
+         * of the archive cleanup only, e.g. a Firefox installer that Windows still
+         * locks, does not retry: see `isInstalledDespiteArchiveCleanup()`.)
          */
         try {
             const platform = args.platform ?? detectBrowserPlatform()
@@ -257,6 +261,60 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
         return _install(args, true)
     })
     log.progress('')
+}
+
+/**
+ * `@puppeteer/browsers` deletes the downloaded archive (`<browserRoot>/<buildId>-<file>`)
+ * in a `finally` block, also when the browser is installed. On Windows that fails with
+ * EBUSY or EPERM while another program has the archive open: a virus scan of the new
+ * file, the Firefox installer that the install just ran, or another process that installs
+ * the same build into the same cache. The browser is then complete and only the cleanup
+ * failed, so use it: a retry would fail on the same cleanup.
+ *
+ * Every provider in the error must have failed on that cleanup, and the executable must
+ * exist. `install()` lists the providers as `  - <provider>: <message>` lines.
+ *
+ * Known limit: the error of the cleanup in `finally` replaces an error of the unpack, so
+ * when both failed at the same time the build can be partial. Not checked; look here if
+ * a broken browser is reported after this warning.
+ */
+async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unknown) {
+    const message = describeRejection(err)
+    const providerLines = message.split('\n').filter((line) => /^\s+- /.test(line))
+    const platform = args.platform ?? detectBrowserPlatform()
+    if (!platform) {
+        return false
+    }
+    try {
+        const cache = new Cache(args.cacheDir)
+        const browserRoot = path.resolve(cache.browserRoot(args.browser))
+        /**
+         * up to the last quote of the line: Node.js does not escape quotes in the path
+         */
+        const locked = (providerLines.length > 0 ? providerLines : [message]).map((line) => (
+            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^\n]+)'/.exec(line)?.[1]
+        ))
+        const onlyArchiveCleanup = locked.every((file) => (
+            file !== undefined &&
+            path.dirname(path.resolve(file)) === browserRoot &&
+            path.basename(file).startsWith(`${args.buildId}-`)
+        ))
+        if (!onlyArchiveCleanup) {
+            return false
+        }
+        const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+            return false
+        }
+        log.warn(
+            `Installed ${args.browser} v${args.buildId}, but couldn't remove its download ${locked[0]} ` +
+            `(${message.includes('EBUSY') ? 'EBUSY' : 'EPERM'}): another program still has it open, e.g. a virus scan ` +
+            'or the Firefox installer. Using the installed browser.'
+        )
+        return true
+    } catch {
+        return false
+    }
 }
 
 function locateChromeSafely () {
