@@ -479,13 +479,12 @@ describe('driver utils', () => {
             })
 
             /**
-             * On Windows the Firefox installer can stay locked after it extracted the
-             * browser, so the install fails when it deletes the installer. The browser
-             * is complete, so the retry uses it. Removing it makes the retry download
-             * and extract it again, and Windows can lock the installer again.
+             * The install can fail after the browser was extracted (here: the setup step).
+             * The browser is complete, so the retry uses it. A failed delete of the archive
+             * only does not retry: see the archive cleanup tests below.
              */
             it('keeps the build folder when the executable is there', async () => {
-                vi.mocked(install).mockRejectedValueOnce(new Error('EBUSY: resource busy or locked, unlink \'Firefox Setup 157.0.exe\''))
+                vi.mocked(install).mockRejectedValueOnce(new Error('spawnSync setup.exe EBUSY'))
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
