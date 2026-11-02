@@ -364,9 +364,9 @@ function pageOf (lines: string[], from: number, maxChars: number) {
     return { text: shown.join('\n'), from: start + 1, to: start + shown.length, cut }
 }
 
-/** the snapshot arguments a hint repeats, for a formatter to name */
+/** the snapshot arguments a hint repeats, for a formatter to name; never `diff`, which cannot be paged */
 function hintArgs (args: Record<string, unknown>) {
-    return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$')))
+    return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$') && key !== 'diff'))
 }
 
 function pageFooter (cmd: Cmd, page: { from: number, to: number, cut?: { line: number, length: number } }, total: number, file: string, flags: string, args: Record<string, unknown>) {
@@ -470,7 +470,9 @@ export const find: ActionFn = async (session, args) => {
     let { lines, shown, matches, note } = search(linked)
     const baseline = lines.join('\n')
     session.lastSnapshot = baseline
-    const baselineView = session.lastSnapshotView
+    // `searchLines` drops the link URLs, so the baseline is a snapshot without --urls
+    const baselineView = snapshotView({ scope })
+    session.lastSnapshotView = baselineView
     let hidden = false
     if (!matches.length) {
         // in a closed menu, tab, accordion or behind "Show more": say so instead of "no match"

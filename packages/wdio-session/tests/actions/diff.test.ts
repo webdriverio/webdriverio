@@ -136,6 +136,27 @@ describe('snapshot --diff', () => {
         expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
     })
 
+    it('keeps the view of a find baseline without the link URLs that find drops', async () => {
+        const session = pageSession({ tree: doc([{ role: 'link', name: 'Docs', ref: 'e7', url: 'https://shop.test/docs' }]) })
+        await find(session, { text: 'Docs', $cwd: '/' })
+        const result = await snapshot(session, { urls: true, diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+    })
+
+    it('leaves diff out of the arguments a next-part hint repeats', async () => {
+        const hinted: Record<string, unknown>[] = []
+        const items = doc(Array.from({ length: 40 }, (_, i) => ({ role: 'button', name: `Item ${i}`, interactive: true })))
+        const session = Object.assign(pageSession({ tree: items }), {
+            cmd: (_command: string, args: Record<string, unknown> | undefined, text: string) => {
+                hinted.push(args ?? {})
+                return text
+            }
+        })
+        await snapshot(session, { diff: true, maxChars: 200, $cwd: '/' })
+        expect(hinted.length).toBeGreaterThan(0)
+        expect(hinted.every((args) => !('diff' in args))).toBe(true)
+    })
+
     it('rejects --offset before taking the snapshot', async () => {
         const session = pageSession(page())
         await expect(snapshot(session, { diff: true, offset: 5, $cwd: '/' })).rejects.toMatchObject({ code: 'USAGE' })
