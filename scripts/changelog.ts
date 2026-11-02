@@ -96,6 +96,8 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
         repo: 'webdriverio',
         tag_name: `v${pkg.version}`,
         name: `v${pkg.version}`,
-        body: releaseBody
+        body: releaseBody,
+        // the latest release on GitHub is v10, from `main`
+        make_latest: 'false'
     })
 )
