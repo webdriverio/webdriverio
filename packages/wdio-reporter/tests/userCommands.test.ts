@@ -244,6 +244,32 @@ describe('user command events', () => {
         expect(reporter.tests.B.output).toEqual([])
     })
 
+    it('keeps the protocol commands and the nested calls of a user command that starts in an afterEach hook, after the end of its test', () => {
+        const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:pass', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('test:end', { ...base, uid: 'A', title: 'A' })
+        reporter.emit('hook:start', { ...base, uid: 'h', title: '"after each" hook for "A"', parent: 'suite' })
+        reporter.calls.length = 0
+        const click = { ...userCommand, id: 5, command: 'click' }
+        const elementClick = { ...protocolCommand, command: 'elementClick', endpoint: '/session/:sessionId/element/e/click', parent: 5 }
+        const waitUntil = { ...userCommand, id: 6, command: 'waitUntil' }
+        const getText = { ...userCommand, id: 7, command: 'getText', parent: 6 }
+        reporter.emit('client:beforeUserCommand', click)
+        reporter.emit('client:beforeCommand', elementClick)
+        reporter.emit('client:afterCommand', { ...elementClick, result: { value: null } })
+        reporter.emit('client:afterUserCommand', { ...click, result: { value: undefined } })
+        reporter.emit('client:beforeUserCommand', waitUntil)
+        reporter.emit('client:beforeUserCommand', getText)
+        reporter.emit('client:afterUserCommand', { ...getText, result: { value: 'x' } })
+        reporter.emit('client:afterUserCommand', { ...waitUntil, result: { value: true } })
+
+        expect(reporter.commands).toEqual(['before elementClick', 'after elementClick'])
+        expect(reporter.calls.map((call) => call.split(' -> ')[0])).toEqual(['before click', 'after click', 'before waitUntil', 'before getText', 'after getText', 'after waitUntil'])
+    })
+
     it('keeps a protocol command that starts after the end of its user command (a waitUntil condition after the timeout)', () => {
         const reporter = new UserCommandReporter({ logFile: tmp.fileSync().name })
         start(reporter)
