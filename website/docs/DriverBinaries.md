@@ -22,6 +22,21 @@ If you specify a `browserName`/`browserVersion` combination in the [capabilities
 Automated browser setup does not support Microsoft Edge. Currently, only Chrome, Chromium and Firefox are supported.
 
 :::
+:::info Node.js 26
+
+On Node.js 26 and later, WebdriverIO unzips the downloaded zip archives (for example Chrome and Chromedriver) with a tool of the operating system: `unzip` on Linux and macOS, and `tar.exe`, PowerShell or `pwsh` on Windows. If your system has none, install `unzip` (for example `apt-get install unzip` in a slim Docker image).
+
+Without such a tool, WebdriverIO unzips with `extract-zip`, which works on Node.js 26 only with `yauzl` 3.3.1 or later. You can also add this override to your `package.json` (`pnpm.overrides` with pnpm, `resolutions` with Yarn):
+
+```json
+{
+    "overrides": {
+        "yauzl": "^3.3.1"
+    }
+}
+```
+
+:::
 
 If you have a browser installation on a location that cannot be auto-detected by WebdriverIO, you can specify the browser binary which will disable the automated download and installation.
 

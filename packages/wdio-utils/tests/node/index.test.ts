@@ -83,6 +83,11 @@ vi.mock('@puppeteer/browsers', () => ({
     install: vi.fn().mockResolvedValue({})
 }))
 
+vi.mock('../../src/node/unzip.js', () => ({
+    MissingUnzipToolError: class MissingUnzipToolError extends Error {},
+    unzipWithOsTool: vi.fn().mockResolvedValue(undefined)
+}))
+
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
     ...(await actualMod() as any),
     setupPuppeteerBrowser: vi.fn().mockResolvedValue({
