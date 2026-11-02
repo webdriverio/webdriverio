@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v10.1.1 (2026-11-02)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#16048](https://github.com/webdriverio/webdriverio/pull/16048) @wdio/appium-service: smoothen out the appium-service ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v10.1.0 (2026-10-18)
 
 #### :boom: Breaking Change
