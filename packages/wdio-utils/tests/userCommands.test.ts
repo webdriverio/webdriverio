@@ -1372,10 +1372,20 @@ describe('userCommandBody', () => {
     })
 
     it('keeps an element and an element list of a masked value as they are', () => {
-        const elem = { wdio: 'element', query: [{ foundWith: '$', selector: '#form' }], elementId: 'e1' }
-        const list = { wdio: 'element-array', query: [{ foundWith: '$$', selector: 'li' }], length: 2 }
-        expect(mod.userCommandBody([elem, { list, pw: 'secret' }, { mask: true }]))
-            .toEqual([elem, { list, pw: '**MASKED**' }, { mask: true }])
+        const elem = kind.setWdioKind({ elementId: 'e1', selector: '#form' }, 'element')
+        const list = kind.setWdioKind(Object.assign([elem, elem], { selector: 'li' }), 'element-array')
+        expect(mod.userCommandBody([elem, { list, pw: 'secret' }, { mask: true }])).toEqual([
+            { wdio: 'element', query: [{ selector: '#form' }], elementId: 'e1' },
+            { list: { wdio: 'element-array', query: [{ selector: 'li' }], length: 2 }, pw: '**MASKED**' },
+            { mask: true }
+        ])
+    })
+
+    it('masks an object of the test that only looks like an element', async () => {
+        const browser = fakeBrowser()
+        const data = { wdio: 'element', password: 'secret' }
+        await mod.runCustomCommand(browser, 'login', [data, { mask: true }], async () => data)
+        expect(JSON.stringify(pairs(browser))).not.toContain('secret')
     })
 
     it('masks the result of a masked user command', async () => {
