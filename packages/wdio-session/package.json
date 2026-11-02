@@ -64,7 +64,6 @@
     "image-size": "^2.0.4",
     "picomatch": "^4.0.7",
     "semver": "^7.7.4",
-    "webdriverio": "workspace:*",
     "yargs": "^18.2.0"
   },
   "devDependencies": {
@@ -75,14 +74,16 @@
     "@wdio/visual-service": "^11.0.0",
     "appium": "^3.8.0",
     "expect-webdriverio": "^8.0.0",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "webdriverio": "workspace:*"
   },
   "peerDependencies": {
     "@wdio/electron-service": "*",
     "@wdio/visual-service": "^10.0.0 || ^11.0.0",
     "appium": "^3.0.0",
     "expect-webdriverio": "^8.0.0",
-    "tsx": "*"
+    "tsx": "*",
+    "webdriverio": "^10.0.0-0 || ^10.0.0"
   },
   "peerDependenciesMeta": {
     "@wdio/electron-service": {
@@ -99,6 +100,9 @@
     },
     "tsx": {
       "optional": true
+    },
+    "webdriverio": {
+      "optional": false
     }
   },
   "publishConfig": {

@@ -1569,9 +1569,6 @@ importers:
       semver:
         specifier: ^7.7.4
         version: 7.8.5
-      webdriverio:
-        specifier: workspace:*
-        version: link:../webdriverio
       yargs:
         specifier: ^18.2.0
         version: 18.2.0
@@ -1600,6 +1597,9 @@ importers:
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
 
   packages/wdio-shared-store-service:
     dependencies:
@@ -1646,6 +1646,7 @@ importers:
       '@wdio/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+    devDependencies:
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -9175,9 +9176,6 @@ packages:
     resolution: {integrity: sha512-LcDSEP6Oclb9sTiSyG0MpG0RuKvLDRxCOOt+2sIk+kdk1rMkFU8SRnT0qaNt5zvU0LOV1YXXOvIoZL/sKwabvw==}
     engines: {node: '>=0.12.18'}
     hasBin: true
-
-  electron-to-chromium@1.5.464:
-    resolution: {integrity: sha512-nRa65aFge40viPAKxMKULIY8tcXKwKboJWNn4RoKwyWXJ6SP7BnrDGKUTzc64818jIciH0PK7LSF8QzZes19GA==}
 
   electron-to-chromium@1.5.465:
     resolution: {integrity: sha512-zg4iUpbeGw7YNZsswc2xKr2uiBex2d8dELAXo92Icw3but1ULbrvK8USe6wVLaWjgJnKBARv0pchx9Owktx6wQ==}
@@ -22364,7 +22362,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.11
       caniuse-lite: 1.0.30001806
-      electron-to-chromium: 1.5.464
+      electron-to-chromium: 1.5.465
       node-releases: 2.0.51
       update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
@@ -23824,8 +23822,6 @@ snapshots:
   ejs@5.0.1: {}
 
   ejs@7.0.2: {}
-
-  electron-to-chromium@1.5.464: {}
 
   electron-to-chromium@1.5.465: {}
 
