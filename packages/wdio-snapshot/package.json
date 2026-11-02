@@ -41,7 +41,7 @@
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
-    "webdriverio": "^10.0.0-0 || ^10.0.0"
+    "webdriverio": "^10.0.0"
   },
   "peerDependenciesMeta": {
     "webdriverio": {
