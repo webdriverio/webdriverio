@@ -20,6 +20,21 @@ const { viteServers } = vi.hoisted(() => ({
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/local-runner')
+vi.mock('get-port', () => ({
+    portNumbers: (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i),
+    default: vi.fn(async (options?: { port?: number | Iterable<number>, exclude?: Iterable<number> }) => {
+        const exclude = new Set(options?.exclude || [])
+        const ports = typeof options?.port === 'number'
+            ? [options.port]
+            : options?.port || [9222]
+        for (const port of ports) {
+            if (!exclude.has(port)) {
+                return port
+            }
+        }
+        return 9222
+    })
+}))
 vi.mock('../src/communicator.js', () => ({
     ServerWorkerCommunicator: class {
         coverageMaps = ['coverageMap']
@@ -145,6 +160,43 @@ describe('BrowserRunner', () => {
         const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
         await runner.run(runArgs)
         expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
+    })
+
+    it('configures remote debugging port and timeout when inspect is enabled', async () => {
+        const config = {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any
+        const runner = new BrowserRunner({ inspect: true }, config)
+        expect(config.mochaOpts.timeout).toBe(24 * 60 * 60 * 1000)
+
+        await runner.initialize()
+        const exitHandlers: (() => void)[] = []
+        vi.mocked(LocalRunner.prototype.run).mockImplementation(async () => ({
+            on: vi.fn((event: string, cb: () => void) => {
+                if (event === 'exit') {
+                    exitHandlers.push(cb)
+                }
+            })
+        }) as any)
+        const runArgs1 = { caps: { browserName: 'chrome' }, command: 'run', args: {}, cid: '0-0', execArgv: [] } as any
+        await runner.run(runArgs1)
+        expect(runArgs1.caps['goog:chromeOptions']).toEqual({
+            args: ['--remote-debugging-port=9222']
+        })
+
+        const runArgs2 = { caps: { browserName: 'chrome' }, command: 'run', args: {}, cid: '1-0', execArgv: [] } as any
+        await runner.run(runArgs2)
+        expect(runArgs2.caps['goog:chromeOptions']).toEqual({
+            args: ['--remote-debugging-port=9223']
+        })
+
+        exitHandlers[0]()
+        const runArgs3 = { caps: { browserName: 'chrome' }, command: 'run', args: {}, cid: '0-336', execArgv: [] } as any
+        await runner.run(runArgs3)
+        expect(runArgs3.caps['goog:chromeOptions']).toEqual({
+            args: ['--remote-debugging-port=9222']
+        })
     })
 
     it('shutdown', async () => {
