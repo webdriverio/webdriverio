@@ -102,8 +102,8 @@
   },
   "peerDependencies": {
     "expect-webdriverio": "^8.0.0",
-    "webdriver": "^10.0.0-0 || ^10.0.0",
-    "webdriverio": "^10.0.0-0 || ^10.0.0"
+    "webdriver": "^10.0.0",
+    "webdriverio": "^10.0.0"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {
