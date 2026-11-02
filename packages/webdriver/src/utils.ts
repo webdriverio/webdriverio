@@ -89,6 +89,10 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
          */
         capabilities.alwaysMatch.unhandledPromptBehavior = { default: 'ignore' }
         /**
+         * a firstMatch value would otherwise win in the normalization below
+         */
+        capabilities.firstMatch?.forEach((match) => delete match.unhandledPromptBehavior)
+        /**
          * without it, Appium answers WebDriver Bidi itself and has no `browsingContext` module
          */
         if (isAppiumAndroidChrome(capabilities.alwaysMatch) && !hasAppiumCapability(capabilities.alwaysMatch, 'chromedriverForwardBiDi')) {
