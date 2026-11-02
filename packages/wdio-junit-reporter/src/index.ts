@@ -3,7 +3,8 @@ import path from 'node:path'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, specFilePath } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTree, joinUserCommandTree, specFilePath } from '@wdio/reporter'
+import type { UserCommandNode } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -671,22 +672,73 @@ class JunitReporter extends WDIOReporter {
 
     private _getCommandStandardOutput(test: Pick<TestStats, 'output'>) {
         const standardOutput: string[] = []
-        test.output.forEach((data) => {
-            switch (data.type) {
-            case 'command':
-                standardOutput.push(
-                    data.method
-                        ? `COMMAND: ${data.method.toUpperCase()} ` +
-                            `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
-                        : `COMMAND: ${data.command} - ${this._format(data.params)}`
-                )
-                break
-            case 'result':
-                standardOutput.push(`RESULT: ${this._format(data.body)}`)
-                break
+        const hasUserEntries = test.output.some((entry) => isUserCommandOutput(entry) || entry.parent !== undefined)
+        if (!hasUserEntries) {
+            test.output.forEach((data) => this._pushProtocolLine(standardOutput, data))
+            return standardOutput.length ? standardOutput.join('\n') : ''
+        }
+        // the user commands as a tree: a child is indented under its parent, identical repeats are one line with × N
+        const walk = (nodes: UserCommandNode[], depth: number) => {
+            const pad = '  '.repeat(depth)
+            for (const node of nodes) {
+                const entry = node.entry as TestStats['output'][number]
+                if (node.group || node.text !== undefined) {
+                    standardOutput.push(`${pad}COMMAND: ${node.text}`)
+                    walk(node.children, depth + 1)
+                    this._pushResultLine(standardOutput, pad, node)
+                    continue
+                }
+                // the result of a user command that started in another output: only its error
+                if (isUserResultOutput(entry)) {
+                    if ('error' in entry.result) {
+                        standardOutput.push(`${pad}RESULT: ${this._format({ error: userCommandError(entry.result.error) })}`)
+                    }
+                    continue
+                }
+                this._pushProtocolLine(standardOutput, entry)
             }
-        })
+        }
+        walk(joinUserCommandTree(userCommandTree(test.output)), 0)
         return standardOutput.length ? standardOutput.join('\n') : ''
+    }
+
+    // the error of a step, and the whole result of a user command whose line cuts it
+    private _pushResultLine(standardOutput: string[], pad: string, node: UserCommandNode) {
+        const result = (node.result as { result?: unknown } | undefined)?.result
+        if (node.group || !result || typeof result !== 'object') {
+            return
+        }
+        if ('error' in result) {
+            const error = isUserCommandOutput(node.entry as TestStats['output'][number]) ? { error: userCommandError(result.error) } : result
+            standardOutput.push(`${pad}RESULT: ${this._format(error)}`)
+            return
+        }
+        const text = node.repeat ? node.text!.slice(0, -` × ${node.repeat}`.length) : node.text!
+        if (isUserCommandOutput(node.entry as TestStats['output'][number]) && text.endsWith('…') && 'value' in result) {
+            standardOutput.push(`${pad}RESULT: ${this._format(result.value)}`)
+        }
+    }
+
+    // a protocol command with no user command, as in a WebDriver Classic session
+    private _pushProtocolLine(standardOutput: string[], data: TestStats['output'][number]) {
+        switch (data.type) {
+        case 'command':
+            standardOutput.push(
+                data.method
+                    ? `COMMAND: ${data.method.toUpperCase()} ` +
+                        `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
+                    : `COMMAND: ${data.command} - ${this._format(data.params)}`
+            )
+            break
+        case 'result':
+            standardOutput.push(`RESULT: ${this._format(data.body)}`)
+            break
+        }
+    }
+
+    // the base adds the user commands of WebDriver BiDi sessions to `output`
+    protected get showsUserCommands(): boolean {
+        return true
     }
 
     private _format(val: any) {

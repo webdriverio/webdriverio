@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
+import { commandCallStructure, userCommandParent, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import { environment } from './environment.js'
@@ -169,7 +169,9 @@ export default function (
         if (isMasked) {
             request.maskedBody = maskedBody
         }
-        this.emit('command', { command, method, endpoint, body: maskedBody })
+        // set only inside a user command, never for a screenshot
+        const parent = userCommandParent(command)
+        this.emit('command', { command, method, endpoint, body: maskedBody, ...parent })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
         const options = isMasked ? { ...this.options,  headers: { ...this.options.headers, ...APPIUM_MASKING_HEADER } } : this.options
@@ -224,12 +226,12 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body: maskedBody, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result, ...parent })
             const value = result.value as WebDriverResponse | BidiResponses
             // `deleteSession` resolves once the driver is stopped, if it is shut down
             return command === 'deleteSession' ? cleanUpSession(true).then(() => value) : value
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result: { error }, ...parent })
             if (command === 'deleteSession') {
                 return cleanUpSession(false).then(() => { throw error })
             }

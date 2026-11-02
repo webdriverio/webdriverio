@@ -42,6 +42,24 @@ export const WDIO_KIND: unique symbol = Symbol.for('wdio.kind') as typeof WDIO_K
  */
 export const WDIO_CHAINABLE: unique symbol = Symbol.for('wdio.chainable') as typeof WDIO_CHAINABLE
 
+/**
+ * Internal: the query of an unresolved element or element list, read with no command (its
+ * `selector`, `parent` and `index` are promises there): the same fields as a resolved element.
+ */
+export const WDIO_QUERY: unique symbol = Symbol.for('wdio.query') as typeof WDIO_QUERY
+
+/**
+ * Internal: how an element or an element list was found. `foundWith(selector, ...props)` on
+ * `parent` is the call of the test code, `index` the item of a list.
+ */
+export interface WdioQuery {
+    foundWith?: string
+    selector?: unknown
+    props?: unknown[]
+    index?: number
+    parent?: unknown
+}
+
 export const WDIO_KINDS = ['browser', 'element', 'element-array', 'mock', 'browsing-context'] as const
 
 export type WdioKind = typeof WDIO_KINDS[number]

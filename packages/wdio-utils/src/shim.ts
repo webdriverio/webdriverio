@@ -3,55 +3,13 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, getWdioKind, setWdioKind, type WdioKind, type WdioQuery } from './kind.js'
+import { runCustomCommand, runListItem, runUserCommand } from './userCommands.js'
+import { isInCommandHook, runInCommandHook } from './commandHooks.js'
+
+export { setCommandHookStore, type CommandHookStore } from './commandHooks.js'
 
 const log = logger('@wdio/utils:shim')
-
-export interface CommandHookStore {
-    getStore(): true | undefined
-    run<T>(value: true, fn: () => T): T
-}
-
-/**
- * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
- * flag, so a hook still does not trigger itself via the commands it issues.
- */
-const flagCommandHookStore: CommandHookStore = (() => {
-    let active = false
-    return {
-        getStore: () => active ? true : undefined,
-        run: <T>(_: true, fn: () => T): T => {
-            const previous = active
-            active = true
-            let result: T
-            try {
-                result = fn()
-            } catch (err) {
-                active = previous
-                throw err
-            }
-            if (result instanceof Promise) {
-                return result.finally(() => { active = previous }) as T
-            }
-            active = previous
-            return result
-        }
-    }
-})()
-
-let commandHookScope: CommandHookStore = flagCommandHookStore
-
-/**
- * Node entry points register an `AsyncLocalStorage` so a hook running for one
- * concurrent test (parallel mode) does not suppress hooks of commands issued by
- * other tests.
- */
-export function setCommandHookStore (store: CommandHookStore) {
-    commandHookScope = store
-}
-
-const isInCommandHook = () => commandHookScope.getStore() === true
-const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -234,7 +192,7 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * Proxy around a promise of an element (or element list) so commands and
  * properties can be chained before the promise resolves.
  */
-export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false): T {
+export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false, query?: () => WdioQuery | undefined): T {
     return createElementPromiseProxy(
         promise,
         function (this: T) {
@@ -244,7 +202,8 @@ export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRe
         '$',
         undefined,
         'element',
-        multiRemote
+        multiRemote,
+        query
     ) as T
 }
 
@@ -255,7 +214,9 @@ function createElementPromiseProxy (
     commandName: string,
     prevInnerArgs?: { prop: string | number, args: unknown[] },
     kind?: WdioKind,
-    multiRemote = false
+    multiRemote = false,
+    // how the element is found, see `WDIO_QUERY`
+    query: () => WdioQuery | undefined = () => undefined
 ): unknown {
     /**
      * only an unresolved element is chainable: a pending element list (for example
@@ -285,6 +246,9 @@ function createElementPromiseProxy (
                 }
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
+                }
+                if ((prop as string | symbol) === WDIO_QUERY) {
+                    return chainable || kind === 'element-array' ? query() : undefined
                 }
 
                 /**
@@ -343,7 +307,9 @@ function createElementPromiseProxy (
                              */
                             if (index >= this.length) {
                                 const browser = getBrowserObject(this) as WebdriverIOInstance
-                                return browser.waitUntil(async () => {
+                                // the wait is the user command of the item (`` $$(`li`)[3] ``), not a `waitUntil` of the test
+                                const query = [this.selector, ...((this as unknown as { props?: unknown[] }).props ?? [])]
+                                return runListItem(browser, String(this.foundWith), query, Number(index), () => browser.waitUntil(async () => {
                                     const elems = await this.parent[this.foundWith as unknown as '$$'](this.selector)
                                     if (elems.length > index) {
                                         return elems[index]
@@ -352,7 +318,7 @@ function createElementPromiseProxy (
                                 }, {
                                     timeout: browser.options.waitforTimeout,
                                     timeoutMsg: `Index out of bounds! $$(${this.selector}) returned only ${this.length} elements.`
-                                })
+                                }))
                             }
 
                             return this[index]
@@ -367,7 +333,11 @@ function createElementPromiseProxy (
                          * only wraps a value that is not an ElementArray, and its item is unknown
                          */
                         kind === 'element-array' ? 'element' : undefined,
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && { ...list, index: numValue }
+                        }
                     )
                 }
 
@@ -385,7 +355,11 @@ function createElementPromiseProxy (
                         commandName,
                         { prop, args: [index] },
                         'element',
-                        multiRemote
+                        multiRemote,
+                        () => {
+                            const list = query()
+                            return list && { ...list, index }
+                        }
                     )
                 }
 
@@ -513,7 +487,11 @@ function attachElementArrayHooks (
 
         let commandError: unknown
         try {
-            await load()
+            // the event gets a list with the query of the list, so reporters can show it and the count
+            await runUserCommand(self, commandName, args, load, (loaded) => {
+                const query = { foundWith: commandName, selector: args[0], props: args.slice(1), parent: self }
+                return { value: Array.isArray(loaded) ? setWdioKind(Object.assign([...loaded], query), 'element-array') : loaded }
+            })
         } catch (err) {
             commandError = err
         }
@@ -535,6 +513,20 @@ function attachElementArrayHooks (
  * @param fn          command function
  */
 export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return createCommandWrapper<T>(commandName, fn, runUserCommand)
+}
+
+/**
+ * `wrapCommand` for a command that is a user command with its own name, also when the name is not
+ * registered (the commands of a browsing context)
+ */
+export function wrapCustomCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    return createCommandWrapper<T>(commandName, fn, runCustomCommand)
+}
+
+type RunCommand = (scope: unknown, command: string, args: unknown[], run: () => Promise<unknown>) => Promise<unknown>
+
+function createCommandWrapper<T>(commandName: string, fn: Function, runCommand: RunCommand): (...args: unknown[]) => Promise<T> {
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
@@ -545,7 +537,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         let commandResult
         let commandError
         try {
-            commandResult = await fn.apply(this, args)
+            commandResult = await runCommand(this, commandName, args, () => fn.apply(this, args))
         } catch (err) {
             commandError = err
         }
@@ -568,7 +560,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
          * previous link of the chain, so the multi-remote origin passes along
          */
         return createElementPromiseProxy(
-            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise)
+            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise),
+            () => ({ foundWith: commandName, selector: args[0], props: args.slice(1), parent: promise })
         )
     }
 
@@ -662,7 +655,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     commandName,
                     undefined,
                     isPending ? 'element-array' : undefined,
-                    isMultiRemoteOrigin(this)
+                    isMultiRemoteOrigin(this),
+                    () => ({ foundWith: commandName, selector: args[0], props: args.slice(1), parent: this })
                 )
             }
         }

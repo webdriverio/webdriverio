@@ -86,6 +86,15 @@ export default class WDIOReporter extends EventEmitter {
         return 0
     }
 
+    protected get showsUserCommands (): boolean {
+        return this.onBeforeUserCommand !== WDIOReporter.prototype.onBeforeUserCommand
+            || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
+    }
+
+    protected get hidesProtocolCommands (): boolean {
+        return false
+    }
+
     getContextUnit (_contextId?: string): ReporterModule.ReporterUnit | undefined {
         return undefined
     }
@@ -124,6 +133,10 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onAfterCommand () {}
     /* istanbul ignore next */
+    onBeforeUserCommand (_payload: ReporterModule.BeforeUserCommandArgs) {}
+    /* istanbul ignore next */
+    onAfterUserCommand (_payload: ReporterModule.AfterUserCommandArgs) {}
+    /* istanbul ignore next */
     onSuiteStart () {}
     /* istanbul ignore next */
     onHookStart () {}
@@ -144,6 +157,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
+const { getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, joinRepeats, userCommandTree, joinUserCommandTree, joinedOutputReplacer } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, joinRepeats, userCommandTree, joinUserCommandTree, joinedOutputReplacer }

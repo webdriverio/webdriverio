@@ -35,6 +35,8 @@ describe('WDIOReporter', () => {
         expect(eventsOnSpy).toBeCalledWith('context:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:beforeUserCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:afterUserCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:beforeAssertion', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterAssertion', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:start', expect.any(Function))
@@ -51,8 +53,6 @@ describe('WDIOReporter', () => {
         expect(eventsOnSpy).toBeCalledWith('test:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('suite:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:end', expect.any(Function))
-        expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
-        expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
     })
 
     it('should be by default synchronised', () => {

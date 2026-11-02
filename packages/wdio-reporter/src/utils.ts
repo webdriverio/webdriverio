@@ -4,8 +4,22 @@ import url from 'node:url'
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
+import type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
 
 const FIRST_FUNCTION_REGEX = /function (\w+)/
+
+/**
+ * The `error` of a `userResult` for a JSON report: `{ name, message }` for an object with a string `message`
+ * (also an error from another realm, which `JSON.stringify` writes as `{}`), else the value as it is.
+ * @experimental the name and the rule may change
+ */
+export function userCommandError(error: unknown): unknown {
+    if (error && typeof error === 'object' && typeof (error as { message?: unknown }).message === 'string') {
+        const { name, message } = error as { name?: unknown, message: string }
+        return { name, message }
+    }
+    return error
+}
 
 /**
  * @experimental a failed hook that is a failure of its own: its error is not already the failure of a test
@@ -221,4 +235,363 @@ export function transformCommandScript (script?: string|Function) {
         return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
     }
     return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+}
+
+/**
+ * `true` for a user command entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserCommandOutput(entry: { type: string }): entry is UserCommandOutput {
+    return entry.type === 'userCommand'
+}
+
+/**
+ * `true` for a user command result entry of `TestStats.output`
+ * @experimental the name may change
+ */
+export function isUserResultOutput(entry: { type: string }): entry is UserResultOutput {
+    return entry.type === 'userResult'
+}
+
+// longest arguments in a user command title and longest inline result
+const TITLE_ARGS_LENGTH = 120
+const INLINE_RESULT_LENGTH = 60
+// commands whose result is a handle or a helper, not data
+const NO_DATA_COMMANDS = ['newWindow', 'emulate', 'addInitScript', 'debug', 'getPuppeteer']
+// commands whose result is a window handle: not shown in a title, the id means nothing to a reader
+const HANDLE_COMMANDS = ['getWindowHandle', 'getWindowHandles', 'createWindow', 'closeWindow', 'switchWindow']
+const ELEMENT_REFERENCE_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+// most values that a title writes: a raw result can be big or circular
+const TITLE_JSON_VALUES = 200
+
+const ASSERTION_PREFIX = 'expect.'
+// `$`, `$$`, `shadow$`, `custom$$` …: the first argument is the selector
+const QUERY_COMMAND = /\$\$?$/
+// a WebdriverIO object as in the test code; the copy writes it as `WebdriverIO.<type>`
+const OBJECT_NAMES: Record<string, string> = {
+    'WebdriverIO.Browser': 'browser',
+    'WebdriverIO.MultiRemoteBrowser': 'multiRemoteBrowser',
+    'WebdriverIO.Mock': 'mock',
+    'WebdriverIO.BrowsingContext': 'browsingContext'
+}
+
+function cut(text: string, length: number) {
+    return text.length > length ? `${text.slice(0, length)}…` : text
+}
+
+// JSON for a title that never throws: a cycle as "[Circular]", at most 200 values
+function titleJson(value: unknown): string {
+    // the open parent chain only, so that a shared value is written each time;
+    // `written` is the cut copy that JSON.stringify walks, `value` the original for the cycle check
+    const ancestors: { written: unknown, value: unknown }[] = []
+    let values = 0
+    try {
+        const json = JSON.stringify(value, function (this: unknown, _key, v: unknown) {
+            if (++values > TITLE_JSON_VALUES) {
+                return '…'
+            }
+            // `this` is the parent of `v`: close the branches that ended
+            while (ancestors.length && ancestors[ancestors.length - 1].written !== this) {
+                ancestors.pop()
+            }
+            if (v && typeof v === 'object') {
+                if (ancestors.some((a) => a.value === v)) {
+                    return '[Circular]'
+                }
+                // only the entries that the limit can still write: the other keys and their getters are not read
+                const room = TITLE_JSON_VALUES - values + 1
+                const written = Array.isArray(v)
+                    ? (v.length > room ? [...v.slice(0, room), '…'] : v)
+                    : cutEntries(v as Record<string, unknown>, room)
+                ancestors.push({ written, value: v })
+                return written
+            }
+            return v
+        })
+        return json ?? String(value)
+    } catch {
+        return String(value)
+    }
+}
+
+function cutEntries(object: Record<string, unknown>, room: number): Record<string, unknown> {
+    const keys = Object.keys(object)
+    if (keys.length <= room) {
+        return object
+    }
+    return Object.fromEntries([...keys.slice(0, room).map((key) => [key, object[key]]), ['…', '…']])
+}
+
+function resultValue(result: unknown): unknown {
+    return result && typeof result === 'object' && 'value' in result ? (result as { value: unknown }).value : result
+}
+
+/**
+ * An element or an element list in the body or the result of a user command: how it was found, as
+ * steps from the browser (`foundWith(selector, ...props)`, `index` for an item of a list), and its
+ * `elementId`, `found: false` or the `length` of a list
+ * @experimental the format may change
+ */
+export interface ElementPlaceholder {
+    wdio: 'element' | 'element-array'
+    query?: { foundWith?: string, selector?: unknown, props?: unknown[], index?: number }[]
+    elementId?: string
+    found?: boolean
+    length?: number
+}
+
+function isElementPlaceholder(value: unknown): value is ElementPlaceholder {
+    const wdio = value && typeof value === 'object' ? (value as { wdio?: unknown }).wdio : undefined
+    return wdio === 'element' || wdio === 'element-array'
+}
+
+/**
+ * The query of an element or an element list as in the test code, the selector in backticks, e.g.
+ * `` $(`#form`).shadow$(`#name`) ``, `` $$(`li`)[2] `` or `` custom$(`byTestId`, "submit") ``
+ * @experimental the name and the format may change
+ */
+export function elementQueryText(element: ElementPlaceholder): string {
+    if (!element.query?.length) {
+        return 'Element'
+    }
+    return element.query.map((step, i) => {
+        const list = step.index !== undefined || (element.wdio === 'element-array' && i === element.query!.length - 1)
+        const command = step.foundWith ?? (list ? '$$' : '$')
+        const selector = selectorText(step.selector)
+        // the copy writes a list that is too deep as a cut (a string)
+        const props = Array.isArray(step.props) ? step.props.map(formatArgument) : step.props === undefined ? [] : ['…']
+        const args = [...(step.selector === undefined ? [] : [selector]), ...props].join(', ')
+        const item = step.index === undefined ? '' : step.index < 0 ? `.at(${step.index})` : `[${step.index}]`
+        return `${command}(${args})${item}`
+    }).join('.')
+}
+
+// the `some()` of expect-webdriverio as the subject of an assertion, e.g. `` some($$(`li`)) ``
+function isSomePlaceholder(value: unknown): value is { wdio: 'some', elements: unknown } {
+    return Boolean(value) && typeof value === 'object' && (value as { wdio?: unknown }).wdio === 'some'
+}
+
+/**
+ * Internal: the name in the `[Function name]` label of the producer, `undefined` for other values
+ */
+export function functionLabelName(value: unknown): string | undefined {
+    return typeof value === 'string' ? /^\[Function (.*)\]$/.exec(value)?.[1] : undefined
+}
+
+// a selector as in the test code: a string in backticks, a function as in expect-webdriverio (`<fn>`, or `<fn name>` with its name)
+function selectorText(selector: unknown): string {
+    const fn = functionLabelName(selector)
+    if (fn !== undefined) {
+        return fn === 'anonymous' ? '<fn>' : `<fn ${fn}>`
+    }
+    return typeof selector === 'string' ? `\`${selector}\`` : formatArgument(selector)
+}
+
+function isPlaceholder(value: unknown) {
+    return typeof value === 'string' && value.startsWith('WebdriverIO.') && !value.startsWith('WebdriverIO.Element')
+}
+
+function isElementReference(value: unknown) {
+    return Boolean(value) && typeof value === 'object' && ELEMENT_REFERENCE_KEY in (value as object)
+}
+
+function formatArgument(arg: unknown): string {
+    if (typeof arg === 'string' && Object.hasOwn(OBJECT_NAMES, arg)) {
+        return OBJECT_NAMES[arg]
+    }
+    const fn = functionLabelName(arg)
+    if (fn !== undefined) {
+        return `function ${fn}`
+    }
+    // an asymmetric matcher of an assertion, e.g. `StringContaining "Docs"`
+    const matcher = typeof arg === 'string' && /^\[Matcher (.*)\]$/s.exec(arg)
+    if (matcher) {
+        return matcher[1]
+    }
+    if (isElementPlaceholder(arg)) {
+        return elementQueryText(arg)
+    }
+    if (isSomePlaceholder(arg)) {
+        return `some(${formatArgument(arg.elements)})`
+    }
+    // a plain array of elements, e.g. the result of `$$('li').map((li) => li)`
+    if (isElementList(arg)) {
+        return `[${arg.map(formatArgument).join(', ')}]`
+    }
+    return titleJson(arg)
+}
+
+function isElementList(value: unknown): value is unknown[] {
+    return Array.isArray(value) && value.length > 0 && value.every((item) => isElementPlaceholder(item) && item.wdio === 'element')
+}
+
+/**
+ * The title of a user command as in the test code, e.g. `` $(`#btn`) `` or `setValue("**MASKED**", {"mask":true})`:
+ * the selector of a query in backticks, functions as `function name`, element arguments as their query,
+ * arguments cut at 120 characters.
+ * @experimental the name and the format may change
+ */
+export function userCommandTitle(command: string, body: unknown, index?: number): string {
+    if (!Array.isArray(body)) {
+        return command
+    }
+    // the item of a list that waits for its index, e.g. `` $$(`li`)[3] ``
+    if (typeof index === 'number') {
+        return `${userCommandTitle(command, body)}${index < 0 ? `.at(${index})` : `[${index}]`}`
+    }
+    // an assertion: `expect.toHaveText` or `expect.not.toHaveText`, with the received value first
+    if (command.startsWith(ASSERTION_PREFIX)) {
+        const [received, ...expected] = body
+        const target = formatArgument(received)
+        return `expect(${target}).${command.slice(ASSERTION_PREFIX.length)}(${cut(expected.map(formatArgument).join(', '), TITLE_ARGS_LENGTH)})`
+    }
+    const args = body.map((arg, i) => i === 0 && QUERY_COMMAND.test(command) ? selectorText(arg) : formatArgument(arg))
+    return `${command}(${cut(args.join(', '), TITLE_ARGS_LENGTH)})`
+}
+
+/**
+ * `true` when the title of a user command does not show all its arguments
+ * @experimental the name may change
+ */
+export function userCommandTitleIsCut(title: string): boolean {
+    // the item of a list ends with its index: `` $$(`li…`)[3] ``
+    return /…\)(\[\d+\]|\.at\(-\d+\))?$/.test(title)
+}
+
+/**
+ * `true` for a result with no data: none, `null`, `{}`, a tab or mock placeholder, or the handle of
+ * `newWindow`, `emulate`, `addInitScript`, `debug` or `getPuppeteer`
+ * @experimental the name and the rule may change
+ */
+export function isNoDataResult(result: unknown, command?: string): boolean {
+    if (command && NO_DATA_COMMANDS.includes(command)) {
+        return true
+    }
+    const value = resultValue(result)
+    return value === undefined || value === null
+        || (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0)
+        || isPlaceholder(value)
+        || (Array.isArray(value) && value.length > 0 && value.every(isPlaceholder))
+}
+
+/**
+ * The result of a command for its title, e.g. `"Hello"`, `found`, `3 found`, `not found` (cut at 60 characters).
+ * `undefined` for an error, a result with no data or a window handle; a list of tabs gives their number.
+ * @experimental the name and the format may change
+ */
+export function inlineResult(result: unknown, command?: string): string | undefined {
+    if ((result && typeof result === 'object' && 'error' in result) || (command && HANDLE_COMMANDS.includes(command))) {
+        return undefined
+    }
+    const value = resultValue(result)
+    if (Array.isArray(value) && value.length > 0 && value.every((v) => v === 'WebdriverIO.BrowsingContext')) {
+        return String(value.length)
+    }
+    if (isNoDataResult(result, command)) {
+        return undefined
+    }
+    if (isElementReference(value)) {
+        return 'found'
+    }
+    // an empty list is a list of elements only for an element query
+    if ((Array.isArray(value) && (value.length > 0 || /^findElements/.test(command ?? '')) && value.every(isElementReference)) || isElementList(value)) {
+        return `${(value as unknown[]).length} found`
+    }
+    if (isElementPlaceholder(value)) {
+        return value.wdio === 'element-array'
+            ? `${value.length ?? 0} found`
+            : value.found === false ? 'not found' : 'found'
+    }
+    if (typeof value === 'string' && /^<Buffer \d+ bytes>$/.test(value)) {
+        return value
+    }
+    return cut(titleJson(value), INLINE_RESULT_LENGTH)
+}
+
+/**
+ * A WebDriver request with no session id and no element or shadow root id, e.g. `GET /element/:elementId/text`
+ * @experimental the name and the format may change
+ */
+export function compactRequest(method: string, endpoint: string): string {
+    // `/element/active` is a fixed path, not an element id
+    const path = endpoint.replace(/^\/session\/[^/]+/, '').replace(/\/(element|shadow)\/(?!active(?:\/|$))[^/]+/g, '/$1/:$1Id')
+    return `${method.toUpperCase()} ${path || '/'}`
+}
+
+/**
+ * The path of a WebDriver request with the session id in place of `:sessionId`
+ * @experimental the name may change
+ */
+export function resolvedPath(endpoint: string, sessionId?: string): string {
+    return sessionId ? endpoint.replace(':sessionId', sessionId) : endpoint
+}
+
+/**
+ * The one-line text of each user command entry and of each protocol command entry that a user command runs
+ * (an entry with `parent`): `getText() → "clicked"`, `getElementText → "clicked"  GET /element/:elementId/text`.
+ * Other entries get no text, so a report of a WebDriver Classic session does not change.
+ * @experimental the name and the format may change
+ */
+export function userCommandTexts(output: ReadonlyArray<{ type: string }>): Map<object, string> {
+    return textsOf(output, pairUserCommandOutput(output))
+}
+
+/**
+ * Internal: the result of each user command (by id) and of each protocol command that a user command runs
+ */
+export function pairUserCommandOutput(output: ReadonlyArray<{ type: string }>) {
+    // one pass: a user result by id; a protocol result goes to the first open command with the same parent and
+    // name, and the same request when the result has one, so concurrent commands do not swap their results
+    const userResults = new Map<number, UserResultOutput>()
+    const childResults = new Map<object, Partial<Output>>()
+    const pending = new Map<string, Partial<Output>[]>()
+    for (const entry of output) {
+        if (isUserResultOutput(entry)) {
+            userResults.set(entry.id, entry)
+            continue
+        }
+        const e = entry as Partial<Output>
+        if (e.parent === undefined || (entry.type !== 'command' && entry.type !== 'result')) {
+            continue
+        }
+        const key = `${e.parent}\u0000${e.command}`
+        const queue = pending.get(key) ?? []
+        pending.set(key, queue)
+        if (entry.type === 'command') {
+            queue.push(e)
+            continue
+        }
+        // a request: the first open one (responses come in order); no endpoint: the last one (the inner call ends first)
+        const index = e.endpoint === undefined ? queue.length - 1 : queue.findIndex((c) => c.method === e.method && c.endpoint === e.endpoint)
+        const [command] = index === -1 ? [] : queue.splice(index, 1)
+        if (command) {
+            childResults.set(command, e)
+        }
+    }
+    return { userResults, childResults }
+}
+
+/**
+ * Internal: the texts of `userCommandTexts`, from the results of `pairUserCommandOutput`
+ */
+export function textsOf(output: ReadonlyArray<{ type: string }>, { userResults, childResults }: ReturnType<typeof pairUserCommandOutput>): Map<object, string> {
+    const texts = new Map<object, string>()
+    for (const entry of output) {
+        if (isUserCommandOutput(entry)) {
+            const title = userCommandTitle(entry.command, entry.body, entry.index)
+            const end = userResults.get(entry.id)
+            const inline = end && inlineResult(end.result, entry.command)
+            texts.set(entry, inline ? `${title} → ${inline}` : title)
+            continue
+        }
+        const command = entry as Partial<Output>
+        if (entry.type !== 'command' || command.parent === undefined) {
+            continue
+        }
+        const end = childResults.get(entry)
+        const inline = end && inlineResult(end.result, command.command)
+        const request = command.method && command.endpoint ? `  ${compactRequest(command.method, command.endpoint)}` : ''
+        texts.set(entry, `${command.command}${inline ? ` → ${inline}` : ''}${request}`)
+    }
+    return texts
 }

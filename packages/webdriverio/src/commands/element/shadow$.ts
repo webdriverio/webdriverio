@@ -58,7 +58,7 @@ export async function shadow$ (
          * `shadow$` never counts matches itself, so a refetch (implicit wait, stale
          * element) must not suddenly apply the global strict `$` default either
          */
-        return getElement.call(this, selector as string, res, { isShadowElement: true, strict: false })
+        return getElement.call(this, selector as string, res, { isShadowElement: true, strict: false, foundWith: 'shadow$' })
     } catch (err) {
         log.warn(
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +

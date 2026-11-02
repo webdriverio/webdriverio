@@ -13,11 +13,13 @@ import { setDefaultOptions, SnapshotService, SoftAssertionService } from 'expect
 
 import WDIORunner from '../src/index.js'
 import BaseReporter from '../src/reporter.js'
+import { wrapAssertions } from '../src/assertions.js'
 import type { CustomStubCommand } from '../src/types.js'
 
 vi.mock('expect-webdriverio', () => ({
     setDefaultOptions: vi.fn(),
     expect: vi.fn(),
+    wdioCustomMatchers: {},
     SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
@@ -25,6 +27,7 @@ vi.mock('expect-webdriverio', () => ({
         })
     }
 }))
+vi.mock('../src/assertions.js', () => ({ wrapAssertions: vi.fn() }))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -216,6 +219,42 @@ describe('wdio-runner', () => {
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
+        })
+
+        it('should keep reporter events out of user commands only in sessions that send them', async () => {
+            const runner = new WDIORunner()
+            const config: any = { reporters: [], before: [], beforeSession: [], framework: 'testWithFailures', runner: 'local' }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn()
+            const stubBrowser: Record<string, unknown> = { capabilities: { browserName: 'chrome' }, options: {} }
+            runner['_initSession'] = vi.fn().mockReturnValue(stubBrowser)
+            await runner.run({ args: { reporters: [] }, cid: '0-0', caps: {}, specs: ['foobar'], configFile: '/foo/bar' })
+
+            const flag = { 'wdio:experimentalBiDiCommands': true }
+            // the instances are the sessions, the multi-remote browser has no `isBidi`
+            const multiRemote = (...props: Record<string, unknown>[]) => {
+                const instances = props.map((instance) => ({ capabilities: {}, options: {}, ...instance }))
+                return { isMultiRemote: true, instances: ['a', 'b'], getInstance: (name: string) => instances[name === 'a' ? 0 : 1] }
+            }
+            const rows: [string, Record<string, unknown>, boolean][] = [
+                ['Classic', { capabilities: flag }, false],
+                ['Appium with WebDriver BiDi', { isBidi: true, isMobile: true, capabilities: flag }, false],
+                ['WebDriver BiDi with the capability', { isBidi: true, capabilities: flag }, true],
+                ['WebDriver BiDi with userCommandEvents true', { isBidi: true, options: { userCommandEvents: true } }, true],
+                ['WebDriver BiDi with no capability', { isBidi: true }, false],
+                ['WebDriver BiDi with userCommandEvents false', { isBidi: true, capabilities: flag, options: { userCommandEvents: false } }, false],
+                ['multi-remote with Classic instances', multiRemote({ isBidi: false, capabilities: flag }, {}), false],
+                ['multi-remote with one instance that sends them', multiRemote({}, { isBidi: true, capabilities: flag }), true]
+            ]
+            const sends = rows.map(([name, props]) => {
+                // the check reads the browser at each reporter event
+                for (const key of Object.keys(stubBrowser)) {
+                    delete stubBrowser[key]
+                }
+                Object.assign(stubBrowser, { capabilities: {}, options: {} }, props)
+                return [name, runner['_reporter']!['_sendsUserCommands']()]
+            })
+            expect(sends).toEqual(rows.map(([name, , expected]) => [name, expected]))
         })
 
         it('should shut down and report when the session is already gone at the end', async () => {
@@ -1260,6 +1299,57 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
+        it('should forward user command events with the session and the parallel context id', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi' }
+
+            store.run('ctx-1', () => listener('userCommand')(event))
+            store.run('ctx-1', () => listener('userResult')({ ...event, result: { value: 'foo' } }))
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'fakeid', contextId: 'ctx-1' })
+            // other listeners of the browser event get it as it was sent
+            expect(event).toEqual({ id: 1, command: 'getTitle', body: [], protocol: 'bidi' })
+        })
+
+        it('should not listen to user command events when no reporter gets them', async () => {
+            const runner = new WDIORunner()
+            runner['_reporter'] = { emit: vi.fn(), showsUserCommands: false } as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const events = vi.mocked(browser!.on).mock.calls.map(([event]) => event)
+            expect(events).toContain('command')
+            expect(events).not.toContain('userCommand')
+            expect(events).not.toContain('userResult')
+        })
+
+        it('should keep the session of the instance that sends the user command events', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const listener = (name: string) => vi.mocked(browser!.on).mock.calls.find(([event]) => event === name)?.[1] as any
+            const event = { id: 1, command: 'getTitle', body: [], protocol: 'bidi', sessionId: 'instance-a' }
+
+            listener('userCommand')(event)
+            listener('userResult')({ ...event, result: { value: 'foo' } })
+            expect(reporter.emit).toBeCalledWith('client:beforeUserCommand', { ...event, sessionId: 'instance-a' })
+            expect(reporter.emit).toBeCalledWith('client:afterUserCommand', { ...event, result: { value: 'foo' }, sessionId: 'instance-a' })
+        })
+
         it('should return null if initiating session fails', async () => {
             // @ts-ignore test scenario
             global.throwRemoteCall = true
@@ -1286,6 +1376,18 @@ describe('wdio-runner', () => {
             expect(typeof browser?.deleteSession).toBe('function')
             expect(_setGlobal).toBeCalledTimes(3)
             expect(setDefaultOptions).toBeCalledTimes(1)
+        })
+
+        it('makes each assertion a user command with the local runner only', async () => {
+            const runner = new WDIORunner()
+            vi.mocked(wrapAssertions).mockClear()
+            await runner['_startSession']({ runner: 'browser' } as any, {} as any)
+            expect(wrapAssertions).not.toBeCalled()
+
+            const browser = await runner['_startSession']({ runner: 'local' } as any, {} as any)
+            expect(wrapAssertions).toBeCalledTimes(1)
+            const [, , getBrowser] = vi.mocked(wrapAssertions).mock.calls[0]
+            expect(getBrowser()).toBe(browser)
         })
 
         it('transfers stubbed custom commands onto the new session', async () => {

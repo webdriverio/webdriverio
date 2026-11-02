@@ -592,6 +592,16 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     index?: number
     /**
+     * Command name with which this element was found, e.g. `$`, `shadow$`, `react$`, `custom$`, or the
+     * list command (`$$`, `custom$$`, …) for an item of a list. `$` for an element that a command finds
+     * with a function, e.g. `nextElement()`.
+     */
+    foundWith?: string
+    /**
+     * Extra arguments of the query that fetched this element, after the selector
+     */
+    props?: unknown[]
+    /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext

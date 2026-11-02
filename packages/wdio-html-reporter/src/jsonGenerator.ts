@@ -1,3 +1,4 @@
+import { joinedOutputReplacer } from '@wdio/reporter'
 import type { SuiteStats } from '@wdio/reporter'
 import type { HtmlReporterOptions, ReportData } from './types.js'
 import logger from '@wdio/logger'
@@ -54,6 +55,10 @@ class JsonGenerator {
                          * suite, which the report does not use
                          */
                         const stringified = JSON.stringify(reportData, function (this: { type?: unknown }, key, value) {
+                            const replaced = joinedOutputReplacer.call(this, key, value)
+                            if (replaced !== value) {
+                                return replaced
+                            }
                             return key === 'hooksAndTests' ||
                                 (this.type === 'test' && BASE_ONLY_TEST_KEYS.has(key)) ||
                                 (this.type === 'hook' && (BASE_ONLY_HOOK_KEYS.has(key) || (key === 'output' && !(Array.isArray(value) && value.length)))) ? undefined : value

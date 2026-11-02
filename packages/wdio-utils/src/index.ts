@@ -10,7 +10,8 @@ import {
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
     userImport, getBrowserObject, enableFileLogging, specFilePath,
 } from './utils.js'
-import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
+import { wrapCommand, wrapCustomCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
+import { setUserCommandStore, registerUserCommands, userCommandParent, runUserCommand, runCustomCommand, runWithoutUserCommands, runOutsideUserCommands, sendsUserCommands, runListItem, type UserCommandFrame, type UserCommandStore } from './userCommands.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAgent.js'
@@ -18,7 +19,7 @@ import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } f
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
 import {
-    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_QUERY, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind, type WdioQuery
 } from './kind.js'
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
@@ -51,6 +52,7 @@ export {
      * runner shim
      */
     wrapCommand,
+    wrapCustomCommand,
     chainElementPromise,
     ELEMENT_ARRAY_WRAP,
     unwrapCommand,
@@ -63,6 +65,21 @@ export {
     executeHooksWithArgs,
     getCurrentRunnable,
     setDebugAgentPause,
+
+    /**
+     * user command events
+     */
+    setUserCommandStore,
+    registerUserCommands,
+    userCommandParent,
+    runUserCommand,
+    runCustomCommand,
+    runWithoutUserCommands,
+    runOutsideUserCommands,
+    sendsUserCommands,
+    runListItem,
+    type UserCommandFrame,
+    type UserCommandStore,
 
     /**
      * environmentDetector
@@ -89,6 +106,7 @@ export {
      */
     WDIO_KIND,
     WDIO_CHAINABLE,
+    WDIO_QUERY,
     WDIO_KINDS,
     setWdioKind,
     getWdioKind,
@@ -96,6 +114,7 @@ export {
     isLoadedElement,
     isArrayOfElements,
     type WdioKind,
+    type WdioQuery,
 
     /**
      * implicit ARIA roles from `aria-query`
