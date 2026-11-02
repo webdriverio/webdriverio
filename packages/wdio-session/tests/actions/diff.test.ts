@@ -171,7 +171,7 @@ describe('snapshot --diff', () => {
         state.tree = items('b')
         const result = await snapshot(session, { diff: true, maxChars: 300, $cwd: '/' })
         expect(result.text).toMatch(/… diff cut at line \d+ of \d+; whole snapshot: /)
-        expect(result.text.length).toBeLessThan(400)
+        expect(result.text.slice(0, result.text.indexOf('\n… diff cut')).length).toBeLessThanOrEqual(300)
         expect(result.data).toMatchObject({ cut: true, changed: true })
         expect((result.data as { diff: string }).diff.length).toBeGreaterThan(result.text.length)
     })
