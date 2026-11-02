@@ -295,8 +295,8 @@ function runOuterCommand<T> (store: UserCommandStore, scope: unknown, command: s
             send('userResult', { ...event, result })
             return
         }
-        const copy = shortCopy(result ? result.value : value)
-        send('userResult', { ...event, result: { value: frame.masked ? maskedCopy(copy) : copy } })
+        const resultValue = result ? result.value : value
+        send('userResult', { ...event, result: { value: frame.masked ? maskedCopy(resultValue) : shortCopy(resultValue) } })
     }
     const sendError = (error: unknown) => {
         frame.expands = false
@@ -357,7 +357,8 @@ const maskOptionOf = (args: unknown[]) => {
     }
 }
 
-const isElementCopy = (item: object) => ['element', 'element-array'].includes((item as { wdio?: unknown }).wdio as string)
+// the copies of real elements and element lists: an object of the test with the same fields is masked
+const elementCopies = new WeakSet<object>()
 
 // a short copy with every string and number masked: the values of a masked user command and of its nested calls;
 // an element keeps its query, so reporters can show it
@@ -366,7 +367,7 @@ function maskedCopy (value: unknown): unknown {
         ? SENSITIVE_DATA_REPLACER
         : Array.isArray(item)
             ? item.map(mask)
-            : item && typeof item === 'object' && !isElementCopy(item)
+            : item && typeof item === 'object' && !elementCopies.has(item)
                 ? Object.fromEntries(Object.entries(item).map(([key, entry]) => [key, mask(entry)]))
                 : item
     return mask(shortCopy(value))
@@ -476,6 +477,11 @@ interface CopyState {
     values: number
 }
 
+function elementCopy<T extends object> (copy: T): T {
+    elementCopies.add(copy)
+    return copy
+}
+
 function copyValue (value: unknown, state: CopyState, depth: number): unknown {
     state.values++
     if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
@@ -495,15 +501,15 @@ function copyValue (value: unknown, state: CopyState, depth: number): unknown {
         const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
         // an unresolved element has no id yet
         if ((value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE]) {
-            return placeholder
+            return elementCopy(placeholder)
         }
         const { elementId } = value as { elementId?: unknown }
-        return elementId ? { ...placeholder, elementId: String(elementId) } : { ...placeholder, found: false }
+        return elementCopy(elementId ? { ...placeholder, elementId: String(elementId) } : { ...placeholder, found: false })
     }
     if (kind === 'element-array') {
         const placeholder = { wdio: kind, ...queryOf(value as object, state, depth) }
         // the length of a pending list is a new promise, and it starts the query
-        return Array.isArray(value) && !isPromiseLike(value) ? { ...placeholder, length: value.length } : placeholder
+        return elementCopy(Array.isArray(value) && !isPromiseLike(value) ? { ...placeholder, length: value.length } : placeholder)
     }
     if (kind === 'browser') {
         return (value as { isMultiRemote?: unknown }).isMultiRemote ? 'WebdriverIO.MultiRemoteBrowser' : 'WebdriverIO.Browser'
