@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { isIP } from 'node:net'
 import { EventEmitter } from 'node:events'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -7,12 +8,13 @@ import logger from '@wdio/logger'
 import istanbulPlugin from 'vite-plugin-istanbul'
 import { deepmerge } from 'deepmerge-ts'
 import { createServer } from 'vite'
-import type { ViteDevServer, InlineConfig, ConfigEnv, Plugin } from 'vite'
+import type { ViteDevServer, InlineConfig, ConfigEnv, Plugin, ServerOptions, UserConfigExport } from 'vite'
 
 import { testrunner } from './plugins/testrunner.js'
 import { mockHoisting } from './plugins/mockHoisting.js'
 import { workerPlugin, type SocketEventHandler } from './plugins/worker.js'
 import { userfriendlyImport } from './utils.js'
+import { normalizeHost } from '../utils.js'
 import { MockHandler } from './mock.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
@@ -26,6 +28,43 @@ function specToViteUrl(specPath: string, root: string) {
         return `/@fs${fsPath.startsWith('/') ? '' : '/'}${fsPath}`
     }
     return `/${relative.split(path.sep).join('/')}`
+}
+
+/**
+ * A remote browser (e.g. on a Selenium Grid) reaches the Vite server through
+ * the `host` option. Vite listens on `localhost` by default, so for any other
+ * host it has to listen on all interfaces.
+ */
+function getHostConfig(host?: string): Pick<ServerOptions, 'host' | 'allowedHosts'> | undefined {
+    if (!host) {
+        return
+    }
+    let hostname: string
+    try {
+        hostname = new URL(normalizeHost(host)!).hostname
+    } catch {
+        log.warn(`Invalid "host" option "${host}", Vite server only listens on localhost`)
+        return
+    }
+
+    const address = hostname.replace(/^\[(.*)\]$/, '$1')
+    const ipVersion = isIP(address)
+    if (hostname === 'localhost') {
+        return
+    }
+    /**
+     * no other machine can reach a loopback address, so only listen on that address
+     */
+    if ((ipVersion === 4 && address.startsWith('127.')) || address === '::1') {
+        return { host: address }
+    }
+    if (ipVersion) {
+        return { host: ipVersion === 6 ? '::' : '0.0.0.0' }
+    }
+    /**
+     * Vite blocks requests for a host name it doesn't know
+     */
+    return { host: '0.0.0.0', allowedHosts: [hostname] }
 }
 
 const DEFAULT_CONFIG_ENV: ConfigEnv = {
@@ -57,8 +96,10 @@ export class ViteServer extends EventEmitter {
 
         const root = options.rootDir || config.rootDir || process.cwd()
         this.#hoisting = mockHoisting(this.#mockHandler)
+        const hostConfig = getHostConfig(options.host)
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, optimizations, {
             root,
+            ...(hostConfig ? { server: hostConfig } : {}),
             plugins: [
                 testrunner(options),
                 this.#hoisting,
@@ -121,13 +162,18 @@ export class ViteServer extends EventEmitter {
          * merge custom `viteConfig` last into the object
          */
         if (this.#options.viteConfig) {
-            const { plugins, ...configToMerge } = typeof this.#options.viteConfig === 'string'
+            /**
+             * a config file may export an object, a promise or a function, e.g.
+             * `defineConfig(({ mode }) => ({ ... }))`, same as `viteConfig` itself
+             */
+            const userConfig: UserConfigExport = typeof this.#options.viteConfig === 'string'
                 ? (
                     await import(pathToFileURL(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig)).href)
-                ).default as InlineConfig
-                : typeof this.#options.viteConfig === 'function'
-                    ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)
-                    : this.#options.viteConfig
+                ).default
+                : this.#options.viteConfig
+            const { plugins, ...configToMerge } = (typeof userConfig === 'function'
+                ? await userConfig(DEFAULT_CONFIG_ENV)
+                : await userConfig) as InlineConfig
             this.#viteConfig = deepmerge(this.#viteConfig, configToMerge)
             this.#viteConfig.plugins = [...(plugins || []), ...this.#viteConfig.plugins!]
         }
@@ -136,12 +182,14 @@ export class ViteServer extends EventEmitter {
          * merge custom port into Vite config last
          */
         const vitePort = await getPort()
-        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
+        this.#viteConfig = {
+            ...this.#viteConfig,
+            // set, don't deepmerge: merging `server` with a copy of itself doubles arrays like `allowedHosts`
             server: {
                 ...this.#viteConfig.server,
                 port: vitePort
             }
-        })
+        }
 
         /**
          * initialize Vite

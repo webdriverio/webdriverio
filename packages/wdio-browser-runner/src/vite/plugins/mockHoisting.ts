@@ -9,6 +9,7 @@ import typescriptParser from 'recast/parsers/typescript.js'
 import type { Plugin } from 'vite'
 
 import type { MockHandler } from '../mock.js'
+import { MODULE_EXTENSION } from '../../constants.js'
 
 const log = logger('@wdio/browser-runner:mockHoisting')
 const INTERNALS_TO_IGNORE = [
@@ -18,6 +19,19 @@ const INTERNALS_TO_IGNORE = [
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
+
+function stripModuleExtension (filePath: string) {
+    return filePath.replace(MODULE_EXTENSION, '')
+}
+
+/**
+ * Check if an import and a mock point to the same file, also when only one
+ * of them has a file extension, e.g. `import './foo'` and `mock('./foo.ts')`
+ */
+export function isSameModulePath (importPath: string, mockPath: string) {
+    return stripModuleExtension(importPath) === stripModuleExtension(mockPath)
+}
+
 export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (specPath: string) => void } {
     let spec: string | null = null
     let isTestDependency = false
@@ -176,19 +190,18 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (spe
                     }
 
                     const newImportIdentifier = `__wdio_import${importIndex++}`
+                    const isLocalImport = source.startsWith('.') || source.startsWith('/')
+                    const importPath = isLocalImport ? path.resolve(path.dirname(id), source) : source
                     const isMockedModule = Boolean(
                         // matches if a dependency is mocked
                         sessionMocks.has(source) ||
                         // matches if a relative file is mocked
                         (
                             source.startsWith('.') &&
-                            [...sessionMocks.values()].find((m) => {
-                                const fileImportPath = path.resolve(path.dirname(id), source)
-                                const fileImportPathSliced = fileImportPath.slice(0, path.extname(fileImportPath).length * -1)
-                                const testMockPath = path.resolve(path.dirname(spec || '/'), m)
-                                const testMockPathSliced = testMockPath.slice(0, path.extname(testMockPath).length * -1)
-                                return fileImportPathSliced === testMockPathSliced && fileImportPathSliced.length > 0
-                            })
+                            [...sessionMocks.values()].find((m) => isSameModulePath(
+                                importPath,
+                                path.resolve(path.dirname(spec || '/'), m)
+                            ))
                         )
                     )
 
@@ -217,10 +230,9 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (spe
                         mockCalls.unshift(newNode)
                     }
 
-                    // determine file extension length so we can cut it out, fall back to infinity if no extension is set
-                    const mockExtensionLengh = (path.extname(source).length * -1) || Infinity
-                    const wdioImportModuleIdentifier = source.startsWith('.') || source.startsWith('/')
-                        ? url.pathToFileURL(path.resolve(path.dirname(id), source).slice(0, mockExtensionLengh)).pathname
+                    // same key as `mock()` in `src/browser/spy.ts` stores the mock under
+                    const wdioImportModuleIdentifier = isLocalImport
+                        ? url.pathToFileURL(stripModuleExtension(importPath)).pathname
                         : source
                     const isNamespaceImport = dec.specifiers.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString()
                     const mockImport = isSpecFile && !isMockedModule

@@ -1,4 +1,3 @@
-import url from 'node:url'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
@@ -135,17 +134,23 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * re-using a previous session. Since Vite has already a hot-reload feature, there
          * is no need to call the url command again
          */
+        /**
+         * `pathname` keeps `+` and `&` as they are, which a query string reads as
+         * a space and a parameter separator, so encode the decoded path instead
+         */
+        const specPath = decodeURIComponent(new URL(spec).pathname)
         if (!this._config.sessionId) {
-            await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            const query = new URLSearchParams({ cid: this._cid, spec: specPath })
+            await browser.url(`/?${query}`)
         }
         // await browser.debug()
 
         /**
          * set spec and cid as cookie so the Vite plugin can detect session even without
-         * query parameters
+         * query parameters; encoded, so a `=` or `;` in the spec path survives
          */
         await browser.setCookies([
-            { name: 'WDIO_SPEC', value: url.fileURLToPath(spec) },
+            { name: 'WDIO_SPEC', value: encodeURIComponent(specPath) },
             { name: 'WDIO_CID', value: this._cid }
         ])
 

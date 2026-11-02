@@ -36,6 +36,8 @@ describe('browser utils', () => {
         expect(toViteFsUrl('C:\\repo\\spec.tsx')).toBe('/@fs/C:/repo/spec.tsx')
         expect(toViteFsUrl('/@fs/Users/dev/spec.tsx')).toBe('/@fs/Users/dev/spec.tsx')
         expect(toViteFsUrl('http://localhost:3000/spec.js')).toBe('http://localhost:3000/spec.js')
+        expect(toViteFsUrl('/home/O\'Brien+a&b/c%d e.test.js')).toBe('/@fs/home/O\'Brien+a&b/c%25d%20e.test.js')
+        expect(toViteFsUrl('C:\\repo\\a#b?c.test.js')).toBe('/@fs/C:/repo/a%23b%3Fc.test.js')
     })
 
     it('sanitizeConsoleArgs', () => {
