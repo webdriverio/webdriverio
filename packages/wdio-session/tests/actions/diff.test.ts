@@ -1,12 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
-import { diff, find, takeSnapshot } from '../../src/actions/observe.js'
+import { afterAll, describe, expect, it } from 'vitest'
+
+import { diff, find, snapshot, takeSnapshot } from '../../src/actions/observe.js'
 import { RefRegistry } from '@wdio/snapshot'
 import type { SnapshotNode } from '@wdio/snapshot'
 import type { Session } from '../../src/session.js'
 
 const doc = (children: SnapshotNode[]): SnapshotNode => ({ role: 'document', name: 'Shop', children })
 const refs = [{ id: 'e1', role: 'button', name: 'Add', candidates: [{ kind: 'testid', selector: '[data-testid="add"]' }] }]
+const artifacts = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-diff-'))
+afterAll(() => fs.rmSync(artifacts, { recursive: true, force: true }))
 
 function pageSession (page: { tree: SnapshotNode }) {
     return {
@@ -15,8 +21,17 @@ function pageSession (page: { tree: SnapshotNode }) {
         currentUrl: async () => 'https://shop.test/',
         refs: new RefRegistry(),
         get: () => undefined,
+        timestamp: () => 't',
+        artifact: (...segments: string[]) => {
+            const file = path.join(artifacts, ...segments)
+            fs.mkdirSync(path.dirname(file), { recursive: true })
+            return file
+        },
         browser: {
-            execute: async (fn: unknown, json?: string) => {
+            execute: async (fn: unknown, json?: string, scope?: unknown) => {
+                if (scope) {
+                    return { tree: doc([{ role: 'button', name: 'Add', ref: 'e1', interactive: true, box: [0, 40, 50, 20] }]), refs, counter: 1 }
+                }
                 const all = String(json).includes('"all":true')
                 const tree = structuredClone(page.tree)
                 tree.children = tree.children?.filter((node) => all || !node.hidden)
@@ -67,6 +82,126 @@ describe('diff baseline', () => {
         const baseline = session.lastSnapshot
         await expect(find(session, { text: 'no such text anywhere' })).rejects.toThrow('No match')
         expect(session.lastSnapshot).toBe(baseline)
+    })
+})
+
+describe('snapshot --diff', () => {
+    const NOTE = 'No previous snapshot, printing this one; the next --diff compares with it.'
+    const OTHER_VIEW_NOTE = 'Previous snapshot was taken with other --scope, -i, --all or --urls options, printing this one'
+
+    it('prints the whole snapshot with a note when there is no baseline', async () => {
+        const session = pageSession(page())
+        const result = await snapshot(session, { diff: true, $cwd: '/' })
+        expect(result.text.startsWith(NOTE)).toBe(true)
+        expect(result.text).toContain('button "Add" [ref=e1]')
+    })
+
+    it('reports changed and diff in the data of a diff, and no changed without a baseline', async () => {
+        const state = page()
+        const session = pageSession(state)
+        expect((await snapshot(session, { diff: true, $cwd: '/' })).data).not.toHaveProperty('changed')
+        state.tree.children![1].name = 'Buy'
+        const { data } = await snapshot(session, { diff: true, $cwd: '/' })
+        expect(data).toMatchObject({ changed: true, diff: expect.stringContaining('@@') })
+    })
+
+    it('prints the whole snapshot with a note after a snapshot --scope, not a diff that removes the rest', async () => {
+        const session = pageSession(page())
+        Object.assign(session.refs, { resolve: async () => ({}) })
+        await snapshot(session, { scope: 'e1', $cwd: '/' })
+        const result = await snapshot(session, { diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+        expect(result.text).toContain('heading "Top"')
+    })
+
+    it('prints the whole snapshot with a note after a snapshot without -i, not a diff that removes the rest', async () => {
+        const session = pageSession(page())
+        await snapshot(session, { $cwd: '/' })
+        const result = await snapshot(session, { interactive: true, diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+        expect(result.text).toContain('button "Add" [ref=e1]')
+    })
+
+    it('prints the whole snapshot with a note after a snapshot --all, not a diff that removes the hidden nodes', async () => {
+        const session = pageSession(page())
+        await snapshot(session, { all: true, $cwd: '/' })
+        const result = await snapshot(session, { diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+    })
+
+    it('keeps the view of the baseline after a find that looked in hidden nodes', async () => {
+        const session = pageSession(page())
+        await expect(find(session, { text: 'Nowhere', $cwd: '/' })).rejects.toMatchObject({ code: 'NO_MATCH' })
+        const result = await snapshot(session, { urls: true, all: true, diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+    })
+
+    it('keeps the view of a find baseline without the link URLs that find drops', async () => {
+        const session = pageSession({ tree: doc([{ role: 'link', name: 'Docs', ref: 'e7', url: 'https://shop.test/docs' }]) })
+        await find(session, { text: 'Docs', $cwd: '/' })
+        const result = await snapshot(session, { urls: true, diff: true, $cwd: '/' })
+        expect(result.text.startsWith(OTHER_VIEW_NOTE)).toBe(true)
+    })
+
+    it('leaves diff out of the arguments a next-part hint repeats', async () => {
+        const hinted: Record<string, unknown>[] = []
+        const items = doc(Array.from({ length: 40 }, (_, i) => ({ role: 'button', name: `Item ${i}`, interactive: true })))
+        const session = Object.assign(pageSession({ tree: items }), {
+            cmd: (_command: string, args: Record<string, unknown> | undefined, text: string) => {
+                hinted.push(args ?? {})
+                return text
+            }
+        })
+        await snapshot(session, { diff: true, maxChars: 200, $cwd: '/' })
+        expect(hinted.length).toBeGreaterThan(0)
+        expect(hinted.every((args) => !('diff' in args))).toBe(true)
+    })
+
+    it('rejects --offset before taking the snapshot', async () => {
+        const session = pageSession(page())
+        await expect(snapshot(session, { diff: true, offset: 5, $cwd: '/' })).rejects.toMatchObject({ code: 'USAGE' })
+        expect(session.lastSnapshot).toBeUndefined()
+    })
+
+    it('cuts a long diff at a line, with the whole snapshot named', async () => {
+        const items = (suffix: string): SnapshotNode => doc(Array.from({ length: 40 }, (_, i) => ({ role: 'button', name: `Item ${i} ${suffix}`, interactive: true })))
+        const state = { tree: items('a') }
+        const session = pageSession(state)
+        await snapshot(session, { diff: true, $cwd: '/' })
+        state.tree = items('b')
+        const result = await snapshot(session, { diff: true, maxChars: 300, $cwd: '/' })
+        expect(result.text).toMatch(/… diff cut at line \d+ of \d+; whole snapshot: /)
+        expect(result.text.slice(0, result.text.indexOf('\n… diff cut')).length).toBeLessThanOrEqual(300)
+        expect(result.data).toMatchObject({ cut: true, changed: true })
+        expect((result.data as { diff: string }).diff.length).toBeGreaterThan(result.text.length)
+    })
+
+    it('prints No changes on an unchanged page', async () => {
+        const session = pageSession(page())
+        await snapshot(session, { diff: true, $cwd: '/' })
+        expect((await snapshot(session, { diff: true, $cwd: '/' })).text).toBe('No changes')
+    })
+
+    it('prints a hunk with the changed line after the page changes', async () => {
+        const state = page()
+        const session = pageSession(state)
+        await snapshot(session, { diff: true, $cwd: '/' })
+        state.tree.children![1].name = 'Buy'
+        const result = await snapshot(session, { diff: true, $cwd: '/' })
+        expect(result.text).toContain('@@')
+        expect(result.text).toMatch(/^-.*button "Add"/m)
+        expect(result.text).toMatch(/^\+.*button "Buy"/m)
+    })
+
+    it('compares the canonical text, so printed boxes do not show as changes', async () => {
+        const session = pageSession(page())
+        await snapshot(session, { diff: true, $cwd: '/' })
+        expect((await snapshot(session, { boxes: true, diff: true, $cwd: '/' })).text).toBe('No changes')
+    })
+
+    it('rejects a web --viewport snapshot before taking it', async () => {
+        const session = pageSession(page())
+        await expect(snapshot(session, { diff: true, viewport: true, $cwd: '/' })).rejects.toMatchObject({ code: 'USAGE' })
     })
 })
 

@@ -219,7 +219,8 @@ export const ACTIONS = [
         details: [
             'Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.',
             'Every snapshot is written to the artifacts dir. Output longer than --max-chars is printed in parts: the first part, then `--offset <line>` for the next one. `find` searches all of it.',
-            'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.'
+            'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.',
+            '`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed; --offset does not apply. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.'
         ].join('\n'),
         options: {
             depth: { type: 'number', desc: 'Maximum depth' },
@@ -229,6 +230,7 @@ export const ACTIONS = [
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
             viewport: { type: 'boolean', desc: 'Only what is in the viewport (web: does not update the diff baseline)' },
             selectors: { type: 'boolean', desc: 'End each ref line with its best selector' },
+            diff: { type: 'boolean', desc: 'Print only what changed since the previous snapshot, as a unified diff' },
             compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
             urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
@@ -241,7 +243,8 @@ export const ACTIONS = [
             ['wdio session snapshot --scope "#checkout" --depth 4', 'Only part of the page'],
             ['wdio session snapshot --viewport -i', 'What is on screen now'],
             ['wdio session snapshot --selectors -i', 'Each ref with a selector to put in a test'],
-            ['wdio session click e3 && wdio session snapshot -i', 'Act, then look again']
+            ['wdio session click e3 && wdio session snapshot -i', 'Act, then look again'],
+            ['wdio session click e3 && wdio session snapshot -i --diff', 'Act, then see only what changed']
         ],
         seeAlso: ['find', 'diff', 'screenshot']
     },
