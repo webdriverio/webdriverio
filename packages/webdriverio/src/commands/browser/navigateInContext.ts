@@ -1,10 +1,14 @@
+import logger from '@wdio/logger'
 import { setWdioKind } from '@wdio/utils'
 
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager, isTrackedNavigationUrl } from '../../session/networkManager.js'
 import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
+import WebDriverInterception, { parseLiteralUrlPattern } from '../../utils/interception/index.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
+
+const log = logger('webdriverio')
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
@@ -98,10 +102,34 @@ export async function navigateInContext (
 
     let navigationError: unknown
     let request: WebdriverIO.Request | undefined = undefined
+    let mock: WebDriverInterception | undefined
+    /**
+     * restores the headers mock once: right after the navigation, or in the cleanup when
+     * the navigation failed before. A failed restore only warns, the navigation is done or
+     * has its own error, and the session may be gone.
+     */
+    const restoreHeadersMock = async () => {
+        const headersMock = mock
+        mock = undefined
+        try {
+            await headersMock?.restore()
+        } catch (err) {
+            log.warn(`Failed to restore the headers mock of the navigation to '${path}': ${err instanceof Error ? err.message : String(err)}`)
+        }
+    }
     try {
-        let mock: WebdriverIO.Mock | undefined
+        /**
+         * The headers go through a mock of this navigation only: it matches the URL literally,
+         * is not one of the mocks of the user (`browser.mock()` would reuse and later restore
+         * the user's mock of the same URL) and is not registered with them. It only intercepts
+         * the tab that navigates, so a request to the same URL from another tab does not take
+         * the headers.
+         */
         if (options.headers) {
-            mock = await browser.mock(path)
+            mock = await WebDriverInterception.initiate(parseLiteralUrlPattern(path), {}, browser, {
+                contexts: [contextIdValue(context)],
+                sessionKey: contextIdValue(context)
+            })
             mock.requestOnce({ headers: options.headers })
         }
 
@@ -155,9 +183,7 @@ export async function navigateInContext (
             throw err
         })
 
-        if (mock) {
-            await mock.restore()
-        }
+        await restoreHeadersMock()
 
         /**
          * Classic fallback (`navigateTo`) and some BiDi navigations (same-document)
@@ -202,6 +228,7 @@ export async function navigateInContext (
     } catch (err) {
         navigationError = err
     } finally {
+        await restoreHeadersMock()
         if (resetPreloadScript) {
             try {
                 await resetPreloadScript.remove()

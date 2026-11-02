@@ -2,6 +2,7 @@ import type HookStats from './hook.js'
 import RunnableStats from './runnable.js'
 import type TestStats from './test.js'
 import type { Tag } from '../types.js'
+import { specFilePath } from '../utils.js'
 
 export interface Suite {
     type?: string
@@ -50,12 +51,15 @@ export default class SuiteStats extends RunnableStats {
     declare parentUid?: string | null
     /** the browsing context of a parallel Cucumber scenario */
     declare contextId?: string
+    /** @experimental the root suite of the reporter: the tests and hooks outside every suite (Mocha `it()` / `before()` with no `describe()`) */
+    declare isRoot?: true
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
-        this.file = suite.file
+        // a file that is not a text stays out, as on the test stats (a framework can send no file)
+        this.file = typeof suite.file === 'string' ? specFilePath(suite.file) : undefined as unknown as string
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags

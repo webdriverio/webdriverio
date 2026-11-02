@@ -10,7 +10,7 @@ import { environment } from '../src/environment.js'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     startWebDriverSession, setupDirectConnect, validateCapabilities, getBidiRequestOptions,
-    initiateBidi
+    initiateBidi, discardBidiWithoutBrowsingContext, getAppiumBidiAdvice
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -147,6 +147,71 @@ describe('utils', () => {
                 environment.value.createBidiConnection = createBidiConnection
                 process.off('unhandledRejection', onUnhandledRejection)
             }
+        })
+    })
+
+    describe('discardBidiWithoutBrowsingContext', () => {
+        it('keeps a connection that can run browser commands', async () => {
+            const handler = { browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }), discard: vi.fn() }
+            expect(await discardBidiWithoutBrowsingContext(handler as never, 10_000)).toBe(true)
+            expect(handler.browsingContextGetTree).toHaveBeenCalledWith({ maxDepth: 0 })
+            expect(handler.discard).not.toHaveBeenCalled()
+        })
+
+        it('discards the connection of a server without the browsingContext module', async () => {
+            vi.mocked(logMock.warn).mockClear()
+            const error = new Error('WebDriver Bidi command "browsingContext.getTree" failed with error: unknown command')
+            const handler = { browsingContextGetTree: vi.fn().mockRejectedValue(error), discard: vi.fn() }
+            expect(await discardBidiWithoutBrowsingContext(handler as never, 10_000)).toBe(false)
+            expect(handler.discard).toHaveBeenCalledOnce()
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining(`(${error.message}), continue with WebDriver Classic`))
+        })
+
+        it('discards the connection of a server that does not answer within the given time', async () => {
+            vi.useFakeTimers()
+            try {
+                const handler = { browsingContextGetTree: vi.fn().mockReturnValue(new Promise(() => {})), discard: vi.fn() }
+                const result = discardBidiWithoutBrowsingContext(handler as never, 30_000)
+                await vi.advanceTimersByTimeAsync(29_999)
+                expect(handler.discard).not.toHaveBeenCalled()
+                await vi.advanceTimersByTimeAsync(1)
+                expect(await result).toBe(false)
+                expect(handler.discard).toHaveBeenCalledOnce()
+                expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('(no answer within 30000ms)'))
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('adds the advice to the warning', async () => {
+            vi.mocked(logMock.warn).mockClear()
+            const handler = { browsingContextGetTree: vi.fn().mockRejectedValue(new Error('unknown command')), discard: vi.fn() }
+            await discardBidiWithoutBrowsingContext(handler as never, 10_000, 'Do this. ')
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('continue with WebDriver Classic. Do this. To skip this check'))
+        })
+    })
+
+    describe('getAppiumBidiAdvice', () => {
+        const android = { platformName: 'Android', browserName: 'Chrome' }
+
+        it('names the forward capability when the user set it to false', () => {
+            for (const requested of [
+                { 'appium:chromedriverForwardBiDi': false },
+                { 'appium:options': { chromedriverForwardBiDi: false } },
+                { alwaysMatch: { 'appium:chromedriverForwardBiDi': false }, firstMatch: [{}] }
+            ]) {
+                expect(getAppiumBidiAdvice(android, requested as never)).toContain('"appium:chromedriverForwardBiDi" is false')
+            }
+        })
+
+        it('uses the value in appium:options over the top-level one, as Appium does', () => {
+            const requested = { 'appium:chromedriverForwardBiDi': false, 'appium:options': { chromedriverForwardBiDi: true } }
+            expect(getAppiumBidiAdvice(android, requested as never)).toContain('Appium 3.9.0 or later')
+        })
+
+        it('gives the versions for Android, and nothing for other platforms', () => {
+            expect(getAppiumBidiAdvice(android, {})).toContain('Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later')
+            expect(getAppiumBidiAdvice({ platformName: 'iOS', browserName: 'Safari' }, {})).toBe('')
         })
     })
 
@@ -347,6 +412,61 @@ describe('utils', () => {
                 expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
                     .toBe(undefined)
             }
+        })
+
+        describe('Chrome on Android through Appium', () => {
+            const requested = async (capabilities: WebdriverIO.Capabilities) => {
+                mockedFetch.mockClear()
+                await startWebDriverSession({ hostname: 'localhost', port: 4723, path: '/', protocol: 'http', capabilities })
+                return JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch
+            }
+            const android = { platformName: 'Android', 'appium:automationName': 'UiAutomator2' }
+
+            it('asks Appium to forward WebDriver Bidi to Chromedriver', async () => {
+                for (const browserName of ['Chrome', 'chrome', 'Chromium']) {
+                    const caps = await requested({ ...android, browserName })
+                    expect(caps.webSocketUrl).toBe(true)
+                    expect(caps['appium:chromedriverForwardBiDi']).toBe(true)
+                }
+                const caps = await requested({ platformName: 'android', browserName: 'chrome', 'appium:options': { automationName: 'uiautomator2' } })
+                expect(caps['appium:chromedriverForwardBiDi']).toBe(true)
+                // Appium uses the value in `appium:options` over the top-level one
+                const nested = await requested({
+                    platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'Chromium',
+                    'appium:options': { automationName: 'UiAutomator2' }
+                })
+                expect(nested['appium:chromedriverForwardBiDi']).toBe(true)
+            })
+
+            it('keeps the value of the user', async () => {
+                expect((await requested({ ...android, browserName: 'Chrome', 'appium:chromedriverForwardBiDi': false }))['appium:chromedriverForwardBiDi'])
+                    .toBe(false)
+                expect((await requested({ ...android, browserName: 'Chrome', 'appium:chromedriverForwardBiDi': undefined }))['appium:chromedriverForwardBiDi'])
+                    .toBe(true)
+                const caps = await requested({
+                    platformName: 'Android', browserName: 'Chrome',
+                    'appium:options': { automationName: 'UiAutomator2', chromedriverForwardBiDi: false }
+                })
+                expect(caps['appium:chromedriverForwardBiDi']).toBe(undefined)
+                expect(caps['appium:options'].chromedriverForwardBiDi).toBe(false)
+            })
+
+            it('does not add it to other sessions', async () => {
+                const others: WebdriverIO.Capabilities[] = [
+                    { ...android, browserName: 'Chrome', 'wdio:enforceWebDriverClassic': true },
+                    { ...android, browserName: 'firefox' },
+                    { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'Chromium' },
+                    { ...android, browserName: 'Chrome', 'appium:options': { automationName: 'Chromium' } },
+                    { platformName: 'iOS', browserName: 'Chrome', 'appium:automationName': 'XCUITest' },
+                    { browserName: 'chrome', platformName: 'linux' },
+                    // an `appium:` capability next to an unprefixed one makes the session invalid
+                    { platformName: 'Android', browserName: 'Chrome', automationName: 'UiAutomator2' } as WebdriverIO.Capabilities,
+                    { browserName: 'chrome' }
+                ]
+                for (const capabilities of others) {
+                    expect((await requested(capabilities))['appium:chromedriverForwardBiDi']).toBe(undefined)
+                }
+            })
         })
 
         it('should allow to opt-out from bidi when using alwaysMatch', async () => {

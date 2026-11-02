@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
@@ -278,6 +279,35 @@ test('records the in-flight spec when a spec starts', async () => {
     expect(adapter['_lastTest'].id).toBe('test1')
     // @ts-ignore outdated types
     expect(typeof adapter['_lastTest'].start).toBe('number')
+})
+
+// Jasmine names the file that calls `it()`, which is the WebdriverIO wrapper, not the spec file
+test('gives the test hooks the spec file of the suite of the test', async () => {
+    const [first, second] = ['a.test.js', 'b.test.js'].map((name) => path.resolve('foo', name))
+    const adapter = new JasmineAdapter('0-2', { beforeHook: [], afterHook: [] } as any, [first, url.pathToFileURL(second).href], { browserName: 'chrome' } as any, wdioReporter)
+    await adapter.init()
+    await adapter.run()
+    const spec = (id: string) => ({ id, description: id, fullName: id, failedExpectations: [], passedExpectations: [], filename: '/wdio/utils/build/index.js' }) as any
+
+    adapter['_reporter'].specStarted(spec('top-level'))
+    // @ts-ignore outdated types
+    expect(adapter['_lastTest'].file).toBe(first)
+    adapter['_reporter'].suiteStarted({ id: 's1', description: 'suite', fullName: 'suite', filename: second } as any)
+    adapter['_reporter'].specStarted(spec('in a suite'))
+    // @ts-ignore outdated types
+    expect(adapter['_lastTest'].file).toBe(second)
+    adapter['_jrunner']!.specFiles = [first, second]
+    expect(adapter.prepareMessage('afterTest').file).toBe(second)
+})
+
+test('gives a test outside every suite of grouped spec files the first spec file, as the hook messages do', async () => {
+    const [first, second] = ['a.test.js', 'b.test.js'].map((name) => path.resolve('foo', name))
+    const adapter = new JasmineAdapter('0-2', { beforeHook: [], afterHook: [] } as any, [first, url.pathToFileURL(second).href], { browserName: 'chrome' } as any, wdioReporter)
+    await adapter.init()
+    await adapter.run()
+    adapter['_reporter'].specStarted({ id: 'top-level', description: 'top-level', fullName: 'top-level', failedExpectations: [], passedExpectations: [], filename: '/wdio/utils/build/index.js' } as any)
+    // @ts-ignore outdated types
+    expect(adapter['_lastTest'].file).toBe(first)
 })
 
 test('customSpecFilter', () => {
@@ -587,3 +617,4 @@ afterEach(() => {
     vi.mocked(executeHooksWithArgs).mockClear()
     vi.mocked(jasmine.addAsyncMatchers).mockClear()
 })
+

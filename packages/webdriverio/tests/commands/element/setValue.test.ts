@@ -142,6 +142,7 @@ describe('setValue', () => {
             ['range', '1e', '50'],
             ['range', '1e309', '50'],
             ['range', '-1e309', '50'],
+            ['range', '', '50'],
             ['color', 'garbage', '#000000'],
             ['color', '#zzz', '#000000']
         ])('should reject %s value %s before the browser replaces it with the fallback %s', async (type, value, fallback) => {

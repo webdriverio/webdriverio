@@ -1,3 +1,6 @@
+import path from 'node:path'
+import url from 'node:url'
+
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 import type { HookKind } from './types.js'
@@ -23,6 +26,35 @@ export function isContextlessAllHook(hook: { contextId?: string, hookKind?: Hook
 // a hook with no hookKind: the Mocha title rule (`"after each" hook ...`)
 export function isAfterEachHook(hook: { hookKind?: HookKind, title?: string }): boolean {
     return hook.hookKind ? hook.hookKind === 'afterEach' : /^"after each" hook/.test(hook.title ?? '')
+}
+
+/**
+ * the path of a spec file: a framework or the runner can send a file:// URL
+ * (Jasmine with ESM specs, Mocha parallel mode, the specs of the runner);
+ * a URL that names no path stays as it is, so that a reporter does not fail; `@wdio/utils` has
+ * the same conversion, but the CommonJS build of a reporter cannot load it
+ */
+export function specFilePath(file: string): string {
+    if (!file.startsWith('file://')) {
+        return file
+    }
+    try {
+        return url.fileURLToPath(file)
+    } catch {
+        return file
+    }
+}
+
+/**
+ * the path of a spec file from the working folder, to show it; `undefined` for a file outside it
+ * (a prefix search would cut `/app/application/…` with the working folder `/app`); path.relative
+ * also matches another drive letter case and `/` on Windows
+ */
+export function relativeSpecFile(file: string, cwd = process.cwd()): string | undefined {
+    const relative = path.isAbsolute(file) ? path.relative(cwd, file) : ''
+    return relative && relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative)
+        ? relative
+        : undefined
 }
 
 /**

@@ -1,9 +1,8 @@
-import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
-import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs, specFilePath } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
 import type { Services, Capabilities, Frameworks } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
@@ -33,7 +32,6 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
-const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -242,15 +240,7 @@ class JasmineAdapter {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-        this._specs.forEach((spec) => this._jrunner.addSpecFile(
-            /**
-             * as Jasmine doesn't support file:// formats yet we have to
-             * remove it before adding it to Jasmine
-             */
-            spec.startsWith(FILE_PROTOCOL)
-                ? url.fileURLToPath(spec)
-                : spec
-        ))
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(specFilePath(spec)))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
@@ -259,8 +249,9 @@ class JasmineAdapter {
             self._lastTest = test
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.start = new Date().getTime()
+            // the file of its suite; outside every suite, the first spec file, as in the hook messages
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.file = test.filename
+            self._lastTest.file = self._reporter.suiteFile ?? specFilePath(self._specs[0])
             /**
              * Jasmine 6's spec-started event has no expectation lists. Own the
              * arrays so afterTest can see failures recorded during the spec.

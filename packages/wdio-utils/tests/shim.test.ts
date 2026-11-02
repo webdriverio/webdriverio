@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
+import { wrapCommand, executeAsync, followFrameworkTimer, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -217,6 +217,7 @@ describe('executeAsync', () => {
     describe('timeout context', () => {
         beforeEach(() => vi.useFakeTimers())
         afterEach(() => {
+            vi.restoreAllMocks()
             vi.clearAllTimers()
             vi.useRealTimers()
             vi.unstubAllGlobals()
@@ -243,6 +244,36 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "suite \\"timed test\\"" (WDIO attempt 1/1)'))
             await observed
             expect(vi.getTimerCount()).toBe(0)
+        })
+
+        it('should let a Jasmine spec timeout win over the default timeout', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise((resolve) => setTimeout(resolve, 3000)), { attempts: 0, limit: 0 }, [], 5000
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(3000)
+            expect(await result).toBeUndefined()
+        })
+
+        it('should leave a Jasmine spec timeout shorter than the default to Jasmine', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 5000 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise((resolve) => setTimeout(resolve, 3000)), { attempts: 0, limit: 0 }, [], 1000
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(3000)
+            expect(await result).toBeUndefined()
+        })
+
+        it('should use the Jasmine default timeout when the spec has none', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            const result = executeAsync.call(
+                {} as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 0
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(97)
+            expect(await result).toEqual(new Error('Timeout after 97ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
         it.each([undefined, 'non-callable metadata'])('should identify a hook when fullTitle is %s', async (fullTitle) => {
@@ -275,15 +306,43 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
-        it('should use the Jasmine deadline when no runnable is available', async () => {
+        it('should name a test without a runnable by the given title', async () => {
+            const result = executeAsync.call(
+                {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'checkout pays the order'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays the order" (WDIO attempt 1/1)'))
+        })
+
+        it('should keep the given title on a retried attempt', async () => {
+            const result = executeAsync.call(
+                { wdioRetries: 0 } as any, () => new Promise(() => {}), { attempts: 0, limit: 1 }, [], 200, 'checkout pays the order'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays the order" (WDIO attempt 2/2)'))
+        })
+
+        it('should prefer the runnable title over the given title', async () => {
+            const scope = { _runnable: { title: 'pays', fullTitle: () => 'checkout pays' } }
+            const result = executeAsync.call(
+                scope as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'other title'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "checkout pays" (WDIO attempt 1/1)'))
+        })
+
+        it('should use the timeout of a Jasmine hook over the default when no runnable is available', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             function jasmineHook () { return new Promise(() => {}) }
             const result = executeAsync.call(
                 {}, jasmineHook, { attempts: 0, limit: 0 }, [], 200
             ).catch((err: Error) => err)
 
-            await vi.advanceTimersByTimeAsync(97)
-            expect(await result).toEqual(new Error('Timeout after 97ms in "jasmineHook" (WDIO attempt 1/1)'))
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "jasmineHook" (WDIO attempt 1/1)'))
         })
 
         it('should report the final WDIO attempt after timeout retries are exhausted', async () => {
@@ -397,6 +456,77 @@ describe('executeAsync', () => {
             expect(fn).toHaveBeenCalledTimes(2)
             expect(err.message).toBe('Timeout of 200ms exceeded. (WDIO attempt 2/3)')
             expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
+        })
+
+        it('should fail a Mocha test at its deadline when the system clock is set back before the first check', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            followFrameworkTimer(runnable)
+            vi.setSystemTime(Date.now() - 5)
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            result.then(settled)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
+        })
+
+        it('should fail a Mocha test at its deadline when its timer fires less than 1 ms early', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            followFrameworkTimer(runnable)
+            runnable.resetTimeout()
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            result.then(settled)
+
+            // Node timers count whole milliseconds: a timer can fire before performance.now() reaches its end
+            const now = performance.now.bind(performance)
+            vi.spyOn(performance, 'now').mockImplementation(() => now() - 0.5)
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
+        })
+
+        it('should fail a retried Mocha test at its deadline when the system clock is set back during the retry', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'retried mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            followFrameworkTimer(runnable)
+            // Mocha starts its timer once, also for a WebdriverIO retry
+            runnable.resetTimeout()
+            const fn = vi.fn()
+                .mockRejectedValueOnce(new Error('first attempt fails'))
+                .mockReturnValueOnce(new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, { attempts: 0, limit: 1 }, [], 200
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            result.then(settled)
+            await vi.advanceTimersByTimeAsync(0)
+            expect(fn).toHaveBeenCalledTimes(2)
+
+            // a clock adjustment moves Date.now() back, the timers keep their time
+            vi.setSystemTime(Date.now() - 5)
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded. (WDIO attempt 2/2)'))
         })
 
         it('should keep a $ pattern of the test title in the stack of the Mocha timeout error', async () => {

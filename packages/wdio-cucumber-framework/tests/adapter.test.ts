@@ -6,7 +6,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll, afterEach } from 'vitest'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs, specFilePath, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
 
@@ -21,6 +21,9 @@ vi.mock('fs/promises', async (orig) => ({
     readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
 }))
 vi.mock('@wdio/utils')
+// the spec path conversion is not under test: keep it real
+const { specFilePath: realSpecFilePath } = await vi.importActual<{ specFilePath: typeof specFilePath }>('@wdio/utils')
+vi.mocked(specFilePath).mockImplementation(realSpecFilePath)
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {
@@ -1388,6 +1391,18 @@ describe('CucumberAdapter', () => {
             { retry: 1 },
             expect.any(Function),
             DEFAULT_TIMEOUT
+        )
+    })
+
+    it('wrapSteps should prefer the own timeout of a hook over cucumberOpts.timeout', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
+        adapter.wrapStep = vi.fn()
+        adapter.wrapSteps()
+        const wrapper = vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0]
+        const hook = Object.assign(function userHookFn () {}, { hookTimeout: -1 })
+        wrapper(hook)
+        expect(adapter.wrapStep).toBeCalledWith(
+            hook, false, undefined, '0-0', { retry: 0 }, expect.any(Function), -1
         )
     })
 

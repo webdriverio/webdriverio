@@ -5,7 +5,9 @@ import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
  * The two tests run at the same time (`maxParallelContexts: 2`): the second one
  * waits for the mocks of the first, and the first checks its mocks after the
  * second called `mockClearAll()` and `mockRestoreAll()`. `wdio.parallel.conf.ts`
- * mocks `/api/suite-wide` in `beforeSuite`, outside the test windows.
+ * mocks `/api/suite-wide` in `beforeSuite`, outside the test windows; the last
+ * two tests run together: one overrides it in its window, the other checks
+ * that its window keeps it.
  */
 const fetchText = (endpoint: string, scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext = browser) => scope.execute(
     (url) => fetch(url, { cache: 'no-store' }).then((response) => response.text()),
@@ -23,6 +25,8 @@ const signal = (label: string) => {
 }
 const mocked = signal('the first test to create its mock')
 const restored = signal('the second test to restore its mocks')
+const overridden = signal('the third test to override the beforeSuite mock')
+const neighborChecked = signal('the fourth test to check its window')
 const respondOptions = { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false }
 
 describe('mocks in parallel mode', () => {
@@ -74,6 +78,33 @@ describe('mocks in parallel mode', () => {
         } finally {
             restored.resolve()
             await tab?.closeWindow().catch(() => {})
+        }
+    })
+
+    it('overrides the beforeSuite mock in its own window', async () => {
+        try {
+            await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+            expect(await fetchText('suite-wide')).toBe('mocked')
+
+            const mine = await browser.mock('**/api/suite-wide')
+            mine.respond('override', respondOptions)
+            expect(await fetchText('suite-wide')).toBe('override')
+            overridden.resolve()
+
+            await neighborChecked.wait()
+            expect(await fetchText('suite-wide')).toBe('override')
+        } finally {
+            overridden.resolve()
+        }
+    })
+
+    it('keeps the beforeSuite mock while another window overrides it', async () => {
+        await browser.url(`${PARALLEL_FIXTURE_ORIGIN}/checkboxes`)
+        try {
+            await overridden.wait()
+            expect(await fetchText('suite-wide')).toBe('mocked')
+        } finally {
+            neighborChecked.resolve()
         }
     })
 })

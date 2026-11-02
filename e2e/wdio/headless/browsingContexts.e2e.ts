@@ -91,13 +91,15 @@ describe('browsing contexts', () => {
         '/iframe-nested': () => page('Nested by url'),
         '/fetch': () => page('Fetch', `<p id="result"></p><script>
             const endpoint = new URLSearchParams(location.search).get('endpoint')
-            fetch('/api/' + endpoint).then((r) => r.text()).then((t) => { document.getElementById('result').textContent = t })
+            fetch('/api/' + endpoint).then((r) => r.text()).then((t) => { document.getElementById('result').textContent = t }, () => { document.getElementById('result').textContent = 'failed' })
         </script>`),
         '/api/scoped': () => 'real',
         '/api/restored': () => 'real',
         '/api/closed': () => 'real',
         '/api/session': () => 'real',
-        '/api/own': () => 'real'
+        '/api/own': () => 'real',
+        '/api/user': () => 'real',
+        '/api/target': () => 'target'
     }
 
     const server = createServer((request, response) => {
@@ -456,6 +458,167 @@ describe('browsing contexts', () => {
                 await browser.mockRestoreAll()
                 await a.navigate(`${origin}/fetch?endpoint=session`)
                 await expect(a.$('#result')).toHaveText('real')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        for (const tabMockFirst of [false, true]) {
+            it(`lets a tab mock override a session-wide mock of the same url in that tab only (${tabMockFirst ? 'tab mock first' : 'session-wide mock first'})`, async () => {
+                const a = await open('/tab-a')
+                const b = await openTab('/tab-a')
+                const mockSessionWide = async () => {
+                    const all = await browser.mock('**/api/user')
+                    all.respond('default', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                }
+                const mockTab = async () => {
+                    const own = await b.mock('**/api/user')
+                    own.respond('special', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                }
+                try {
+                    if (tabMockFirst) {
+                        await mockTab()
+                        await mockSessionWide()
+                    } else {
+                        await mockSessionWide()
+                        await mockTab()
+                    }
+
+                    await b.navigate(`${origin}/fetch?endpoint=user`)
+                    await expect(b.$('#result')).toHaveText('special')
+                    await a.navigate(`${origin}/fetch?endpoint=user`)
+                    await expect(a.$('#result')).toHaveText('default')
+
+                    await b.mockRestoreAll()
+                    await b.navigate(`${origin}/fetch?endpoint=user`)
+                    await expect(b.$('#result')).toHaveText('default')
+                } finally {
+                    await browser.mockRestoreAll()
+                }
+            })
+        }
+
+        it('keeps a respondOnce of a session-wide mock when a tab mock answers that request', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-a')
+            try {
+                const all = await browser.mock('**/api/user')
+                all.respondOnce('once', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                const own = await b.mock('**/api/user')
+                own.respond('special', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+
+                await b.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(b.$('#result')).toHaveText('special')
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('once')
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('real')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets a session-wide mock answer when a tab mock of the same url declines the response', async () => {
+            await open('/tab-a')
+            const b = await openTab('/tab-a')
+            try {
+                const all = await browser.mock('**/api/user')
+                all.respond('default', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                // needs the response, so it continues the request; the server sends 200
+                const own = await b.mock('**/api/user', { statusCode: 201 })
+                own.respond('special', { headers: { 'Content-Type': 'text/plain' } })
+
+                await b.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(b.$('#result')).toHaveText('default')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets a tab mock with a matching response filter answer, and keeps the session-wide mock in other tabs', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-a')
+            try {
+                const all = await browser.mock('**/api/user')
+                all.respond('default', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                // needs the response; the server sends 200, so the filter matches
+                const own = await b.mock('**/api/user', { statusCode: 200 })
+                own.respond('special', { headers: { 'Content-Type': 'text/plain' } })
+
+                await b.navigate(`${origin}/fetch?endpoint=user`)
+                // Firefox can not send a body after the request left, so the mock that answers early wins there
+                await expect(b.$('#result')).toHaveText(browser.isFirefox ? 'default' : 'special')
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('default')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets a session-wide mock answer in a tab that only has a spy of the same url', async () => {
+            await open('/tab-a')
+            const b = await openTab('/tab-a')
+            try {
+                const all = await browser.mock('**/api/user')
+                all.respond('default', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+                const spy = await b.mock('**/api/user')
+
+                await b.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(b.$('#result')).toHaveText('default')
+                expect(spy.calls.length).toBeGreaterThan(0)
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets a session-wide mock answer after an older one used up its respondOnce', async () => {
+            const a = await open('/tab-a')
+            const text = { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false }
+            const events: string[] = []
+            try {
+                const older = await browser.mock('**/api/user')
+                const newer = await browser.mock('**/api/*')
+                older.respondOnce('first', text)
+                newer.respond('rest', text)
+                older.on('overwrite', () => events.push('older overwrite')).on('continue', () => events.push('older continue'))
+                newer.on('overwrite', () => events.push('newer overwrite')).on('continue', () => events.push('newer continue'))
+
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('first')
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('rest')
+                expect(events).toContain('older overwrite')
+                expect(events).toContain('older continue')
+                expect(events).toContain('newer overwrite')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('lets the redirect target through when a mock answers early with a redirect and another mock waits for the response', async () => {
+            const a = await open('/tab-a')
+            try {
+                const redirect = await browser.mock('**/api/moved')
+                redirect.respondOnce('', { statusCode: 302, headers: { Location: `${origin}/api/target` }, fetchResponse: false })
+                // Chrome reports the redirect response as blocked while the request already is at the target: an answer there would replace the target
+                const waiting = await browser.mock('**/api/*', { statusCode: 302 })
+                waiting.respond('wrong', { headers: { 'Content-Type': 'text/plain' } })
+
+                await a.navigate(`${origin}/fetch?endpoint=moved`)
+                await expect(a.$('#result')).toHaveText('target')
+            } finally {
+                await browser.mockRestoreAll()
+            }
+        })
+
+        it('fails the request when the filter function of a matching mock throws', async () => {
+            const a = await open('/tab-a')
+            try {
+                const broken = await browser.mock('**/api/user', { method: () => { throw new Error('broken filter') } })
+                broken.respond('mocked', { headers: { 'Content-Type': 'text/plain' } })
+
+                await a.navigate(`${origin}/fetch?endpoint=user`)
+                await expect(a.$('#result')).toHaveText('failed')
             } finally {
                 await browser.mockRestoreAll()
             }

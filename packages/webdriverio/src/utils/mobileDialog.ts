@@ -1,31 +1,10 @@
+import { toXPathStringLiteral } from '@wdio/utils'
+
 /**
  * iOS SpringBoard bundle ID used to activate the system UI so permission
  * dialogs are accessible to Appium.
  */
 export const SPRINGBOARD_BUNDLE_ID = 'com.apple.springboard'
-
-/**
- * Convert a string into an XPath 1.0 string literal.
- *
- * XPath 1.0 has no escape sequences inside quoted strings, so a backslash
- * before `'` is not valid (e.g. `'Don\'t Allow'` is a syntax error). Use
- * matching quotes that do not appear in the value, or assemble the value
- * with `concat()` when both quote types are present.
- */
-export function toXPathStringLiteral(value: string): string {
-    if (!value.includes("'")) {
-        return `'${value}'`
-    }
-    if (!value.includes('"')) {
-        return `"${value}"`
-    }
-    /**
-     * XPath concat() joins single-quoted segments with a double-quoted
-     * apostrophe literal: concat('foo', "'", 'bar')
-     */
-    const concatSeparator = ', "\'", '
-    return `concat(${value.split("'").map((part) => `'${part}'`).join(concatSeparator)})`
-}
 
 export function androidButtonSelector(buttonText: string): string {
     return `//android.widget.Button[@text=${toXPathStringLiteral(buttonText)}]`

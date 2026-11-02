@@ -187,6 +187,18 @@ export class BidiCore {
     }
 
     /**
+     * Close a connection that can not serve the session: the handler is then in the
+     * state of a connection that could not be made, so the session does not count as ended
+     */
+    public discard () {
+        this.close()
+        /**
+         * also when the server closed the socket during the check: the session continues
+         */
+        this.#closed = false
+    }
+
+    /**
      * The browser or the driver closed the socket (for example a browser crash, a
      * cloud timeout or a lost network): no pending command can get a result anymore.
      */
