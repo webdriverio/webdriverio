@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    timeout-minutes: 30
+    timeout-minutes: 35 # more than setup + the build and test step limits, so the failure log steps still run
     env:
       IMAGE: display-server-test:${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
     strategy:
@@ -80,7 +80,7 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Build test container
-        timeout-minutes: 6 # the slowest build takes about 2.5 min, so 2 builds and the wait fit
+        timeout-minutes: 15 # a build takes about 2 min, but 13 min on a slow mirror that still sends data
         shell: bash
         run: |
           # Package mirrors and registries have short outages. Retry once, only after a network or server error, with
