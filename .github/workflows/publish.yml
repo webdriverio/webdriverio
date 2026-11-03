@@ -13,6 +13,8 @@ on:
           - minor
           - major
           - premajor
+          # publish only the packages whose version is not on npm, e.g. after a publish that failed part-way
+          - from-package
       distTag:
         description: 'NPM tag: "v9" for v9 releases, never "latest" (that is v10). Use "next --canary" to release a test version, add "--force-publish" to release all packages'
         required: true
@@ -58,8 +60,13 @@ jobs:
       - name: Release
         run: |
           pnpm -r --filter=@wdio/lerna-patch run patch
-          pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
-          pnpm run pushReleaseTag
+          if [ "${{github.event.inputs.releaseType}}" = "from-package" ]; then
+            # no version step: no new version, changelog, GitHub release or tag
+            pnpm lerna publish from-package --yes --dist-tag ${{github.event.inputs.distTag}}
+          else
+            pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+            pnpm run pushReleaseTag
+          fi
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}

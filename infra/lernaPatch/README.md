@@ -45,6 +45,14 @@ lerna ERR!     at async Promise.all (index 0)
 lerna ERR! Error: Command failed with exit code 1: pnpm install --lockfile-only --ignore-scripts
 ```
 
+It also patches `sigstore`, which `libnpmpublish` uses for the npm provenance. sigstore gives each Rekor upload 5 seconds and retries it. When Rekor saved the first upload but answered late, the retry gets this error and the package is not published:
+
+```
+lerna ERR! TLOG_CREATE_ENTRY_ERROR error creating tlog entry - (409) an equivalent entry already exists in the transparency log with UUID ...
+```
+
+The patch sets `fetchOnConflict: true`, so that sigstore reads the existing entry (the same upload) instead.
+
 You can call this package via:
 
 ```sh
