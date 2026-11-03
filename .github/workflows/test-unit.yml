@@ -53,6 +53,9 @@ jobs:
       - name: Unit Tests
         run: pnpm run test:unit:run
         shell: bash
+        env:
+          # the macOS runner has 7 GB, so the default Node heap is ~2 GB, less than the Vitest type check (tsc) needs
+          NODE_OPTIONS: ${{ matrix.os == 'macos-latest' && '--max-old-space-size=4096' || '' }}
 
       - name: Unit Tests in the Browser
         # scripts that run in the page, in Chrome through Vitest browser mode with WebdriverIO
