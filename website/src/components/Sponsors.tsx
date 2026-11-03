@@ -35,7 +35,7 @@ export default function Sponsors () {
                 </h3>
                 <div className="logos">
                     <ImageSwitcher
-                        lightImageSrc="/img/sponsors/browserstack_black.svg"
+                        lightImageSrc="/img/sponsors/browserstack_logo.png"
                         darkImageSrc="/img/sponsors/browserstack_white.svg"
                         alt="BrowserStack"
                         link="https://www.browserstack.com/automation-webdriverio"
