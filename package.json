@@ -73,6 +73,7 @@
     "test:e2e:standalone": "vitest --config ./e2e/vitest.config.ts --run standalone",
     "test:e2e:webdriver": "cd ./e2e && npx wdio run ./wdio/wdio.local.conf.ts",
     "test:e2e:parallel": "cd ./e2e && npx wdio run ./wdio/wdio.parallel.conf.ts",
+    "test:e2e:parallel-user-contexts": "cd ./e2e && npx wdio run ./wdio/wdio.parallel-user-contexts.conf.ts",
     "test:e2e:classic": "cd ./e2e && npx wdio run ./wdio/wdio.classic.conf.ts",
     "test:e2e:jasmine": "cd ./e2e && npx wdio run ./wdio/jasmine/wdio.conf.ts",
     "test:e2e:cloud": "cd ./e2e && npx wdio run ./wdio/wdio.sauce.conf.ts",

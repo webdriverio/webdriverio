@@ -440,4 +440,125 @@ describe('ReportAggregator', () => {
             expect(header(await makeReport(['from-env.html', outputDir, 'Title'], { CI: 'true', TEST_BROWSER: 'edge' }))).toBe('edge')
         })
     })
+
+    const RUNNER_SPECS = ['/foo/bar/baz.js']
+    /**
+     * `specFileRetries: 1`: the retry runs in a new worker with the same cid. The runner gives the first
+     * attempt `retry` 2 (`specFileRetries + 1`), the retry 1, and a run with no `specFileRetries` 1
+     */
+    const runAttempt = async (outputDir: string, retry: number, { passed = true, killed = false, specFileRetries = 1, start = '2021-06-11T16:24:27.910Z', filename = 'report.html', specs = RUNNER_SPECS } = {}) => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER } = await import('./testdata.js')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename, reportTitle: 'Retries' } as never)
+        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, { retry, start, specs, config: { specFileRetries } })
+        reporter.onRunnerStart(runner)
+        if (!killed) {
+            const common = { cid: '0-0', file: 'retried.spec.js' }
+            const test = { ...common, type: 'test:start', uid: 'flaky', title: 'flaky', fullTitle: 'flaky', parent: 'retried' }
+            reporter.emit('suite:start', { ...common, type: 'suite:start', uid: 'retried', title: 'retried', fullTitle: 'retried', parent: '' })
+            reporter.emit('test:start', test)
+            reporter.emit(passed ? 'test:pass' : 'test:fail', { ...test, ...(passed ? {} : { error: { message: 'fails' } }) })
+            reporter.emit('test:end', test)
+            reporter.emit('suite:end', { ...common, type: 'suite:end', uid: 'retried', title: 'retried', fullTitle: 'retried' })
+            await reporter.onRunnerEnd(runner)
+        }
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    }
+    const jsonFiles = (dir: string) => fs.readdirSync(dir).filter((file) => file.endsWith('.json')).sort()
+    const masterOf = async (outputDir: string) => {
+        const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Retries' })
+        await reportAggregator.createReport()
+        return { failed: reportAggregator.failed, ...JSON.parse(fs.readFileSync(path.join(outputDir, 'master-report.json'), 'utf-8')) }
+    }
+
+    it('writes one worker file for each attempt of a spec file retry', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { passed: false })
+        await runAttempt(outputDir, 1, { start: '2021-06-11T16:25:27.910Z' })
+        expect(jsonFiles(outputDir)).toEqual(['report-0-0-retry1.json', 'report-0-0.json'])
+        const single = path.join(tempDir(), 'out')
+        await runAttempt(single, 1, { specFileRetries: 0 })
+        expect(jsonFiles(single)).toEqual(['report-0-0.json'])
+    })
+
+    it('shows the retried attempt of a spec file, and counts only its last attempt', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { passed: false })
+        await runAttempt(outputDir, 1, { start: '2021-06-11T16:25:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried (spec file attempt 1, retried)', 'retried'])
+    })
+
+    it('does not report a killed attempt that a retry of the spec file replaced', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { killed: true })
+        await runAttempt(outputDir, 1, { start: '2021-06-11T16:25:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.failed).toBe(false)
+        expect(master.message).toBeUndefined()
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
+
+    it('counts the reports of 2 CI jobs in 2 folders, which both have the cid 0-0', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(path.join(outputDir, 'job-1'), 1, { specFileRetries: 0 })
+        await runAttempt(path.join(outputDir, 'job-2'), 1, { specFileRetries: 0, start: '2021-06-11T16:25:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 2, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
+    })
+
+    it('skips a JSON file that is not a report object, and the report stays complete', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 1, { specFileRetries: 0 })
+        fs.writeFileSync(path.join(outputDir, 'other.json'), 'null')
+        const master = await masterOf(outputDir)
+        expect(master.failed).toBe(false)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+    })
+
+    it('counts the reports of 2 configurations with another file name in one folder, which both have the cid 0-0', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 1, { specFileRetries: 0, filename: 'report-chrome.html', passed: false })
+        await runAttempt(outputDir, 1, { specFileRetries: 0, filename: 'report-firefox.html', start: '2021-06-11T16:30:00.000Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 1 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried', 'retried'])
+    })
+
+    it('labels each attempt with its own number when a killed attempt is not in the report', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        // specFileRetries: 2: the runner gives 3, then 1, then 2
+        await runAttempt(outputDir, 3, { specFileRetries: 2, killed: true })
+        await runAttempt(outputDir, 1, { specFileRetries: 2, passed: false, start: '2021-06-11T16:25:27.910Z' })
+        await runAttempt(outputDir, 2, { specFileRetries: 2, start: '2021-06-11T16:26:27.910Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried (spec file attempt 2, retried)', 'retried'])
+    })
+
+    it('leaves out an old retry file of another spec file in the same folder', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { passed: false, specs: ['/project/a.js'] })
+        await runAttempt(outputDir, 1, { start: '2021-06-11T16:25:27.910Z', specs: ['/project/a.js'] })
+        // a new run of another spec file with the same cid, and no clean of the folder
+        await runAttempt(outputDir, 1, { specFileRetries: 0, start: '2021-06-12T10:00:00.000Z', specs: ['/project/b.js'] })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.map((suite: { title: string }) => suite.title)).toEqual(['retried'])
+    })
+
+    it('counts the new run, not the retry files of an earlier run in the same folder', async () => {
+        const outputDir = path.join(tempDir(), 'out')
+        await runAttempt(outputDir, 2, { passed: false })
+        await runAttempt(outputDir, 1, { passed: false, start: '2021-06-11T16:25:27.910Z' })
+        // a new run with no specFileRetries, and no clean of the folder
+        await runAttempt(outputDir, 1, { specFileRetries: 0, start: '2021-06-12T10:00:00.000Z' })
+        const master = await masterOf(outputDir)
+        expect(master.metrics).toMatchObject({ passed: 1, failed: 0 })
+        expect(master.suites.at(-1).title).toBe('retried')
+    })
 })

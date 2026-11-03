@@ -224,6 +224,30 @@ describe('reporter', () => {
         })
     })
 
+    // a failed Cucumber BeforeAll / AfterAll runs outside of any scenario: a hook of the feature (Cucumber's JSON has no place for it)
+    describe('a hook of the feature', () => {
+        const runHook = (title: string) => ({
+            uid: `${title}-r1`, title, parent: 'f.feature:1:1', parentUid: 'f.feature:1:1',
+            hookKind: title === 'AfterAll' ? 'afterAll' : 'beforeAll', hookSuiteUid: 'f.feature:1:1',
+        })
+        const startFeature = () => tmpReporter.emit('suite:start', { uid: 'f.feature:1:1', title: 'Feature', type: 'feature', file: 'f.feature' })
+
+        it('is ignored when no scenario started (failed BeforeAll)', () => {
+            startFeature()
+            expect(() => tmpReporter.emit('hook:start', runHook('BeforeAll'))).not.toThrow()
+            expect(() => tmpReporter.emit('hook:end', { ...runHook('BeforeAll'), error: new Error('BeforeAll fails'), state: 'failed' })).not.toThrow()
+        })
+
+        it('is not added to the last scenario (failed AfterAll)', () => {
+            startFeature()
+            tmpReporter.emit('suite:start', { uid: 'scenario', title: 'Scenario', type: 'scenario', parent: 'Feature', parentUid: 'f.feature:1:1', file: 'f.feature' })
+            const steps = [...(tmpReporter.getCurrentScenario().steps ?? [])]
+            tmpReporter.emit('hook:start', runHook('AfterAll'))
+            tmpReporter.emit('hook:end', { ...runHook('AfterAll'), error: new Error('AfterAll fails'), state: 'failed' })
+            expect(tmpReporter.getCurrentScenario().steps).toEqual(steps)
+        })
+    })
+
     describe('onHookEnd', () => {
         it('should call update a hook step to passed', () => {
             const updateStepStatusSpy = vi.spyOn(tmpReporter, 'updateStepStatus').mockReturnValue()

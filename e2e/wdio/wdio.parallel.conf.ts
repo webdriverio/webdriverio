@@ -13,7 +13,8 @@ export const config: WebdriverIO.Config = {
      */
     specs: [
         path.join(__dirname, 'headless', 'parallel.e2e.ts'),
-        path.join(__dirname, 'headless', 'parallel-storage.e2e.ts')
+        path.join(__dirname, 'headless', 'parallel-storage.e2e.ts'),
+        path.join(__dirname, 'headless', 'parallel-mocks.e2e.ts')
     ],
 
     /**
@@ -45,6 +46,13 @@ export const config: WebdriverIO.Config = {
     },
     onComplete: async () => {
         await stopParallelFixtureServer(server)
+    },
+    beforeSuite: async (suite) => {
+        // a mock outside the test windows, which mockRestoreAll() in a test keeps
+        if (suite.file.endsWith('parallel-mocks.e2e.ts')) {
+            const suiteWide = await browser.mock('**/api/suite-wide')
+            suiteWide.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+        }
     },
 
     mochaOpts: {

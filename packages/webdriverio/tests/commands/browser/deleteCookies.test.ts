@@ -2,7 +2,7 @@ import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, it, beforeEach, beforeAll, afterEach, vi, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { setParallelContextStore } from '../../../src/session/context.js'
+import { getContextManager, setParallelContextStore } from '../../../src/session/context.js'
 
 const parallelStore = new AsyncLocalStorage<string>()
 
@@ -82,6 +82,15 @@ describe('deleteCookies', () => {
             )
         })
 
+        it('should send an empty cookie name to WebDriver Classic as given', async () => {
+            await browser.deleteCookies('')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie/' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
+        })
+
         it('should throw if remote.StorageCookieFilter in classic is used with other value than name', async () => {
             await expect(browser.deleteCookies([{ domain: 'cookie123' }]))
                 .rejects
@@ -115,47 +124,109 @@ describe('deleteCookies', () => {
             storageDeleteCookies.mockClear()
             storageGetCookies.mockClear()
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
-                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-0', children: [] }]
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-1', children: [] }]
             } as any)
             setParallelContextStore(parallelStore)
         })
 
         it('should not fall back to classic on empty match inside a parallel scope', async () => {
-            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [] }))
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
             const deleteAllCookies = vi.spyOn(browser, 'deleteAllCookies')
             const deleteCookie = vi.spyOn(browser, 'deleteCookie')
             deleteAllCookies.mockClear()
             deleteCookie.mockClear()
             await parallelStore.run('ctx-1', () => browser.deleteCookies('nope'))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey', userContext: 'uc-1' }, filter: { name: 'nope' } })
+            expect(storageDeleteCookies).not.toBeCalled()
             expect(deleteAllCookies).not.toBeCalled()
             expect(deleteCookie).not.toBeCalled()
-            expect(storageDeleteCookies).toBeCalledWith({
-                filter: { name: 'nope' },
-                partition: { type: 'storageKey', sourceOrigin: 'https://webdriver.io', userContext: 'uc-0' }
-            })
-            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [{ name: 'foo', value: 'bar' }] }))
         })
 
-        it('should scope to the context origin and user context inside a parallel scope', async () => {
+        // the jar of the window holds the cookies of every host: delete the cookies of the page, as WebDriver Classic
+        it('should delete only the cookies of the page host inside a parallel scope', async () => {
             const getTree = vi.spyOn(browser, 'browsingContextGetTree')
             getTree.mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
             } as any)
+            storageGetCookies.mockResolvedValueOnce({
+                cookies: [
+                    { name: 'page', domain: 'app.example.com', path: '/' },
+                    { name: 'parent', domain: '.example.com', path: '/' },
+                    { name: 'other', domain: 'other.example', path: '/' }
+                ]
+            })
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
             expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
-            expect(storageDeleteCookies).toBeCalledWith({
-                partition: { type: 'storageKey', sourceOrigin: 'https://app.example.com', userContext: 'uc-1' }
-            })
+            const partition = { type: 'storageKey', userContext: 'uc-1' }
+            expect(storageGetCookies).toBeCalledWith({ partition })
+            expect(storageDeleteCookies.mock.calls).toEqual([
+                [{ filter: { name: 'page', domain: 'app.example.com', path: '/' }, partition }],
+                [{ filter: { name: 'parent', domain: '.example.com', path: '/' }, partition }]
+            ])
         })
 
-        it('should fall back to the context partition without a usable origin', async () => {
+        it('should delete only the cookies of the page path, also secure ones, inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'http://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            storageGetCookies.mockResolvedValueOnce({
+                cookies: [
+                    { name: 'root', domain: 'app.example.com', path: '/' },
+                    { name: 'deeper', domain: 'app.example.com', path: '/page/sub' },
+                    { name: 'secure', domain: 'app.example.com', path: '/', secure: true }
+                ]
+            })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies())
+            const partition = { type: 'storageKey', userContext: 'uc-1' }
+            expect(storageDeleteCookies.mock.calls).toEqual([
+                [{ filter: { name: 'root', domain: 'app.example.com', path: '/' }, partition }],
+                [{ filter: { name: 'secure', domain: 'app.example.com', path: '/' }, partition }]
+            ])
+        })
+
+        it('should propagate a browsingContext.getTree error inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockRejectedValueOnce(new Error('no such frame'))
+            await expect(parallelStore.run('ctx-1', () => browser.deleteCookies())).rejects.toThrow('no such frame')
+            expect(storageDeleteCookies).not.toBeCalled()
+        })
+
+        it('should delete the cookies of a domain filter whatever page is open inside a parallel scope', async () => {
+            storageGetCookies
+                .mockResolvedValueOnce({ cookies: [{ name: 'sso', domain: 'auth.example.com', path: '/' }] })
+                .mockResolvedValueOnce({ cookies: [{ name: 'other', domain: 'other.example', path: '/' }] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies([{ domain: 'auth.example.com' }, 'other']))
+            expect(storageDeleteCookies.mock.calls).toEqual([
+                [{ filter: { name: 'sso', domain: 'auth.example.com', path: '/' }, partition: { type: 'storageKey', userContext: 'uc-1' } }]
+            ])
+        })
+
+        it('should send a sameSite filter in lowercase to BiDi inside a parallel scope', async () => {
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies({ name: 'a', sameSite: 'Strict' as never }))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey', userContext: 'uc-1' }, filter: { name: 'a', sameSite: 'strict' } })
+        })
+
+        it('should delete a cookie once when two filters match it inside a parallel scope', async () => {
+            const page = { name: 'page', domain: 'webdriver.io', path: '/' }
+            storageGetCookies.mockResolvedValueOnce({ cookies: [page] }).mockResolvedValueOnce({ cookies: [page] })
+            await parallelStore.run('ctx-1', () => browser.deleteCookies(['page', { domain: 'webdriver.io' }]))
+            expect(storageDeleteCookies).toBeCalledTimes(1)
+        })
+
+        it.each([undefined, null, 2])('should reject the cookie filter entry %s inside a parallel scope', async (entry) => {
+            await expect(parallelStore.run('ctx-1', () => browser.deleteCookies([entry as never])))
+                .rejects.toThrow('Invalid value for cookie filter')
+            expect(storageGetCookies).not.toBeCalled()
+            expect(storageDeleteCookies).not.toBeCalled()
+        })
+
+        // WebDriver Classic: a page with no host has no associated cookies; the jar is shared with other tests
+        it('should delete no cookie of the jar on a page with no host inside a parallel scope', async () => {
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'about:blank', userContext: 'uc-1', children: [] }]
             } as any)
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
-            expect(storageDeleteCookies).toBeCalledWith({
-                partition: { type: 'context', context: 'ctx-1' }
-            })
+            expect(storageDeleteCookies).not.toBeCalled()
         })
 
         it('should delete all cookies', async () => {
@@ -239,6 +310,39 @@ describe('deleteCookies', () => {
             await expect(browser.deleteCookies([2]))
                 .rejects
                 .toEqual(new Error('Invalid value for cookie filter, expected \'string\' or \'remote.StorageCookieFilter\' but found "number"'))
+        })
+
+        it('should reject a null cookie filter entry', async () => {
+            await expect(browser.deleteCookies([null as never]))
+                .rejects.toThrow('Invalid value for cookie filter, expected \'string\' or \'remote.StorageCookieFilter\' but found "null"')
+        })
+
+        describe('with wdio:experimentalBiDiCommands', () => {
+            beforeEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = true
+                vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('ctx-1')
+            })
+
+            afterEach(() => {
+                (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = false
+                vi.mocked(getContextManager(browser).getCurrentContext).mockRestore()
+            })
+
+            it('should delete the cookies of the page in the jar of the current window without classic fallback', async () => {
+                const deleteAllCookies = vi.spyOn(browser, 'deleteAllCookies')
+                deleteAllCookies.mockClear()
+                storageGetCookies.mockResolvedValueOnce({ cookies: [
+                    { name: 'page', domain: 'webdriver.io', path: '/' },
+                    { name: 'other', domain: 'other.example', path: '/' }
+                ] })
+                await browser.deleteCookies()
+                const partition = { type: 'storageKey', userContext: 'uc-1' }
+                expect(storageGetCookies).toBeCalledWith({ partition })
+                expect(storageDeleteCookies.mock.calls).toEqual([
+                    [{ filter: { name: 'page', domain: 'webdriver.io', path: '/' }, partition }]
+                ])
+                expect(deleteAllCookies).not.toBeCalled()
+            })
         })
 
         it('should fallback to classic if storageGetCookies returns empty', async () => {

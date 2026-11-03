@@ -7,9 +7,7 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
-  # pnpm rejects versions younger than its 1 day minimumReleaseAge
-  cooldown:
-    default-days: 2
+  # no cooldown: the Dependabot default (3 days) is longer than pnpm's minimumReleaseAge (1 day)
   ignore:
     # @wdio/jasmine-framework patches private Jasmine internals (Spec, Suite)
     # that Jasmine 7 removed. Remove once the adapter supports Jasmine 7.
@@ -76,8 +74,6 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 5
   versioning-strategy: increase-if-necessary
-  cooldown:
-    default-days: 2
   ignore:
     - dependency-name: "*"
       update-types: ["version-update:semver-major"]

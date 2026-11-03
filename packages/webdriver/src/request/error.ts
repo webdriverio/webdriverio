@@ -14,6 +14,23 @@ function errorCause (err: object): unknown {
     return (err as { cause?: unknown }).cause
 }
 
+/**
+ * The request body is the JSON string that was sent to the driver. Tests and
+ * custom `transformRequest` hooks may also hand over a plain object.
+ */
+function parseRequestBody (body: unknown): Record<string, unknown> | undefined {
+    if (typeof body === 'string') {
+        try {
+            body = JSON.parse(body)
+        } catch {
+            return undefined
+        }
+    }
+    return body && typeof body === 'object' && !Array.isArray(body)
+        ? body as Record<string, unknown>
+        : undefined
+}
+
 abstract class WebDriverError extends Error {
     abstract url: URL
     abstract opts: RequestInit
@@ -39,9 +56,9 @@ abstract class WebDriverError extends Error {
     }
 
     #getExecCmdArgs(requestOptions: RequestInit): string {
-        const { body: cmdJson } = requestOptions as unknown as { body: Record<string, unknown> }
+        const cmdJson = parseRequestBody(requestOptions.body)
 
-        if (typeof cmdJson !== 'object') {
+        if (!cmdJson) {
             return ''
         }
 
@@ -153,9 +170,9 @@ export class WebDriverResponseError extends WebDriverError {
          *  message: ''
          */
         if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
-            const requestOptions = opts.body as unknown as { using: string; value: string }
+            const requestBody = parseRequestBody(opts.body)
             errorMessage = (
-                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
+                `The selector "${requestBody?.value}" used with strategy "${requestBody?.using}" is invalid!`
             )
         }
 

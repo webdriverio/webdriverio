@@ -4,6 +4,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
 import { browser } from '@wdio/globals'
+import { RunnerStats } from '@wdio/reporter'
 import AllureReporterExtension from '../src/allure.js'
 import VideoReporter from '../src/index.js'
 import { findFfmpeg } from '../src/helpers.js'
@@ -35,6 +36,8 @@ vi.mock('../src/helpers.js', async (importOriginal) => ({
 vi.mock('@wdio/reporter', async () => ({
     // the real rule for the name of the framework
     knownFramework: (await vi.importActual<{ knownFramework: unknown }>('../../wdio-reporter/src/utils.js')).knownFramework,
+    // the real runner stats, for the attempt of the spec file
+    RunnerStats: (await vi.importActual<{ default: unknown }>('../../wdio-reporter/src/stats/runner.js')).default,
     default: class {
         options: unknown
         write = vi.fn()
@@ -82,6 +85,9 @@ const allureRunner: any = {
         }
     }
 }
+
+// the runner of the reporter events is a RunnerStats (with its getters)
+const runnerStats = (runner: object) => Object.assign(Object.create(RunnerStats.prototype), runner)
 
 describe('Video Reporter', () => {
     const processOn = process.on.bind(process)
@@ -132,14 +138,14 @@ describe('Video Reporter', () => {
 
         it('should set record to false when onlyRecordLastFailure is set and not last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } }))
             expect(reporter.record).toBe(false)
         })
 
         it('records the only attempt when specFileRetries is 0 (the first attempt has retry 1)', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             // the launcher sends retries -1 (unknown) to the first attempt: retry = specFileRetries + 1
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 0 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 0 } }))
             expect(reporter.record).toBe(true)
         })
 
@@ -156,7 +162,7 @@ describe('Video Reporter', () => {
 
         it('should set record to true when onlyRecordLastFailure is set and is on the last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
-            reporter.onRunnerStart({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } }))
             expect(reporter.record).toBe(true)
         })
     })
@@ -690,7 +696,7 @@ describe('Video Reporter', () => {
         it('should not generate video when retry < specFileRetries and the test has failed', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.testName = 'foo bar'
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } }))
             reporter.generateVideo = vi.fn() as any
             reporter.onTestEnd({ state: 'failed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(0)
@@ -699,7 +705,7 @@ describe('Video Reporter', () => {
         it('should generate video when retry equals specFileRetries and the test failed', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.testName = 'foo bar'
-            reporter.onRunnerStart({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } }))
             reporter.generateVideo = vi.fn() as any
             reporter.onTestEnd({ state: 'failed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(1)

@@ -3,6 +3,7 @@ import type { Options } from '@wdio/types'
 
 import { registerSessionManager } from '../../session/index.js'
 import { applyBidiBrowserOverwrites } from '../../utils/bidi/browserOverwrites.js'
+import { restoreMocks, sessionMocksOf } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio')
 
@@ -21,6 +22,10 @@ const log = logger('webdriverio')
  *
  * If you start from remote service, you can pass in 0.0.0.0 for hostname if you want
  * to switch to local drivers.
+ *
+ * The mocks of the old session are restored before it ends: they stop answering requests
+ * and their recorded `calls` are cleared, so assertions like `toBeRequested()` on such a
+ * mock fail after the reload. Create the mocks you need again after `reloadSession()`.
  *
  * <example>
     :reloadSync.js
@@ -63,6 +68,20 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
      * if a new browser name is given we can shut down the driver since we start a new one
      */
     const shutdownDriver = Boolean(newCapabilities?.browserName)
+
+    /**
+     * mocks belong to the session they were made in, the ones of the old session must not
+     * answer in the new one: restore them while the session is still there. First through
+     * `mockRestoreAll()`, which can be overwritten, then the ones it leaves, as in a parallel
+     * test, where it only restores the mocks of the test. A restored mock leaves the session.
+     */
+    for (const restore of [() => this.mockRestoreAll(), () => restoreMocks(sessionMocksOf(this))]) {
+        try {
+            await restore()
+        } catch (err) {
+            log.warn(`Suppressing error restoring the mocks of the session: ${(err as Error).stack}`)
+        }
+    }
 
     /**
      * end current running session, if session already gone suppress exceptions

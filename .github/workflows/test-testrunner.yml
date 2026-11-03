@@ -63,6 +63,7 @@ jobs:
           pnpm run test:e2e:video-reporter
           pnpm run test:e2e:video-reporter-parallel
           pnpm run test:e2e:parallel
+          pnpm run test:e2e:parallel-user-contexts
           pnpm run test:e2e:html-reporter-parallel
         shell: bash
 

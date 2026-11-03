@@ -23,7 +23,6 @@ export const DEFAULT_OPTS: CucumberOptions = {
     require: [],
     requireModule: [],
     retry: 0,
-    strict: false,
     tags: '',
     worldParameters: {},
     timeout: DEFAULT_TIMEOUT,

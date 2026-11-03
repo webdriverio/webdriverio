@@ -184,9 +184,9 @@ describe('fixture scope from the hook kind', () => {
         expect(fixturesOf(containers, hookResult)).toEqual([])
         const afters = containers.filter((c) => c.children.includes(i1.uuid)).flatMap((c) => c.afters)
         expect(afters.map((f: Result) => [f.status, steps(f)]).sort()).toEqual([['broken', []], ['passed', []], ['passed', ['outerAfterEach']]])
-        // the hook failure keeps its own result, with the historyId of main (open PR #16167 changes it)
+        // the hook failure keeps its own result, now with a historyId of its own
         expect(hookResult.status).toBe('broken')
-        expect(hookResult.historyId).toBe('')
+        expect(hookResult.historyId).toBe(md5('outer inner "after each" hook for inner#chrome'))
     })
 })
 
@@ -203,7 +203,8 @@ describe('the result of a failed afterEach of an ended test', () => {
 
         const hookResult = byName(results, '"after each" hook for A')
         expect([hookResult.status, hookResult.statusDetails.message, hookResult.statusDetails.trace]).toEqual(['broken', 'AFTER_EACH_BOOM', expect.stringContaining('AFTER_EACH_BOOM')])
-        expect(hookResult.historyId).toBe('')
+        // the standalone result of an ended test carries the id too, not an empty one
+        expect(hookResult.historyId).toBe(md5('A "after each" hook for A#chrome'))
     })
 })
 
@@ -218,13 +219,16 @@ describe('historyId, testCaseId and fullName (HI rules)', () => {
         ])
     })
 
-    it('keeps the historyId of main on the result of a failed before all hook (open PR #16167 changes it)', async () => {
+    it('pins the historyId of a failed before all hook to its suite path', async () => {
         const run = createRun()
         run.start()
         run.suite('A', () => run.hook('beforeAll', new Error('before all fails')))
         const { results } = await run.end()
 
-        expect(results.map((r) => [r.name, r.status, r.historyId])).toEqual([['"before all" hook for A', 'broken', '']])
+        // one pinned md5: the suite path, the hook title and the capability key
+        expect(results.map((r) => [r.name, r.status, r.historyId])).toEqual([
+            ['"before all" hook for A', 'broken', md5('A "before all" hook for A#chrome')],
+        ])
     })
 })
 
@@ -242,7 +246,7 @@ describe('parameters of a failed root before all', () => {
         const { results, containers } = await run.end()
 
         expect(results.map((r) => [r.name, params(r), r.historyId]).sort()).toEqual([
-            [ROOT_BEFORE, ['browser=chrome'], ''],
+            [ROOT_BEFORE, ['browser=chrome'], md5(`${ROOT_BEFORE}#chrome`)],
             ['t1', ['browser=chrome'], md5('A t1#chrome')],
             ['t2', ['browser=chrome'], md5('A t2#chrome')],
         ])

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path'
-import url from 'node:url'
 import os from 'node:os'
 
 import type { RunnerStats, TestStats } from '@wdio/reporter'
-import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, specFilePath } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -616,7 +615,7 @@ class JunitReporter extends WDIOReporter {
                 }
                 if (
                     !suite.file ||
-                    !this._isBasenameOnly(this._toFilePath(suite.file)) ||
+                    !this._isBasenameOnly(specFilePath(suite.file)) ||
                     this._matchingSpecCount(suite.file, runner.specs) <= 1
                 ) {
                     continue
@@ -694,10 +693,6 @@ class JunitReporter extends WDIOReporter {
         return JSON.stringify(limit(val))
     }
 
-    private _toFilePath(file: string) {
-        return file.startsWith('file://') ? url.fileURLToPath(file) : file
-    }
-
     private _isBasenameOnly(file: string) {
         return !file.includes('/') && !file.includes('\\')
     }
@@ -707,9 +702,9 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _matchingSpecCount(suiteFile: string, runnerSpecs: string[]) {
-        const suiteBase = path.basename(this._toFilePath(suiteFile))
+        const suiteBase = path.basename(specFilePath(suiteFile))
         return runnerSpecs.filter((spec) => (
-            this._fileNamesEqual(path.basename(this._toFilePath(spec)), suiteBase)
+            this._fileNamesEqual(path.basename(specFilePath(spec)), suiteBase)
         )).length
     }
 
@@ -732,7 +727,7 @@ class JunitReporter extends WDIOReporter {
             return 'unique'
         }
 
-        const suitePath = this._toFilePath(suiteFile)
+        const suitePath = specFilePath(suiteFile)
         if (!this._isBasenameOnly(suitePath)) {
             return 'unique'
         }
@@ -748,8 +743,8 @@ class JunitReporter extends WDIOReporter {
             return false
         }
 
-        file1 = this._toFilePath(file1)
-        file2 = this._toFilePath(file2)
+        file1 = specFilePath(file1)
+        file2 = specFilePath(file2)
 
         /**
          * Jasmine provides only filenames (e.g. `happyPath.spec.js`) while

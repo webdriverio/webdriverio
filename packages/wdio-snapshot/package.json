@@ -35,8 +35,18 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/utils": "workspace:*",
+    "@wdio/utils": "workspace:*"
+  },
+  "devDependencies": {
     "webdriverio": "workspace:*"
+  },
+  "peerDependencies": {
+    "webdriverio": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "webdriverio": {
+      "optional": false
+    }
   },
   "publishConfig": {
     "access": "public"

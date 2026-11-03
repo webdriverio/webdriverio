@@ -89,7 +89,7 @@ export default class CustomReporter extends WDIOReporter {
 
 The method names are pretty self explanatory.
 
-After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts` (`this.counts.hooks` keeps the hooks of every attempt, as for a Mocha retry). `onSuiteRetry` sees the new `suite.retries` and the tests and hooks of the failed attempt; the base clears them after it. Finish your work for a test in `onTestEnd`, not in the result methods.
+After `onTestPass`, `onTestFail`, `onTestSkip` or `onTestPending`, every framework calls `onTestEnd` for the same test: Cucumber too, for each step (or each scenario with `scenarioLevelReporter`). When a test is retried, its failed attempt ends with `onTestRetry` and gets no `onTestEnd`. With Cucumber at step level, the scenario is retried: the step that fails gets `onTestRetry` instead of `onTestFail`, every step of the failed attempt ends with `onTestEnd` as usual, and `onSuiteRetry` starts the next attempt and removes the steps of the failed attempt from `this.counts` (`this.counts.hooks` keeps the hooks of every attempt, as for a Mocha retry). `onSuiteRetry` sees the new `suite.retries` and the tests and hooks of the failed attempt; the base clears them after it. Finish your work for a test in `onTestEnd`, not in the result methods. A Cucumber `BeforeAll` or `AfterAll` runs once, outside of any scenario: it comes as `onHookStart` when it starts and `onHookEnd` when it ends (with `error` when it fails), under the feature suite, with `hookKind` `beforeAll` / `afterAll` and `hookSuiteUid` set to the uid of the feature. A passed one comes too, so the commands and logs of its body belong to it. WebdriverIO's own `beforeFeature` / `afterFeature` hooks send no hook event.
 
 To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
 
@@ -262,6 +262,8 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 - `isContextlessAllHook(hook)` (an export of `@wdio/reporter`): `true` for a `beforeAll` / `afterAll` hook that has a `hookKind` and no context. Such a hook belongs to its suite, not to a unit.
 - `this.isFeatureHook(hook)`: `true` for a hook of a Cucumber feature (`BeforeAll` / `AfterAll`): the suite of the hook is a `feature`.
 - `hook.output`: the commands of a `beforeAll` / `afterAll` hook that has a `hookKind` and no context, of a hook of a parallel context that runs before its test, and of a hook with a `hookKind` of a sequential Cucumber scenario before its first step (a `Before`). The array exists after the first command.
+- `suite.isRoot`: `true` only for the root suite of the reporter (`this.currentSuites[0]`). It has the tests and hooks that are in no suite, for example a Mocha `it()` or `before()` with no `describe()`. It gets no `suite:start`. Use this field, not the title `(root)`, to find it.
+- `test.file`: the path of the spec file of the test (the feature file for Cucumber), when the framework sends it (Mocha, Jasmine, Cucumber and Vitest do). With grouped spec files, each Mocha test outside every `describe()` has its own spec file. A Jasmine test outside every `describe()` has no file.
 - `hookStats.state`: the base reporter sets `'failed'` when the hook failed, or `'skipped'` when the framework skipped the hook (Mocha `this.skip()`, Cucumber hook result `SKIPPED`). A passed hook keeps `undefined`. A reporter can set `'passed'` on its own stats (`AllureReporter` does). Each reporter has its own `HookStats`.
 
 ### Browser name
@@ -270,7 +272,7 @@ Frameworks can send these fields on a hook. A framework that sends no `hookKind`
 
 :::warning Experimental
 
-The unit API, `getBrowserNames`, `getSessionNames`, `getSessions` and `sanitizeCaps` are experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
+The unit API, `getBrowserNames`, `getSessionNames`, `getSessions` and `sanitizeCaps` are experimental: `ReporterUnit`, `onUnitStart`, `onUnitRetry`, `onUnitEnd`, `getContextUnit`, `unitOf`, `unitState`, `attemptState`, `parentOf`, `pathOf`, `depthOf`, `getContextOwner`, `hookOwner`, `isContextlessAllHook`, `isFeatureHook`, `HookKind`, `hookKind`, `hookSuiteUid`, `hook.output`, `suite.isRoot`, `test.file`, `SuiteStats.clearAttempt()` and the `'skipped'` state of a hook. The names and the results can change.
 
 :::
 

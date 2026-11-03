@@ -12,7 +12,7 @@ When you run your tests, the DevTools UI automatically opens in an external brow
 
 - **Live browser preview** — watch the browser under test as commands execute.
 - **Test progress** — suites and tests update as they run.
-- **Command execution** — each action streams in as it happens.
+- **Command execution** — each action streams in as it happens. A wait appears as soon as it starts, as one row with the commands its condition issues nested under it; see [Waits](/docs/devtools/wdio/trace-mode#waits).
 - **Workbench tabs** — Actions and Metadata, plus Source, Log, Console, Network and Errors (each badged with a count), and Compare after a [Preserve & Rerun](/docs/devtools/wdio/preserve-and-rerun).
 
 ## Live-mode features

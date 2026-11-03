@@ -13,6 +13,7 @@ import {
 import { download as downloadGeckodriver } from 'geckodriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
+import type { GeckodriverParameters } from 'geckodriver'
 import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
@@ -29,7 +30,7 @@ const MISSING_ZIP_TOOL = 'no zip archiver is available'
 const UNZIP_HINT = 'WebdriverIO extracts browsers and Chromedriver with the system `unzip` command ' +
     '(`tar.exe` or PowerShell on Windows). Install it, e.g. `apt-get install -y unzip` or `apk add unzip`. ' +
     'See https://webdriver.io/docs/docker#images-where-webdriverio-downloads-the-browser'
-const EXCLUDED_PARAMS = ['version', 'help']
+const EXCLUDED_PARAMS = ['version', 'help', 'spawnOpts']
 export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
 const LEGACY_EDGEDRIVER_CDN_URL = 'https://msedgedriver.azureedge.net'
 
@@ -71,7 +72,7 @@ export const canAccess = (file?: string) => {
     }
 }
 
-export function parseParams(params: EdgedriverParameters) {
+export function parseParams(params: EdgedriverParameters & Pick<GeckodriverParameters, 'spawnOpts'>) {
     return Object.entries(params)
         .filter(([key,]) => !EXCLUDED_PARAMS.includes(key))
         .map(([key, val]) => {

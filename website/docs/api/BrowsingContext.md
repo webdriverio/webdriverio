@@ -94,7 +94,7 @@ These are the [browser commands](/docs/api/browser) of the same name, applied to
 | [`getCookies`](/docs/api/browser/getCookies), [`setCookies`](/docs/api/browser/setCookies), [`deleteCookies`](/docs/api/browser/deleteCookies) | Read and change the cookies of this context's storage partition. |
 | [`setViewport`](/docs/api/browser/setViewport) | Resize the viewport of this tab or window. |
 | [`addInitScript`](/docs/api/browser/addInitScript) | Run a script before the page scripts, in this tab or window only. |
-| [`mock`](/docs/api/browser/mock), [`mockClearAll`](/docs/api/browser/mockClearAll), [`mockRestoreAll`](/docs/api/browser/mockRestoreAll) | Mock the requests of this tab or window only. A mock ends when its tab closes. |
+| [`mock`](/docs/api/browser/mock), [`mockClearAll`](/docs/api/browser/mockClearAll), [`mockRestoreAll`](/docs/api/browser/mockRestoreAll) | Mock the requests of this tab or window only. A mock ends when its tab closes. `mockClearAll` and `mockRestoreAll` only touch the mocks of this tab. |
 | [`emulate`](/docs/api/browser/emulate) | Emulate a device property, e.g. geolocation or the clock, in this tab or window only. |
 | [`restore`](/docs/api/browser/restore) | Restore emulations, the same as `browser.restore()`. |
 | [`waitUntil`](/docs/api/browser/waitUntil), [`pause`](/docs/api/browser/pause) | The same as on the browser. |
@@ -112,6 +112,10 @@ it('mocks the requests of one tab only', async () => {
     // requests of `tab` get the mocked response, requests of `page` reach the server
 })
 ```
+
+When a session-wide mock from `browser.mock()` has the same URL, the mock of the tab answers in its tab and the session-wide mock answers in all other tabs. This is true in both orders of creation. A mock of the tab that only records requests, or that used up its `once` calls (`respondOnce`), does not block the session-wide mock.
+
+A mock of a tab can wait for the response, for example with a `statusCode` filter. In Chrome, the session-wide mock answers when the response does not match that filter. In Firefox, a mock that waits for the response cannot send a body after the request left. It gives way to a session-wide mock that answers early, and WebdriverIO logs one warning for that mock. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request).
 
 ### Top-level only
 
