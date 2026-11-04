@@ -3,7 +3,6 @@ import { getShadowRootManager } from './shadowRoot.js'
 import { getNetworkManager } from './networkManager.js'
 import { getDialogManager } from './dialog.js'
 import { getContextManager } from './context.js'
-import { getBidiMapperLogManager } from './bidiMapperLog.js'
 import { setIOSScriptTimeout, trackScriptTimeout } from '../utils/scriptTimeout.js'
 
 /**
@@ -26,8 +25,7 @@ export function registerSessionManager(instance: WebdriverIO.Browser) {
             getPolyfillManager(instance).initialize(),
             getShadowRootManager(instance).initialize(),
             getNetworkManager(instance).initialize(),
-            getDialogManager(instance).initialize(),
-            getBidiMapperLogManager(instance).initialize()
+            getDialogManager(instance).initialize()
         )
     }
 
