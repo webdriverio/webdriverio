@@ -71,12 +71,20 @@ describe('SpecReporter', () => {
     })
 
     describe('onHookEnd', () => {
-        it('should increase stateCount failedHooks if hook failed', () => {
+        it('counts a failed hook as a failure by default', () => {
             expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({} as any)
             expect(tmpReporter['_stateCounts'].failedHooks).toBe(0)
             tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
-            expect(tmpReporter['_stateCounts'].failedHooks).toBe(1)
+            expect(tmpReporter['_stateCounts']).toMatchObject({ failed: 1, failedHooks: 0 })
+        })
+
+        it('counts failed hooks separately when configured', () => {
+            const separateReporter = new SpecReporter({ separateHookFailures: true })
+
+            separateReporter.onHookEnd({ error: new Error('boom!') } as any)
+
+            expect(separateReporter['_stateCounts']).toMatchObject({ failed: 0, failedHooks: 1 })
         })
 
         it('does not count a failed hook whose error is on its test or on a retried attempt', () => {
@@ -129,6 +137,7 @@ describe('SpecReporter', () => {
     })
 
     it.each([0, 1])('separates failed hooks from %i failed tests in the printed report', (failedTests) => {
+        tmpReporter = new SpecReporter({ separateHookFailures: true })
         tmpReporter.write = vi.fn()
         tmpReporter['_suiteUids'] = SUITE_UIDS
         tmpReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR as any
@@ -150,6 +159,7 @@ describe('SpecReporter', () => {
     })
 
     it.each(['"before all" hook', '"after all" hook'])('counts Jasmine root hooks without a Mocha root-title suffix: %s', (title) => {
+        tmpReporter = new SpecReporter({ separateHookFailures: true })
         tmpReporter.write = vi.fn()
         tmpReporter['_suiteUids'] = SUITE_UIDS
         tmpReporter.suites = SUITES

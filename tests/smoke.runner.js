@@ -105,7 +105,7 @@ const specHookCounts = async () => {
     const logFile = path.join(outputDir, 'spec.log')
     const failed = await launch('specHookCounts', baseConfig, {
         specs: [path.resolve(__dirname, 'mocha', 'spec-hook-counts.js')],
-        reporters: [['spec', { stdout: false, logFile, color: false }]],
+        reporters: [['spec', { stdout: false, logFile, color: false, separateHookFailures: true }]],
     }).then(() => false, () => true)
     assert.equal(failed, true, 'The fixture must fail on its test and teardown hooks')
     const report = await fs.readFile(logFile, 'utf8')
@@ -129,7 +129,7 @@ const jasmineSpecHookCounts = async () => {
     const logFile = path.join(outputDir, 'spec.log')
     const failed = await launch('jasmineSpecHookCounts', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'spec-hook-counts.js')],
-        reporters: [['spec', { stdout: false, logFile, color: false }]],
+        reporters: [['spec', { stdout: false, logFile, color: false, separateHookFailures: true }]],
         framework: 'jasmine',
     }).then(() => false, () => true)
     assert.equal(failed, true, 'The fixture must fail on its assertion')

@@ -57,6 +57,7 @@ export default class SpecReporter extends WDIOReporter {
     }
     private _chalk: ChalkInstance
     private _onlyFailures = false
+    private _separateHookFailures = false
     private _sauceLabsSharableLinks = true
 
     constructor (options: SpecReporterOptions) {
@@ -67,6 +68,7 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
+        this._separateHookFailures = options.separateHookFailures || false
         this._realtimeReporting = options.realtimeReporting || false
         this._showPreface = options.showPreface !== false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
@@ -161,7 +163,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         this.printCurrentStats(hook)
         if (hookCountsAsFailure(hook)) {
-            this._count('failedHooks', hook)
+            this._count(this._separateHookFailures ? 'failedHooks' : 'failed', hook)
         }
     }
 

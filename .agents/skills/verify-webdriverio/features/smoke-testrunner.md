@@ -9,7 +9,7 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 - `smoke-cucumber` runs a Cucumber session, including line filters, tags, and pending steps.
 - `smoke-cli` runs spec and exclude selection from the CLI.
 - `smoke-plugin` runs a custom service and a custom reporter through the launcher.
-- `smoke-spec-hook-counts` keeps failing hooks separate from test totals without hiding their errors.
+- `smoke-spec-hook-counts` verifies the spec reporter's opt-in separate hook totals without hiding their errors. By default, hook failures remain in the existing combined failing total.
 - `smoke-standalone` runs `remote`, `attach`, and `multiRemote` inside a worker with the mock driver.
 - `smoke-watch` runs the testrunner with `--watch` and checks that a spec change reruns in the same session, including a failing rerun and a `filesToWatch` rerun of every spec.
 

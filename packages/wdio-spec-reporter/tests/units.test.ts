@@ -212,7 +212,7 @@ describe('spec reporter counts with Cucumber retry', () => {
 
 describe('spec reporter hooks of a feature', () => {
     it('prints a failed BeforeAll / AfterAll whose parent is the feature under the feature', () => {
-        const reporter = newReporter()
+        const reporter = newReporter({ separateHookFailures: true })
         reporter.emit('suite:start', suite('F', 'feature', null))
         const beforeAll = hook('ba', 'BeforeAll (steps.ts:3)', { parentUid: 'F' })
         reporter.emit('hook:start', beforeAll)
