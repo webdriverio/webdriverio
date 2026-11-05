@@ -13,9 +13,6 @@ export const config: WebdriverIO.Config = {
     ...mochaConfig,
     specs: [path.join(__dirname, 'video.parallel.feature')],
     framework: 'cucumber',
-    reporters: mochaConfig.reporters!.map((reporter) => Array.isArray(reporter) && reporter[0] === 'allure'
-        ? ['allure', { ...reporter[1], useCucumberStepReporter: true }]
-        : reporter) as WebdriverIO.Config['reporters'],
     cucumberOpts: {
         require: [path.join(__dirname, 'video.parallel.steps.ts')],
         timeout: 60000,

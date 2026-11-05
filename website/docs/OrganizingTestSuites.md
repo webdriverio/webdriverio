@@ -210,9 +210,9 @@ Or, exclude a spec file when filtering using a suite:
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-A relative `--exclude` path is resolved from the working folder, then from the folder of the config file. Each value is a path or a keyword on its own, so you can mix them. A path that matches no file next to a keyword logs a warning; without a keyword, it is an error.
+Each `--exclude` value is a path or a keyword on its own, so you can mix them. A value with `/`, `\` or `*` is a path. It is resolved from the working folder, then from the folder of the config file. A path that matches no file is an error, or a warning when you also pass a keyword.
 
-If the `--exclude` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+Any other value, such as `dialog` or `login.js`, is a keyword: it filters the spec filenames defined in your configuration.
 
 To exclude all specs with the word “dialog” in the spec file names, you could use:
 
