@@ -34,6 +34,8 @@ const value = await browser.sharedStore.get('key')
 console.log(value) // returns "foobar123"
 ```
 
+A stored `null` returns `null`, also from `getValue` and `getValueFromPool`. A key that does not exist returns `undefined`.
+
 You can also fetch all key values by using the `*` key:
 
 ```js

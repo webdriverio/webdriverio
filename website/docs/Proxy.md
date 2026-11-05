@@ -33,8 +33,10 @@ For more advanced proxy configurations or if you need programmatic control, you 
 #### Install undici
 
 ```bash npm2yarn
-npm install undici --save-dev
+npm install undici@8 --save-dev
 ```
+
+Since v10, WebdriverIO uses `undici` 8. It does not see a dispatcher that `undici` 6, or `undici` 7 older than 7.27, sets: its requests then skip the proxy, with no error.
 
 #### Add undici setGlobalDispatcher to your config file
 

@@ -126,7 +126,7 @@ Timeout for any WebDriver request to a driver or grid.
 
 <Option type="Number" default="3">
 
-Maximum count of request retries to the Selenium server.
+Maximum count of request retries to the WebDriver server, for network failures, retryable HTTP status codes and `unknown error`. A well-formed W3C error, such as `session not created` or `timeout`, is not retried.
 
 </Option>
 
@@ -508,7 +508,7 @@ Services take over a specific job you don't want to take care of. They enhance y
 
 ### framework
 
-<Option type="String" default="mocha" values="mocha | jasmine | cucumber">
+<Option type="String" default="mocha" values="mocha | jasmine | cucumber | vitest">
 
 Defines the test framework to be used by the WDIO testrunner.
 
@@ -518,7 +518,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 <Option type="Object" default={`{ timeout: 10000 }`}>
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
+Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks). With Vitest, the key is [`vitestOpts`](./Frameworks.md#vitest-options).
 
 </Option>
 

@@ -20,7 +20,7 @@ You need:
 
 - a WebDriver BiDi session (the default, unless you set `'wdio:enforceWebDriverClassic': true`),
 - the `'wdio:experimentalBiDiCommands': true` capability,
-- `@wdio/mocha-framework` or `@wdio/cucumber-framework`. Jasmine does not support parallel mode.
+- `@wdio/mocha-framework` or `@wdio/cucumber-framework`. Jasmine does not support parallel mode. With Vitest, use `test.concurrent` and [`vitestOpts.parallelMode`](./Frameworks.md#vitest-options).
 
 Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
 
