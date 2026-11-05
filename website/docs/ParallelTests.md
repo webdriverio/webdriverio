@@ -22,6 +22,8 @@ You need:
 - the `'wdio:experimentalBiDiCommands': true` capability,
 - `@wdio/mocha-framework` or `@wdio/cucumber-framework`. Jasmine does not support parallel mode.
 
+Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
+
 If the session does not use BiDi, or the capability is missing, WebdriverIO logs a warning and runs the tests one after another. Without `parallelMode`, nothing changes.
 
 ### Mocha
