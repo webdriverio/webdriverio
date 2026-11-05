@@ -17,37 +17,37 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 | Feature | WebdriverIO | Selenium | Nightwatch | Python |
 |---|---|---|---|---|
-| Trace mode + `show-trace` player | ✅ | ✅ | ✅ | ✅ |
-| DOM time-travel (mutation capture) | ✅ | ⚠️ with BiDi ¹ | ⚠️ with BiDi ¹ | ✅ |
-| Network requests (browser sessions) | ✅ | ⚠️ with BiDi ² | ⚠️ with BiDi ³ | ✅ |
-| Screencast (`filmstrip` / video) | ✅ CDP push (Chrome), polling elsewhere | ✅ CDP push (Chromium), polling elsewhere | ⚠️ polling only ⁴ | ✅ CDP push (Chromium), one frame per command elsewhere |
-| Per-test granularity (`traceGranularity: 'test'`) | ✅ | ✅ | ⚠️ ⁵ | ✅ |
-| Retry-aware retention (`tracePolicy`) | ✅ | ✅ | ⚠️ `retain-on-failure` only ⁶ | ⚠️ `retain-on-failure` only ⁷ |
-| Per-test `screenshot` / `video`, attached to Allure | ✅ | ✅ | ⚠️ produce-only ⁸ | ❌ ⁹ |
-| Cucumber Feature→Scenario→Step nesting | ⚠️ Scenario→Step ¹⁰ | ✅ | ⚠️ Feature→Scenario ¹¹ | ❌ ¹² |
-| Assertion capture (`captureAssertions`) | ✅ | ⚠️ `node:assert` only ¹³ | ⚠️ no `expect` ¹⁴ | ✅ |
-| BiDi console / network capture | ✅ auto | ✅ auto | ⚠️ opt-in ¹⁵ | ✅ auto |
-| A11y tab + pick-locator overlay (trace player) | ✅ | ✅ | ✅ | ✅ |
-| Transcript + Copy-for-LLM (trace player) | ✅ | ✅ | ✅ | ✅ |
-| One row per command in the Actions list | ✅ | ✅ | ✅ | ✅ |
-| Waits show as one row with what they issued nested under it | ✅ | ✅ | ⚠️ no element-wait polls ¹⁶ | ✅ |
-| Screenshot on every command row | ✅ | ✅ | ✅ | ✅ |
-| Browser console logs | ✅ | ✅ | ✅ | ✅ |
-| Source tab opens the test line that ran the command | ✅ | ✅ | ✅ | ✅ |
-| Metadata tab (session, capabilities, device) | ✅ | ✅ | ✅ | ✅ |
-| Performance timings on navigation rows | ✅ | ✅ | ✅ | ✅ |
-| Failed command in the Errors tab, with the browser's message | ✅ | ✅ | ✅ | ✅ |
-| Run, Rerun and Run all from the dashboard | ⚠️ no Cucumber step rerun ¹⁷ | ⚠️ no Cucumber step rerun ¹⁷ | ⚠️ no Cucumber step rerun ¹⁷ | ✅ |
-| Preserve & Rerun (compare a failed run with its rerun) | ✅ | ✅ | ✅ | ✅ |
-| Dashboard window opens by itself in live mode, and can be turned off | ⚠️ always opens ¹⁸ | ✅ `openUi: false` | ⚠️ always opens ¹⁹ | ✅ `DEVTOOLS_OPEN=0` |
-| Turn off per-command screenshots (`captureScreenshots`) | ❌ ²⁰ | ✅ | ❌ ²¹ | ❌ ²¹ |
-| Force the test browser headless (`headless`) | ❌ ²² | ⚠️ Chrome only ²³ | ❌ ²² | ❌ ²² |
-| Safari kept frontmost so input lands (live mode) | ⚠️ once ²⁴ | ✅ before each element input | ⚠️ once ²⁴ | ⚠️ once ²⁴ |
-| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✅ | ✅ | ✅ | ❌ zip only ²⁵ |
-| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✅ | ✅ | ⚠️ opt-in ²⁶ | ❌ ²⁷ |
-| Network without BiDi (Safari, Appium mobile browsers) | ⚠️ ²⁸ | ⚠️ ²⁸ | ⚠️ ²⁸ | ⚠️ ²⁸ |
+| Trace mode + `show-trace` player | ✓ | ✓ | ✓ | ✓ |
+| DOM time-travel (mutation capture) | ✓ | ◐ with BiDi ¹ | ◐ with BiDi ¹ | ✓ |
+| Network requests (browser sessions) | ✓ | ◐ with BiDi ² | ◐ with BiDi ³ | ✓ |
+| Screencast (`filmstrip` / video) | ✓ CDP push (Chrome), polling elsewhere | ✓ CDP push (Chromium), polling elsewhere | ◐ polling only ⁴ | ✓ CDP push (Chromium), one frame per command elsewhere |
+| Per-test granularity (`traceGranularity: 'test'`) | ✓ | ✓ | ◐ ⁵ | ✓ |
+| Retry-aware retention (`tracePolicy`) | ✓ | ✓ | ◐ `retain-on-failure` only ⁶ | ◐ `retain-on-failure` only ⁷ |
+| Per-test `screenshot` / `video`, attached to Allure | ✓ | ✓ | ◐ produce-only ⁸ | ✕ ⁹ |
+| Cucumber Feature→Scenario→Step nesting | ◐ Scenario→Step ¹⁰ | ✓ | ◐ Feature→Scenario ¹¹ | ✕ ¹² |
+| Assertion capture (`captureAssertions`) | ✓ | ◐ `node:assert` only ¹³ | ◐ no `expect` ¹⁴ | ✓ |
+| BiDi console / network capture | ✓ auto | ✓ auto | ◐ opt-in ¹⁵ | ✓ auto |
+| A11y tab + pick-locator overlay (trace player) | ✓ | ✓ | ✓ | ✓ |
+| Transcript + Copy-for-LLM (trace player) | ✓ | ✓ | ✓ | ✓ |
+| One row per command in the Actions list | ✓ | ✓ | ✓ | ✓ |
+| Waits show as one row with what they issued nested under it | ✓ | ✓ | ◐ no element-wait polls ¹⁶ | ✓ |
+| Screenshot on every command row | ✓ | ✓ | ✓ | ✓ |
+| Browser console logs | ✓ | ✓ | ✓ | ✓ |
+| Source tab opens the test line that ran the command | ✓ | ✓ | ✓ | ✓ |
+| Metadata tab (session, capabilities, device) | ✓ | ✓ | ✓ | ✓ |
+| Performance timings on navigation rows | ✓ | ✓ | ✓ | ✓ |
+| Failed command in the Errors tab, with the browser's message | ✓ | ✓ | ✓ | ✓ |
+| Run, Rerun and Run all from the dashboard | ◐ no Cucumber step rerun ¹⁷ | ◐ no Cucumber step rerun ¹⁷ | ◐ no Cucumber step rerun ¹⁷ | ✓ |
+| Preserve & Rerun (compare a failed run with its rerun) | ✓ | ✓ | ✓ | ✓ |
+| Dashboard window opens by itself in live mode, and can be turned off | ◐ always opens ¹⁸ | ✓ `openUi: false` | ◐ always opens ¹⁹ | ✓ `DEVTOOLS_OPEN=0` |
+| Turn off per-command screenshots (`captureScreenshots`) | ✕ ²⁰ | ✓ | ✕ ²¹ | ✕ ²¹ |
+| Force the test browser headless (`headless`) | ✕ ²² | ◐ Chrome only ²³ | ✕ ²² | ✕ ²² |
+| Safari kept frontmost so input lands (live mode) | ◐ once ²⁴ | ✓ before each element input | ◐ once ²⁴ | ◐ once ²⁴ |
+| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✓ | ✓ | ✓ | ✕ zip only ²⁵ |
+| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✓ | ✓ | ◐ opt-in ²⁶ | ✕ ²⁷ |
+| Network without BiDi (Safari, Appium mobile browsers) | ◐ ²⁸ | ◐ ²⁸ | ◐ ²⁸ | ◐ ²⁸ |
 
-✅ supported. ⚠️ partial, with the limit in the note below. ❌ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
+✓ supported. ◐ partial, with the limit in the note below. ✕ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Without BiDi (Safari, Appium) the page collector is injected after each navigation, so a page the test leaves within tens of milliseconds is never captured.
 

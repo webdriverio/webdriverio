@@ -34,14 +34,14 @@ All four adapters detect a native session and skip page-side capture on one. The
 
 | Feature | WebdriverIO | Selenium | Nightwatch | Python |
 |---|---|---|---|---|
-| Network without BiDi (Safari, Appium mobile browsers) | ⚠️ ¹ | ⚠️ ¹ | ⚠️ ¹ | ⚠️ ¹ |
-| Mobile browser sessions (Chrome on Android, Safari on iOS) | ✅ | ✅ | ✅ | ✅ |
-| iOS (XCUITest): native apps and Safari | ✅ | ✅ | ✅ | ✅ |
-| Native session detected, page-side capture skipped | ✅ | ✅ | ✅ | ✅ |
-| Follows a hybrid app into its webview | ⚠️ string form only ² | ⚠️ ³ | ⚠️ ³ | ⚠️ ³ |
-| Native app network through appium-interceptor (`appium:intercept`) | ✅ Android | ✅ Android | ✅ Android | ✅ Android |
+| Network without BiDi (Safari, Appium mobile browsers) | ◐ ¹ | ◐ ¹ | ◐ ¹ | ◐ ¹ |
+| Mobile browser sessions (Chrome on Android, Safari on iOS) | ✓ | ✓ | ✓ | ✓ |
+| iOS (XCUITest): native apps and Safari | ✓ | ✓ | ✓ | ✓ |
+| Native session detected, page-side capture skipped | ✓ | ✓ | ✓ | ✓ |
+| Follows a hybrid app into its webview | ◐ string form only ² | ◐ ³ | ◐ ³ | ◐ ³ |
+| Native app network through appium-interceptor (`appium:intercept`) | ✓ Android | ✓ Android | ✓ Android | ✓ Android |
 
-✅ supported. ⚠️ partial, with the limit in the note below. ❌ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
+✓ supported. ◐ partial, with the limit in the note below. ✕ not supported. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
