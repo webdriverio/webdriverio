@@ -103,6 +103,8 @@ In a WebDriver BiDi session, runs element commands and browser commands like `ge
 }
 ```
 
+Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
+
 </Option>
 
 #### `wdio:electronVersion`
