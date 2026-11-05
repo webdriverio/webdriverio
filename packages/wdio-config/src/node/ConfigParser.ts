@@ -364,11 +364,6 @@ export default class ConfigParser {
             exclude = [...exclude, ...<string[]>ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
         }
 
-        // only use capability specs if (CLI) --spec is not defined
-        if (!isSpecParamPassed && Array.isArray(capSpecs)) {
-            specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
-        }
-
         // handle case where user passes --suite via CLI
         if (suites.length > 0) {
             let suiteSpecs: Spec[] = []
@@ -396,6 +391,11 @@ export default class ConfigParser {
 
             // Allow --suite and --spec to both be defined on the command line
             specs = isSpecParamPassed ? [...specs, ...suiteSpecs] : suiteSpecs
+        }
+
+        // Capability specs override config specs and suites, but not an explicit CLI --spec.
+        if (!isSpecParamPassed && Array.isArray(capSpecs)) {
+            specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
         // Remove any duplicate tests from the final specs array
