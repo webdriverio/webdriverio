@@ -194,7 +194,7 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
-`autoAssertOnTestEnd: false` now takes effect. v9 ignored it, so soft assertion failures always failed the test. If you set it, call the assert method in your tests, or remove the option: else a soft assertion failure no longer fails the test.
+`autoAssertOnTestEnd: false` now takes effect. v9 ignored it, so soft assertion failures always failed the test. If you set it, call `expect.assertSoftFailures()` in your tests, or remove the option: else a soft assertion failure no longer fails the test.
 
 ## Driver packages
 
@@ -277,7 +277,7 @@ The `tunnelIdentifier` and `parentTunnel` aliases were removed from the Sauce La
 
 ## `--shard`
 
-`--shard` is one-based. In v9, `--shard 0/4` ran no spec and passed. It now fails with `the "shard.current" value has to be an integer between 1 and "shard.total"`. A CI matrix with a 0-based index must use 1 to 4.
+`--shard` is one-based. In v9, `--shard 0/4` ran no spec and passed, and `--shard 0/1` ran all specs. Both now fail with `the "shard.current" value has to be an integer between 1 and "shard.total"`. A CI matrix with a 0-based index must use 1 to 4.
 
 ## TypeScript
 
@@ -409,9 +409,9 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
 
 ### Custom reporters with Cucumber
 
-In a sequential run, Cucumber now sends `test:end` after each step (or each scenario with `scenarioLevelReporter`), so `onTestEnd` runs as with Mocha and Jasmine. Finish your work for a test in `onTestEnd`. A reporter that does this work in `onTestPass` or `onTestFail` as well as in `onTestEnd`, because Cucumber did not send `onTestEnd`, now does it 2 times.
+In a sequential run, Cucumber now sends `test:end` after each step (or each scenario with `scenarioLevelReporter`), so `onTestEnd` runs as with Mocha and Jasmine. A scenario attempt that Cucumber runs again with `scenarioLevelReporter` ends with `onTestRetry` and gets no `onTestEnd`. Finish your work for a test in `onTestEnd`, and for such an attempt in `onTestRetry`. A reporter that does this work in `onTestPass` or `onTestFail` as well as in `onTestEnd`, because Cucumber did not send `onTestEnd`, now does it 2 times.
 
-The step that fails in an attempt that Cucumber runs again now calls `onTestRetry`, not `onTestFail`, and `onSuiteRetry` removes that attempt from `this.counts`. See [Custom Reporter](/docs/customreporter).
+The step that fails in an attempt that Cucumber runs again now calls `onTestRetry`, not `onTestFail`. WebdriverIO removes that attempt from `this.counts` before it calls `onSuiteRetry`. See [Custom Reporter](/docs/customreporter).
 
 ### Allure
 
@@ -419,7 +419,7 @@ The step that fails in an attempt that Cucumber runs again now calls `onTestRetr
 
 ### JSON reporter
 
-`state.failed` counts only the last attempt of a retried test. In v9, it counted each failed attempt. The earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`: skip them when your script counts tests.
+`state.failed` counts only the last attempt of a retried test. In v9, it counted each failed attempt. With Mocha `retries`, Cucumber `retry` with `scenarioLevelReporter` and Vitest `retry`, the earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`: skip them when your script counts tests. With Cucumber `retry` at step level, the earlier attempts are not in the file. With Vitest, a hook of a retried attempt, and a hook whose error is the failure of its test, do not count in `state.failed`.
 
 ### JUnit reporter
 
@@ -1043,7 +1043,7 @@ A matched JavaScript file that is not in the TypeScript project, such as `wdio.c
 
 ## Shared store service
 
-`get`, `getValue` and `getValueFromPool` of `@wdio/shared-store-service` return a stored `null` as `null`. In v9, they returned `undefined`. A key that does not exist still returns `undefined`. If you clear a value with `set(key, null)`, also check for `null`.
+`get`, `getValue` and `getValueFromPool` of `@wdio/shared-store-service` return a stored `null` as `null`. In v9, they returned `undefined`. `get` and `getValue` still return `undefined` for a key that does not exist. If you clear a value with `set(key, null)`, also check for `null`.
 
 ## WebDriver protocol
 
@@ -1096,7 +1096,7 @@ A flat capability object in your config is still valid. WebdriverIO wraps `{ bro
 
 A command result is `{ "value": … }`. HTTP 200 with no `error` in `value` is success. A missing element is HTTP 404 with `value.error` set to `"no such element"`, which still allows a lazy element lookup. A numeric `status` on the body is ignored, including `status: 0` and the old `status: 7` ("no such element") code. Send the W3C error object instead.
 
-A well-formed W3C error, such as `session not created`, `timeout`, `script timeout`, `javascript error` or `unknown command`, is not retried. In v9, WebdriverIO sent these requests again, up to [`connectionRetryCount`](/docs/configuration#connectionretrycount) times. That option still applies to network failures, retryable HTTP status codes and `unknown error`. If a Grid or cloud service can refuse a session for a short time, use [`specFileRetries`](/docs/retry#add-retries-on-a-per-specfile-basis).
+Most well-formed W3C errors, such as `session not created`, `timeout`, `script timeout`, `javascript error` or `unknown command`, are not retried. In v9, WebdriverIO sent these requests again, up to [`connectionRetryCount`](/docs/configuration#connectionretrycount) times. That option still applies to network failures, retryable HTTP status codes and `unknown error`. If a Grid or cloud service can refuse a session for a short time, use [`specFileRetries`](/docs/retry#add-retries-on-a-per-specfile-basis).
 
 The exported error type `JSONWPCommandError` is now `SessionRequestError`.
 

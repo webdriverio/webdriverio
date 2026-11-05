@@ -210,6 +210,8 @@ Or, exclude a spec file when filtering using a suite:
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
+A relative `--exclude` path is resolved from the working folder, then from the folder of the config file. Each value is a path or a keyword on its own, so you can mix them. A path that matches no file next to a keyword logs a warning; without a keyword, it is an error.
+
 If the `--exclude` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
 
 To exclude all specs with the word “dialog” in the spec file names, you could use:
@@ -240,7 +242,7 @@ In this example, if `signup` is a defined suite name, that suite will be exclude
 If you specify both `--suite X` and `--exclude X`, the exclusion takes precedence and suite `X` will not run.
 :::
 
-When the `--exclude` option is provided, it will override any patterns defined by the config `exclude` or a capability's `wdio:exclude`.
+When the `--exclude` option is provided, it replaces the patterns of the config `exclude`. A capability's `wdio:exclude` still applies.
 
 ## Run Suites and Test Specs
 
@@ -298,7 +300,7 @@ Please see [Options Page](configuration) for additional information on the bail 
 When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
 
 > CLI `--spec` argument > capability `wdio:specs` > config `specs`
-> CLI `--exclude` argument > config `exclude` > capability `wdio:exclude`
+> CLI `--exclude` argument > config `exclude`. A capability's `wdio:exclude` is always added.
 
 If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
 

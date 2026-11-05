@@ -341,7 +341,7 @@ export const config = {
     afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine only)
+     * Function to be executed before a test (in Mocha, Jasmine and Vitest only)
      * @param {object} test    test object
      * @param {object} context scope object the test was executed with
      */
@@ -364,7 +364,7 @@ export const config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine only)
+     * Function to be executed after a test (in Mocha, Jasmine and Vitest only)
      * @param {object}  test             test object
      * @param {object}  context          scope object the test was executed with
      * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`

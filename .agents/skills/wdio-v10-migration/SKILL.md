@@ -80,18 +80,21 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `if (list[i])` or `list.at(i) === undefined` on a `$$()` list, to check that an item exists | `const list = await $$(...)`, then `if (list.length > i)`. An index past the end of a `$$(selector)` list is an element that waits `waitforTimeout`, not `undefined`, also after `await`. After `await`, a negative index and a list from `slice()` or `filter()` give `undefined`. Before `await`, `list[i]` with an integer index of 0 or more, and `at()`, give a truthy promise; `filter()` gives a promise: await it before you read an index. |
 | `$$(...).length` without `await` | `await $$(...).length`. Before `await`, `length` is a promise, with no error: `>` and `<` give `false` (an index loop runs 0 times), `if (length)` and `!== 0` give `true`. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
-| `setValue(` on a `date`, `time`, `range` or `color` input with a locale format, or a test that waits for key events on it | pass the format of the input (`2026-10-04`, `14:30`, `#rrggbb`, a number). `setValue` sets the value directly and fires only `input` and `change`. A value that the browser cannot parse throws, and so does an empty value on a range. |
+| `setValue(` on a `range`, `date`, `datetime-local`, `month`, `week`, `time` or `color` input with a locale format, or a test that waits for key events on it | pass the format of the input (`2026-10-04`, `14:30`, `#rrggbb`, a number). `setValue` sets the value directly and fires only `input` and `change`. A value that the browser cannot parse throws, and so does an empty value on a range. |
 | `$('=text')` or `$('*=text')` on an element that is not a link, in a BiDi session | `$('button=text')`, `$('button*=text')` or `$('aria/text')`. These selectors now match only links. |
 | `mock.calls` read after `browser.reloadSession()`, or a mock used again after it | read `calls` before the reload, and create the mock again after it. `reloadSession()` restores the mocks of the old session. |
-| a `=== undefined` check on the result of `sharedStore.get`, `getValue` or `getValueFromPool` | also check `null`: a stored `null` now returns `null`. A missing key still returns `undefined`. |
+| a `=== undefined` check on the result of `sharedStore.get`, `getValue` or `getValueFromPool` | also check `null`: a stored `null` now returns `null`. `get` and `getValue` still return `undefined` for a missing key. |
 | `setGlobalDispatcher` from your own `undici` | update `undici` to 8. A dispatcher from `undici` 6, or 7 older than 7.27, is not seen, and requests skip the proxy with no error. |
-| `--shard 0/N` | `--shard` is one-based: use 1 to N. `0/N` ran no spec in v9, and it now fails. |
+| `autoAssertOnTestEnd: false` | it now takes effect. Call `expect.assertSoftFailures()` in the tests, or remove the option: else a soft assertion failure no longer fails the test. |
+| a script that reads `state.failed` of `@wdio/json-reporter`, or counts `suites[].tests` by `state` | `state.failed` counts only the last attempt of a retried test. Skip tests with `retried: true` when you count. See the guide. |
+| `--shard 0/N` | `--shard` is one-based: use 1 to N. `0/N` now fails. In v9, it ran no spec (`0/1` ran all specs). |
 | `driver.stopRecordingScreen('url', undefined, undefined, 'POST')` | `driver.stopRecordingScreen({ remotePath: 'url', method: 'POST' })` |
 | `params.result.result` in `afterAssertion` | `params.result.pass` |
 | `let elem: ChainablePromiseElement = await $(...)`, `let elems: ChainablePromiseArray = await $$(...)` | `WebdriverIO.Element`, `WebdriverIO.ElementArray` |
 | `respond(..., { fetchResponse: false })` on a mock with a `statusCode` or `responseHeaders` filter | it throws. Remove the filter, or remove `fetchResponse: false`. |
-| `const [a, b] = await browser.custom$(...)`, also `custom$$`, `react$`, `react$$` | one multi-remote result: `result.getInstance('name')`. See the guide. |
-| sync `.map(`, `.filter(`, `.find(` on a multi-remote `$$()` list | `await` the result: these methods are async, also after `await`. |
+| `const [a, b] = await browser.custom$(...)`, also `react$`, and on an element `shadow$`, `nextElement`, `previousElement`, `parentElement` | one multi-remote element: `result.getInstance('name')`. |
+| `const [a, b] = await browser.custom$$(...)`, also `react$$`, and on an element `shadow$$` | one multi-remote list. Each entry addresses every instance: `result[0].getInstance('name')`. |
+| sync `map`, `filter`, `forEach`, `find`, `findIndex`, `some`, `every` or `reduce` on a multi-remote `$$()`, `custom$$()`, `react$$()` or `shadow$$()` list | `await` the result: these methods are async, also after `await`. |
 | `--allow-insecure=adb_shell` for Appium | add a driver or `*` scope: `uiautomator2:adb_shell` or `*:adb_shell`. |
 | `fn(() => ...)` from `@wdio/browser-runner`, for a mock that your code calls with `new` | `fn(function () { ... })` or a `class`. An arrow function throws `is not a constructor`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |

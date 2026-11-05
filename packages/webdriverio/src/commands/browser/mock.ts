@@ -42,8 +42,8 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  * :::info
  *
- * A second `mock` with the same URL pattern and the same filter options replaces the
- * first one: the first mock is restored, so it no longer changes requests or records
+ * A second `mock` with the same URL pattern, the same filter options and the same scope
+ * (session-wide, tab or parallel test) replaces the first one: the first mock is restored, so it no longer changes requests or records
  * calls. In a URL pattern, `*` already matches any characters, `/` included, and in a
  * string pattern WebdriverIO changes `**` to `*`: `'**' + '/api'` and `'*' + '/api'`
  * are the same pattern. To keep both mocks, give them different filter options.

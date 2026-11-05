@@ -204,7 +204,7 @@ Sometimes "does it work" means "does it look right", and sometimes "the app" is 
 
 v10 removes a lot of old code, which makes WebdriverIO smaller, faster and easier for humans and agents to reason about:
 
-- Node.js **22.19** is the minimum version.
+- Node.js **22.19** is the minimum version. Update: the floor is now Node.js 22.23.4, 24.22.1 or 26.12.1, see the [migration guide](/docs/v10-migration#nodejs).
 - Every session is a **W3C session**. The last parts of the JSON Wire Protocol are gone.
 - **Appium 3** is required, and the Appium 1/2 HTTP fallbacks are removed.
 - **Mocha 12**, **Cucumber 13** and **Vitest 5**.
