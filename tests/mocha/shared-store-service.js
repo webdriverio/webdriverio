@@ -21,7 +21,7 @@ describe('Shared store service', () => {
         assert.equal(await browser.sharedStore.get('boolean'), true)
         assert.equal(await browser.sharedStore.get('number'), 123)
         assert.equal(await browser.sharedStore.get('string'), 'foobar')
-        assert.equal(await browser.sharedStore.get('null'), null)
+        assert.strictEqual(await browser.sharedStore.get('null'), null)
     })
 
     it('should be able to fetch all key/value pairs', async () => {
@@ -53,5 +53,10 @@ describe('Shared store service', () => {
         assert.equal(value1, 3)
         assert.equal(value2, 2)
         assert.equal(value3, 1)
+    })
+
+    it('should return a null value from the resource pool', async () => {
+        await browser.sharedStore.setResourcePool('null-pool', [null])
+        assert.strictEqual(await browser.sharedStore.getValueFromPool('null-pool'), null)
     })
 })

@@ -36,7 +36,7 @@ export const getValue = async (key: string): Promise<string | number | boolean |
         headers
     }).catch(errHandler)
     const responseBody = await res.json()
-    return responseBody.value ?? undefined
+    return responseBody.value
 }
 
 /**
@@ -88,7 +88,7 @@ export const getValueFromPool = async (key: string, options?: GetValueOptions) =
         headers
     }).catch(errHandler)
     const responseBody = await res.json()
-    return responseBody.value ?? undefined
+    return responseBody.value
 }
 
 /**
