@@ -1,6 +1,7 @@
 import type { URLPattern } from 'urlpattern-polyfill'
 import type { local, remote } from 'webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
+import { encodeBase64 } from '../base64.js'
 
 type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
 
@@ -24,7 +25,7 @@ export function parseOverwrite<
             ? bodyOverwrite
             : typeof bodyOverwrite === 'string'
                 ? { type: 'string', value: bodyOverwrite }
-                : { type: 'base64', value: btoa(JSON.stringify(bodyOverwrite || '')) }
+                : { type: 'base64', value: encodeBase64(new TextEncoder().encode(JSON.stringify(bodyOverwrite || ''))) }
     }
 
     if ('headers' in overwrite) {
