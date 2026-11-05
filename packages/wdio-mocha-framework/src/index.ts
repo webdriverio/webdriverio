@@ -267,6 +267,8 @@ class MochaAdapter {
                 this._runner.suite.afterAll('afterSuite', this.wrapHook('afterSuite'))
             }
         })
+        // after the run, Mocha's listeners swallow a late rejection and throw a late error again: let the runner handle them
+        this._runner?.dispose()
         return this._finalize(result, runtimeError)
     }
 

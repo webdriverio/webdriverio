@@ -382,6 +382,10 @@ const jasmineLateRejection = () => lateRejection('jasmineLateRejection', 'jasmin
     path.resolve(__dirname, 'jasmine', 'late-rejection.js')
 ])
 
+const mochaLateRejection = () => lateRejection('mochaLateRejection', 'mocha', [
+    path.resolve(__dirname, 'mocha', 'late-rejection.js')
+], path.resolve(__dirname, 'helpers', 'mocha-late-rejection.conf.js'))
+
 const cucumberLateRejection = () => lateRejection('cucumberLateRejection', 'cucumber', [
     path.resolve(__dirname, 'cucumber', 'late-rejection.feature')
 ], path.resolve(__dirname, 'helpers', 'cucumber-late-rejection.conf.js'))
@@ -1863,6 +1867,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineAfterAll,
         jasmineFailingAfterAll,
         jasmineLateRejection,
+        mochaLateRejection,
         cucumberLateRejection,
         jasmineFailSpecWithNoExpectations,
         retryFail,
