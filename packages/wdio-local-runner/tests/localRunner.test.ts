@@ -104,18 +104,33 @@ test('should shut down worker processes', async () => {
     })
     worker2['_handleMessage']({ name: 'ready' } as any)
     await sleep()
-    setTimeout(() => {
-        worker1.isBusy = false
+
+    // fake timers: with real timers, a pause of the process over 20 ms moves the checks after worker 2 is free
+    vi.useFakeTimers()
+    try {
         setTimeout(() => {
-            worker2.isBusy = false
+            worker1.isBusy = false
+            setTimeout(() => {
+                worker2.isBusy = false
+            }, 260)
         }, 260)
-    }, 260)
 
-    const before = Date.now()
-    await runner.shutdown()
-    const after = Date.now()
+        let resolved = false
+        const shutdown = runner.shutdown().then((result) => {
+            resolved = true
+            return result
+        })
 
-    expect(after - before).toBeGreaterThanOrEqual(740)
+        // checks every 250 ms: worker 2 is still busy at 500 ms and free at 750 ms
+        await vi.advanceTimersByTimeAsync(500)
+        expect(resolved).toBe(false)
+        await vi.advanceTimersByTimeAsync(250)
+        expect(resolved).toBe(true)
+        expect(await shutdown).toBe(true)
+    } finally {
+        vi.useRealTimers()
+    }
+
     const call1: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call1.cid).toBe('0-5')
     expect(call1.command).toBe('endSession')
