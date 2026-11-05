@@ -1047,7 +1047,7 @@ export default class VideoReporter extends WdioReporter {
     }
 
     /**
-     * the Allure reporter supports parallel mode only with Mocha: with Cucumber it would add the video
+     * with Cucumber in parallel mode, this reporter cannot target a scenario: it would add the video
      * and the arguments to the scenario that started last, also for a failFast skip without a window
      */
     #isAllureUnsupported (key: string) {
@@ -1130,7 +1130,7 @@ export default class VideoReporter extends WdioReporter {
         if (this.#isAllureUnsupported(key)) {
             if (!this.#warnedAllureParallel) {
                 this.#warnedAllureParallel = true
-                const message = '@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure'
+                const message = 'With Cucumber in parallel mode, the video reporter attaches no videos to Allure'
                 log.warn(message)
                 // also in the terminal: with `outputDir`, WebdriverIO writes the worker log only to a file
                 console.warn(`[@wdio/video-reporter] ${message}`)

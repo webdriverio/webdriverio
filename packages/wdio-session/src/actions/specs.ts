@@ -220,7 +220,7 @@ export const ACTIONS = [
             'Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.',
             'Every snapshot is written to the artifacts dir. Output longer than --max-chars is printed in parts: the first part, then `--offset <line>` for the next one. `find` searches all of it.',
             'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.',
-            '`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed; --offset does not apply. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.'
+            '`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed. --offset above 1 and a web --viewport are usage errors. A diff longer than --max-chars is cut at a line and names the snapshot file. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.'
         ].join('\n'),
         options: {
             depth: { type: 'number', desc: 'Maximum depth' },

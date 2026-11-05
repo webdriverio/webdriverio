@@ -456,7 +456,7 @@ describe('Allure in parallel mode', () => {
         const allure = await import('@wdio/allure-reporter')
         expect(allure.addAttachment).not.toBeCalled()
         expect(logMock.warn).toBeCalledTimes(1)
-        expect(logMock.warn).toBeCalledWith('@wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+        expect(logMock.warn).toBeCalledWith('With Cucumber in parallel mode, the video reporter attaches no videos to Allure')
     })
 
     it.each([
@@ -525,7 +525,7 @@ describe('Allure in parallel mode', () => {
             inContext('ctx-a')
             reporter.onSuiteStart({ uid: 's1', title: 's1', type: 'scenario', parentUid: 'f1', contextId: 'ctx-a' } as any)
 
-            expect(consoleWarn).toBeCalledWith('[@wdio/video-reporter] @wdio/allure-reporter does not support parallel mode with Cucumber: the videos are not attached to Allure')
+            expect(consoleWarn).toBeCalledWith('[@wdio/video-reporter] With Cucumber in parallel mode, the video reporter attaches no videos to Allure')
         } finally {
             consoleWarn.mockRestore()
         }
