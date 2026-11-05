@@ -31,7 +31,7 @@ export const getValue = async (key: string): Promise<string | number | boolean |
         throw new Error('Attempting to use `getValue` before the server has been initialized.')
     }
     const baseUrl = await baseUrlPromise
-    const res = await fetch(`${baseUrl}/${key}`, {
+    const res = await fetch(`${baseUrl}/${encodeURIComponent(key)}`, {
         method: 'get',
         headers
     }).catch(errHandler)
@@ -83,7 +83,7 @@ export const getValueFromPool = async (key: string, options?: GetValueOptions) =
         throw new Error('Attempting to use `getValueFromPool` before the server has been initialized.')
     }
     const baseUrl = await baseUrlPromise
-    const res = await fetch(`${baseUrl}/pool/${key}${typeof options?.timeout === 'number' ? `?timeout=${options.timeout}` : '' }`, {
+    const res = await fetch(`${baseUrl}/pool/${encodeURIComponent(key)}${typeof options?.timeout === 'number' ? `?timeout=${options.timeout}` : '' }`, {
         method: 'get',
         headers
     }).catch(errHandler)
@@ -101,7 +101,7 @@ export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCom
         throw new Error('Attempting to use `addValueToPool` before the server has been initialized.')
     }
     const baseUrl = await baseUrlPromise
-    const res = await fetch(`${baseUrl}/pool/${key}`, {
+    const res = await fetch(`${baseUrl}/pool/${encodeURIComponent(key)}`, {
         method: 'post',
         body: JSON.stringify({ value }),
         headers
