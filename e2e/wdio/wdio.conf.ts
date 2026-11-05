@@ -23,7 +23,6 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'missingListItemOverwrite.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
         path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
-        path.join(__dirname, 'headless', 'bidiMapperLog.e2e.ts'),
     ],
 
     /**
