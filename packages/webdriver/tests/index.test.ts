@@ -75,6 +75,17 @@ describe('WebDriver', () => {
     })
 
     describe('newSession', () => {
+        it('rejects unsupported protocol commands without a request in a new session', async () => {
+            const client = await WebDriver.newSession({
+                capabilities: { browserName: 'chrome', 'wdio:enforceWebDriverClassic': true }
+            })
+            vi.mocked(fetch).mockClear()
+
+            expect(typeof client.getMozContext).toBe('function')
+            await expect(client.getMozContext()).rejects.toThrow(/getMozContext.*not supported.*Gecko/)
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
         afterEach(() => {
             delete process.env.WDIO_LOG_PATH
 
@@ -315,6 +326,51 @@ describe('WebDriver', () => {
     })
 
     describe('attachToSession', () => {
+        it('rejects unsupported protocol commands without a request when attached', async () => {
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                capabilities: { browserName: 'chrome' }
+            })
+            vi.mocked(fetch).mockClear()
+
+            expect(typeof client.getMozContext).toBe('function')
+            await expect(client.getMozContext()).rejects.toThrow(/getMozContext.*not supported.*Gecko/)
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
+        it('keeps a user prototype override of an unsupported protocol command', async () => {
+            const getMozContext = vi.fn().mockResolvedValue('custom context')
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                capabilities: { browserName: 'chrome' }
+            }, undefined, { getMozContext: { value: getMozContext } })
+
+            await expect(client.getMozContext()).resolves.toBe('custom context')
+            expect(getMozContext).toHaveBeenCalledOnce()
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
+        it('allows explicit overwrites of an unsupported protocol command', async () => {
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                capabilities: { browserName: 'chrome' }
+            })
+            client.overwriteCommand('getMozContext', async () => 'custom context')
+            await expect(client.getMozContext()).resolves.toBe('custom context')
+
+            client.overwriteCommand('getMozContext', async (originalCommand) => `wrapped ${await originalCommand()}`)
+            await expect(client.getMozContext()).resolves.toBe('wrapped custom context')
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
+        it('keeps unrelated custom commands available', async () => {
+            const client = WebDriver.attachToSession({ ...sessionOptions })
+            client.addCommand('customExample', async () => 'custom result')
+            const custom = client as typeof client & { customExample(): Promise<string> }
+            await expect(custom.customExample()).resolves.toBe('custom result')
+            expect(fetch).not.toHaveBeenCalled()
+        })
+
         it('should allow to attach to existing session', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as unknown as TestClient
             await client.getUrl()
@@ -342,9 +398,9 @@ describe('WebDriver', () => {
             expect(client.isChromium).toBeFalsy()
             expect(client.isMobile).toBeFalsy()
             expect(client.isSauce).toBeFalsy()
-            expect(client.rotateDevice).toBeFalsy()
+            expect(typeof client.rotateDevice).toBe('function')
             expect(client.takeElementScreenshot).toBeTruthy()
-            expect(client.getDeviceTime).toBeFalsy()
+            expect(typeof client.getDeviceTime).toBe('function')
         })
 
         it('should allow to attach to existing session - mobile', async () => {

@@ -364,6 +364,42 @@ export function getPrototype ({ isChromium, isFirefox, isMobile, isSauce, isSele
         }
     }
 
+    /**
+     * Keep every known protocol command callable. Only fill missing names so the
+     * environment-specific merge above retains its endpoint and encoding choices.
+     */
+    const protocols: [string, Protocol][] = [
+        ['Appium', AppiumProtocol],
+        ['Chromium', ChromiumProtocol],
+        ['Gecko', GeckoProtocol],
+        ['Sauce Labs', SauceLabsProtocol],
+        ['Selenium', SeleniumProtocol]
+    ]
+    const unsupported = new Map<string, { protocols: Set<string>, ref: string }>()
+    for (const [protocolName, protocol] of protocols) {
+        for (const methods of Object.values(protocol)) {
+            for (const commandData of Object.values(methods)) {
+                if (prototype[commandData.command]) {
+                    continue
+                }
+                const details = unsupported.get(commandData.command) || { protocols: new Set<string>(), ref: commandData.ref }
+                details.protocols.add(protocolName)
+                unsupported.set(commandData.command, details)
+            }
+        }
+    }
+    for (const [name, details] of unsupported) {
+        prototype[name] = {
+            configurable: true,
+            value: async function unsupportedProtocolCommand () {
+                throw new Error(
+                    `The "${name}" command is not supported by this session. ` +
+                    `It requires ${[...details.protocols].join(' or ')} protocol support. For more information see ${details.ref}`
+                )
+            }
+        }
+    }
+
     return prototype
 }
 
