@@ -55,6 +55,16 @@ describe('Shared store service', () => {
         assert.equal(value3, 1)
     })
 
+    it('should keep keys that contain URL characters', async () => {
+        for (const key of ['with/slash', 'with?query', 'with#hash', 'with%percent', 'with space']) {
+            await browser.sharedStore.set(key, `value of ${key}`)
+            assert.equal(await browser.sharedStore.get(key), `value of ${key}`)
+            await browser.sharedStore.setResourcePool(key, [])
+            await browser.sharedStore.addValueToPool(key, `pool value of ${key}`)
+            assert.equal(await browser.sharedStore.getValueFromPool(key), `pool value of ${key}`)
+        }
+    })
+
     it('should return a null value from the resource pool', async () => {
         await browser.sharedStore.setResourcePool('null-pool', [null])
         assert.strictEqual(await browser.sharedStore.getValueFromPool('null-pool'), null)
