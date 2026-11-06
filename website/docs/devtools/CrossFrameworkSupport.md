@@ -6,7 +6,7 @@ description: "Compare how completely DevTools trace mode captures WebdriverIO, S
 
 The trace format and the `show-trace` player are identical across WebdriverIO / Selenium / Nightwatch; this page shows where capture completeness differs. For the full trace-mode reference, see [Trace Mode](/docs/devtools/wdio/trace-mode).
 
-The transforms that build a trace live in [`@wdio/devtools-trace`](https://github.com/webdriverio/devtools/tree/main/packages/trace), one layer below the adapters, so the **trace format and the `show-trace` player are identical for every adapter**: the same `.zip` (or directory) opens in the same player regardless of which produced it. The JavaScript adapters additionally share the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`).
+The transforms that build a trace live in [`@wdio/devtools-trace`](https://github.com/webdriverio/devtools/tree/main/packages/trace), one layer below the adapters, so the **trace format and the `show-trace` player are identical for every adapter**: the same `.zip` (or directory) opens in the same player regardless of which produced it. The JavaScript adapters additionally share the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`, `maskInputs`, `maskSelectors`).
 
 **Capture completeness varies by adapter**, though. WebdriverIO is the most complete; Selenium, Nightwatch and Python cover the core flow with the gaps noted below. Framework-specific enable syntax lives on each adapter page; see [Selenium](/docs/devtools/selenium#trace-mode) and [Nightwatch](/docs/devtools/nightwatch#trace-mode).
 
@@ -29,6 +29,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | BiDi console / network capture | ✓ ¹⁸ | ✓ ¹⁸ | ◐ ¹⁹ | ✓ ¹⁸ |
 | A11y tab + pick-locator overlay (trace player) | ✓ | ✓ | ✓ | ✓ |
 | Transcript + Copy-for-LLM (trace player) | ✓ | ✓ | ✓ | ✓ |
+| Password fields masked in the replayed page (`maskInputs`, `maskSelectors`) | ✓ | ✓ | ✓ | ✓ |
 | One row per command in the Actions list | ✓ | ✓ | ✓ | ✓ |
 | Waits show as one row with what they issued nested under it | ✓ | ✓ | ◐ ²⁰ | ✓ |
 | Screenshot on every command row | ✓ | ✓ | ✓ | ✓ |
