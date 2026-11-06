@@ -116,3 +116,9 @@ export const HOOK_DEFINITION = {
         }
     }
 }
+
+/**
+ * Chromium reports a document swap during a pending navigation with these messages. The context is not gone:
+ * the same call succeeds once the new document commits. See https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+ */
+export const CHROMIUM_CONTEXT_SWAP_MARKERS = ['Cannot find context with specified id', 'execution contexts cleared'] as const

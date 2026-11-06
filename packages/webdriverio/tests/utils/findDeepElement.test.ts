@@ -1,5 +1,7 @@
+import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
+import { logMock } from '@wdio/logger'
 import type * as WdioUtils from '@wdio/utils'
 
 /**
@@ -8,6 +10,9 @@ import type * as WdioUtils from '@wdio/utils'
 const mockGetShadowElementsByContextId = vi.fn()
 const mockForgetNode = vi.fn()
 const mockGetCurrentContext = vi.fn()
+const parallelStore = vi.hoisted(() => ({ value: undefined as string | undefined }))
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('@wdio/utils', async (importOriginal) => {
     const orig = await importOriginal<WdioUtils>()
@@ -29,7 +34,7 @@ vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({
         getCurrentContext: mockGetCurrentContext,
     })),
-    getParallelContextStore: () => ({ getStore: () => undefined }),
+    getParallelContextStore: () => ({ getStore: () => parallelStore.value }),
 }))
 
 vi.mock('is-plain-obj', () => ({
@@ -927,5 +932,127 @@ describe('findDeepElement(s) - link text', () => {
 
         expect(browser.execute).not.toHaveBeenCalled()
         expect(result.map((node) => node[ELEMENT_KEY])).toEqual(['n-1'])
+    })
+})
+
+describe('findDeepElement(s) - Chromium context swap during navigation', () => {
+    const SWAP_ERROR = 'WebDriver Bidi command "browsingContext.locateNodes" failed with error: unknown error - Cannot find context with specified id'
+    const CLEARED_ERROR = 'WebDriver Bidi command "browsingContext.locateNodes" failed with error: unknown error - execution contexts cleared'
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+        parallelStore.value = undefined
+    })
+
+    it('retries findDeepElement once after a context swap and returns the element without Classic or WARN', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error(SWAP_ERROR))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'node-1' }] })
+
+        const result = await findDeepElement.call(browser, '#where')
+
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'node-1' }))
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(2)
+        expect(browser.findElement).not.toHaveBeenCalled()
+        expect(logMock.warn).not.toHaveBeenCalled()
+    })
+
+    it('retries findDeepElements once after a context swap and returns the elements without Classic', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error(SWAP_ERROR))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'node-1' }, { sharedId: 'node-2' }] })
+
+        const result = await findDeepElements.call(browser, '#where')
+
+        expect(result.map((node) => node[ELEMENT_KEY])).toEqual(['node-1', 'node-2'])
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(2)
+        expect(browser.findElements).not.toHaveBeenCalled()
+    })
+
+    it('retries on the "execution contexts cleared" swap message too', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error(CLEARED_ERROR))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'node-1' }] })
+
+        const result = await findDeepElement.call(browser, '#where')
+
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'node-1' }))
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(2)
+    })
+
+    it('rethrows the second swap error in parallel mode', async () => {
+        parallelStore.value = 'parallel-ctx'
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error(SWAP_ERROR))
+            .mockRejectedValueOnce(new Error(CLEARED_ERROR))
+
+        await expect(findDeepElement.call(browser, '#where')).rejects.toThrow(CLEARED_ERROR)
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(2)
+        expect(browser.findElement).not.toHaveBeenCalled()
+    })
+
+    it('falls back to Classic after two swap errors outside parallel mode', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error(SWAP_ERROR))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'classic' })
+
+        const result = await findDeepElement.call(browser, '#where')
+
+        expect(result).toEqual({ [ELEMENT_KEY]: 'classic' })
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(2)
+        expect(browser.findElement).toHaveBeenCalledWith('css selector', '#where')
+    })
+
+    it('does not retry an unrelated unknown error', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('WebDriver Bidi command "browsingContext.locateNodes" failed with error: unknown error - something else'))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'classic' })
+
+        await findDeepElement.call(browser, '#where')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(1)
+    })
+
+    it('forgets a tracked shadow root named by a no-such-node error that follows a swap error', async () => {
+        mockGetShadowElementsByContextId
+            .mockReturnValueOnce(['shadow-1'])
+            .mockReturnValueOnce([])
+
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error(SWAP_ERROR))
+            .mockRejectedValueOnce(new Error('WebDriver Bidi command "browsingContext.locateNodes" failed with error: no such node - The node with the reference shadow-1 is not known'))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'node-1' }] })
+
+        const result = await findDeepElement.call(browser, '#where')
+
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'node-1' }))
+        expect(mockForgetNode).toHaveBeenCalledWith('ctx-1', 'shadow-1')
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(3)
+        expect(browser.findElement).not.toHaveBeenCalled()
+    })
+
+    it('recovers the aria XPath fallback in parallel mode after a swap error', async () => {
+        parallelStore.value = 'parallel-ctx'
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes
+            .mockResolvedValueOnce({ nodes: [] })
+            .mockRejectedValueOnce(new Error(SWAP_ERROR))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'aria-node' }] })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'aria-node',
+            locator: expect.objectContaining({ type: 'xpath' }),
+        })
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(3)
+        expect(browser.findElement).not.toHaveBeenCalled()
     })
 })

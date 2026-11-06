@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs, getWdioKind } from '@wdio/utils'
+import { CHROMIUM_CONTEXT_SWAP_MARKERS, executeHooksWithArgs, getWdioKind } from '@wdio/utils'
 import { wdioCustomMatchers } from 'expect-webdriverio'
 import { some } from 'expect-webdriverio/api'
 import { ELEMENT_KEY } from 'webdriver'
@@ -509,9 +509,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
         }).catch((err) => {
             /**
-             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             * a page swap during the check is not a test error
              */
-            if (err.message.includes('Cannot find context with specified id')) {
+            if (CHROMIUM_CONTEXT_SWAP_MARKERS.some((marker) => err.message.includes(marker))) {
                 return
             }
 

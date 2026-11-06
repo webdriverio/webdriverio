@@ -21,7 +21,7 @@ import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
 import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
 import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
-import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
+import { isParallelContextActive, locateNodesAcrossSwap, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
@@ -682,7 +682,7 @@ async function findAriaElementViaXPathFallback(
     const bidiOnly = isParallelContextActive()
     if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
-            const result = await browser.browsingContextLocateNodes({
+            const result = await locateNodesAcrossSwap(browser, {
                 locator: xpathLocator,
                 context,
                 startNodes
@@ -722,7 +722,7 @@ async function findAriaElementsViaXPathFallback(
     const bidiOnly = isParallelContextActive()
     if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
-            const result = await browser.browsingContextLocateNodes({
+            const result = await locateNodesAcrossSwap(browser, {
                 locator: xpathLocator,
                 context,
                 startNodes
@@ -851,7 +851,7 @@ export async function findDeepElement(
      * back-forward cache without a `navigationCommitted` event. Drop them and
      * search the current document instead of falling back to classic.
      */
-    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch(async (err: Error) => {
+    const locateNodes = () => locateNodesAcrossSwap(browser, { locator, context, startNodes }).catch(async (err: Error) => {
         /**
          * Only a tracked node the error names is gone. A stale scope element
          * is retried by the element middleware instead.
@@ -868,7 +868,7 @@ export async function findDeepElement(
         }
         const scope = (this as WebdriverIO.Element).elementId
         shadowRoots = await shadowRootManager.getShadowElementsByContextId(context, scope)
-        return browser.browsingContextLocateNodes({
+        return locateNodesAcrossSwap(browser, {
             locator,
             context,
             startNodes: scope
@@ -1057,7 +1057,7 @@ export async function findDeepElements(
      * back-forward cache without a `navigationCommitted` event. Drop them and
      * search the current document instead of falling back to classic.
      */
-    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch(async (err: Error) => {
+    const locateNodes = () => locateNodesAcrossSwap(browser, { locator, context, startNodes }).catch(async (err: Error) => {
         /**
          * Only a tracked node the error names is gone. A stale scope element
          * is retried by the element middleware instead.
@@ -1074,7 +1074,7 @@ export async function findDeepElements(
         }
         const scope = (this as WebdriverIO.Element).elementId
         shadowRoots = await shadowRootManager.getShadowElementsByContextId(context, scope)
-        return browser.browsingContextLocateNodes({
+        return locateNodesAcrossSwap(browser, {
             locator,
             context,
             startNodes: scope

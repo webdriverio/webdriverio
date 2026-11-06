@@ -15,7 +15,7 @@ import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAgent.js'
 import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
-import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
+import { UNICODE_CHARACTERS, HOOK_DEFINITION, CHROMIUM_CONTEXT_SWAP_MARKERS } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
 import {
     WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
@@ -76,6 +76,7 @@ export {
      */
     UNICODE_CHARACTERS,
     HOOK_DEFINITION,
+    CHROMIUM_CONTEXT_SWAP_MARKERS,
 
     /**
      * timing tracker

@@ -5,6 +5,7 @@ import { contextIdValue, heldBrowsingContext } from '../session/browsingContext.
 import { frameOffset } from './frameOffset.js'
 import { withScreenshotEvents } from './screenshotEvents.js'
 import { GET_VISIBLE_TEXT } from './thirdParty/getVisibleText.js'
+import { locateNodesAcrossSwap } from './bidi/locate.js'
 
 /**
  * Classic WebDriver element endpoints only see the session's current
@@ -336,7 +337,7 @@ async function findInContext (
      * `locateNodes` also searches below a detached start node
      */
     await inElement(held, elementId, () => null)
-    const { nodes } = await held.browser.browsingContextLocateNodes({
+    const { nodes } = await locateNodesAcrossSwap(held.browser, {
         context: held.contextId,
         locator,
         startNodes: [sharedRef(elementId)],
