@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 
 import logger from '@wdio/logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
@@ -47,6 +48,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 
 export default class ConfigParser {
     #isInitialised = false
+    #specCache = new Map<string, Spec[]>()
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
     private _capabilities?: Capabilities.TestrunnerCapabilities = []
@@ -81,6 +83,7 @@ export default class ConfigParser {
      * initializes the config object
      */
     async initialize(object: MergeConfig = {}) {
+        this.clearSpecCache()
         /**
          * only run auto compile functionality once but allow the config parse to be initialized
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
@@ -331,10 +334,41 @@ export default class ConfigParser {
     }
 
     /**
-     * determine what specs to run based on the spec(s), suite(s), exclude
-     * attributes from CLI, config and capabilities
+     * Refresh discovery after creating or removing spec files without changing the config.
      */
-    getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
+    clearSpecCache() {
+        this.#specCache.clear()
+    }
+
+    /**
+     * determine what specs to run based on the spec(s), suite(s), exclude
+     * attributes from CLI, config and capabilities. Pass { cache: true } only while
+     * the spec files are stable; clearSpecCache() starts a new discovery snapshot.
+     */
+    getSpecs(capSpecs?: Spec[], capExclude?: Spec[], { cache = false }: { cache?: boolean } = {}) {
+        // Only cache a stable scheduling snapshot. Programmatic callers and watch mode
+        // must discover added and removed files on every request.
+        const useCache = cache && !this._config.watch
+        if (!useCache) {
+            this.clearSpecCache()
+        }
+        const cacheKey = useCache ? createHash('sha256').update(JSON.stringify({
+            cwd: process.cwd(),
+            rootDir: this._config.rootDir,
+            specs: this._config.specs,
+            spec: this._config.spec,
+            exclude: this._config.exclude,
+            suites: this._config.suites,
+            suite: this._config.suite,
+            shard: this._config.shard,
+            repeat: this._config.repeat,
+            capSpecs,
+            capExclude
+        })).digest('hex') : undefined
+        const cached = cacheKey ? this.#specCache.get(cacheKey) : undefined
+        if (cached) {
+            return cached.map(spec => Array.isArray(spec) ? [...spec] : spec)
+        }
         const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length > 0
         const repeat = this._config.repeat
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
@@ -410,9 +444,11 @@ export default class ConfigParser {
             throw new Error('The --repeat flag requires that either the --spec or --suite flag is also set')
         }
 
-        return this.shard(
-            this.filterSpecs(specs, <string[]>exclude)
-        )
+        const selected = this.shard(this.filterSpecs(specs, <string[]>exclude))
+        if (cacheKey) {
+            this.#specCache.set(cacheKey, selected.map(spec => Array.isArray(spec) ? [...spec] : spec))
+        }
+        return selected
     }
 
     /**
