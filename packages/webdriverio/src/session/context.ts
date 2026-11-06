@@ -27,9 +27,11 @@ export class ContextManager extends SessionManager {
     #getContextSupport = true
     #currentWindowHandle?: string
     /**
-     * the handle of a `switchToWindow` and the current context before it, kept when the switch fails
+     * the handles of the `switchToWindow` commands without a result yet, and the context
+     * the driver is in while they run: the one before them, then the handle of each switch
+     * that succeeds. A switch that fails goes back to that context.
      */
-    #switchFrom?: { handle: string, context?: string }
+    #windowSwitches?: { pending: string[], context?: string }
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
     #onCommandListener: (event: { command: string, body: unknown }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
@@ -132,6 +134,16 @@ export class ContextManager extends SessionManager {
     }
 
     async #contextDestroyed(destroyed: local.BrowsingContextInfo) {
+        /**
+         * A `switchToWindow` that fails goes back to the context from before it. If that
+         * context is gone (e.g. the page removed the frame), the next command resolves the
+         * window the driver is in instead.
+         */
+        const switches = this.#windowSwitches
+        if (switches?.context && this.findContext(switches.context, [destroyed], 'byContextId')) {
+            switches.context = undefined
+        }
+
         /**
          * no need to do anything if the destroyed context is not the current one
          */
@@ -255,20 +267,23 @@ export class ContextManager extends SessionManager {
                 this.#currentWindowHandle = windowHandle
             }
 
-            /**
-             * Another switch can be in flight at the same time, e.g. the one to the first
-             * remaining window after `closeWindow`, so only the result of this switch counts.
-             */
-            const switchFrom = this.#switchFrom
-            if (switchFrom && switchFrom.handle === (event.body as { handle?: string } | undefined)?.handle) {
-                this.#switchFrom = undefined
-                /**
-                 * The driver stays in the window it was in (e.g. the handle is of a closed tab),
-                 * so BiDi commands go to that window again instead of the handle that failed,
-                 * unless a newer transition already changed the context.
-                 */
-                if (err && this.#currentContext === switchFrom.handle) {
-                    this.#currentContext = switchFrom.context
+            const switches = this.#windowSwitches
+            const handle = (event.body as { handle?: string } | undefined)?.handle
+            const index = switches && handle ? switches.pending.indexOf(handle) : -1
+            if (switches && index > -1) {
+                switches.pending.splice(index, 1)
+                if (!err) {
+                    switches.context = handle
+                } else if (this.#currentContext === handle) {
+                    /**
+                     * The driver stays in the window it was in (e.g. the handle is of a closed tab),
+                     * so BiDi commands go to that window again instead of the handle that failed,
+                     * unless a newer transition already changed the context.
+                     */
+                    this.#currentContext = switches.context
+                }
+                if (switches.pending.length === 0) {
+                    this.#windowSwitches = undefined
                 }
             }
         }
@@ -314,7 +329,16 @@ export class ContextManager extends SessionManager {
          */
         if (event.command === 'switchToWindow') {
             const { handle } = event.body as { handle: string }
-            this.#switchFrom = { handle, context: this.#currentContext }
+            const switches = this.#windowSwitches ??= { pending: [] }
+            /**
+             * Switches can overlap, e.g. the switch to the first remaining window after
+             * `closeWindow`, which is not awaited. The target of a switch that has no
+             * result yet is not a context the driver is known to be in.
+             */
+            if (!this.#currentContext || !switches.pending.includes(this.#currentContext)) {
+                switches.context = this.#currentContext
+            }
+            switches.pending.push(handle)
             this.setCurrentContext(handle)
         }
 
