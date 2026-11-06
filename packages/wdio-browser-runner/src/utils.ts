@@ -10,8 +10,43 @@ import type { BrowserRunnerOptions, CoverageOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 
+/**
+ * `create-wdio` writes `MicrosoftEdge`, which is also what msedgedriver reports
+ */
+const EDGE_BROWSER_NAMES = ['msedge', 'edge', 'microsoftedge']
+
+/**
+ * Bring the `host` option into the `<protocol>://<hostname>` form the base URL
+ * is built from, e.g. `192.168.1.10/` becomes `http://192.168.1.10`
+ */
+export function normalizeHost (host?: string) {
+    if (!host) {
+        return
+    }
+    const withProtocol = host.includes('://') ? host : `http://${host}`
+    return withProtocol.replace(/\/+$/, '')
+}
+
+/**
+ * The capability that is actually used: `alwaysMatch` of W3C capabilities or the capabilities themselves
+ */
+export function getEffectiveCapability (caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+    return (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+}
+
+/**
+ * Merge options into the effective capability, keeping W3C capabilities
+ * (`alwaysMatch` + `firstMatch`) in their shape
+ */
+export function mergeIntoCapability (caps: WebdriverIO.Capabilities, options: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+    const merged = deepmerge(getEffectiveCapability(caps), options) as WebdriverIO.Capabilities
+    return (caps as Capabilities.W3CCapabilities).alwaysMatch
+        ? { ...caps, alwaysMatch: merged } as WebdriverIO.Capabilities
+        : merged
+}
+
 export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+    const capability = getEffectiveCapability(caps)
     if (!capability.browserName) {
         throw new Error(
             'No "browserName" defined in capability object. It seems you are trying to run tests ' +
@@ -30,28 +65,21 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
         return caps
     }
 
-    if (capability.browserName === 'chrome') {
-        return deepmerge(capability, {
-            'goog:chromeOptions': {
-                args: ['headless', 'disable-gpu']
-            }
-        })
-    } else if (capability.browserName === 'firefox') {
-        return deepmerge(capability, {
-            'moz:firefoxOptions': {
-                args: ['-headless']
-            }
-        })
-    } else if (capability.browserName === 'msedge' || capability.browserName === 'edge') {
-        return deepmerge(capability, {
-            'ms:edgeOptions': {
-                args: ['--headless']
-            }
-        })
+    const browserName = capability.browserName.toLowerCase()
+    const headlessOptions: WebdriverIO.Capabilities | undefined = browserName === 'chrome'
+        ? { 'goog:chromeOptions': { args: ['headless', 'disable-gpu'] } }
+        : browserName === 'firefox'
+            ? { 'moz:firefoxOptions': { args: ['-headless'] } }
+            : EDGE_BROWSER_NAMES.includes(browserName)
+                ? { 'ms:edgeOptions': { args: ['--headless'] } }
+                : undefined
+
+    if (!headlessOptions) {
+        log.error(`Headless mode not supported for browser "${capability.browserName}"`)
+        return caps
     }
 
-    log.error(`Headless mode not supported for browser "${capability.browserName}"`)
-    return caps
+    return mergeIntoCapability(caps, headlessOptions)
 }
 
 /**
@@ -62,9 +90,9 @@ export function adjustWindowInWatchMode (config: WebdriverIO.Config, caps: Webdr
         return caps
     }
 
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
-    if (config.watch && capability.browserName === 'chrome') {
-        return deepmerge(capability, {
+    const capability = getEffectiveCapability(caps)
+    if (config.watch && capability.browserName?.toLowerCase() === 'chrome') {
+        return mergeIntoCapability(caps, {
             'goog:chromeOptions': {
                 args: ['auto-open-devtools-for-tabs', 'window-size=1600,1200'],
                 prefs: {

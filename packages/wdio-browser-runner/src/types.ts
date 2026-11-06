@@ -125,9 +125,12 @@ export interface BrowserRunnerOptions {
      * }
      * ```
      * In order for the browser to connect to the correct server, you need to set the `hostname` to the IP or hostname
-     * of the machine that runs the WebdriverIO process.
+     * of the machine that runs the WebdriverIO process, e.g. `http://192.168.1.10`. For any host other than a
+     * loopback address, the Vite server then listens on all network interfaces (`0.0.0.0`, or `::` for an IPv6
+     * address), and a host name is added to `server.allowedHosts`. Set `viteConfig.server.host` to listen on a
+     * specific address instead.
      *
-     * @default http://0.0.0.0
+     * @default http://localhost
      */
     host?: string
 }

@@ -354,4 +354,34 @@ describe('BrowserFramework browser errors', () => {
             process.off('unhandledRejection', unhandled)
         }
     })
+
+    it('opens the test page with a spec path that the page reads back unchanged', async () => {
+        for (const file of ['a+b.test.js', 'a&b=c;d.test.js', 'a b%20c.test.js', 'a#b?c.test.js']) {
+            const specUrl = url.pathToFileURL(path.resolve('specs', file)).href
+            const on = vi.spyOn(process, 'on').mockImplementation(() => process)
+            framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, [specUrl], { emit: vi.fn() } as unknown as BaseReporter)
+            handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
+            on.mockRestore()
+            browser.url.mockClear()
+            browser.setCookies.mockClear()
+            browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+            browser.getLogs.mockResolvedValue([])
+
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(0)
+            await finishSpec(0)
+            await result
+
+            const pageUrl = new URL(browser.url.mock.calls[0][0], 'http://localhost')
+            expect(pageUrl.pathname).toBe('/')
+            expect(pageUrl.searchParams.get('cid')).toBe('0-0')
+            expect(pageUrl.searchParams.get('spec')).toBe(decodeURIComponent(new URL(specUrl).pathname))
+            expect(pageUrl.searchParams.get('spec')!.endsWith(`/specs/${file}`)).toBe(true)
+
+            // the cookie fallback carries the same path, encoded so `=` and `;` survive
+            const specCookie = browser.setCookies.mock.calls[0][0].find((c: { name: string }) => c.name === 'WDIO_SPEC')
+            expect(specCookie.value).not.toMatch(/[=;]/)
+            expect(decodeURIComponent(specCookie.value)).toBe(pageUrl.searchParams.get('spec'))
+        }
+    })
 })

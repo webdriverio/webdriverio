@@ -14,10 +14,27 @@ import {
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
-import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
+import { getTemplate, getErrorTemplate, normalizeId, getAliasMap } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+/**
+ * `@wdio/runner` sets the cookie values URL-encoded, so a `=` or `;` in a spec
+ * path survives; split on the first `=` only
+ */
+function getCookie (cookies: string[], name: string) {
+    const cookie = cookies.find((c) => c.startsWith(`${name}=`))
+    if (!cookie) {
+        return
+    }
+    const value = cookie.slice(name.length + 1)
+    try {
+        return decodeURIComponent(value)
+    } catch {
+        return value
+    }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commands = deepmerge<any>(
@@ -159,8 +176,8 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     const cookies = ((req.headers.cookie && req.headers.cookie.split(';')) || []).map((c) => c.trim())
                     const urlParsed = url.parse(req.originalUrl)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const cid = urlParamString.get('cid') || cookies.find((c) => c.includes('WDIO_CID'))?.split('=').pop()
-                    const spec = urlParamString.get('spec') || cookies.find((c) => c.includes('WDIO_SPEC'))?.split('=').pop()
+                    const cid = urlParamString.get('cid') || getCookie(cookies, 'WDIO_CID')
+                    const spec = urlParamString.get('spec') || getCookie(cookies, 'WDIO_SPEC')
                     if (!cid || !SESSIONS.has(cid)) {
                         log.error(`No environment found for ${cid || 'non determined environment'}`)
                         return next()
@@ -182,7 +199,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                      */
                     const pagePath = '/wdio/headless/__fixtures__/test.html'
                     try {
-                        const template = await getTemplate(options, env, spec)
+                        const template = await getTemplate(options, env, spec, process, getAliasMap(server.config.resolve.alias))
                         log.debug(`Render template for ${req.originalUrl}`)
                         res.end(await server.transformIndexHtml(pagePath, template))
                     } catch (err) {

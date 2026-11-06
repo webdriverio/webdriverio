@@ -1,6 +1,11 @@
 import type { Environment } from './types.js'
 import type { ReportOptions } from 'istanbul-reports'
 
+/**
+ * file extensions a mock path is matched without, so `./foo.service` is not read as `./foo`
+ */
+export const MODULE_EXTENSION = /\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx|vue|svelte|json)$/
+
 export const SESSIONS = new Map<string, Environment>()
 export const WDIO_EVENT_NAME = 'wdio:workerMessage'
 

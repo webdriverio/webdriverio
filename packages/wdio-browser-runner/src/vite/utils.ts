@@ -4,7 +4,7 @@ import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
-import type { InlineConfig } from 'vite'
+import type { Alias, AliasOptions, InlineConfig } from 'vite'
 
 import { WDIO_EVENT_NAME } from '../constants.js'
 import { MOCHA_VARIABELS } from '../constants.js'
@@ -13,10 +13,50 @@ import type { Environment, FrameworkPreset } from '../types.js'
 const log = logger('@wdio/browser-runner')
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
+/**
+ * Serialize a value for an inline `<script>`, so a quote, `</script>` or `<!--`
+ * in it (e.g. in a spec path) can't end the string or the script element
+ */
+function toScriptValue (value: unknown) {
+    return JSON.stringify(value).replace(/</g, '\\u003c')
+}
+
+function escapeHtmlAttribute (value: string) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+}
+
+/**
+ * Turn Vite's `resolve.alias` (an object, or the `{ find, replacement }` list a
+ * resolved config has) into the prefix map `wdioImport` resolves mocks with.
+ * RegExp aliases can't be applied as a prefix and are left out. A Windows path
+ * (`C:\src`) becomes the URL path (`/C:/src`) that mocks are stored under.
+ */
+export function getAliasMap (alias?: AliasOptions): Record<string, string> {
+    if (!alias) {
+        return {}
+    }
+    const entries = Array.isArray(alias)
+        ? (alias as Alias[]).filter((entry) => typeof entry.find === 'string').map((entry) => [entry.find as string, entry.replacement])
+        : Object.entries(alias as Record<string, string>)
+    return Object.fromEntries(entries.map(([find, replacement]) => [
+        find,
+        /^[a-zA-Z]:[\\/]/.test(replacement) ? url.pathToFileURL(replacement).pathname : replacement
+    ]))
+}
+
+export async function getTemplate(
+    options: WebdriverIO.BrowserRunnerOptions,
+    env: Environment,
+    spec: string,
+    p = process,
+    alias = getAliasMap((options.viteConfig as (InlineConfig | undefined))?.resolve?.alias)
+) {
     const root = options.rootDir || process.cwd()
     const isHeadless = options.headless || Boolean(process.env.CI)
-    const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
 
     /**
@@ -44,7 +84,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             ${usesTailwindCSS ? /*html*/'<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">' : ''}
             <script type="module">
-                const alias = ${JSON.stringify(alias)}
+                const alias = ${toScriptValue(alias)}
                 window.__wdioMockCache__ = new Map()
                 window.WDIO_EVENT_NAME = '${WDIO_EVENT_NAME}'
                 window.wdioImport = function (modName, mod) {
@@ -78,8 +118,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 /**
                  * Inject environment variables
                  */
-                window.__wdioEnv__ = ${JSON.stringify(env)}
-                window.__wdioSpec__ = '${spec}'
+                window.__wdioEnv__ = ${toScriptValue(env)}
+                window.__wdioSpec__ = ${toScriptValue(spec)}
                 window.__wdioEvents__ = []
                 /**
                  * listen to window errors during bootstrap phase; once Mocha runs
@@ -101,10 +141,10 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                  */
                 window.process = window.process || {
                     platform: 'browser',
-                    env: ${JSON.stringify(p.env)},
+                    env: ${toScriptValue(p.env)},
                     stdout: {},
                     stderr: {},
-                    cwd: () => ${JSON.stringify(p.cwd())},
+                    cwd: () => ${toScriptValue(p.cwd())},
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
@@ -119,7 +159,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             </style>
         </head>
         <body>
-            <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
+            <mocha-framework spec="${escapeHtmlAttribute(spec)}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
         </body>
     </html>`
 }
