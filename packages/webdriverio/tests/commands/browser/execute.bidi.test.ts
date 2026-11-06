@@ -158,3 +158,41 @@ describe('execute BiDi element arguments', () => {
         expect(browser.scriptCallFunction).not.toHaveBeenCalled()
     })
 })
+
+describe('execute BiDi during a navigation that the page started', () => {
+    const runExecute = (browser: ReturnType<typeof bidiBrowser>, ...args: unknown[]) => Reflect.apply(execute, browser, args)
+    const contextReplaced = () => new Error('WebDriver Bidi command "script.callFunction" failed with error: unknown error - Cannot find context with specified id')
+
+    it('calls the script again when the page was replaced before the script ran', async () => {
+        const browser = bidiBrowser(['new page'])
+        browser.scriptCallFunction.mockRejectedValueOnce(contextReplaced())
+
+        const result = await runExecute(browser, (value: string) => value, 'new page')
+
+        expect(result).toBe('new page')
+        expect(browser.scriptCallFunction).toHaveBeenCalledTimes(2)
+        expect(browser.scriptCallFunction.mock.calls[1][0]).toEqual(browser.scriptCallFunction.mock.calls[0][0])
+    })
+
+    it('stops with the error of the browser when each page is replaced (client side redirects)', async () => {
+        const browser = bidiBrowser()
+        browser.scriptCallFunction.mockRejectedValue(contextReplaced())
+
+        await expect(runExecute(browser, () => 1))
+            .rejects.toThrow('Cannot find context with specified id')
+        expect(browser.scriptCallFunction).toHaveBeenCalledTimes(3)
+    })
+
+    it.each([
+        // the call was in flight, so the script possibly ran already
+        'unknown error - execution contexts cleared',
+        'no such frame - the frame was closed',
+        'script error',
+    ])('does not call the script again after the error "%s"', async (message) => {
+        const browser = bidiBrowser()
+        browser.scriptCallFunction.mockRejectedValue(new Error(message))
+
+        await expect(runExecute(browser, () => 1)).rejects.toThrow(message)
+        expect(browser.scriptCallFunction).toHaveBeenCalledTimes(1)
+    })
+})
