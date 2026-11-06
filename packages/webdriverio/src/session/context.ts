@@ -366,9 +366,7 @@ export class ContextManager extends SessionManager {
         }
 
         /**
-         * the `closeWindow` command returns:
-         *  > the body of the Close Window command request, including the window handle it's switching to.
-         *  > the result of the Close Window command, either an error object on failure, or null data on success.
+         * `switchToWindow` returns null on success, so the handle comes from the request body
          */
         if (event.command === 'switchToWindow') {
             const err = (event.result as { error?: unknown }).error || undefined
