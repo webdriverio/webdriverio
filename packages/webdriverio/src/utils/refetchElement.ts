@@ -1,4 +1,5 @@
 import implicitWait from './implicitWait.js'
+import { getWdioKind } from '@wdio/utils'
 import { notFoundElement, recordNotFound, waitedFor } from './elementNotFound.js'
 import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
@@ -53,6 +54,21 @@ export default async function refetchElement (
     chain.reverse()
 
     const length = chain.length
+    /**
+     * A prior state check can already have cleared the parent's id. It is not
+     * in `chain`, but an action still waits for that parent once, as when the
+     * parent became missing during the refetch below. State checks do not wait.
+     */
+    if (getWdioKind(currentElement) === 'element' && !currentElement.elementId) {
+        try {
+            currentElement = await implicitWait(currentElement, length ? '$' : commandName, commandName)
+        } catch (err) {
+            if (waitedFor(err)) {
+                recordNotFound(err, currentElement)
+            }
+            throw err
+        }
+    }
 
     /**
      * Beginning with the browser object, re-chain. Each element is found again
@@ -88,7 +104,7 @@ export default async function refetchElement (
          *  on the last element of the array
          */
         try {
-            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName, commandName)
         } catch (err) {
             /**
              * the element of the chain that was not found, see `nameNotFoundAgain`

@@ -1256,17 +1256,25 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
-        /**
-         * the lookup of `isDisplayed` inside `isClickable` waits for the removed parent: the
-         * check does not wait for it again (#16072 review)
-         */
-        it.each(['isClickable', 'isDisplayed', 'isExisting'] as const)('waits once for %s of a child whose parent was removed', async (command) => {
+        it.each(['isClickable', 'isDisplayed'] as const)('%s of a child whose parent was removed is false without a wait', async (command) => {
             const { child } = await removedHost()
             driver.stale.add('host-a')
             driver.stale.add('child-a')
             driver.light.set('#host', [])
 
-            const { error, waits: count } = await waits(child[command]())
+            const { value, error, waits: count } = await waits(child[command]())
+            expect(error).toBeUndefined()
+            expect(value).toBe(false)
+            expect(count).toBe(0)
+        })
+
+        it('waits once for isExisting of a child whose parent was removed', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.isExisting())
             expectGone(error)
             expect(count).toBe(1)
         })
