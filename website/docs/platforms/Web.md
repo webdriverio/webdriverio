@@ -122,6 +122,7 @@ The Browser Runner requires `@wdio/browser-runner`. The React preset also needs 
 ## Troubleshooting
 
 - Chrome fails to start in CI with "user data directory is already in use" or "DevToolsActivePort file doesn't exist": see [Headless & Display Servers](/docs/headless-and-display-servers#troubleshooting).
+- Hover or `moveTo()` tests fail intermittently with a headed browser and parallel workers, on Windows or under Xvfb on Linux: when another worker's browser window opens or closes under the OS pointer, the page under it gets real mouse events. Run headless, with `wdio run --headless` or the args in [Run Browser Headless](/docs/capabilities#run-browser-headless). On Linux, [Weston](/docs/headless-and-display-servers#which-display-server-is-used) (`displayServer: 'wayland'`) also avoids it.
 - `browser.mock()` or `browser.emulate()` has no effect: the session is not using WebDriver BiDi. Check your browser (Safari has no BiDi support), your cloud vendor, and `wdio:enforceWebDriverClassic`.
 - Drivers or browsers can't be downloaded behind a proxy: see [Custom Driver Download Host](/docs/capabilities#custom-driver-download-host) and [Proxy Setup](/docs/proxy).
 - Flaky tests: see [Retry Flaky Tests](/docs/retry) and [Debugging](/docs/debugging).
