@@ -75,6 +75,41 @@ describe('Mocha timeout and the after hooks', () => {
         expectAfterHookBeforeMochaDone(await run(() => sleep(1000)), 300)
     })
 
+    it('lets Mocha wait for afterTest when the process pauses as the WebdriverIO timer starts', async () => {
+        const realSetTimeout = globalThis.setTimeout
+        // Mocha keeps its own setTimeout, so this pauses only the WebdriverIO timer
+        const spy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((fn: () => void, ms?: number) => {
+            if (ms !== undefined && ms > 200 && ms <= 300) {
+                const end = performance.now() + 10
+                while (performance.now() < end) { /* a GC or a stopped CPU */ }
+            }
+            return realSetTimeout(fn, ms)
+        }) as typeof setTimeout)
+        try {
+            expectAfterHookBeforeMochaDone(await run(() => new Promise((resolve) => realSetTimeout(resolve, 1000))), 300)
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
+    it('lets Mocha wait for afterTest when a pause ends with another timer of the same duration due', async () => {
+        const pause = () => {
+            const end = performance.now() + 30
+            while (performance.now() < end) { /* a GC or a stopped CPU */ }
+        }
+        // Node fires all due timers of one duration before it looks at the next duration
+        const other = setTimeout(() => {}, 300)
+        const pauseTimer = setTimeout(pause, 290)
+        const started = performance.now()
+        while (performance.now() - started < 5) { /* this timer ends first */ }
+        try {
+            expectAfterHookBeforeMochaDone(await run(() => sleep(1000)), 300)
+        } finally {
+            clearTimeout(other)
+            clearTimeout(pauseTimer)
+        }
+    })
+
     it('counts the time of beforeTest, as Mocha does', async () => {
         expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { beforeTestTime: 100 }), 300)
     })
