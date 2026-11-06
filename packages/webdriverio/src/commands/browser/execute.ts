@@ -3,7 +3,7 @@ import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
 
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
-import { parseScriptResult } from '../../utils/bidi/index.js'
+import { callFunctionDuringNavigation, parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { scriptTimeoutOf } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
@@ -99,7 +99,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         if (scriptTimeout !== null) {
             Object.assign(params, { [BIDI_SCRIPT_TIMEOUT]: scriptTimeout })
         }
-        const result = await browser.scriptCallFunction(params)
+        const result = await callFunctionDuringNavigation(browser, params)
         return parseScriptResult(params, result)
     }
 
