@@ -201,6 +201,7 @@ Open a trace with the `show-trace` bin, shipped with `@wdio/nightwatch-devtools`
 
 ```sh
 npx show-trace test-results/trace-<sessionId>.zip   # in a project that installs the adapter
+npx show-trace test-results/                        # a folder of per-test zips, listed by test
 pnpm show-trace test-results/trace-<sessionId>.zip  # from the devtools monorepo
 ```
 

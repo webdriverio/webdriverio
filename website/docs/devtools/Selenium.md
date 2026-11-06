@@ -570,6 +570,7 @@ Open any trace `.zip` in the first-party player — the same DevTools UI in a de
 
 ```bash
 npx show-trace path/to/trace.zip      # in a project that installs the adapter
+npx show-trace test-results/          # a folder of per-test zips, listed by test
 pnpm show-trace path/to/trace.zip     # from the devtools monorepo
 ```
 

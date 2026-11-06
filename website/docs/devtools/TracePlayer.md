@@ -18,6 +18,7 @@ Open a trace in the DevTools UI:
 show-trace trace-<sessionId>.zip          # bin on PATH after install
 npx show-trace trace-<sessionId>.zip      # or via npx
 pnpm show-trace trace-<sessionId>.zip     # from the devtools monorepo
+npx show-trace test-results/              # a folder of per-test zips opens as a list of tests
 ```
 
 The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/nightwatch-devtools`, `@wdio/selenium-devtools`), so it's available in any project that installs one, with no extra dependency. It is also a bin of `@wdio/devtools-backend` itself, so a project without a JavaScript adapter (for example a Python one) can run `npx -p @wdio/devtools-backend show-trace <trace.zip>`. It boots the same DevTools UI in a dedicated **player** mode and opens it in your browser:
@@ -29,7 +30,27 @@ The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/n
 - **Dock tabs** (bottom) — **Source**, **Log**, **Console**, **Network**, **Errors** (each badged with its count), plus the player-only **A11y** and **Transcript** tabs. Click a **Network** row for the request detail (headers, timing, status).
 - **Keyboard shortcuts** — `Space` play/pause, `←`/`→` step between actions, `Home`/`End` jump to first/last, `,`/`.` change speed, `/` focus filter, `?` show all shortcuts.
 
-> Accepts a `.zip` only; zip an `ndjson-directory` trace first, or open it in another compatible viewer. The same shortcuts work in the live dashboard (`←`/`→` walk the command list, `?` shows help).
+> Accepts `.zip` files, or folders searched for them; zip an `ndjson-directory` trace first, or open it in another compatible viewer. The same shortcuts work in the live dashboard (`←`/`→` walk the command list, `?` shows help).
+
+### Opening a whole run
+
+With [`traceGranularity: 'test'`](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity) every test writes its own `trace.zip`, so a run is a folder of them. Give `show-trace` the folder, or several zips, and the player lists every trace beside the timeline: one row per test with its outcome, failures first and then in the order they ran. Picking a row plays that trace without reloading (`↑`/`↓` move between rows, `Enter` opens one).
+
+```sh
+npx show-trace test-results/                     # every zip under the folder, subfolders included
+npx show-trace a/trace.zip b/trace.zip           # several zips
+```
+
+- Each zip is read once, as the list fills in, and kept for when it is picked.
+- Anything in the folder that is not a `.zip` (screenshots, videos, the artifacts manifest) is skipped. A zip that cannot be opened stays in the list with the reason, and the rest open normally.
+- A zip records no test state, so the outcome is read from the trace itself: **failed** when an action or step in it failed, **passed** when it holds actions and none failed, **unknown** when it holds none. An assertion library that records no row (a jest `expect`, chai) can fail a test whose trace still reads as passed.
+- One zip opens exactly as before, with no list.
+
+### Opening a trace someone else recorded
+
+A replayed trace runs no script. The page a trace recorded is rendered in a sandboxed frame, and its scripts, inline event handlers, `srcdoc` and `javascript:` URLs are dropped on every update, in `show-trace` and the live dashboard alike, so a trace from someone else can be opened safely. The replayed page still loads its own stylesheets and images from the site under test.
+
+Opening a trace is still opening a recording of that run: it holds everything the run showed or typed (see [Trace Mode Limitations](/docs/devtools/limitations)).
 
 ### Trace player features
 
