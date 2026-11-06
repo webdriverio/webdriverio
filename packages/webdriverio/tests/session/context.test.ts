@@ -106,6 +106,61 @@ describe('ContextManager', () => {
         expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
     })
 
+    describe('a switchToWindow that fails in a BiDi session', () => {
+        const switchToWindow = { command: 'switchToWindow', body: { handle: 'closed-tab' } }
+        const setup = () => {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            const stub = createBrowserStub({ isBidi: true } as any)
+            const manager = getContextManager(stub.browser)
+            process.env.WDIO_UNIT_TESTS = wid
+            manager.setCurrentContext('context-1')
+            const emit = (event: string, payload: unknown) => stub.getListeners()[event]!.forEach((handler) => handler(payload))
+            return { manager, emit }
+        }
+
+        it('keeps the context that the driver stays in', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it('keeps the context of a switch that finished while it was in flight', async () => {
+            const { manager, emit } = setup()
+            // the switch to the first remaining window after closeWindow is not awaited
+            const remaining = { command: 'switchToWindow', body: { handle: 'remaining-window' } }
+
+            emit('command', remaining)
+            emit('command', switchToWindow)
+            emit('result', { ...remaining, result: { value: null } })
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('remaining-window')
+        })
+
+        it('keeps a newer context transition', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            manager.setCurrentContext('newer-context')
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('newer-context')
+        })
+
+        it('uses the new context when the switch succeeds', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { value: null } })
+
+            expect(await manager.getCurrentContext()).toBe('closed-tab')
+        })
+    })
+
     it('registers a listener for browsingContext.contextDestroyed in bidi sessions', () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
