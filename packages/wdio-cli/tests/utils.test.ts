@@ -320,6 +320,19 @@ describe('shouldEnableTsx', () => {
         })).toBe(false)
     })
 
+    it('detects TypeScript files in cucumberOpts.import and jasmineOpts.helpers', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            cucumberOpts: { import: ['./steps/*.ts'] }
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            jasmineOpts: { helpers: ['./helpers/*.ts'] }
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            cucumberOpts: { import: ['./steps/*.js'] },
+            jasmineOpts: { helpers: ['./helpers/*.js'] }
+        })).toBe(false)
+    })
+
     it('detects TypeScript specs declared on capabilities', () => {
         expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
             browserName: 'chrome',
