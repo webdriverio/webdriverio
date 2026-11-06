@@ -24,13 +24,17 @@ describe('parallel', () => {
 })
 `
 
-const recorded: [string, Record<string, any>][] = []
+const recorded: [string, Record<string, any>, string | undefined][] = []
 
 class RecorderReporter {
     isSynchronised = true
+    resolver?: () => string | undefined
     constructor(public options: Record<string, unknown>) {}
+    setContextIdResolver(resolver: () => string | undefined) {
+        this.resolver = resolver
+    }
     emit(event: string, payload: Record<string, any>) {
-        recorded.push([event, { ...payload }])
+        recorded.push([event, { ...payload }, this.resolver?.()])
     }
 }
 
@@ -80,19 +84,25 @@ describe('WdioBridgeReporter with a real Vitest run', () => {
         const seenSuites = new Set<string>()
         const seenTests = new Set<string>()
         const ended: string[] = []
-        for (const [name, payload] of recorded) {
-            if (name === 'suite:start') {
+        for (const [name, payload, contextId] of recorded) {
+            if (name === 'runner:start' || name === 'runner:end') {
+                expect(contextId).toBeUndefined()
+            } else if (name === 'suite:start') {
+                expect(contextId).toBeUndefined()
                 expect(payload.parentUid).toBe(stack.at(-1) ?? null)
                 expect(seenSuites.has(payload.uid)).toBe(false)
                 seenSuites.add(payload.uid)
                 stack.push(payload.uid)
             } else if (name === 'suite:end') {
+                expect(contextId).toBeUndefined()
                 expect(stack.pop()).toBe(payload.uid)
             } else if (name === 'test:start') {
+                expect(contextId).toBe(payload.contextId)
                 expect(seenTests.has(payload.uid)).toBe(false)
                 seenTests.add(payload.uid)
                 open.add(payload.uid)
             } else if (name === 'test:end') {
+                expect(contextId).toBe(payload.contextId)
                 expect(open.delete(payload.uid)).toBe(true)
                 ended.push(payload.fullTitle)
             }

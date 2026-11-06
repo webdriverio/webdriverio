@@ -28,7 +28,7 @@ class RecorderReporter {
 }
 
 class ResolverReporter {
-    static contextIds: (string | undefined)[] = []
+    static contextIds: [string, string | undefined][] = []
     isSynchronised = true
     resolver?: () => string | undefined
     constructor(public options: Record<string, unknown>) {}
@@ -36,9 +36,7 @@ class ResolverReporter {
         this.resolver = resolver
     }
     emit(event: string) {
-        if (event === 'test:pass') {
-            ResolverReporter.contextIds.push(this.resolver?.())
-        }
+        ResolverReporter.contextIds.push([event, this.resolver?.()])
     }
 }
 
@@ -64,7 +62,16 @@ describe('WdioBridgeReporter with the real BaseReporter', () => {
         await bridge.onTestCaseResult(test)
         await bridge.onTestModuleEnd(module)
 
-        expect(ResolverReporter.contextIds).toEqual(['concurrent-1'])
+        expect(ResolverReporter.contextIds).toEqual([
+            ['runner:start', undefined],
+            ['suite:start', undefined],
+            ['test:start', 'concurrent-1'],
+            ['test:pass', 'concurrent-1'],
+            ['test:end', 'concurrent-1'],
+            ['context:end', 'concurrent-1'],
+            ['suite:end', undefined],
+            ['runner:end', undefined]
+        ])
     })
 
     it('delivers ordered events to a configured reporter without mutating the config', async () => {
