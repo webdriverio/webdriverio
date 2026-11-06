@@ -148,7 +148,7 @@ describe('ContextManager', () => {
             process.env.WDIO_UNIT_TESTS = wid
             manager.setCurrentContext('context-1')
             const emit = (event: string, payload: unknown) => stub.getListeners()[event]!.forEach((handler) => handler(payload))
-            return { manager, emit }
+            return { manager, emit, browser: stub.browser }
         }
 
         it('keeps the context that the driver stays in', async () => {
@@ -163,7 +163,7 @@ describe('ContextManager', () => {
         it('keeps the context of a switch that finished while it was in flight', async () => {
             const { manager, emit } = setup()
             // another switch that was not awaited
-            const remaining ={ command: 'switchToWindow', body: { handle: 'remaining-window' } }
+            const remaining = { command: 'switchToWindow', body: { handle: 'remaining-window' } }
 
             emit('command', remaining)
             emit('command', switchToWindow)
@@ -171,6 +171,42 @@ describe('ContextManager', () => {
             emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
 
             expect(await manager.getCurrentContext()).toBe('remaining-window')
+        })
+
+        it('keeps the context from before overlapping switches that both fail', async () => {
+            const { manager, emit } = setup()
+            // another switch that was not awaited
+            const other = { command: 'switchToWindow', body: { handle: 'other-closed-tab' } }
+
+            emit('command', other)
+            emit('command', switchToWindow)
+            emit('result', { ...other, result: { error: new Error('no such window') } })
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it.each([
+            ['the frame', { context: 'frame-1', parent: 'context-1', children: null }],
+            ['the parent of the frame', { context: 'frame-parent', parent: 'context-1', children: [{ context: 'frame-1', children: [] }] }]
+        ])('resolves the window again when %s is destroyed during the switch', async (_, destroyed) => {
+            const { manager, emit, browser } = setup()
+            ;(browser as any).getWindowHandle.mockResolvedValue('context-1')
+            manager.setCurrentContext('frame-1')
+
+            emit('command', switchToWindow)
+            emit('browsingContext.contextDestroyed', destroyed)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            // the frame from before the switch is gone, so the next command resolves the window the driver is in
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            try {
+                expect(await manager.getCurrentContext()).toBe('context-1')
+                expect(browser.getWindowHandle).toHaveBeenCalled()
+            } finally {
+                process.env.WDIO_UNIT_TESTS = wid
+            }
         })
 
         it('keeps a newer context transition', async () => {
