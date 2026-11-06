@@ -33,7 +33,7 @@ export type ClassicHistoryCommand = Extract<ClassicProtocolCommand, 'back' | 'fo
  *
  * The HTTP request is built from the protocol definition, not from the
  * instance method. A BiDi session whose connection is down (`isBidi === false`)
- * still posts to `POST /session/:sessionId/back` or `.../forward`.
+ * still sends the classic request to the driver.
  */
 export async function runClassicProtocolCommand (
     this: Pick<BaseClient, 'sessionId' | 'options' | 'capabilities' | 'isSeleniumStandalone'>,

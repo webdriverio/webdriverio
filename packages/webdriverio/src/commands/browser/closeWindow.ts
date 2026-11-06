@@ -10,15 +10,27 @@ import { getContextManager } from '../../session/context.js'
  * The command calls the WebDriver [closeWindow](/docs/api/webdriver#closewindow)
  * endpoint, then switches to the first remaining window. It resolves after that
  * switch, so the next command runs in the remaining window. To go to another
- * window, call [`switchWindow`](/docs/api/browser/switchWindow).
+ * window in a WebDriver Classic session, call [`switchWindow`](/docs/api/browser/switchWindow).
+ *
+ * In a WebDriver BiDi session, `newWindow` does not switch to the new tab, so
+ * `browser.closeWindow()` closes the current tab and not the new tab. To close
+ * the new tab, call `closeWindow()` on the browsing context that `newWindow` returns.
  *
  * <example>
     :closeWindow.js
-    it('should close a tab and continue in the first window', async () => {
+    it('should close the new tab in a WebDriver Classic session', async () => {
         await browser.url('https://webdriver.io')
         await browser.newWindow('https://webdriver.io/docs/api', { type: 'tab' })
 
         await browser.closeWindow()
+        console.log(await browser.getTitle()) // outputs the title of https://webdriver.io
+    });
+
+    it('should close the new tab in a WebDriver BiDi session', async () => {
+        await browser.url('https://webdriver.io')
+        const tab = await browser.newWindow('https://webdriver.io/docs/api', { type: 'tab' })
+
+        await tab.closeWindow()
         console.log(await browser.getTitle()) // outputs the title of https://webdriver.io
     });
  * </example>
