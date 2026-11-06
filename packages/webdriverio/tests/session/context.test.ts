@@ -68,37 +68,48 @@ describe('ContextManager', () => {
         getContextManager(browser)
     })
 
-    it('throws a clear error if closeWindow returns no window handles (value undefined)', () => {
-        const resultHandlers = getListeners().result
-        expect(resultHandlers?.length).toBeGreaterThan(0)
-        const handler = resultHandlers![0]
-        expect(() => handler({ command: 'closeWindow', result: {} })).toThrow(
+    it('throws a clear error if closeWindow returns no window handles (value undefined)', async () => {
+        await expect(getContextManager(browser).switchToRemainingWindow(undefined)).rejects.toThrow(
             'All window handles were removed, causing WebdriverIO to close the session.'
         )
+        expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
-    it('throws a clear error if closeWindow returns an empty window handles array', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        expect(() => handler({ command: 'closeWindow', result: { value: [] } })).toThrow(
+    it('throws a clear error if closeWindow returns an empty window handles array', async () => {
+        await expect(getContextManager(browser).switchToRemainingWindow([])).rejects.toThrow(
             'All window handles were removed, causing WebdriverIO to close the session.'
         )
+        expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
-    it('switches to the first remaining window handle when closing a window', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        handler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
+    it('switches to the first remaining window handle when closing a window', async () => {
+        const manager = getContextManager(browser)
+        const resultHandler = getListeners().result![0]
+        resultHandler({ command: 'getWindowHandle', result: { value: 'closed-window' } })
+
+        await manager.switchToRemainingWindow(['handle-A', 'handle-B'])
+
         expect(browser.switchToWindow).toHaveBeenCalledWith('handle-A')
+        expect(manager.getCurrentWindowHandle()).toBeUndefined()
+        expect(await manager.getCurrentContext()).toBe('handle-A')
     })
 
-    it('rethrows a meaningful error if closeWindow result contains an error object', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        const error = new Error('All window handles were removed, causing WebdriverIO to close the session.')
-        expect(() => handler({ command: 'closeWindow', result: { error } })).toThrow(
-            'All window handles were removed, causing WebdriverIO to close the session.'
-        )
+    it('resolves the switch after closing a window only when switchToWindow resolves', async () => {
+        let release!: () => void
+        browser.switchToWindow.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
+        let resolved = false
+        const switched = getContextManager(browser).switchToRemainingWindow(['handle-A']).then(() => { resolved = true })
+
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(resolved).toBe(false)
+        release()
+        await switched
+        expect(resolved).toBe(true)
+    })
+
+    it('does not switch from the result event of closeWindow', () => {
+        const resultHandler = getListeners().result![0]
+        resultHandler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
         expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
@@ -435,10 +446,9 @@ describe('ContextManager', () => {
         stub.browser.switchToWindow.mockRejectedValue(sessionEnded(
             'Trying to run command "switchToWindow("handle-A")" after session has been deleted, aborting request without executing it'
         ))
-        getContextManager(stub.browser)
-        const resultHandlers = stub.getListeners().result
+        const manager = getContextManager(stub.browser)
 
-        await expect(resultHandlers![0]({ command: 'closeWindow', result: { value: ['handle-A'] } })).resolves.toBeUndefined()
+        await expect(manager.switchToRemainingWindow(['handle-A'])).resolves.toBeUndefined()
         expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: Trying to run command'))
     })
 
