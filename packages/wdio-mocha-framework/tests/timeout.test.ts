@@ -21,6 +21,8 @@ interface Scenario {
  * `@wdio/mocha-framework` does, and record when the `afterTest` (or
  * `afterHook`) hook ends and when Mocha finishes the runnable.
  */
+let lastRunnable: Mocha.Runnable
+
 function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, beforeTestTime = 0, retries = 0, type = 'Test', ctx = new Mocha.Context() }: Scenario = {}) {
     const start = Date.now()
     const at: Record<string, number> = {}
@@ -49,6 +51,7 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
             type === 'Hook' ? '"before each" hook' : undefined
         )
     })
+    lastRunnable = runnable
     runnable.parent = new Mocha.Suite('suite', new Mocha.Context())
     runnable.timeout(timeout)
     runnable.ctx = ctx
@@ -190,6 +193,20 @@ describe('Mocha timeout and the after hooks', () => {
         uncaught.callback(new Error('uncaught'))
         await first
         expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
+    })
+
+    it('runs afterTest of a test that Mocha ended on an uncaught error, at its timeout', async () => {
+        const first = run(() => new Promise(() => {}))
+        await sleep(10)
+        const ctxRunnable = lastRunnable as unknown as { clearTimeout: () => void, callback: (err: Error) => void }
+        ctxRunnable.clearTimeout()
+        ctxRunnable.callback(new Error('uncaught'))
+        const { err, at, afterPassedNow } = await first
+        expect(err?.message).toBe('uncaught')
+        expect(at.afterHookEnd).toBeUndefined()
+        await sleep(450)
+        expect(afterPassedNow()).toBe(false)
+        expect(at.afterHookEnd).toBeDefined()
     })
 
     it('counts the time of beforeTest, as Mocha does', async () => {

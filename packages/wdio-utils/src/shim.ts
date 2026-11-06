@@ -733,9 +733,16 @@ export function followFrameworkTimer (runnable: unknown) {
         return
     }
     const state: FrameworkTimer = {}
+    const clearMochaTimer = target.clearTimeout
+    // Mocha ends a test on an uncaught error while its body runs: keep the timer for `afterTest`
+    target.clearTimeout = function (this: FrameworkRunnable) {
+        if (!state.onTimeout) {
+            clearMochaTimer.call(this)
+        }
+    }
     target.resetTimeout = function (this: FrameworkRunnable) {
         const ms = this.timeout!() || MOCHA_MAX_TIMEOUT
-        this.clearTimeout!()
+        clearMochaTimer.call(this)
         this.timer = realSetTimeout(() => {
             if (this.timeout!() === 0) {
                 return
