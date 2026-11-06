@@ -13,7 +13,9 @@ exports[`WebDriver > newSession > should allow to create a new session using w3c
       "requestedCapabilities": {
         "alwaysMatch": {
           "browserName": "firefox",
-          "unhandledPromptBehavior": "ignore",
+          "unhandledPromptBehavior": {
+            "default": "ignore",
+          },
           "webSocketUrl": true,
         },
         "firstMatch": [
