@@ -696,67 +696,58 @@ export interface FrameworkRunnable {
     fullTitle?: () => string
     resetTimeout?: (...args: unknown[]) => unknown
     _timeoutError?: (ms: number) => Error
+    timeout?: () => number
+    clearTimeout?: () => void
+    callback?: (err: Error) => void
+    timer?: ReturnType<typeof setTimeout>
+    timedOut?: boolean
 }
 
 /**
- * The WebdriverIO timer of a Mocha runnable. It has the duration of Mocha's own
- * timer and starts just before it: Node fires timers of one duration in start
- * order, so it fires first, also after a pause or with other timers due.
+ * What to do when the timer of a Mocha runnable fires while its test or hook runs
  */
 interface FrameworkTimer {
-    deadline?: ReturnType<typeof setTimeout>
-    expired: boolean
-    onDeadline?: () => void
+    onTimeout?: () => void
 }
 const frameworkTimers = new WeakMap<FrameworkRunnable, FrameworkTimer>()
-
-function stopDeadline (state: FrameworkTimer) {
-    clearTimeout(state.deadline)
-    state.deadline = undefined
-    state.expired = false
-}
-
-function startDeadline (target: FrameworkRunnable, state: FrameworkTimer) {
-    stopDeadline(state)
-    const ms = target._timeout ?? 0
-    // the timeout is off: wait for the function, or for Mocha to start its timer again
-    if (!(ms > 0)) {
-        return
-    }
-    state.deadline = setTimeout(() => {
-        state.expired = true
-        state.onDeadline?.()
-    }, ms)
-}
+// the real timer, as Mocha keeps it: fake timers of a test must not move this timeout
+const realSetTimeout = globalThis.setTimeout
+const MOCHA_MAX_TIMEOUT = 2 ** 31 - 1
 
 /**
- * Follow the timer of a Mocha test or hook. Mocha starts it (`resetTimeout()`)
- * when our wrapper returns its promise, so before `beforeTest` ends, and starts
- * it again when `this.timeout()` changes the timeout. It does not start it
- * again for a WebdriverIO retry, so the deadline stays for the retry. Call this
- * before the wrapper awaits anything.
+ * Take over the timer of a Mocha test or hook. There is only this one timer, so
+ * WebdriverIO always handles the timeout first and can make Mocha wait for the
+ * after hooks. With no test or hook running, it does what Mocha's timer does
+ * (`Runnable.prototype.resetTimeout`). Mocha starts it when our wrapper returns
+ * its promise and when `this.timeout()` changes the timeout, and not for a
+ * WebdriverIO retry. Call this before the wrapper awaits anything.
  */
 export function followFrameworkTimer (runnable: unknown) {
     const target = runnable as FrameworkRunnable | undefined
-    if (!target || typeof target.resetTimeout !== 'function') {
+    if (
+        !target || frameworkTimers.has(target) ||
+        typeof target.resetTimeout !== 'function' ||
+        typeof target.timeout !== 'function' ||
+        typeof target.clearTimeout !== 'function'
+    ) {
         return
     }
-    let timer = frameworkTimers.get(target)
-    if (!timer) {
-        const state: FrameworkTimer = { expired: false }
-        const resetTimeout = target.resetTimeout
-        target.resetTimeout = function (this: FrameworkRunnable, ...args: unknown[]) {
-            // first, see FrameworkTimer
-            startDeadline(target, state)
-            return resetTimeout.apply(this, args)
-        }
-        frameworkTimers.set(target, state)
-        timer = state
+    const state: FrameworkTimer = {}
+    target.resetTimeout = function (this: FrameworkRunnable) {
+        const ms = this.timeout!() || MOCHA_MAX_TIMEOUT
+        this.clearTimeout!()
+        this.timer = realSetTimeout(() => {
+            if (this.timeout!() === 0) {
+                return
+            }
+            if (state.onTimeout) {
+                return state.onTimeout()
+            }
+            this.callback?.(this._timeoutError!(ms))
+            this.timedOut = true
+        }, ms)
     }
-    /**
-     * a hook runs again for each test; Mocha starts its timer right after this
-     */
-    startDeadline(target, timer)
+    frameworkTimers.set(target, state)
 }
 
 /**
@@ -847,26 +838,29 @@ export async function executeAsync(
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
                 /**
-                 * Mocha would fail the runnable next and not wait for it, so
-                 * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
-                 * timer so it waits for them, and fail with Mocha's own timeout error so the
-                 * report stays the same, plus the attempt when the test has WebdriverIO retries.
+                 * Mocha would fail the runnable and not wait for it, so the after hooks
+                 * (e.g. `afterTest`) would overlap the next test. Restart its timer so it
+                 * waits for them, and fail with Mocha's own timeout error so the report
+                 * stays the same, plus the attempt when the test has WebdriverIO retries.
                  */
                 const fail = (current: number) => {
                     if (frameworkTimer) {
-                        frameworkTimer.onDeadline = undefined
+                        frameworkTimer.onTimeout = undefined
                     }
-                    runnable?.resetTimeout?.()
+                    if (!runnable?.timedOut) {
+                        runnable?.resetTimeout?.()
+                    }
                     mochaTimedOut = typeof runnable?._timeoutError === 'function'
                     reject(typeof runnable?._timeoutError === 'function'
                         ? withAttempt(runnable._timeoutError(current), attempt, totalAttempts)
                         : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
                 }
                 if (frameworkTimer) {
-                    if (frameworkTimer.expired) {
+                    // Mocha failed it in `beforeTest` and is at the next test
+                    if (runnable?.timedOut) {
                         return fail(frameworkTimeout())
                     }
-                    frameworkTimer.onDeadline = () => fail(frameworkTimeout())
+                    frameworkTimer.onTimeout = () => fail(frameworkTimeout())
                     return
                 }
                 const check = () => {
@@ -895,8 +889,7 @@ export async function executeAsync(
         ])
         done = true
         if (frameworkTimer) {
-            frameworkTimer.onDeadline = undefined
-            stopDeadline(frameworkTimer)
+            frameworkTimer.onTimeout = undefined
         }
         if (timer) {
             clearTimeout(timer)
@@ -913,7 +906,7 @@ export async function executeAsync(
          * ensure we don't leak the timeout timer into follow-up retries
          */
         if (frameworkTimer) {
-            frameworkTimer.onDeadline = undefined
+            frameworkTimer.onTimeout = undefined
         }
         if (timer) {
             clearTimeout(timer)
@@ -921,9 +914,6 @@ export async function executeAsync(
         if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args, timeout, title, runnable)
-        }
-        if (frameworkTimer) {
-            stopDeadline(frameworkTimer)
         }
 
         throw err

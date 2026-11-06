@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, followFrameworkTimer, setCommandHookStore, unwrapCommand } from '../src/shim.js'
+import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -465,7 +465,6 @@ describe('executeAsync', () => {
                 resetTimeout: vi.fn(),
                 _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
             }
-            followFrameworkTimer(runnable)
             vi.setSystemTime(Date.now() - 5)
             const result = executeAsync.call(
                 { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
@@ -473,12 +472,12 @@ describe('executeAsync', () => {
             const settled = vi.fn()
             result.then(settled)
 
-            await vi.advanceTimersByTimeAsync(200)
+            await vi.advanceTimersByTimeAsync(197)
 
             expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
         })
 
-        it('should fail a test without a followed Mocha timer at its deadline when its timer fires less than 1 ms early', async () => {
+        it('should fail a Mocha test at its deadline when its timer fires less than 1 ms early', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'mocha test',
@@ -506,9 +505,6 @@ describe('executeAsync', () => {
                 resetTimeout: vi.fn(),
                 _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
             }
-            followFrameworkTimer(runnable)
-            // Mocha starts its timer once, also for a WebdriverIO retry
-            runnable.resetTimeout()
             const fn = vi.fn()
                 .mockRejectedValueOnce(new Error('first attempt fails'))
                 .mockReturnValueOnce(new Promise(() => {}))
@@ -522,131 +518,9 @@ describe('executeAsync', () => {
 
             // a clock adjustment moves Date.now() back, the timers keep their time
             vi.setSystemTime(Date.now() - 5)
-            await vi.advanceTimersByTimeAsync(200)
+            await vi.advanceTimersByTimeAsync(197)
 
             expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded. (WDIO attempt 2/2)'))
-        })
-
-        const mochaRunnable = (timeout: number) => ({
-            _timeout: timeout,
-            title: 'mocha test',
-            resetTimeout: vi.fn(),
-            _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
-        })
-
-        it('should fail a Mocha test at once when its deadline passed before the test starts', async () => {
-            const runnable = mochaRunnable(200)
-            followFrameworkTimer(runnable)
-            runnable.resetTimeout()
-            await vi.advanceTimersByTimeAsync(200)
-
-            const fn = vi.fn(() => new Promise(() => {}))
-            const err = await executeAsync.call(
-                { _runnable: runnable } as any, fn, { attempts: 0, limit: 0 }, [], 200
-            ).catch((err: Error) => err)
-
-            expect(err).toEqual(new Error('Timeout of 200ms exceeded.'))
-        })
-
-        it('should give a hook that runs again a new deadline', async () => {
-            const runnable = mochaRunnable(200)
-            followFrameworkTimer(runnable)
-            await vi.advanceTimersByTimeAsync(200)
-
-            followFrameworkTimer(runnable)
-            const settled = vi.fn()
-            executeAsync.call(
-                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
-            ).catch(settled)
-            await vi.advanceTimersByTimeAsync(199)
-            expect(settled).not.toHaveBeenCalled()
-
-            await vi.advanceTimersByTimeAsync(1)
-            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
-        })
-
-        it('should move the deadline when the test starts the Mocha timer again', async () => {
-            const runnable = mochaRunnable(200)
-            followFrameworkTimer(runnable)
-            const settled = vi.fn()
-            executeAsync.call(
-                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
-            ).catch(settled)
-            await vi.advanceTimersByTimeAsync(100)
-
-            // what this.timeout(100) does
-            runnable._timeout = 100
-            runnable.resetTimeout()
-            await vi.advanceTimersByTimeAsync(99)
-            expect(settled).not.toHaveBeenCalled()
-
-            await vi.advanceTimersByTimeAsync(1)
-            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 100ms exceeded.'))
-        })
-
-        it('should stop the deadline when the test turns the timeout off', async () => {
-            const runnable = mochaRunnable(200)
-            followFrameworkTimer(runnable)
-            const settled = vi.fn()
-            executeAsync.call(
-                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
-            ).catch(settled)
-
-            // what this.timeout(0) does
-            runnable._timeout = 0
-            runnable.resetTimeout()
-            await vi.advanceTimersByTimeAsync(1000)
-
-            expect(settled).not.toHaveBeenCalled()
-        })
-
-        it('should keep the deadline of the next test when a test ends after Mocha moved on', async () => {
-            const first = mochaRunnable(200)
-            const second = mochaRunnable(200)
-            const context = { _runnable: first as typeof first }
-            followFrameworkTimer(first)
-            let failFirst = (_err: Error) => {}
-            const late = executeAsync.call(
-                context as any, () => new Promise((_, reject) => { failFirst = reject }), { attempts: 0, limit: 0 }, [], 200
-            ).catch((err: Error) => err)
-
-            context._runnable = second
-            followFrameworkTimer(second)
-            const settled = vi.fn()
-            executeAsync.call(
-                context as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
-            ).catch(settled)
-            failFirst(new Error('late failure'))
-            await late
-
-            await vi.advanceTimersByTimeAsync(200)
-            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
-        })
-
-        it('should leave no timer after a Mocha test passes', async () => {
-            const runnable = mochaRunnable(200)
-            followFrameworkTimer(runnable)
-            await executeAsync.call({ _runnable: runnable } as any, async () => 'ok', { attempts: 0, limit: 0 }, [], 200)
-
-            expect(vi.getTimerCount()).toBe(0)
-        })
-
-        it('should leave no timer after a Mocha test fails, also at its deadline', async () => {
-            const failing = mochaRunnable(200)
-            followFrameworkTimer(failing)
-            await executeAsync.call(
-                { _runnable: failing } as any, () => Promise.reject(new Error('fails')), { attempts: 0, limit: 0 }, [], 200
-            ).catch((err: Error) => err)
-            expect(vi.getTimerCount()).toBe(0)
-
-            const timedOut = mochaRunnable(200)
-            followFrameworkTimer(timedOut)
-            const result = executeAsync.call(
-                { _runnable: timedOut } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
-            ).catch((err: Error) => err)
-            await vi.advanceTimersByTimeAsync(200)
-            await result
-            expect(vi.getTimerCount()).toBe(0)
         })
 
         it('should keep a $ pattern of the test title in the stack of the Mocha timeout error', async () => {
