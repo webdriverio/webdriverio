@@ -20,6 +20,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Trace mode + `show-trace` player | ✓ | ✓ | ✓ | ✓ |
 | DOM time-travel (mutation capture) | ✓ | ◐ ¹ | ◐ ¹ | ✓ |
 | Network requests (browser sessions) | ✓ | ◐ ² | ◐ ³ | ✓ |
+| Stylesheets and fonts stored in the trace (`traceResources`, browser sessions) | ✓ | ✓ | ✓ | ✓ |
 | Screencast (`filmstrip` / video) | ✓ ⁴ | ✓ ⁵ | ◐ ⁶ | ✓ ⁷ |
 | Per-test granularity (`traceGranularity: 'test'`) | ✓ | ✓ | ◐ ⁸ | ✓ |
 | Retry-aware retention (`tracePolicy`) | ✓ | ✓ | ◐ ⁹ | ◐ ¹⁰ |
