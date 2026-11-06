@@ -1,11 +1,11 @@
 # @wdio/vitest-framework
 
-Run specs written in Vitest syntax (`describe`, `test`, `test.concurrent`) with the WebdriverIO testrunner. Vitest schedules the tests, so no WDIO workers are started. `wdio.conf.ts` stays the source of truth for capabilities, connection options and hooks.
+Run specs written in Vitest syntax (`describe`, `test`, `test.concurrent`) with the WebdriverIO testrunner. Vitest schedules the tests, so no WDIO workers are started. The testrunner still loads the configured runner, `@wdio/local-runner` by default, which can start a display server for headful browsers on Linux. `wdio.conf.ts` stays the source of truth for capabilities, connection options and hooks.
 
 ## Installation
 
 ```sh
-npm install @wdio/vitest-framework vitest --save-dev
+npm install @wdio/vitest-framework @wdio/local-runner vitest --save-dev
 ```
 
 `vitest` is a peer dependency, so install it next to the package. `expect-webdriverio` is installed with the package.
@@ -42,6 +42,48 @@ describe('login', () => {
 ```
 
 The WDIO hooks `before`, `after`, `beforeTest` and `afterTest` run in the Vitest worker, once per spec file or test. Every capability becomes one Vitest project, named `<browserName>-<index>`, and every spec file gets its own browser session.
+
+## Fixtures
+
+`browser` is a global that the framework sets in `beforeAll`, so `test.extend` fixtures can use it, as can the tests. With `vitestOpts.parallelMode`, a fixture runs in the window of its own test, so its commands act on that test's window. For a full page-object example, see [page objects as fixtures](https://webdriver.io/docs/pageobjects#page-objects-as-fixtures).
+
+## Global setup
+
+`vitestOpts.globalSetup` is passed to Vitest. It runs once per `wdio run` in the Vitest main process, not once per capability.
+
+There is no browser session there: `browser` is undefined. Use it for API or data setup. The WDIO `onPrepare` hook is the alternative when you need the WDIO config or launcher services.
+
+Hand values to the specs with `project.provide(key, value)` in the setup and `inject(key)` from `vitest` in the spec. The `ProvidedContext` augmentation types `inject()` only when `global-setup.ts` is part of your `tsconfig.json` program:
+
+```ts
+// global-setup.ts
+import type { TestProject } from 'vitest/node'
+
+export default async function setup (project: TestProject) {
+    project.provide('apiToken', await createToken())
+}
+
+declare module 'vitest' {
+    interface ProvidedContext {
+        apiToken: string
+    }
+}
+```
+
+```ts
+// wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    framework: 'vitest',
+    vitestOpts: { globalSetup: ['./global-setup.ts'] },
+    // ...
+}
+```
+
+```ts
+// in a spec
+import { inject, test } from 'vitest'
+test('uses the token', () => { const token = inject('apiToken') })
+```
 
 ## Options
 
@@ -109,13 +151,13 @@ Each test opens its own window, and every command in the test targets it. The wi
 - `specFileRetries` is ignored, with a warning in the log. Use `vitestOpts.retry`.
 - Multi-remote capabilities are not supported yet.
 - `expect.poll` is not available, because the global `expect` is the one from `expect-webdriverio`.
-- Window and frame commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, because they change session-wide state.
-- Vitest runs projects with different `maxWorkers` one after another. A `wdio:maxInstances` on a capability therefore makes the capability projects run sequentially.
+- WebDriver Classic commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, except `status`, `getTimeouts` and `getWindowHandles`, because they act on the session's focused window, which concurrent tests share.
+- Every capability project gets `maxWorkers` from `wdio:maxInstances` or `maxInstancesPerCapability`, capped by `maxInstances`. A capability limited to one instance runs after the others. Capabilities with different limits above one fail the run with Vitest's error `Projects "<a>" and "<b>" have different 'maxWorkers' but same 'sequence.groupOrder'`.
 - Worker services are initialized like in the WDIO runner, so their `beforeSession`, `before`, `beforeTest`, `afterTest`, `beforeCommand`, `afterCommand`, `after` and `afterSession` hooks run, next to the launcher service hooks (`onPrepare`, `onComplete`).
 - The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run.
 - The `cid` passed to `beforeSession` is `<capability index>-<Vitest pool id>`; `WDIO_WORKER_ID` is not set, because the Vitest worker has an IPC channel to Vitest.
 - When `vitestOpts` sets no `reporters`, Vitest's `default` reporter is used instead of Vitest's environment-dependent default. Add others, such as `github-actions` annotations, explicitly.
-- Top-level config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again.
+- Config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again. Changes to `capabilities` are the exception.
 - `--watch`, `--repeat` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - WebDriver commands are not sent to the WDIO reporters, because the reporters run in the launcher and the commands run in the Vitest workers. Allure therefore shows no WebDriver steps and no automatic screenshots (`disableWebdriverStepsReporting` and `disableWebdriverScreenshotsReporting` have no effect), the video reporter records nothing, and the HTML reporter shows no automatic screenshots. Attach screenshots explicitly, for example `allure.addAttachment('screenshot', Buffer.from(await browser.takeScreenshot(), 'base64'), 'image/png')` in `afterTest` or `afterEach`. The `beforeCommand` / `afterCommand` hooks of `wdio.conf.ts` and of worker services still run. Calls of the HTML reporter (`ReportEvents.logMessage`, `logScreenshot` and `videoCapture`) are relayed, so their logs, screenshots and videos reach the report; WebDriver commands still do not.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
