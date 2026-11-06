@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { hostname } from 'node:os'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
 import type { Label, Parameter, Link, StepResult } from 'allure-js-commons'
 import { Status, LabelName, LinkType, Stage } from 'allure-js-commons'
@@ -105,6 +106,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 expect(features[0].value).toEqual('MyFeature')
                 expect(languages[0].value).toEqual('javascript')
                 expect(frameworks[0].value).toEqual('wdio')
+                expect(labels[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
             })
 
             it('should add browser name as test argument', () => {
