@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head><title>getHTML</title></head>
+<body>
+<table id="table"><caption id="caption">Totals</caption><colgroup><col id="col" span="2"></colgroup><tbody id="tbody"><tr id="row"><th id="header">Item</th><td id="cell">Shirt</td></tr></tbody></table>
+<template id="template"><span>in a template</span></template>
+<svg viewBox="0 0 10 10"><foreignObject id="foreign"><p>in SVG</p></foreignObject></svg>
+<p id="entities">a&nbsp;b &lt;x&gt; <input disabled value="a&quot;b"></p>
+<open-host id="host"><span>light</span></open-host>
+<script>
+customElements.define('open-host', class extends HTMLElement {
+    constructor () {
+        super()
+        this.attachShadow({ mode: 'open' }).innerHTML = '<b>in the shadow root</b><slot></slot>'
+    }
+})
+</script>
+</body>
+</html>

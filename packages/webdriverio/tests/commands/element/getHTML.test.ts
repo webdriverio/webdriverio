@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { remote } from '../../../src/index.js'
-import { sanitizeHTML } from '../../../src/commands/element/getHTML.js'
+import { parseHTML, sanitizeHTML } from '../../../src/commands/element/getHTML.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getShadowRootManager } from '../../../src/session/shadowRoot.js'
 
@@ -119,6 +119,67 @@ describe('getHTML test', () => {
         expect(result).toContain('<p>Keep inner shadow content</p>')
     })
 
+    /**
+     * The BiDi path serializes the element in the browser and parses that
+     * HTML again in Node.js to add the shadow roots. The parse must not
+     * change what the browser serialized.
+     */
+    describe('in a WebDriver BiDi session', () => {
+        async function bidiElement (html: string, shadowElementHTML: { id: string, html: string, styles?: string[] }[] = [], pairs: [string, string][] = []) {
+            const browser = await remote({ capabilities: { browserName: 'bidi' } })
+            const elem = await browser.$({ [ELEMENT_KEY]: 'elem' })
+            const shadowRootManager = getShadowRootManager(browser)
+            vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('context-id')
+            vi.spyOn(shadowRootManager, 'getShadowElementPairsByContextId').mockResolvedValue(pairs)
+            vi.spyOn(shadowRootManager, 'getShadowRootModeById').mockReturnValue('open')
+            vi.spyOn(browser, 'execute').mockResolvedValue('CUSTOM-ELEMENT')
+            const execute = vi.spyOn(elem, 'execute').mockResolvedValue({ html, shadowElementHTML })
+            return { elem, execute }
+        }
+
+        afterEach(() => {
+            vi.restoreAllMocks()
+        })
+
+        it.each([
+            ['a table cell', '<td id="td">cell</td>'],
+            ['a table row', '<tr id="tr"><td>cell</td></tr>'],
+            ['a table body', '<tbody id="tb"><tr><td>cell</td></tr></tbody>'],
+            ['a table head', '<thead><tr><th id="th">H</th></tr></thead>'],
+            ['a table foot', '<tfoot><tr><td>f</td></tr></tfoot>'],
+            ['a header cell', '<th id="th">H</th>'],
+            ['a caption', '<caption id="cap">T</caption>'],
+            ['a column group', '<colgroup id="cg"><col span="2"></colgroup>'],
+            ['a column', '<col id="col" span="2">'],
+            ['a template', '<template id="tpl"><span>in template</span></template>'],
+            ['the head', '<head><title>m</title></head>'],
+            ['the body', '<body id="bd"><p>x</p></body>'],
+            ['the html element', '<html><head><title>m</title></head><body><p>x</p></body></html>'],
+            ['an SVG element', '<foreignObject id="fo"><p>x</p></foreignObject>'],
+            ['entities and empty attributes', '<p id="e">a&nbsp;b &lt;x&gt; &amp; <input id="i" disabled="" value="a&quot;b"></p>'],
+            ['preformatted text', '<pre id="pre">\n\nline</pre>']
+        ])('returns %s as the browser serialized it', async (_, html) => {
+            const { elem } = await bidiElement(html)
+            expect(await elem.getHTML({ prettify: false })).toBe(html)
+        })
+
+        it('keeps the shadow root of the element itself without its tag', async () => {
+            const { elem, execute } = await bidiElement(
+                '<open-host data-wdio-shadow-id="host"><span>light</span></open-host>',
+                [{ id: 'host', html: '<b>open</b>' }],
+                [['host', 'host-root']]
+            )
+
+            const html = await elem.getHTML({ prettify: false, includeSelectorTag: false })
+
+            expect(execute.mock.calls[0][1]).toBe(true)
+            expect(html).not.toContain('<open-host')
+            expect(html).toContain('<span>light</span>')
+            expect(html).toContain('<template shadowrootmode="open">')
+            expect(html).toContain('<b>open</b>')
+        })
+    })
+
     describe('sanitizeHTML', () => {
         it('should remove simple HTML comments by default', () => {
             const html = '<!-- comment -->'
@@ -222,7 +283,6 @@ describe('getHTML test', () => {
         })
 
         it('should handle multiline comments in Cheerio mode', async () => {
-            const { load } = await import('cheerio')
             const html = `
                 <html>
                     <body>
@@ -240,7 +300,7 @@ describe('getHTML test', () => {
                     </body>
                 </html>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
             expect(result).not.toContain('<!--')
             expect(result).not.toContain('multiline comment')
@@ -291,7 +351,6 @@ describe('getHTML test', () => {
 
         it('should remove comments in complex HTML when using Cheerio', async () => {
             // Import cheerio dynamically to test the Cheerio path
-            const { load } = await import('cheerio')
             const complexHtml = `
                 <div>
                     <!-- Comment 1 -->
@@ -300,7 +359,7 @@ describe('getHTML test', () => {
                     <span>More<!--comment-->text</span>
                 </div>
             `
-            const $ = load(complexHtml)
+            const $ = await parseHTML(complexHtml)
             const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
 
             expect(result).not.toContain('<!--')
@@ -312,7 +371,6 @@ describe('getHTML test', () => {
             // `<template>` element content lives in a separate document fragment that
             // `$('*').contents()` does not descend into, which is exactly the case
             // `getHTML()` builds up in `populateHTML` when piercing shadow roots.
-            const { load } = await import('cheerio')
             const html = `
                 <my-element>
                     <template shadowrootmode="open">
@@ -321,7 +379,7 @@ describe('getHTML test', () => {
                     </template>
                 </my-element>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
 
             expect(result).not.toContain('<!--')
@@ -332,7 +390,6 @@ describe('getHTML test', () => {
         it('should remove comments nested inside multiple levels of <template> content', async () => {
             // shadow roots can be nested (e.g. a web component using another web
             // component internally), so comments must be removed at any depth
-            const { load } = await import('cheerio')
             const html = `
                 <outer-element>
                     <template shadowrootmode="open">
@@ -346,7 +403,7 @@ describe('getHTML test', () => {
                     </template>
                 </outer-element>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
 
             expect(result).not.toContain('<!--')
@@ -354,7 +411,6 @@ describe('getHTML test', () => {
         })
 
         it('should preserve comments inside <template> content when removeCommentNodes is false', async () => {
-            const { load } = await import('cheerio')
             const html = `
                 <my-element>
                     <template shadowrootmode="open">
@@ -363,14 +419,13 @@ describe('getHTML test', () => {
                     </template>
                 </my-element>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, { removeCommentNodes: false, prettify: false })
 
             expect(result).toContain('<!--?lit$123$-->')
         })
 
         it('should exclude elements when specified', async () => {
-            const { load } = await import('cheerio')
             const html = `
                 <div>
                     <style>body { color: red; }</style>
@@ -378,7 +433,7 @@ describe('getHTML test', () => {
                     <script>console.log('remove')</script>
                 </div>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, {
                 excludeElements: ['style', 'script'],
                 prettify: false
@@ -390,7 +445,6 @@ describe('getHTML test', () => {
         })
 
         it('should remove comments and exclude elements together', async () => {
-            const { load } = await import('cheerio')
             const html = `
                 <div>
                     <!-- Remove this comment -->
@@ -398,7 +452,7 @@ describe('getHTML test', () => {
                     <p>Keep this<!-- but not this --></p>
                 </div>
             `
-            const $ = load(html)
+            const $ = await parseHTML(html)
             const result = sanitizeHTML($, {
                 removeCommentNodes: true,
                 excludeElements: ['style'],
