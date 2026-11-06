@@ -156,6 +156,18 @@ export class ShadowRootManager extends SessionManager {
             const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
 
             /**
+             * The preload wrapper also emits this event from the custom
+             * element's connectedCallback, even when the element never calls
+             * attachShadow(). Light-DOM custom elements are valid HTML, not
+             * broken shadow hosts. Do not warn or create a phantom context
+             * tree; a later attachShadow() emits another registration event.
+             * Keep warning on malformed events that claim a shadow root.
+             */
+            if (shadowElem.value && shadowElem.value.shadowRoot == null) {
+                return
+            }
+
+            /**
              * Detect document ID changes from sharedId format: f.<frameId>.d.<documentId>.e.<elementId>
              * When the document changes (full navigation), purge the old tree to prevent unbounded growth.
              */
