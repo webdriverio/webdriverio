@@ -115,6 +115,10 @@ becomes
 </testsuites>
 ```
 
+### Multi-remote
+
+In a multi-remote run, the `classname` of a test case and the `capabilities` property name each instance and its browser, for example `chromeA-chrome_155_0_8059_85_mac+chromeB-chrome_155_0_8059_85_mac.a_test_case`.
+
 ### Failures and Errors
 All test case failures are mapped as JUnit test case errors. A failed test case due to assertion failure or error will look like:
 

@@ -139,6 +139,7 @@ Adapters that bring the WebdriverIO DevTools UI to test suites running outside W
 - [@wdio/cucumber-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework) - Adapter for [Cucumber](https://cucumber.io/) testing framework
 - [@wdio/jasmine-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework) - Adapter for [Jasmine](https://jasmine.github.io/) testing framework
 - [@wdio/mocha-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework) - Adapter for [Mocha](https://mochajs.org/) testing framework.
+- [@wdio/vitest-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-vitest-framework) - Adapter for [Vitest](https://vitest.dev/) testing framework.
 
 ### Others
 

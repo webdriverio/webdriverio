@@ -45,6 +45,8 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineNodeOpts` | `jasmineOpts`. Setting the old key throws. |
 | `jasmineOpts.failFast` | `jasmineOpts.stopOnSpecFailure`. A leftover `failFast` is ignored. Cucumber's `failFast` stays. |
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
+| `expect-webdriverio/jasmine-wdio-expect-async` in `tsconfig.json` `types` | remove it, and add `jasmine`. |
+| `.then()` or `.catch()` on a Jasmine sync matcher, such as `expect(total).toBe(3).then(...)` | call it without them: a sync matcher returns `undefined`. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
 | a Cucumber suite with pending steps that passed (no `cucumberOpts.strict`) | `strict` now defaults to `true`, as in Cucumber: set `cucumberOpts.strict: false` to keep the v9 behavior. Values in a Cucumber profile or config file (also a default `cucumber.js` in the working folder) are now used; a value in `cucumberOpts` wins over them. The `require` and `import` lists of the profile are loaded too; its `paths`, `requireModule` and `loader` are not used (use `specs` and `cucumberOpts.requireModule`), and a folder in its `require` / `import` is not loaded (use a glob). Remove an unused Cucumber config file, or set `cucumberOpts.file: false`. |
 | a report that expects no hook for a Cucumber `BeforeAll` / `AfterAll`, or the commands and logs of an `AfterAll` on the last step | a `BeforeAll` / `AfterAll` is now a hook of the feature, passed or failed, and its commands and logs belong to it. Allure shows a fixture for each one (`disableMochaHooks: true` hides the passed ones), `@wdio/json-reporter` lists it in the feature `hooks`. |
@@ -53,7 +55,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
 | a script or report filter that matches `wrappedHook` in a Mocha hook title | the title has the hook description or function name (`"before each" hook: login for "my test"`), or no name for an anonymous hook (`"before each" hook for "my test"`) |
 | `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 ignored `this.timeout()` inside a test), and `mochaOpts.timeout: 0` turns the timeout off. The `retry` argument does not run a test again after a timeout. For `mochaOpts.parallelMode`, see the guide. |
-| New in v10, no migration needed | [parallel tests in a spec file](https://webdriver.io/docs/parallel-tests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`. |
+| New in v10, no migration needed | [parallel tests in a spec file](https://webdriver.io/docs/parallel-tests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`, and [`@wdio/vitest-framework`](https://webdriver.io/docs/frameworks.md#using-vitest) with `framework: 'vitest'`. |
 | `multiremotebrowser` | `multiRemoteBrowser` |
 | `browser.isMultiremote`, `isMultiremote` | `isMultiRemote` |
 | `multiremote(` | `multiRemote(` |
@@ -63,9 +65,11 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | Sauce `tunnelIdentifier` / `parentTunnel` | `tunnelName` / `tunnelOwner` |
 | `import type { Element }` from `webdriverio` | `WebdriverIO.Element` (also `MultiRemoteBrowser`, `MultiRemoteElement`) |
 | `onAfterCommand` argument `name` | `command` |
+| a custom reporter that ends a Cucumber test in `onTestPass` / `onTestFail`, or counts a retried step in `onTestFail` | finish the work in `onTestEnd`: sequential Cucumber now sends it. A failed step of a retried attempt calls `onTestRetry`. A scenario attempt retried with `scenarioLevelReporter` gets `onTestRetry` and no `onTestEnd`: finish its work there. |
+| a script or filter on the JUnit `classname` or `capabilities` of a multi-remote test | the value now names each instance and its browser. Before, it was empty. See the guide. |
 | a `beforeCommand` / `afterCommand` hook that expects an element command 2 or 3 times, `[]` as `args`, or an `emit` command | the hooks run once for each element command, with its arguments, and not for `emit`. `beforeCommand` runs before the wait for the element: read the found element in `afterCommand`. |
 | `wdio-video-reporter` | `@wdio/video-reporter`. Uninstall the old package. `reporters: ['video']` stays. Install ffmpeg on every machine that runs the tests (also CI and Docker), or set `ffmpegPath`: v10 does not install it. Rename JSON Wire Protocol names in `snapshotCommands` (see the guide). `GET` commands (for example `getUrl`) give no frame. |
-| `wdio-html-nice-reporter`, reporter name `html-nice` | `@wdio/html-reporter`, reporter name `html`. Uninstall the old package. `@rpii/wdio-report-events` can become `ReportEvents` from `@wdio/html-reporter`. `lib/makeReport.js` is `build/makeReport.js`. |
+| `wdio-html-nice-reporter`, reporter name `html-nice` | `@wdio/html-reporter`, reporter name `html`. Uninstall the old package. `@rpii/wdio-report-events` can become `ReportEvents` from `@wdio/html-reporter`. `lib/makeReport.js` is `build/makeReport.js`, and it ends with exit code 1 when it makes no complete report. Scripts that read the JSON files: check the changes in the guide. |
 | `addEnvironment(` | `reportedEnvironmentVars` in the Allure reporter options |
 | `addCommand(name, fn, true)` | `addCommand(name, fn, { attachToElement: true })`. A boolean third argument throws. Same for `overwriteCommand`. |
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |
@@ -76,6 +80,23 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `if (list[i])` or `list.at(i) === undefined` on a `$$()` list, to check that an item exists | `const list = await $$(...)`, then `if (list.length > i)`. An index past the end of a `$$(selector)` list is an element that waits `waitforTimeout`, not `undefined`, also after `await`. After `await`, a negative index and a list from `slice()` or `filter()` give `undefined`. Before `await`, `list[i]` with an integer index of 0 or more, and `at()`, give a truthy promise; `filter()` gives a promise: await it before you read an index. |
 | `$$(...).length` without `await` | `await $$(...).length`. Before `await`, `length` is a promise, with no error: `>` and `<` give `false` (an index loop runs 0 times), `if (length)` and `!== 0` give `true`. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
+| `setValue(` on a `range`, `date`, `datetime-local`, `month`, `week`, `time` or `color` input with a locale format, or a test that waits for key events on it | pass the format of the input (`2026-10-04`, `14:30`, `#rrggbb`, a number). `setValue` sets the value directly and fires only `input` and `change`. A value that the browser cannot parse throws, and so does an empty value on a range. |
+| `$('=text')` or `$('*=text')` on an element that is not a link, in a BiDi session | `$('button=text')`, `$('button*=text')` or `$('aria/text')`. These selectors now match only links. |
+| `mock.calls` read after `browser.reloadSession()`, or a mock used again after it | read `calls` before the reload, and create the mock again after it. `reloadSession()` restores the mocks of the old session. |
+| a `=== undefined` check on the result of `sharedStore.get`, `getValue` or `getValueFromPool` | also check `null`: a stored `null` now returns `null`. `get` and `getValue` still return `undefined` for a missing key. |
+| `setGlobalDispatcher` from your own `undici` | update `undici` to 8. A dispatcher from `undici` 6, or 7 older than 7.27, is not seen, and requests skip the proxy with no error. |
+| `autoAssertOnTestEnd: false` | it now takes effect. Call `expect.assertSoftFailures()` in the tests, or remove the option: else a soft assertion failure no longer fails the test. |
+| a script that reads `state.failed` of `@wdio/json-reporter`, or counts `suites[].tests` by `state` | `state.failed` counts only the last attempt of a retried test. Skip tests with `retried: true` when you count. See the guide. |
+| `--shard 0/N` | `--shard` is one-based: use 1 to N. `0/N` now fails. In v9, it ran no spec (`0/1` ran all specs). |
+| `driver.stopRecordingScreen('url', undefined, undefined, 'POST')` | `driver.stopRecordingScreen({ remotePath: 'url', method: 'POST' })` |
+| `params.result.result` in `afterAssertion` | `params.result.pass` |
+| `let elem: ChainablePromiseElement = await $(...)`, `let elems: ChainablePromiseArray = await $$(...)` | `WebdriverIO.Element`, `WebdriverIO.ElementArray` |
+| `respond(..., { fetchResponse: false })` on a mock with a `statusCode` or `responseHeaders` filter | it throws. Remove the filter, or remove `fetchResponse: false`. |
+| `const [a, b] = await browser.custom$(...)`, also `react$`, and on an element `shadow$`, `nextElement`, `previousElement`, `parentElement` | one multi-remote element: `result.getInstance('name')`. |
+| `const [a, b] = await browser.custom$$(...)`, also `react$$`, and on an element `shadow$$` | one multi-remote list. Each entry addresses every instance: `result[0].getInstance('name')`. |
+| sync `map`, `filter`, `forEach`, `find`, `findIndex`, `some`, `every` or `reduce` on a multi-remote `$$()`, `custom$$()`, `react$$()` or `shadow$$()` list | `await` the result: these methods are async, also after `await`. |
+| `--allow-insecure=adb_shell` for Appium | add a driver or `*` scope: `uiautomator2:adb_shell` or `*:adb_shell`. |
+| `fn(() => ...)` from `@wdio/browser-runner`, for a mock that your code calls with `new` | `fn(function () { ... })` or a `class`. An arrow function throws `is not a constructor`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |
 | `browser.uploadFile(path)` then `setValue` | `element.setFiles(path)` or `element.setFiles([paths])`. Needs a BiDi session and a path the browser can read. Grid byte staging is gone. See below. |
 | `touchAction(` | `browser.action('pointer', { parameters: { pointerType: 'touch' } })`, or mobile `tap` / `swipe` |
@@ -177,4 +198,7 @@ Passing a boolean to `getHTML` was removed in WebdriverIO v10.
 The `page load` timeout key was removed in WebdriverIO v10.
 strict mode violation
 WebDriver new session response is missing a session id or capabilities.
+The browser rejected the value
+the "shard.current" value has to be an integer between 1 and "shard.total"
+This can't be done on restored mock
 ```

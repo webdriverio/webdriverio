@@ -306,7 +306,7 @@ Every snapshot is written to the artifacts dir. Output longer than --max-chars i
 
 The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.
 
-`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed; --offset does not apply. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.
+`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed. --offset above 1 and a web --viewport are usage errors. A diff longer than --max-chars is cut at a line and names the snapshot file. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.
 
 ```sh
 npx wdio session snapshot
