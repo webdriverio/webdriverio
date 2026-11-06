@@ -172,6 +172,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (spe
                     const source = dec.source.value as string
 
                     if (!dec.specifiers || dec.specifiers.length === 0) {
+                        if (isSpecFile) {
+                            nodePath.replace(b.expressionStatement(
+                                b.awaitExpression(b.importExpression(b.literal(source)))
+                            ))
+                        }
                         return this.traverse(nodePath)
                     }
 
