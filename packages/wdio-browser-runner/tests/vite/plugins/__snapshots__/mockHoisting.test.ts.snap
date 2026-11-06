@@ -1,5 +1,15 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`falls back to the actual module where wdioImport is not defined, e.g. in a web worker 1`] = `
+"import * as __wdio_import0 from "./format.js";
+
+const {
+  format: format
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("/some/other/format", __wdio_import0);
+
+self.postMessage(format("worker"))"
+`;
+
 exports[`transforms any other imported file properly for mocking 1`] = `
 PrintResult {
   "code": "import * as __wdio_import5 from "./components/LitComponent.ts";
@@ -13,30 +23,30 @@ import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 const {
     default: React,
     FC: FC
-} = wdioImport("react", __wdio_import0);
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("react", __wdio_import0);
 
 const {
     expect: expect,
     $: $
-} = wdioImport("@wdio/globals", __wdio_import1);
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("@wdio/globals", __wdio_import1);
 
 const {
     html: html,
     render: render
-} = wdioImport("lit", __wdio_import2);
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("lit", __wdio_import2);
 
-const matchers = wdioImport("@testing-library/jest-dom/matchers", __wdio_import3);
+const matchers = (globalThis.wdioImport ?? ((_, mod) => mod))("@testing-library/jest-dom/matchers", __wdio_import3);
 
 import 'something'
 
 const {
     default: defaultExport,
     namedExportValue: namedExportValue
-} = wdioImport("someModule", __wdio_import4);
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("someModule", __wdio_import4);
 
 const {
     SimpleGreeting: SimpleGreeting
-} = wdioImport("/some/other/components/LitComponent", __wdio_import5);
+} = (globalThis.wdioImport ?? ((_, mod) => mod))("/some/other/components/LitComponent", __wdio_import5);
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 mock('./components/constants.ts', async (mod) => {

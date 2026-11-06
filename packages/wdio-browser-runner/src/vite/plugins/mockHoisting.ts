@@ -263,7 +263,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (spe
                          *
                          *   to:
                          *      import { foo as __wdio_import0 } from 'bar'
-                         *      const { foo } = await wdioImport('bar', __wdio_import0)
+                         *      const { foo } = (globalThis.wdioImport ?? ((_, mod) => mod))('bar', __wdio_import0)
+                         *
+                         * `wdioImport` is only defined in the test page. A web worker loads the
+                         * same transformed modules without it, so fall back to the actual module
+                         * there (mocks do not apply in web workers).
                          */
                         : b.variableDeclaration('const', [
                             b.variableDeclarator(
@@ -276,7 +280,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (spe
                                         return b.property('init', b.identifier(s.imported.name as string), b.identifier(s.local!.name as string))
                                     })),
                                 b.callExpression(
-                                    b.identifier('wdioImport'),
+                                    b.logicalExpression(
+                                        '??',
+                                        b.memberExpression(b.identifier('globalThis'), b.identifier('wdioImport')),
+                                        b.arrowFunctionExpression(
+                                            [b.identifier('_'), b.identifier('mod')],
+                                            b.identifier('mod')
+                                        )
+                                    ),
                                     [
                                         b.literal(wdioImportModuleIdentifier),
                                         b.identifier(newImportIdentifier)

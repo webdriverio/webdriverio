@@ -91,3 +91,19 @@ test('transforms any other imported file properly for mocking', () => {
 
     expect(newCode).toMatchSnapshot()
 })
+
+test('falls back to the actual module where wdioImport is not defined, e.g. in a web worker', () => {
+    const postPlugin = mockHoisting(mockHandler).pop()!
+    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
+    const server = {
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl: `/foo?spec=/${testfilePath}` }, {}, vi.fn()) }
+    }
+    ;(postPlugin.configureServer as Function)(server)()
+    ;(postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)
+    const { code } = (postPlugin.transform as Function)(
+        'import { format } from "./format.js"\nself.postMessage(format("worker"))',
+        '/some/other/worker.ts'
+    )
+
+    expect(code.replace('C:/', '').replace('D:/', '')).toMatchSnapshot() // fix for Windows
+})
