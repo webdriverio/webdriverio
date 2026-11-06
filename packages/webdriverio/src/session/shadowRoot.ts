@@ -24,6 +24,10 @@ export class ShadowRootManager extends SessionManager {
     #shadowRoots = new Map<string, ShadowRootTree>()
     #currentDocumentIds = new Map<string, string>()
     #documentElements = new Map<string, remote.ScriptNodeRemoteValue>()
+    /**
+     * trees whose root is the document itself, which already contains the document element
+     */
+    #documentRootTrees = new WeakSet<ShadowRootTree>()
     #frameDepth = 0
 
     #handleLogEntryListener = this.handleLogEntry.bind(this)
@@ -181,7 +185,11 @@ export class ShadowRootManager extends SessionManager {
                 if (!rootElem.sharedId) {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
-                this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                const rootTree = new ShadowRootTree(rootElem.sharedId)
+                if (isDocument?.type === 'boolean' && isDocument.value) {
+                    this.#documentRootTrees.add(rootTree)
+                }
+                this.#shadowRoots.set(logEntry.source.context, rootTree)
             } else if (isDocument.type === 'boolean' && isDocument.value) {
                 /**
                  * we've discovered a new root for the same context, this can happen if a page load
@@ -194,6 +202,7 @@ export class ShadowRootManager extends SessionManager {
                 const tree = this.#shadowRoots.get(logEntry.source.context)
                 if (tree?.element !== rootElem.sharedId) {
                     const documentTree = new ShadowRootTree(rootElem.sharedId)
+                    this.#documentRootTrees.add(documentTree)
                     // A detached host may have been the initial root. Preserve its hosts
                     // when the document element confirms this is still the same document.
                     if (
@@ -296,9 +305,11 @@ export class ShadowRootManager extends SessionManager {
                 return [...new Set(elements).values()]
             }
             tree = subTree
-        } else {
+        } else if (!this.#documentRootTrees.has(tree)) {
             /**
-             * ensure to include to document root if no scope is provided
+             * ensure to include to document root if no scope is provided, unless the tree's
+             * root is the document itself: it already contains the document element, and
+             * passing both makes the driver search the whole page twice
              */
             documentElement = this.#documentElements.get(contextId)?.sharedId
         }
