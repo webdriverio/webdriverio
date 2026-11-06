@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, followFrameworkTimer, setCommandHookStore, unwrapCommand } from '../src/shim.js'
+import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -465,7 +465,6 @@ describe('executeAsync', () => {
                 resetTimeout: vi.fn(),
                 _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
             }
-            followFrameworkTimer(runnable)
             vi.setSystemTime(Date.now() - 5)
             const result = executeAsync.call(
                 { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
@@ -485,8 +484,6 @@ describe('executeAsync', () => {
                 resetTimeout: vi.fn(),
                 _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
             }
-            followFrameworkTimer(runnable)
-            runnable.resetTimeout()
             const result = executeAsync.call(
                 { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
             ).catch((err: Error) => err)
@@ -508,9 +505,6 @@ describe('executeAsync', () => {
                 resetTimeout: vi.fn(),
                 _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
             }
-            followFrameworkTimer(runnable)
-            // Mocha starts its timer once, also for a WebdriverIO retry
-            runnable.resetTimeout()
             const fn = vi.fn()
                 .mockRejectedValueOnce(new Error('first attempt fails'))
                 .mockReturnValueOnce(new Promise(() => {}))

@@ -13,6 +13,7 @@ interface Scenario {
     beforeTestTime?: number
     retries?: number
     type?: 'Test' | 'Hook'
+    ctx?: Mocha.Context
 }
 
 /**
@@ -20,7 +21,9 @@ interface Scenario {
  * `@wdio/mocha-framework` does, and record when the `afterTest` (or
  * `afterHook`) hook ends and when Mocha finishes the runnable.
  */
-function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, beforeTestTime = 0, retries = 0, type = 'Test' }: Scenario = {}) {
+let lastRunnable: Mocha.Runnable
+
+function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, beforeTestTime = 0, retries = 0, type = 'Test', ctx = new Mocha.Context() }: Scenario = {}) {
     const start = Date.now()
     const at: Record<string, number> = {}
     let afterPassed: boolean | undefined
@@ -48,13 +51,14 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
             type === 'Hook' ? '"before each" hook' : undefined
         )
     })
+    lastRunnable = runnable
     runnable.parent = new Mocha.Suite('suite', new Mocha.Context())
     runnable.timeout(timeout)
-    runnable.ctx = new Mocha.Context()
-    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error }>((resolve) => {
+    runnable.ctx = ctx
+    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error, runnable: Mocha.Runnable & { timer?: unknown }, afterPassedNow: () => boolean | undefined }>((resolve) => {
         runnable.run((err?: Error) => {
             at.mochaDone = Date.now() - start
-            resolve({ err, at, afterPassed, afterError })
+            resolve({ err, at, afterPassed, afterError, runnable, afterPassedNow: () => afterPassed })
         })
     })
 }
@@ -73,6 +77,136 @@ function expectAfterHookBeforeMochaDone ({ err, at, afterPassed }: Awaited<Retur
 describe('Mocha timeout and the after hooks', () => {
     it('lets Mocha wait for afterTest after a timeout', async () => {
         expectAfterHookBeforeMochaDone(await run(() => sleep(1000)), 300)
+    })
+
+    it('lets Mocha wait for afterTest when the process pauses as the WebdriverIO timer starts', async () => {
+        const realSetTimeout = globalThis.setTimeout
+        // Mocha keeps its own setTimeout, so this pauses only the WebdriverIO timer
+        const spy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((fn: () => void, ms?: number) => {
+            if (ms !== undefined && ms > 200 && ms <= 300) {
+                const end = performance.now() + 10
+                while (performance.now() < end) { /* a GC or a stopped CPU */ }
+            }
+            return realSetTimeout(fn, ms)
+        }) as typeof setTimeout)
+        try {
+            expectAfterHookBeforeMochaDone(await run(() => new Promise((resolve) => realSetTimeout(resolve, 1000))), 300)
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
+    it('lets Mocha wait for afterTest when a pause ends with another timer of the same duration due', async () => {
+        const pause = () => {
+            const end = performance.now() + 30
+            while (performance.now() < end) { /* a GC or a stopped CPU */ }
+        }
+        // Node fires all due timers of one duration before it looks at the next duration
+        const other = setTimeout(() => {}, 300)
+        const pauseTimer = setTimeout(pause, 290)
+        const started = performance.now()
+        while (performance.now() - started < 5) { /* this timer ends first */ }
+        try {
+            expectAfterHookBeforeMochaDone(await run(() => sleep(1000)), 300)
+        } finally {
+            clearTimeout(other)
+            clearTimeout(pauseTimer)
+        }
+    })
+
+    it('lets Mocha wait for afterTest of the next test when the test before it ends late', async () => {
+        const ctx = new Mocha.Context()
+        // Mocha times this test out in beforeTest and starts the next one, on the same context
+        await run(async () => {}, { beforeTestTime: 400, ctx })
+        expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
+    })
+
+    it('lets Mocha wait for afterTest of the next test when the test before it has retries left', async () => {
+        const ctx = new Mocha.Context()
+        await run(async () => { throw new Error('fails') }, { beforeTestTime: 400, retries: 1, ctx })
+        expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
+    })
+
+    it('lets Mocha wait for afterTest with fake timers, as Mocha keeps the real timers', async () => {
+        const realSetTimeout = globalThis.setTimeout
+        // a fake timer that nothing moves on
+        const spy = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((fn: () => void, ms?: number) => (
+            ms === 300 ? realSetTimeout(() => {}, 0) : realSetTimeout(fn, ms)
+        )) as typeof setTimeout)
+        try {
+            expectAfterHookBeforeMochaDone(await run(() => new Promise((resolve) => realSetTimeout(resolve, 1000))), 300)
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
+    it('gives a hook that runs again a new timeout', async () => {
+        const hook = new Mocha.Runnable('hook', function (this: Mocha.Context) {
+            return testFnWrapper.call(
+                this, 'Hook', { specFn: () => sleep(200), specFnArgs: [] },
+                { beforeFn: [], beforeFnArgs: () => [{ title: 'hook' }] },
+                { afterFn: [], afterFnArgs: () => [{ title: 'hook' }, {}] },
+                '0-0', 0, '"before each" hook'
+            )
+        })
+        hook.parent = new Mocha.Suite('suite', new Mocha.Context())
+        hook.timeout(300)
+        hook.ctx = new Mocha.Context()
+        const runHook = () => new Promise<Error | undefined>((resolve) => hook.run(resolve))
+        expect(await runHook()).toBeUndefined()
+        expect(await runHook()).toBeUndefined()
+    })
+
+    it('ends a test that Mocha timed out in beforeTest, with no new timer', async () => {
+        const result = await run(() => new Promise(() => {}), { beforeTestTime: 400 })
+        const { timer } = result.runnable
+        expect(result.err?.message).toContain('Timeout of 300ms exceeded')
+        expect(result.at.afterHookEnd).toBeUndefined()
+        await sleep(250)
+        expect(result.afterPassedNow()).toBe(false)
+        expect(result.at.afterHookEnd).toBeDefined()
+        expect(result.runnable.timer).toBe(timer)
+    })
+
+    it('does not make Mocha wait for afterTest of a test that passed, as Mocha does', async () => {
+        const { err, at } = await run(() => sleep(10), { timeout: 40 })
+        expect(err?.message).toContain('Timeout of 40ms exceeded')
+        expect(at.afterHookEnd).toBeUndefined()
+    })
+
+    it('makes Mocha wait one more timeout for afterTest after a timeout, not longer', async () => {
+        const { err, at } = await run(() => sleep(1000), { timeout: 20 })
+        expect(err?.message).toContain('Timeout of 20ms exceeded')
+        expect(at.afterHookEnd).toBeUndefined()
+    })
+
+    it('keeps the timeout of the next test when a retry starts after an uncaught error of the test before it', async () => {
+        const ctx = new Mocha.Context()
+        const first = run(async () => {
+            await sleep(50)
+            throw new Error('fails late')
+        }, { retries: 1, ctx })
+        await sleep(10)
+        // what Mocha does for an uncaught error: it ends the test and moves on
+        const uncaught = ctx.runnable() as unknown as { clearTimeout: () => void, callback: (err: Error) => void }
+        uncaught.clearTimeout()
+        uncaught.callback(new Error('uncaught'))
+        await first
+        expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
+    })
+
+    it('runs afterTest of a test that Mocha ended on an uncaught error, at its timeout', async () => {
+        const first = run(() => new Promise(() => {}))
+        await sleep(10)
+        const ctxRunnable = lastRunnable as unknown as { clearTimeout: () => void, callback: (err: Error) => void }
+        ctxRunnable.clearTimeout()
+        ctxRunnable.callback(new Error('uncaught'))
+        const { err, at, afterPassedNow } = await first
+        expect(err?.message).toBe('uncaught')
+        expect(at.afterHookEnd).toBeUndefined()
+        await sleep(450)
+        expect(afterPassedNow()).toBe(false)
+        expect(at.afterHookEnd).toBeDefined()
     })
 
     it('counts the time of beforeTest, as Mocha does', async () => {
