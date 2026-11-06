@@ -132,6 +132,10 @@ export class ContextManager extends SessionManager {
     #isNativeContext: boolean
     #getContextSupport = true
     #currentWindowHandle?: string
+    /**
+     * the handle of a `switchToWindow` and the current context before it, kept when the switch fails
+     */
+    #switchFrom?: { handle: string, context?: string }
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
     #onCommandListener: (event: { command: string, body: unknown, endpoint?: string }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
@@ -375,6 +379,23 @@ export class ContextManager extends SessionManager {
                 const windowHandle = (event.body as { handle?: string }).handle || undefined
                 this.#currentWindowHandle = windowHandle
             }
+
+            /**
+             * Another switch can be in flight at the same time, e.g. one that was not awaited,
+             * so only the result of this switch counts.
+             */
+            const switchFrom = this.#switchFrom
+            if (switchFrom && switchFrom.handle === (event.body as { handle?: string } | undefined)?.handle) {
+                this.#switchFrom = undefined
+                /**
+                 * The driver stays in the window it was in (e.g. the handle is of a closed tab),
+                 * so BiDi commands go to that window again instead of the handle that failed,
+                 * unless a newer transition already changed the context.
+                 */
+                if (err && this.#currentContext === switchFrom.handle) {
+                    this.#currentContext = switchFrom.context
+                }
+            }
         }
     }
 
@@ -430,7 +451,9 @@ export class ContextManager extends SessionManager {
          * which is WebDriver Classic only
          */
         if (event.command === 'switchToWindow') {
-            this.setCurrentContext((event.body as { handle: string }).handle)
+            const { handle } = event.body as { handle: string }
+            this.#switchFrom = { handle, context: this.#currentContext }
+            this.setCurrentContext(handle)
         }
 
         /**
