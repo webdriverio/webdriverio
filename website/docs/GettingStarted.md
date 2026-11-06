@@ -185,6 +185,14 @@ npx wdio --version # prints e.g. `8.13.10`
 npx wdio config
 ```
 
+pnpm 11 stops the install with `ERR_PNPM_IGNORED_BUILDS` for the `edgedriver` and `geckodriver` install scripts. These scripts only pre-download the drivers, and WebdriverIO downloads a missing driver when a session starts. To skip them, add them to `allowBuilds` in your `pnpm-workspace.yaml`. Set an entry to `true` instead to keep the pre-download:
+
+```yaml
+allowBuilds:
+  edgedriver: false
+  geckodriver: false
+```
+
 ## Run Test
 
 You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
