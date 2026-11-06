@@ -32,6 +32,7 @@ Each feature file starts with an H1 and one paragraph, then these four H2 sectio
 
 ## Features
 
+- [Browser-runner custom element commands](./browser-element-custom-commands.md) exercises Node-registered browser and element commands in the real component runner.
 - [Browser-runner network mocks](./browser-runner-mocks.md) exercises component specs with real Chrome, including macOS CI.
 - [Smoke testrunner](./smoke-testrunner.md) runs the testrunner, CLI, frameworks, hooks, services, and reporters with `@wdio/webdriver-mock-service` instead of a browser.
 - [Example pipeline](./example-pipeline.md) runs example scripts through a real browser and driver.

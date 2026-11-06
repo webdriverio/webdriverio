@@ -391,6 +391,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                     args: workerProcessEvent(MESSAGE_TYPES.customCommand, {
                         commandName: name,
                         cid: workerId,
+                        attachToElement: Boolean(attachToElement),
                     })
                 }
                 process.send(message)

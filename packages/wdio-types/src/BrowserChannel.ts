@@ -133,6 +133,7 @@ export interface BrowserTestResults {
 export interface CustomCommandEvent {
     commandName: string
     cid: string
+    attachToElement?: boolean
 }
 
 /**
@@ -146,7 +147,10 @@ export interface BrowserStateRequest {
 }
 
 export interface BrowserState {
-    customCommands: string[]
+    customCommands: {
+        commandName: string
+        attachToElement: boolean
+    }[]
 }
 
 export interface HookTriggerEvent {
@@ -469,7 +473,9 @@ function isExpectMatchersResponse (value: unknown): boolean {
 function isBrowserState (value: unknown): boolean {
     return isRecord(value)
         && Array.isArray(value.customCommands)
-        && value.customCommands.every((command) => typeof command === 'string')
+        && value.customCommands.every((command) => isRecord(command)
+            && typeof command.commandName === 'string'
+            && typeof command.attachToElement === 'boolean')
 }
 
 function isRecord (value: unknown): value is Record<string, unknown> {

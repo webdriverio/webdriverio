@@ -84,6 +84,20 @@ describe('browser channel messages', () => {
         })).toBeUndefined()
     })
 
+    it('validates the scope of every custom command in browser state', () => {
+        const response = {
+            type: MESSAGE_TYPES.initiateBrowserStateResponse,
+            value: { customCommands: [
+                { commandName: 'sharedName', attachToElement: false },
+                { commandName: 'sharedName', attachToElement: true }
+            ] }
+        }
+        expect(parseRunnerToBrowserMessage(response)).toEqual(response)
+        for (const command of [null, 'sharedName', {}, { commandName: 1, attachToElement: true }, { commandName: 'foo', attachToElement: 'true' }]) {
+            expect(parseRunnerToBrowserMessage({ ...response, value: { customCommands: [command] } })).toBeUndefined()
+        }
+    })
+
     it('routes requests, one-way events, and local browser-state lookups', () => {
         const hook = browserChannelMessage(MESSAGE_TYPES.hookTriggerMessage, { id: 1, cid: '0-0', name: 'before', args: [] })
         const expectRequest = browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, {
