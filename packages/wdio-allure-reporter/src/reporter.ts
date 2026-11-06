@@ -1,6 +1,7 @@
 import process from 'node:process'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
+import { hostname } from 'node:os'
 import { stringify } from 'csv-stringify/sync'
 
 import type {
@@ -681,6 +682,7 @@ export default class AllureReporter extends WDIOReporter {
                     ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
                     { name: LabelName.LANGUAGE, value: 'javascript' },
                     { name: LabelName.FRAMEWORK, value: 'wdio' },
+                    { name: LabelName.HOST, value: hostname() },
                     { name: LabelName.THREAD, value: cid },
                     ...getEnvironmentLabels(),
                 ]
@@ -1064,6 +1066,7 @@ export default class AllureReporter extends WDIOReporter {
             ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
+            { name: LabelName.HOST, value: hostname() },
             { name: LabelName.THREAD, value: cid },
             ...getEnvironmentLabels(),
         ]
@@ -1404,6 +1407,7 @@ export default class AllureReporter extends WDIOReporter {
             ...getSuiteLabels(suitePath),
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
+            { name: LabelName.HOST, value: hostname() },
             { name: LabelName.THREAD, value: cid },
             ...getEnvironmentLabels(),
         ]
