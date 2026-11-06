@@ -13,6 +13,7 @@ interface Scenario {
     beforeTestTime?: number
     retries?: number
     type?: 'Test' | 'Hook'
+    ctx?: Mocha.Context
 }
 
 /**
@@ -20,7 +21,7 @@ interface Scenario {
  * `@wdio/mocha-framework` does, and record when the `afterTest` (or
  * `afterHook`) hook ends and when Mocha finishes the runnable.
  */
-function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, beforeTestTime = 0, retries = 0, type = 'Test' }: Scenario = {}) {
+function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, beforeTestTime = 0, retries = 0, type = 'Test', ctx = new Mocha.Context() }: Scenario = {}) {
     const start = Date.now()
     const at: Record<string, number> = {}
     let afterPassed: boolean | undefined
@@ -50,7 +51,7 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
     })
     runnable.parent = new Mocha.Suite('suite', new Mocha.Context())
     runnable.timeout(timeout)
-    runnable.ctx = new Mocha.Context()
+    runnable.ctx = ctx
     return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error }>((resolve) => {
         runnable.run((err?: Error) => {
             at.mochaDone = Date.now() - start
@@ -108,6 +109,19 @@ describe('Mocha timeout and the after hooks', () => {
             clearTimeout(other)
             clearTimeout(pauseTimer)
         }
+    })
+
+    it('lets Mocha wait for afterTest of the next test when the test before it ends late', async () => {
+        const ctx = new Mocha.Context()
+        // Mocha times this test out in beforeTest and starts the next one, on the same context
+        await run(async () => {}, { beforeTestTime: 400, ctx })
+        expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
+    })
+
+    it('lets Mocha wait for afterTest of the next test when the test before it has retries left', async () => {
+        const ctx = new Mocha.Context()
+        await run(async () => { throw new Error('fails') }, { beforeTestTime: 400, retries: 1, ctx })
+        expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { ctx }), 300)
     })
 
     it('counts the time of beforeTest, as Mocha does', async () => {

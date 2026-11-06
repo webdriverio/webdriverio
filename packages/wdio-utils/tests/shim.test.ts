@@ -600,6 +600,29 @@ describe('executeAsync', () => {
             expect(settled).not.toHaveBeenCalled()
         })
 
+        it('should keep the deadline of the next test when a test ends after Mocha moved on', async () => {
+            const first = mochaRunnable(200)
+            const second = mochaRunnable(200)
+            const context = { _runnable: first as typeof first }
+            followFrameworkTimer(first)
+            let failFirst = (_err: Error) => {}
+            const late = executeAsync.call(
+                context as any, () => new Promise((_, reject) => { failFirst = reject }), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            context._runnable = second
+            followFrameworkTimer(second)
+            const settled = vi.fn()
+            executeAsync.call(
+                context as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch(settled)
+            failFirst(new Error('late failure'))
+            await late
+
+            await vi.advanceTimersByTimeAsync(200)
+            expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
+        })
+
         it('should leave no timer after a Mocha test passes', async () => {
             const runnable = mochaRunnable(200)
             followFrameworkTimer(runnable)
