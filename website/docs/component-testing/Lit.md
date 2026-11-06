@@ -1,7 +1,7 @@
 ---
 id: lit
 title: Lit
-description: "Set up the WebdriverIO browser runner for Lit web components and write tests that query elements inside nested shadow roots."
+description: "Test Lit web components with the WebdriverIO browser runner, query nested shadow roots, and clean up rendered templates between tests."
 ---
 
 Lit is a simple library for building fast, lightweight web components. Testing Lit web components with WebdriverIO is very easy thanks to WebdriverIOs [shadow DOM selectors](/docs/selectors#deep-selectors) you can query in shadow roots nested elements with just one single command.
@@ -66,5 +66,49 @@ describe('Lit Component testing', () => {
     })
 })
 ```
+
+## Rendering Lit Templates
+
+If you use Lit's `render()` to create your fixture, clear it with `render(nothing, container)` after each test. Lit keeps render state on the container. Removing only the rendered element does not clear that state, so rendering the same template again can leave the next test without its component.
+
+Use a dedicated container to keep your fixture separate from the browser runner's page. This example reuses that container and the same template callsite across both tests:
+
+```ts title="lit-render.test.ts"
+import { $, expect } from '@wdio/globals'
+import { html, render, nothing } from 'lit'
+
+import './components/Component.ts'
+
+describe('Lit template rendering', () => {
+    let container: HTMLDivElement
+
+    before(() => {
+        container = document.createElement('div')
+        container.id = 'lit-fixture'
+        document.body.appendChild(container)
+    })
+
+    beforeEach(() => {
+        render(html`<simple-greeting name="WebdriverIO"></simple-greeting>`, container)
+    })
+
+    afterEach(() => {
+        render(nothing, container)
+    })
+
+    after(() => {
+        container.remove()
+    })
+
+    for (const title of ['renders the greeting', 'renders it again in the next test']) {
+        it(title, async () => {
+            await expect($('#lit-fixture').$('simple-greeting').$('p'))
+                .toHaveText('Hello, WebdriverIO!')
+        })
+    }
+})
+```
+
+You can also create a new container in `beforeEach`. Clear it with `render(nothing, container)` before removing the container in `afterEach`. Keep this cleanup in your tests; the browser runner does not reset Lit's render state for you.
 
 You can find a full example of a WebdriverIO component test suite for Lit in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/lit-typescript-vite).
