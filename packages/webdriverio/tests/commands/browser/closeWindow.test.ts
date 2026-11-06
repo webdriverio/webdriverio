@@ -70,4 +70,11 @@ describe('closeWindow', () => {
         await expect(browser.closeWindow()).rejects.toThrow('target window already closed')
         expect(contextMocks.switchToRemainingWindow).not.toHaveBeenCalled()
     })
+
+    it('rejects an argument and closes nothing', async () => {
+        // @ts-expect-error the command has no parameter
+        await expect(browser.closeWindow('window-2')).rejects.toThrow('Wrong parameters applied for closeWindow')
+        expect(fetch).not.toHaveBeenCalled()
+        expect(contextMocks.switchToRemainingWindow).not.toHaveBeenCalled()
+    })
 })

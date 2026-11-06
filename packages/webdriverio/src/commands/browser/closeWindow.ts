@@ -42,6 +42,13 @@ import { getContextManager } from '../../session/context.js'
  */
 export async function closeWindow (this: WebdriverIO.Browser): Promise<void> {
     /**
+     * the driver can only close the current window, so a handle must not close it
+     */
+    if (arguments.length > 0) {
+        throw new Error('Wrong parameters applied for closeWindow\nUsage: closeWindow()')
+    }
+
+    /**
      * `this.closeWindow()` is this function. The classic endpoint is reached by
      * name so the call does not recurse.
      */
