@@ -5,15 +5,17 @@ import { stringify } from 'csv-stringify/sync'
 
 import type {
     AfterCommandArgs,
+    AfterUserCommandArgs,
     Argument,
     BeforeCommandArgs,
+    BeforeUserCommandArgs,
     ContextEnd,
     HookStats,
     RunnerStats,
     SuiteStats,
     TestStats,
 } from '@wdio/reporter'
-import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
+import WDIOReporter, { compactRequest, hookCountsAsFailure, inlineResult, isNoDataResult, knownFramework, resolvedPath, userCommandError, userCommandTitle, userCommandTitleIsCut } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
@@ -35,6 +37,7 @@ import { LinkingFileSystemWriter } from './writer.js'
 import { resolveResultsDir } from './worker.js'
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState, isOpen } from './state.js'
+import { joinSteps } from './joinSteps.js'
 import {
     absPosix,
     convertSuiteTagsToLabels,
@@ -83,6 +86,58 @@ type ReportLane = {
 const AFTER_HOOK_PATTERN = /^"after\s+(?:each|all)"\s+hook/i
 // the Cucumber scenario that runs in a parallel unit
 const CUCUMBER_UNIT = Symbol('allure cucumber unit')
+const EXECUTABLE_BOUNDARIES = new Set<WDIORuntimeMessage['type']>(['allure:test:start', 'allure:test:end', 'allure:hook:start', 'allure:hook:end'])
+// the result of a user command, until the steps that started after it end
+type EndedStep = { ended: { status: AllureStatus; stop: number; statusDetails?: StatusDetails } }
+// `ended`: a nested user step that its parent ended before its result
+type UserStep = { kind: 'user'; id: number; parent?: number; name?: string; command?: string; done?: { result: AfterUserCommandArgs['result']; stop: number } | EndedStep }
+// a protocol step that started in a user step; `ended`: its user command ended it before its result
+type ProtocolStep = {
+    kind: 'protocol'; parent?: number; command?: string; endpoint?: string
+    done?: { result: unknown; stop: number; isShot: boolean } | EndedStep
+}
+// the steps of a test that are still open, in start order: a step ends when all steps after it ended
+type OpenStep = UserStep | ProtocolStep
+/**
+ * a user command that starts while the step of another one is open: the runtime would make its step a child,
+ * but each user command that is sent is an outer call. Its messages wait, and go to the runtime as a sibling
+ * when the open steps end
+ */
+type WaitingUserStep = { key?: string; open: OpenStep[]; messages: WDIORuntimeMessage[]; waiting: boolean }
+
+// the user command of a protocol command: its parent, or the owner of a screenshot, which has no parent
+function ownerOf(command: { parent?: number; owner?: number }): number | undefined {
+    return command.parent ?? command.owner
+}
+
+// the user step of a request: its parent, else (no parent) the user step it started in
+function userStepOf(open: OpenStep[], step: OpenStep): UserStep | undefined {
+    const index = open.indexOf(step)
+    const parent = step.parent === undefined ? undefined : open.find((s): s is UserStep => s.kind === 'user' && s.id === step.parent)
+    // a top-level user step has no owner
+    return parent ?? (step.kind === 'user' ? undefined : open.slice(0, index).findLast((s): s is UserStep => s.kind === 'user'))
+}
+
+// the status that a done user step gives to the steps under it that are still open
+const endedBy = (owner: UserStep & { done: NonNullable<UserStep['done']> }): EndedStep['ended'] =>
+    'ended' in owner.done ? owner.done.ended : { ...userStepStatus(owner.done.result), stop: owner.done.stop }
+
+// the status of a user step: an error from another realm or a thrown value fails it with its text
+const isShownInFull = (value: unknown, inline: string) =>
+    (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') && !inline.endsWith('…')
+
+function userStepStatus(result: AfterUserCommandArgs['result']): { status: AllureStatus; statusDetails?: StatusDetails } {
+    if (!('error' in result)) {
+        return { status: AllureStatusEnum.PASSED }
+    }
+    if (result.error instanceof Error) {
+        return { status: AllureStatusEnum.FAILED, statusDetails: getMessageAndTraceFromError(result.error) }
+    }
+    const error = userCommandError(result.error)
+    const fields = isObject(error) ? error as { message?: unknown } : {}
+    const message = typeof fields.message === 'string' ? fields.message : typeof error === 'string' ? error : String(JSON.stringify(error))
+    return { status: AllureStatusEnum.FAILED, statusDetails: { message } }
+}
 
 type MaybeUid = { uid?: string }
 type MaybeFile = { file?: string }
@@ -139,6 +194,7 @@ function splitTitlePathPart(part?: string): string[] {
 
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
+    private _resultsDir: string
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
     private _isMultiRemote?: boolean
     private _config?: Options.Testrunner
@@ -171,6 +227,18 @@ export default class AllureReporter extends WDIOReporter {
     private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
     private _closedLaneKeys = new Set<string>()
+    // the open user command steps of each test, hook or Cucumber step, in start order
+    private _userSteps = new Map<string, OpenStep[]>()
+    private _userStepOf = new Map<number, { scope: string, open: OpenStep[], step: UserStep, waiting?: WaitingUserStep }>()
+    // the user steps that wait for the open steps of their scope, in start order, by scope and by id
+    private _waitingSteps = new Map<string, WaitingUserStep[]>()
+    private _waitingStepOf = new Map<number, WaitingUserStep>()
+    // the nested user commands that started while an earlier step of the same parent was open, by parent id
+    private _nestedWaiting = new Map<number, WaitingUserStep[]>()
+    // the messages of a waiting user step go to its list
+    private _messageSink?: WDIORuntimeMessage[]
+    // the protocol steps that their user command ended before their result, by scope and parent id
+    private _lateResults = new Map<string, number>()
 
     allureStatesByCid: Map<string, AllureReportState> = new Map()
 
@@ -199,11 +267,23 @@ export default class AllureReporter extends WDIOReporter {
 
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
 
+        this._resultsDir = resolveResultsDir(options)
         this._allureRuntime = new ReporterRuntime({
             ...rest,
             links,
             environmentInfo: options.reportedEnvironmentVars,
-            writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
+            writer: new LinkingFileSystemWriter(this._resultsDir),
+            // the repeated steps are joined in the finished test, before it is written
+            listeners: [{
+                beforeTestResultWrite: (result) => {
+                    const states = [...this.allureStatesByCid.values()]
+                    if (!states.some((state) => state.takeUserCommandResult(result.uuid))) { return }
+                    // the Gherkin steps of a scenario stay as in the feature file: only the steps inside them are joined
+                    result.steps = this._keepsGherkinSteps()
+                        ? result.steps.map((step) => ({ ...step, steps: joinSteps(step.steps, this._resultsDir) }))
+                        : joinSteps(result.steps, this._resultsDir)
+                }
+            }],
         })
 
         this._capabilities = {}
@@ -249,7 +329,7 @@ export default class AllureReporter extends WDIOReporter {
 
     private _ensureState(cid: string): AllureReportState {
         if (!this.allureStatesByCid.has(cid)) {
-            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime))
+            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime, this._resultsDir))
         }
         return this.allureStatesByCid.get(cid)!
     }
@@ -279,7 +359,106 @@ export default class AllureReporter extends WDIOReporter {
         return lane
     }
 
+    private _userStepScope(key = this._laneKey()): string {
+        return key ? `lane:${key}` : `cid:${this._currentCid()}`
+    }
+
+    // a new test or hook: a later user command result does not close its steps
+    private _resetUserSteps(key = this._laneKey(), end?: { status: AllureStatus; statusDetails?: StatusDetails; stop?: number }): void {
+        const scope = this._userStepScope(key)
+        // the waiting nested user commands go first, under their parent, through its buffer when the parent waits
+        const nested: OpenStep[][] = []
+        for (const [parentId, queue] of this._nestedWaiting) {
+            const parent = this._userStepOf.get(parentId)
+            const parentWaiting = parent?.waiting?.waiting ? parent.waiting : undefined
+            for (const step of queue.filter((w) => w.key === key)) {
+                // the earlier sibling ends first, so this one is no child of it
+                if (end && parent) {
+                    this._toWaitingStep(parentWaiting, () => {
+                        for (let open = parent.open.at(-1); open && open !== parent.step; open = parent.open.at(-1)) {
+                            parent.open.pop()
+                            nested.push([open])
+                            this._endStep({ status: end.status, statusDetails: end.statusDetails, stop: end.stop ?? Date.now() })
+                        }
+                    })
+                }
+                if (parentWaiting) {
+                    step.waiting = false
+                    parentWaiting.messages.push(...step.messages.splice(0))
+                    for (const [id, waitingStep] of this._waitingStepOf) {
+                        if (waitingStep === step) { this._waitingStepOf.set(id, parentWaiting) }
+                    }
+                } else {
+                    this._releaseWaitingStep(step, key)
+                }
+                parent?.open.push(...step.open)
+                nested.push(step.open)
+            }
+            const rest = queue.filter((w) => w.key !== key)
+            if (rest.length) { this._nestedWaiting.set(parentId, rest) } else { this._nestedWaiting.delete(parentId) }
+        }
+        const live = this._userSteps.get(scope) ?? []
+        const waiting = this._waitingSteps.get(scope) ?? []
+        this._userSteps.delete(scope)
+        this._waitingSteps.delete(scope)
+        if (waiting.length) {
+            // the end of the test ends the open steps as the runtime does, so the waiting steps are not their children
+            for (let count = end ? live.length : 0; count > 0; count--) {
+                this._endStep({ status: end!.status, statusDetails: end!.statusDetails, stop: end!.stop ?? Date.now() })
+            }
+            for (const step of waiting) {
+                this._releaseWaitingStep(step, key)
+            }
+        }
+        // the end of the test ends their steps: their results must not end another step
+        for (const step of [live, ...nested, ...waiting.map(({ open }) => open)].flat()) {
+            if (step.kind === 'protocol' && !step.done) { this._addLateResult(scope, step) }
+        }
+    }
+
+    // the messages of a waiting user step go to the runtime; the steps after it keep their place
+    private _releaseWaitingStep(step: WaitingUserStep, key = step.key): void {
+        step.waiting = false
+        for (const entry of this._waitingStepOf) {
+            if (entry[1] === step) { this._waitingStepOf.delete(entry[0]) }
+        }
+        for (const message of step.messages.splice(0)) {
+            this._pushRuntimeMessage(message, key)
+        }
+    }
+
+    // the waiting user steps of a scope whose open steps all ended: in start order, until one is still open
+    private _releaseWaitingSteps(scope: string): void {
+        const waiting = this._waitingSteps.get(scope)
+        while (waiting?.length && !this._userSteps.has(scope)) {
+            const step = waiting.shift()!
+            this._releaseWaitingStep(step)
+            if (step.open.length) {
+                this._userSteps.set(scope, step.open)
+            }
+        }
+        if (!waiting?.length) { this._waitingSteps.delete(scope) }
+    }
+
+    private _toWaitingStep<T>(step: WaitingUserStep | undefined, run: () => T): T {
+        if (!step) { return run() }
+        const sink = this._messageSink
+        this._messageSink = step.messages
+        try {
+            return run()
+        } finally {
+            this._messageSink = sink
+        }
+    }
+
     private _pushRuntimeMessage(message: WDIORuntimeMessage, key = this._laneKey()): void {
+        if (this._messageSink) {
+            this._messageSink.push(message)
+            return
+        }
+        if (EXECUTABLE_BOUNDARIES.has(message.type)) {
+            this._resetUserSteps(key, message.type === 'allure:test:end' || message.type === 'allure:hook:end' ? message.data : undefined)
+        }
         if (!key) {
             this._ensureState(this._currentCid()).pushRuntimeMessage(message)
             return
@@ -430,6 +609,7 @@ export default class AllureReporter extends WDIOReporter {
 
     private _handleCucumberStepStart(t: TestStats): void {
         if (!this._hasPendingTest) { return }
+        this._resetUserSteps()
 
         const start = AllureReporter.getTimeOrNow(t.start)
         this._startStep({ name: t.title, start })
@@ -454,6 +634,7 @@ export default class AllureReporter extends WDIOReporter {
     ): void {
         this._attachLogs()
         const stop = AllureReporter.getTimeOrNow((t as TestStats).end)
+        this._resetUserSteps(undefined, { status, statusDetails: details, stop })
         this._endStep({ status, stop, statusDetails: details })
     }
 
@@ -740,6 +921,11 @@ export default class AllureReporter extends WDIOReporter {
         for (const key of [...this._lanes.keys()]) {
             this._closeLane(key, key)
         }
+        // the steps of user commands that got no result
+        this._userSteps.clear()
+        this._userStepOf.clear()
+        this._nestedWaiting.clear()
+        this._lateResults.clear()
         /**
          * counted like any other flush, so an incremental flush finishing while we await it
          * cannot report the reporter as synchronised while this pass is still writing
@@ -999,6 +1185,12 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
+    // the steps of a scenario are its Gherkin steps (not with `scenarioLevelReporter`, where they are the commands)
+    private _keepsGherkinSteps(): boolean {
+        const cucumberOpts = (this._config as { cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined)?.cucumberOpts
+        return Boolean(this._options.useCucumberStepReporter) && !cucumberOpts?.scenarioLevelReporter
+    }
+
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
         const kind = getType(exec)
         if (kind === 'hook' || kind === 'feature' || kind === 'scenario') { return false }
@@ -1168,61 +1360,283 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs): void {
-        const cid = this._currentCid()
-        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(cid)
-        if (!allow) { return }
+    // no user commands when no step is written: the base reporter then makes no copies of them
+    protected get showsUserCommands(): boolean {
+        return !this._options?.disableWebdriverStepsReporting && !this._isMultiRemote && super.showsUserCommands
+    }
 
-        const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiRemote) { return }
+    // test or hook open, not skipped by the test plan, steps enabled
+    private _commandStepsAllowed(): boolean {
+        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
+        return allow && !this._options.disableWebdriverStepsReporting && !this._isMultiRemote
+    }
+
+    private _startCommandStep(name: string, body: unknown): void {
+        this._startStep({ name, start: Date.now() })
+        if (body !== undefined && !(isObject(body) && isEmptyObject(body))) {
+            this._attachJSON({ name: 'Request', json: body })
+        }
+    }
+
+    private _attachCommandResponse(result: unknown): void {
+        const resObj = isObject(result) ? (result as Record<string, unknown>) : undefined
+        const errVal = resObj?.error
+        if (errVal instanceof Error) {
+            this._attachFile({
+                name: 'Response',
+                content: Buffer.from(String(errVal), 'utf8'),
+                contentType: AllureContentType.TEXT
+            })
+            return
+        }
+        const commandResult = resObj && 'value' in resObj ? resObj['value'] : result
+        const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
+        if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+    }
+
+    onBeforeCommand(command: BeforeCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
 
         const { method, endpoint } = command
         const named = typeof command.command === 'string' && command.command.length > 0
         const httpNamed = method && endpoint
         const stepName = named ? String(command.command) : (httpNamed ? `${method} ${endpoint}` : 'unknown command')
         const body = (command as unknown as MaybeBody).body
-
-        this._startStep({ name: stepName, start: Date.now() })
-        if (body !== undefined && !(isObject(body) && isEmptyObject(body))) {
-            this._attachJSON({ name: 'Request', json: body })
+        const waiting = this._waitingStepOf.get(ownerOf(command) ?? NaN)
+        const open = waiting ? waiting.open : this._userSteps.get(this._userStepScope())
+        // a WebDriver Classic session has no open user step, so its steps stay as they are
+        if (!open?.length) {
+            this._startCommandStep(stepName, body)
+            return
         }
+        open.push({ kind: 'protocol', parent: ownerOf(command), command: command.command, endpoint })
+        this._toWaitingStep(waiting, () => {
+            if (!method || !endpoint) {
+                this._startCommandStep(stepName, body)
+                return
+            }
+            // a child of a user step: the compact request as a parameter, the resolved request as an attachment
+            this._startStep({ name: stepName, start: Date.now() })
+            this._pushRuntimeMessage({ type: 'step_metadata', data: { parameters: [{ name: 'request', value: compactRequest(method, endpoint) }] } })
+            const path = resolvedPath(endpoint, command.sessionId)
+            const hasBody = body !== undefined && !(isObject(body) && isEmptyObject(body))
+            this._attachJSON({ name: 'Request', json: hasBody ? { method, path, body } : { method, path } })
+        })
+    }
+
+    // no request id: the parent, the command and the endpoint name the request
+    private _lateResultKey(scope: string, command: { parent?: number; owner?: number; command?: string; endpoint?: string }): string {
+        return `${scope}:${ownerOf(command) ?? ''}:${command.command ?? ''}:${command.endpoint ?? ''}`
+    }
+
+    private _addLateResult(scope: string, step: ProtocolStep): void {
+        const key = this._lateResultKey(scope, step)
+        this._lateResults.set(key, (this._lateResults.get(key) ?? 0) + 1)
+    }
+
+    // true when its user command or its test already ended the step of this result
+    private _takeLateResult(scope: string, command: AfterCommandArgs): boolean {
+        const key = this._lateResultKey(scope, command)
+        const count = this._lateResults.get(key) ?? 0
+        if (count > 1) {
+            this._lateResults.set(key, count - 1)
+        } else if (count === 1) {
+            this._lateResults.delete(key)
+        }
+        return count > 0
     }
 
     onAfterCommand(command: AfterCommandArgs): void {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+        const waiting = this._waitingStepOf.get(ownerOf(command) ?? NaN)
+        this._toWaitingStep(waiting, () => this._afterCommand(command, waiting))
+    }
+
+    private _afterCommand(command: AfterCommandArgs, waiting: WaitingUserStep | undefined): void {
+        const { disableWebdriverScreenshotsReporting } = this._options
         const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
         const resUnknown: unknown = (command as unknown as MaybeResult).result
-        const resObj = isObject(resUnknown) ? (resUnknown as Record<string, unknown>) : undefined
-        const errVal = resObj?.error
 
         const isShot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isShot && allow) {
-            const res: unknown = (command as unknown as MaybeResult).result
             const val =
-                isObject(res) && 'value' in (res as Record<string, unknown>)
-                    ? (res as Record<string, unknown>)['value']
-                    : res
+                isObject(resUnknown) && 'value' in (resUnknown as Record<string, unknown>)
+                    ? (resUnknown as Record<string, unknown>)['value']
+                    : resUnknown
             if (typeof val === 'string') {
                 this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(val, 'base64') })
             }
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiRemote || !allow) { return }
-
-        const commandResult = resObj && 'value' in resObj ? resObj['value'] : resUnknown
-
-        if (!isShot && errVal instanceof Error) {
-            this._attachFile({
-                name: 'Response',
-                content: Buffer.from(String(errVal), 'utf8'),
-                contentType: AllureContentType.TEXT
-            })
-        } else if (!isShot) {
-            const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
-            if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
+        const scope = this._userStepScope()
+        if (!this._commandStepsAllowed()) {
+            // a late result between two tests: it must not take the result of a later command
+            this._takeLateResult(scope, command)
+            return
         }
-
+        const open = waiting ? waiting.open : this._userSteps.get(scope)
+        const match = (s: OpenStep): s is ProtocolStep => s.kind === 'protocol' && !s.done &&
+            s.parent === ownerOf(command) && s.command === command.command && s.endpoint === command.endpoint
+        // a request: the first open one (responses come in order); no endpoint: the last one (the inner call ends first)
+        const step = command.endpoint ? open?.find(match) : open?.findLast(match)
+        if (step) {
+            // a step that is not the last one waits: the runtime ends the last open step
+            step.done = { result: resUnknown, stop: Date.now(), isShot }
+            this._endDoneSteps(open!, scope)
+            return
+        }
+        if (this._takeLateResult(scope, command)) { return }
+        if (!isShot) { this._attachCommandResponse(resUnknown) }
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
+    }
+
+    // the protocol commands of a user command start inside its open step: they are its child steps
+    onBeforeUserCommand(payload: BeforeUserCommandArgs): void {
+        if (!this._commandStepsAllowed()) { return }
+        const name = userCommandTitle(payload.command, payload.body, payload.index)
+        const scope = this._userStepScope()
+        // a nested user command is a child of the user step of its parent, also when that step waits
+        const parent = payload.parent === undefined ? undefined : this._userStepOf.get(payload.parent)
+        if (parent) {
+            const step: UserStep = { kind: 'user', id: payload.id, parent: payload.parent, name, command: payload.command }
+            // an earlier step of the same parent is still open: this one waits, so the two are siblings
+            if (parent.open.at(-1) !== parent.step) {
+                const waiting: WaitingUserStep = { key: this._laneKey(), open: [step], messages: [], waiting: true }
+                this._toWaitingStep(waiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+                this._nestedWaiting.set(parent.step.id, [...this._nestedWaiting.get(parent.step.id) ?? [], waiting])
+                this._waitingStepOf.set(payload.id, waiting)
+                this._userStepOf.set(payload.id, { scope: parent.scope, open: waiting.open, step, waiting })
+                return
+            }
+            const inWaiting = parent.waiting?.waiting ? parent.waiting : undefined
+            this._toWaitingStep(inWaiting, () => this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined))
+            parent.open.push(step)
+            if (inWaiting) { this._waitingStepOf.set(payload.id, inWaiting) }
+            this._userStepOf.set(payload.id, { scope: parent.scope, open: parent.open, step, waiting: parent.waiting })
+            return
+        }
+        const live = this._userSteps.get(scope)
+        const waiting: WaitingUserStep | undefined = live?.length || this._waitingSteps.get(scope)?.length
+            ? { key: this._laneKey(), open: [], messages: [], waiting: true }
+            : undefined
+        // the arguments are in the name: the Request attachment only when the name does not show them all
+        this._toWaitingStep(waiting, () => {
+            this._pushRuntimeMessage({ type: 'allure:user:command', data: {} })
+            this._startCommandStep(name, userCommandTitleIsCut(name) ? payload.body : undefined)
+        })
+        const open = waiting ? waiting.open : live ?? []
+        if (waiting) {
+            this._waitingSteps.set(scope, [...this._waitingSteps.get(scope) ?? [], waiting])
+            this._waitingStepOf.set(payload.id, waiting)
+        } else {
+            this._userSteps.set(scope, open)
+        }
+        const step: UserStep = { kind: 'user', id: payload.id, name, command: payload.command }
+        open.push(step)
+        this._userStepOf.set(payload.id, { scope, open, step, waiting })
+    }
+
+    onAfterUserCommand(payload: AfterUserCommandArgs): void {
+        const entry = this._userStepOf.get(payload.id)
+        this._userStepOf.delete(payload.id)
+        // no step, or its test ended: the end of the test closed the step
+        if (!entry || (this._userSteps.get(entry.scope) !== entry.open && !entry.waiting?.waiting)) { return }
+        entry.step.done = { result: payload.result, stop: Date.now() }
+        const waiting = entry.waiting?.waiting ? entry.waiting : undefined
+        this._toWaitingStep(waiting, () => this._endDoneSteps(entry.open, entry.scope))
+    }
+
+    // the last step ends when it is done; a request still in flight ends with its user command,
+    // as open steps do at the end of a test; a user command that did not end makes the steps under it wait
+    private _endDoneSteps(open: OpenStep[], scope: string): void {
+        for (let step = open.at(-1); step; step = open.at(-1)) {
+            if (step.kind === 'user' && this._releaseNestedWaiting(step, open)) {
+                continue
+            }
+            if (!step.done) {
+                const owner = userStepOf(open, step)
+                if (!owner?.done) { break }
+                step.done = { ended: endedBy(owner as UserStep & { done: NonNullable<UserStep['done']> }) }
+                if (step.kind === 'protocol') {
+                    this._addLateResult(scope, step)
+                } else {
+                    // its result comes later: it ends no step
+                    this._userStepOf.delete(step.id)
+                }
+            }
+            open.pop()
+            if (step.kind === 'user') {
+                this._endUserStep(step)
+            } else {
+                this._endProtocolStep(step)
+            }
+        }
+        if (!open.length && this._userSteps.get(scope) === open) {
+            this._userSteps.delete(scope)
+            this._releaseWaitingSteps(scope)
+        }
+    }
+
+    // the next waiting nested user command of a user step that is the last open step again: its steps go on
+    private _releaseNestedWaiting(parent: UserStep, open: OpenStep[]): boolean {
+        const queue = this._nestedWaiting.get(parent.id)
+        const waiting = queue?.shift()
+        if (!waiting) {
+            return false
+        }
+        if (!queue!.length) { this._nestedWaiting.delete(parent.id) }
+        const released = waiting.open
+        // a parent that waits behind an overlapping user command keeps its buffer for the released steps
+        const parentWaiting = this._userStepOf.get(parent.id)?.waiting
+        this._releaseWaitingStep(waiting)
+        open.push(...released)
+        for (const [id, entry] of this._userStepOf) {
+            if (entry.open === released) {
+                this._userStepOf.set(id, { ...entry, open, waiting: parentWaiting })
+                if (parentWaiting?.waiting) { this._waitingStepOf.set(id, parentWaiting) }
+            }
+        }
+        return true
+    }
+
+    private _endProtocolStep(step: ProtocolStep): void {
+        const done = step.done!
+        if ('ended' in done) {
+            this._endStep(done.ended)
+            return
+        }
+        if (!done.isShot) { this._attachCommandResponse(done.result) }
+        const inline = done.isShot ? undefined : inlineResult(done.result, step.command)
+        if (inline && step.command) {
+            this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${step.command} → ${inline}` } })
+        }
+        this._endStep({ status: AllureStatusEnum.PASSED, stop: done.stop })
+    }
+
+    private _endUserStep(step: UserStep): void {
+        if ('ended' in step.done!) {
+            this._endStep(step.done.ended)
+            return
+        }
+        const { result, stop } = step.done!
+        const { name, command } = step
+        const { status, statusDetails } = userStepStatus(result)
+        if (!('error' in result)) {
+            const inline = inlineResult(result, command)
+            // the name shows a whole string, number or boolean: no Response
+            if (!isNoDataResult(result, command) && !(inline && isShownInFull(result.value, inline))) { this._attachCommandResponse(result) }
+            if (inline && name) {
+                this._pushRuntimeMessage({ type: 'step_metadata', data: { name: `${name} → ${inline}` } })
+            }
+        } else if (result.error instanceof Error) {
+            this._attachCommandResponse(result)
+        } else {
+            // an error from another realm or a thrown value
+            const error = userCommandError(result.error)
+            const fields = isObject(error) ? error as { name?: unknown } : {}
+            const text = typeof fields.name === 'string' && fields.name ? `${fields.name}: ${statusDetails!.message}` : statusDetails!.message!
+            this._attachFile({ name: 'Response', content: Buffer.from(text, 'utf8'), contentType: AllureContentType.TEXT })
+        }
+        this._endStep({ status, stop, statusDetails })
     }
 
     onTestEnd(test: TestStats): void {
