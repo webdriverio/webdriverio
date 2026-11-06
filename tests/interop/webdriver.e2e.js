@@ -5,6 +5,11 @@ const command = require('webdriver').command
 assert.equal(typeof WebDriver.command, 'function')
 assert.equal(typeof command, 'function')
 
+// attachToSession is synchronous, the same as in ESM
+const attached = WebDriver.attachToSession({ sessionId: 'foobar' })
+assert.equal(typeof attached.then, 'undefined')
+assert.equal(attached.sessionId, 'foobar')
+
 ;(async () => {
     const client = await WebDriver.newSession({
         capabilities: {
