@@ -46,7 +46,7 @@ Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineAfterAll`, `jasmineFailingAfterAll`, `jasmineFailSpecWithNoExpectations`,
 `jasmineHooksTestrunner`, `jasmineAfterHookArgsValidation`, `jasmineLateRejection`
 
-CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
+CLI / specs: `sigintGracefulShutdown`, `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`, `mochaTimeout`,
 `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
 `runSpecsWithFlagDirectPath`, `runSpecsWithFlagNoArg`, `headlessFlag`,
 `cliExcludeParamValidation*`, `cliSpecsWithWildCard*`, `cliExclude*WithWildCard*`
