@@ -268,6 +268,15 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     bail?: number
     /**
+     * Maximum time in milliseconds the test run may take, counted from the moment the first
+     * spec file starts. When it elapses, the testrunner starts no further spec files, ends the
+     * running ones gracefully, runs the `onComplete` hooks (so reporters can still write their
+     * results) and exits with code 1. Ignored in watch mode.
+     *
+     * @default 0 (no limit)
+     */
+    globalTimeout?: number
+    /**
      * Set to true if you want to update your snapshots.
      */
     updateSnapshots?: 'all' | 'new' | 'none'
