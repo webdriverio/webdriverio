@@ -186,6 +186,34 @@ describe('ContextManager', () => {
             expect(await manager.getCurrentContext()).toBe('context-1')
         })
 
+        describe('with the results of overlapping switches in reverse order', () => {
+            const other = { command: 'switchToWindow', body: { handle: 'other-window' } }
+
+            it('uses the window of a switch that succeeds after a later one failed', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', other)
+                emit('command', switchToWindow)
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+                // the other switch has no result yet, so its window is the context until then
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...other, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('other-window')
+            })
+
+            it('keeps the context from before both switches when both fail', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', other)
+                emit('command', switchToWindow)
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+                emit('result', { ...other, result: { error: new Error('no such window') } })
+
+                expect(await manager.getCurrentContext()).toBe('context-1')
+            })
+        })
+
         it.each([
             ['the frame', { context: 'frame-1', parent: 'context-1', children: null }],
             ['the parent of the frame', { context: 'frame-parent', parent: 'context-1', children: [{ context: 'frame-1', children: [] }] }]
