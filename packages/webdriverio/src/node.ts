@@ -1,6 +1,7 @@
 import os from 'node:os'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import process from 'node:process'
 
 import { setCommandHookStore } from '@wdio/utils'
@@ -29,5 +30,8 @@ environment.value = {
     extensionDataFromPath,
     saveScreenshot,
     saveElementScreenshot,
-    variables: process.env as EnvironmentVariables
+    createRequire,
+    get variables() {
+        return (globalThis.process?.env ?? process.env) as EnvironmentVariables
+    }
 }
