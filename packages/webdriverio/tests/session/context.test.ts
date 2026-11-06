@@ -212,6 +212,63 @@ describe('ContextManager', () => {
 
                 expect(await manager.getCurrentContext()).toBe('context-1')
             })
+
+            it('keeps the window of a later switch that succeeds before an earlier one', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', switchToWindow)
+                emit('command', other)
+                emit('result', { ...other, result: { value: null } })
+                // a command after the awaited switch, before the earlier switch has a result
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+                expect(await manager.getCurrentContext()).toBe('other-window')
+            })
+
+            it('uses the window of an earlier switch that succeeds last, as the driver does', async () => {
+                const { manager, emit } = setup()
+                const first = { command: 'switchToWindow', body: { handle: 'first-window' } }
+
+                emit('command', first)
+                emit('command', other)
+                emit('result', { ...other, result: { value: null } })
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...first, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('first-window')
+            })
+
+            it('matches each result to its own request when a handle is pending twice', async () => {
+                const { manager, emit } = setup()
+                // as in `webdriver`, the command and the result event of a request share its body
+                const first = { command: 'switchToWindow', body: { handle: 'first-window' } }
+                const again = { command: 'switchToWindow', body: { handle: 'first-window' } }
+
+                emit('command', first)
+                emit('command', other)
+                emit('command', again)
+                emit('result', { ...again, result: { value: null } })
+                emit('result', { ...other, result: { value: null } })
+                // the switch to first-window without a result was sent before the one to other-window
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...first, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('first-window')
+            })
+        })
+
+        it('follows the request, not the event of a switchToWindow wrapper', async () => {
+            const { manager, emit } = setup()
+            // e.g. an overwritten `switchToWindow`: its event has the arguments as its body, and no handle
+            const wrapper = { command: 'switchToWindow', body: ['closed-tab'] }
+
+            emit('command', wrapper)
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+            emit('result', { command: 'switchToWindow', result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
         })
 
         it.each([
@@ -812,6 +869,19 @@ describe('ContextManager on mobile Android Chrome', () => {
         await switchAppiumContext('NATIVE_APP')
         expect(await manager.getCurrentContext()).toBe('NATIVE_APP')
         expect(manager.isNativeContext).toBe(true)
+    })
+
+    it('keeps the Appium context of a Classic session when switchToWindow fails', async () => {
+        const { manager, emit } = createAndroidChrome(false)
+        expect(await manager.getCurrentContext()).toBe('CHROMIUM')
+        const switchToWindow = { command: 'switchToWindow', body: { handle: 'closed-tab' } }
+
+        await emit('command', switchToWindow)
+        await emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+        expect(await manager.getCurrentContext()).toBe('CHROMIUM')
+        expect(manager.mobileContext).toBe('CHROMIUM')
+        expect(manager.isNativeContext).toBe(false)
     })
 })
 
