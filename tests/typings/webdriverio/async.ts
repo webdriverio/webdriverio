@@ -9,6 +9,7 @@ declare global {
     namespace WebdriverIO {
         interface Browser {
             browserCustomCommand: (arg: unknown) => Promise<void>
+            customData: string
         }
 
         interface MultiRemoteBrowser {
@@ -188,6 +189,33 @@ async function bar() {
     browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
         return pause(ms).catch()
     })
+
+    browser.overwriteCommand('browserCustomCommand', async function (originalCommand, arg: unknown) {
+        expectType<WebdriverIO.Browser>(this)
+        expectType<Promise<void>>(originalCommand(arg))
+        // @ts-expect-error the original command still requires its declared argument
+        originalCommand()
+        return originalCommand(arg)
+    })
+
+    browser.overwriteCommand('elementCustomCommand', async function (originalCommand, arg: unknown) {
+        expectType<WebdriverIO.Element>(this)
+        expectType<Promise<number>>(originalCommand(arg))
+        // @ts-expect-error the original command does not accept a second argument
+        originalCommand(arg, arg)
+        return originalCommand(arg)
+    }, { attachToElement: true })
+
+    // @ts-expect-error custom element commands cannot be overwritten as browser commands
+    browser.overwriteCommand('elementCustomCommand', async function () {})
+    // @ts-expect-error custom browser commands cannot be overwritten as element commands
+    browser.overwriteCommand('browserCustomCommand', async function () {}, { attachToElement: true })
+    // @ts-expect-error undeclared commands must not be accepted
+    browser.overwriteCommand('undeclaredCustomCommand', async function () {})
+    // @ts-expect-error data properties are not commands
+    browser.overwriteCommand('sessionId', async function () {})
+    // @ts-expect-error custom data properties are not commands either
+    browser.overwriteCommand('customData', async function () {})
 
     // browsing context
     browser.addCommand('contextCustomCommand', async function (label: string) {

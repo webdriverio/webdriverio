@@ -434,22 +434,22 @@ type AddCommandFnScoped<
 export type AddCommandFn = (...args: any[]) => any
 
 type OverwriteCommandFnScoped<
-    ElementKey extends keyof $ElementCommands,
-    BrowserKey extends keyof $BrowserCommands,
+    ElementKey extends keyof WebdriverIO.Element,
+    BrowserKey extends keyof WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
+    originalCommand: IsElement extends true ? OmitThisParameter<WebdriverIO.Element[ElementKey]> : OmitThisParameter<WebdriverIO.Browser[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
 type OverwriteCommandFn<
-    ElementKey extends keyof $ElementCommands,
-    BrowserKey extends keyof $BrowserCommands,
+    ElementKey extends keyof WebdriverIO.Element,
+    BrowserKey extends keyof WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
+    originalCommand: IsElement extends true ? OmitThisParameter<WebdriverIO.Element[ElementKey]> : OmitThisParameter<WebdriverIO.Browser[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
@@ -501,8 +501,10 @@ export interface CustomInstanceCommands<T> {
     /**
      * overwrite a `browser` command, or an element command when `options.attachToElement` is true
      */
-    overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
-        name: IsElement extends true ? ElementKey : BrowserKey,
+    overwriteCommand<ElementKey extends keyof WebdriverIO.Element, BrowserKey extends keyof WebdriverIO.Browser, IsElement extends boolean = false>(
+        name: IsElement extends true
+            ? WebdriverIO.Element[ElementKey] extends (...args: any[]) => any ? ElementKey : never
+            : WebdriverIO.Browser[BrowserKey] extends (...args: any[]) => any ? BrowserKey : never,
         func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         options?: CustomCommands.CustomCommandOptions<IsElement>
     ): void;
