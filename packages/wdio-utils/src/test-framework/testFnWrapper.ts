@@ -1,5 +1,5 @@
 import { logHookError } from './errorHandler.js'
-import { executeHooksWithArgs, executeAsync } from '../shim.js'
+import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
 
 import type {
     WrapperMethods,
@@ -79,6 +79,11 @@ export const testFrameworkFnWrapper = async function (
     hookName?: string,
     timeout?: number
 ) {
+    /**
+     * before the first `await`: Mocha starts the timeout of this test or hook
+     * as soon as this function returns its promise
+     */
+    followFrameworkTimer((this as { _runnable?: unknown } | undefined)?._runnable)
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
     if (type === 'Hook' && hookName) {
