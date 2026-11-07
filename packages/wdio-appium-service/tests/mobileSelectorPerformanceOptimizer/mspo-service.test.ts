@@ -176,6 +176,20 @@ describe('SelectorPerformanceService', () => {
             expect(vi.mocked(utils.determineReportDirectory)).toHaveBeenCalledWith('/custom/path', mockConfig, options)
         })
 
+        test('should properly extract config when constructed with options, capabilities, and config', () => {
+            const options: AppiumServiceConfig = {
+                trackSelectorPerformance: {
+                    pageObjectPaths: ['./tests/pageobjects'],
+                    reportPath: '/custom/path'
+                }
+            }
+            const caps = { platformName: 'iOS', 'appium:deviceName': 'iPhone 15' }
+            const service = new SelectorPerformanceService(options, caps as any, mockConfig)
+            expect(service['_capabilities']).toBe(caps)
+            expect(service['_config']).toBe(mockConfig)
+            expect(vi.mocked(utils.determineReportDirectory)).toHaveBeenCalledWith('/custom/path', mockConfig, options)
+        })
+
         test('should not call determineReportDirectory when trackSelectorPerformance is not configured', () => {
             createService({})
             expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
