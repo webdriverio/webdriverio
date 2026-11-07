@@ -349,7 +349,12 @@ describe('one wait for an element that the page removed', () => {
 
     it('waits once in waitForEnabled, with the error of the element as cause', async () => {
         const elem = await removedRef()
-        const { error, waits: count } = await waits(elem.waitForEnabled())
+        /**
+         * a timeout shorter than the wait for the element (waitforTimeout): that wait can end
+         * up to one waitforInterval early, and with the same timeout `waitUntil` would then
+         * still have time to check again (flaky on CI)
+         */
+        const { error, waits: count } = await waits(elem.waitForEnabled({ timeout: 50 }))
         expect(error?.message).toMatch(/^waitUntil condition failed with the following reason: Can't call isEnabled on element with selector "#ref" because element wasn't found/)
         expect(error?.cause).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         expect(count).toBe(1)
