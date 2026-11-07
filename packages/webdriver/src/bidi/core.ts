@@ -340,7 +340,6 @@ export class BidiCore {
             if (calls >= MAX_CALLS_DURING_NAVIGATION || timeLeft() <= RETRY_DELAY || !failedOnPreviousDocument(params, message)) {
                 break
             }
-            log.info(`Send "${params.method}" again, the page navigated: ${message}`)
             await sleep(RETRY_DELAY)
             // a closed or new connection belongs to another session: its contexts are not the ones of this command
             if (!this._isConnected || this.#ws !== socket) {
@@ -352,6 +351,7 @@ export class BidiCore {
             if (timeLeft() <= RETRY_DELAY) {
                 break
             }
+            log.info(`Send "${params.method}" again, the page navigated: ${message}`)
         }
 
         if (isErrorPayload(payload)) {

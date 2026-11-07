@@ -392,12 +392,26 @@ describe('BidiCore', () => {
 
         it('does not send again when the delay used up the time that was left', async () => {
             const handler = await connected(1000)
+            logMock.info.mockClear()
             const error = handler.send(callFunction as any).catch((err: Error) => err)
             await vi.advanceTimersByTimeAsync(940)
             fail(handler, 1, CONTEXT_ERROR)
             await vi.advanceTimersByTimeAsync(60)
             expect(sent(handler)).toHaveLength(1)
             expect((await error as Error).message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
+            // the log names only calls that went out
+            expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('again'))
+        })
+
+        it('logs each call that it sends again', async () => {
+            const handler = await connected()
+            logMock.info.mockClear()
+            const promise = handler.send(callFunction as any)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(50)
+            succeed(handler, 2)
+            await promise
+            expect(logMock.info).toHaveBeenCalledWith(`Send "script.callFunction" again, the page navigated: ${CONTEXT_ERROR}`)
         })
 
         it('does not send again when a busy event loop runs the delay after the deadline', async () => {
