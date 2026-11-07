@@ -166,7 +166,7 @@ describe('argument formatting', () => {
         expect(args[3]).toBe('7200')
         expect(args[4]).toBe('--session-override')
         expect(args[5]).toBe('--app')
-        expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
+        expect(args[6]).toBe('/Users/frodo/My Projects/the-ring/the-ring.app')
         expect(args.length).toBe(7)
     })
 
