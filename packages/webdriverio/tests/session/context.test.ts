@@ -134,7 +134,7 @@ describe('ContextManager', () => {
         const resultHandlers = getListeners().result
         const handler = resultHandlers![0]
         const error = new Error('no such window')
-        handler({ command: 'switchToWindow', result: { error } })
+        handler({ command: 'switchToWindow', body: { handle: 'closed-tab' }, result: { error } })
         expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
     })
 
@@ -269,6 +269,20 @@ describe('ContextManager', () => {
             emit('result', { command: 'switchToWindow', result: { error: new Error('no such window') } })
 
             expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it('ignores the result of a switchToWindow wrapper when the switch succeeds', async () => {
+            const { manager, emit } = setup()
+            const request = { command: 'switchToWindow', body: { handle: 'other-window' } }
+
+            emit('command', { command: 'switchToWindow', body: ['other-window'] })
+            emit('command', request)
+            emit('result', { ...request, result: { value: null } })
+            // the result of a wrapper has no body
+            expect(() => emit('result', { command: 'switchToWindow', result: { value: null } })).not.toThrow()
+
+            expect(await manager.getCurrentContext()).toBe('other-window')
+            expect(manager.getCurrentWindowHandle()).toBe('other-window')
         })
 
         it.each([

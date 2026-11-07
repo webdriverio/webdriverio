@@ -418,17 +418,20 @@ export class ContextManager extends SessionManager {
          * `switchToWindow` returns null on success, so the handle comes from the request body
          */
         if (event.command === 'switchToWindow') {
+            // the result of a wrapper, e.g. of an overwritten `switchToWindow`, has no body
+            const handle = (event.body as { handle?: unknown } | undefined)?.handle
+            if (typeof handle !== 'string') {
+                return
+            }
             const err = (event.result as { error?: unknown }).error || undefined
             // Only update current window handle when 'switchToWindow' has no error
             if (!err) {
-                const windowHandle = (event.body as { handle?: string }).handle || undefined
-                this.#currentWindowHandle = windowHandle
+                this.#currentWindowHandle = handle
             }
 
             const switches = this.#windowSwitches
-            const handle = (event.body as { handle?: unknown } | undefined)?.handle
-            const index = switches && typeof handle === 'string' ? findWindowSwitch(switches, event.body, handle) : -1
-            if (switches && typeof handle === 'string' && index > -1) {
+            const index = switches ? findWindowSwitch(switches, event.body, handle) : -1
+            if (switches && index > -1) {
                 // no newer transition changed the context while the switch ran
                 const unchanged = this.#currentContext === windowSwitchTarget(switches)
                 if (!err) {
