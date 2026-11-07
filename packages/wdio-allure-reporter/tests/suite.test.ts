@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import { log } from 'node:console'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, } from 'vitest'
@@ -166,12 +167,13 @@ describe('Passing tests', () => {
         expect(browsers[0].value).toEqual('chrome-68')
     })
 
-    it('should add label, story, feature, severity, issue, testId, thread and package labels', () => {
+    it('should add label, story, feature, severity, issue, testId, host, thread and package labels', () => {
         const labels = mapBy<Label>(allureResult.labels, 'name')
         const customLabels = labels.customLabel
         const features = labels[LabelName.FEATURE]
         const stories = labels[LabelName.STORY]
         const severities = labels[LabelName.SEVERITY]
+        const hosts = labels[LabelName.HOST]
         const threads = labels[LabelName.THREAD]
         const packages = labels[LabelName.PACKAGE]
 
@@ -183,6 +185,8 @@ describe('Passing tests', () => {
         expect(stories[0].value).toEqual('Story')
         expect(severities).toHaveLength(1)
         expect(severities[0].value).toEqual('baz')
+        expect(hosts).toHaveLength(1)
+        expect(hosts[0].value).toEqual(os.hostname())
         expect(threads).toHaveLength(1)
         expect(threads[0].value).toEqual(testStart().cid)
         expect(packages).toHaveLength(1)
