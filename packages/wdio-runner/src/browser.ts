@@ -490,8 +490,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     async #checkForTestError () {
         const testError = await browser.execute(function fetchExecutionState () {
-            // a page that is still loading, e.g. right after a reload, has no title and no test framework yet
-            if (document.readyState === 'loading') {
+            // a page that started to load less than 5 s ago, e.g. right after a reload, has no title and no test framework yet
+            if (document.readyState === 'loading' && performance.now() < 5000) {
                 return undefined
             }
             let viteError

@@ -245,21 +245,29 @@ describe('BrowserFramework browser errors', () => {
         process.send = originalSend
     })
 
-    it('reports no load error for a test page that is still loading, as right after a reload', async () => {
+    it('reports no load error for a test page that started to load less than 5 s ago, as right after a reload', async () => {
         browser.execute.mockResolvedValue(undefined)
         framework.run()
         await vi.advanceTimersByTimeAsync(600)
         const fetchExecutionState = browser.execute.mock.calls[0][0] as () => unknown
         const page = {
             document: { readyState: 'loading', title: '', querySelector: () => null, documentElement: { innerHTML: '' } },
-            window: {}
+            window: {},
+            // the time since this document started
+            performance: { now: () => 4999 }
         }
         vi.stubGlobal('document', page.document)
         vi.stubGlobal('window', page.window)
+        vi.stubGlobal('performance', page.performance)
+        const loadError = { errors: [{ message: expect.stringContaining('Failed to load test page') }] }
         try {
             expect(fetchExecutionState()).toBeUndefined()
+            // a page that does not finish to load still reports why
+            page.performance.now = () => 5000
+            expect(fetchExecutionState()).toMatchObject(loadError)
+            page.performance.now = () => 0
             page.document.readyState = 'interactive'
-            expect(fetchExecutionState()).toMatchObject({ errors: [{ message: expect.stringContaining('Failed to load test page') }] })
+            expect(fetchExecutionState()).toMatchObject(loadError)
         } finally {
             vi.unstubAllGlobals()
         }

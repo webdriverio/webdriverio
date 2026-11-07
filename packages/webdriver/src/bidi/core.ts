@@ -1,4 +1,5 @@
 import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import { sleep } from '@wdio/utils'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
@@ -330,22 +331,26 @@ export class BidiCore {
         const rawTimeout = (params.params as unknown as Record<symbol, unknown> | undefined)?.[BIDI_SCRIPT_TIMEOUT]
         const scriptTimeout = typeof rawTimeout === 'number' && rawTimeout >= 0 && rawTimeout <= MAX_TIMER_DELAY ? rawTimeout : undefined
         const startedAt = Date.now()
+        const timeLeft = () => Math.min(this.#responseTimeout, scriptTimeout ?? Infinity) - (Date.now() - startedAt)
         const socket = this.#ws
         let payload: CommandResponse | ErrorResponse
         for (let calls = 1; ; calls++) {
             payload = await this.#sendAndWait(params, failError, startedAt, scriptTimeout)
             const message = isErrorPayload(payload) ? String(payload.message) : ''
-            const timeLeft = Math.min(this.#responseTimeout, scriptTimeout ?? Infinity) - (Date.now() - startedAt)
-            if (calls >= MAX_CALLS_DURING_NAVIGATION || timeLeft <= RETRY_DELAY || !failedOnPreviousDocument(params, message)) {
+            if (calls >= MAX_CALLS_DURING_NAVIGATION || timeLeft() <= RETRY_DELAY || !failedOnPreviousDocument(params, message)) {
                 break
             }
             log.info(`Send "${params.method}" again, the page navigated: ${message}`)
-            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
+            await sleep(RETRY_DELAY)
             // a closed or new connection belongs to another session: its contexts are not the ones of this command
             if (!this._isConnected || this.#ws !== socket) {
                 failError.message = `WebDriver Bidi command "${params.method}" got no result: the connection ended before it was sent again`
                 failError.name = SESSION_ENDED_ERROR
                 throw failError
+            }
+            // a call with almost no time left would end in a timeout that hides the error of the navigation
+            if (timeLeft() <= RETRY_DELAY) {
+                break
             }
         }
 
