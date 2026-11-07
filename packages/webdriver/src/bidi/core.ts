@@ -3,7 +3,6 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
-import type * as local from './localTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
@@ -331,6 +330,7 @@ export class BidiCore {
         const rawTimeout = (params.params as unknown as Record<symbol, unknown> | undefined)?.[BIDI_SCRIPT_TIMEOUT]
         const scriptTimeout = typeof rawTimeout === 'number' && rawTimeout >= 0 && rawTimeout <= MAX_TIMER_DELAY ? rawTimeout : undefined
         const startedAt = Date.now()
+        const socket = this.#ws
         let payload: CommandResponse | ErrorResponse
         for (let calls = 1; ; calls++) {
             payload = await this.#sendAndWait(params, failError, startedAt, scriptTimeout)
@@ -341,13 +341,18 @@ export class BidiCore {
             }
             log.info(`Send "${params.method}" again, the page navigated: ${message}`)
             await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
+            // a closed or new connection belongs to another session: its contexts are not the ones of this command
+            if (!this._isConnected || this.#ws !== socket) {
+                failError.message = `WebDriver Bidi command "${params.method}" got no result: the connection ended before it was sent again`
+                failError.name = SESSION_ENDED_ERROR
+                throw failError
+            }
         }
 
         if (isErrorPayload(payload)) {
-            const error = payload as local.ErrorResponse
-            failError.message += ` with error: ${payload.error} - ${error.message}`
-            if (error.stacktrace && typeof error.stacktrace === 'string') {
-                const driverStack = error.stacktrace
+            failError.message += ` with error: ${payload.error} - ${payload.message}`
+            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
+                const driverStack = payload.stacktrace
                     .split('\n')
                     .filter(Boolean)
                     .map((line: string) => `    at ${line}`)

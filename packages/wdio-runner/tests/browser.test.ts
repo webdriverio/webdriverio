@@ -245,6 +245,26 @@ describe('BrowserFramework browser errors', () => {
         process.send = originalSend
     })
 
+    it('reports no load error for a test page that is still loading, as right after a reload', async () => {
+        browser.execute.mockResolvedValue(undefined)
+        framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        const fetchExecutionState = browser.execute.mock.calls[0][0] as () => unknown
+        const page = {
+            document: { readyState: 'loading', title: '', querySelector: () => null, documentElement: { innerHTML: '' } },
+            window: {}
+        }
+        vi.stubGlobal('document', page.document)
+        vi.stubGlobal('window', page.window)
+        try {
+            expect(fetchExecutionState()).toBeUndefined()
+            page.document.readyState = 'interactive'
+            expect(fetchExecutionState()).toMatchObject({ errors: [{ message: expect.stringContaining('Failed to load test page') }] })
+        } finally {
+            vi.unstubAllGlobals()
+        }
+    })
+
     it('ignores browser log errors that are logged after the tests started', async () => {
         browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
         browser.getLogs.mockResolvedValue([severeLog(1500)])

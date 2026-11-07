@@ -490,6 +490,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     async #checkForTestError () {
         const testError = await browser.execute(function fetchExecutionState () {
+            // a page that is still loading, e.g. right after a reload, has no title and no test framework yet
+            if (document.readyState === 'loading') {
+                return undefined
+            }
             let viteError
             const viteErrorElem = document.querySelector('vite-error-overlay')
             if (viteErrorElem && viteErrorElem.shadowRoot) {

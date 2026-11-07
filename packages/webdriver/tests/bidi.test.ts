@@ -389,6 +389,26 @@ describe('BidiCore', () => {
             expect(sent(handler)).toHaveLength(1)
             expect((await error as Error).message).toContain(CONTEXT_ERROR)
         })
+
+        it.each([
+            ['closes', (handler: BidiCore) => handler.close()],
+            ['connects again', (handler: BidiCore) => handler.reconnect('ws://foo/new')]
+        ])('does not send again when the session %s during the delay', async (_, end) => {
+            const handler = await connected()
+            const socket = handler.socket!
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            fail(handler, 1, CONTEXT_ERROR)
+            await end(handler)
+            await vi.advanceTimersByTimeAsync(50)
+            expect(vi.mocked(socket.send)).toHaveBeenCalledTimes(1)
+            if (handler.socket && handler.socket !== socket) {
+                expect(vi.mocked(handler.socket.send)).not.toHaveBeenCalled()
+            }
+            const err = await error as Error
+            expect(err.name).toBe(SESSION_ENDED_ERROR)
+            expect(err.message).toBe('WebDriver Bidi command "script.callFunction" got no result: the connection ended before it was sent again')
+            expect(err.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:\d+:/)
+        })
     })
 
     describe('close', () => {

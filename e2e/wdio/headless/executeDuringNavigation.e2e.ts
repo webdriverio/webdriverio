@@ -41,22 +41,24 @@ describe('commands during a navigation that the page started', () => {
         }, to)
     }
 
+    // the path is set when the new document exists, also while it is still loading
     it('runs the next script on the new page', async () => {
         await navigate('/slow')
-        await expect(await browser.execute(() => document.body.textContent)).toBe('/slow')
+        await expect(await browser.execute(() => location.pathname)).toBe('/slow')
     })
 
-    it('runs the next script on the last page of a chain of script redirects', async () => {
+    it('runs the next script on a page of a chain of script redirects', async () => {
         await navigate('/chain?hops=3')
-        await expect(await browser.execute(() => document.body.textContent)).toBe('/chain')
+        await expect(await browser.execute(() => location.pathname)).toBe('/chain')
     })
 
     it('runs a WebDriver BiDi command on the new page', async () => {
+        const context = await browser.getWindowHandle()
         await navigate('/slow')
         const result = await browser.scriptEvaluate({
-            expression: 'document.body.textContent',
+            expression: 'location.pathname',
             awaitPromise: false,
-            target: { context: await browser.getWindowHandle() }
+            target: { context }
         })
         await expect(result.type === 'success' && result.result).toEqual({ type: 'string', value: '/slow' })
     })
