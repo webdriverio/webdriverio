@@ -155,6 +155,77 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toEqual(1)
     })
 
+    it('afterTest decrements failure count when a retried Mocha test passes', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const test = { fullTitle: 'should succeed on retry', parent: 'suite', title: 'test' } as Frameworks.Test
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 0, limit: 1 }, error: new Error('flaky') } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: true, retries: { attempts: 1, limit: 1 } } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(0)
+    })
+
+    it('afterTest decrements failure count when test has _retriedTest property and passes', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        tbService.afterTest({} as Frameworks.Test, {}, { passed: false } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest({ _retriedTest: {} } as any, {}, { passed: true } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(0)
+    })
+
+    it('afterTest does not duplicate failure count when retried test fails again', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const test = { fullTitle: 'should fail permanently', parent: 'suite', title: 'test' } as Frameworks.Test
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 0, limit: 2 }, error: new Error('fail 0') } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 1, limit: 2 }, error: new Error('fail 1') } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 2, limit: 2 }, error: new Error('fail 2') } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+    })
+
+    it('afterTest ignores Jasmine pending tests', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        tbService.afterTest({} as Frameworks.Test, {}, { passed: false, skipped: true } as Frameworks.TestResult)
+
+        expect(tbService['_failures']).toEqual(0)
+    })
+
+    it('afterTest distinguishes separate tests with identical titles across suites/files', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const test1 = { file: 'fileA.js', fullTitle: 'outer A > common > works', parent: 'common', title: 'works' } as Frameworks.Test
+        const test2 = { file: 'fileB.js', fullTitle: 'outer B > common > works', parent: 'common', title: 'works' } as Frameworks.Test
+
+        tbService.afterTest(test1, {}, { passed: false } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test2, {}, { passed: true } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+    })
+
+    it('afterTest does not drop below 0 when a test passes after multiple retries', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const test = { file: 'test.js', fullTitle: 'suite > flaky test', parent: 'suite', title: 'flaky test' } as Frameworks.Test
+
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 0, limit: 2 } } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 1, limit: 2 } } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: true, retries: { attempts: 2, limit: 2 } } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(0)
+    })
+
     it('beforeFeature skips annotation without credentials', () => {
         const tbService = new TestingBotService({}, {}, {})
         tbService.before(undefined, undefined, browser)

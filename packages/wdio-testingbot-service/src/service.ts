@@ -14,6 +14,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     private _tbUser?: string
     private _failures = 0
     private _failedScenarios = new Set<string>() // Cucumber scenarios counted in `_failures`
+    private _failedTests = new Set<string>() // Tests counted in `_failures`
     private _testCnt = 0
 
     constructor (
@@ -103,8 +104,29 @@ export default class TestingBotService implements Services.ServiceInstance {
      * After test
      * @param {object} test Test
      */
-    afterTest (_test: Frameworks.Test, _context: unknown, results: Frameworks.TestResult) {
-        if (!results.passed) {
+    afterTest (test: Frameworks.Test, _context: unknown, results: Frameworks.TestResult) {
+        if (results.skipped) {
+            return
+        }
+
+        const testTitle = test.fullTitle || (test.parent && test.title ? `${test.parent} - ${test.title}` : undefined) || test.title || test.name || test.fullName
+        const testKey = testTitle ? `${test.file || ''}#${testTitle}` : undefined
+
+        if (results.passed) {
+            if (testKey && this._failedTests.delete(testKey)) {
+                --this._failures
+            } else if (!testKey && test._retriedTest) {
+                --this._failures
+            }
+            return
+        }
+
+        if (testKey) {
+            if (!this._failedTests.has(testKey)) {
+                this._failedTests.add(testKey)
+                ++this._failures
+            }
+        } else if (!test._retriedTest) {
             ++this._failures
         }
     }
@@ -237,6 +259,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         const json = this.getBody(failures, calledOnReload, browserName)
         this._failures = 0
         this._failedScenarios.clear()
+        this._failedTests.clear()
         const response = await fetch(this.getRestUrl(sessionId), {
             method: 'PUT',
             body: JSON.stringify(json),
