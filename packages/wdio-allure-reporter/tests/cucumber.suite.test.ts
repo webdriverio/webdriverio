@@ -970,7 +970,7 @@ describe('Cucumber retries (issue #15177)', () => {
         })
     })
 
-    describe('scenarioLevelReporter: separate test:start per attempt generates separate result files', () => {
+    describe('scenarioLevelReporter: a retried attempt that ends with test:retry', () => {
         let outputDir: string
         let results: any[]
 
@@ -978,17 +978,14 @@ describe('Cucumber retries (issue #15177)', () => {
             outputDir = temporaryDirectory()
             const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
-            reporter.onRunnerStart(runnerStart())
+            const runner = runnerStart()
+            reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework: 'cucumber' } } as any)
             reporter.onSuiteStart(cucumberHelper.featureStart())
-            // ----- Attempt 1 (willBeRetried=true → no test:fail emitted by cucumberFormatter) -----
-            // test:start fires for the scenario as a whole
             reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
-            // ----- Attempt 2 (willBeRetried=false) -----
-            // test:start fires again → our fix detects the pending test and closes attempt 1
+            reporter.onTestRetry({ ...cucumberHelper.testFail(), type: 'scenario' } as any)
             reporter.onTestStart({ ...cucumberHelper.scenarioStart(), type: 'scenario' } as any)
-            // The scenario finally fails (sent by afterTest in cucumberFormatter)
-            reporter.onTestFail(cucumberHelper.testFail())
-            reporter.onSuiteEnd(cucumberHelper.featureEnd({ tests: [cucumberHelper.testFail()], hooks: [] }))
+            reporter.onTestPass({ ...cucumberHelper.testPass(), type: 'scenario' } as any)
+            reporter.onSuiteEnd(cucumberHelper.featureEnd({ tests: [cucumberHelper.testPass()], hooks: [] }))
             await reporter.onRunnerEnd(runnerEnd())
 
             await new Promise(resolve => setTimeout(resolve, 100))
@@ -998,21 +995,125 @@ describe('Cucumber retries (issue #15177)', () => {
 
         afterAll(() => clean(outputDir))
 
-        it('should produce two separate Allure result files', () => {
+        it('keeps attempt 1 as a finished, failed result with the "retried" tag, as before', () => {
             expect(results).toHaveLength(2)
-        })
-
-        it('should assign the same historyId to both attempts', () => {
-            expect(results[0].historyId).toBeDefined()
-            expect(results[0].historyId).toBe(results[1].historyId)
-        })
-
-        it('attempt 1 should be tagged as "retried" with FAILED status (not "unknown")', () => {
             const attempt1 = results.find((r: any) =>
                 r.labels.some((l: Label) => l.name === LabelName.TAG && l.value === 'retried')
             )
             expect(attempt1).toBeDefined()
             expect(attempt1.status).toBe(Status.FAILED)
+            expect(attempt1.stage).toBe('finished')
+            expect(results.find((r: any) => r !== attempt1).status).toBe(Status.PASSED)
+        })
+    })
+
+})
+
+describe('Cucumber tests as the base reporter gives them (a TestStats keeps no type, keyword or file)', () => {
+    const asTestStats = (t: Record<string, unknown>, title: string) => {
+        const { file: _file, keyword: _keyword, ...rest } = t
+        return { ...rest, type: 'test', title } as any
+    }
+    const cucumberRunner = (scenarioLevelReporter: boolean) => {
+        const runner = runnerStart()
+        return { ...runner, config: { ...runner.config, framework: 'cucumber', cucumberOpts: { scenarioLevelReporter } } } as any
+    }
+    let outputDir: string
+    beforeEach(() => { outputDir = temporaryDirectory() })
+    afterEach(() => clean(outputDir))
+
+    it('reports a step in another language as a step of its scenario', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(cucumberRunner(false))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        reporter.onSuiteStart(cucumberHelper.scenarioStart())
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'Soit je passe'))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'Soit je passe'))
+        reporter.onSuiteEnd(cucumberHelper.scenarioEnd({ tests: [cucumberHelper.testPass()], hooks: [] }))
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => [r.name, r.status, r.steps.map((s: any) => s.name)])).toEqual([['MyScenario', Status.PASSED, ['Soit je passe']]])
+    })
+
+    it('reports a scenario-level scenario whose name starts with a keyword as a test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(cucumberRunner(true))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'Given a user logs in'))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'Given a user logs in'))
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => [r.name, r.status])).toEqual([['Given a user logs in', Status.PASSED]])
+    })
+})
+
+// every framework name that initializePlugin loads (wdio-utils initializePlugin.ts): the exact
+// name, another case, the scoped package; any other name keeps the title, keyword and file rules
+describe('the framework of the runner config, by its name in any case or its scoped package', () => {
+    const asTestStats = (t: Record<string, unknown>, title: string) => {
+        const { file: _file, keyword: _keyword, ...rest } = t
+        return { ...rest, type: 'test', title } as any
+    }
+    const runnerWith = (framework: string, scenarioLevelReporter = false) => {
+        const runner = runnerStart()
+        return { ...runner, config: { ...runner.config, framework, cucumberOpts: { scenarioLevelReporter } } } as any
+    }
+    const resultsOfOneStep = async (framework: string, title: string, scenarioLevelReporter = false) => {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerWith(framework, scenarioLevelReporter))
+        reporter.onSuiteStart(cucumberHelper.featureStart())
+        if (!scenarioLevelReporter) { reporter.onSuiteStart(cucumberHelper.scenarioStart()) }
+        reporter.onTestStart(asTestStats(cucumberHelper.testStart(), title))
+        reporter.onTestPass(asTestStats(cucumberHelper.testPass(), title))
+        if (!scenarioLevelReporter) { reporter.onSuiteEnd(cucumberHelper.scenarioEnd({ tests: [cucumberHelper.testPass()], hooks: [] })) }
+        reporter.onSuiteEnd(cucumberHelper.featureEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+        const { results } = getResults(outputDir)
+        clean(outputDir)
+        return results.map((r: any) => [r.name, r.status, r.steps.map((s: any) => s.name)])
+    }
+    const cucumberNames = ['cucumber', 'Cucumber', 'CUCUMBER', '@wdio/cucumber-framework']
+
+    describe.each(cucumberNames)('framework %s', (framework) => {
+        it.each(['Given I open the page', 'Soit je passe', '* a star step', 'I do something'])('reports the step "%s" as a step of its scenario', async (title) => {
+            expect(await resultsOfOneStep(framework, title)).toEqual([['MyScenario', Status.PASSED, [title]]])
+        })
+
+        it('reports a scenario-level scenario titled "Given ..." as a test', async () => {
+            expect(await resultsOfOneStep(framework, 'Given a user logs in', true)).toEqual([['Given a user logs in', Status.PASSED, []]])
+        })
+
+        it('tags a retried scenario-level attempt "retried"', async () => {
+            const outputDir = temporaryDirectory()
+            const reporter = new AllureReporter({ outputDir })
+            reporter.onRunnerStart(runnerWith(framework, true))
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'flaky'))
+            reporter.onTestRetry(asTestStats(cucumberHelper.testFail(), 'flaky'))
+            reporter.onTestStart(asTestStats(cucumberHelper.testStart(), 'flaky'))
+            reporter.onTestPass(asTestStats(cucumberHelper.testPass(), 'flaky'))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd())
+            await reporter.onRunnerEnd(runnerEnd())
+            const { results } = getResults(outputDir)
+            clean(outputDir)
+            const tags = (r: any) => r.labels.filter((l: Label) => l.name === LabelName.TAG).map((l: Label) => l.value)
+            expect(results.map((r: any) => [r.status, tags(r)]).sort()).toEqual([[Status.FAILED, ['retried']], [Status.PASSED, []]])
+        })
+    })
+
+    describe.each(['@serenity-js/webdriverio', 'my-custom-framework'])('an unknown framework %s keeps the title rules', (framework) => {
+        it('reports an English step as a step of its scenario', async () => {
+            expect(await resultsOfOneStep(framework, 'Given I open the page')).toEqual([['MyScenario', Status.PASSED, ['Given I open the page']]])
+        })
+
+        it('reports a title with no keyword as a test', async () => {
+            const results = await resultsOfOneStep(framework, 'I do something')
+            expect(results.map(([name]: [string]) => name)).toContain('I do something')
         })
     })
 })

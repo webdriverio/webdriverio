@@ -7,6 +7,8 @@ WebdriverIO Snapshot
 tree with stable element refs. It is the engine behind `wdio session snapshot`
 and is shared with the devtools element picker, so its API is kept small.
 
+Install `webdriverio` next to this package: it is a required peer dependency.
+
 ```ts
 import { collectWeb, formatSnapshot, RefRegistry } from '@wdio/snapshot'
 

@@ -18,6 +18,13 @@ export class StepGate {
     readonly signal?: AbortSignal
     #running = 0
     #stop = new AbortController()
+    #closed = false
+    #idle: (() => void)[] = []
+    /**
+     * One step at a time: the tool calls of one answer share the page, the
+     * agent session and the effect recorder of the browser.
+     */
+    #turn: Promise<void> = Promise.resolve()
 
     constructor (signal?: AbortSignal) {
         this.signal = signal
@@ -33,14 +40,48 @@ export class StepGate {
     }
 
     async step<T> (run: () => Promise<T>): Promise<T> {
-        this.signal?.throwIfAborted()
+        this.check()
+        const busy = this.#running > 0
         this.#running++
+        const previous = this.#turn
+        let next: () => void = () => {}
+        this.#turn = new Promise<void>((resolve) => { next = resolve })
         try {
+            if (busy) {
+                await previous
+                this.check()
+            }
             return await run()
         } finally {
+            next()
             this.#running--
             this.#stopWhenIdle()
+            if (!this.#running) {
+                this.#idle.splice(0).forEach((resolve) => resolve())
+            }
         }
+    }
+
+    /**
+     * Throws once the test ended or the call ended. A step calls it again
+     * right before its action: what it waited for or read before can
+     * already be on the page of the next test.
+     */
+    check () {
+        this.signal?.throwIfAborted()
+        if (this.#closed) {
+            throw new Error('the call already ended')
+        }
+    }
+
+    /**
+     * The call ends: no step starts anymore, and the call returns once the
+     * running steps ended. Its timeout aborts the model loop at once, also
+     * while a step still uses the browser.
+     */
+    close () {
+        this.#closed = true
+        return this.#running ? new Promise<void>((resolve) => this.#idle.push(resolve)) : Promise.resolve()
     }
 
     #stopWhenIdle () {

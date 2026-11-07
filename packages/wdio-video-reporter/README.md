@@ -297,6 +297,15 @@ a spec file. The attempts before it make no video.
 Type: `boolean`<br />
 Default: `false`
 
+## Parallel Mode
+
+With [parallel mode](https://webdriver.io/docs/parallel-tests) (`mochaOpts.parallelMode` or
+`cucumberOpts.parallelMode`), the tests of a spec file run at the same time, each in its own window. The reporter
+records each test (with Cucumber: each scenario) on its own: a video shows only the window of its test and the tabs
+that the test opens, and the video file names are the same as in a sequential run.
+
+The Allure reporter gets the video of each test, or of each scenario with Cucumber.
+
 ## Cucumber Support
 
 If you are using the Allure reporter with Cucumber, add `useCucumberStepReporter: true` to Allure option in `wdio.conf.js` file, a typical configuration would look like this:

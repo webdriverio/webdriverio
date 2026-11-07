@@ -18,6 +18,10 @@ export interface LoopOptions {
     maxSteps: number
     timeout: number
     /**
+     * called with the time the loop times out at, when its timeout starts
+     */
+    onStart?: (deadline: number) => void
+    /**
      * aborts when the test of the call ended
      */
     signal?: AbortSignal
@@ -82,6 +86,7 @@ export async function runLoop (options: LoopOptions): Promise<LoopResult> {
     }
 
     let messages: BaseMessage[] = []
+    options.onStart?.(Date.now() + options.timeout)
     try {
         const result = await agent.invoke(
             { messages: [{ role: 'user', content: options.prompt }] },

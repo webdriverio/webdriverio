@@ -82,6 +82,13 @@ describe('parseOverwrite', () => {
         expect(url).toBeCalledTimes(1)
         expect(statusCode).toBeCalledTimes(1)
     })
+
+    it('should encode a JSON body with non-Latin1 characters as UTF-8', () => {
+        const json = { city: 'Zürich', greeting: '你好 🌍' }
+        const result = parseOverwrite({ body: json }, {} as any)
+        expect(result.body?.type).toBe('base64')
+        expect(Buffer.from(result.body!.value, 'base64').toString('utf8')).toBe(JSON.stringify(json))
+    })
 })
 
 describe('getPatternParam', () => {

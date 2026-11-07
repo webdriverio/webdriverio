@@ -55,6 +55,29 @@ describe('action command', () => {
             .toThrowError(/more than one/)
     })
 
+    it.each(['𠮷', '𝄞', '😀', '👍🏽', '🇫🇷', '👨‍👩‍👧', 'e\u0301'])('supports a single Unicode grapheme %s in key actions', async (value) => {
+        await browser.action('key', { id: 'unicode' })
+            .down(value)
+            .up(value)
+            .perform()
+
+        const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)
+        expect(body).toEqual({
+            actions: [{
+                type: 'key',
+                id: 'unicode',
+                parameters: {},
+                actions: [{ type: 'keyDown', value }, { type: 'keyUp', value }]
+            }]
+        })
+    })
+
+    it.each(['down', 'up'] as const)('rejects multiple Unicode graphemes in key %s', (action) => {
+        for (const value of ['𠮷𝄞', '👍🏽🇫🇷', '👍🏽a', '🇫🇷🇫🇷', 'e\u0301a']) {
+            expect(() => browser.action('key')[action](value)).toThrowError(/more than one/)
+        }
+    })
+
     it('should trigger command key when Key.Ctrl is used', async () => {
         vi.mocked(os.type).mockReturnValue('Darwin')
         await browser.action('key', { id: 'foobar' })

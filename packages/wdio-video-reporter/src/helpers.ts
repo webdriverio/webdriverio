@@ -38,6 +38,13 @@ export function generateFilename (maxTestNameCharacters: number, browserName: st
     return filename
 }
 
+/**
+ * One part of a video name (a test or suite title): the same in sequential and parallel mode
+ */
+export function getNamePart (title: string) {
+    return title.replace(/ /g, '-').replace(/-{2,}/g, '-')
+}
+
 export function getVideoPath (outputDir: string, testName: string, ext: VideoFileExtension) {
     return path.resolve(outputDir, `${testName}.${ext}`)
 }

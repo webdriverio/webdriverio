@@ -384,6 +384,13 @@ export class EffectRecorder {
     }
 
     /**
+     * the step does not run after all: stop recording until the next start
+     */
+    cancel () {
+        this.#active = false
+    }
+
+    /**
      * start a new epoch in the page and its frames
      */
     async #nextEpoch () {

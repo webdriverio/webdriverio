@@ -46,7 +46,7 @@ Specific options passed into Chromedriver when starting it.
 
 #### `wdio:geckodriverOptions`
 
-Specific options passed into Geckodriver when starting it.
+Specific options passed into Geckodriver when starting it. For example, `profileRoot` is the folder in which Geckodriver creates the temporary Firefox profile. On Windows in GitHub Actions, WebdriverIO sets it to `RUNNER_TEMP`; see [Firefox on Windows runners](githubactions#firefox-on-windows-runners).
 
 #### `wdio:edgedriverOptions`
 
@@ -86,6 +86,8 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 
 By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
 
+For Chrome on Android through Appium (UiAutomator2 driver), WebdriverIO also sets `appium:chromedriverForwardBiDi: true`, so that Appium sends WebDriver Bidi on to Chromedriver. This needs Appium 3.9.0 or later and UiAutomator2 8.7.3 or later. When the WebDriver Bidi server of an Appium browser session can not run browser commands (for example with older versions), WebdriverIO continues the session with WebDriver Classic and logs a warning.
+
 </Option>
 
 #### `wdio:experimentalBiDiCommands`
@@ -100,6 +102,8 @@ In a WebDriver BiDi session, runs element commands and browser commands like `ge
     'wdio:experimentalBiDiCommands': true
 }
 ```
+
+Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
 
 </Option>
 

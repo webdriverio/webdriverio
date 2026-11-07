@@ -36,6 +36,26 @@ test('oneFailurePerSpec stops the spec after a failed sync expect', async () => 
     expect((globalThis as { __wdioStopOnFailure?: string[] }).__wdioStopOnFailure).toEqual(['before', 'next'])
 })
 
+test.each([
+    ['failingAfterAll.js', 1],
+    ['failingTopLevelAfterAll.js', 1],
+    ['failingOuterAfterAll.js', 1],
+    ['passingAfterAll.js', 0]
+])('a failing afterAll fails the run (%s)', async (fixture, failures) => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const adapter = new JasmineAdapter(
+        '0-0',
+        { beforeHook: [], afterHook: [] } as any,
+        [path.join(__dirname, '__fixtures__', fixture)],
+        { browserName: 'chrome' } as any,
+        reporter as any
+    )
+
+    await adapter.init()
+    expect(await adapter.run()).toBe(failures)
+})
+
 test('expect.extend() in the before hook adds the matcher to Jasmine', async () => {
     vi.mocked(executeHooksWithArgs).mockResolvedValue([])
     const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
@@ -77,4 +97,36 @@ test('the global expect has the asymmetric matchers of expect-webdriverio, expec
 
     expect((globalThis as any).expect.oneOf).toBe(wdioExpect.oneOf)
     expect((globalThis as any).expect.multiRemote).toBe(wdioExpect.multiRemote)
+})
+
+// Jasmine 6 marks the file name of the suite started event as deprecated: the tests take their spec file from it
+test.each(['specFile.js', 'specFile.mjs'])('the events of a real Jasmine run name the spec file %s as a path', async (name) => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const spec = path.join(__dirname, '__fixtures__', name)
+    const adapter = new JasmineAdapter('0-0', { beforeHook: [], afterHook: [] } as any, [spec], { browserName: 'chrome' } as any, reporter as any)
+    await adapter.init()
+    await adapter.run()
+    const files = reporter.emit.mock.calls
+        .filter(([event]) => event === 'suite:start' || event === 'test:start')
+        .map(([event, payload]) => [event, payload.file])
+    expect(files).toEqual([['suite:start', spec], ['test:start', spec]])
+})
+
+// a shared helper module that declares a describe(): Jasmine names the helper, the tests keep the spec file
+test('the suites and tests of a real Jasmine run in a describe() of a helper name the spec file', async () => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const spec = path.join(__dirname, '__fixtures__', 'sharedSuiteSpec.js')
+    const adapter = new JasmineAdapter('0-0', { beforeHook: [], afterHook: [] } as any, [spec], { browserName: 'chrome' } as any, reporter as any)
+    await adapter.init()
+    await adapter.run()
+    const files = reporter.emit.mock.calls
+        .filter(([event]) => event === 'suite:start' || event === 'test:start')
+        .map(([event, payload]) => [event, payload.title, payload.file])
+    expect(files).toEqual([
+        ['suite:start', 'shared', spec], ['test:start', 'from the helper', spec],
+        ['suite:start', 'outer', spec], ['suite:start', 'shared', spec], ['test:start', 'from the helper', spec],
+        ['test:start', 'in the spec', spec]
+    ])
 })

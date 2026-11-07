@@ -4,6 +4,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
 import { browser } from '@wdio/globals'
+import { RunnerStats } from '@wdio/reporter'
 import AllureReporterExtension from '../src/allure.js'
 import VideoReporter from '../src/index.js'
 import { findFfmpeg } from '../src/helpers.js'
@@ -32,7 +33,11 @@ vi.mock('../src/helpers.js', async (importOriginal) => ({
     findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
 }))
 
-vi.mock('@wdio/reporter', () => ({
+vi.mock('@wdio/reporter', async () => ({
+    // the real rule for the name of the framework
+    knownFramework: (await vi.importActual<{ knownFramework: unknown }>('../../wdio-reporter/src/utils.js')).knownFramework,
+    // the real runner stats, for the attempt of the spec file
+    RunnerStats: (await vi.importActual<{ default: unknown }>('../../wdio-reporter/src/stats/runner.js')).default,
     default: class {
         options: unknown
         write = vi.fn()
@@ -80,6 +85,9 @@ const allureRunner: any = {
         }
     }
 }
+
+// the runner of the reporter events is a RunnerStats (with its getters)
+const runnerStats = (runner: object) => Object.assign(Object.create(RunnerStats.prototype), runner)
 
 describe('Video Reporter', () => {
     const processOn = process.on.bind(process)
@@ -130,14 +138,14 @@ describe('Video Reporter', () => {
 
         it('should set record to false when onlyRecordLastFailure is set and not last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } }))
             expect(reporter.record).toBe(false)
         })
 
         it('records the only attempt when specFileRetries is 0 (the first attempt has retry 1)', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             // the launcher sends retries -1 (unknown) to the first attempt: retry = specFileRetries + 1
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 0 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 0 } }))
             expect(reporter.record).toBe(true)
         })
 
@@ -154,7 +162,7 @@ describe('Video Reporter', () => {
 
         it('should set record to true when onlyRecordLastFailure is set and is on the last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
-            reporter.onRunnerStart({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } }))
             expect(reporter.record).toBe(true)
         })
     })
@@ -377,9 +385,9 @@ describe('Video Reporter', () => {
             reporter.addFrame = vi.fn() as any
             reporter.generateVideo = vi.fn() as any
             reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
-            reporter.onTestPass({ state: 'passed' } as any)
-            reporter.onTestPass({ state: 'passed' } as any)
-            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(0)
 
             reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'passed' }, { state: 'passed' }, { state: 'passed' }] } as any)
@@ -392,7 +400,7 @@ describe('Video Reporter', () => {
             reporter.addFrame = vi.fn() as any
             reporter.generateVideo = vi.fn() as any
             reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
-            reporter.onTestFail({ state: 'failed' } as any)
+            reporter.onTestEnd({ state: 'failed' } as any)
             reporter.onTestSkip({ state: 'skipped' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(0)
 
@@ -537,9 +545,9 @@ describe('Video Reporter', () => {
             reporter.isCucumberFramework = true
             reporter.testName = 'foo bar'
             reporter.generateVideo = vi.fn() as any
-            reporter.onTestPass({ state: 'passed' } as any)
-            reporter.onTestPass({ state: 'passed' } as any)
-            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
             reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'passed' }] } as any)
             await sleep()
             expect(addArgumentExtensionMock).toBeCalledTimes(1)
@@ -613,6 +621,15 @@ describe('Video Reporter', () => {
             )
         })
 
+        // the name in any case and the scoped package, as initializePlugin loads them
+        it.each(['cucumber', 'Cucumber', '@wdio/cucumber-framework'])('records a Cucumber step of framework %s in its scenario, not on its own', (framework) => {
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart({ ...allureRunner, instanceOptions: { 1234: { framework } } })
+            expect(reporter.isCucumberFramework).toBe(true)
+            reporter.onTestStart({ title: 'Given a step' } as any)
+            expect(fs.mkdirSync).not.toBeCalledWith(expect.stringContaining('Given-a-step'), expect.anything())
+        })
+
         it('sets the recording path for a Cucumber scenario reported as a test (scenarioLevelReporter)', () => {
             const reporter = new VideoReporter({})
             reporter.onRunnerStart({
@@ -625,7 +642,7 @@ describe('Video Reporter', () => {
                 expect.stringContaining(`${path.sep}my-scenario--CHROME--`),
                 { recursive: true }
             )
-            reporter.onTestFail({ title: 'my scenario', state: 'failed' } as any)
+            reporter.onTestEnd({ title: 'my scenario', state: 'failed' } as any)
             expect(reporter.testNameStructure).toEqual([])
         })
 
@@ -636,8 +653,9 @@ describe('Video Reporter', () => {
                 instanceOptions: { 1234: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } }
             })
             reporter.onTestStart({ title: 'pending scenario' } as any)
-            // a step returned 'pending': the base reporter calls onTestPending, not onTestSkip
+            // a step returned 'pending': the base reporter calls onTestPending, then onTestEnd at test:end
             reporter.onTestPending({ title: 'pending scenario', state: 'pending' } as any)
+            reporter.onTestEnd({ title: 'pending scenario', state: 'pending' } as any)
             expect(reporter.testNameStructure).toEqual([])
             reporter.onTestStart({ title: 'next scenario' } as any)
             expect(reporter.testName).toMatch(/^next-scenario--CHROME--/)
@@ -678,7 +696,7 @@ describe('Video Reporter', () => {
         it('should not generate video when retry < specFileRetries and the test has failed', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.testName = 'foo bar'
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } }))
             reporter.generateVideo = vi.fn() as any
             reporter.onTestEnd({ state: 'failed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(0)
@@ -687,7 +705,7 @@ describe('Video Reporter', () => {
         it('should generate video when retry equals specFileRetries and the test failed', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.testName = 'foo bar'
-            reporter.onRunnerStart({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } })
+            reporter.onRunnerStart(runnerStats({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } }))
             reporter.generateVideo = vi.fn() as any
             reporter.onTestEnd({ state: 'failed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(1)
@@ -1233,59 +1251,14 @@ describe('Video Reporter', () => {
         })
     })
 
-    describe('onTestPass', () => {
-        it('should return if not recording', () => {
-            const reporter = new VideoReporter({})
-            reporter.record = false
-            const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestPass({ state: 'passed' } as any)
-            expect(testEndMock).not.toBeCalled()
-        })
-
-        it('should return if not cucumber', () => {
-            const reporter = new VideoReporter({})
-            reporter.record = true
-            reporter.isCucumberFramework = false
-            const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestPass({ state: 'passed' } as any)
-            expect(testEndMock).not.toBeCalled()
-        })
-
-        it('should call onTestEnd if cucumber framework', () => {
+    describe('results of a Cucumber test', () => {
+        it.each(['onTestSkip', 'onTestPending'] as const)('%s does not end a Cucumber test: every framework sends test:end after the result', (hook) => {
             const reporter = new VideoReporter({})
             reporter.record = true
             reporter.isCucumberFramework = true
             const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestPass({ state: 'passed' } as any)
-            expect(testEndMock).toBeCalledTimes(1)
-        })
-    })
-
-    describe('onTestFail', () => {
-        it('should return if not recording', () => {
-            const reporter = new VideoReporter({})
-            reporter.record = false
-            const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestFail({ state: 'failed' } as any)
+            reporter[hook]()
             expect(testEndMock).not.toBeCalled()
-        })
-
-        it('should return if not cucumber', () => {
-            const reporter = new VideoReporter({})
-            reporter.record = true
-            reporter.isCucumberFramework = false
-            const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestFail({ state: 'failed' } as any)
-            expect(testEndMock).not.toBeCalled()
-        })
-
-        it('should call onTestEnd if cucumber framework', () => {
-            const reporter = new VideoReporter({})
-            reporter.record = true
-            reporter.isCucumberFramework = true
-            const testEndMock = vi.spyOn(reporter, 'onTestEnd')
-            reporter.onTestFail({ state: 'failed' } as any)
-            expect(testEndMock).toBeCalledTimes(1)
         })
     })
 

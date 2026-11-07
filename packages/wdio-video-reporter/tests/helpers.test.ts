@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vites
 import {
     sleep, generateFilename, getVideoPath, getVideoFormatSettings, waitForVideosToExist,
     waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand, getScreenshotBrowser,
-    findAllureReporter
+    findAllureReporter, getNamePart
 } from '../src/helpers.js'
 import { DEFAULT_OPTIONS, SUPPORTED_VIDEO_FORMATS } from '../src/constants.js'
 
@@ -88,6 +88,12 @@ describe('generateFilename - ', () => {
         const name1 = generateFilename(maxTestNameCharacters, browser, testname256)
         const name2 = generateFilename(maxTestNameCharacters, browser, testname256)
         expect(name1).not.toBe(name2)
+    })
+})
+
+describe('getNamePart', () => {
+    it('turns a title into one part of a video name', () => {
+        expect(getNamePart('a  test with   spaces')).toBe('a-test-with-spaces')
     })
 })
 

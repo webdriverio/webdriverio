@@ -67,7 +67,7 @@ export function buildPackageScaffold(packageName: string, packageType: PackageTy
   "types": "./build/index.d.ts",
   "typeScriptVersion": "6.0.3",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",

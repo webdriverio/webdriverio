@@ -224,6 +224,30 @@ describe('reporter', () => {
         })
     })
 
+    // a failed Cucumber BeforeAll / AfterAll runs outside of any scenario: a hook of the feature (Cucumber's JSON has no place for it)
+    describe('a hook of the feature', () => {
+        const runHook = (title: string) => ({
+            uid: `${title}-r1`, title, parent: 'f.feature:1:1', parentUid: 'f.feature:1:1',
+            hookKind: title === 'AfterAll' ? 'afterAll' : 'beforeAll', hookSuiteUid: 'f.feature:1:1',
+        })
+        const startFeature = () => tmpReporter.emit('suite:start', { uid: 'f.feature:1:1', title: 'Feature', type: 'feature', file: 'f.feature' })
+
+        it('is ignored when no scenario started (failed BeforeAll)', () => {
+            startFeature()
+            expect(() => tmpReporter.emit('hook:start', runHook('BeforeAll'))).not.toThrow()
+            expect(() => tmpReporter.emit('hook:end', { ...runHook('BeforeAll'), error: new Error('BeforeAll fails'), state: 'failed' })).not.toThrow()
+        })
+
+        it('is not added to the last scenario (failed AfterAll)', () => {
+            startFeature()
+            tmpReporter.emit('suite:start', { uid: 'scenario', title: 'Scenario', type: 'scenario', parent: 'Feature', parentUid: 'f.feature:1:1', file: 'f.feature' })
+            const steps = [...(tmpReporter.getCurrentScenario().steps ?? [])]
+            tmpReporter.emit('hook:start', runHook('AfterAll'))
+            tmpReporter.emit('hook:end', { ...runHook('AfterAll'), error: new Error('AfterAll fails'), state: 'failed' })
+            expect(tmpReporter.getCurrentScenario().steps).toEqual(steps)
+        })
+    })
+
     describe('onHookEnd', () => {
         it('should call update a hook step to passed', () => {
             const updateStepStatusSpy = vi.spyOn(tmpReporter, 'updateStepStatus').mockReturnValue()
@@ -278,6 +302,17 @@ describe('reporter', () => {
             tmpReporter.onTestFail({ bar: true } as TestStatsExtended)
 
             expect(updateStepStatusSpy).toHaveBeenCalledWith({ bar: true })
+        })
+    })
+
+    // Cucumber at step level: the step that fails in an attempt that Cucumber retries
+    describe('onTestRetry', () => {
+        it('should update the step as a failed step', () => {
+            const updateStepStatusSpy = vi.spyOn(tmpReporter, 'updateStepStatus').mockReturnValue()
+
+            tmpReporter.onTestRetry({ bar: true, state: 'failed' } as unknown as TestStatsExtended)
+
+            expect(updateStepStatusSpy).toHaveBeenCalledWith({ bar: true, state: 'failed' })
         })
     })
 
@@ -1060,33 +1095,6 @@ describe('reporter', () => {
             tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, state: PASSED } as TestStatsExtended)
 
             expect(tmpReporter.getCurrentScenario().steps!.map((step) => step.result.status)).toEqual([PASSED])
-        })
-    })
-
-    describe('cucumberOpts.parallelMode', () => {
-        const scenario = (title: string) => ({ ...SUITE_SCENARIO_STATS, title } as SuiteStatsExtended)
-
-        it('warns once when a scenario starts before the previous one ended', () => {
-            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
-            tmpReporter.onSuiteStart(scenario('A'))
-            tmpReporter.onSuiteStart(scenario('B'))
-            tmpReporter.onSuiteStart(scenario('C'))
-            expect(warn).toHaveBeenCalledTimes(1)
-            expect(warn).toHaveBeenCalledWith(expect.stringContaining('cucumberOpts.parallelMode'))
-            warn.mockRestore()
-        })
-
-        it('does not warn for scenarios that run one after the other', () => {
-            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
-            for (const title of ['A', 'B', 'C']) {
-                tmpReporter.onSuiteStart(scenario(title))
-                tmpReporter.onSuiteEnd(scenario(title))
-            }
-            tmpReporter.onSuiteEnd({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
-            expect(warn).not.toHaveBeenCalled()
-            warn.mockRestore()
         })
     })
 

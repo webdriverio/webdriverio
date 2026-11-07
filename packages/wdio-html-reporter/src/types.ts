@@ -10,7 +10,6 @@ export class HtmlReporterOptions implements Reporters.Options  {
     collapseTests?: boolean
     collapseSuites?: boolean
     useOnAfterCommandForScreenshot?: boolean | undefined
-    debug ?: boolean | undefined
     browserName:string
     removeOutput?: boolean | undefined
     linkScreenshots?: boolean
@@ -28,7 +27,6 @@ export class HtmlReporterOptions implements Reporters.Options  {
         this.collapseTests = false
         this.collapseSuites = false
         this.useOnAfterCommandForScreenshot = false
-        this.debug = false
         this.browserName = 'not specified'
         this.removeOutput = true
         this.linkScreenshots = false
@@ -63,6 +61,9 @@ export class InternalReportEvent  {
     }
 
 }
+
+/** a suite of the report; the root suite lists in `files` the spec files of its tests when there are several */
+export type RootReportSuite = SuiteStats & { files?: string[] }
 
 export class ReportData {
     info: RunnerStats

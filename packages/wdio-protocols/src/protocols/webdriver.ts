@@ -197,9 +197,11 @@ export default {
         DELETE: {
             command: 'closeWindow',
             description:
-                'The Close Window command closes the current top-level browsing context. Once done, if there are no more top-level browsing contexts open, the WebDriver session itself is closed.',
+                'The Close Window command closes the current top-level browsing context. Once done, if there are no more top-level browsing contexts open, the WebDriver session itself is closed.\n\n' +
+                'WebdriverIO\'s `browser.closeWindow()` uses this endpoint, then switches to the first remaining window.',
             ref: 'https://w3c.github.io/webdriver/#dfn-close-window',
             parameters: [],
+            alternativeCommands: ['browser/closeWindow'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L97-L117']
         },
         POST: {

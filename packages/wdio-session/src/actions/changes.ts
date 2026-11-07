@@ -54,8 +54,10 @@ const documentTitle = (tree: SnapshotNode) => tree.role === 'document' ? tree.na
  */
 async function reportSnapshot (session: Session, isCurrent?: () => boolean) {
     const baseline = session.lastSnapshot
+    const baselineView = session.lastSnapshotView
     const taken = await takeSnapshot(session, {}, isCurrent)
     session.lastSnapshot = baseline
+    session.lastSnapshotView = baselineView
     return taken
 }
 

@@ -182,6 +182,9 @@ const switchCode = async (session: Session, tab: Tab) => session.isBidi
 
 const joinCode = (...lines: string[]) => lines.filter(Boolean).join('\n')
 
+const queryOn = (varName: string, code: string) =>
+    code.startsWith(`${varName}.`) || code.startsWith('ref(') ? code : `${varName}.${code}`
+
 function resetFrame (session: Session) {
     session.set('frame', undefined)
     session.set('frameStack', [])
@@ -508,7 +511,7 @@ export async function holdFrame (session: Session, frameRef: string) {
         }
     }
     return {
-        lines: [`const page = ${page}`, `const frame = await page.frame(page.${resolved.code})`],
+        lines: [`const page = ${page}`, `const frame = await page.frame(${queryOn('page', resolved.code)})`],
         /**
          * Back to where the session was, without asking the browser, for an
          * action that is given up while the page may not answer at all.
@@ -603,7 +606,7 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
      */
     const ownerVar = await declareHeld(session, owner)
     // in a held frame the selector code already queries through its variable
-    const query = ownerVar.name && resolved.code.startsWith(`${ownerVar.name}.`) ? resolved.code : `${ownerVar.name}.${resolved.code}`
+    const query = ownerVar.name && queryOn(ownerVar.name, resolved.code)
     const childVar = ownerVar.name
         ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${query})`)
         : { code: '' }

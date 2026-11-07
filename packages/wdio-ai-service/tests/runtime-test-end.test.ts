@@ -3,14 +3,17 @@ import os from 'node:os'
 import path from 'node:path'
 import { AsyncLocalStorage } from 'node:async_hooks'
 
+import logger from '@wdio/logger'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { AiRuntime, type RuntimeOptions } from '../src/runtime.js'
 import type { ActError } from '../src/errors.js'
 import { Workspace } from '../src/workspace.js'
+import { ActCache } from '../src/cache.js'
 import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
+import { ACTIONS } from '@wdio/session'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
 vi.mock('@wdio/session/agent', () => ({ createAgentSession }))
@@ -431,6 +434,373 @@ describe('AiRuntime when a test ends during act()', () => {
         expect(actions()).not.toContain('frame top')
     })
 
+    it('does not return while a page-source read of the model runs', async () => {
+        let read: () => void = () => {}
+        const getPageSource = vi.fn(() => new Promise<string>((resolve) => { read = () => resolve('<html></html>') }))
+        ;(fake.agent.browser as unknown as { getPageSource: typeof getPageSource }).getPageSource = getPageSource
+        const { runtime: ai } = runtime({ cache: 'off' }, [{ tool: 'source' }, { tool: 'done', args: { summary: 'Read' } }])
+        ai.startTest(spec, 'reads the source')
+        let settled = false
+        const stale = ai.act(browser, 'Read the page').finally(() => { settled = true })
+        await vi.waitFor(() => expect(getPageSource).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        expect(settled).toBe(false)
+        read()
+
+        await expect(stale).rejects.toThrow(ENDED)
+    })
+
+    it('does not start the model when the test ended during the last heal alternative', async () => {
+        fake.setRef({ id: 'e3', role: 'button', name: 'Pay now', candidates: ['role/button[name="Pay now"]', '#pay'] })
+        await record()
+        fs.rmSync(path.join(dir, 'workspaces'), { recursive: true, force: true })
+        const { runtime: ai, model } = runtime({ cache: 'write' }, [])
+        ai.startTest(spec, 'pays')
+        fake.waitForExist.mockRejectedValueOnce(new Error('element ("role/button[name="Pay now"]") still not existing after 100ms'))
+        let found: () => void = () => {}
+        const lookup = new Promise<void>((resolve) => { found = resolve })
+        fake.$$.mockImplementation(() => ({ getElements: vi.fn(async () => { await lookup; return [] }) }) as never)
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(fake.$$).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        found()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(model.calls).toHaveLength(0)
+        expect(fs.existsSync(path.join(dir, 'workspaces', '0', 'pay.e2e.ts', 'pays'))).toBe(false)
+    })
+
+    it('does not start the model when the test ended while the cache was read', async () => {
+        const { runtime: ai, model } = runtime({ cache: 'write' })
+        ai.startTest(spec, 'pays')
+        const get = ActCache.prototype.get
+        let loaded: () => void = () => {}
+        const held = new Promise<void>((resolve) => { loaded = resolve })
+        vi.spyOn(ActCache.prototype, 'get').mockImplementationOnce(async function (this: ActCache, key) {
+            await held
+            return get.call(this, key)
+        })
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(ActCache.prototype.get).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        loaded()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(model.calls).toHaveLength(0)
+        expect(fs.existsSync(path.join(dir, 'workspaces', '0', 'pay.e2e.ts', 'pays'))).toBe(false)
+    })
+
+    /**
+     * A step that waits or reads before its action does not run the action
+     * once its test ended: the page can already be the one of the next test.
+     */
+    describe('before the action of a step', () => {
+        it('does not run a cached step whose element appeared after the test ended', async () => {
+            await record()
+            const { runtime: ai } = runtime({ cache: 'locked' }, [])
+            ai.startTest(spec, 'pays')
+            let appear: () => void = () => {}
+            fake.waitForExist.mockImplementationOnce(() => new Promise((resolve) => { appear = () => resolve(true) }))
+            const stale = ai.act(browser, 'Pay')
+            await vi.waitFor(() => expect(fake.waitForExist).toHaveBeenCalled())
+
+            await ai.endTest(false)
+            appear()
+
+            await expect(stale).rejects.toThrow(ENDED)
+            expect(clicks()).toEqual([])
+        })
+
+        it('does not run a heal alternative found after the test ended', async () => {
+            fake.setRef({ id: 'e3', role: 'button', name: 'Pay now', candidates: ['role/button[name="Pay now"]', '#pay'] })
+            await record()
+            const { runtime: ai } = runtime({ cache: 'write' }, [])
+            ai.startTest(spec, 'pays')
+            fake.waitForExist.mockRejectedValueOnce(new Error('element ("role/button[name="Pay now"]") still not existing after 100ms'))
+            let found: () => void = () => {}
+            const lookup = new Promise<void>((resolve) => { found = resolve })
+            fake.$$.mockImplementation(() => ({ getElements: vi.fn(async () => { await lookup; return [{}] }) }) as never)
+            const stale = ai.act(browser, 'Pay')
+            await vi.waitFor(() => expect(fake.$$).toHaveBeenCalled())
+
+            await ai.endTest(false)
+            found()
+
+            await expect(stale).rejects.toThrow(ENDED)
+            expect(clicks()).toEqual([])
+        })
+
+        it('does not run the action of the model after the test ended during its scope check', async () => {
+            const element = { elementId: 'cart', selector: '#cart', parent: browser } as unknown as WebdriverIO.Element
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'pays')
+            let checked: () => void = () => {}
+            ;(fake.agent.contains as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise((resolve) => { checked = () => resolve(true) }))
+            const stale = ai.act(element, 'Pay')
+            await vi.waitFor(() => expect(fake.agent.contains).toHaveBeenCalled())
+
+            await ai.endTest(false)
+            checked()
+
+            await expect(stale).rejects.toThrow(ENDED)
+            expect(clicks()).toEqual([])
+        })
+
+        it('does not run the action of the model after the timeout during its scope check', async () => {
+            const element = { elementId: 'cart', selector: '#cart', parent: browser } as unknown as WebdriverIO.Element
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'pays')
+            let checked: () => void = () => {}
+            ;(fake.agent.contains as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise((resolve) => { checked = () => resolve(true) }))
+            const call = ai.act(element, 'Pay', { timeout: 600 })
+            await vi.waitFor(() => expect(fake.agent.contains).toHaveBeenCalled())
+            await new Promise((resolve) => setTimeout(resolve, 800))
+            checked()
+
+            await expect(call).rejects.toThrow('timed out after 600ms')
+            expect(clicks()).toEqual([])
+        })
+    })
+
+    /**
+     * The timeout of a call aborts its model loop at once. A step that uses
+     * the browser then still runs: the call returns after it, like at the
+     * end of its test, so the next call does not run at the same time.
+     */
+    describe('at the timeout of the call', () => {
+        it('returns after the step that still runs', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' })
+            ai.startTest(spec, 'pays')
+            holdNextClick()
+            let settled = false
+            const call = ai.act(browser, 'Pay', { timeout: 600 }).finally(() => { settled = true })
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+            await new Promise((resolve) => setTimeout(resolve, 800))
+            expect(settled).toBe(false)
+            release()
+
+            const error = await call.catch((err: ActError) => err)
+            expect(error.message).toContain('timed out after 600ms')
+            expect(error.steps.map(({ action }) => action)).toEqual(['click'])
+        })
+
+        it('runs the next call of the browser after that step', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [...script, ...script])
+            ai.startTest(spec, 'pays')
+            holdNextClick()
+            const first = ai.act(browser, 'Pay', { timeout: 600 }).catch((err: Error) => err)
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+            await new Promise((resolve) => setTimeout(resolve, 800))
+            const next = ai.act(browser, 'Pay again')
+            await new Promise((resolve) => setTimeout(resolve, 50))
+            expect(clicks()).toEqual(['e3'])
+
+            release()
+            expect(await first).toBeInstanceOf(Error)
+            await next
+            expect(clicks()).toEqual(['e3', 'e4'])
+        })
+
+        it('returns after a page-source read that still runs', async () => {
+            let read: () => void = () => {}
+            const getPageSource = vi.fn(() => new Promise<string>((resolve) => { read = () => resolve('<html></html>') }))
+            ;(fake.agent.browser as unknown as { getPageSource: typeof getPageSource }).getPageSource = getPageSource
+            const { runtime: ai } = runtime({ cache: 'off' }, [{ tool: 'source' }, { tool: 'done', args: { summary: 'Read' } }])
+            ai.startTest(spec, 'reads the source')
+            let settled = false
+            const call = ai.act(browser, 'Read the page', { timeout: 600 }).finally(() => { settled = true })
+            await vi.waitFor(() => expect(getPageSource).toHaveBeenCalled())
+            await new Promise((resolve) => setTimeout(resolve, 800))
+            expect(settled).toBe(false)
+            read()
+
+            await expect(call).rejects.toThrow('timed out after 600ms')
+        })
+
+        it('returns after the running step of the answer and does not run the others', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { calls: [{ tool: 'click', args: { target: 'e3' } }, { tool: 'click', args: { target: 'e4' } }] },
+                { tool: 'done', args: { summary: 'Paid' } }
+            ])
+            ai.startTest(spec, 'pays')
+            holdNextClick()
+            let settled = false
+            const call = ai.act(browser, 'Pay', { timeout: 600 }).finally(() => { settled = true })
+            await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+            await new Promise((resolve) => setTimeout(resolve, 800))
+            expect(settled).toBe(false)
+            release()
+
+            await expect(call).rejects.toThrow('timed out after 600ms')
+            expect(clicks()).toEqual(['e3'])
+        })
+
+        it('ends a wait of the model by the timeout', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { text: 'Paid', limit: 600_000 } },
+                { tool: 'wait', args: { target: '30000' } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait until paid', { timeout: 5000 })
+
+            const waits = fake.run.mock.calls.filter(([action]) => action === 'wait').map(([, args]) => args)
+            expect(waits[0]).toMatchObject({ text: 'Paid', limit: expect.any(Number) })
+            expect(waits[0].limit).toBeLessThanOrEqual(5000)
+            expect(Number(waits[1].target)).toBeLessThanOrEqual(5000)
+        })
+
+        it('counts the time of a wait of the model from the start of the loop', async () => {
+            const middleware = Workspace.prototype.middleware
+            vi.spyOn(Workspace.prototype, 'middleware').mockImplementationOnce(async function (this: Workspace) {
+                await new Promise((resolve) => setTimeout(resolve, 2000))
+                return middleware.call(this)
+            })
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { text: 'Paid', limit: 600_000 } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait until paid', { timeout: 5000 })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(args.limit).toBeGreaterThan(3500)
+        })
+
+        it('counts the time left of a wait of the model after its scope check', async () => {
+            const element = { elementId: 'cart', selector: '#cart', parent: browser } as unknown as WebdriverIO.Element
+            ;(fake.agent.contains as ReturnType<typeof vi.fn>).mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(true), 1000)))
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { target: 'e3', limit: 600_000 } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(element, 'Wait for the button', { timeout: 3000 })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(args.limit).toBeLessThan(2100)
+        })
+
+        it('reads the default wait limit of @wdio/session', () => {
+            const wait = ACTIONS.find((spec) => spec.name === 'wait')!
+            expect(wait.options?.limit?.desc).toContain('default 10000')
+        })
+
+        it('ends a wait of the model whose duration is a placeholder by the timeout', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { target: '{{duration}}' } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait {{duration}} ms', { timeout: 1000, values: { duration: '30000' } })
+
+            const [, args] = fake.run.mock.calls.find(([action]) => action === 'wait')!
+            expect(Number(args.target)).toBeLessThanOrEqual(1000)
+        })
+
+        it('keeps a wait of the model that ends before the timeout', async () => {
+            const { runtime: ai } = runtime({ cache: 'off' }, [
+                { tool: 'wait', args: { text: 'Paid' } },
+                { tool: 'wait', args: { text: 'Paid', limit: 2000 } },
+                { tool: 'wait', args: { target: '500' } },
+                { tool: 'done', args: { summary: 'Waited' } }
+            ])
+            ai.startTest(spec, 'waits')
+            await ai.act(browser, 'Wait until paid')
+
+            expect(fake.run.mock.calls.filter(([action]) => action === 'wait').map(([, args]) => args))
+                .toEqual([{ text: 'Paid' }, { text: 'Paid', limit: 2000 }, { target: '500' }])
+        })
+
+        it('returns at once while it waits for the model', async () => {
+            const { runtime: ai, model } = runtime({ cache: 'off' })
+            const proto = Object.getPrototypeOf(model) as { _generate: (...args: unknown[]) => Promise<unknown> }
+            const generate = proto._generate
+            let answer: () => void = () => {}
+            const answered = new Promise<void>((resolve) => { answer = resolve })
+            const spy = vi.spyOn(proto, '_generate').mockImplementation(async function (this: unknown, ...args: unknown[]) {
+                await answered
+                return generate.apply(this, args)
+            })
+            try {
+                ai.startTest(spec, 'pays')
+                const started = Date.now()
+                await expect(ai.act(browser, 'Pay', { timeout: 50 })).rejects.toThrow('timed out after 50ms')
+                expect(Date.now() - started).toBeLessThan(1000)
+                expect(clicks()).toEqual([])
+            } finally {
+                answer()
+                spy.mockRestore()
+            }
+        })
+    })
+
+    it('runs the steps of one answer one after the other and not after the test ended', async () => {
+        const { runtime: ai } = runtime({ cache: 'off' }, [
+            { calls: [{ tool: 'click', args: { target: 'e3' } }, { tool: 'click', args: { target: 'e4' } }] },
+            { tool: 'done', args: { summary: 'Paid' } }
+        ])
+        ai.startTest(spec, 'pays')
+        holdNextClick()
+        let settled = false
+        const call = ai.act(browser, 'Pay').finally(() => { settled = true })
+        await vi.waitFor(() => expect(clicks()).toHaveLength(1))
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        expect(clicks()).toEqual(['e3'])
+
+        await ai.endTest(false)
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        expect(settled).toBe(false)
+        release()
+
+        await expect(call).rejects.toThrow(ENDED)
+        expect(clicks()).toEqual(['e3'])
+    })
+
+    it('does not ask the model to continue a replay when the test ended during the last heal alternative', async () => {
+        fake.setRef({ id: 'e3', role: 'button', name: 'Pay now', candidates: ['role/button[name="Pay now"]', '#pay'] })
+        await record()
+        const info = vi.spyOn(logger('@wdio/ai-service'), 'info')
+        const { runtime: ai } = runtime({ cache: 'write' }, [])
+        ai.startTest(spec, 'pays')
+        fake.waitForExist.mockRejectedValueOnce(new Error('element ("role/button[name="Pay now"]") still not existing after 100ms'))
+        let found: () => void = () => {}
+        const lookup = new Promise<void>((resolve) => { found = resolve })
+        fake.$$.mockImplementation(() => ({ getElements: vi.fn(async () => { await lookup; return [] }) }) as never)
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(fake.$$).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        found()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        expect(info.mock.calls.flat().join('\n')).not.toContain('asking the model to continue')
+    })
+
+    it('keeps the cache entry of a replay that healed all its steps as its test ended', async () => {
+        fake.setRef({ id: 'e3', role: 'button', name: 'Pay now', candidates: ['role/button[name="Pay now"]', '#pay'] })
+        await record()
+        const { runtime: ai } = runtime({ cache: 'write' }, [])
+        ai.startTest(spec, 'pays')
+        fake.waitForExist.mockRejectedValueOnce(new Error('element ("role/button[name="Pay now"]") still not existing after 100ms'))
+        let found: () => void = () => {}
+        const lookup = new Promise<void>((resolve) => { found = resolve })
+        fake.$$.mockImplementation((selector: string) => ({ getElements: vi.fn(async () => { await lookup; return selector === '#pay' ? [{}] : [] }) }) as never)
+        const stale = ai.act(browser, 'Pay')
+        await vi.waitFor(() => expect(fake.$$).toHaveBeenCalled())
+
+        await ai.endTest(false)
+        found()
+
+        await expect(stale).rejects.toThrow(ENDED)
+        await ai.flush()
+        expect(fs.readFileSync(path.join(dir, 'test', '__act__', 'pay.e2e.ts.json'), 'utf8')).toContain('#pay')
+    })
+
     /**
      * parallel mode (`parallelMode`) runs the tests of a spec file at the same time,
      * each in the store of its browsing context
@@ -643,6 +1013,25 @@ describe('AiRuntime when a test ends during extract()', () => {
 
         await expect(read).resolves.toBe(1)
         expect(ai.records.at(-1)).toMatchObject({ kind: 'extract', test: 'reads the qty' })
+    })
+
+    it('returns at its timeout after the read step that still runs', async () => {
+        const { runtime: ai } = runtime([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 1 } }])
+        const original = fake.run.getMockImplementation()!
+        const gate = new Promise<void>((resolve) => { release = resolve })
+        fake.run.mockImplementationOnce(async (action, args) => {
+            await gate
+            return original(action, args)
+        })
+        ai.startTest(spec, 'reads the qty')
+        let settled = false
+        const read = ai.extract(browser, 'the qty', z.number(), { timeout: 600 }).finally(() => { settled = true })
+        await vi.waitFor(() => expect(fake.run).toHaveBeenCalledWith('snapshot', expect.anything()))
+        await new Promise((resolve) => setTimeout(resolve, 800))
+        expect(settled).toBe(false)
+        release()
+
+        await expect(read).rejects.toThrow('timed out after 600ms')
     })
 
     it('keeps the evidence of a stopped read in its error', async () => {

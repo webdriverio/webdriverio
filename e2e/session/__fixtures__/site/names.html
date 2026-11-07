@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Accessible Names Fixture</title>
+  <style>.icon::before { content: ""; display: inline-block; width: 8px; height: 8px; background: currentColor }</style>
+</head>
+<body>
+  <!-- the cases of #16095: names whose whitespace differs between the snapshot and WebDriver BiDi -->
+  <nav>
+    <a href="#logout"><i class="icon"></i> Logout</a>
+    <a href="#docs">Docs <i class="icon"></i></a>
+    <a href="#next"><div>Next</div><div>Protocol Commands</div></a>
+  </nav>
+  <main>
+    <button type="button"><svg width="8" height="8" aria-hidden="true"></svg> Submit</button>
+    <button type="button">Save&nbsp;draft</button>
+    <section><div><button type="button">Same</button></div></section>
+    <section><div><button type="button">Same</button></div></section>
+    <icon-button></icon-button>
+    <icon-button></icon-button>
+    <icon-button></icon-button>
+  </main>
+  <script>
+    // nameless buttons repeated in shadow roots: no selector names one of them alone
+    customElements.define('icon-button', class extends HTMLElement {
+      connectedCallback () {
+        const root = this.attachShadow({ mode: 'open' })
+        root.innerHTML = '<button type="button"></button>'
+        root.querySelector('button').addEventListener('click', () => this.setAttribute('data-clicked', ''))
+      }
+    })
+  </script>
+</body>
+</html>

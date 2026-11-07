@@ -14,8 +14,14 @@ import {
     convertStatus,
     getAmbiguousStepMessage,
     getFeatureStack,
+    getScenarioResult,
     getStepResult,
-    withAmbiguousMessage
+    scenarioLabel,
+    withAmbiguousMessage,
+    userRunHooks,
+    testRunHookStart,
+    testRunHookEnd,
+    setUserHookNames,
 } from '../src/utils.js'
 import type { Feature, Pickle, PickleStep, StepDefinition, TestStepResult } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
@@ -33,8 +39,17 @@ describe('utils', () => {
                     name: 'Error',
                     message: 'boom',
                     stack: error.stack,
+                    type: 'Error',
                 }
             })
+        })
+
+        // the concise reporter prints the type: Cucumber errors had none (`undefined : …`)
+        it('keeps the error type, as the Mocha framework', () => {
+            const error = new TypeError('x')
+            expect(formatMessage({ payload: { error } }).error).toEqual({ name: 'TypeError', message: 'x', stack: error.stack, type: 'TypeError' })
+            const assertion = Object.assign(new Error('y'), { type: 'AssertionError' })
+            expect(formatMessage({ payload: { error: assertion } }).error.type).toBe('AssertionError')
         })
 
         it('should not fail if payload was not passed', () => {
@@ -49,6 +64,85 @@ describe('utils', () => {
                 title: 'bar',
                 fullTitle: 'foo: bar',
             })
+        })
+    })
+
+    describe('run hooks', () => {
+        const failed = {
+            status: 'FAILED',
+            message: 'Error: BeforeAll fails\n    at steps.ts:23:9',
+            exception: { type: 'Error', message: 'BeforeAll fails' },
+            duration: { seconds: 0, nanos: 5e6 },
+        } as unknown as TestStepResult
+        const start = () => testRunHookStart({
+            uid: 'r1', hook: { kind: 'BeforeAll', uri: path.join(process.cwd(), 'features', 'steps.ts'), line: 23 },
+            featureUid: 'f:1:1', uri: '/p/f.feature',
+        })
+        const expectNoRunFields = (payload: object) => {
+            for (const field of ['contextId', 'retried', 'failedTestUid']) {
+                expect(payload).not.toHaveProperty(field)
+            }
+        }
+
+        it('userRunHooks keeps the user hooks with their kind and leaves out the WDIO hooks', () => {
+            expect(userRunHooks({
+                beforeTestRunHookDefinitions: [
+                    { id: 'b1', name: 'login', uri: '/p/steps.ts', line: 3, code: function userHookAsyncFn () {} },
+                    { id: 'w1', code: function wdioHookBeforeFeature () {} },
+                ],
+                afterTestRunHookDefinitions: [
+                    { id: 'a1', code: function userHookFn () {} },
+                    { id: 'w2', code: function wdioHookAfterFeature () {} },
+                ],
+            })).toEqual({
+                b1: { kind: 'BeforeAll', name: 'login', uri: '/p/steps.ts', line: 3 },
+                a1: { kind: 'AfterAll', name: undefined, uri: undefined, line: undefined },
+            })
+        })
+
+        it('builds the start of a run hook under the feature', () => {
+            const payload = start()
+            expect(payload).toEqual({
+                type: 'hook', uid: 'r1', title: `BeforeAll (${path.join('features', 'steps.ts')}:23)`,
+                parent: 'f:1:1', parentUid: 'f:1:1', hookKind: 'beforeAll', hookSuiteUid: 'f:1:1', file: '/p/f.feature',
+            })
+            expectNoRunFields(payload)
+        })
+
+        it('names a named AfterAll', () => {
+            const payload = testRunHookStart({ uid: 'r2', hook: { kind: 'AfterAll', name: 'cleanup' }, featureUid: 'f', uri: 'u' })
+            expect(payload).toMatchObject({ title: 'AfterAll "cleanup"', hookKind: 'afterAll' })
+        })
+
+        it('titles a run hook with no name and no location', () => {
+            expect(testRunHookStart({ uid: 'r3', hook: { kind: 'BeforeAll' }, featureUid: 'f', uri: 'u' }).title).toBe('BeforeAll')
+        })
+
+        it('ends a passed run hook with no state', () => {
+            const payload = testRunHookEnd(start(), { status: 'PASSED', duration: { seconds: 0, nanos: 5e6 } } as unknown as TestStepResult)
+            expect(payload.duration).toBe(5)
+            expect(payload).not.toHaveProperty('state')
+            expect(payload).not.toHaveProperty('error')
+            expectNoRunFields(payload)
+        })
+
+        it('ends a failed run hook with its error', () => {
+            const payload = testRunHookEnd(start(), failed)
+            expect(payload.state).toBe('failed')
+            expect(payload.error?.message).toBe('BeforeAll fails')
+            expect(payload.error?.stack).toBe(failed.message)
+            expectNoRunFields(payload)
+        })
+
+        it('keeps the error type of a failed run hook', () => {
+            const payload = testRunHookEnd(start(), { ...failed, exception: { type: 'AssertionError', message: 'BeforeAll fails' } } as unknown as TestStepResult)
+            expect(payload.error?.name).toBe('AssertionError')
+        })
+
+        it('ends a skipped run hook (dry run)', () => {
+            const payload = testRunHookEnd(start(), { status: 'SKIPPED', duration: { seconds: 0, nanos: 0 } } as unknown as TestStepResult)
+            expect(payload.state).toBe('skipped')
+            expect(payload).not.toHaveProperty('error')
         })
     })
 
@@ -418,6 +512,18 @@ describe('utils', () => {
                 '\tat Feature(/a.feature):1:1\n\tat Scenario(Get size):6:3\n\tat Step(a background step):4:5\n')
         })
 
+        // the strict pending warning names a scenario as Cucumber prints it: path and line, the example row for an outline
+        it('gives the label of a scenario: its name, path and line', () => {
+            const outline = {
+                children: [{ scenario: { id: 'sc-2', name: 'Login', location: { line: 6, column: 3 }, steps: [],
+                    examples: [{ tableBody: [{ id: 'row-1', location: { line: 10, column: 7 } }, { id: 'row-2', location: { line: 11, column: 7 } }] }] } }]
+            } as unknown as Feature
+            const file = path.join(process.cwd(), 'features', 'a.feature')
+            expect(scenarioLabel(file, feature, { name: 'Get size', astNodeIds: ['sc-1'] } as unknown as Pickle)).toBe(`"Get size" (${path.join('features', 'a.feature')}:6)`)
+            expect(scenarioLabel(file, outline, { name: 'Login', astNodeIds: ['sc-2', 'row-2'] } as unknown as Pickle)).toBe(`"Login" (${path.join('features', 'a.feature')}:11)`)
+            expect(scenarioLabel(file, outline, { name: 'Other', astNodeIds: ['x'] } as unknown as Pickle)).toBe(`"Other" (${path.join('features', 'a.feature')})`)
+        })
+
         it('gives only the feature for an unknown scenario', () => {
             expect(getFeatureStack('/a.feature', feature, { astNodeIds: ['x'] } as unknown as Pickle)).toBe('\tat Feature(/a.feature):1:1\n')
         })
@@ -425,7 +531,7 @@ describe('utils', () => {
 
     describe('getStepResult', () => {
         const featureStack = '\tat Feature(/a.feature):1:1\n'
-        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, featureStack: () => featureStack }
+        const params = { title: 'a step', isStep: true, ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, strict: false, featureStack: () => featureStack }
         const result = (status: string, message?: string) => ({ status, message, duration: { seconds: 0, nanos: 0 } }) as unknown as TestStepResult
 
         it('passes a passed step', () => {
@@ -464,6 +570,15 @@ describe('utils', () => {
                 .toEqual({ state: 'pending', error: undefined, titleSuffix: ' (undefined step)', failed: false })
         })
 
+        // Cucumber shows a pending step as a warning, also when strict makes it fail the run (issue_helpers.js)
+        it('keeps a pending step pending with strict, and counts it as a failure of the run', () => {
+            expect(getStepResult(result(Status.PENDING), { ...params, strict: true })).toEqual({ state: 'pending', error: undefined, titleSuffix: '', failed: true })
+        })
+
+        it('keeps a pending step pending without strict', () => {
+            expect(getStepResult(result(Status.PENDING), params)).toEqual({ state: 'pending', error: undefined, titleSuffix: '', failed: false })
+        })
+
         it('keeps the first line of a failed step as message and the Cucumber message as stack', () => {
             const message = 'Error: fails on purpose\n    at World.<anonymous> (steps.ts:1:1)'
             const { state, error, failed } = getStepResult(result(Status.FAILED, message), params)
@@ -495,5 +610,58 @@ describe('utils', () => {
             const { error } = getStepResult(result(Status.AMBIGUOUS), { ...params, failAmbiguousDefinitions: true })
             expect(error?.message).toBe('Step "a step" matches multiple step definitions. Make the step definitions unique by removing duplicate or overlapping expressions.')
         })
+    })
+})
+
+describe('getScenarioResult', () => {
+    const r = (status: string, message?: string) => ({ status, message }) as any
+    const defaults = { ignoreUndefinedDefinitions: false, failAmbiguousDefinitions: false, strict: false }
+
+    it('fails a pending scenario with strict, as Cucumber', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('SKIPPED')], { ...defaults, strict: true })).toEqual(r('PENDING'))
+        // an ignored undefined step, then an After hook that returns 'pending'
+        const ignoredThenPendingHook = [r('UNDEFINED'), r('SKIPPED'), r('PENDING')]
+        expect(getScenarioResult(ignoredThenPendingHook, { ...defaults, ignoreUndefinedDefinitions: true })).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult(ignoredThenPendingHook, { ...defaults, ignoreUndefinedDefinitions: true, strict: true })).toEqual(r('PENDING'))
+        expect(getScenarioResult([r('PENDING'), r('FAILED', 'After hook fails')], { ...defaults, strict: true })).toEqual(r('FAILED', 'After hook fails'))
+    })
+
+    it('gives the worst result of the ones that fail under the options, as Cucumber orders them', () => {
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('FAILED', 'After hook fails')], defaults)).toEqual(r('FAILED', 'After hook fails'))
+        expect(getScenarioResult([r('UNDEFINED'), r('FAILED', 'After hook fails')], defaults)).toEqual(r('FAILED', 'After hook fails'))
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], { ...defaults, failAmbiguousDefinitions: true })).toEqual(r('AMBIGUOUS'))
+    })
+
+    it('keeps a result that fails before a worse one that does not fail under the options', () => {
+        // with the defaults an ambiguous step is skipped, an undefined step fails
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], defaults)).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult([r('AMBIGUOUS'), r('UNDEFINED')], defaults)).toEqual(r('UNDEFINED'))
+    })
+
+    it('gives the first result that did not pass when none fails, else the last one', () => {
+        expect(getScenarioResult([r('UNDEFINED'), r('AMBIGUOUS')], { ...defaults, ignoreUndefinedDefinitions: true })).toEqual(r('UNDEFINED'))
+        expect(getScenarioResult([r('PASSED'), r('PENDING'), r('SKIPPED')], defaults)).toEqual(r('PENDING'))
+        expect(getScenarioResult([r('PASSED', 'first'), r('PASSED', 'last')], defaults)).toEqual(r('PASSED', 'last'))
+    })
+
+    it('gives nothing for a scenario with no steps', () => {
+        expect(getScenarioResult([], defaults)).toBeUndefined()
+    })
+})
+
+describe('setUserHookNames', () => {
+    it('keeps the own timeout of a hook on its wrapper', () => {
+        const withTimeout = { code: async function hook () {}, options: { timeout: -1 } }
+        const withoutTimeout = { code: function hook () {}, options: {} }
+        setUserHookNames({
+            beforeTestRunHookDefinitionConfigs: [],
+            beforeTestCaseHookDefinitionConfigs: [withTimeout, withoutTimeout],
+            afterTestCaseHookDefinitionConfigs: [],
+            afterTestRunHookDefinitionConfigs: []
+        } as any)
+        expect(withTimeout.code.name).toBe('userHookAsyncFn')
+        expect((withTimeout.code as any).hookTimeout).toBe(-1)
+        expect(withoutTimeout.code.name).toBe('userHookFn')
+        expect(withoutTimeout.code).not.toHaveProperty('hookTimeout')
     })
 })

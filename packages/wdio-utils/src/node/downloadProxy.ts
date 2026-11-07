@@ -31,7 +31,7 @@ export function warnIfDownloadProxyIgnored () {
     log.warn(
         `${variable} is set, but browser and Chromedriver downloads ignore it. ` +
         `Install "proxy-agent" (${installCommand('proxy-agent', { dev: true })}) or run Node.js with ` +
-        'NODE_USE_ENV_PROXY=1 (Node.js 22.21.0 / 24.5.0 or later). See https://webdriver.io/docs/proxy'
+        'NODE_USE_ENV_PROXY=1. See https://webdriver.io/docs/proxy'
     )
 }
 

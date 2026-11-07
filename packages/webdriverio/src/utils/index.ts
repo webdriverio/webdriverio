@@ -10,7 +10,7 @@ import type { ElementReference } from '@wdio/protocols'
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
+import { checkElementsContainedIn, checkElementsConnected, checkLinksMatchText } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
@@ -348,12 +348,12 @@ export function transformClassicToBidiSelector(using: string, value: string): re
         return { type: 'xpath', value }
     }
 
-    if (using === 'link text') {
-        return { type: 'innerText', value }
-    }
-
-    if (using === 'partial link text') {
-        return { type: 'innerText', value, matchType: 'partial' }
+    /**
+     * The `innerText` locator matches any element, the link text strategies only
+     * `<a>` elements. Find all links, `filterLinksByText` then compares their text.
+     */
+    if (using === 'link text' || using === 'partial link text') {
+        return { type: 'css', value: 'a' }
     }
 
     if (using === 'aria') {
@@ -381,6 +381,24 @@ function toClassicSelector(using: string, value: string): { using: string, value
 
 function toAriaXPathLocator(value: string): remote.BrowsingContextLocator {
     return { type: 'xpath', value: getAriaXPathSelector(value) }
+}
+
+/**
+ * Keep only the links whose rendered text matches a link text selector. Other
+ * strategies are returned as is.
+ */
+async function filterLinksByText<T extends ElementReference>(
+    browser: WebdriverIO.Browser,
+    context: string,
+    nodes: T[],
+    using: string,
+    value: string
+): Promise<T[]> {
+    if ((using !== 'link text' && using !== 'partial link text') || nodes.length === 0) {
+        return nodes
+    }
+    const matches = await checkLinksMatchText(browser, nodes.map((node) => node[ELEMENT_KEY]), using, value, context)
+    return nodes.filter((_, i) => matches[i])
 }
 
 function getScopedElementId(ctx: WebdriverIO.Browser | WebdriverIO.Element) {
@@ -865,6 +883,7 @@ export async function findDeepElement(
         }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**
@@ -1071,6 +1090,7 @@ export async function findDeepElements(
             }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**

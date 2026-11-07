@@ -18,7 +18,8 @@ export async function makeReport (args: string[], env: Record<string, string | u
         outputDir,
         filename: reportName,
         reportTitle,
-        browserName: env.TEST_BROWSER ?? 'unspecified',
+        // else the browsers of the worker reports
+        ...(env.TEST_BROWSER !== undefined ? { browserName: env.TEST_BROWSER } : {}),
         // no browser to open in CI
         showInBrowser: !env.CI
     })

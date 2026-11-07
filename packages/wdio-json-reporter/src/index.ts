@@ -1,4 +1,4 @@
-import WDIOReporter, { type RunnerStats } from '@wdio/reporter'
+import WDIOReporter, { hookCountsAsFailure, type RunnerStats } from '@wdio/reporter'
 import type { Reporters } from '@wdio/types'
 
 import type { ResultSet, TestSuite } from './types.js'
@@ -44,12 +44,11 @@ export default class JsonReporter extends WDIOReporter {
                     hooks: mapHooks(suite.hooks)
                 }
 
-                resultSet.state.failed += testSuite.hooks.filter(
-                    (hook) => hook.error).length
+                resultSet.state.failed += testSuite.hooks.filter(hookCountsAsFailure).length
                 resultSet.state.passed += testSuite.tests.filter(
                     (test) => test.state === 'passed').length
                 resultSet.state.failed += testSuite.tests.filter(
-                    (test) => test.state === 'failed').length
+                    (test) => test.state === 'failed' && !test.retried).length
                 resultSet.state.skipped += testSuite.tests.filter(
                     (test) => test.state === 'skipped').length
                 resultSet.suites.push(testSuite)

@@ -117,6 +117,7 @@ export class Session {
     logs = new RingBuffer<LogEntry>()
     network = new RingBuffer<NetworkEntry>()
     lastSnapshot?: string
+    lastSnapshotView?: string
     /** page as of the last observed action, the baseline for the next one's changes */
     lastPage?: PageState
     /** document (context and URL) a snapshot already waited for; unset by a navigation, so the next snapshot waits again */

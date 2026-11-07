@@ -199,6 +199,27 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toBe(2)
     })
 
+    it('afterScenario only counts the last attempt of a retried scenario', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const world = (id: string) => ({ pickle: { id, name: id } }) as any
+
+        // fails, then passes on retry
+        tbService.afterScenario(world('a'), { passed: false })
+        expect(tbService['_failures']).toBe(1)
+        tbService.afterScenario(world('a'), { passed: true })
+        expect(tbService['_failures']).toBe(0)
+
+        // fails on every attempt
+        tbService.afterScenario(world('b'), { passed: false })
+        tbService.afterScenario(world('b'), { passed: false })
+        expect(tbService['_failures']).toBe(1)
+
+        // another scenario that fails is still counted
+        tbService.afterScenario(world('c'), { passed: false })
+        expect(tbService['_failures']).toBe(2)
+    })
+
     it('beforeScenario skips annotation when the secret is missing', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',

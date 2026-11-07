@@ -16,11 +16,13 @@
 
 import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
+import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
-import { dottedFullTitle, formatError, type TitledNode } from './common.js'
+import { TITLE_KINDS, checkHookKind, dottedFullTitle, formatError, type TitledNode } from './common.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation, type ParallelContextBrowser, type ParallelMode } from '@wdio/utils'
 import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
-import type { MochaError } from './types.js'
+import type { FormattedMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -76,28 +78,9 @@ function resolveTimeoutMs(timeout?: number | string): number {
  * webdriverio (to avoid a circular dependency), so we declare the shape
  * we need here.
  */
-interface ParallelBrowser extends WebdriverIO.Browser {
+interface ParallelBrowser extends WebdriverIO.Browser, ParallelContextBrowser {
     isBidi: boolean
     __parallelContextStore?: AsyncLocalStorage<string>
-    /** Set of framework-managed parallel contexts (see session/context.ts). */
-    __parallelContexts?: Set<string>
-    browsingContextCreate?(params: { type: string; userContext?: string }): Promise<{ context: string }>
-    browsingContextClose?(params: { context: string }): Promise<void>
-    browserCreateUserContext?(params: Record<string, never>): Promise<{ userContext: string }>
-    browserRemoveUserContext?(params: { userContext: string }): Promise<void>
-}
-
-export type ParallelMode = 'contexts' | 'userContexts'
-
-export interface ParallelContextAllocation {
-    context: string
-    userContext?: string
-}
-
-export function resolveMaxContexts(value: number | undefined, fallback: number): number {
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-        ? Math.max(1, Math.floor(value))
-        : Math.max(1, fallback)
 }
 
 interface CollectedTest {
@@ -123,6 +106,8 @@ interface CollectedTest {
     timeout?: number
     /** Mocha's resolved retries for this test (`_retries`): `mochaOpts.retries`, `this.retries(n)` in a describe, `it().retries(n)` */
     retries?: number
+    /** {@link CollectedSuite.depth} of each suite of the tree, for the declaring suite of a hook */
+    suiteIndexOf: Map<object, number>
 }
 
 interface CollectedSuite {
@@ -158,6 +143,7 @@ interface SuiteCollection {
 function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): SuiteCollection {
     const tests: CollectedTest[] = []
     const suiteStubs = new Map<Suite, CollectedSuite>()
+    const suiteIndexOf = new Map<object, number>()
     const matchedSuites = new Set<Suite>()
     let nextDepth = 0
 
@@ -172,6 +158,9 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         parentIndex?: number
     ) => {
         const suiteIndex = depth > 0 ? nextDepth++ : undefined
+        if (suiteIndex !== undefined) {
+            suiteIndexOf.set(s, suiteIndex)
+        }
 
         const ownBeforeEach = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
         const ownAfterEach = (s as unknown as { _afterEach?: Function[] })._afterEach || []
@@ -203,7 +192,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 file: test.file || undefined,
                 suiteIndex,
                 timeout: (test as unknown as { _timeout?: number })._timeout,
-                retries: (test as unknown as { _retries?: number })._retries
+                retries: (test as unknown as { _retries?: number })._retries,
+                suiteIndexOf
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -273,6 +263,8 @@ interface TestMessage {
     duration?: number
     passed?: boolean
     error?: MochaError
+    hookKind?: ReporterHookKind
+    hookSuiteUid?: string
 }
 
 /** The test name that formatError puts in the timeout text, as formatMessage builds it */
@@ -327,6 +319,7 @@ function emitTestFail(
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, error: errorPayload })
 }
 
+type ReporterHookKind = NonNullable<FormattedMessage['hookKind']>
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
@@ -340,13 +333,17 @@ interface MochaHookLike {
     parent?: TitledNode & { root?: boolean, tests?: { title: string }[] }
 }
 
-/** Mocha's own hook title (runner.js setHookTitle). */
-function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
-    const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
+/** Mocha's `ctx.currentTest` of a hook (runner.js hook): first sibling for before all, last for after all, else the test. */
+function hookCurrentTest(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
     const siblings = hook.parent?.tests
-    const currentTest = kind === 'before all' ? siblings?.[0]?.title
+    return kind === 'before all' ? siblings?.[0]?.title
         : kind === 'after all' ? siblings?.[siblings.length - 1]?.title
             : test.title
+}
+
+/** Mocha's own hook title (runner.js setHookTitle). */
+function nativeHookTitle(kind: HookKind, hook: MochaHookLike, currentTest: string | undefined) {
+    const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
     return currentTest !== undefined
         ? `${original} for "${currentTest}"`
         : `${original} in "${hook.parent?.title || (hook.parent?.root ? '{root}' : '')}"`
@@ -358,16 +355,23 @@ function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTes
  * suite has a title, but builds fullTitle from the native title.
  */
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
-    const native = nativeHookTitle(kind, hook, test)
+    const currentTest = hookCurrentTest(kind, hook, test)
+    const native = nativeHookTitle(kind, hook, currentTest)
     const declaringSuite = hook.parent?.title
+    // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test
+    const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
+    const ownSuite = (kind === 'before all' || kind === 'after all') && declaringIndex !== undefined
     return {
         type, cid, specs, uid,
         title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
         fullTitle: dottedFullTitle(native, hook.parent),
-        parent: test.parentTitle,
+        parent: ownSuite ? declaringSuite ?? '' : test.parentTitle,
         file: test.file || specs[0],
-        ...parentUidField(cid, test.suiteIndex),
-        contextId
+        ...parentUidField(cid, ownSuite ? declaringIndex : test.suiteIndex),
+        contextId,
+        ...(currentTest !== undefined && { currentTest }),
+        hookKind: checkHookKind(hook, TITLE_KINDS[kind]),
+        ...(ownSuite && { hookSuiteUid: suiteUid(cid, declaringIndex) })
     } satisfies TestMessage
 }
 
@@ -388,7 +392,7 @@ function emitHookEnd(
     error?: Error,
     pending?: boolean
 ) {
-    const native = nativeHookTitle(kind, hook, test)
+    const native = nativeHookTitle(kind, hook, hookCurrentTest(kind, hook, test))
     const errorPayload = error
         ? formatError(error as unknown as MochaError, hook.parent?.title ? `${hook.parent.title} ${native}` : native)
         : undefined
@@ -469,8 +473,41 @@ function createHookContext(testTitle: string | undefined, parentTitle: string | 
     }
 }
 
+// Mocha does not fail a test on an unhandled rejection of user code, and keeps its listener for the
+// whole worker (WebdriverIO never disposes the runner): without one, Node ends the worker on a late
+// rejection, for example of a command with no await when the session ends
+const ignoreUnhandledRejection = () => {}
+function keepWorkerOnUnhandledRejection() {
+    if (!process.listeners('unhandledRejection').includes(ignoreUnhandledRejection)) {
+        process.on('unhandledRejection', ignoreUnhandledRejection)
+    }
+}
+
+/** Mocha's isError (runner.js): an Error, also of another realm, or an object with a string message */
+function isError(value: unknown): value is Error {
+    return value instanceof Error || typeof (value as { message?: unknown } | null)?.message === 'string'
+}
+
+/** Mocha's Runner#uncaught for a thrown value that is no error (runner.js thrown2Error) */
+function toError(value: unknown): Error {
+    if (isError(value)) { return value }
+    if (!value) {
+        return new Error('Caught falsy/undefined exception which would otherwise be uncaught. No stack trace found; try a debugger')
+    }
+    // `canonicalType` is not in @types/mocha
+    const { canonicalType } = Mocha.utils as unknown as { canonicalType: (value: unknown) => string }
+    return new Error(`the ${canonicalType(value)} ${Mocha.utils.stringify(value)} was thrown, throw an Error :)`)
+}
+
+/** lets an uncaught error of a context fail the runnable (hook or test) that runs in it */
+interface UncaughtTarget {
+    set(fail: (err: Error) => void): void
+    /** a runnable that ends after its failure must not clear the target of the next one */
+    clear(fail: (err: Error) => void): void
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> {
+function callHook(hook: any, ctx: object, timeoutMs?: number, uncaught?: UncaughtTarget): Promise<unknown> {
     const fn: Function = typeof hook.fn === 'function' ? hook.fn : hook
     const run = (): Promise<unknown> => {
         if (fn.length >= 1) {
@@ -480,71 +517,40 @@ function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> 
         }
         return Promise.resolve(fn.call(ctx))
     }
-    if (timeoutMs && timeoutMs > 0) {
-        return new Promise((resolve, reject) => {
-            const runnable = (ctx as { _runnable?: { file?: string } })._runnable
-            const rejectTimeout = () => reject(mochaTimeoutError(timeoutMs, runnable?.file))
-            let graceTimer: ReturnType<typeof setTimeout> | undefined
-            const timer = setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
-            const settle = (onTime: () => void) => {
-                clearTimeout(timer)
-                if (!graceTimer) {
-                    return onTime()
-                }
-                clearTimeout(graceTimer)
-                rejectTimeout()
-            }
-            Promise.resolve()
-                .then(run)
-                .then(
-                    (value) => settle(() => resolve(value)),
-                    (err) => settle(() => reject(err))
-                )
-        })
-    }
-    return run()
-}
-
-// ============================================================
-// Context pre-allocation
-// ============================================================
-
-async function removeUserContext(bidi: ParallelBrowser, userContext: string, level: 'warn' | 'debug' = 'warn') {
-    await bidi.browserRemoveUserContext!({ userContext }).catch(
-        (err) => { log[level](`[Parallel] failed to remove user context ${userContext}: ${(err as Error).message}`) }
-    )
-}
-
-async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promise<ParallelContextAllocation> {
-    let allocation: ParallelContextAllocation
-    if (mode !== 'userContexts') {
-        const { context } = await bidi.browsingContextCreate!({ type: 'window' })
-        allocation = { context }
-    } else {
-        const { userContext } = await bidi.browserCreateUserContext!({})
-        try {
-            const { context } = await bidi.browsingContextCreate!({ type: 'window', userContext })
-            allocation = { context, userContext }
-        } catch (err) {
-            await removeUserContext(bidi, userContext)
-            throw err
+    return new Promise((resolve, reject) => {
+        const runnable = (ctx as { _runnable?: { file?: string } })._runnable
+        const rejectTimeout = () => {
+            uncaught?.clear(fail)
+            reject(mochaTimeoutError(timeoutMs!, runnable?.file))
         }
-    }
-    // Register with the session ContextManager so navigations inside these
-    // windows don't trigger session-global re-anchoring (tree fetch + switchToWindow).
-    bidi.__parallelContexts?.add(allocation.context)
-    return allocation
-}
-
-/** Never rejects: close window, then remove its user context, then unregister. */
-async function cleanupAllocation(bidi: ParallelBrowser, { context, userContext }: ParallelContextAllocation) {
-    await bidi.browsingContextClose!({ context }).catch(
-        (err) => { log.debug(`[Parallel] cleanup: failed to close context ${context}: ${(err as Error).message}`) }
-    )
-    if (userContext) {
-        await removeUserContext(bidi, userContext, 'debug')
-    }
-    bidi.__parallelContexts?.delete(context)
+        let graceTimer: ReturnType<typeof setTimeout> | undefined
+        const timer = timeoutMs && timeoutMs > 0
+            ? setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
+            : undefined
+        const fail = (err: Error) => {
+            if (graceTimer) {
+                // the runnable fails with the timeout text: keep the real cause in the log
+                log.error(`[Parallel] uncaught error after the timeout of ${timeoutMs}ms: ${err.stack ?? err.message}`)
+            }
+            settle(() => reject(err))
+        }
+        const settle = (onTime: () => void) => {
+            clearTimeout(timer)
+            if (!graceTimer) {
+                uncaught?.clear(fail)
+                return onTime()
+            }
+            clearTimeout(graceTimer)
+            rejectTimeout()
+        }
+        uncaught?.set(fail)
+        Promise.resolve()
+            .then(run)
+            .then(
+                (value) => settle(() => resolve(value)),
+                (err) => settle(() => reject(err))
+            )
+    })
 }
 
 interface TestRunResult {
@@ -569,9 +575,14 @@ async function runOneTest(
     reporter: EventEmitter,
     parallelStore: AsyncLocalStorage<string>,
     timeoutMs: number,
-    failHookAffectedTests: boolean
+    failHookAffectedTests: boolean,
+    uncaughtTargets: Map<string, (err: Error) => void>
 ): Promise<TestRunResult> {
     const contextId = allocation.context
+    const uncaught: UncaughtTarget = {
+        set: (fail) => uncaughtTargets.set(contextId, fail),
+        clear: (fail) => { if (uncaughtTargets.get(contextId) === fail) { uncaughtTargets.delete(contextId) } }
+    }
     const runInContext = async (): Promise<TestRunResult> => {
         // Static pending tests (it.skip / it without fn): no hooks, no
         // test:start — matches the Mocha runner.
@@ -605,10 +616,10 @@ async function runOneTest(
                 emitHookStart(reporter, kind, hook, test, cid, specs, hookUid, contextId)
                 const hookStart = Date.now()
                 try {
-                    await callHook(fn, ctx, timeoutMs)
+                    await callHook(fn, ctx, timeoutMs, uncaught)
                     emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
-                    let hookError = err instanceof Error ? err : new Error(String(err))
+                    let hookError = isError(err) ? err : new Error(String(err))
                     if (isSkipError(hookError) && kind === 'after all') {
                         // Mocha fails this.skip() in an after all hook (runner.js `this.skip` forbidden)
                         hookError = Object.assign(new Error('`this.skip` forbidden'), { code: 'ERR_MOCHA_UNSUPPORTED' })
@@ -648,7 +659,7 @@ async function runOneTest(
                 emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
                 return { status: 'passed', name: test.title, duration: fnDuration }
             }
-            const error = failedHook ? hookSkipError(nativeHookTitle(failedHook.kind, failedHook.hook, test), caughtError!) : caughtError!
+            const error = failedHook ? hookSkipError(nativeHookTitle(failedHook.kind, failedHook.hook, hookCurrentTest(failedHook.kind, failedHook.hook, test)), caughtError!) : caughtError!
             if (!failedHook || failHookAffectedTests) {
                 if (!started) {
                     // WDIOReporter's test:fail handler needs a prior test:start for this uid
@@ -671,10 +682,10 @@ async function runOneTest(
             if (!caughtError) {
                 const fnStart = Date.now()
                 try {
-                    await callHook(test.fn, ctx, timeoutMs)
+                    await callHook(test.fn, ctx, timeoutMs, uncaught)
                     passed = true
                 } catch (err) {
-                    caughtError = err instanceof Error ? err : new Error(String(err))
+                    caughtError = isError(err) ? err : new Error(String(err))
                 } finally {
                     // Reported duration excludes hook time — Mocha parity
                     fnDuration = Date.now() - fnStart
@@ -706,6 +717,8 @@ export interface ParallelMochaOptions {
     mode?: ParallelMode
     /** `false`: a test that a failed hook skips is not reported, as in a sequential run (default `true`) */
     failHookAffectedTests?: boolean
+    /** `true`: an uncaught error is not caught, as with Mocha's `allowUncaught` */
+    allowUncaught?: boolean
 }
 
 export async function runParallelTests(
@@ -794,6 +807,20 @@ export async function runParallelTests(
     let allocationError: unknown
     let allocationFailed = false
 
+    // Mocha's Runner#uncaught: an uncaught error fails the runnable of its context (the
+    // AsyncLocalStorage store follows timers and promises); a skip error makes it pending
+    const uncaughtTargets = new Map<string, (err: Error) => void>()
+    let uncaughtOutside = 0
+    const onUncaught = (err: unknown) => {
+        const error = toError(err)
+        const contextId = parallelStore.getStore()
+        const fail = contextId ? uncaughtTargets.get(contextId) : undefined
+        if (fail) { return fail(error) }
+        if (isSkipError(error)) { return }
+        uncaughtOutside++
+        log.error(`[Parallel] uncaught error outside a running test or hook: ${error.stack ?? error.message}`)
+    }
+
     log.info(
         `[Parallel] Collected ${tests.length} tests. ` +
         `Slots: ${slotCount}, max contexts: ${maxContexts}`
@@ -832,7 +859,8 @@ export async function runParallelTests(
                         tests[index], allocation, cid, specs,
                         `test-${cid}-${index}`,
                         reporter, parallelStore, timeoutMs,
-                        mochaOptions?.failHookAffectedTests !== false
+                        mochaOptions?.failHookAffectedTests !== false,
+                        uncaughtTargets
                     )
                 }
             } catch (reason) {
@@ -843,6 +871,8 @@ export async function runParallelTests(
         }
     }
 
+    if (!mochaOptions?.allowUncaught) { process.on('uncaughtException', onUncaught) }
+    keepWorkerOnUnhandledRejection()
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
@@ -854,13 +884,15 @@ export async function runParallelTests(
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
         }
+        // a test can still throw while its window closes
+        process.removeListener('uncaughtException', onUncaught)
     }
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const pending = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'pending').length
     // Pending tests are not failures; failing teardown hooks are, like Mocha
     const hookFailures = allResults.reduce((n, r) => n + (r.status === 'fulfilled' ? r.value.hookFailures : 0), 0)
-    const failed = tests.length - passed - pending + hookFailures
+    const failed = tests.length - passed - pending + hookFailures + uncaughtOutside
 
     // --- Emit suite:end for nested describe blocks (reverse order) ---
     for (const s of [...suites].reverse()) {

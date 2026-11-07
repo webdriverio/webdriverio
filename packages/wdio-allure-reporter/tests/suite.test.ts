@@ -324,6 +324,54 @@ describe('Failed tests', () => {
         expect(browserParameter!.value).toEqual('default')
     })
 
+    it('ends a retried Mocha attempt as finished, with no "retried" tag (only Cucumber scenarios get it)', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestRetry(testFailed())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const attempt = results.find((r: { status: string }) => r.status === Status.FAILED)
+
+        expect(attempt.stage).toEqual(Stage.FINISHED)
+        expect(attempt.labels.filter((l: Label) => l.name === LabelName.TAG)).toEqual([])
+    })
+
+    // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+    it.each(['mocha', 'Mocha', '@wdio/mocha-framework', 'jasmine', '@wdio/jasmine-framework', 'vitest', '@wdio/vitest-framework'])('reports a %s test titled "When ..." as a test', async (framework) => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+        clean(outputDir)
+    })
+
+    it('reports a Mocha test whose title starts with a Gherkin keyword as a test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runner = runnerStart()
+        reporter.onRunnerStart({ ...runner, config: { ...runner.config, framework: 'mocha' } } as any)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart({ ...testStart(), title: 'When the page loads, it passes' })
+        reporter.onTestPass({ ...testPassed(), title: 'When the page loads, it passes' })
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: { name: string, status: string }) => [r.name, r.status])).toEqual([['When the page loads, it passes', Status.PASSED]])
+    })
+
     it('should detect failed test case without start event', async () => {
         const reporter = new AllureReporter({ outputDir })
 
@@ -473,6 +521,47 @@ describe('Pending tests', () => {
             '5d73537bda17d2ad7829c91bd248af82',
         )
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
+    })
+
+    // grouped spec files: a test outside every suite names its own spec file, not the file of the suite before it
+    it('takes the titlePath file of a test from the test', async () => {
+        outputDir = temporaryDirectory()
+
+        const reporter = new AllureReporter({ outputDir })
+        const file = path.join('foo', 'other.test.js')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onTestStart({ ...testStart(), uid: 'root-test', title: 'a root test', fullTitle: 'a root test', file } as any)
+        reporter.onTestPass({ ...testPassed(), uid: 'root-test', title: 'a root test', fullTitle: 'a root test', file } as any)
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((result) => [result.name, result.titlePath])).toEqual(expect.arrayContaining([
+            ['should can do something', ['foo', 'bar.test.js', 'A passing Suite']],
+            ['a root test', ['foo', 'other.test.js']]
+        ]))
+    })
+
+    it('takes the titlePath file of a pending test with no start from the test', async () => {
+        outputDir = temporaryDirectory()
+
+        const reporter = new AllureReporter({ outputDir })
+        const file = path.join('foo', 'other.test.js')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onTestSkip({ ...testPending(), uid: 'root-skip', title: 'a skipped root test', fullTitle: 'a skipped root test', file } as any)
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.find((result) => result.name === 'a skipped root test')?.titlePath).toEqual(['foo', 'other.test.js'])
     })
 
     it('should detect not started pending test case', async () => {
@@ -733,6 +822,74 @@ describe('Hook reporting', () => {
         )
         expect(results[0].status).toEqual(Status.BROKEN)
         expect(results[0].stage).toEqual(Stage.FINISHED)
+    })
+
+    it('should keep the hook error and a historyId on a failed all hook', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].historyId).toBeTruthy()
+    })
+
+    it('should keep the hook error and a historyId on a failed all hook with disableMochaHooks', async () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        // disableMochaHooks means the hook never reaches onHookStart
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].statusDetails.message).toEqual('element ("body") still existing after 100ms')
+        expect(results[0].historyId).toBeTruthy()
+    })
+
+    it('should report a distinct historyId for each failed all hook', async () => {
+        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+
+        for (const title of ['Suite A', 'Suite B']) {
+            reporter.onSuiteStart({ ...suiteStart(), title, fullTitle: title, uid: title })
+            reporter.onHookEnd(hookFailed())
+            reporter.onSuiteEnd({ ...suiteEnd(), title, fullTitle: title, uid: title })
+        }
+
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(2)
+        expect(results.map((result: any) => result.statusDetails.message))
+            .toEqual(['element ("body") still existing after 100ms', 'element ("body") still existing after 100ms'])
+        results.forEach((result: any) => expect(result.historyId).toBeTruthy())
+        expect(new Set(results.map((result: any) => result.historyId)).size).toEqual(2)
     })
 
     it('should keep before all hook steps on hook failure', async () => {
@@ -1202,6 +1359,26 @@ describe('command reporting', () => {
             assertionResults['webdriver'].screenshotTitle,
         )
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(screenshotAttachments).toHaveLength(1)
+    })
+
+    // the events of the WebDriver BiDi override: no endpoint, the base64 image in `result.value`
+    it('should add step with a WebDriver BiDi element screenshot', async () => {
+        const reporter = new AllureReporter({ stdout: true, outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand({ command: 'takeElementScreenshot', body: ['element-1'] } as never)
+        reporter.onAfterCommand({ command: 'takeElementScreenshot', result: { value: Buffer.from('png').toString('base64') } } as never)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const screenshotAttachments = results[0].steps[0].attachments.filter(
+            (attachment: Attachment) => attachment.name === 'Screenshot',
+        )
         expect(screenshotAttachments).toHaveLength(1)
     })
 
