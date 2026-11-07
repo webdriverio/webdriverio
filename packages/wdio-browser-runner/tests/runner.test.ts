@@ -170,6 +170,8 @@ describe('BrowserRunner', () => {
         } as any
         const runner = new BrowserRunner({ inspect: true }, config)
         expect(config.mochaOpts.timeout).toBe(24 * 60 * 60 * 1000)
+        expect(config.connectionRetryTimeout).toBe(24 * 60 * 60 * 1000)
+        expect(config.bidiResponseTimeout).toBe(24 * 60 * 60 * 1000)
 
         await runner.initialize()
         const exitHandlers: (() => void)[] = []

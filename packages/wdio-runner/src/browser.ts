@@ -76,13 +76,18 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         this.#runnerOptions = runnerOptions || {}
 
         if (this.#isInspecting()) {
+            const timeout = Math.max(Number(this._config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
             this._config.mochaOpts = {
                 ...this._config.mochaOpts,
-                timeout: Math.max(Number(this._config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+                timeout
             }
             this._config.connectionRetryTimeout = Math.max(
                 Number(this._config.connectionRetryTimeout) || 0,
-                DEBUG_TIMEOUT
+                timeout
+            )
+            this._config.bidiResponseTimeout = Math.max(
+                Number(this._config.bidiResponseTimeout) || 0,
+                timeout
             )
         }
     }
@@ -148,9 +153,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                     Number(browser.options.connectionRetryTimeout) || 0,
                     timeout
                 )
+                browser.options.bidiResponseTimeout = Math.max(
+                    Number(browser.options.bidiResponseTimeout) || 0,
+                    timeout
+                )
             }
             if (typeof browser.setTimeout === 'function') {
-                await browser.setTimeout({ script: timeout }).catch(() => undefined)
+                await browser.setTimeout({ script: timeout, pageLoad: timeout }).catch(() => undefined)
             }
         }
 

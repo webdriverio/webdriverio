@@ -60,13 +60,18 @@ export default class BrowserRunner extends LocalRunner {
         }
 
         if (hasInspectorOption(this.#options, this.#config)) {
+            const timeout = Math.max(Number(this.#config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
             this.#config.mochaOpts = {
                 ...this.#config.mochaOpts,
-                timeout: Math.max(Number(this.#config.mochaOpts?.timeout) || 0, DEBUG_TIMEOUT)
+                timeout
             }
             this.#config.connectionRetryTimeout = Math.max(
                 Number(this.#config.connectionRetryTimeout) || 0,
-                DEBUG_TIMEOUT
+                timeout
+            )
+            this.#config.bidiResponseTimeout = Math.max(
+                Number(this.#config.bidiResponseTimeout) || 0,
+                timeout
             )
         }
     }
