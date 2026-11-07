@@ -50,6 +50,8 @@ describe('commands during a navigation that the page started', () => {
     it('runs the next script on a page of a chain of script redirects', async () => {
         await navigate('/chain?hops=3')
         await expect(await browser.execute(() => location.pathname)).toBe('/chain')
+        // the rest of the chain must not meet the navigation of the next test
+        await browser.waitUntil(async () => (await browser.getUrl()).endsWith('hops=0'))
     })
 
     it('runs a WebDriver BiDi command on the new page', async () => {
