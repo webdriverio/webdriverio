@@ -6,33 +6,6 @@ import { createBidiFunctionDeclaration, createBlobFromSerializedValue, isSeriali
 import { LocalValue } from './value.js'
 
 /**
- * Chrome holds a `script.callFunction` while a navigation that the page started is in flight. After the commit it
- * rejects the call with this error, because the realm of the previous page is gone. The script did not run, and the
- * next call uses the realm of the new page. WebDriver Classic drivers wait for this navigation, and then also run
- * the script on the new page.
- */
-const REALM_OF_PREVIOUS_PAGE_ERROR = 'Cannot find context with specified id'
-/**
- * More than 2 calls only for a page that navigates again, for example a client side redirect
- */
-const MAX_CALLS_DURING_NAVIGATION = 3
-
-export async function callFunctionDuringNavigation (
-    browser: WebdriverIO.Browser,
-    params: remote.ScriptCallFunctionParameters
-): Promise<local.ScriptEvaluateResult> {
-    for (let call = 1; ; call++) {
-        try {
-            return await browser.scriptCallFunction(params)
-        } catch (err) {
-            if (call === MAX_CALLS_DURING_NAVIGATION || !(err instanceof Error) || !err.message.includes(REALM_OF_PREVIOUS_PAGE_ERROR)) {
-                throw err
-            }
-        }
-    }
-}
-
-/**
  * `execute` in an explicit browsing context. Element references in `args`
  * are only valid in the context they were found in, so use this when the
  * caller knows that context but only holds element ids.

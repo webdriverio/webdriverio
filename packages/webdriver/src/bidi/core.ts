@@ -47,6 +47,35 @@ const MAX_TIMER_DELAY = 2 ** 31 - 1
 export const MAX_EXPIRED_COMMANDS = 1000
 
 /**
+ * Chromium holds a command during a navigation that the page started, then fails it on the realm of the old
+ * document (https://crbug.com/582923446). The command did not run, so `send` sends it again for the new document.
+ */
+const CONTEXT_ERROR = 'Cannot find context with specified id'
+// Chrome 158+ gives this for an accessibility locateNodes; with start nodes it means a stale element instead
+const DOCUMENT_ERROR = 'Node with given id does not belong to the document'
+// a chain of script redirects needs one call per page; a page that reloads all the time stops here
+const MAX_CALLS_DURING_NAVIGATION = 10
+const RETRY_DELAY = 50
+
+function isErrorPayload (payload: CommandResponse | ErrorResponse): payload is ErrorResponse {
+    return payload.type === 'error' || 'error' in payload
+}
+
+/**
+ * whether the command failed because its document was replaced by a navigation, before it ran
+ */
+function failedOnPreviousDocument (params: Omit<CommandData, 'id'>, message: string) {
+    const command = params.params as { target?: { context?: unknown }, startNodes?: unknown[] } | undefined
+    if (params.method === 'browsingContext.locateNodes') {
+        return message.includes(CONTEXT_ERROR) || (!command?.startNodes?.length && message.includes(DOCUMENT_ERROR))
+    }
+    // a realm target names that realm: it is gone, and another realm is not what the caller asked for
+    return (params.method === 'script.callFunction' || params.method === 'script.evaluate') &&
+        typeof command?.target?.context === 'string' &&
+        message.includes(CONTEXT_ERROR)
+}
+
+/**
  * a command that waits for its result
  */
 interface PendingCommand {
@@ -298,10 +327,48 @@ export class BidiCore {
     }
 
     public async send (params: Omit<CommandData, 'id'>): Promise<CommandResponse> {
-        const id = this.sendAsync(params)
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
-        const scriptTimeout = (params.params as unknown as Record<symbol, unknown> | undefined)?.[BIDI_SCRIPT_TIMEOUT]
-        const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
+        const rawTimeout = (params.params as unknown as Record<symbol, unknown> | undefined)?.[BIDI_SCRIPT_TIMEOUT]
+        const scriptTimeout = typeof rawTimeout === 'number' && rawTimeout >= 0 && rawTimeout <= MAX_TIMER_DELAY ? rawTimeout : undefined
+        const startedAt = Date.now()
+        let payload: CommandResponse | ErrorResponse
+        for (let calls = 1; ; calls++) {
+            payload = await this.#sendAndWait(params, failError, startedAt, scriptTimeout)
+            const message = isErrorPayload(payload) ? String(payload.message) : ''
+            const timeLeft = Math.min(this.#responseTimeout, scriptTimeout ?? Infinity) - (Date.now() - startedAt)
+            if (calls >= MAX_CALLS_DURING_NAVIGATION || timeLeft <= RETRY_DELAY || !failedOnPreviousDocument(params, message)) {
+                break
+            }
+            log.info(`Send "${params.method}" again, the page navigated: ${message}`)
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
+        }
+
+        if (isErrorPayload(payload)) {
+            const error = payload as local.ErrorResponse
+            failError.message += ` with error: ${payload.error} - ${error.message}`
+            if (error.stacktrace && typeof error.stacktrace === 'string') {
+                const driverStack = error.stacktrace
+                    .split('\n')
+                    .filter(Boolean)
+                    .map((line: string) => `    at ${line}`)
+                    .join('\n')
+                failError.stack += `\n\nDriver Stack:\n${driverStack}`
+            }
+
+            throw failError
+        }
+
+        return payload
+    }
+
+    /**
+     * Send one call and wait for its payload. The response and script timeouts count from `startedAt`,
+     * the start of the first call.
+     */
+    #sendAndWait (params: Omit<CommandData, 'id'>, failError: Error, startedAt: number, scriptTimeout?: number) {
+        const id = this.sendAsync(params)
+        const elapsed = Date.now() - startedAt
+        return new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
                 clearTimeout(scriptTimer)
                 reject(new Error(
@@ -309,8 +376,8 @@ export class BidiCore {
                     'Consider increasing the "bidiResponseTimeout" option.'
                 ))
                 this.#pendingCommands.delete(id)
-            }, this.#responseTimeout)
-            const scriptTimer = typeof scriptTimeout === 'number' && scriptTimeout >= 0 && scriptTimeout <= MAX_TIMER_DELAY
+            }, Math.max(0, this.#responseTimeout - elapsed))
+            const scriptTimer = scriptTimeout !== undefined
                 ? setTimeout(() => {
                     clearTimeout(t)
                     const error = new Error(
@@ -324,7 +391,7 @@ export class BidiCore {
                         this.#expiredCommands.delete(this.#expiredCommands.values().next().value!)
                     }
                     this.#expiredCommands.add(id)
-                }, scriptTimeout)
+                }, Math.max(0, scriptTimeout - elapsed))
                 : undefined
             this.#pendingCommands.set(id, {
                 resolve: (payload) => {
@@ -344,23 +411,6 @@ export class BidiCore {
                 }
             })
         })
-
-        if (payload.type === 'error' || 'error' in payload) {
-            const error = payload as local.ErrorResponse
-            failError.message += ` with error: ${payload.error} - ${error.message}`
-            if (error.stacktrace && typeof error.stacktrace === 'string') {
-                const driverStack = error.stacktrace
-                    .split('\n')
-                    .filter(Boolean)
-                    .map((line: string) => `    at ${line}`)
-                    .join('\n')
-                failError.stack += `\n\nDriver Stack:\n${driverStack}`
-            }
-
-            throw failError
-        }
-
-        return payload
     }
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
