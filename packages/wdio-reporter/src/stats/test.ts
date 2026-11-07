@@ -183,7 +183,9 @@ export default class TestStats extends RunnableStats {
         // indent
         msg = msg.replace(/^/gm, '      ')
         const newError = new Error(err.message + msg)
+        newError.name = err.name
         newError.stack = err.stack
+        Object.assign(newError, err)
         return newError
     }
 }

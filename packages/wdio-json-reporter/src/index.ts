@@ -32,27 +32,28 @@ export default class JsonReporter extends WDIOReporter {
 
         for (const spec of runner.specs) {
             resultSet.specs.push(spec)
-            for (const suiteKey of Object.keys(this.suites)) {
-                const suite = this.suites[suiteKey]
-                const testSuite: TestSuite = {
-                    name: suite.title,
-                    duration: suite._duration,
-                    start: suite.start,
-                    end: suite.end,
-                    sessionId: runner.sessionId,
-                    tests: mapTests(suite.tests),
-                    hooks: mapHooks(suite.hooks)
-                }
+        }
 
-                resultSet.state.failed += testSuite.hooks.filter(hookCountsAsFailure).length
-                resultSet.state.passed += testSuite.tests.filter(
-                    (test) => test.state === 'passed').length
-                resultSet.state.failed += testSuite.tests.filter(
-                    (test) => test.state === 'failed' && !test.retried).length
-                resultSet.state.skipped += testSuite.tests.filter(
-                    (test) => test.state === 'skipped').length
-                resultSet.suites.push(testSuite)
+        for (const suiteKey of Object.keys(this.suites)) {
+            const suite = this.suites[suiteKey]
+            const testSuite: TestSuite = {
+                name: suite.title,
+                duration: suite._duration,
+                start: suite.start,
+                end: suite.end,
+                sessionId: runner.sessionId,
+                tests: mapTests(suite.tests),
+                hooks: mapHooks(suite.hooks)
             }
+
+            resultSet.state.failed += testSuite.hooks.filter(hookCountsAsFailure).length
+            resultSet.state.passed += testSuite.tests.filter(
+                (test) => test.state === 'passed').length
+            resultSet.state.failed += testSuite.tests.filter(
+                (test) => test.state === 'failed' && !test.retried).length
+            resultSet.state.skipped += testSuite.tests.filter(
+                (test) => test.state === 'skipped').length
+            resultSet.suites.push(testSuite)
         }
 
         return resultSet
