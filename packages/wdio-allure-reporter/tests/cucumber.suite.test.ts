@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
 import type { Label, Parameter, Link, StepResult } from 'allure-js-commons'
@@ -291,11 +292,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const features = labels[LabelName.FEATURE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
+            const hosts = labels[LabelName.HOST]
 
             expect(languages).toHaveLength(1)
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(hosts).toHaveLength(1)
+            expect(hosts[0].value).toEqual(os.hostname())
             expect(features.length).toBeGreaterThanOrEqual(1)
             expect(features).toEqual(expect.arrayContaining([
                 { name: LabelName.FEATURE, value: 'MyFeature' }
@@ -371,11 +375,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const features = labels[LabelName.FEATURE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
+            const hosts = labels[LabelName.HOST]
 
             expect(languages).toHaveLength(1)
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(hosts).toHaveLength(1)
+            expect(hosts[0].value).toEqual(os.hostname())
             expect(features.length).toBeGreaterThanOrEqual(1)
             expect(features).toEqual(expect.arrayContaining([
                 { name: LabelName.FEATURE, value: 'MyFeature' }
@@ -626,11 +633,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const features = labels[LabelName.FEATURE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
+            const hosts = labels[LabelName.HOST]
 
             expect(languages).toHaveLength(1)
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(hosts).toHaveLength(1)
+            expect(hosts[0].value).toEqual(os.hostname())
             expect(features.length).toBeGreaterThanOrEqual(1)
             expect(features).toEqual(expect.arrayContaining([
                 { name: LabelName.FEATURE, value: 'MyFeature' }
