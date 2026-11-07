@@ -45,7 +45,7 @@ const log = logger('webdriver')
  *
  * - The enhanced `getContexts` method works on both Android and iOS platforms. However, the returned data may vary depending on the platform and app under test.
  * - If you do not specify the `returnDetailedContexts` option, the method behaves like the default Appium `contexts` method, returning a simple context array.
- * - To use the "default" Appium `contexts` method, use `driver.getAppiumContexts()`. For more information, see the [Appium Contexts documentation](/docs/api/appium#getappiumcontexts).
+ * - To use the "default" Appium `contexts` method, use `driver.getAppiumProtocolContexts()` (since Appium 3.7) or `driver.getAppiumContexts()`. For more information, see the [Appium Contexts documentation](/docs/api/appium#getappiumprotocolcontexts).
  *
  * #### Android Webviews:
  * - Metadata such as `androidWebviewData` is available only when `returnAndroidDescriptionData` is `true`.
