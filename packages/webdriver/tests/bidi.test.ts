@@ -400,6 +400,20 @@ describe('BidiCore', () => {
             expect((await error as Error).message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
         })
 
+        it('does not send again when a busy event loop runs the delay after the deadline', async () => {
+            const handler = await connected(1000)
+            const params = { ...callFunction.params, [BIDI_SCRIPT_TIMEOUT]: 800 }
+            const error = handler.send({ method: 'script.callFunction', params } as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(500)
+            fail(handler, 1, CONTEXT_ERROR)
+            // let `send` start the delay, then the clock passes both timeouts before the delay timer runs
+            await vi.advanceTimersByTimeAsync(0)
+            vi.setSystemTime(Date.now() + 600)
+            await vi.advanceTimersByTimeAsync(50)
+            expect(sent(handler)).toHaveLength(1)
+            expect((await error as Error).message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
+        })
+
         it.each([
             ['closes', (handler: BidiCore) => handler.close()],
             ['connects again', (handler: BidiCore) => handler.reconnect('ws://foo/new')]
