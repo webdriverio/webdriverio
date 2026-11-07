@@ -75,6 +75,41 @@ describe('JSONReporter', () => {
         expect(vi.mocked(reporter.write).mock.calls).toMatchSnapshot()
     })
 
+    it('should not duplicate suites or multiply counts for grouped specs (#16310)', () => {
+        const reporter = new JSONReporter({ stdout: true })
+        reporter.write = vi.fn()
+        reporter.suites = {
+            '0-0': {
+                title: 'suite 1',
+                fullTitle: 'suite 1',
+                state: 'passed',
+                duration: 1,
+                hooks: [],
+                tests: [{ title: 'test 1', state: 'passed', duration: 1 }],
+            } as any,
+            '0-1': {
+                title: 'suite 2',
+                fullTitle: 'suite 2',
+                state: 'failed',
+                duration: 2,
+                hooks: [],
+                tests: [{ title: 'test 2', state: 'failed', duration: 2 }],
+            } as any
+        }
+        reporter.onRunnerEnd({
+            start: 0,
+            end: 1,
+            capabilities: {},
+            config: { framework: 'mocha', mochaOpts: {} },
+            specs: ['a.spec.js', 'b.spec.js']
+        } as any)
+        const writtenJson = JSON.parse(vi.mocked(reporter.write).mock.calls[0][0] as string)
+        expect(writtenJson.specs).toEqual(['a.spec.js', 'b.spec.js'])
+        expect(writtenJson.suites).toHaveLength(2)
+        expect(writtenJson.suites.map((s: any) => s.name)).toEqual(['suite 1', 'suite 2'])
+        expect(writtenJson.state).toEqual({ passed: 1, failed: 1, skipped: 0 })
+    })
+
     describe('retried attempts', () => {
         const runner = { cid: '0-0', specs: ['/a.spec.ts'], config: { framework: 'vitest' }, capabilities: {}, sessionId: 's' }
         const suite = { type: 'suite', cid: '0-0', uid: 'suite-1', title: 'retry', fullTitle: 'retry', parent: '', parentUid: null }

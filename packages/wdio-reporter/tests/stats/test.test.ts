@@ -151,6 +151,15 @@ describe('TestStats', () => {
         expect(stat.error?.message).toContain('expected')
     })
 
+    it('preserves error properties like name, actual, expected on diffed errors (#16310)', () => {
+        const error = new AssertionError({ message: 'foobar', actual: 'true', expected: 'false', operator: 'strictEqual' })
+        stat.fail([error])
+        expect(stat.error?.name).toBe('AssertionError')
+        expect((stat.error as any)?.actual).toBe('true')
+        expect((stat.error as any)?.expected).toBe('false')
+        expect((stat.error as any)?.operator).toBe('strictEqual')
+    })
+
     it('should not diff if "actual" and "expected" are empty', () => {
         stat.fail([new AssertionError({ message: 'foobar', actual: '', expected: '' })])
         expect(stat.error?.message).not.toContain('actual')
