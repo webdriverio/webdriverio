@@ -172,8 +172,8 @@ export class ContextManager extends SessionManager {
         this.#destroyedListener = this.#contextDestroyed.bind(this)
 
         /**
-         * Listens for the 'closeWindow' browser command to handle context changes.
-         * (classic + bidi)
+         * Listens for the 'getWindowHandle' and 'switchToWindow' browser commands
+         * to cache the current window handle. (classic + bidi)
          */
         this.#browser.on('result', this.#onCommandResultBidiAndClassicListener)
 
@@ -358,26 +358,6 @@ export class ContextManager extends SessionManager {
 
     #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
         /**
-         * the `closeWindow` command returns:
-         *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
-         */
-        if (event.command === 'closeWindow') {
-            // Clear cached window handle
-            this.#currentWindowHandle = undefined
-
-            const windowHandles = (event.result as { value?: string[] }).value || []
-            if (windowHandles.length === 0) {
-                throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
-            }
-            this.#currentContext = windowHandles[0]
-            /**
-             * an event listener: the error has no caller, e.g. when the session ends at once
-             */
-            return this.#browser.switchToWindow(this.#currentContext)
-                .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser))
-        }
-
-        /**
          * Update current window handle when 'getWindowHandle' succeeds
          */
         if (event.command === 'getWindowHandle') {
@@ -386,9 +366,7 @@ export class ContextManager extends SessionManager {
         }
 
         /**
-         * the `closeWindow` command returns:
-         *  > the body of the Close Window command request, including the window handle it's switching to.
-         *  > the result of the Close Window command, either an error object on failure, or null data on success.
+         * `switchToWindow` returns null on success, so the handle comes from the request body
          */
         if (event.command === 'switchToWindow') {
             const err = (event.result as { error?: unknown }).error || undefined
@@ -622,6 +600,28 @@ export class ContextManager extends SessionManager {
      */
     getCurrentWindowHandle() {
         return this.#currentWindowHandle
+    }
+
+    /**
+     * Select the first remaining window after `closeWindow`. The `closeWindow`
+     * command awaits it, so a WebDriver Classic command after it does not run
+     * in the closed window.
+     * @param windowHandles the remaining window handles that `closeWindow` returns
+     */
+    async switchToRemainingWindow (windowHandles?: string[]) {
+        this.#currentWindowHandle = undefined
+        if (!windowHandles?.length) {
+            throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
+        }
+        this.#currentContext = windowHandles[0]
+        try {
+            await this.#browser.switchToWindow(this.#currentContext)
+        } catch (err) {
+            /**
+             * the window is closed, so a failed switch does not fail `closeWindow`, e.g. when the session ends at once
+             */
+            logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser)
+        }
     }
 
     get isNativeContext() {

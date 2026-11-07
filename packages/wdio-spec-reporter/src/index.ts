@@ -1,9 +1,10 @@
+import { sep } from 'node:path'
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats, getBrowserName, getBrowserNames, hookCountsAsFailure } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName, getBrowserNames, hookCountsAsFailure, relativeSpecFile } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument, ContextEnd } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -107,7 +108,8 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onSuiteStart (suite: SuiteStats) {
-        this._suiteName = suite.file?.replace(process.cwd(), '')
+        const relative = suite.file && relativeSpecFile(suite.file)
+        this._suiteName = relative ? sep + relative : suite.file
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
         // the place of the suite in the tree, below its feature, not the suites that started before it
@@ -437,7 +439,7 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
+                output.push(`${suiteIndent}» ${relativeSpecFile(suite.file) ?? suite.file}`)
                 specFileReferences.push(suite.file)
             }
 

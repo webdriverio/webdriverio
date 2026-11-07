@@ -360,6 +360,7 @@ export const tap: ActionFn = async (session, args) => {
 
 /** how each input type `setValue` sets directly writes its value, for the error when one isn't taken */
 const FORMATS: Record<string, string> = {
+    range: '50',
     date: '2026-10-04',
     time: '14:30',
     'datetime-local': '2026-10-04T14:30',
@@ -448,7 +449,8 @@ async function fillKind (target: ResolvedTarget): Promise<FillKind> {
             via = linked.size ? 'aria-controls' : 'label'
         }
         const selector = via === 'inside' ? relative(found) : found.id ? `#${CSS.escape(found.id)}` : undefined
-        return { kind: 'text' as const, editable: false, count: selector ? 1 : 0, via, selector, desc: describe(found) }
+        const foundType = found.tagName === 'INPUT' ? (found as HTMLInputElement).type : undefined
+        return { kind: 'text' as const, editable: false, count: selector ? 1 : 0, via, selector, desc: describe(found), type: foundType }
     }).catch(() => undefined) as FillKind | undefined
     return kind && typeof kind === 'object' && 'kind' in kind ? kind : { kind: 'text' }
 }
@@ -551,13 +553,28 @@ async function editableBehind (session: Session, target: ResolvedTarget, given: 
     return { inner: { element, selector, code: `${target.code}.$(${quote(selector)})`, label: `${kind.desc} in ${target.label}` }, text }
 }
 
+const notTaken = (target: ResolvedTarget, value: string, took: string, type?: string) =>
+    usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${type} input takes values like ${FORMATS[type!] ?? 'its own format'}.`)
+
+/** setValue, with a value the browser rejected (the input keeps its previous one) as a usage error */
+async function setValueOrUsage (target: ResolvedTarget, value: string, type?: string) {
+    try {
+        await target.element.setValue(value)
+    } catch (err) {
+        if (!(err instanceof Error && err.message.startsWith('The browser rejected the value'))) {
+            throw err
+        }
+        throw notTaken(target, value, await target.element.getValue(), type)
+    }
+}
+
 async function fillTarget (session: Session, args: ActionArgs, target: ResolvedTarget): Promise<ActionOutcome> {
     const value = String(args.text ?? '')
     const kind = await fillKind(target)
     await assertNotBlocked(session, target)
     if (kind.kind === 'text' && kind.editable === false) {
         const { inner, text } = await editableBehind(session, target, args.target, kind)
-        await withPointerFallback(session, inner, () => inner.element.setValue(value), async () => {
+        await withPointerFallback(session, inner, () => setValueOrUsage(inner, value, kind.type), async () => {
             await inner.element.execute((el) => (el as unknown as HTMLInputElement).select?.())
             await session.browser.keys(value)
         })
@@ -565,12 +582,21 @@ async function fillTarget (session: Session, args: ActionArgs, target: ResolvedT
     }
     if (kind.kind === 'direct') {
         // setValue sets these directly, as their picker does (see webdriverio's setValue)
-        await target.element.setValue(value)
+        await setValueOrUsage(target, value, kind.type)
         const took = await target.element.getValue()
         if (took !== value && kind.type !== 'range') {
-            throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
+            // the browser writes some values its own way (#ff8800 for #FF8800); an empty one only stays empty
+            const own = value === '' ? '' : await target.element.execute((el: Element, given: string) => {
+                const input = document.createElement('input')
+                input.type = (el as HTMLInputElement).type
+                input.value = given
+                return input.value
+            }, value)
+            if (took !== own) {
+                throw notTaken(target, value, took, kind.type)
+            }
         }
-        const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
+        const note = took !== value ? ` (it took ${took}: ${kind.type === 'range' ? 'the nearest allowed value' : 'the format of the input'})` : ''
         if (kind.type === 'range') {
             /**
              * A slider widget can keep its own state and miss a value set

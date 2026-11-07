@@ -4,6 +4,7 @@ import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import type * as WdioUtils from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
@@ -12,7 +13,12 @@ import { runParallelTests } from '../src/parallel.js'
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 vi.mock('mocha')
-vi.mock('@wdio/utils')
+vi.mock('@wdio/utils', async (importOriginal) => {
+    const actual = await importOriginal<typeof WdioUtils>()
+    // an automock: with no factory, Vitest 5.1 loads __mocks__/@wdio/utils.ts
+    // the spec path conversion is not under test: keep it real
+    return { ...vi.mockObject(actual), specFilePath: actual.specFilePath }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/parallel.js', () => ({
     runParallelTests: vi.fn().mockResolvedValue(0),

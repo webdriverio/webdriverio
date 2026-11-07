@@ -15,7 +15,6 @@ export const isNode = !!(typeof process !== 'undefined' && process.version)
 export interface EnvironmentVariables {
     WDIO_UNIT_TESTS?: string
     WDIO_WORKER_ID?: string
-    WDIO_KEEP_BIDI_MAPPER_LOG?: string
 }
 
 export interface EnvironmentDependencies {

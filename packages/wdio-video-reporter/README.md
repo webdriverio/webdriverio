@@ -304,9 +304,7 @@ With [parallel mode](https://webdriver.io/docs/parallel-tests) (`mochaOpts.paral
 records each test (with Cucumber: each scenario) on its own: a video shows only the window of its test and the tabs
 that the test opens, and the video file names are the same as in a sequential run.
 
-- With Mocha, the Allure reporter gets the video of each test.
-- With Cucumber, the Allure reporter does not support parallel mode yet: the reporter attaches no video and no
-  browser arguments to Allure, and logs a warning.
+The Allure reporter gets the video of each test, or of each scenario with Cucumber.
 
 ## Cucumber Support
 

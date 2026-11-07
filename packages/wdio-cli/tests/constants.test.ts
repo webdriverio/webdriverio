@@ -63,6 +63,19 @@ describe('constants', () => {
             expect(() => TESTRUNNER_DEFAULTS.execArgv!.validate!('foobar')).toThrow()
         })
 
+        it('should expect a one-based shard (#16240)', () => {
+            TESTRUNNER_DEFAULTS.shard!.validate!({ current: 1, total: 4 })
+            TESTRUNNER_DEFAULTS.shard!.validate!({ current: 4, total: 4 })
+
+            expect(() => TESTRUNNER_DEFAULTS.shard!.validate!({ current: 0, total: 4 }))
+                .toThrow('the "shard.current" value has to be an integer between 1 and "shard.total"')
+            expect(() => TESTRUNNER_DEFAULTS.shard!.validate!({ current: 5, total: 4 })).toThrow()
+            expect(() => TESTRUNNER_DEFAULTS.shard!.validate!({ current: 1.5, total: 4 })).toThrow()
+            expect(() => TESTRUNNER_DEFAULTS.shard!.validate!({ current: 0, total: 0 }))
+                .toThrow('the "shard.total" value has to be a positive integer')
+            expect(() => TESTRUNNER_DEFAULTS.shard!.validate!({ current: 1, total: 2.5 })).toThrow()
+        })
+
         it('should expect filesToWatch to be an array', () => {
             TESTRUNNER_DEFAULTS.filesToWatch!.validate!([])
             // @ts-expect-error wrong parameter

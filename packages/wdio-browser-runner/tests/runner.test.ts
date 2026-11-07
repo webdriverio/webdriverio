@@ -19,7 +19,8 @@ const { viteServers } = vi.hoisted(() => ({
 
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/local-runner')
+// an automock: with no factory, Vitest 5.1 loads __mocks__/@wdio/local-runner.ts
+vi.mock('@wdio/local-runner', async (importOriginal) => vi.mockObject(await importOriginal<object>()))
 vi.mock('../src/communicator.js', () => ({
     ServerWorkerCommunicator: class {
         coverageMaps = ['coverageMap']

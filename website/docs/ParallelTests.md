@@ -20,7 +20,9 @@ You need:
 
 - a WebDriver BiDi session (the default, unless you set `'wdio:enforceWebDriverClassic': true`),
 - the `'wdio:experimentalBiDiCommands': true` capability,
-- `@wdio/mocha-framework` or `@wdio/cucumber-framework`. Jasmine does not support parallel mode.
+- `@wdio/mocha-framework` or `@wdio/cucumber-framework`. Jasmine does not support parallel mode. With Vitest, use `test.concurrent` and [`vitestOpts.parallelMode`](./Frameworks.md#vitest-options).
+
+Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
 
 If the session does not use BiDi, or the capability is missing, WebdriverIO logs a warning and runs the tests one after another. Without `parallelMode`, nothing changes.
 
@@ -122,8 +124,9 @@ Inside a parallel test, these commands act on the test's own window:
 - navigation: `url`, `back`, `forward`, `refresh`, `getUrl`, `getTitle`
 - element commands: `$`, `$$`, `shadow$`, `click`, `setValue`, `getText`, the `waitFor*` commands, and others
 - `execute`, `actions`, `addInitScript`
-- cookies: `getCookies`, `setCookies`, `deleteCookies` use the test's cookie partition
-- `mock()`: a mock created in a parallel test only intercepts and records requests of that test's window and its frames, so two tests can mock the same URL
+- cookies: `getCookies`, `setCookies`, `deleteCookies` use the cookies of the test's window (its user context with `'userContexts'`), as described in [Behavior changes of the BiDi element commands](#behavior-changes-of-the-bidi-element-commands)
+- `mock()`: a mock created in a parallel test only intercepts and records requests of that test's window and its frames, so two tests can mock the same URL. A test can override a mock of the same URL that `beforeSuite` in `wdio.conf.ts` created: the mock of the test answers in its window, and the `beforeSuite` mock keeps answering in the other windows. Create a default mock in `beforeSuite` and override it in the test, or in a `before()` or `beforeEach()` hook of the spec file. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request)
+- `mockClearAll()`, `mockRestoreAll()`: only the mocks that the test created, also in its `before()` hook and on tabs it opened. Mocks created in the `beforeSuite` hook in `wdio.conf.ts`, outside the test windows, stay
 - screenshots: `saveScreenshot`, `takeElementScreenshot`
 
 ## Commands that throw in parallel mode
@@ -178,6 +181,8 @@ A test's window closes as soon as the test finishes. Don't start timers or promi
 - `addValue` and `clearValue` dispatch synthetic DOM events, not trusted key events.
 - `getAttribute` follows the WebDriver rules for property and attribute values.
 - `click` is sent through the Actions API.
+- On a page with no host, such as `about:blank`, `setCookies` throws for a cookie without a `domain`.
+- `getCookies`, `setCookies` and `deleteCookies` use the cookie jar of the window (the WebDriver BiDi storage partition of its user context), as Puppeteer does. `getCookies` and `deleteCookies` keep the cookies that the page sees by domain and path, or with a `domain` in the filter the cookies of that domain, whatever page is open. Secure cookies and partitioned (CHIPS) cookies stay in the result, also a cookie of the page host that is partitioned under another top-level site. `setCookies` sends `domain` as given: `example.com` is a host-only cookie, `.example.com` also goes to the subdomains. `getCookies(filter, sourceOrigin)` reads the WebDriver BiDi storage partition of that origin, and `getCookies(filter, null)` all cookies of the window. `sameSite` is lowercase in the result. BiDi errors are not retried with WebDriver Classic.
 
 Run your suite once with the capability and without `parallelMode` to find tests that depend on the Classic behavior.
 
@@ -193,7 +198,7 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/html-reporter` supports parallel mode with Mocha and Cucumber. It shows each log, screenshot and video under the test that sent it, also when it comes from a hook or after the test ends. An event from code that runs outside a test, such as an `AfterAll` hook or a `browser.on()` callback (a listener is for the whole session and gets the events of all test windows), goes to the test that started last, and the reporter logs a warning. An event from before the first test (for example the `before` hook of the configuration) goes to the first test that starts.
 
-`@wdio/video-reporter` records each parallel test in its own video. With Cucumber, it does not attach the videos to Allure.
+`@wdio/video-reporter` records each parallel test in its own video, and attaches it to that test in Allure.
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 

@@ -623,6 +623,11 @@ describe('driver utils', () => {
             .toMatchSnapshot()
     })
 
+    it('should not turn spawnOpts into a driver flag', () => {
+        expect(parseParams({ port: 4444, spawnOpts: { detached: true } }))
+            .toEqual(['--port=4444'])
+    })
+
     it('getBuildIdByChromePath', () => {
         expect(getBuildIdByChromePath()).toBe(undefined)
         expect(getBuildIdByChromePath('/foo/bar')).toBe('116.0.5845.110')

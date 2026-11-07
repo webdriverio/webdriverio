@@ -31,7 +31,7 @@ The text layout of a snapshot, and the shape `--json` prints for it, are experim
 | --- | --- |
 | `snapshot --interactive` | The elements you can act on, each with a ref |
 | `find "Add to cart"` | Each match with the node around it, e.g. a whole list item, so a value next to the match comes along. `-A`, `-B` and `-C` print plain line context like grep |
-| `diff` | What changed since the previous snapshot |
+| `diff`, `snapshot --diff` | What changed since the previous snapshot. With `snapshot --diff`, `--offset` above 1 and a web `--viewport` are usage errors, and a diff longer than `--max-chars` is cut at a line and names the snapshot file |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `source` | The page HTML or the native XML |
 

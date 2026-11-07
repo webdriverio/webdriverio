@@ -223,7 +223,7 @@ cucumber-js --config cucumber.json
 
 ### Plain Node script (no test runner)
 
-If you run `node tests/google.test.js` directly there's no runner for the plugin to auto-hook. By default you get a single "Selenium Session" row in the dashboard. To get a named test boundary, call `DevTools.startTest` / `endTest` around your work:
+If you run `node tests/google.test.js` directly there's no runner for the plugin to auto-hook. By default you get a single "Selenium Session" test in the dashboard, standing for the whole script: when the script ends it is closed as passed (or keeps the state it already had) and its suite is finalized, so the dashboard shows the run as finished. A script that quits its driver and builds another is still that one test. To get a named test boundary, call `DevTools.startTest` / `endTest` around your work; a test opened with `startTest` is closed by your own `endTest`, not at script end:
 
 ```js
 // tests/google.test.js
@@ -390,8 +390,8 @@ There is no options object - nothing devtools-specific has to appear in your tes
 |---|---|---|
 | `--devtools` | `devtools = true` | Capture this run and open the dashboard. |
 | `--devtools-trace` | `devtools_trace = true` | Capture this run and write a trace archive instead of opening a dashboard. Implies `--devtools`. |
-| `--devtools-trace-granularity <session\|test>` | `devtools_trace_granularity = test` | One archive for the whole run (`session`, the default) or one per test. Implies `--devtools-trace`. |
-| `--devtools-trace-policy <policy>` | `devtools_trace_policy = "retain-on-failure"` | Which archives are worth keeping. Implies `--devtools-trace`. See [How many archives, and which ones to keep](#how-many-archives-and-which-ones-to-keep). |
+| `--devtools-trace-granularity <session\|test>` | `devtools_trace_granularity = test` | One archive for the whole run (`session`, the default) or one per test. Implies `--devtools-trace`, unless an explicit `devtools_trace` value outranks it (see [the precedence table](#how-many-archives-and-which-ones-to-keep)). |
+| `--devtools-trace-policy <policy>` | `devtools_trace_policy = "retain-on-failure"` | Which archives are worth keeping. Implies `--devtools-trace` in the same way. See [How many archives, and which ones to keep](#how-many-archives-and-which-ones-to-keep). |
 
 Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=false` turns a project default off for one run, and `pytest -o devtools_trace_policy=on` does the same for any of the others.
 
@@ -412,15 +412,17 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 
 Set for you rather than by you (listed so an unexpected value is recognisable): `DEVTOOLS_RUNNER_CWD`, `DEVTOOLS_APP_REUSE` / `DEVTOOLS_APP_HOST` / `DEVTOOLS_APP_PORT`, and `DEVTOOLS_RERUN_LAUNCH_COMMAND`.
 
-The backend is a Node application, so **Node.js 22.23.4+, 24.22.1+ or 26.12.1+ must be available in every mode** (the first releases with the CA store fix for the eMudhra intermediate CA compromise; the odd lines 23 and 25 are refused) - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you, in this order: a backend that spawned this run as a rerun, then `DEVTOOLS_PORT` (attach), then `DEVTOOLS_BACKEND_CMD`, then the backend installed by `selenium-devtools install-backend`, then `npx @wdio/devtools-backend@<pinned version>`. The pin is fixed per adapter release so the backend always speaks the adapter's wire contract. See [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
+The backend is a Node application, so **Node.js 22.23.4+, 24.22.1+ or 26.12.1+ must be available in every mode** (the first releases with the CA store fix for the eMudhra intermediate CA compromise; the odd lines 23 and 25 are refused) - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you, in this order: a backend that spawned this run as a rerun, then `DEVTOOLS_PORT` (attach), then `DEVTOOLS_BACKEND_CMD`, then the backend installed by `selenium-devtools install-backend`, then `npx @wdio/devtools-backend@<pinned version>`. The pin is fixed per adapter release so the backend always speaks the adapter's wire contract. The backend also serves the page scripts the adapter runs after each command (the collector's readiness probe, its injection and drain, and the navigation timing read), so the scripts are the same ones the Node.js adapters run. A backend you start yourself or attach to with `DEVTOOLS_PORT` or `DEVTOOLS_BACKEND_CMD` must be at least as new as the adapter's pinned version: against an older one the run logs a warning and continues with DOM replay and navigation timings off. See [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
 
 ### Assertions
 
 Passing and failing `assert` statements appear as rows carrying **expected** and **actual**, and failures reach the Errors tab. Python's `assert` is a statement rather than a call, so unlike the Node adapter's `node:assert` patching there is nothing to wrap - the outcome comes from the runner.
 
+An assertion row also names the element its value was read from, so selecting the row boxes that element: `assert heading.text == "Secure Area"` carries the locator `heading` was found by, and so does a value from `get_attribute`, `is_displayed` or any other element read. Only a read made earlier in the same test counts. A value read from the page itself, such as `driver.title` or `driver.current_url`, names no element, even when some element's text reads the same.
+
 **Under pytest**, values come from the assertion rewriter, so every row carries real operands. Capturing *passing* assertions needs pytest's `enable_assertion_pass_hook`, which the plugin switches on for itself. One caveat: pytest decides per module, *while rewriting it*, whether to emit that hook, so a module whose rewritten bytecode was cached before the plugin was installed keeps reporting failures only. The adapter says so once at collection and names the cache to delete - which is **not** always the `__pycache__` beside your tests, since `sys.pycache_prefix` (set by default on macOS's system Python) sends every rewritten module to one central tree.
 
-**In a plain script** there is no rewriter, so outcomes come from the interpreter's line events and values are read from the frame about to run the assert. Only reads that cannot execute your code are resolved: a literal or a local resolves, an attribute or a call does not, because evaluating `driver.current_url` a second time would issue another WebDriver command.
+**In a plain script** there is no rewriter, so outcomes come from the interpreter's line events and values are read from the frame about to run the assert. Only reads that cannot execute your code are resolved: a literal or a local resolves, an attribute or a call does not, because evaluating `driver.current_url` a second time would issue another WebDriver command. An assertion whose observed value could not be read this way names no element, since guessing from the expected value alone could box an element that once read the same text.
 
 </TabItem>
 </Tabs>
@@ -546,6 +548,19 @@ devtools.enable(trace_granularity='test', trace_policy='retain-on-failure')
 
 **Naming either one explicitly selects trace mode.** The CLI flag, the ini option and the `enable()` argument all imply it, since a policy or a granularity means nothing in live mode and honouring one without the mode would silently drop what you asked for. `DEVTOOLS_TRACE_POLICY` and `DEVTOOLS_TRACE_GRANULARITY` deliberately do **not**: an exported variable is ambient and may have been set for a different script in the same shell, so flipping a live run to trace mode on that basis would take away the dashboard nobody asked to lose - pair them with `DEVTOOLS_TRACE=1`. A run that ends up ignoring an exported trace setting logs a warning, rather than leaving you to notice an archive that never appeared.
 
+Under pytest, an explicit `devtools_trace` value outranks that implication at its own level and below, so `pytest -o devtools_trace=false` gets a live run out of a project whose ini file commits a policy or a granularity. The command line (the `--devtools-trace*` flags and `-o`) is one level, the ini file the next, and the first row below that applies decides:
+
+| Trace mode is decided by | Result |
+|---|---|
+| `--devtools-trace` | on |
+| `-o devtools_trace=<bool>` | that value |
+| `--devtools-trace-policy` / `--devtools-trace-granularity`, or `-o` for either | on |
+| `devtools_trace` in the ini file | that value |
+| a policy or granularity in the ini file | on |
+| `DEVTOOLS_TRACE` | read by `enable()` when none of the above decided |
+
+There is no flag for "trace off", so `-o devtools_trace=false` is how the command line says it. A policy or granularity left without trace mode has no effect, does not switch capture on by itself, and the run logs one warning naming it.
+
 </TabItem>
 </Tabs>
 
@@ -635,7 +650,7 @@ The Python examples live in [`examples/selenium-py/`](https://github.com/webdriv
 | `scripts/web_form.py` | The three-line plain-script setup | `pnpm demo:python` |
 | `scripts/login.py` | A longer script: navigation, form fill, assertions | `pnpm demo:python:login` |
 | `mobile/android/`, `mobile/ios/` | Appium: the Android Clock app, or iOS Settings with `DEVTOOLS_MOBILE_PLATFORM=ios` (`pip install -r examples/selenium-py/requirements-mobile.txt` first) | `pnpm demo:python:mobile` |
-| `pytest/` | pytest with a class and a module-level test, plus a `pytest.ini` that commits trace mode, granularity and retention - every setting in it is commented with what it does | `pnpm demo:python:pytest` |
+| `pytest/` | pytest with a class and a module-level test, plus a `pytest.ini` that commits `devtools = true` and comments every other setting with what it does. It runs live; `DEVTOOLS_MODE=trace` switches it to one archive per failing test through the example's own `conftest.py` (the adapter itself does not read `DEVTOOLS_MODE`) | `pnpm demo:python:pytest` |
 
 </TabItem>
 </Tabs>
@@ -652,7 +667,7 @@ The Selenium adapter provides the same DevTools UI experience as WebdriverIO, in
 - **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
-- **Navigation timings** - After every navigation command, load / DOM-ready / response timings, resource counts, cookies and document info are attached to that command row
+- **Navigation timings** - After every navigation command, load / DOM-ready / response timings, resource counts, cookies and document info are attached to that command row. The row's summary shows the load time in milliseconds to two decimals, such as `246.40 ms`; the full-precision timings stay in the row's performance data
 - **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window), in both languages, with per-test slicing and retention in both (`traceGranularity` / `tracePolicy` in Node.js; `--devtools-trace-granularity` / `--devtools-trace-policy` in Python). Per-test `screenshot` / `video` and inline Allure attachment remain Node.js only; see [Trace mode](#trace-mode)
 
 In Node.js, screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
@@ -678,16 +693,17 @@ The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElemen
 
 When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script, so a Safari or Appium session still lists every request, from two sources of the page's own. A `fetch` / `XMLHttpRequest` call goes through the collector's patch and carries its method, headers, status and body. Every other load (the document, scripts, styles, images, fonts) comes from the page's Resource Timing buffer with its timing and size, but no headers or body, and on Safari no status; the Network tab says so on each such row.
 
-A `driver.wait()` shows as the one command the test made, not a row per poll.
+A `driver.wait()` is one row named after what it waited for, with the commands its condition issued nested under it rather than a row per poll; see [Waits](/docs/devtools/wdio/trace-mode#waits).
 
 The page-side collector is registered at document start through BiDi (`script.addPreloadScript`), so every page instruments itself before any of its own script runs; without BiDi it falls back to injecting a `<script>` after each navigation. It records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
 </TabItem>
 <TabItem value="python" label="Python">
 
-There are no prototypes to patch, so the Python adapter wraps one method instead:
+There are no prototypes to patch, so the Python adapter wraps the one method every command flows through, plus selenium's wait loop:
 
 - **`WebDriver.execute()`** - the single chokepoint every command flows through. Element methods delegate to it too (`self._parent.execute`), so `click`, `send_keys` and `text` are captured by the same wrapper without touching the element classes.
+- **`WebDriverWait.until()` / `until_not()`** - a wait is a client-side loop that `execute` sees only as its polls, so it is patched too: it becomes one row named after what it waited for, with the commands its condition issued nested under it, and a timed-out wait is a failed row carrying the `TimeoutException`. See [Waits](/docs/devtools/wdio/trace-mode#waits).
 - **Session setup** - on the first real command the driver is registered, metadata is sent, and BiDi, the collector and the screencast are armed.
 - **`quit()`** - intercepted before the session is torn down, so the screencast is encoded and the final frames flushed while the driver still exists.
 

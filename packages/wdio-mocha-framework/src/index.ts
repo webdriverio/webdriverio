@@ -1,4 +1,3 @@
-import url from 'node:url'
 import path from 'node:path'
 import type { Runner } from 'mocha'
 import Mocha from 'mocha'
@@ -8,7 +7,7 @@ import Mocha from 'mocha'
 import { handleRequires } from 'mocha/lib/cli/run-helpers.cjs'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs, type ParallelMode } from '@wdio/utils'
+import { executeHooksWithArgs, specFilePath, type ParallelMode } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
 import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
@@ -18,7 +17,6 @@ import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
-const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
@@ -94,11 +92,7 @@ class MochaAdapter {
          * as Mocha doesn't support file:// formats yet we have to
          * remove it before adding it to Mocha
          */
-        this._specs.forEach((spec) => mocha.addFile(
-            spec.startsWith(FILE_PROTOCOL)
-                ? url.fileURLToPath(spec)
-                : spec
-        ))
+        this._specs.forEach((spec) => mocha.addFile(specFilePath(spec)))
 
         const { beforeTest, beforeHook, afterTest, afterHook } = this._config
         mocha.suite.on('pre-require', () =>

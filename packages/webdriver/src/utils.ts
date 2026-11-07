@@ -8,7 +8,7 @@ import {
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 import type { ClientOptions } from 'ws'
 
 import command from './command.js'
@@ -88,6 +88,12 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
          * allow WebdriverIO to handle alerts
          */
         capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        /**
+         * without it, Appium answers WebDriver Bidi itself and has no `browsingContext` module
+         */
+        if (isAppiumAndroidChrome(capabilities.alwaysMatch) && !hasAppiumCapability(capabilities.alwaysMatch, 'chromedriverForwardBiDi')) {
+            capabilities.alwaysMatch['appium:chromedriverForwardBiDi'] = true
+        }
     }
 
     validateCapabilities(capabilities.alwaysMatch)
@@ -170,6 +176,57 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     params.capabilities = sessionCapabilities
 
     return { sessionId, capabilities: sessionCapabilities }
+}
+
+/**
+ * `true` when the user set the Appium capability, as `appium:<name>` or in `appium:options`
+ */
+function hasAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
+    return getAppiumCapability(capabilities, name) !== undefined
+}
+
+/**
+ * the value of an Appium capability, set in `appium:options` or as `appium:<name>`: as in Appium, `appium:options` wins
+ */
+function getAppiumCapability (capabilities: WebdriverIO.Capabilities, name: string) {
+    const appiumOptions = capabilities['appium:options'] as Record<string, unknown> | undefined
+    return appiumOptions?.[name] ?? (capabilities as Record<string, unknown>)[`appium:${name}`]
+}
+
+/**
+ * what the user can do when the WebDriver Bidi server of an Appium browser session can not run
+ * browser commands: only Chrome on Android can get WebDriver Bidi through the browser driver
+ *
+ * @param  capabilities           capabilities of the session
+ * @param  requestedCapabilities  capabilities that the user requested
+ */
+export function getAppiumBidiAdvice (capabilities: WebdriverIO.Capabilities, requestedCapabilities: Capabilities.RequestedStandaloneCapabilities) {
+    const requested = (
+        'alwaysMatch' in requestedCapabilities ? requestedCapabilities.alwaysMatch : requestedCapabilities
+    ) as WebdriverIO.Capabilities
+    if (getAppiumCapability(requested, 'chromedriverForwardBiDi') === false) {
+        return 'Appium answers WebDriver Bidi itself, because "appium:chromedriverForwardBiDi" is false. '
+    }
+    if (/^android$/i.test(capabilities.platformName || '')) {
+        return 'For WebDriver Bidi with Chrome on Android, use Appium 3.9.0 or later with the UiAutomator2 driver 8.7.3 or later. '
+    }
+    return ''
+}
+
+/**
+ * a Chrome browser session on Android through the UiAutomator2 driver of Appium
+ */
+function isAppiumAndroidChrome (capabilities: WebdriverIO.Capabilities) {
+    /**
+     * not the unprefixed `automationName`: with an `appium:` capability next to it,
+     * `validateCapabilities` rejects the session
+     */
+    const automationName = getAppiumCapability(capabilities, 'automationName')
+    return (
+        /^android$/i.test(capabilities.platformName || '') &&
+        /^(chrome|chromium)$/i.test(capabilities.browserName || '') &&
+        typeof automationName === 'string' && /^uiautomator2$/i.test(automationName)
+    )
 }
 
 /**
@@ -481,7 +538,10 @@ export function initiateBidi (
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = getBidiRequestOptions(strictSSL, userHeaders)
     const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout, connectTimeout)
-    handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+    handler.connect().then(
+        (isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`),
+        (err: Error) => log.error(`Could not connect to WebDriver Bidi interface at ${socketUrl}: ${err.message}`)
+    )
 
     return {
         _bidiHandler: { value: handler },
@@ -501,6 +561,41 @@ export function initiateBidi (
             }
             return acc
         }, {} as PropertyDescriptorMap)
+    }
+}
+
+/**
+ * Appium (since 2.15) gives its own WebDriver Bidi url to each session that asks for it,
+ * unless it forwards the socket to the browser driver. That server has no
+ * `browsingContext` or `script` module, so a browser session must use WebDriver Classic.
+ *
+ * @param  handler  the connected handler of an Appium browser session
+ * @param  timeout  how long to wait for the answer (`bidiConnectTimeout`): a server that never
+ *                  answers must not hold the session start for `bidiResponseTimeout`; a shorter
+ *                  `bidiResponseTimeout` ends the check first
+ * @param  advice   what the user can do, see `getAppiumBidiAdvice`
+ * @return `false` when the connection was discarded
+ */
+export async function discardBidiWithoutBrowsingContext (handler: BidiHandler, timeout: number, advice = '') {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    try {
+        await Promise.race([
+            handler.browsingContextGetTree({ maxDepth: 0 }),
+            new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error(`no answer within ${timeout}ms`)), timeout)
+            })
+        ])
+        return true
+    } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        log.warn(
+            `The WebDriver Bidi server of this mobile session can not run browser commands (${reason}), ` +
+            `continue with WebDriver Classic. ${advice}To skip this check, set "wdio:enforceWebDriverClassic": true.`
+        )
+        handler.discard()
+        return false
+    } finally {
+        clearTimeout(timer)
     }
 }
 

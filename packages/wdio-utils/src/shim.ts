@@ -703,6 +703,7 @@ interface FrameworkRunnable {
  * starts it again
  */
 interface FrameworkTimer {
+    /** `performance.now()`, the clock of the timers: a clock adjustment can set `Date.now()` back */
     startedAt: number
     onRestart?: () => void
 }
@@ -722,10 +723,10 @@ export function followFrameworkTimer (runnable: unknown) {
     }
     let timer = frameworkTimers.get(target)
     if (!timer) {
-        const state: FrameworkTimer = { startedAt: Date.now() }
+        const state: FrameworkTimer = { startedAt: performance.now() }
         const resetTimeout = target.resetTimeout
         target.resetTimeout = function (this: FrameworkRunnable, ...args: unknown[]) {
-            state.startedAt = Date.now()
+            state.startedAt = performance.now()
             const result = resetTimeout.apply(this, args)
             state.onRestart?.()
             return result
@@ -736,7 +737,7 @@ export function followFrameworkTimer (runnable: unknown) {
     /**
      * a hook runs again for each test; Mocha starts its timer right after this
      */
-    timer.startedAt = Date.now()
+    timer.startedAt = performance.now()
 }
 
 /**
@@ -766,6 +767,7 @@ function withAttempt (err: Error, attempt: number, totalAttempts: number) {
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
  * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
+ * @param  {string}   title      name of the test or hook for the timeout error when the framework has no runnable (Jasmine)
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 export async function executeAsync(
@@ -773,7 +775,8 @@ export async function executeAsync(
     fn: Function,
     retries: Frameworks.TestRetries,
     args: unknown[] = [],
-    timeout: number = 20000
+    timeout: number = 20000,
+    title?: string
 ): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
@@ -794,22 +797,31 @@ export async function executeAsync(
          */
         const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
         /**
+         * Jasmine enforces the timeout of a spec or hook itself. WebdriverIO only must not
+         * fail it before that: a timeout longer than the default wins over it, a shorter
+         * one is left to Jasmine, so it fails with its own message.
+         */
+        const jasmineTimeout = (): number | undefined => {
+            // @ts-expect-error - jasmine is set by Jasmine at runtime
+            const defaultTimeout: number | undefined = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+            return defaultTimeout === undefined ? undefined : Math.max(timeout > 0 ? timeout : 0, defaultTimeout)
+        }
+        /**
          * The current framework timeout. A Mocha test or hook can change it with
          * `this.timeout()` while it runs, and `0` turns it off.
          */
         const frameworkTimeout = (): number => (
-            // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+            runnable?._timeout ?? jasmineTimeout() ?? timeout
         )
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
          */
         const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
-        const start = Date.now()
+        const start = performance.now()
         const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
-        const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
+        const testTitle = fullTitle || runnable?.title || title || fn.name || 'unknown test or hook'
         const attempt = retries.attempts + 1
         const totalAttempts = retries.limit + 1
         /**
@@ -834,8 +846,9 @@ export async function executeAsync(
                     if (!(current > 0)) {
                         return
                     }
-                    const remaining = current - TIME_BUFFER - (Date.now() - timerStart())
-                    if (remaining > 0) {
+                    const remaining = current - TIME_BUFFER - (performance.now() - timerStart())
+                    // timers count whole milliseconds and can fire a fraction early: one more would use the buffer
+                    if (remaining >= 1) {
                         timer = setTimeout(check, remaining)
                         return
                     }
@@ -888,7 +901,7 @@ export async function executeAsync(
         }
         if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args, timeout)
+            return await executeAsync.call(this, fn, retries, args, timeout, title)
         }
 
         throw err

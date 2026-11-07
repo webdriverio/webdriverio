@@ -731,6 +731,8 @@ First, install the adapter package and `vitest` from NPM. `vitest` is a peer dep
 npm install @wdio/vitest-framework vitest --save-dev
 ```
 
+`npm init wdio` and `wdio install` do not offer Vitest yet, so install the packages and set the option yourself.
+
 Then set `framework: 'vitest'` in your [config file](configurationfile):
 
 ```ts title="wdio.conf.ts"
@@ -826,7 +828,9 @@ Set them in `vitestOpts` in your `wdio.conf.ts`.
 Runs `test.concurrent` tests at the same time, each in its own browsing context. Requires a WebDriver BiDi session and the `'wdio:experimentalBiDiCommands': true` capability.
 
 - `'contexts'`: windows share the default user context, so cookies, `localStorage` and service workers are shared across concurrent tests.
-- `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies. `browser.mock()` remains session-wide in both modes.
+- `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies.
+
+In both modes, a `browser.mock()` in a concurrent test only intercepts the window of that test. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request).
 
 Type: `'contexts' | 'userContexts'`<br />
 Default: `undefined`
@@ -852,6 +856,8 @@ The framework controls some keys itself:
 ### Limitations
 
 - Multi-remote capabilities are not supported yet.
+- `specFileRetries` is ignored, with a warning in the log. Use `vitestOpts.retry`.
+- The `spec`, `dot` and `concise` reporters are ignored with a warning, because the console output comes from Vitest. Set `vitestOpts.reporters` to change it.
 - `expect.poll` is not available, because the global `expect` comes from `expect-webdriverio`.
 - `switchWindow` and `switchFrame` throw in a WebDriver BiDi session, which `parallelMode` requires. Inside concurrent tests, `getWindowSize`, `setWindowSize`, `throttleCPU`, `throttleNetwork` and classic window and frame protocol commands such as `switchToWindow` also throw, because they change session-wide state.
 - The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run, in `wdio.conf.ts` or in services.

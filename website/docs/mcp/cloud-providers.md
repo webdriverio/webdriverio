@@ -4,14 +4,15 @@ title: Cloud Providers
 description: "Run WebdriverIO MCP browser and mobile sessions on cloud device farms, including credentials, app uploads, tunnels and reporting."
 ---
 
-The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Four providers are supported:
+The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Five cloud providers are supported:
 
 - **BrowserStack** — [Automate](https://www.browserstack.com/automate) (browsers) and [App Automate](https://www.browserstack.com/app-automate) (mobile apps)
 - **Sauce Labs** — [Sauce Labs](https://saucelabs.com) real device cloud and virtual browsers
 - **TestMu (formerly LambdaTest)** — [TestMu](https://www.lambdatest.com) real device and browser cloud
 - **TestingBot** — [TestingBot](https://testingbot.com) real device cloud and browser grid
+- **Digital.ai Testing** — browser and mobile sessions on your own Digital.ai cloud host
 
-All four providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Reporting labels, tunnel configuration, and mobile app lifecycle are identical across providers.
+All five providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Differences, such as tunnel support and reporting labels, are listed under Provider-Specific Notes. For any other W3C WebDriver endpoint, see [External Provider](#external-provider).
 
 ## Prerequisites
 
@@ -33,14 +34,19 @@ export TESTMU_ACCESS_KEY="your_access_key"
 # TestingBot
 export TESTINGBOT_KEY="your_key"
 export TESTINGBOT_SECRET="your_secret"
+
+# Digital.ai
+export DIGITALAI_CLOUD_URL="https://cloud.example.com"
+export DIGITALAI_ACCESS_KEY="your_access_key"
 ```
 
-| Provider     | Username Variable       | Access Key Variable       | Where to find                                                      |
-| ------------ | ----------------------- | ------------------------- | ------------------------------------------------------------------ |
-| BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` | [Account settings](https://www.browserstack.com/accounts/settings) |
-| Sauce Labs   | `SAUCE_USERNAME`        | `SAUCE_ACCESS_KEY`        | [User settings](https://app.saucelabs.com/user-settings)           |
-| TestMu       | `TESTMU_USERNAME`       | `TESTMU_ACCESS_KEY`       | [Account settings](https://accounts.lambdatest.com/detail/profile) |
-| TestingBot   | `TESTINGBOT_KEY`        | `TESTINGBOT_SECRET`       | [Account settings](https://testingbot.com/membership)              |
+| Provider     | Username Variable            | Access Key Variable       | Where to find                                                      |
+| ------------ | ---------------------------- | ------------------------- | ------------------------------------------------------------------ |
+| BrowserStack | `BROWSERSTACK_USERNAME`      | `BROWSERSTACK_ACCESS_KEY` | [Account settings](https://www.browserstack.com/accounts/settings) |
+| Sauce Labs   | `SAUCE_USERNAME`             | `SAUCE_ACCESS_KEY`        | [User settings](https://app.saucelabs.com/user-settings)           |
+| TestMu       | `TESTMU_USERNAME`            | `TESTMU_ACCESS_KEY`       | [Account settings](https://accounts.lambdatest.com/detail/profile) |
+| TestingBot   | `TESTINGBOT_KEY`             | `TESTINGBOT_SECRET`       | [Account settings](https://testingbot.com/membership)              |
+| Digital.ai   | `DIGITALAI_CLOUD_URL` (host) | `DIGITALAI_ACCESS_KEY`    | Your Digital.ai Testing account                                    |
 
 ## Browser Automation
 
@@ -64,7 +70,7 @@ start_session({
   browser: "safari",
   browserVersion: "latest",
   os: "macOS",
-  osVersion: "Sequoia"
+  osVersion: "15"
 })
 
 // TestMu — Linux + Firefox
@@ -88,6 +94,20 @@ start_session({
 ```
 
 All providers support `browser`: `"chrome"`, `"firefox"`, `"edge"`, `"safari"`. If you omit `os` / `osVersion`, the provider uses sensible defaults (typically latest Linux for browser sessions).
+
+### Operating system values
+
+`os` and `osVersion` are passed to the provider unchanged, so use the names that provider's API and docs use. The values are provider-native and not normalized across providers:
+
+| Provider     | macOS                                     | Windows                            |
+| ------------ | ----------------------------------------- | ---------------------------------- |
+| BrowserStack | `os: "OS X"`, `osVersion: "Sequoia"`      | `os: "Windows"`, `osVersion: "11"` |
+| Sauce Labs   | `os: "macOS"`, `osVersion: "15"`          | `os: "Windows"`, `osVersion: "11"` |
+| TestMu       | `os: "macOS"`, `osVersion: "Sequoia"`     | `os: "Windows"`, `osVersion: "11"` |
+| TestingBot   | `os: "SEQUOIA"`                           | `os: "WIN11"`                      |
+| Digital.ai   | Use the names your Digital.ai cloud lists | `os: "Windows"`, `osVersion: "11"` |
+
+BrowserStack sends `os` and `osVersion` as separate capabilities. Sauce Labs, TestMu, TestingBot and Digital.ai join them with a space into one platform name, so `macOS` and `15` become `macOS 15`. An empty `osVersion` is dropped.
 
 ### Sauce Labs Regions
 
@@ -115,13 +135,15 @@ upload_app({ provider: "browserstack", path: "/absolute/path/to/app.apk" })
 upload_app({ provider: "saucelabs", path: "/path/to/app.ipa" })
 upload_app({ provider: "testmu", path: "/path/to/app.apk" })
 upload_app({ provider: "testingbot", path: "/path/to/app.apk" })
+upload_app({ provider: "digitalai", path: "/path/to/app.apk" })
 ```
 
 Each returns an app reference you'll use in `start_session`:
 - BrowserStack: `bs://abc123...`
 - Sauce Labs: `storage:filename=MyApp.ipa`
 - TestMu: `lt://abc123...`
-- TestingBot: `https://api.testingbot.com/v1/storage/<app_url>`
+- TestingBot: the `tb://…` `app_url` returned by the upload, used verbatim
+- Digital.ai: `cloud:<name>`
 
 You can optionally set a `customId` for stable references across uploads:
 
@@ -138,6 +160,7 @@ list_apps({ provider: "browserstack" })
 list_apps({ provider: "saucelabs" })
 list_apps({ provider: "testmu" })
 list_apps({ provider: "testingbot" })
+list_apps({ provider: "digitalai" })
 ```
 
 Optional parameters for all providers:
@@ -190,7 +213,7 @@ start_session({
 
 ## Local Tunnel
 
-All three providers support a local tunnel so cloud sessions can reach servers on your machine (localhost, staging environments, internal services).
+BrowserStack, Sauce Labs, TestMu, and TestingBot support a local tunnel so cloud sessions can reach servers on your machine (localhost, staging environments, internal services). Digital.ai has no tunnel support, and `tunnel` has no effect with `provider: "digitalai"` or `provider: "external"`.
 
 The MCP server uses a **unified `tunnel` parameter** that works identically across providers:
 
@@ -246,7 +269,7 @@ Each resource returns the download URL, platform-specific commands, and daemon i
 
 ## Reporting
 
-Tag sessions with project, build, and session labels for the provider's dashboard. This works identically across all three providers:
+Tag sessions with project, build, and session labels for the provider's dashboard. This works identically across BrowserStack, Sauce Labs, TestMu, and TestingBot. Digital.ai uses the session label, or the project label when none is set, as its test name; `build` is not sent.
 
 ```js
 start_session({
@@ -278,6 +301,7 @@ Sessions appear in the provider's dashboard under the specified project and buil
 
 - **Regions matter.** The default region is `eu-central-1`. If your account is in a different region, set `region` on `start_session`, `list_apps`, and `upload_app` to match.
 - Mobile sessions support `automationName` (`"XCUITest"` or `"UiAutomator2"`); defaults are sensible per platform.
+- `SAUCE_REGION` only changes the region in the start command returned by `wdio://saucelabs/local-binary` (default `eu-central-1`). It does not set the region for `start_session`; pass `region` for that.
 - Sauce Connect tunnel is auto-managed via the `saucelabs` npm package. No external binary needed for `tunnel: true`.
 
 ### TestMu
@@ -295,3 +319,54 @@ Sessions appear in the provider's dashboard under the specified project and buil
 - Tunnel is auto-managed via the `testingbot-tunnel-launcher` npm package (requires Java 11+).
 - No region parameter — TestingBot's hub is global.
 - Mobile browser/emulator mode is supported: set `platform: "android"` or `"ios"` with a `browser` name (e.g., `"chrome"`) instead of `app`.
+
+### Digital.ai
+
+- **Host.** `DIGITALAI_CLOUD_URL` is your cloud host. A scheme, a trailing `/wd/hub`, and trailing slashes are stripped, so `https://cloud.example.com` and `cloud.example.com` both work. Sessions connect to `https://<host>/wd/hub` on port 443.
+- **Credentials.** Sessions send `DIGITALAI_ACCESS_KEY` as the access key capability. `list_apps` and `upload_app` send it as a Bearer token.
+- **Browser sessions.** Capabilities are flat: `digitalai:accessKey`, `browserName`, and `digitalai:osName`. `edge` is sent as `MicrosoftEdge`. `digitalai:osName` joins `os` and `osVersion`, so `os: "Windows"` with `osVersion: "11"` becomes `Windows 11`. `digitalai:testName` comes from `reporting.session`, falling back to `reporting.project`.
+- **Mobile sessions.** Digital.ai capabilities are nested under `digitalai:options` (`accessKey`, `testName`, `deviceQuery`). The provider sets `platformName`, `appium:automationName` (`XCUITest` for iOS, `UiAutomator2` for Android, unless you pass `automationName`), and `appium:newCommandTimeout` (300 by default). The Appium version is set on the Digital.ai project, not in `start_session`.
+- **Devices.** Pass `deviceQuery` to target a device. Without it, the provider builds a query from `platformVersion` and `deviceName`, for example `@os='android' and @version='14' and @name='Pixel 7'`. With neither, no query is sent. Real devices match by default; `deviceQuery: "@emulator='true'"` selects an emulator.
+- **Apps.** Pass `app: "cloud:<name>"` from `upload_app` or `list_apps`. With `browser` set on a mobile platform, the session runs in mobile browser mode and no app is needed.
+- **Apps and listing.** `list_apps` and `upload_app` support `provider: "digitalai"`. `organizationWide` and `region` do not apply.
+- **No tunnel.** `tunnel` has no effect with Digital.ai.
+- **Reporting.** On close, the provider marks the test Passed or Failed on the cloud. If Digital.ai returns a report URL, `start_session` shows it as `Report: <url>`.
+- **Close.** Sessions are never auto-detached; `close_session` ends them.
+
+```js
+start_session({
+  provider: "digitalai",
+  platform: "browser",
+  browser: "edge",
+  os: "Windows",
+  osVersion: "11",
+  reporting: { project: "Checkout", session: "Login flow" }
+})
+
+start_session({
+  provider: "digitalai",
+  platform: "android",
+  deviceName: "Pixel 7",
+  platformVersion: "14",
+  app: "cloud:com.example.app"
+})
+```
+
+## External Provider
+
+`provider: "external"` runs a browser session on any W3C WebDriver endpoint, such as a Selenium Grid or a standalone driver. The server connects to the endpoint and sends your `capabilities`. It does not start, stop, or tunnel anything.
+
+```js
+start_session({
+  provider: "external",
+  platform: "browser",
+  browser: "firefox",
+  webdriverConfig: { hostname: "grid.internal", port: 4444, path: "/wd/hub" }
+})
+```
+
+- **Endpoint.** Defaults to `http://127.0.0.1:4445/`. Each `webdriverConfig` field falls back to its own default: `protocol` `http`, `hostname` `127.0.0.1`, `port` `4445`, `path` `/`.
+- **Browser.** `browser` defaults to `chrome`, sent as `browserName`.
+- **Capabilities.** `capabilities` merge over the defaults, so your values win.
+- **Platform.** Browser only. Mobile and Electron requests return an error.
+- **Close.** `close_session` detaches by default, so the remote session keeps running. Pass `detach: false` to end it.

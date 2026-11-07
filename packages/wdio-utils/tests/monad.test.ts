@@ -516,6 +516,25 @@ describe('monad', () => {
         expect(ordinaryListener).toHaveBeenCalledWith(dialog)
     })
 
+    it('counts the listeners of an event', () => {
+        const client = webdriverMonad({}, (browser: any) => browser, { ...prototype })(sessionId)
+        const dialogListener = vi.fn()
+        expect(client.listenerCount('dialog')).toBe(0)
+
+        client.on('dialog', dialogListener)
+        client.once('dialog', vi.fn())
+        client.on('result', vi.fn())
+        expect(client.listenerCount('dialog')).toBe(2)
+        expect(client.listenerCount('result')).toBe(1)
+        expect(client.listenerCount('command')).toBe(0)
+
+        client.off('dialog', dialogListener)
+        expect(client.listenerCount('dialog')).toBe(1)
+        client.removeAllListeners()
+        expect(client.listenerCount('dialog')).toBe(0)
+        expect(client.listenerCount('result')).toBe(0)
+    })
+
     describe('given custom command', () => {
         let client: any
         beforeEach(() => {

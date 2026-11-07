@@ -53,7 +53,24 @@ Commands are filtered through an allow-list before they produce trace entries. E
 - `setValue` / `sendKeys` → `Element.fill`
 - `submit`, `clear`, `selectByVisibleText`, …
 
-Locator resolution (`$`, `$$`, `findElement(s)`), Selenium's `executeScript` polling and the `clearValue` that `setValue` fires internally are deliberately excluded: they don't represent user-facing intent and would noise up the timeline. Explicit waits (`waitFor*`, `waitUntil`, Nightwatch `waitForElement*`), element reads (`getText`, `isDisplayed`, …) and `execute` do appear. The allow-list is `ACTION_MAP` in [`packages/shared/src/trace-actions.ts`](https://github.com/webdriverio/devtools/blob/main/packages/shared/src/trace-actions.ts).
+Locator resolution (`$`, `$$`, `findElement(s)`), Selenium's `executeScript` polling and the `clearValue` that `setValue` fires internally are deliberately excluded: they don't represent user-facing intent and would noise up the timeline. Explicit waits (`waitFor*`, `waitUntil`, Nightwatch `waitForElement*`, Selenium `driver.wait`, Python `WebDriverWait`; see [Waits](#waits)), element reads (`getText`, `isDisplayed`, …), page reads such as `getTitle`, and `execute` do appear. The allow-list is `ACTION_MAP` in [`packages/shared/src/trace-actions.ts`](https://github.com/webdriverio/devtools/blob/main/packages/shared/src/trace-actions.ts).
+
+### Waits
+
+A wait the test wrote is one row, named after what it waited for: `Element.waitForExist` on its selector for a wait on an element locator, `Element.waitForDisplayed` for a wait on an element's visibility, and `Browser.waitForFunction` for a wait on any other condition. The row appears as soon as the wait starts and is updated when it ends, so the live dashboard shows a long wait as running rather than listing it only once it is over. A wait that times out is a failed row carrying the timeout, in the Actions list, the Errors tab and the trace.
+
+The commands the wait's condition issued nest under its row, one row per distinct call rather than one per poll, in the live dashboard and the trace player alike. They are collapsed by default, and open by themselves when the wait failed or holds the selected row. The chevron beside a wait is a button of its own, so the keyboard reaches it (`Enter` or `Space` expands or collapses it) while `Enter` on the row still selects the wait. A wait started inside another wait's condition nests under that wait.
+
+A command under a wait that failed before the wait passed, such as a `getText` on an element that appears a moment later, is a poll the wait retried past, not a failure: it shows neutral with its error in a tooltip, does not open the wait, and is left out of the Errors tab, the copied failures and the trace's errors. Under a wait that timed out, the same commands keep their errors, since the last poll is what explains the timeout.
+
+What each adapter shows:
+
+| Adapter | Waits | Nested under the wait |
+|---|---|---|
+| WebdriverIO | `waitUntil` and the `waitFor*` family | The commands a `waitUntil` condition issued, and the polls of an element wait (such as `isExisting`). |
+| Nightwatch | `waitUntil` and the `waitForElement*` family | The commands a `waitUntil` condition issued. A `waitForElement*` row has no children: Nightwatch polls for the element through its own transport, which the plugin does not see. |
+| Selenium (Node.js) | `driver.wait(...)`. `until.elementLocated` is `waitForElementLocated` (`Element.waitForExist`) on its locator, `until.elementIsVisible` is `waitForElementVisible` (`Element.waitForDisplayed`), and any other condition is `wait` (`Browser.waitForFunction`), labelled with the condition's description. | The commands the condition issued. An element wait's `findElement(s)` polls nest in the live dashboard but are left out of the trace, like every locator lookup. |
+| Selenium (Python) | `WebDriverWait(...).until(...)` and `until_not(...)`. `EC.presence_of_element_located` is `waitForElementLocated` (`Element.waitForExist`), `EC.visibility_of_element_located` is `waitForElementVisible` (`Element.waitForDisplayed`), and any other condition, every `until_not` included, is `wait` (`Browser.waitForFunction`), labelled with the condition (an `expected_conditions` condition by its name and arguments). | As for Node.js. |
 
 ## Output format — `traceFormat`
 
@@ -174,11 +191,13 @@ Writes a `devtools-artifacts-<sessionId>.json` next to the trace — a generic i
 
 Assertions surface as first-class action rows in the trace (on by default; set `captureAssertions: false` to opt out):
 
-- **`node:assert`** — captured across all three adapters as `assert.<method>` rows.
+- **`node:assert`** — captured across all three JavaScript adapters as `assert.<method>` rows. The Python adapter captures Python's own `assert` statement the same way; see the Python tab of [Selenium → Assertions](/docs/devtools/selenium#assertions).
 - **WebdriverIO `expect`** — passing *and* failing `expect(...)` matchers (`expect($el).toHaveText(...)`, `toBeExisting()`, …) appear as `expect.<matcher>` rows carrying the expected value, the element's source location, and a snapshot; the matcher's internal polling commands are suppressed so only the assertion shows.
 - **Nightwatch `browser.assert.*` / `browser.verify.*`** — native assertions surface as `assert.<m>` / `verify.<m>` rows.
 
 Passing assertions render green; failing ones render red with the error message.
+
+An assertion row names the element it is about, so selecting it boxes that element in the snapshot. A `node:assert` call (or a Python `assert`) takes values rather than elements, so its element comes from where the asserted value was read: `assert.equal(await heading.getText(), 'Secure Area')` names `heading`'s selector, and so does a value from any other element read, `getHTML` and `getComputedRole` included. Only a read made earlier in the same test (or Cucumber scenario) counts, and a value read from the page itself rather than from an element, such as the title or the URL, names no element, even when some element's text reads the same: `assert.notEqual(await browser.getTitle(), 'Secure Area')` boxes nothing. WebdriverIO's `browser.getTitle()` is a `Page.getTitle` row of its own, and `expect(browser).toHaveTitle(...)` folds into that read as one `expect.toHaveTitle` row.
 
 ## Mobile testing
 

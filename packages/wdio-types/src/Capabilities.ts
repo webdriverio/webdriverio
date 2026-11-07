@@ -722,6 +722,7 @@ export interface AppiumAndroidCapabilities {
     'appium:chromedriverExecutable'?: string
     'appium:chromedriverArgs'?: string[]
     'appium:chromedriverExecutableDir'?: string
+    'appium:chromedriverForwardBiDi'?: boolean
     'appium:chromedriverChromeMappingFile'?: string
     'appium:chromedriverUseSystemExecutable'?: boolean
     'appium:autoWebviewTimeout'?: number

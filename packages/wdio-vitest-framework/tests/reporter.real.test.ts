@@ -168,6 +168,7 @@ describe('WdioBridgeReporter with the real JUnit reporter', () => {
             bridge.onTestModuleStart(module)
             await bridge.onTestModuleEnd(module)
 
+            // the reporter opens its file asynchronously (createWriteStream), and waitForSync() does not wait for it
             await vi.waitFor(async () => {
                 const [file] = await fs.readdir(outputDir)
                 expect(file).toBeDefined()

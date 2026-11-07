@@ -64,6 +64,10 @@ npx @wdio/mcp --http \
 
 Requests from non-browser clients (no `Origin` header) are not subject to the CORS check; only `--allowedHosts` applies.
 
+### Request size
+
+HTTP requests with a body over 1 MiB (1,048,576 bytes) are rejected with `413 Payload too large` before they reach the MCP handler.
+
 ## Use Cases
 
 ### llama.cpp web UI

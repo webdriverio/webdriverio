@@ -27,6 +27,8 @@ Check a machine with `npx wdio session doctor`. Agents install the skill with
 
 ## Use the actions from code
 
+Install `webdriverio` next to this package: it is a required peer dependency.
+
 `@wdio/session/agent` runs the same actions, snapshots and refs on a browser
 your code already owns, for example in a test or a `remote()` script. There is
 no daemon. `dispose()` leaves the browser session open.

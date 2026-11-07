@@ -38,7 +38,7 @@ describe('spec reporter tree (suite order)', () => {
         }
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'outer',
             '   ✓ o1',
             '',
@@ -74,7 +74,7 @@ describe('spec reporter tree (suite order)', () => {
         reporter.emit('suite:end', suite('F2', 'feature'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'F1',
             'F1-S1',
             '   ✓ step-b',
@@ -103,7 +103,7 @@ describe('spec reporter tree (suite order)', () => {
         reporter.emit('suite:end', suite('C', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ a1',
             '   ✓ a2',
@@ -130,7 +130,7 @@ describe('spec reporter pending reasons', () => {
         reporter.emit('suite:end', suite('S', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'S',
             '   ✓ t1',
             '   - t2',
@@ -157,7 +157,7 @@ describe('spec reporter pending reasons', () => {
         reporter.emit('suite:end', suite('F', 'feature'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'F',
             'S (1x retries)',
             '   ✓ step1',
@@ -226,7 +226,7 @@ describe('spec reporter hooks of a feature', () => {
         reporter.emit('suite:end', suite('F', 'feature'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'F',
             '   ✖ BeforeAll (steps.ts:3)',
             '   ✖ AfterAll (steps.ts:9)',
@@ -268,7 +268,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         reporter.emit('suite:end', suite('A', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ "before all" hook for A',
             '',
@@ -296,7 +296,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         reporter.emit('suite:end', suite('A', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✖ "before all" hook for A',
             '',
@@ -329,7 +329,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
             '         LOG jasmine-root-before',
             '          ',
             '',
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ a1',
             '',
@@ -401,7 +401,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         reporter.emit('suite:end', suite('A', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ "before all" hook for A',
             '',
@@ -435,7 +435,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         reporter.emit('suite:end', suite('A', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ a1',
             '   ✓ "after all" hook for A',
@@ -498,7 +498,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         reporter.emit('suite:end', suite('A', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'A',
             '   ✓ "before all" hook for A',
             '',
@@ -522,7 +522,7 @@ describe('spec reporter console logs of a beforeAll / afterAll', () => {
         runTest(reporter, 'a1')
         reporter.emit('suite:end', suite('A', 'suite'))
 
-        expect(display(reporter)).toEqual(['» spec.js', 'A', '   ✓ a1', ''])
+        expect(display(reporter)).toEqual(['» /spec.js', 'A', '   ✓ a1', ''])
     })
 })
 
@@ -596,7 +596,7 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         runHook(reporter, allHook('h2', 'afterAll', '"after all" hook in "{root}"'), 'LOG root-after\n', end)
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'outer',
             '   ✓ o1',
             '',
@@ -626,7 +626,7 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         reporter.emit('suite:end', suite('outer', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'outer',
             '   ✓ o1',
             '',
@@ -654,7 +654,7 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         reporter.emit('suite:end', suite('F', 'feature'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'F',
             '   ✓ BeforeAll (steps.ts:3)',
             ...logs('LOG before-all'),
@@ -687,7 +687,7 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         reporter.emit('suite:end', suite('outer', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'outer',
             '   ✓ o1',
             '',
@@ -713,7 +713,7 @@ describe('spec reporter after all hook of a suite with child suites', () => {
         reporter.emit('suite:end', suite('outer', 'suite'))
 
         expect(display(reporter)).toEqual([
-            '» spec.js',
+            '» /spec.js',
             'outer',
             '   ✓ o1',
             '   ✖ "after all" hook for outer',

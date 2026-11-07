@@ -12,7 +12,7 @@ import { settleFreshPage } from '../settle.js'
 import { quote } from '../quote.js'
 import { blockAround, headingAbove, lineTest, matchIndex, searchLines } from '../snapshot/find.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
-import { formatSnapshot, renderSnapshot } from '../snapshot/render.js'
+import { formatSnapshot, renderSnapshot, snapshotView } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import { currentPage, frameBySrc, frameContext } from './contexts.js'
 import type { Cmd } from '../hints.js'
@@ -218,8 +218,12 @@ export interface TakenSnapshot {
  * `isCurrent` is asked once the page answered: when it returns false the
  * caller has given up on this snapshot, so it leaves the session untouched.
  */
+function isWebSnapshot (session: Session) {
+    return session.isWeb && !(session.applies.includes('M') && !session.applies.includes('W'))
+}
+
 export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}, isCurrent = () => true): Promise<TakenSnapshot> {
-    if (!session.isWeb || (session.applies.includes('M') && !session.applies.includes('W'))) {
+    if (!isWebSnapshot(session)) {
         const native = await takeNativeSnapshot(session, opts)
         if (!isCurrent()) {
             throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
@@ -276,8 +280,21 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
     }
 }
 
+const NO_BASELINE_NOTE = 'No previous snapshot, printing this one; the next --diff compares with it.'
+const OTHER_VIEW_NOTE = 'Previous snapshot was taken with other --scope, -i, --all or --urls options, printing this one; the next --diff compares with it.'
+
 export const snapshot: ActionFn = async (session, args) => {
-    const { text, tree } = await takeSnapshot(session, snapshotOptions(args))
+    const before = session.lastSnapshot
+    const beforeView = session.lastSnapshotView
+    const offset = typeof args.offset === 'number' && args.offset > 1 ? Math.floor(args.offset) : 1
+    if (args.diff && args.viewport && isWebSnapshot(session)) {
+        throw new SessionError('USAGE', '--diff needs the whole page: a web --viewport snapshot does not update the diff baseline.')
+    }
+    if (args.diff && offset > 1) {
+        throw new SessionError('USAGE', '--diff is computed fresh each call, so --offset cannot page it.')
+    }
+    const opts = snapshotOptions(args)
+    const { text, tree } = await takeSnapshot(session, opts)
     if (args.$agent) {
         const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
         const lines = text.split('\n').length
@@ -292,17 +309,31 @@ export const snapshot: ActionFn = async (session, args) => {
     const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const lines = text.split('\n').length
     const refs = countRefs(text)
-    const offset = typeof args.offset === 'number' && args.offset > 1 ? Math.floor(args.offset) : 1
     const data = { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) }
     if (args.fileOnly) {
         return { text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`, data, files: [file] }
     }
+    const view = snapshotView(opts)
+    if (args.diff && before !== undefined && beforeView === view) {
+        const result = unifiedDiff(before, session.lastSnapshot!)
+        const diffLines = result.split('\n')
+        const page = pageOf(diffLines, 1, maxChars)
+        if (page.to === diffLines.length) {
+            return { text: result || 'No changes', data: { ...data, changed: Boolean(result), diff: result }, files: [file] }
+        }
+        return {
+            text: `${page.text}\n… diff cut at line ${page.to} of ${diffLines.length}; whole snapshot: ${file}`,
+            data: { ...data, changed: true, diff: result, cut: true },
+            files: [file]
+        }
+    }
+    const note = args.diff ? `${before === undefined ? NO_BASELINE_NOTE : OTHER_VIEW_NOTE}\n` : ''
     if (text.length <= maxChars && offset === 1) {
-        return { text, data, files: [file] }
+        return { text: note + text, data, files: [file] }
     }
     const page = pageOf(text.split('\n'), offset, maxChars)
     return {
-        text: [page.text, pageFooter(session.cmd, page, lines, file, repeatFlags(args), hintArgs(args))].join('\n'),
+        text: [note + page.text, pageFooter(session.cmd, page, lines, file, repeatFlags(args), hintArgs(args))].join('\n'),
         data: { ...data, from: page.from, to: page.to },
         files: [file]
     }
@@ -333,9 +364,9 @@ function pageOf (lines: string[], from: number, maxChars: number) {
     return { text: shown.join('\n'), from: start + 1, to: start + shown.length, cut }
 }
 
-/** the snapshot arguments a hint repeats, for a formatter to name */
+/** the snapshot arguments a hint repeats, for a formatter to name; never `diff`, which cannot be paged */
 function hintArgs (args: Record<string, unknown>) {
-    return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$')))
+    return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$') && key !== 'diff'))
 }
 
 function pageFooter (cmd: Cmd, page: { from: number, to: number, cut?: { line: number, length: number } }, total: number, file: string, flags: string, args: Record<string, unknown>) {
@@ -439,12 +470,16 @@ export const find: ActionFn = async (session, args) => {
     let { lines, shown, matches, note } = search(linked)
     const baseline = lines.join('\n')
     session.lastSnapshot = baseline
+    // `searchLines` drops the link URLs, so the baseline is a snapshot without --urls
+    const baselineView = snapshotView({ scope })
+    session.lastSnapshotView = baselineView
     let hidden = false
     if (!matches.length) {
         // in a closed menu, tab, accordion or behind "Show more": say so instead of "no match"
         const { text: all } = await takeSnapshot(session, { urls: true, scope, all: true })
         // the hidden-inclusive page is not what `diff` compares against
         session.lastSnapshot = baseline
+        session.lastSnapshotView = baselineView
         const found = search(all)
         if (found.matches.length) {
             ({ lines, shown, matches } = found)
@@ -675,8 +710,10 @@ const MAX_IN_VIEW_CHARS = 3000
 export async function describeViewport (session: Session): Promise<string> {
     // a report, not a snapshot the user took: `diff` keeps comparing against theirs
     const baseline = session.lastSnapshot
+    const baselineView = session.lastSnapshotView
     const { tree } = await takeSnapshot(session, { viewport: true })
     session.lastSnapshot = baseline
+    session.lastSnapshotView = baselineView
     const lines = formatSnapshot(tree, { frameHint: session.frameHint, compact: true }).split('\n')
     const out: string[] = []
     let size = 0

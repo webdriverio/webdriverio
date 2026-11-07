@@ -103,6 +103,30 @@ describe('selectByAttribute test', () => {
         })
     })
 
+    it.each([
+        { value: '12" monitor', literal: '\'12" monitor\'' },
+        { value: "John's monitor", literal: '"John\'s monitor"' },
+        { value: 'John\'s 12" monitor', literal: 'concat("John\'s 12", \'"\', " monitor")' },
+        { value: '"John\'s monitor"', literal: 'concat(\'"\', "John\'s monitor", \'"\')' }
+    ])('should select an attribute value containing quotes: $value', async ({ value, literal }) => {
+        await elem.selectByAttribute('value', ` ${value} `)
+
+        const predicate = `[normalize-space(@value) = ${literal}]`
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/element/some-elem-123/element' }),
+            expect.objectContaining({
+                body: JSON.stringify({
+                    using: 'xpath',
+                    value: `./option${predicate}|./optgroup/option${predicate}`
+                })
+            })
+        )
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/element/some-sub-elem-321/click' }),
+            expect.objectContaining({ method: 'POST' })
+        )
+    })
+
     it('should throw if option is not found', async () => {
         const mockElem = {
             options: {},

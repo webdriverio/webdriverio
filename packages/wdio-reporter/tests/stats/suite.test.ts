@@ -1,3 +1,5 @@
+import path from 'node:path'
+import url from 'node:url'
 import { test, expect } from 'vitest'
 import SuiteStats from '../../src/stats/suite.js'
 
@@ -66,4 +68,19 @@ test('clearAttempt() keeps the start of the first attempt, as main', () => {
     expect(suite.start).toBe(start)
     expect(suite.tests).toHaveLength(0)
     expect(suite.retries).toBe(1)
+})
+
+test('takes no root mark from the payload', () => {
+    expect('isRoot' in new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: '/a.spec.js', isRoot: true } as never)).toBe(false)
+})
+
+// Jasmine gives the file of an ESM spec as a URL, the base reporter the URL of the runner for a suite with none
+test('keeps the spec file of a suite as a path', () => {
+    const file = path.resolve('specs', 'a.spec.mjs')
+    expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: url.pathToFileURL(file).href }).file).toBe(file)
+    expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: 'unknown spec file' }).file).toBe('unknown spec file')
+})
+
+test('ignores a suite file that is not a text', () => {
+    expect(new SuiteStats({ title: 'foobar', fullTitle: 'foobar', file: new URL('file:///a.spec.js') as never }).file).toBeUndefined()
 })

@@ -295,7 +295,16 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
                 const userHookFn = function (this: World, ...args: unknown[]) {
                     return hookFn.apply(this, args)
                 }
-                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+                /**
+                 * Cucumber does not hand the options of a hook to the definition wrapper, so keep the
+                 * timeout of the hook on its function for the wrapper
+                 */
+                const hookTimeout = (testRunHookDefinition.options as { timeout?: unknown } | undefined)?.timeout
+                const wrappedHook = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+                if (typeof hookTimeout === 'number') {
+                    Object.assign(wrappedHook, { hookTimeout })
+                }
+                testRunHookDefinition.code = wrappedHook
             }
         })
     })

@@ -27,11 +27,30 @@ describe('DialogManager', () => {
             off: vi.fn(),
             removeAllListeners: vi.fn(),
             emit: vi.fn(),
+            listenerCount: vi.fn().mockReturnValue(0),
             browsingContextHandleUserPrompt: vi.fn()
         }
         // Mock isEnabled to bypass environment check which disables it in unit tests
         vi.spyOn(DialogManager.prototype, 'isEnabled').mockReturnValue(true)
         dialogManager = new DialogManager(browser)
+    })
+
+    it('should not need the listeners of a browser it is disabled for', () => {
+        vi.mocked(DialogManager.prototype.isEnabled).mockReturnValueOnce(false)
+        const { listenerCount: _, ...browserWithoutListenerCount } = browser
+        expect(() => new DialogManager(browserWithoutListenerCount)).not.toThrow()
+    })
+
+    it('should keep a registered dialog listener when the manager is rebuilt for the same browser', async () => {
+        // as after `reloadSession()`: a new manager, the user listener stays on the browser
+        browser.listenerCount.mockImplementation((event: string) => event === 'dialog' ? 1 : 0)
+        browser.on.mockClear()
+        new DialogManager(browser)
+        const userPromptHandler = browser.on.mock.calls.find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+        await userPromptHandler({ context: 'some-context', message: 'hi', type: 'alert' })
+
+        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+        expect(browser.emit).toHaveBeenCalledWith('dialog', expect.any(Dialog))
     })
 
     it('should ignore "no such alert" error when auto-handling dialogs', async () => {
@@ -107,6 +126,7 @@ describe('Dialog - Browser', () => {
             off: vi.fn(),
             removeAllListeners: vi.fn(),
             emit: vi.fn(),
+            listenerCount: vi.fn().mockReturnValue(0),
         }
     })
 
