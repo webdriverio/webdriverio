@@ -127,15 +127,16 @@ interface WindowSwitches {
      */
     pending: { handle: string, body: unknown, superseded?: boolean }[]
     /**
-     * the context the driver is in: the one before the switches, then the handle of each
-     * switch that succeeds, in the order of the results
+     * the context to go back to when the pending switches fail: the one before the switches
+     * (or that a newer transition set), then the handle of each switch that succeeds, in the
+     * order of the results
      */
     context?: string
 }
 
 /**
  * The context that `switchToWindow` commands give: the target of the last one without a
- * result yet that is not superseded, or else the context the driver is in.
+ * result yet that is not superseded, or else the context to go back to.
  */
 function windowSwitchTarget ({ pending, context }: WindowSwitches) {
     for (let i = pending.length - 1; i >= 0; i--) {
@@ -168,7 +169,7 @@ export class ContextManager extends SessionManager {
     #getContextSupport = true
     #currentWindowHandle?: string
     /**
-     * the `switchToWindow` commands without a result yet, and the context the driver is in while they run
+     * the `switchToWindow` commands without a result yet, and the context to go back to when they fail
      */
     #windowSwitches?: WindowSwitches
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
