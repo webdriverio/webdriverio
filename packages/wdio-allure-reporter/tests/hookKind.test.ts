@@ -37,7 +37,7 @@ function createRun(framework = 'mocha', withKind = true) {
             open.pop()
             emit('suite:end', { uid, title, fullTitle: title, parent: open.at(-1) ?? '', parentUid: open.length ? `suite-${open.at(-1)}` : null })
         },
-        hook(kind: HookKind, error?: Error, step?: string) {
+        hook(kind: HookKind, error?: Error | { errors: Error[] }, step?: string) {
             const uid = `hook-${hooks++}`
             const suite = open.at(-1)
             const title = suite ? `"${PHRASE[kind]}" hook for ${suite}` : `"${PHRASE[kind]}" hook in "{root}"`
@@ -52,7 +52,12 @@ function createRun(framework = 'mocha', withKind = true) {
                 emit('client:beforeCommand', { command: step, method: 'POST', endpoint: '/x', body: {}, sessionId: 's' })
                 emit('client:afterCommand', { command: step, method: 'POST', endpoint: '/x', result: { value: null }, sessionId: 's' })
             }
-            emit('hook:end', { ...payload, ...(error ? { error: { name: error.name, message: error.message, stack: error.stack }, state: 'fail' } : { state: 'pass' }) })
+            const errPayload = error
+                ? ('errors' in error
+                    ? { errors: error.errors }
+                    : { error: { name: error.name, message: error.message, stack: error.stack } })
+                : {}
+            emit('hook:end', { ...payload, ...errPayload, ...(error ? { state: 'fail' } : { state: 'pass' }) })
         },
         test(title: string, outcome: 'pass' | 'fail' = 'pass') {
             const suite = open.at(-1)
@@ -229,6 +234,35 @@ describe('historyId, testCaseId and fullName (HI rules)', () => {
         expect(results.map((r) => [r.name, r.status, r.historyId])).toEqual([
             ['"before all" hook for A', 'broken', md5('A "before all" hook for A#chrome')],
         ])
+        expect(results[0].statusDetails.message).toBe('before all fails')
+        expect(results[0].statusDetails.trace).toContain('before all fails')
+    })
+
+    it('pins the historyId and statusDetails of a failed before all hook without hookKind', async () => {
+        const run = createRun('mocha', false)
+        run.start()
+        run.suite('A', () => run.hook('beforeAll', new Error('before all fails')))
+        const { results } = await run.end()
+
+        expect(results).toHaveLength(1)
+        expect(results[0].status).toBe('broken')
+        expect(results[0].statusDetails?.message).toBe('before all fails')
+        expect(results[0].statusDetails?.trace).toContain('before all fails')
+        expect(results[0].historyId).toBe(md5('A "before all" hook for A#chrome'))
+    })
+
+    it('populates statusDetails and historyId when hook fails with errors array', async () => {
+        const run = createRun('mocha', false)
+        run.start()
+        const err = new Error('hook error from errors array')
+        run.suite('A', () => run.hook('beforeAll', { errors: [err] }))
+        const { results } = await run.end()
+
+        expect(results).toHaveLength(1)
+        expect(results[0].status).toBe('broken')
+        expect(results[0].statusDetails?.message).toBe('hook error from errors array')
+        expect(results[0].statusDetails?.trace).toContain('hook error from errors array')
+        expect(results[0].historyId).toBe(md5('A "before all" hook for A#chrome'))
     })
 })
 
