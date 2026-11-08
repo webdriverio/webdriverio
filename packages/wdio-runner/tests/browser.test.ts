@@ -246,6 +246,34 @@ describe('BrowserFramework browser errors', () => {
         process.send = originalSend
     })
 
+    it('reports no load error for a test page that got its first byte less than 5 s ago, as right after a reload', async () => {
+        browser.execute.mockResolvedValue(undefined)
+        framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        const fetchExecutionState = browser.execute.mock.calls[0][0] as () => unknown
+        // times from the start of the navigation: the server sent the first byte after 6 s, as a cold Vite start
+        const page = {
+            document: { readyState: 'loading', title: '', querySelector: () => null, documentElement: { innerHTML: '' } },
+            window: {},
+            performance: { now: () => 10_999, getEntriesByType: () => [{ responseStart: 6000 }] }
+        }
+        vi.stubGlobal('document', page.document)
+        vi.stubGlobal('window', page.window)
+        vi.stubGlobal('performance', page.performance)
+        const loadError = { errors: [{ message: expect.stringContaining('Failed to load test page') }] }
+        try {
+            expect(fetchExecutionState()).toBeUndefined()
+            // a page that does not finish to load still reports why
+            page.performance.now = () => 11_000
+            expect(fetchExecutionState()).toMatchObject(loadError)
+            page.performance.now = () => 6000
+            page.document.readyState = 'interactive'
+            expect(fetchExecutionState()).toMatchObject(loadError)
+        } finally {
+            vi.unstubAllGlobals()
+        }
+    })
+
     it('ignores browser log errors that are logged after the tests started', async () => {
         browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
         browser.getLogs.mockResolvedValue([severeLog(1500)])

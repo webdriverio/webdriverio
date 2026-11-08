@@ -536,6 +536,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         this.#isCheckingError = true
         try {
             const testError = await browser.execute(function fetchExecutionState () {
+                // a page that got its first byte less than 5 s ago, e.g. right after a reload, has no title and no test framework yet
+                const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+                if (document.readyState === 'loading' && performance.now() - (navigation?.responseStart ?? 0) < 5000) {
+                    return undefined
+                }
                 let viteError
                 const viteErrorElem = document.querySelector('vite-error-overlay')
                 if (viteErrorElem && viteErrorElem.shadowRoot) {
