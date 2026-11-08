@@ -21,6 +21,7 @@ import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_
  * modules load (for example on `MultiRemoteDriver.prototype`), so keep them real
  */
 export { WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, isArrayOfElements } from '../../packages/wdio-utils/src/kind.js'
+export { isStaleElementError } from '../../packages/wdio-utils/src/staleElement.js'
 
 class DotReporter {
     options: any

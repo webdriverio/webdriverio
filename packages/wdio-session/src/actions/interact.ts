@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
+import { UNICODE_CHARACTERS, getWdioKind, isStaleElementError } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 import { refId } from '@wdio/snapshot'
 
@@ -288,9 +288,6 @@ export const click: ActionFn = async (session, args) => {
     return done(text, `await ${target.code}.${call}`)
 }
 
-/** the stale element errors of each driver, as webdriverio's `isStaleElementError` knows them */
-const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference|no such node - SharedId ".*" was not found|Node with given id does not belong to the document/i
-
 /**
  * A CSS path or position (`ul > li:nth-of-type(2)`), as opposed to a
  * selector that names the element. A name can contain " > " too ("Home >
@@ -330,6 +327,8 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
     throw new Error('stale element reference: no selector finds the element again')
 }
 
+const isStale = (err: unknown) => typeof (err as Error)?.message === 'string' && isStaleElementError(err as Error)
+
 /**
  * A page that re-renders a list (a dropdown that opened) replaces the
  * element between finding and clicking it. One more try on the element
@@ -337,13 +336,13 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
  * on the driver's error.
  */
 async function retryStale (err: unknown, retry: () => Promise<unknown>, label: string, cmd: Cmd) {
-    if (!STALE.test((err as Error)?.message ?? '')) {
+    if (!isStale(err)) {
         throw err
     }
     try {
         return await retry()
     } catch (again) {
-        if (!STALE.test((again as Error)?.message ?? '')) {
+        if (!isStale(again)) {
             throw again
         }
         throw new SessionError('REF_STALE', `${label} was replaced by the page while it was clicked.`, {

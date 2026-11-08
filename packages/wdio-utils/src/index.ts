@@ -23,6 +23,7 @@ import {
 import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
 import { toXPathStringLiteral } from './xpath.js'
+import { isStaleElementError } from './staleElement.js'
 import type { ChromedriverParameters } from './driverOptions.js'
 
 export {
@@ -110,6 +111,11 @@ export {
      * XPath 1.0 string literal of a value with any quotes
      */
     toXPathStringLiteral,
+
+    /**
+     * the stale element errors of each driver
+     */
+    isStaleElementError,
 
     /**
      * BiDi context allocation for parallel test execution
