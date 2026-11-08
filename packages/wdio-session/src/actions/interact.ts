@@ -289,7 +289,7 @@ export const click: ActionFn = async (session, args) => {
 }
 
 /** the stale element errors of each driver, as webdriverio's `isStaleElementError` knows them */
-const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference/i
+const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference|no such node - SharedId ".*" was not found|Node with given id does not belong to the document/i
 
 /**
  * A CSS path or position (`ul > li:nth-of-type(2)`), as opposed to a
