@@ -33,6 +33,15 @@ function isClosedWindowError (err: Error) {
     return err.name === 'no such window' || err.message.includes('no such frame')
 }
 
+// the test page has the cid of its worker in its URL
+function isTestPageOf (cid: string, url: string) {
+    try {
+        return new URL(url).searchParams.get('cid') === cid
+    } catch {
+        return false
+    }
+}
+
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 
 interface TestState {
@@ -63,8 +72,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
     #testPageHandle?: string
     /**
-     * the tab of the test page in a WebDriver BiDi session: the runner reads the test page there,
-     * also while the test works in another window; WebDriver Classic can only read the current window
+     * the tab of the test page in a WebDriver BiDi session: the runner reads the test page there, also while
+     * the test works in another window. Without it (WebDriver Classic, where `url()` returns the browser),
+     * the runner reads the current window.
      */
     #testPageTab?: WebdriverIO.BrowsingContext
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -147,14 +157,16 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
-            this.#testPageTab = await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            const testPage = await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            // an overwrite of `url()` can return another value
+            this.#testPageTab = getWdioKind(testPage) === 'browsing-context' ? testPage : undefined
+        } else if (browser.isBidi) {
+            // watch mode: the last run can leave another window as the current one, so find the tab by its URL
+            const tabs = await browser.browsingContexts().catch(() => [] as WebdriverIO.BrowsingContext[])
+            this.#testPageTab = tabs.find((tab) => isTestPageOf(this._cid, tab.url))
         }
         // the tab has the handle in a WebDriver BiDi session
         this.#testPageHandle = this.#testPageTab?.contextId ?? await browser.getWindowHandle().catch(() => undefined)
-        if (this._config.sessionId && browser.isBidi) {
-            const tabs = await browser.browsingContexts().catch(() => [] as WebdriverIO.BrowsingContext[])
-            this.#testPageTab = tabs.find((tab) => tab.contextId === this.#testPageHandle)
-        }
         // await browser.debug()
 
         /**
@@ -533,8 +545,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * skip this check, the next one runs 500 ms later:
              * - the page replaced its document, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
-             * - WebDriver Classic: the check ran in a window that the test closed, e.g. a popup during
-             *   `closeWindow()`, and the test page is still open
+             * - the check ran in a window that the test closed, e.g. a popup during `closeWindow()`, and the
+             *   test page is still open: only when the runner reads the current window (see `#testPageTab`)
              */
             const skip = err.message.includes('Cannot find context with specified id') ||
                 (isClosedWindowError(err) && await this.#isTestPageOpen())
