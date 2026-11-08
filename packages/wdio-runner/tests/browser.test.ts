@@ -513,8 +513,8 @@ describe('BrowserFramework browser errors', () => {
 
     // the errors that a state check gets when it runs in a window that closes, e.g. a popup after closeWindow()
     const closedWindowErrors = {
-        'WebDriver BiDi in Chrome': new Error('WebDriver Bidi command "script.callFunction" failed with error: no such frame - Context 92A1E179CF613B87930B5970E6AE1A9D not found'),
-        'WebDriver Classic and Firefox': Object.assign(new Error('target window already closed'), { name: 'no such window' })
+        'WebDriver BiDi': new Error('WebDriver Bidi command "script.callFunction" failed with error: no such frame - Context 92A1E179CF613B87930B5970E6AE1A9D not found'),
+        'WebDriver Classic': Object.assign(new Error('target window already closed'), { name: 'no such window' })
     }
 
     it.each([
@@ -555,6 +555,31 @@ describe('BrowserFramework browser errors', () => {
             vi.useRealTimers()
             await new Promise((resolve) => setImmediate(resolve))
             expect(unhandled).toHaveBeenCalledWith(error, expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('still surfaces a state check in the tab of the test page when the test page is gone', async () => {
+        const tab = testPageTab()
+        tab.execute
+            .mockRejectedValueOnce(closedWindowErrors['WebDriver BiDi'])
+            .mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.url.mockResolvedValue(tab)
+        browser.getWindowHandles.mockResolvedValue(['popup'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(closedWindowErrors['WebDriver BiDi'], expect.anything())
 
             await finishSpec(0)
             expect(await result).toBe(0)

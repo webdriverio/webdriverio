@@ -28,7 +28,7 @@ const sep = '\n  - '
 const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
-// the error of a command in a window that closed: BiDi in Chrome gives "no such frame", the other drivers "no such window"
+// the error of a command in a window that closed: a WebDriver BiDi script command gives "no such frame", a WebDriver Classic command "no such window"
 function isClosedWindowError (err: Error) {
     return err.name === 'no such window' || err.message.includes('no such frame')
 }
