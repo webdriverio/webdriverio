@@ -841,8 +841,13 @@ export async function executeAsync(
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
+        /**
+         * Mocha timed it out in `beforeTest` and runs the next test: the body must not start,
+         * the timeout check below fails this attempt at once
+         */
+        const timedOutBeforeStart = Boolean(frameworkTimer && runnable?.timedOut)
         const result = await Promise.race([
-            fn.apply(this, args),
+            timedOutBeforeStart ? new Promise<never>(() => {}) : fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
                 /**
                  * Mocha would fail the runnable and not wait for it, so the after hooks

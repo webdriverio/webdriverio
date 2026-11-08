@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
+import { wrapCommand, executeAsync, followFrameworkTimer, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -458,7 +458,7 @@ describe('executeAsync', () => {
             expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
         })
 
-        it('should fail a Mocha test at its deadline when the system clock is set back before the first check', async () => {
+        it('should fail a test without the Mocha timer at its deadline when the system clock is set back before the first check', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'mocha test',
@@ -477,7 +477,7 @@ describe('executeAsync', () => {
             expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
         })
 
-        it('should fail a Mocha test at its deadline when its timer fires less than 1 ms early', async () => {
+        it('should fail a test without the Mocha timer at its deadline when its timer fires less than 1 ms early', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'mocha test',
@@ -498,7 +498,7 @@ describe('executeAsync', () => {
             expect(settled).toHaveBeenCalledWith(new Error('Timeout of 200ms exceeded.'))
         })
 
-        it('should fail a retried Mocha test at its deadline when the system clock is set back during the retry', async () => {
+        it('should fail a retried test without the Mocha timer at its deadline when the system clock is set back during the retry', async () => {
             const runnable = {
                 _timeout: 200,
                 title: 'retried mocha test',
@@ -599,5 +599,94 @@ describe('executeAsync', () => {
         const fn = () => Promise.reject(new Error('Execution Error'))
         const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
         expect(result).toEqual('Execution Error')
+    })
+})
+
+/**
+ * A Mocha runnable as `followFrameworkTimer` sees it: Mocha keeps the real
+ * timer functions, so these use the ones of the test file, not fake timers
+ */
+const realSetTimeout = globalThis.setTimeout
+const realClearTimeout = globalThis.clearTimeout
+const realSleep = (ms: number) => new Promise((resolve) => realSetTimeout(resolve, ms))
+function mochaRunnable (ms: number) {
+    return {
+        _timeout: ms,
+        title: 'mocha test',
+        timer: undefined as ReturnType<typeof setTimeout> | undefined,
+        timedOut: false,
+        callback: vi.fn(),
+        timeout () { return this._timeout },
+        resetTimeout () { throw new Error('followFrameworkTimer replaces resetTimeout') },
+        clearTimeout () { realClearTimeout(this.timer) },
+        _timeoutError: (timeout: number) => new Error(`Timeout of ${timeout}ms exceeded.`)
+    }
+}
+
+describe('followFrameworkTimer', () => {
+    beforeEach(() => {
+        vi.useRealTimers()
+    })
+
+    it('times a runnable out as Mocha does when no test or hook runs, with the real timer also when a test fakes the timers', async () => {
+        const runnable = mochaRunnable(30)
+        followFrameworkTimer(runnable)
+        vi.useFakeTimers()
+        try {
+            runnable.resetTimeout()
+            await realSleep(60)
+        } finally {
+            vi.useRealTimers()
+        }
+        expect(runnable.callback).toHaveBeenCalledWith(new Error('Timeout of 30ms exceeded.'))
+        expect(runnable.timedOut).toBe(true)
+    })
+
+    it('hands the timeout to the test or hook that runs, not to Mocha', async () => {
+        const runnable = mochaRunnable(30)
+        followFrameworkTimer(runnable)
+        const result = executeAsync.call({} as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 30, undefined, runnable as any)
+            .catch((err: Error) => err)
+        // Mocha starts its timer when the wrapper returns its promise
+        runnable.resetTimeout()
+        expect(await result).toEqual(new Error('Timeout of 30ms exceeded.'))
+        expect(runnable.callback).not.toHaveBeenCalled()
+        runnable.clearTimeout()
+    })
+
+    it('keeps the timer while a test or hook runs, as Mocha clears it on an uncaught error', async () => {
+        const runnable = mochaRunnable(30)
+        followFrameworkTimer(runnable)
+        const result = executeAsync.call({} as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 30, undefined, runnable as any)
+            .catch((err: Error) => err)
+        runnable.resetTimeout()
+        runnable.clearTimeout()
+        expect(await result).toEqual(new Error('Timeout of 30ms exceeded.'))
+        // nothing runs now: Mocha can clear the timer that the timeout started again for the after hooks
+        runnable.clearTimeout()
+        await realSleep(60)
+        expect(runnable.callback).not.toHaveBeenCalled()
+    })
+
+    it('does not time out a runnable whose timeout was turned off after the timer started', async () => {
+        const runnable = mochaRunnable(30)
+        followFrameworkTimer(runnable)
+        runnable.resetTimeout()
+        runnable._timeout = 0
+        await realSleep(60)
+        expect(runnable.callback).not.toHaveBeenCalled()
+        expect(runnable.timedOut).toBe(false)
+        runnable.clearTimeout()
+    })
+
+    it('takes over a runnable once, and ignores a value that is not a Mocha runnable', () => {
+        const runnable = mochaRunnable(30)
+        followFrameworkTimer(runnable)
+        const { resetTimeout, clearTimeout } = runnable
+        followFrameworkTimer(runnable)
+        expect(runnable.resetTimeout).toBe(resetTimeout)
+        expect(runnable.clearTimeout).toBe(clearTimeout)
+        expect(() => followFrameworkTimer(undefined)).not.toThrow()
+        expect(() => followFrameworkTimer({ title: 'no timer' })).not.toThrow()
     })
 })

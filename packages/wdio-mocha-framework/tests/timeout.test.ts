@@ -52,13 +52,19 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
         )
     })
     lastRunnable = runnable
+    /**
+     * the Mocha Runner listens to this event, e.g. for a second `done()`; without
+     * a listener the error would be an unhandled rejection
+     */
+    const errors: Error[] = []
+    runnable.on('error', (err: Error) => errors.push(err))
     runnable.parent = new Mocha.Suite('suite', new Mocha.Context())
     runnable.timeout(timeout)
     runnable.ctx = ctx
-    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error, runnable: Mocha.Runnable & { timer?: unknown }, afterPassedNow: () => boolean | undefined }>((resolve) => {
+    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error, runnable: Mocha.Runnable & { timer?: unknown }, afterPassedNow: () => boolean | undefined, errors: Error[] }>((resolve) => {
         runnable.run((err?: Error) => {
             at.mochaDone = Date.now() - start
-            resolve({ err, at, afterPassed, afterError, runnable, afterPassedNow: () => afterPassed })
+            resolve({ err, at, afterPassed, afterError, runnable, afterPassedNow: () => afterPassed, errors })
         })
     })
 }
@@ -166,6 +172,16 @@ describe('Mocha timeout and the after hooks', () => {
         expect(result.afterPassedNow()).toBe(false)
         expect(result.at.afterHookEnd).toBeDefined()
         expect(result.runnable.timer).toBe(timer)
+    })
+
+    it('does not start the body of a test that Mocha timed out in beforeTest, as Mocha runs the next test', async () => {
+        const body = vi.fn(() => sleep(10))
+        const result = await run(body, { beforeTestTime: 400 })
+        expect(result.err?.message).toContain('Timeout of 300ms exceeded')
+        await sleep(250)
+        expect(body).not.toHaveBeenCalled()
+        // afterTest still gets the timeout of the test
+        expect(result.afterPassedNow()).toBe(false)
     })
 
     it('does not make Mocha wait for afterTest of a test that passed, as Mocha does', async () => {
@@ -291,5 +307,23 @@ describe('Mocha timeout and the after hooks', () => {
         const { err, afterPassed } = await run(() => sleep(400), { timeout: 0 })
         expect(err).toBeUndefined()
         expect(afterPassed).toBe(true)
+    })
+})
+
+/**
+ * `followFrameworkTimer` in `@wdio/utils` replaces these private methods of Mocha and copies
+ * what they do. When Mocha changes them, update that copy, then this text.
+ */
+describe('the Mocha timer that WebdriverIO copies', () => {
+    const source = (fn: Function) => fn.toString().replace(/\s+/g, ' ').trim()
+
+    it('is the same as when WebdriverIO copied it', () => {
+        const runnable = Mocha.Runnable.prototype as unknown as { resetTimeout: Function, clearTimeout: Function }
+        expect(source(runnable.resetTimeout)).toBe(
+            'resetTimeout() { var self = this; var ms = this.timeout() || MAX_TIMEOUT; this.clearTimeout(); ' +
+            'this.timer = setTimeout(function () { if (self.timeout() === 0) { return; } ' +
+            'self.callback(self._timeoutError(ms)); self.timedOut = true; }, ms); }'
+        )
+        expect(source(runnable.clearTimeout)).toBe('clearTimeout() { clearTimeout(this.timer); }')
     })
 })
