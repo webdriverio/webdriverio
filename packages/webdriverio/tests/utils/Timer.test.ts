@@ -63,6 +63,32 @@ describe('timer', () => {
         })
     })
 
+    it('waits the full timeout when the clock moves to the next millisecond during a check', async () => {
+        /**
+         * a second read of the clock in the same callback gets the next millisecond
+         */
+        const fakeNow = Date.now.bind(Date)
+        let lastRead: number | undefined
+        const now = vi.spyOn(Date, 'now').mockImplementation(() => {
+            const fake = fakeNow()
+            const read = fake === lastRead ? fake + 1 : fake
+            lastRead = fake
+            return read
+        })
+
+        let settled = false
+        const timer = new Timer(10, 100, () => Promise.resolve(false), true)
+        timer.catch(() => {
+            settled = true
+        })
+
+        await vi.advanceTimersByTimeAsync(99)
+        expect(settled).toBe(false)
+        await vi.advanceTimersByTimeAsync(1)
+        expect(settled).toBe(true)
+        now.mockRestore()
+    })
+
     it('should execute condition at least once', async () => {
         let wasExecuted = false
         const timer = new Timer(100, 200, () => new Promise((resolve) =>
