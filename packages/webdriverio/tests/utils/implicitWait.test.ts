@@ -82,6 +82,17 @@ describe('implicitWait', () => {
         expect(waitedFor(error)).toBe(true)
     })
 
+    /**
+     * the page replaced the element between the wait and the lookup after it: a child query
+     * on the not found element would run from the document (#16395)
+     */
+    it('throws when the element existed and its lookup after found no element', async () => {
+        vi.mocked(findElementAgain).mockResolvedValueOnce({ selector: '#missing', error: new Error('no such element') } as unknown as WebdriverIO.Element)
+        const error = await implicitWait(missing(async () => true), '$').then(() => null, (err: Error) => err)
+        expect(error?.message).toBe('Can\'t call $ on element with selector "#missing" because element wasn\'t found')
+        expect(waitedFor(error)).toBe(false)
+    })
+
     it('throws a strict-mode violation as it is, without a flag', async () => {
         const strict = new StrictSelectorError('#missing', 2)
         const error = await implicitWait(missing(async () => { throw strict }), 'getText').then(() => null, (err: Error) => err)

@@ -551,14 +551,9 @@ describe('WebdriverIO object brand matrix', () => {
             /**
              * the fetch mock finds a child of a not-found element, so only the brands are relevant here
              */
-            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: E }],
-            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: A }],
-            ['#65 parentElement() of a not-found element', {
-                make: (b) => b.$('#nonexisting').parentElement(),
-                pending: 'element query',
-                awaited: E,
-                hasError: true
-            }],
+            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: 'rejects' }],
+            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: 'rejects' }],
+            ['#65 parentElement() of a not-found element', { make: (b) => b.$('#nonexisting').parentElement(), pending: 'element query', awaited: 'rejects' }],
             ['#66 a command on a not-found element', { make: (b) => b.$('#nonexisting').getTagName(), pending: 'other promise', awaited: 'rejects' }],
             ['#67 custom$ with an unknown strategy', { make: (b) => b.custom$('nope', 'x'), pending: 'element query', awaited: 'rejects' }],
             ['#68 custom$$ with an unknown strategy', { make: (b) => b.custom$$('nope', 'x'), pending: 'list query', awaited: 'rejects' }],
