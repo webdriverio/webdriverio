@@ -103,7 +103,7 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     async run (runArgs: RunArgs): Promise<WorkerInstance> {
-        runArgs.caps = makeHeadless(this.options, runArgs.caps)
+        runArgs.caps = makeHeadless(this.options, runArgs.caps, this.#config, runArgs.execArgv)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 
         const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)

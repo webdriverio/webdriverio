@@ -149,7 +149,12 @@ export async function configureBrowserInspector (
     return caps
 }
 
-export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+export function makeHeadless (
+    options: BrowserRunnerOptions,
+    caps: WebdriverIO.Capabilities,
+    config?: WebdriverIO.Config,
+    execArgv: string[] = process.execArgv
+): WebdriverIO.Capabilities {
     const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
     if (!capability.browserName) {
         throw new Error(
@@ -160,7 +165,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
 
     if (
         // do not force headless when inspect mode is enabled unless explicitly requested
-        (options.inspect && options.headless !== true) ||
+        (hasInspectorOption(options, config, execArgv) && options.headless !== true) ||
         // either user sets headless option implicitly
         (typeof options.headless === 'boolean' && !options.headless) ||
         // or CI environment is set

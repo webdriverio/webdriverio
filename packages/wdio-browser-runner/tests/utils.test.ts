@@ -79,7 +79,16 @@ describe('makeHeadless', () => {
         expect(makeHeadless({ inspect: true }, { browserName: 'chrome' })).toEqual({
             browserName: 'chrome'
         })
+        expect(makeHeadless({}, { browserName: 'chrome' }, { execArgv: ['--inspect'] } as any)).toEqual({
+            browserName: 'chrome'
+        })
         expect(makeHeadless({ inspect: true, headless: true }, { browserName: 'chrome' })).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['headless', 'disable-gpu']
+            }
+        })
+        expect(makeHeadless({ headless: true }, { browserName: 'chrome' }, { execArgv: ['--inspect'] } as any)).toEqual({
             browserName: 'chrome',
             'goog:chromeOptions': {
                 args: ['headless', 'disable-gpu']
