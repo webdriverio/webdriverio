@@ -228,6 +228,8 @@ describe('BrowserFramework browser errors', () => {
             url: vi.fn().mockResolvedValue(undefined),
             setCookies: vi.fn().mockResolvedValue(undefined),
             execute: vi.fn(),
+            getWindowHandle: vi.fn().mockResolvedValue('test-page'),
+            getWindowHandles: vi.fn().mockResolvedValue(['test-page']),
             getLogs: vi.fn(),
             refresh: vi.fn().mockResolvedValue(undefined)
         }
@@ -375,6 +377,54 @@ describe('BrowserFramework browser errors', () => {
             vi.useRealTimers()
             await new Promise((resolve) => setImmediate(resolve))
             expect(unhandled).toHaveBeenCalledWith(expect.objectContaining({ message: 'browser crashed' }), expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    // the errors that a state check gets when it runs in a window that closes, e.g. a popup after closeWindow()
+    const closedWindowErrors = {
+        'WebDriver BiDi in Chrome': new Error('WebDriver Bidi command "script.callFunction" failed with error: no such frame - Context 92A1E179CF613B87930B5970E6AE1A9D not found'),
+        'WebDriver Classic and Firefox': Object.assign(new Error('target window already closed'), { name: 'no such window' })
+    }
+
+    it.each(Object.entries(closedWindowErrors))('ignores a state check in a window that closed while the test page is open (%s)', async (_, error) => {
+        browser.execute.mockRejectedValueOnce(error).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getWindowHandles.mockResolvedValue(['test-page'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).not.toHaveBeenCalled()
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it.each(Object.entries(closedWindowErrors))('still surfaces a state check in a window that closed when the test page is gone (%s)', async (_, error) => {
+        browser.execute.mockRejectedValueOnce(error).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getWindowHandles.mockResolvedValue(['popup'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(error, expect.anything())
 
             await finishSpec(0)
             expect(await result).toBe(0)

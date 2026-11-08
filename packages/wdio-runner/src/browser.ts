@@ -28,6 +28,11 @@ const sep = '\n  - '
 const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
+// the error of a command in a window that closed: BiDi in Chrome gives "no such frame", the other drivers "no such window"
+function isClosedWindowError (err: Error) {
+    return err.name === 'no such window' || err.message.includes('no such frame')
+}
+
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 
 interface TestState {
@@ -56,6 +61,7 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
+    #testPage?: string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
@@ -138,6 +144,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (!this._config.sessionId) {
             await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
         }
+        this.#testPage = await browser.getWindowHandle().catch(() => undefined)
         // await browser.debug()
 
         /**
@@ -512,12 +519,23 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
             return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
-        }).catch((err) => {
+        }).catch(async (err) => {
             /**
              * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
              */
             if (err.message.includes('Cannot find context with specified id')) {
                 return
+            }
+
+            /**
+             * the check ran in a window that the test closed, e.g. a popup during `closeWindow()`:
+             * the next check runs in the remaining window, unless the test page is gone too
+             */
+            if (isClosedWindowError(err) && this.#testPage) {
+                const handles = await browser.getWindowHandles().catch(() => [] as string[])
+                if (handles.includes(this.#testPage)) {
+                    return
+                }
             }
 
             throw err
