@@ -113,7 +113,7 @@ export {
     toXPathStringLiteral,
 
     /**
-     * the stale element errors of each driver
+     * true when the error message is a stale element error of a driver
      */
     isStaleElementError,
 
