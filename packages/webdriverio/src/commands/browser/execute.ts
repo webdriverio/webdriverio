@@ -30,6 +30,12 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  * files is returned as an array of `File` objects. A cyclic reference inside a value that also
  * contains a `Blob` or `File` is returned as `null`.
  *
+ * A script that runs while a navigation that the page started is in progress, for example directly after
+ * `location.href = '/next'` or a form submit, runs on the page that the browser shows at that time, as on
+ * WebDriver Classic. Chrome runs it on the new page as soon as that page exists, and the page can still be
+ * loading. Firefox runs it on the old page. To read the new page, first wait for something that only the new page
+ * has, for example with `await $('#next-page-title').waitForExist()`.
+ *
  * <example>
     :execute.js
     it('should inject javascript on the page', async () => {

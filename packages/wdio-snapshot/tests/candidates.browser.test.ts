@@ -171,11 +171,11 @@ describe('snapshot selector candidates', () => {
         expect(twins?.some((c) => c.kind === 'type' || c.kind === 'class')).toBe(false)
     })
 
-    it('quotes xpath text with either quote kind, and skips text with both', () => {
+    it('quotes xpath text with either quote kind, and with concat() for both', () => {
         const twinned = (text: string) => `<div tabindex="0" aria-label="Go">${text}</div><span aria-label="Go">x</span>`
         expect(taggedCandidatesOf(twinned('Don\'t'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., "Don\'t")]' })
         expect(taggedCandidatesOf(twinned('Say "hi"'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., \'Say "hi"\')]' })
-        expect(taggedCandidatesOf(twinned('It\'s "x"'), 'generic', 'Go', true)?.some((c) => c.kind === 'xpath-text')).toBe(false)
+        expect(taggedCandidatesOf(twinned('It\'s "x"'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., concat("It\'s ", \'"\', "x", \'"\'))]' })
     })
 
     it('skips role/ and aria/ candidate when content has leading or trailing whitespace or icon/svg to avoid BiDi mismatch', () => {

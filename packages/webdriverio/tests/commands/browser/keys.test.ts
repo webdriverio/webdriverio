@@ -30,6 +30,46 @@ describe('keys', () => {
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
+    it.each([
+        { description: 'a string', value: '𠮷𝄞😀👍🏽🇫🇷👨‍👩‍👧e\u0301' },
+        { description: 'an array', value: ['𠮷', '𝄞', '😀', '👍🏽', '🇫🇷', '👨‍👩‍👧', 'e\u0301'] }
+    ])('sends Unicode graphemes supplied as $description', async ({ value }) => {
+        const browser = await remote({
+            capabilities: { browserName: 'foobar' }
+        })
+        vi.mocked(fetch).mockClear()
+
+        await browser.keys(value)
+
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ method: 'POST' })
+        )
+        const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)
+        expect(body.actions).toEqual([{
+            type: 'key',
+            id: expect.any(String),
+            parameters: {},
+            actions: [
+                { type: 'keyDown', value: '𠮷' },
+                { type: 'keyDown', value: '𝄞' },
+                { type: 'keyDown', value: '😀' },
+                { type: 'keyDown', value: '👍🏽' },
+                { type: 'keyDown', value: '🇫🇷' },
+                { type: 'keyDown', value: '👨‍👩‍👧' },
+                { type: 'keyDown', value: 'e\u0301' },
+                { type: 'pause', duration: 10 },
+                { type: 'keyUp', value: '𠮷' },
+                { type: 'keyUp', value: '𝄞' },
+                { type: 'keyUp', value: '😀' },
+                { type: 'keyUp', value: '👍🏽' },
+                { type: 'keyUp', value: '🇫🇷' },
+                { type: 'keyUp', value: '👨‍👩‍👧' },
+                { type: 'keyUp', value: 'e\u0301' }
+            ]
+        }])
+    })
+
     it('should throw if invalid character was provided', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

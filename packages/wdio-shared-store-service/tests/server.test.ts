@@ -1,5 +1,6 @@
-import { describe, expect, vi, beforeAll, afterEach, it } from 'vitest'
+import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
 import { startServer } from '../src/server.js'
+import { setPort, getValue, setValue, setResourcePool, getValueFromPool, addValueToPool } from '../src/client.js'
 
 const headers = {
     'Content-Type': 'application/json'
@@ -145,6 +146,45 @@ describe('shared store server', () => {
             const response = await post('/pool/foo', { value: 'bar' })
             expect(response.status).toBe(500)
             expect(await response.text()).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
+        })
+    })
+
+    it('should reject a key that is not valid percent-encoding', async () => {
+        await listen()
+        const response = await fetch(`${baseUrl}/%E0%A4%A`, { method: 'get', headers })
+        expect(response.status).toBe(500)
+        expect(await response.text()).toBe("Invalid key '%E0%A4%A'")
+    })
+
+    describe('with the client', () => {
+        const keys = ['simple', 'with/slash', 'with?query', 'with#hash', 'with%percent', 'with space', 'acentuação']
+        let closeClientServer: (() => Promise<void>) | undefined
+
+        beforeAll(async () => {
+            const result = await startServer()
+            setPort(result.port)
+            closeClientServer = () => new Promise((resolve) => result.app.server.close(() => resolve()))
+        })
+
+        afterAll(async () => {
+            await closeClientServer?.()
+        })
+
+        it.each(keys)('should get the value set under %j', async (key) => {
+            await setValue(key, `value of ${key}`)
+            expect(await getValue(key)).toBe(`value of ${key}`)
+        })
+
+        it.each(keys)('should fetch from and add to the resource pool set under %j', async (key) => {
+            await setResourcePool(key, ['first'])
+            expect(await addValueToPool(key, 'second')).toBe(200)
+            expect(await getValueFromPool(key)).toBe('first')
+            expect(await getValueFromPool(key, { timeout: 100 })).toBe('second')
+        })
+
+        it('should still return the whole store for the "*" key', async () => {
+            const store = await getValue('*')
+            expect(Object.keys(store as object)).toEqual(keys)
         })
     })
 })

@@ -89,7 +89,7 @@ npx wdio session click e2
 | `snapshot --compact` | The same tree with unnamed empty wrappers removed |
 | `snapshot --urls` | Link addresses on each link |
 | `find "Add to cart"` | A line from a fresh snapshot |
-| `diff` | What changed since the previous snapshot |
+| `diff`, `snapshot --diff` | What changed since the previous snapshot |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `pdf` | A PDF of the current page (`pdf report.pdf`). BiDi sessions print headed and headless |
 | `source` | The page HTML or the native XML |

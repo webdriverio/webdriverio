@@ -3,7 +3,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getElementFromResponse } from '../../utils/index.js'
 import { bidiDisabledSelectError, bidiSelectByAttribute, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, toXPathStringLiteral } from '@wdio/utils'
 
 /**
  *
@@ -71,7 +71,7 @@ export async function selectByAttribute (
     /**
     * find option elememnt using xpath
     */
-    const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
+    const normalized = `[normalize-space(@${attribute.trim()}) = ${toXPathStringLiteral(value.trim())}]`
     let optionElement: ElementReference | undefined
     await this.waitUntil(async () => {
         optionElement = await this.findElementFromElement(

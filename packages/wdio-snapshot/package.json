@@ -1,6 +1,6 @@
 {
   "name": "@wdio/snapshot",
-  "version": "10.1.0",
+  "version": "10.2.0",
   "description": "Accessibility-style snapshots of web pages and native apps for WebdriverIO",
   "author": "Vince Graics <wince17@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-snapshot",
@@ -35,8 +35,18 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/utils": "workspace:*",
+    "@wdio/utils": "workspace:*"
+  },
+  "devDependencies": {
     "webdriverio": "workspace:*"
+  },
+  "peerDependencies": {
+    "webdriverio": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "webdriverio": {
+      "optional": false
+    }
   },
   "publishConfig": {
     "access": "public"

@@ -91,7 +91,7 @@ export interface WebDriver extends Connection {
      */
     connectionRetryTimeout?: number
     /**
-     * Count of request retries to the Selenium server.
+     * Count of request retries to the WebDriver server.
      *
      * @default 3
      */
