@@ -5,6 +5,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import { MESSAGE_TYPES, browserChannelMessage, type Workers } from '@wdio/types'
 import { setWdioKind } from '@wdio/utils'
 import { remote } from 'webdriverio'
+// @ts-expect-error mock feature
+import { logMock } from '@wdio/logger'
 
 import BrowserFramework from '../src/browser.js'
 import type BaseReporter from '../src/reporter.js'
@@ -235,6 +237,7 @@ describe('BrowserFramework browser errors', () => {
         }
         globals.browser = browser
         process.send = vi.fn() as unknown as typeof process.send
+        logMock.info.mockClear()
         framework = createFramework({})
     })
 
@@ -412,6 +415,8 @@ describe('BrowserFramework browser errors', () => {
         expect(browser.execute).not.toHaveBeenCalled()
         // the state check, the start time of the tests and the coverage
         expect(tab.execute).toHaveBeenCalledTimes(3)
+        // the tab has the handle of the test page
+        expect(browser.getWindowHandle).not.toHaveBeenCalled()
         expect(vi.mocked(process.send!).mock.calls.map(([message]) => JSON.stringify(message)).join()).toContain('file.js')
     })
 
@@ -441,7 +446,10 @@ describe('BrowserFramework browser errors', () => {
         'WebDriver Classic and Firefox': Object.assign(new Error('target window already closed'), { name: 'no such window' })
     }
 
-    it.each(Object.entries(closedWindowErrors))('ignores a state check in a window that closed while the test page is open (%s)', async (_, error) => {
+    it.each([
+        ...Object.entries(closedWindowErrors),
+        ['a document that the page replaced', new Error('WebDriver Bidi command "script.callFunction" failed with error: unknown error - Cannot find context with specified id')]
+    ])('ignores a state check in a window that closed while the test page is open, and logs why (%s)', async (_, error) => {
         browser.execute.mockRejectedValueOnce(error).mockResolvedValue({ errors: [], hasViteError: false })
         browser.getWindowHandles.mockResolvedValue(['test-page'])
         browser.getLogs.mockResolvedValue([])
@@ -454,6 +462,7 @@ describe('BrowserFramework browser errors', () => {
             vi.useRealTimers()
             await new Promise((resolve) => setImmediate(resolve))
             expect(unhandled).not.toHaveBeenCalled()
+            expect(logMock.info).toHaveBeenCalledWith(`Skip the browser error check: ${(error as Error).message}`)
 
             await finishSpec(0)
             expect(await result).toBe(0)

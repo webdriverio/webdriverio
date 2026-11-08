@@ -149,7 +149,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (!this._config.sessionId) {
             this.#testPageTab = await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
         }
-        this.#testPageHandle = await browser.getWindowHandle().catch(() => undefined)
+        // the tab has the handle in a WebDriver BiDi session
+        this.#testPageHandle = this.#testPageTab?.contextId ?? await browser.getWindowHandle().catch(() => undefined)
         if (this._config.sessionId && browser.isBidi) {
             const tabs = await browser.browsingContexts().catch(() => [] as WebdriverIO.BrowsingContext[])
             this.#testPageTab = tabs.find((tab) => tab.contextId === this.#testPageHandle)
@@ -533,6 +534,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
              */
             if (err.message.includes('Cannot find context with specified id')) {
+                log.info(`Skip the browser error check: ${err.message}`)
                 return
             }
 
@@ -543,6 +545,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             if (isClosedWindowError(err) && this.#testPageHandle) {
                 const handles = await browser.getWindowHandles().catch(() => [] as string[])
                 if (handles.includes(this.#testPageHandle)) {
+                    log.info(`Skip the browser error check: ${err.message}`)
                     return
                 }
             }
