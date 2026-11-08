@@ -267,8 +267,6 @@ export function isElement(o: Selector) {
     )
 }
 
-export { isStaleElementError }
-
 /**
  * A stale element error that the element middleware handles: it finds the element again and
  * runs the command again. The "element wasn't found" error of a wait (an element that was not

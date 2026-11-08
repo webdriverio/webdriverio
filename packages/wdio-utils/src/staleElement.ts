@@ -1,6 +1,5 @@
 /**
- * The error of a driver for an element that is no longer in the page (stale).
- * The element middleware of `webdriverio` and the click of `@wdio/session` find the element again for it.
+ * The driver errors for an element that is no longer in the page (stale).
  */
 export function isStaleElementError(err: Error) {
     return (

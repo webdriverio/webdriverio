@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { ELEMENT_KEY } from 'webdriver'
+import { isStaleElementError } from '@wdio/utils'
 import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
@@ -8,7 +9,6 @@ import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import implicitWait from '../../src/utils/implicitWait.js'
-import { isStaleElementError } from '../../src/utils/index.js'
 import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/errorCodes.js'
 
 vi.mock('fetch')
