@@ -352,6 +352,23 @@ describe('BrowserFramework browser errors', () => {
         expect(await result).toBe(0)
     })
 
+    it('reloads the tab of the test page for an outdated optimize dep, also when the test works in another window', async () => {
+        const tab = { ...testPageTab(), refresh: vi.fn().mockResolvedValue(undefined) }
+        tab.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.url.mockResolvedValue(tab)
+        browser.getLogs.mockResolvedValueOnce([
+            severeLog(1500, 'http://localhost/node_modules/.vite/deps/expect.js?v=1 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)')
+        ]).mockResolvedValue([])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(tab.refresh).toHaveBeenCalledTimes(1)
+        expect(browser.refresh).not.toHaveBeenCalled()
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+    })
+
     it('ignores a state check that is still running when the session ends', async () => {
         let rejectState!: (err: Error) => void
         browser.execute.mockReturnValue(new Promise((_, reject) => {

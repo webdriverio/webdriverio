@@ -531,26 +531,17 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
         }).catch(async (err) => {
             /**
-             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             * skip this check, the next one runs 500 ms later:
+             * - the page replaced its document, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             * - WebDriver Classic: the check ran in a window that the test closed, e.g. a popup during
+             *   `closeWindow()`, and the test page is still open
              */
-            if (err.message.includes('Cannot find context with specified id')) {
-                log.info(`Skip the browser error check: ${err.message}`)
-                return
+            const skip = err.message.includes('Cannot find context with specified id') ||
+                (isClosedWindowError(err) && await this.#isTestPageOpen())
+            if (!skip) {
+                throw err
             }
-
-            /**
-             * WebDriver Classic: the check ran in a window that the test closed, e.g. a popup during
-             * `closeWindow()`; the next check runs in the remaining window, unless the test page is gone too
-             */
-            if (isClosedWindowError(err) && this.#testPageHandle) {
-                const handles = await browser.getWindowHandles().catch(() => [] as string[])
-                if (handles.includes(this.#testPageHandle)) {
-                    log.info(`Skip the browser error check: ${err.message}`)
-                    return
-                }
-            }
-
-            throw err
+            log.info(`Skip the browser error check: ${err.message}`)
         })
 
         if (!testError) {
@@ -576,7 +567,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
             log.info('Retry test run due to outdated optimize dep')
             this.#retryOutdatedOptimizeDep = true
-            return browser.refresh()
+            return this.#testPage.refresh()
         }
 
         /**
@@ -612,6 +603,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 })
             })
         }
+    }
+
+    async #isTestPageOpen () {
+        if (!this.#testPageHandle) {
+            return false
+        }
+        const handles = await browser.getWindowHandles().catch(() => [] as string[])
+        return handles.includes(this.#testPageHandle)
     }
 
     /**
