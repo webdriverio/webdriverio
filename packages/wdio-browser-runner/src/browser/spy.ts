@@ -1,5 +1,6 @@
 import type { MaybeMocked } from '@vitest/spy'
 
+import { MODULE_EXTENSION } from '../constants.js'
 import type { MockFactoryWithHelper } from '../types.js'
 
 /**
@@ -32,7 +33,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
     const mockLocalFile = path.startsWith('/') || path.startsWith('./') || path.startsWith('../')
     const mockPath = mockLocalFile
         // use absolute path for local files without extension
-        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname.replace(/\.[^/.]+$/, '')
+        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname.replace(MODULE_EXTENSION, '')
         : path
 
     try {

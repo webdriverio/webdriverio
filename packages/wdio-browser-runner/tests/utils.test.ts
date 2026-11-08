@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from '../src/utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, normalizeHost } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -51,9 +51,48 @@ describe('makeHeadless', () => {
                 args: ['--headless']
             }
         })
+        expect(makeHeadless({}, { browserName: 'MicrosoftEdge' })).toEqual({
+            browserName: 'MicrosoftEdge',
+            'ms:edgeOptions': {
+                args: ['--headless']
+            }
+        })
         expect(makeHeadless({}, { browserName: 'safari' })).toEqual({
             browserName: 'safari'
         })
+    })
+
+    it('matches browser names regardless of case', () => {
+        process.env.CI = '1'
+        expect(makeHeadless({}, { browserName: 'Chrome' })).toEqual({
+            browserName: 'Chrome',
+            'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+        })
+        expect(makeHeadless({}, { browserName: 'Firefox' })).toEqual({
+            browserName: 'Firefox',
+            'moz:firefoxOptions': { args: ['-headless'] }
+        })
+    })
+
+    it('keeps the alwaysMatch and firstMatch shape of W3C capabilities', () => {
+        process.env.CI = '1'
+        const firstMatch = [{ 'ms:edgeOptions': { binary: '/edge' } }]
+        expect(makeHeadless({}, { alwaysMatch: { browserName: 'MicrosoftEdge' }, firstMatch } as any)).toEqual({
+            alwaysMatch: {
+                browserName: 'MicrosoftEdge',
+                'ms:edgeOptions': { args: ['--headless'] }
+            },
+            firstMatch
+        })
+    })
+})
+
+describe('normalizeHost', () => {
+    it('adds a protocol and drops a trailing slash', () => {
+        expect(normalizeHost()).toBeUndefined()
+        expect(normalizeHost('192.168.1.10')).toBe('http://192.168.1.10')
+        expect(normalizeHost('http://192.168.1.10/')).toBe('http://192.168.1.10')
+        expect(normalizeHost('https://my-box.corp')).toBe('https://my-box.corp')
     })
 })
 
@@ -77,6 +116,14 @@ describe('adjustWindowInWatchMode', () => {
                 }
             }
         })
+    })
+
+    it('keeps the alwaysMatch and firstMatch shape of W3C capabilities in watch mode', () => {
+        const firstMatch = [{ 'goog:chromeOptions': { binary: '/chrome' } }]
+        const result: any = adjustWindowInWatchMode({ watch: true } as any, { alwaysMatch: { browserName: 'chrome' }, firstMatch } as any)
+        expect(result.firstMatch).toBe(firstMatch)
+        expect(result.alwaysMatch.browserName).toBe('chrome')
+        expect(result.alwaysMatch['goog:chromeOptions'].args).toEqual(['auto-open-devtools-for-tabs', 'window-size=1600,1200'])
     })
 })
 
