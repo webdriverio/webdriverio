@@ -30,15 +30,27 @@ jobs:
       # Electron sessions are not headless. With no DISPLAY, the daemon starts
       # @wdio/display-server, which needs Xvfb. Recording encodes with ffmpeg.
       # Hosted Ubuntu images usually already have Xvfb and not ffmpeg.
+      # The Azure apt mirror is sometimes very slow, and apt moves to the next
+      # mirror only on an error: after 4 minutes, download without it.
       - name: Ensure Xvfb and ffmpeg
+        timeout-minutes: 15
         run: |
           missing=()
           command -v Xvfb >/dev/null || missing+=(xvfb)
           command -v ffmpeg >/dev/null || missing+=(ffmpeg)
-          if [ "${#missing[@]}" -gt 0 ]; then
-            sudo apt-get update
-            sudo apt-get install -y "${missing[@]}"
+          if [ "${#missing[@]}" -eq 0 ]; then
+            exit 0
           fi
+          sudo apt-get update
+          if ! sudo timeout 240 apt-get install -y --download-only "${missing[@]}"; then
+            echo "::warning::Slow apt download, retrying without the Azure mirror"
+            if [ -f /etc/apt/apt-mirrors.txt ]; then
+              sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            fi
+            sudo apt-get update
+            sudo timeout 480 apt-get install -y --download-only "${missing[@]}"
+          fi
+          sudo apt-get install -y --no-download "${missing[@]}"
 
       # pnpm runs dependency build scripts only for `sharp`, so Electron's
       # postinstall never downloads dist/electron. electron.test.ts launches

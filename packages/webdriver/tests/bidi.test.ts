@@ -278,6 +278,177 @@ describe('BidiCore', () => {
         })
     })
 
+    describe('send during a navigation that the page started', () => {
+        const CONTEXT_ERROR = 'Cannot find context with specified id'
+        const DOCUMENT_ERROR = 'Node with given id does not belong to the document'
+        const sent = (handler: BidiCore) => vi.mocked(handler.socket!.send).mock.calls.map(([data]) => JSON.parse(data as string))
+        const fail = (handler: BidiCore, id: number, message: string) =>
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id, type: 'error', error: 'unknown error', message })))
+        const succeed = (handler: BidiCore, id: number) =>
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id, type: 'success', result: { ok: id } })))
+        const connected = async (responseTimeout?: number) => {
+            const handler = new BidiCore('ws://foo/bar', undefined, responseTimeout)
+            await handler.connect()
+            return handler
+        }
+        const callFunction = { method: 'script.callFunction', params: { functionDeclaration: '() => document.title', awaitPromise: false, target: { context: 'top' } } }
+
+        beforeAll(() => {
+            delete process.env.WDIO_UNIT_TESTS
+            vi.useFakeTimers()
+        })
+
+        afterAll(() => {
+            vi.useRealTimers()
+            process.env.WDIO_UNIT_TESTS = '1'
+        })
+
+        it.each([
+            ['script.callFunction', callFunction.params],
+            ['script.evaluate', { expression: 'document.title', awaitPromise: false, target: { context: 'top', sandbox: 'probe' } }],
+            ['browsingContext.locateNodes', { context: 'top', locator: { type: 'css', value: 'p' } }]
+        ])('sends %s again after the context error, 50 ms later', async (method, params) => {
+            const handler = await connected()
+            const promise = handler.send({ method, params } as any)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(49)
+            expect(sent(handler)).toHaveLength(1)
+            await vi.advanceTimersByTimeAsync(1)
+            expect(sent(handler)).toEqual([{ id: 1, method, params }, { id: 2, method, params }])
+            succeed(handler, 2)
+            await expect(promise).resolves.toEqual({ id: 2, type: 'success', result: { ok: 2 } })
+        })
+
+        it('sends a locateNodes without start nodes again after the stale document error', async () => {
+            const handler = await connected()
+            const params = { context: 'top', locator: { type: 'accessibility', value: { role: 'button' } } }
+            const promise = handler.send({ method: 'browsingContext.locateNodes', params } as any)
+            fail(handler, 1, DOCUMENT_ERROR)
+            await vi.advanceTimersByTimeAsync(50)
+            succeed(handler, 2)
+            await expect(promise).resolves.toMatchObject({ id: 2 })
+        })
+
+        it.each([
+            ['a realm target', 'script.callFunction', { functionDeclaration: '() => 1', awaitPromise: false, target: { realm: 'old' } }, CONTEXT_ERROR],
+            ['another command', 'browsingContext.captureScreenshot', { context: 'top' }, CONTEXT_ERROR],
+            ['a script with an element of the old page', 'script.callFunction', { ...callFunction.params, arguments: [{ sharedId: 'old' }] }, DOCUMENT_ERROR],
+            ['a locateNodes with start nodes', 'browsingContext.locateNodes', { context: 'top', locator: { type: 'css', value: 'p' }, startNodes: [{ sharedId: 'old' }] }, DOCUMENT_ERROR],
+            ['another error', 'script.callFunction', callFunction.params, 'Inspected target navigated or closed']
+        ])('does not send again for %s', async (_, method, params, message) => {
+            const handler = await connected()
+            const error = handler.send({ method, params } as any).catch((err: Error) => err)
+            fail(handler, 1, message)
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(sent(handler)).toHaveLength(1)
+            expect((await error as Error).message).toBe(`WebDriver Bidi command "${method}" failed with error: unknown error - ${message}`)
+        })
+
+        it('stops after 10 calls with the error of the last call and the stack of the caller', async () => {
+            const handler = await connected()
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            for (let id = 1; id <= 10; id++) {
+                fail(handler, id, CONTEXT_ERROR)
+                await vi.advanceTimersByTimeAsync(50)
+            }
+            expect(sent(handler)).toHaveLength(10)
+            const err = await error as Error
+            expect(err.message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
+            expect(err.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:\d+:/)
+        })
+
+        it('keeps one response timeout for all calls', async () => {
+            const handler = await connected(1000)
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(600)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(399)
+            expect(sent(handler)).toHaveLength(2)
+            await vi.advanceTimersByTimeAsync(1)
+            expect((await error as Error).message).toContain('timed out after 1000ms')
+        })
+
+        it('keeps one script timeout for all calls', async () => {
+            const handler = await connected()
+            const params = { ...callFunction.params, [BIDI_SCRIPT_TIMEOUT]: 1000 }
+            const error = handler.send({ method: 'script.callFunction', params } as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(600)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(399)
+            expect(sent(handler)).toHaveLength(2)
+            await vi.advanceTimersByTimeAsync(1)
+            expect(await error).toMatchObject({ name: 'script timeout', message: expect.stringContaining('did not finish within 1000ms') })
+        })
+
+        it('does not send again when no time is left', async () => {
+            const handler = await connected(1000)
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(980)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(100)
+            expect(sent(handler)).toHaveLength(1)
+            expect((await error as Error).message).toContain(CONTEXT_ERROR)
+        })
+
+        it('does not send again when the delay used up the time that was left', async () => {
+            const handler = await connected(1000)
+            logMock.info.mockClear()
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(940)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(60)
+            expect(sent(handler)).toHaveLength(1)
+            expect((await error as Error).message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
+            // the log names only calls that went out
+            expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('again'))
+        })
+
+        it('logs each call that it sends again', async () => {
+            const handler = await connected()
+            logMock.info.mockClear()
+            const promise = handler.send(callFunction as any)
+            fail(handler, 1, CONTEXT_ERROR)
+            await vi.advanceTimersByTimeAsync(50)
+            succeed(handler, 2)
+            await promise
+            expect(logMock.info).toHaveBeenCalledWith(`Send "script.callFunction" again, the page navigated: ${CONTEXT_ERROR}`)
+        })
+
+        it('does not send again when a busy event loop runs the delay after the deadline', async () => {
+            const handler = await connected(1000)
+            const params = { ...callFunction.params, [BIDI_SCRIPT_TIMEOUT]: 800 }
+            const error = handler.send({ method: 'script.callFunction', params } as any).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(500)
+            fail(handler, 1, CONTEXT_ERROR)
+            // let `send` start the delay, then the clock passes both timeouts before the delay timer runs
+            await vi.advanceTimersByTimeAsync(0)
+            vi.setSystemTime(Date.now() + 600)
+            await vi.advanceTimersByTimeAsync(50)
+            expect(sent(handler)).toHaveLength(1)
+            expect((await error as Error).message).toBe(`WebDriver Bidi command "script.callFunction" failed with error: unknown error - ${CONTEXT_ERROR}`)
+        })
+
+        it.each([
+            ['closes', (handler: BidiCore) => handler.close()],
+            ['connects again', (handler: BidiCore) => handler.reconnect('ws://foo/new')]
+        ])('does not send again when the session %s during the delay', async (_, end) => {
+            const handler = await connected()
+            const socket = handler.socket!
+            const error = handler.send(callFunction as any).catch((err: Error) => err)
+            fail(handler, 1, CONTEXT_ERROR)
+            await end(handler)
+            await vi.advanceTimersByTimeAsync(50)
+            expect(vi.mocked(socket.send)).toHaveBeenCalledTimes(1)
+            if (handler.socket && handler.socket !== socket) {
+                expect(vi.mocked(handler.socket.send)).not.toHaveBeenCalled()
+            }
+            const err = await error as Error
+            expect(err.name).toBe(SESSION_ENDED_ERROR)
+            expect(err.message).toBe('WebDriver Bidi command "script.callFunction" got no result: the connection ended before it was sent again')
+            expect(err.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:\d+:/)
+        })
+    })
+
     describe('close', () => {
         beforeAll(() => {
             delete process.env.WDIO_UNIT_TESTS

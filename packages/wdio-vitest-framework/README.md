@@ -56,7 +56,9 @@ Default: `undefined`
 Runs `test.concurrent` tests at the same time, each in its own browser window (browsing context). Requires a WebDriver Bidi session and the `'wdio:experimentalBiDiCommands': true` capability, without which commands use classic WebDriver and cannot target the test's window. The capability changes how element commands are implemented in every test of the session.
 
 - `'contexts'`: windows share the default user context, so cookies, localStorage and service workers are shared across concurrent tests.
-- `'userContexts'`: each test gets its own user context, so storage is isolated per test. `browser.mock()` remains session-wide.
+- `'userContexts'`: each test gets its own user context, so storage is isolated per test.
+
+In both modes, a `browser.mock()` in a concurrent test only intercepts the window of that test.
 
 Without `parallelMode`, `test.concurrent` throws, because concurrent tests would share one window.
 
@@ -104,6 +106,7 @@ Each test opens its own window, and every command in the test targets it. The wi
 
 ## Limitations
 
+- `specFileRetries` is ignored, with a warning in the log. Use `vitestOpts.retry`.
 - Multi-remote capabilities are not supported yet.
 - `expect.poll` is not available, because the global `expect` is the one from `expect-webdriverio`.
 - Window and frame commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, because they change session-wide state.

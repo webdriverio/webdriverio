@@ -6,7 +6,8 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll, afterEach } from 'vitest'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs, specFilePath, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import type * as WdioUtils from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
 
@@ -20,10 +21,12 @@ vi.mock('fs/promises', async (orig) => ({
     readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
     readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
 }))
-vi.mock('@wdio/utils')
-// the spec path conversion is not under test: keep it real
-const { specFilePath: realSpecFilePath } = await vi.importActual<{ specFilePath: typeof specFilePath }>('@wdio/utils')
-vi.mocked(specFilePath).mockImplementation(realSpecFilePath)
+vi.mock('@wdio/utils', async (importOriginal) => {
+    const actual = await importOriginal<typeof WdioUtils>()
+    // an automock: with no factory, Vitest 5.1 loads __mocks__/@wdio/utils.ts
+    // the spec path conversion is not under test: keep it real
+    return { ...vi.mockObject(actual), specFilePath: actual.specFilePath }
+})
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {

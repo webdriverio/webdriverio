@@ -130,7 +130,7 @@ export default class Watcher {
     }
 
     /**
-     * chokidar 5 doesn't support glob patterns. Watch the directory a pattern starts in
+     * chokidar doesn't support glob patterns. Watch the directory a pattern starts in
      * instead and ignore every file that isn't matched by one of the patterns, so
      * files created after watch mode started are picked up too.
      * @param  {string[]} filesToWatch  `filesToWatch` config option

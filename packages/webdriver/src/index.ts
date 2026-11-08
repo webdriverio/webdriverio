@@ -273,7 +273,7 @@ export default class WebDriver {
  * Helper methods consumed by webdriverio package
  */
 export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage, WebDriver }
-export { runClassicProtocolCommand, type ClassicHistoryCommand } from './classicProtocolCommand.js'
+export { runClassicProtocolCommand, type ClassicHistoryCommand, type ClassicProtocolCommand } from './classicProtocolCommand.js'
 export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'

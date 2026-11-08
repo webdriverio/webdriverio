@@ -21,7 +21,7 @@ export function startColorServer () {
 }
 
 /**
- * the 2 colors of each test of `video.parallel.e2e.ts`
+ * the 2 colors of each test of `video.parallel.e2e.ts` and each scenario of `video.parallel.feature`
  */
 export const COLORS = {
     'red test': ['ff0000', '800000'],

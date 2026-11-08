@@ -75,8 +75,8 @@ The master report uses the options of the `ReportAggregator`: set `linkScreensho
 | Option | Default | Description |
 |---|---|---|
 | `outputDir` | `reports/html-reports/` | Folder of the JSON files and the report: relative to the current working folder, or absolute. |
-| `filename` | `report.html` | File name of the report. |
-| `reportTitle` | `Test Report Title` | Title of the report. |
+| `filename` | `report.html` (`ReportAggregator`: `master-report.html`) | File name of the report. |
+| `reportTitle` | `Test Report Title` (`ReportAggregator`: `Test Master Report`) | Title of the report. |
 | `showInBrowser` | `false` | Open the report in a browser when it is done (`ReportAggregator` only). |
 | `collapseTests` | `false` | Collapse the tests in the report. |
 | `collapseSuites` | `false` | Collapse the suites in the report. |
@@ -84,9 +84,13 @@ The master report uses the options of the `ReportAggregator`: set `linkScreensho
 | `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
 | `linkUrls` | `false` | Make the `http` and `https` URLs in log messages links. The rest of the message stays escaped: HTML in a log message shows as text. |
 | `browserName` | the browser of the session | Browser name to show in the report. Without it, the report shows the browser of the session, else the Appium app or device (in a multi-remote run, the names of the instances). The master report shows the browsers of the worker reports, for example `chrome, firefox`. When no name is known, it shows `not specified`. |
-| `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
+| `removeOutput` | `true` | Remove the command output of the tests and hooks from the JSON files. |
 | `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |
 | `produceHtml` | `false` | Also write an HTML report for each worker, next to its JSON file. |
+
+## Parallel mode
+
+The reporter supports [parallel tests](https://webdriver.io/docs/parallel-tests#reporters) with Mocha and Cucumber: each log, screenshot and video goes to the test that sent it.
 
 ## Logs, screenshots and videos
 
