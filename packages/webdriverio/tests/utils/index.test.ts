@@ -181,7 +181,7 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(goneNodeChromeError)).toBe(true)
     const invalidIdChromeError = new Error('no such node - SharedId "not-an-id" was not found.')
     expect(isStaleElementError(invalidIdChromeError)).toBe(true)
-    // Chrome 157: a node of the previous document after a navigation that the page started
+    // Chrome 156 to 159 (BiDi): a node of the previous document after a navigation that the page started
     const previousDocumentChromeError = new Error('unknown error - Node with given id does not belong to the document')
     expect(isStaleElementError(previousDocumentChromeError)).toBe(true)
     const otherError = new Error('something else')
