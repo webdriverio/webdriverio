@@ -160,7 +160,17 @@ export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
     } else if (parsedValue.property === 'font-family') {
         const font = cssValue(cssPropertyValue)
         const string = parsedValue.value
-        const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+        const families = ['']
+
+        for (const token of font) {
+            if (token.type === 'comma') {
+                families.push('')
+            } else {
+                families[families.length - 1] += `${token.string} `
+            }
+        }
+
+        const value = families.map(sanitizeCSS)
 
         parsedValue.value = sanitizeCSS(font[0].value as string || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
