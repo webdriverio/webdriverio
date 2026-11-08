@@ -58,6 +58,9 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              */
             const nextElement = await findElementAgain(currentElement, { wait: true })
 
+            /**
+             * a "not found" element: the page replaced the element after the wait (#16395)
+             */
             if (!nextElement || (!nextElement.elementId && nextElement.error)) {
                 throw new Error(
                     `element with selector "${describeSelector(currentElement)}" has no match at index ${currentElement.index}`)

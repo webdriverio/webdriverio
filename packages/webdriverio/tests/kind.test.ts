@@ -549,7 +549,7 @@ describe('WebdriverIO object brand matrix', () => {
     describe('single session: errors', () => {
         test.each<[string, Row]>([
             /**
-             * the fetch mock finds a child of a not-found element, so only the brands are relevant here
+             * the fetch mock finds `#nonexisting` for the wait, but not when it looks for it again after
              */
             ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: 'rejects' }],
             ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: 'rejects' }],

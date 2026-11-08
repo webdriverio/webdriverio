@@ -84,7 +84,7 @@ describe('implicitWait', () => {
 
     /**
      * the page replaced the element between the wait and the lookup after it: a child query
-     * on the not found element would run from the document (#16395)
+     * on the not-found element would run from the document (#16395)
      */
     it('throws when the element existed and its lookup after found no element', async () => {
         vi.mocked(findElementAgain).mockResolvedValueOnce({ selector: '#missing', error: new Error('no such element') } as unknown as WebdriverIO.Element)
