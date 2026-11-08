@@ -61,7 +61,12 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
-    #testPage?: string
+    #testPageHandle?: string
+    /**
+     * the tab of the test page in a WebDriver BiDi session: the runner reads the test page there,
+     * also while the test works in another window; WebDriver Classic can only read the current window
+     */
+    #testPageTab?: WebdriverIO.BrowsingContext
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
@@ -142,9 +147,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
-            await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            this.#testPageTab = await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
         }
-        this.#testPage = await browser.getWindowHandle().catch(() => undefined)
+        this.#testPageHandle = await browser.getWindowHandle().catch(() => undefined)
+        if (this._config.sessionId && browser.isBidi) {
+            const tabs = await browser.browsingContexts().catch(() => [] as WebdriverIO.BrowsingContext[])
+            this.#testPageTab = tabs.find((tab) => tab.contextId === this.#testPageHandle)
+        }
         // await browser.debug()
 
         /**
@@ -188,7 +197,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * capture coverage if enabled
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
-            const coverageMap = await browser.execute(
+            const coverageMap = await this.#testPage.execute(
                 () => (window.__coverage__ || {}))
             const coverage = (
                 coverageMap && typeof coverageMap === 'object' && !Array.isArray(coverageMap)
@@ -496,7 +505,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #checkForTestError () {
-        const testError = await browser.execute(function fetchExecutionState () {
+        const testError = await this.#testPage.execute(function fetchExecutionState () {
             // a page that got its first byte less than 5 s ago, e.g. right after a reload, has no title and no test framework yet
             const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
             if (document.readyState === 'loading' && performance.now() - (navigation?.responseStart ?? 0) < 5000) {
@@ -528,12 +537,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }
 
             /**
-             * the check ran in a window that the test closed, e.g. a popup during `closeWindow()`:
-             * the next check runs in the remaining window, unless the test page is gone too
+             * WebDriver Classic: the check ran in a window that the test closed, e.g. a popup during
+             * `closeWindow()`; the next check runs in the remaining window, unless the test page is gone too
              */
-            if (isClosedWindowError(err) && this.#testPage) {
+            if (isClosedWindowError(err) && this.#testPageHandle) {
                 const handles = await browser.getWindowHandles().catch(() => [] as string[])
-                if (handles.includes(this.#testPage)) {
+                if (handles.includes(this.#testPageHandle)) {
                     return
                 }
             }
@@ -577,7 +586,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * so without a start time, read it again after the logs.
          */
         const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
-            ? await browser.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
+            ? await this.#testPage.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
             : startedAtBeforeLogs
         const setupLogs = typeof testsStartedAt === 'number'
             ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
@@ -600,6 +609,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 })
             })
         }
+    }
+
+    /**
+     * where the runner reads the test page: its tab in a WebDriver BiDi session, else the current window
+     */
+    get #testPage () {
+        return this.#testPageTab ?? browser
     }
 
     static init (cid: string, config: WebdriverIO.Config, specs: string[], _: unknown, reporter: BaseReporter) {

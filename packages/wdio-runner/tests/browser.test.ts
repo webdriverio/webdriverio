@@ -235,12 +235,21 @@ describe('BrowserFramework browser errors', () => {
         }
         globals.browser = browser
         process.send = vi.fn() as unknown as typeof process.send
+        framework = createFramework({})
+    })
 
+    function createFramework (config: Partial<WebdriverIO.Config>) {
         const on = vi.spyOn(process, 'on').mockImplementation(() => process)
-        framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
+        const created = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 }, ...config } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
         handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
         on.mockRestore()
-    })
+        return created
+    }
+
+    // the tab of the test page that `browser.url()` returns in a WebDriver BiDi session
+    function testPageTab () {
+        return { contextId: 'test-page', execute: vi.fn() }
+    }
 
     afterEach(() => {
         vi.useRealTimers()
@@ -383,6 +392,47 @@ describe('BrowserFramework browser errors', () => {
         } finally {
             process.off('unhandledRejection', unhandled)
         }
+    })
+
+    it('reads the test page in its tab, also when the test works in another window', async () => {
+        const tab = testPageTab()
+        browser.url.mockResolvedValue(tab)
+        tab.execute
+            .mockResolvedValueOnce({ errors: [], hasViteError: false })
+            .mockResolvedValueOnce(1000)
+            .mockResolvedValue({ 'file.js': {} })
+        browser.getLogs.mockResolvedValueOnce([severeLog(1500)]).mockResolvedValue([])
+        framework = createFramework({ runner: ['browser', { coverage: { enabled: true } }] } as Partial<WebdriverIO.Config>)
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(browser.execute).not.toHaveBeenCalled()
+        // the state check, the start time of the tests and the coverage
+        expect(tab.execute).toHaveBeenCalledTimes(3)
+        expect(vi.mocked(process.send!).mock.calls.map(([message]) => JSON.stringify(message)).join()).toContain('file.js')
+    })
+
+    it('reads the test page in its tab in watch mode, where the runner does not open the test page', async () => {
+        const tab = testPageTab()
+        tab.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        Object.assign(browser, {
+            isBidi: true,
+            browsingContexts: vi.fn().mockResolvedValue([{ contextId: 'popup', execute: vi.fn() }, tab])
+        })
+        browser.getLogs.mockResolvedValue([])
+        framework = createFramework({ sessionId: 'reused' })
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(browser.url).not.toHaveBeenCalled()
+        expect(browser.execute).not.toHaveBeenCalled()
+        expect(tab.execute).toHaveBeenCalled()
     })
 
     // the errors that a state check gets when it runs in a window that closes, e.g. a popup after closeWindow()
