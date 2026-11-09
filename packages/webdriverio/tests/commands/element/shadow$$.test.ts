@@ -68,7 +68,7 @@ describe('shadow$$', () => {
             options: {},
             selector: 'foo',
         }
-        mock.parent = { $: vi.fn().mockReturnValue({ getElement: () => ({}) }) }
+        mock.parent = { $: vi.fn().mockReturnValue({ getElement: () => ({ elementId: 'some-elem-123' }) }) }
         mock.waitForExist = vi.fn().mockResolvedValue(mock)
         const elem = await el.shadow$$.call(mock, '#shadowfoo').getElements()
         expect(elem).toEqual([{ elem: 123 }])
