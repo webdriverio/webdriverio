@@ -210,6 +210,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return ''
         }
         const el = node as Element
+        if (el.namespaceURI === 'http://www.w3.org/2000/svg' && el.tagName.toLowerCase() === 'svg') {
+            return svgTextName(el)
+        }
         if (SKIP_TAGS.has(el.tagName.toUpperCase()) || isHidden(el)) {
             return ''
         }
@@ -231,11 +234,48 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return inline ? inner : ` ${inner} `
     }
 
-    /** the text of the elements `aria-labelledby` names, as they are (an svg `<title>` included) */
+    /**
+     * an `<svg>` contributes to the parent's accessible name through its own `aria-label`
+     * or its `<title>`; its paths and shapes never do. accname treats it that way, and
+     * Chrome names a footer link `Discord (opens in new tab)` for exactly this reason.
+     */
+    function svgTextName (el: Element): string {
+        if (isHidden(el)) {
+            return ''
+        }
+        const labelled = collapse(labelledBy(el))
+        if (labelled) {
+            return ` ${labelled} `
+        }
+        const label = el.getAttribute('aria-label')
+        if (label && collapse(label)) {
+            return ` ${label} `
+        }
+        const title = el.querySelector(':scope > title')
+        if (title?.textContent && collapse(title.textContent)) {
+            return ` ${title.textContent} `
+        }
+        return ''
+    }
+
+    /**
+     * the contribution of the elements `aria-labelledby` names: a referenced node
+     * contributes its own accessible name (`aria-label`, `alt`), not its raw text
+     */
     function labelledBy (el: Element) {
         return (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean).map((id) => {
             const ref = (el.getRootNode() as Document).getElementById?.(id) || document.getElementById(id)
-            return ref?.textContent || ''
+            if (!ref) {
+                return ''
+            }
+            const label = ref.getAttribute('aria-label')
+            if (label && collapse(label)) {
+                return label
+            }
+            if (ref.tagName === 'IMG' || ref.tagName === 'AREA') {
+                return ref.getAttribute('alt') || ''
+            }
+            return ref.textContent || ''
         }).join(' ')
     }
 
@@ -993,7 +1033,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const order = seq++
         if (el.tagName.toUpperCase() === 'SVG') {
             // an icon that says something (a checkmark "Benefit available") is content; decoration is not
-            const svgName = collapse(el.getAttribute('aria-label') || labelledBy(el) || el.querySelector(':scope > title')?.textContent)
+            const svgName = collapse(labelledBy(el) || el.getAttribute('aria-label') || el.querySelector(':scope > title')?.textContent)
             return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) ? [{ role: 'img', name: truncate(svgName) }] : []
         }
         if (SKIP_TAGS.has(el.tagName.toUpperCase())) {
