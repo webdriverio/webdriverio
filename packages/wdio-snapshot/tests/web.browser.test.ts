@@ -287,3 +287,20 @@ describe('hint of an unnamed select', () => {
         expect(byRole(result, 'combobox')[0].hint).toBe('cardType in "Card Type"')
     })
 })
+
+describe('aria candidate matches the ref', () => {
+    it('does not emit aria/<name> for a wrapper whose name came from a descendant', () => {
+        const result = collect('<div id="wrap" style="cursor:pointer"><img alt="Copilot" width="40" height="40" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>')
+        const wrapper = result.refs.find((r) => r.name === 'Copilot')
+        expect(wrapper).toBeDefined()
+        expect(wrapper!.candidates.some((c) => c.kind === 'aria')).toBe(false)
+        expect(wrapper!.candidates.some((c) => c.kind === 'id' && c.selector === '#wrap')).toBe(true)
+    })
+
+    it('still emits aria/<name> when the element carries the name itself', () => {
+        const result = collect('<button aria-label="Save">x</button>')
+        const button = result.refs.find((r) => r.name === 'Save')
+        expect(button).toBeDefined()
+        expect(button!.candidates.some((c) => c.kind === 'aria')).toBe(true)
+    })
+})

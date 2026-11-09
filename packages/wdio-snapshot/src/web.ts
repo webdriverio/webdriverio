@@ -848,7 +848,10 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (name && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
             out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
-        if (name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
+        // `aria/<name>` resolves to the element that carries the name itself: a wrapper
+        // whose name came from a descendant fallback must not get one, it would point
+        // at that descendant instead (an img inside a pointer-cursor div, for example)
+        if (name && info.name === name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
             out.push({ kind: 'aria', selector: `aria/${name}` })
         }
         if (el.id && !looksGenerated(el.id) && unique(`#${CSS.escape(el.id)}`)) {
