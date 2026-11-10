@@ -203,6 +203,12 @@ describe('ShadowRootManager', () => {
             ['first-host', 'first-host-shadow'],
             ['second-host', 'second-host-shadow']
         ])
+        // the new root is the document: no document element next to it
+        expect(await manager.getShadowElementsByContextId('same-document-context')).toEqual([
+            'document-root',
+            'first-host-shadow',
+            'second-host-shadow'
+        ])
     })
 
     it('forgets only the subtree of a stale nested node, and everything for a stale document', async () => {
@@ -285,11 +291,51 @@ describe('ShadowRootManager', () => {
         ])
     })
 
+    it('should not add the document element to an unscoped lookup when the root is the document', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'host', value: {
+                    shadowRoot: { sharedId: 'hostShadow', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'document' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'documentElement' }
+            ],
+            source: { context: 'documentRootContext' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('documentRootContext')).toEqual(['document', 'hostShadow'])
+    })
+
+    it('should add the document element to an unscoped lookup when the root is not the document', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'host', value: {
+                    shadowRoot: { sharedId: 'hostShadow', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'detachedRoot' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'documentElement' }
+            ],
+            source: { context: 'detachedRootContext' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('detachedRootContext')).toEqual(['documentElement', 'detachedRoot', 'hostShadow'])
+    })
+
     it('should store the document element per context (regression test for shared document element)', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
 
-        // context A registers a shadow root and its own document element
+        // context A registers a shadow root, inside a root that isn't the document, and its own document element
         manager.handleLogEntry({
             level: 'debug',
             args: [
@@ -299,7 +345,7 @@ describe('ShadowRootManager', () => {
                     shadowRoot: { sharedId: 'shadowA', value: { nodeType: 11, mode: 'open' } }
                 } },
                 { type: 'node', sharedId: 'rootA' },
-                { type: 'boolean', value: true },
+                { type: 'boolean', value: false },
                 { type: 'node', sharedId: 'docElemA' }
             ],
             source: { context: 'ctxA' }
@@ -315,7 +361,7 @@ describe('ShadowRootManager', () => {
                     shadowRoot: { sharedId: 'shadowB', value: { nodeType: 11, mode: 'open' } }
                 } },
                 { type: 'node', sharedId: 'rootB' },
-                { type: 'boolean', value: true },
+                { type: 'boolean', value: false },
                 { type: 'node', sharedId: 'docElemB' }
             ],
             source: { context: 'ctxB' }
