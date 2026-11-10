@@ -178,6 +178,7 @@ export class ShadowRootManager extends SessionManager {
                 }
             }
 
+            const rootIsDocument = isDocument?.type === 'boolean' && isDocument.value
             if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -186,11 +187,11 @@ export class ShadowRootManager extends SessionManager {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
                 const rootTree = new ShadowRootTree(rootElem.sharedId)
-                if (isDocument?.type === 'boolean' && isDocument.value) {
+                if (rootIsDocument) {
                     this.#documentRootTrees.add(rootTree)
                 }
                 this.#shadowRoots.set(logEntry.source.context, rootTree)
-            } else if (isDocument.type === 'boolean' && isDocument.value) {
+            } else if (rootIsDocument) {
                 /**
                  * we've discovered a new root for the same context, this can happen if a page load
                  * occured after we registered the first shadow root
@@ -306,11 +307,7 @@ export class ShadowRootManager extends SessionManager {
             }
             tree = subTree
         } else if (!this.#documentRootTrees.has(tree)) {
-            /**
-             * ensure to include to document root if no scope is provided, unless the tree's
-             * root is the document itself: it already contains the document element, and
-             * passing both makes the driver search the whole page twice
-             */
+            // no scope: add the document element, unless the tree root is the document, which contains it
             documentElement = this.#documentElements.get(contextId)?.sharedId
         }
 
