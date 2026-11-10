@@ -121,3 +121,51 @@ describe('the items of a list', () => {
         expect(origGetElem.getElements.call(browser, '#foo', [])).toEqual([])
     })
 })
+
+describe('a single element', () => {
+    const ref = (id: string) => ({ 'element-6066-11e4-a52e-4f735466cecf': id })
+
+    it('shares the wrapped commands of the elements of the browser, and keeps its own values (#16422)', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        const a = origGetElem.getElement.call(browser, '#a', ref('elem-a'))
+        const b = origGetElem.getElement.call(browser, '#b', ref('elem-b'))
+        const child = origGetElem.getElement.call(a, '.c', ref('elem-c'))
+        const [item] = origGetElem.getElements.call(browser, '#d', [ref('elem-d')])
+        expect(a.getText).toBe(b.getText)
+        expect(child.getText).toBe(a.getText)
+        expect(item.getText).toBe(a.getText)
+        expect(Object.prototype.hasOwnProperty.call(a, 'getText')).toBe(false)
+        expect([a, b, child].map((elem) => [elem.elementId, elem.selector, elem.parent])).toEqual([
+            ['elem-a', '#a', browser], ['elem-b', '#b', browser], ['elem-c', '.c', a]
+        ])
+    })
+
+    it('emits on its own parent', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        const emitA = vi.fn()
+        const emitB = vi.fn()
+        const parentA = Object.create(browser, { emit: { value: emitA } })
+        const parentB = Object.create(browser, { emit: { value: emitB } })
+        const a = origGetElem.getElement.call(parentA, '#a', ref('elem-a'))
+        const b = origGetElem.getElement.call(parentB, '#b', ref('elem-b'))
+        expect(a.getText).toBe(b.getText)
+        a.emit('custom', 'from a')
+        b.emit('custom', 'from b')
+        expect(emitA.mock.calls).toEqual([['custom', 'from a']])
+        expect(emitA.mock.contexts).toEqual([parentA])
+        expect(emitB.mock.calls).toEqual([['custom', 'from b']])
+        expect(emitB.mock.contexts).toEqual([parentB])
+        expect((a.__propertiesObject__.emit.value as Function)).not.toBe(b.__propertiesObject__.emit.value)
+    })
+
+    it('that was not found has the error and the commands', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        const error = new Error('no such element')
+        const missing = origGetElem.getElement.call(browser, '#missing', error)
+        const found = origGetElem.getElement.call(browser, '#found', ref('elem-found'))
+        expect(missing.error).toBe(error)
+        expect(missing.elementId).toBeUndefined()
+        expect(missing.getText).toBe(found.getText)
+        expect(found.error).toBeUndefined()
+    })
+})
