@@ -371,9 +371,35 @@ describe('install', () => {
     })
 
     it('installPackages failing', async () => {
-        vi.mocked(execa).mockResolvedValue({ stdout: 'foo', stderr: 'bar', exitCode: 1 } as any)
-        expect(await installPackages('/foo/bar', ['foo', 'bar'], false))
-            .toBe(false)
+        // like execa: a failed command rejects unless `reject: false` is set
+        vi.mocked(execa).mockImplementation(((_: string, __: string[], options: { reject?: boolean }) => options.reject === false
+            ? Promise.resolve({ exitCode: 1, failed: true, stdout: 'added 0 packages', stderr: [
+                'npm warn deprecated foo',
+                'npm error code ERESOLVE',
+                'npm error peer appium@"^4.0.0-beta.6" from appium-xcuitest-driver@13.0.8'
+            ].join('\n') })
+            : Promise.reject(new Error('Command failed with exit code 1: npm install'))) as any)
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            expect(await installPackages('/foo/bar', ['foo', 'bar'], false)).toBe(false)
+            const message = consoleError.mock.calls.flat().join('\n')
+            expect(message).toContain('npm error code ERESOLVE')
+            expect(message).toContain('npm error peer appium@"^4.0.0-beta.6" from appium-xcuitest-driver@13.0.8')
+            expect(message).not.toContain('npm warn deprecated foo')
+            expect(message).toMatch(/install the packages with:\n\S+ (install|add) foo bar/)
+        } finally {
+            consoleError.mockRestore()
+        }
+    })
+
+    it('installPackages shows the output while it runs and keeps it for the error', async () => {
+        vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
+        await installPackages('/foo/bar', ['foo'], true)
+        expect(vi.mocked(execa).mock.calls[0][2]).toMatchObject({
+            reject: false,
+            stdout: ['inherit', 'pipe'],
+            stderr: ['inherit', 'pipe']
+        })
     })
 
     it('getInstallCommand', () => {

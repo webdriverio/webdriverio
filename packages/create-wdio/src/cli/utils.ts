@@ -11,7 +11,11 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
 
     await createPackageJSON(parsedAnswers)
     await setupTypeScript(parsedAnswers)
-    await npmInstall(parsedAnswers, npmTag)
+    // installPackages printed the error of the package manager and the command to retry
+    if (await npmInstall(parsedAnswers, npmTag) === false) {
+        process.exitCode = 1
+        return
+    }
     await createWDIOConfig(parsedAnswers)
     await createWDIOScript(parsedAnswers)
 

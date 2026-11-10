@@ -55,6 +55,18 @@ test('runConfigCommand', async () => {
     expect(vi.mocked(console.log).mock.calls).toMatchSnapshot()
 })
 
+test('runConfigCommand stops with exit code 1 when the packages could not be installed', async () => {
+    vi.mocked(createWDIOConfig).mockClear()
+    vi.mocked(npmInstall).mockResolvedValueOnce(false)
+    try {
+        await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')
+        expect(createWDIOConfig).not.toBeCalled()
+        expect(process.exitCode).toBe(1)
+    } finally {
+        process.exitCode = undefined
+    }
+})
+
 describe('canAccessConfigPath', () => {
     beforeEach(()=>{
         vi.mocked(fs.access).mockClear()
