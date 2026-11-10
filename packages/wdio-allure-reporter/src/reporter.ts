@@ -139,27 +139,15 @@ function splitTitlePathPart(part?: string): string[] {
 }
 
 /**
- * The Allure timeline groups the results by host. The runtime adds the global labels to
- * every result, so skipped and failed hook results get the default host too. The writer
- * removes it from a result that has a host of its own.
+ * The labels of a result with the default host when it has no host: the Allure timeline
+ * groups the results by host. A host from globalLabels, ALLURE_LABEL_host, a tag or
+ * addLabel is kept as it is.
  */
-function withDefaultHost(globalLabels: AllureReporterOptions['globalLabels']): { globalLabels: Label[], defaultHost?: string } {
-    const labels: Label[] = Array.isArray(globalLabels)
-        ? [...globalLabels]
-        : Object.entries(globalLabels ?? {}).flatMap(([name, value]) =>
-            (Array.isArray(value) ? value : [value]).map((labelValue) => ({ name, value: labelValue })))
-    // a host of the globalLabels option is the host of every result
-    const configuredHost = labels.find((label) => label.name === LabelName.HOST && label.value)?.value
-    if (configuredHost) {
-        return { globalLabels: labels, defaultHost: configuredHost }
+function withDefaultHost(labels: Label[], defaultHost: string): Label[] {
+    if (labels.some((label) => label.name === LabelName.HOST && label.value)) {
+        return labels
     }
-    // ALLURE_LABEL_host, else ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
-    const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
-        ?? getHostLabel().value
-    return {
-        globalLabels: [...labels.filter((label) => label.name !== LabelName.HOST), { name: LabelName.HOST, value: defaultHost }],
-        defaultHost
-    }
+    return [...labels.filter((label) => label.name !== LabelName.HOST), { name: LabelName.HOST, value: defaultHost }]
 }
 
 export default class AllureReporter extends WDIOReporter {
@@ -224,13 +212,19 @@ export default class AllureReporter extends WDIOReporter {
 
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
 
-        const { globalLabels, defaultHost } = withDefaultHost(rest.globalLabels)
+        // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME or the machine name
+        const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
+            ?? getHostLabel().value
         this._allureRuntime = new ReporterRuntime({
             ...rest,
-            globalLabels,
             links,
             environmentInfo: options.reportedEnvironmentVars,
-            writer: new LinkingFileSystemWriter(resolveResultsDir(options), defaultHost),
+            writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
+            // first, so the listeners of the user get the result with its host
+            listeners: [
+                { beforeTestResultWrite: (result) => { result.labels = withDefaultHost(result.labels, defaultHost) } },
+                ...(rest.listeners ?? [])
+            ],
         })
 
         this._capabilities = {}

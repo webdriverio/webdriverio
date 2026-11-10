@@ -1064,14 +1064,26 @@ describe('Host label', () => {
         })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
     })
 
-    it.each([
-        ['ALLURE_LABEL_host', () => vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1'), {}],
-        ['the globalLabels option', () => {}, { globalLabels: { host: 'ci-agent-2' } }]
-    ])('keeps only the host that the test sets, also with a host from %s', async (_, setUp, options) => {
-        setUp()
-        expect(await hostsOfOnePassingTest(options, {
-            duringTest: (reporter) => reporter.addLabel({ name: LabelName.HOST, value: 'grid-node-3' })
-        })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
+    it('replaces an empty host with the default host', async () => {
+        expect(await hostsOfOnePassingTest({}, {
+            duringTest: (reporter) => reporter.addLabel({ name: LabelName.HOST, value: '' })
+        })).toEqual([{ name: LabelName.HOST, value: hostname() }])
+    })
+
+    it('keeps every host of globalLabels', async () => {
+        expect(await hostsOfOnePassingTest({ globalLabels: { host: ['node-a', 'node-b'] } })).toEqual([
+            { name: LabelName.HOST, value: 'node-a' },
+            { name: LabelName.HOST, value: 'node-b' }
+        ])
+    })
+
+    it('gives the result with its host to the listeners of the user', async () => {
+        const seen: Label[][] = []
+        const listeners = [{ beforeTestResultWrite: (result: { labels: Label[] }) => {
+            seen.push(result.labels.filter((label) => label.name === LabelName.HOST))
+        } }]
+        expect(await hostsOfOnePassingTest({ listeners })).toEqual([{ name: LabelName.HOST, value: hostname() }])
+        expect(seen).toEqual([[{ name: LabelName.HOST, value: hostname() }]])
     })
 
     it('keeps only ALLURE_LABEL_host when it is set after the reporter starts', async () => {
