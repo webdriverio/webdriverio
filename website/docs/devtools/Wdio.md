@@ -61,6 +61,8 @@ services: [['devtools', options]]
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Per-test screencast video, retained per the given policy and attached inline to Allure (`video/webm`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `emitArtifactsManifest` | `boolean` | `false` | Writes `devtools-artifacts-<sessionId>.json` — a generic index of every produced artifact plus each test's state, for reporters/CI. Auto-enabled when `@wdio/allure-reporter` is in the config. Only applies when `mode: 'trace'` |
 | `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus passing/failing `expect(...)` matchers. Set `false` to opt out |
+| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text ([see Password masking](/docs/devtools/dashboard#password-masking)) |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page |
 
 ## Runtime snapshot
 

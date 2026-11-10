@@ -367,6 +367,8 @@ A failed row carries a second button beside Rerun. It snapshots the attempt, rer
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
 | `emitArtifactsManifest` | `boolean` | auto | Write the `devtools-artifacts-<sessionId>.json` manifest — the generic index reporters/CI consume to discover produced artifacts — next to the trace. Off by default; **auto-enables** when an `allure-js-commons` runtime is active. Trace mode only. |
 | `captureAssertions` | `boolean` | `true` | Capture `node:assert` assertions (both passing and failing) as trace action rows. Set `false` to opt out. |
+| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text. See [Password masking](/docs/devtools/dashboard#password-masking). |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page. |
 
 ```js
 DevTools.configure({
@@ -392,6 +394,8 @@ There is no options object - nothing devtools-specific has to appear in your tes
 | `--devtools-trace` | `devtools_trace = true` | Capture this run and write a trace archive instead of opening a dashboard. Implies `--devtools`. |
 | `--devtools-trace-granularity <session\|test>` | `devtools_trace_granularity = test` | One archive for the whole run (`session`, the default) or one per test. Implies `--devtools-trace`, unless an explicit `devtools_trace` value outranks it (see [the precedence table](#how-many-archives-and-which-ones-to-keep)). |
 | `--devtools-trace-policy <policy>` | `devtools_trace_policy = "retain-on-failure"` | Which archives are worth keeping. Implies `--devtools-trace` in the same way. See [How many archives, and which ones to keep](#how-many-archives-and-which-ones-to-keep). |
+| `--devtools-no-mask-inputs` | `devtools_mask_inputs = false` | Record password fields as typed in the replayed page instead of masking them. See [Password masking](/docs/devtools/dashboard#password-masking). |
+| `--devtools-mask-selector <css>` (repeatable) | `devtools_mask_selectors` (one per line) | Also mask the text and value of every element the selector matches in the replayed page. |
 
 Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=false` turns a project default off for one run, and `pytest -o devtools_trace_policy=on` does the same for any of the others.
 
@@ -405,6 +409,8 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_TRACE_POLICY=<policy>` | Trace mode: which archives are worth keeping. Ambient, so it never selects trace mode by itself - pair it with `DEVTOOLS_TRACE=1`. |
 | `DEVTOOLS_FILMSTRIP=0` | Trace mode: leave the dense filmstrip out of the archive. |
 | `DEVTOOLS_A11Y=0` | Trace mode: skip the per-action A11y tree and element rects. |
+| `DEVTOOLS_MASK_INPUTS=0` | Record password fields as typed in the replayed page instead of masking them. |
+| `DEVTOOLS_MASK_SELECTORS=.a,.b` | Comma-separated CSS selectors whose matches are also masked in the replayed page. |
 | `DEVTOOLS_OPEN=0` | Do not open the dashboard window (CI). |
 | `DEVTOOLS_BIDI=0` | Disable BiDi, and with it console and network capture. |
 | `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
