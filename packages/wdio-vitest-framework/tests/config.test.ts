@@ -87,6 +87,33 @@ describe('toVitestConfig', () => {
         expect((projects![0] as { test: { maxWorkers: number } }).test.maxWorkers).toBe(5)
     })
 
+    it('puts capabilities with the same limit in one sequence group', async () => {
+        const caps = [{ browserName: 'chrome', 'wdio:maxInstances': 2 }, { browserName: 'firefox', 'wdio:maxInstances': 2 }]
+        const { projects } = (await build({ capabilities: caps as never })).test!
+        expect(projects!.map((project) => (project as { test: { sequence: unknown } }).test.sequence)).toEqual([{ groupOrder: 1 }, { groupOrder: 1 }])
+    })
+
+    it('orders sequence groups by the first capability with each limit', async () => {
+        const caps = [{ browserName: 'chrome', 'wdio:maxInstances': 2 }, { browserName: 'firefox', 'wdio:maxInstances': 3 }, { browserName: 'edge', 'wdio:maxInstances': 2 }]
+        const { projects } = (await build({ capabilities: caps as never })).test!
+        expect(projects!.map((project) => (project as { test: { sequence: unknown } }).test.sequence)).toEqual([{ groupOrder: 1 }, { groupOrder: 2 }, { groupOrder: 1 }])
+    })
+
+    it('gives capabilities with different limits different sequence groups', async () => {
+        const caps = [{ browserName: 'chrome', 'wdio:maxInstances': 1 }, { browserName: 'firefox', 'wdio:maxInstances': 2 }]
+        const { projects } = (await build({ capabilities: caps as never })).test!
+        expect(projects!.map((project) => (project as { test: { sequence: unknown } }).test.sequence)).toEqual([{ groupOrder: 1 }, { groupOrder: 2 }])
+    })
+
+    it('groups capabilities by the limit after the global maxInstances cap', async () => {
+        const caps = [{ browserName: 'chrome', 'wdio:maxInstances': 2 }, { browserName: 'firefox', 'wdio:maxInstances': 3 }]
+        const { projects } = (await build({ maxInstances: 2, capabilities: caps as never })).test!
+        expect(projects!.map((project) => (project as { test: { maxWorkers: number, sequence: unknown } }).test)).toEqual([
+            expect.objectContaining({ maxWorkers: 2, sequence: { groupOrder: 1 } }),
+            expect.objectContaining({ maxWorkers: 2, sequence: { groupOrder: 1 } })
+        ])
+    })
+
     it('provides the full W3C capabilities, keeping firstMatch, and names the project from alwaysMatch', async () => {
         const requested = { alwaysMatch: { browserName: 'chrome', 'wdio:maxInstances': 3 }, firstMatch: [{ platformName: 'linux' }] }
         const { projects } = (await build({ capabilities: [requested] as never })).test!
