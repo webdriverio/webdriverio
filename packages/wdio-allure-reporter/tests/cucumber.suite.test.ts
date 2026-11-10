@@ -24,10 +24,14 @@ let processOn: any
 beforeAll(() => {
     processOn = process.on.bind(process)
     process.on = vi.fn()
+    // the default host check must not depend on host variables of the shell
+    vi.stubEnv('ALLURE_LABEL_host', undefined)
+    vi.stubEnv('ALLURE_HOST_NAME', undefined)
 })
 
 afterAll(() => {
     process.on = processOn
+    vi.unstubAllEnvs()
 })
 
 describe('reporter option "useCucumberStepReporter" set to true', () => {

@@ -38,6 +38,15 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
 )
 
+// the default host checks must not depend on host variables of the shell
+beforeAll(() => {
+    vi.stubEnv('ALLURE_LABEL_host', undefined)
+    vi.stubEnv('ALLURE_HOST_NAME', undefined)
+})
+afterAll(() => {
+    vi.unstubAllEnvs()
+})
+
 async function runHistoryIdCase(
     outputDir: string,
     capabilities: Record<string, unknown>,
