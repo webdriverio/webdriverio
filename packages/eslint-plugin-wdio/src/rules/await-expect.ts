@@ -57,10 +57,10 @@ const rule: Rule.RuleModule = {
                     const selectorFunctions = ['$', '$$']
                     const expectArg = expectCall.arguments[0]
                     const isLikelyWdioElement = (
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'Identifier' &&
                         selectorFunctions.includes(expectArg.callee.name)) ||
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'MemberExpression' &&
                         (expectArg.callee.property as Identifier).name &&
                         selectorFunctions.includes((expectArg.callee.property as Identifier).name))

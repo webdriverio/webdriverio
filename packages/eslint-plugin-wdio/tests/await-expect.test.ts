@@ -30,6 +30,8 @@ describe('await-expect', () => {
                 'it(`bar`, async () => { await expect($(`.foo`)).toMatchInlineSnapshot(); });',
                 'it(`bar`, async () => { expect(someObject).toMatchSnapshot(); });',
                 'it(`bar`, async () => { expect(123).toMatchInlineSnapshot(); });',
+                'it(`bar`, async () => { expect.soft(someObject).toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect().toMatchSnapshot(); });',
             ],
             invalid: [
                 {
@@ -87,6 +89,14 @@ describe('await-expect', () => {
                 },
                 {
                     code : 'expect(browser.$(`.foo`)).toMatchSnapshot()',
+                    errors,
+                },
+                {
+                    code : 'expect.soft($(`.foo`)).toMatchSnapshot()',
+                    errors,
+                },
+                {
+                    code : 'expect($(`.foo`)).not.toMatchSnapshot()',
                     errors,
                 },
             ],
