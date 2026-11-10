@@ -7,9 +7,7 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
-  # pnpm rejects versions younger than its 1 day minimumReleaseAge
-  cooldown:
-    default-days: 2
+  # no cooldown: the Dependabot default (3 days) is longer than pnpm's minimumReleaseAge (1 day)
   ignore:
     # @wdio/jasmine-framework patches private Jasmine internals (Spec, Suite)
     # that Jasmine 7 removed. Remove once the adapter supports Jasmine 7.
@@ -26,10 +24,6 @@ updates:
     # whitespace is lost. Update on purpose, with release notes.
     - dependency-name: "htmlfy"
       update-types: ["version-update:semver-major"]
-    # normalize-package-data 9 (create-wdio) requires Node.js ^22.22.2, but
-    # WebdriverIO supports Node.js 22.19.0. Version 8 is fine.
-    - dependency-name: "normalize-package-data"
-      versions: [">=9.0.0"]
     # Vite 8 (Rolldown, oxc) is a migration of @wdio/browser-runner: its default
     # config uses esbuild and Rollup plugins, and users' viteConfig and framework
     # plugins change. Update all Vite packages together in that migration.
@@ -70,6 +64,29 @@ updates:
     major-deps-updates-main:
       update-types:
         - "major"
+# v9 maintenance branch: minor and patch updates only. Dependabot reads this
+# file from the default branch, so the v9 entry lives here.
+- package-ecosystem: npm
+  directory: "/"
+  target-branch: v9
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 5
+  versioning-strategy: increase-if-necessary
+  ignore:
+    - dependency-name: "*"
+      update-types: ["version-update:semver-major"]
+    # 0.24 needs Node >= 22 and breaks Safari component tests without the #15696 guard
+    - dependency-name: "recast"
+      versions: [">=0.24.0"]
+  groups:
+    patch-deps-updates-v9:
+      update-types:
+        - "patch"
+    minor-deps-updates-v9:
+      update-types:
+        - "minor"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:

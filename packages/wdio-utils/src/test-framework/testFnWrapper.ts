@@ -1,6 +1,6 @@
 import { logHookError } from './errorHandler.js'
 import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
-import { getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
+import { fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
 
 import type {
     WrapperMethods,
@@ -44,6 +44,30 @@ export const testFnWrapper = function (
     ]
 ) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
+}
+
+/** Jasmine hook names as words, as in Mocha hook titles */
+const HOOK_LABELS = new Map([
+    ['beforeEach', 'before each'], ['afterEach', 'after each'], ['beforeAll', 'before all'], ['afterAll', 'after all']
+])
+
+/**
+ * Name of a Jasmine test or hook for a WDIO timeout error, as Jasmine has no runnable
+ * (Mocha: `undefined`, its runnable title is used): `'before each' hook: <function> for
+ * '<full spec name>'`. Single quotes, as the error quotes the name with `JSON.stringify`.
+ * The identity of a `beforeAll` / `afterAll` is the previous spec, so it gets no spec.
+ */
+function timeoutTitleOf (type: string, hookName: string | undefined, identity: unknown, fnName?: string) {
+    if (type === 'Test') {
+        return fullTestNameFrom(identity)
+    }
+    const label = type === 'Hook' && hookName ? HOOK_LABELS.get(hookName) : undefined
+    if (!label) {
+        return undefined
+    }
+    const hook = `'${label}' hook${fnName ? `: ${fnName}` : ''}`
+    const spec = hookName?.endsWith('Each') ? fullTestNameFrom(identity) : undefined
+    return spec ? `${hook} for '${spec}'` : hook
 }
 
 /**
@@ -102,6 +126,9 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
+    const timeoutTitle = (this as { _runnable?: unknown } | undefined)?._runnable
+        ? undefined
+        : timeoutTitleOf(type, hookName, identitySnapshot?.[0], (specFn as Function | undefined)?.name)
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
@@ -110,7 +137,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
             if (frameworkResult.result !== undefined) {

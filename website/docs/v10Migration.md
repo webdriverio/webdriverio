@@ -24,7 +24,7 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 ## Node.js
 
-WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
+WebdriverIO v10 requires Node.js 22.23.4, 24.22.1 or 26.12.1, or a later release of these lines. These are the first releases with the [updated CA store](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases) for the eMudhra intermediate CA compromise. Node.js 18 and 20 are no longer supported, and Node.js 23 and 25 are not supported. CI covers Node.js 22, 24, and 26.
 
 ## Component tests
 
@@ -34,7 +34,7 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 ## Mocha
 
-`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
+`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of Node.js 22.23.4.
 
 ```diff
 - mochaOpts: { compilers: ['ts:ts-node/register'] }
@@ -43,9 +43,11 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 `mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
 
-WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). The `retry` argument of WebdriverIO does not run a test again after a timeout. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks), also for `mochaOpts.parallelMode`. New in v10: [parallel tests in a spec file](./ParallelTests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`.
+WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). The `retry` argument of WebdriverIO does not run a test again after a timeout. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks), also for `mochaOpts.parallelMode`. New in v10: [parallel tests in a spec file](./ParallelTests.md) with `mochaOpts.parallelMode` or `cucumberOpts.parallelMode`, and [`@wdio/vitest-framework`](./Frameworks.md#using-vitest) to run Vitest specs with `framework: 'vitest'`.
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
+
+A hook title has the description or the name of the hook function, as in Mocha: `"before each" hook: login for "my test"` for `beforeEach('login', fn)` or `beforeEach(function login () {})`, or no name for an anonymous hook: `"before each" hook for "my test"`. In v9 it had `wrappedHook`, the name of the WebdriverIO wrapper. You see this title in the error of a test that a failed hook skipped, and in the names of root-level hooks, for example in Allure.
 
 Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
 
@@ -61,7 +63,7 @@ Mocha 12 is ESM-first (`"type": "module"`). Programmatic `require('mocha')` stil
 
 `@wdio/cucumber-framework` depends on [`@cucumber/cucumber` 13](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
-Cucumber 13 requires Node.js 22, 24, or 26 or later. It does not run on Node.js 20, 23, or 25. The framework package declares that same range, starting at the v10 floor of 22.19.0.
+Cucumber 13 requires Node.js 22, 24, or 26 or later. It does not run on Node.js 20, 23, or 25. The framework package declares the v10 range, which also excludes Node.js 23 and 25.
 
 ```diff
 - cucumberOpts: { tagExpression: '@smoke' }
@@ -74,9 +76,25 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+### `strict` and profiles
+
+`cucumberOpts.strict` defaults to `true`, as in Cucumber: a pending step fails the run, and the reporters still show the step as pending. Set `strict: false` to keep the v9 behavior.
+
+Values in a Cucumber profile or configuration file are used: the file in `cucumberOpts.file`, or, without it, Cucumber's default file in the working folder (`cucumber.js`, `.cjs`, `.mjs`, `.json`, `.yaml` or `.yml`). A value in `cucumberOpts` wins over the profile; before, the WebdriverIO defaults (for example `retry: 0`) also won, so a profile could only set a few options. The `require` and `import` lists of the profile are loaded too, together with the ones in `cucumberOpts`. The `paths`, `requireModule` and `loader` of the profile are not used, and the worker logs a warning: use `specs` and `cucumberOpts.requireModule` (WebdriverIO has its own TypeScript loader). A folder in the `require` or `import` of the profile is not loaded either, with a warning: use a glob such as `features/support/**/*.js`. Remove a Cucumber configuration file that you do not use, or set `cucumberOpts.file: false`.
+
+### `BeforeAll` and `AfterAll` hooks
+
+A Cucumber `BeforeAll` / `AfterAll` is now reported as a hook of the feature, passed or failed (before, a failed one was in no report). The browser commands and console logs of its body belong to the hook: those of an `AfterAll` were on the last step of the last scenario before. Allure shows each one as a fixture of the feature (set `disableMochaHooks: true` to hide the passed ones), and `@wdio/json-reporter` lists it in the `hooks` of the feature. WebdriverIO's own `beforeFeature` / `afterFeature` hooks are not reported.
+
+### Feature uid
+
+The uid of a Cucumber feature is the path of the feature file from `rootDir`, not the file name: `features/admin/login.feature:1:1` instead of `login.feature:1:1`. Two feature files with the same name in other folders no longer share a uid. The `parent` and `fullTitle` of a scenario use this uid. `%`, `:` and `#` in the path are encoded as `%25`, `%3A` and `%23`, so `uid.split(':')[1]` is still the line and a `#` only starts a part number. In grouped specs with a random order, a feature that starts again has the suite uid `<uid>#2`.
+
+With `scenarioLevelReporter: true`, the Allure `historyId` comes from `fullTitle`, so the Allure history of each scenario starts again with this change. It also starts again when `rootDir` or the path of the feature file changes. To keep one history for config files in different folders, set the same `rootDir` in each of them.
+
 ## Jasmine
 
-`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of 22.19.0 already covers that range.
+`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of Node.js 22.23.4 already covers that range.
 
 `jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws:
 
@@ -135,6 +153,8 @@ Other effects of this change:
 - Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
 - `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
 
+A failing `afterAll` now fails the run. In v9, the reporter showed the failed hook, but the run still passed. A spec file that starts to fail this way had a hidden failure in v9: fix the hook.
+
 `toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array (including the result of `$$().filter()`), an `Element[]`, a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
 
 ```js
@@ -174,6 +194,8 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
+`autoAssertOnTestEnd: false` now takes effect. v9 ignored it, so soft assertion failures always failed the test. If you set it, call `expect.assertSoftFailures()` in your tests, or remove the option: else a soft assertion failure no longer fails the test.
+
 ## Driver packages
 
 WebdriverIO v10 starts Firefox, Edge and Safari with `geckodriver` 8, `edgedriver` 8 and `safaridriver` 3. In v9, it used `geckodriver` and `edgedriver` 6 or 7, and `safaridriver` 1 or 2. WebdriverIO installs them, so you do not list them yourself. If your `package.json` lists one of them, update it in the same change as the `@wdio/*` packages.
@@ -190,7 +212,41 @@ The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-ge
 
 In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files itself. In v10 it uses the system `unzip` command on Linux and macOS (`tar.exe` or PowerShell on Windows). Slim Docker images, such as `node:24-slim`, do not have it: install it, see [Docker](/docs/docker#images-where-webdriverio-downloads-the-browser).
 
-In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1` (Node.js 22.21.0 / 24.5.0 or later). WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
+In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1`. WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
+
+## Proxy with `setGlobalDispatcher`
+
+WebdriverIO v10 uses `undici` 8. In v9, it used `undici` 6. If your config calls `setGlobalDispatcher` from your own `undici`, update that package to version 8. WebdriverIO does not see a dispatcher that `undici` 6, or `undici` 7 older than 7.27, sets: its requests then skip that proxy, with no error.
+
+## Chrome profile on Windows
+
+In v9, a testrunner worker on Windows gave Chrome the profile folder `wdio-chrome-<worker id>-<time>` in `outputDir` (or the temporary folder) when your capabilities set no `--user-data-dir`. The folder stayed on disk after the run, and two sessions of one worker, for example the instances of a multi-remote worker, could get the same folder.
+
+In v10, WebdriverIO adds no profile folder. ChromeDriver gives each session its own temporary profile in the system temporary folder, also after `reloadSession()`, as on Linux and macOS. To keep a profile, for example its `Crashpad` crash dumps, set your own `--user-data-dir`. WebdriverIO never changes or deletes it. Give each session its own folder: the capabilities in the config file are read once by the launcher, so set the folder in `beforeSession`, which runs in each worker:
+
+```js
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+export const config = {
+    // ...
+    beforeSession (config, capabilities) {
+        if (!/chrom/i.test(capabilities.browserName ?? '')) {
+            return
+        }
+        const chromeOptions = capabilities['goog:chromeOptions'] ??= {}
+        if (chromeOptions.args?.some((arg) => arg.includes('user-data-dir'))) {
+            return
+        }
+        chromeOptions.args = [...(chromeOptions.args ?? []), `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'my-profile-'))}`]
+    }
+}
+```
+
+These folders stay on disk after the run: delete them when you no longer need them.
+
+In a multi-remote config, `capabilities` has one entry for each instance: do the same for each `capabilities[name].capabilities`. With W3C capabilities, use `capabilities.alwaysMatch`.
 
 ## Multi-remote Global
 
@@ -218,6 +274,10 @@ The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and 
 The top-level config keys stay `specs` and `exclude`. A leftover bare list on a capability does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
 
 The `tunnelIdentifier` and `parentTunnel` aliases were removed from the Sauce Labs options types. Use `tunnelName` and `tunnelOwner`.
+
+## `--shard`
+
+`--shard` is one-based. In v9, `--shard 0/4` ran no spec and passed, and `--shard 0/1` ran all specs. Both now fail with `the "shard.current" value has to be an integer between 1 and "shard.total"`. A CI matrix with a 0-based index must use 1 to 4.
 
 ## TypeScript
 
@@ -347,9 +407,115 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
   }
 ```
 
+### Custom reporters with Cucumber
+
+In a sequential run, Cucumber now sends `test:end` after each step (or each scenario with `scenarioLevelReporter`), so `onTestEnd` runs as with Mocha and Jasmine. A scenario attempt that Cucumber runs again with `scenarioLevelReporter` ends with `onTestRetry` and gets no `onTestEnd`. Finish your work for a test in `onTestEnd`, and for such an attempt in `onTestRetry`. A reporter that does this work in `onTestPass` or `onTestFail` as well as in `onTestEnd`, because Cucumber did not send `onTestEnd`, now does it 2 times.
+
+The step that fails in an attempt that Cucumber runs again now calls `onTestRetry`, not `onTestFail`. WebdriverIO removes that attempt from `this.counts` before it calls `onSuiteRetry`. See [Custom Reporter](/docs/customreporter).
+
 ### Allure
 
 `addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
+
+### JSON reporter
+
+`state.failed` counts only the last attempt of a retried test. In v9, it counted each failed attempt. With Mocha `retries`, Cucumber `retry` with `scenarioLevelReporter` and Vitest `retry`, the earlier attempts stay in `suites[].tests` with `state: 'failed'` and `retried: true`: skip them when your script counts tests. With Cucumber `retry` at step level, the earlier attempts are not in the file. With Vitest, a hook of a retried attempt, and a hook whose error is the failure of its test, do not count in `state.failed`.
+
+### JUnit reporter
+
+In a multi-remote run, the `classname` of a test case and the `capabilities` property name each instance and its browser, for example `chromeA-chrome_155_0_8059_85_mac+chromeB-chrome_155_0_8059_85_mac.a_test_case`. In v9, this part was empty (`.a_test_case`). Update filters on these values. The test history of these tests in your CI tool starts again one time.
+
+### Cucumber JSON reporter
+
+`wdio-cucumberjs-json-reporter` moved into the WebdriverIO repository as [`@wdio/cucumberjs-json-reporter`](/docs/cucumberjs-json-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-cucumberjs-json-reporter
+npm install @wdio/cucumberjs-json-reporter --save-dev
+```
+
+`reporters: ['cucumberjs-json']` stays the same: WebdriverIO loads `@wdio/cucumberjs-json-reporter` for that name. Replace the imports in your step files:
+
+```diff
+- import cucumberJson from 'wdio-cucumberjs-json-reporter'
++ import cucumberJson from '@wdio/cucumberjs-json-reporter'
+```
+
+The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools and scripts that read them:
+
+- The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
+- The feature `id` keeps characters such as `:` and `/` (only spaces become `-`), as in the Cucumber JSON format. The names of the JSON files do not change, but a feature part of more than 200 bytes (for example many non-ASCII characters) is cut and ends with a hash (Linux allows 255 bytes in a file name), and a Windows device name such as `con` starts with `_`.
+- The feature and scenario `keyword` are the keywords of the file, for example `Scenario Outline` or `Fonctionnalité`, as in the Cucumber JSON format. Before, they were always `Feature` and `Scenario`.
+- Scenarios and steps have a `line`.
+- Tags are `{ name, line }`, as in the Cucumber JSON format; the tags of a scenario get the line of the feature file. Before, they were internal Cucumber objects with `location`, `id` or `astNodeId` (random at each run), and the tags of a scenario had no line.
+- Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
+- A doc string argument is `{ content, line }`. Before, it was the text of the doc string.
+- A hook that Cucumber skips (after a failed hook, or a hook that returns `'skipped'`) has the status `skipped`, and a hook that returns `'pending'` has `pending`, as in the Cucumber JSON format. Before, they were `passed`.
+- The status of an ambiguous step is `ambiguous`, as in the Cucumber JSON format, and its `error_message` lists the matching step definitions. Before, it was `skipped` with no reason, or `failed` with `cucumberOpts.failAmbiguousDefinitions`.
+- The status of an undefined step is `undefined`. Before, it was `failed`, or `pending` with `cucumberOpts.ignoreUndefinedDefinitions`.
+- A scenario that Cucumber runs again (`cucumberOpts.retry`) has only the steps of its last try. Before, it had the steps of all tries.
+- With `cucumberOpts.tagsInTitle`, the feature and scenario names, the ids and the file names have no tags.
+- When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
+- In a multi-remote session, the metadata comes from the first instance.
+
+These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, an object attached as `text/plain` (it is JSON text, not `[object Object]`), and a JSON string attached as `application/json` (it stays as it is, it is not encoded a second time). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language` (the `language` option of the reporter only when `cucumberOpts.language` is not set). With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
+
+### Video reporter
+
+`wdio-video-reporter` moved into the WebdriverIO repository as [`@wdio/video-reporter`](/docs/video-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-video-reporter
+npm install @wdio/video-reporter --save-dev
+```
+
+The community package installed ffmpeg itself. `@wdio/video-reporter` does not: [install ffmpeg](/docs/video-reporter#install-ffmpeg) on each machine that runs the tests, also in CI and in Docker images, or set the `ffmpegPath` option or the `FFMPEG_PATH` environment variable. Without ffmpeg, the reporter logs a warning and makes no video.
+
+```sh
+brew install ffmpeg                                         # macOS
+sudo apt-get update && sudo apt-get install -y ffmpeg       # Ubuntu, Debian
+winget install --id Gyan.FFmpeg -e                          # Windows
+```
+
+`reporters: ['video']` stays the same: WebdriverIO loads `@wdio/video-reporter` for that name. Replace imports from `wdio-video-reporter` with `@wdio/video-reporter`. The options are the same, with these changes:
+
+- `snapshotCommands` uses the last part of the W3C WebDriver endpoints. The old default also listed JSON Wire Protocol names such as `buttonup`, `moveto`, `keys` or `accept_alert`. These names never match a v10 command. Use the names of the [default list](/docs/video-reporter#snapshotcommands), for example `actions`, `value` or `accept`.
+- In a WebDriver BiDi session, the reporter also takes a frame after `url`, `back`, `forward`, `refresh` and `actions`.
+- In a WebDriver BiDi session, the reporter takes the frames with WebDriver BiDi, and the next command waits for the frame of the command before it (about 50 to 70 ms in Chrome), so that each frame shows the page of its command. Before, in Chrome, a screenshot at the start of a WebDriver BiDi navigation could make the test wait 10 seconds.
+- In a multi-remote session, only the commands of the first instance take a frame. Before, the commands of each instance took a frame of the first instance.
+- A `GET` command only reads the page, so it gives no frame, except with `recordAllActions`. Before, `getUrl`, `getSize` or `getValue` gave a frame, because the last part of their endpoint (`url`, `rect`, `value`) is in `snapshotCommands`.
+- The date in the video file names is `YYYY-MM-DD--HH-MM-SS-mmm` on every machine. Before, it used the locale of the machine.
+- `videoFormat` accepts `webm` (the default) and `mp4`. Before, `videoFormat: 'default'` made mp4 videos; now it logs a warning and makes webm videos. Use `videoFormat: 'mp4'`.
+- With the Allure reporter, a test without a video no longer gets an empty video attachment.
+
+### HTML reporter
+
+`wdio-html-nice-reporter` moved into the WebdriverIO repository as [`@wdio/html-reporter`](/docs/html-reporter). The old package is for v9 only.
+
+```sh
+npm uninstall wdio-html-nice-reporter
+npm install @wdio/html-reporter --save-dev
+```
+
+The reporter name is `html`. Change the name in `reporters` and the imports:
+
+```diff
+- import { ReportAggregator } from 'wdio-html-nice-reporter'
++ import { ReportAggregator } from '@wdio/html-reporter'
+
+  reporters: [
+-     ['html-nice', { outputDir: './reports/html-reports/' }]
++     ['html', { outputDir: './reports/html-reports/' }]
+  ]
+```
+
+The options are the same. Also change these:
+
+- `ReportEvents` comes from `@wdio/html-reporter`. Tests that still use `@rpii/wdio-report-events` work, because both send the same events.
+- The command line script is `node_modules/@wdio/html-reporter/build/makeReport.js`. It was `node_modules/wdio-html-nice-reporter/lib/makeReport.js`.
+- With Cucumber, the report counts scenarios, not steps, and counts only the last try of a retried scenario.
+- The `makeReport.js` script ends with exit code 1 when it makes no complete report, so a CI step can now fail. Before, it always ended with 0. It now uses its folder argument, takes the report title as a third argument, and opens no browser when `CI` is set.
+- The JSON files have no credentials. `info` keeps only the fields that the report uses, and `info.capabilities` keeps only the names of the browser, platform and device. Suites have no `hooksAndTests`, and `info.retry` is the attempt of the spec file. Check the scripts that read these files.
 
 ## `$` is strict
 
@@ -420,6 +586,20 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Link text selectors
+
+In a WebDriver BiDi session, `=text` and `*=text` now match only links, as in WebDriver Classic. In v9, in a BiDi session, they also matched other elements, for example a `<button>` with that text. Such a selector now finds no element. For another element, name its tag or use its accessible name:
+
+```diff
+- await $('=Save').click()
++ await $('button=Save').click()
+
+- await $('*=Sav').click()
++ await $('button*=Sav').click()
+```
+
+`aria/Save` also works. See [Selectors](/docs/selectors).
 
 ## Element lists before `await`
 
@@ -584,6 +764,19 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `setValue` on date, time, range and color inputs
+
+On an input of type `range`, `date`, `datetime-local`, `month`, `week`, `time` or `color`, `setValue` now sets the value directly and fires only the `input` and `change` events. In v9, it cleared the input and typed the keys, so the format of a date followed the locale of the browser.
+
+Pass the value in the format of the input. A value that the browser cannot parse throws `The browser rejected the value "<value>" for this input, which keeps its previous value.`, and so does an empty value on a range input:
+
+```diff
+- await $('input[type="date"]').setValue('10/04/2026')
++ await $('input[type="date"]').setValue('2026-10-04')
+```
+
+Use `2026-10-04` for a date, `14:30` for a time, `#rrggbb` for a color and a number for a range. An app or a test that waits for key events on these inputs gets none.
+
 ## `uploadFile`
 
 `browser.uploadFile()` is removed. It zipped a local file and posted it to the Selenium `file` endpoint, which is not part of WebDriver or WebDriver BiDi. Set a file input with [`element.setFiles()`](/docs/api/element/setFiles).
@@ -738,6 +931,10 @@ Its `map`, `filter`, `forEach`, `find`, `findIndex`, `some`, `every` and `reduce
 
 To keep the filter, omit `fetchResponse` so the mock fetches the response, checks the status or headers, and then replaces the body.
 
+## Mocks and `reloadSession`
+
+`browser.reloadSession()` restores the mocks of the old session. They stop answering requests, their `calls` are cleared, and `respond()`, `abort()` or `request()` on them throws `This can't be done on restored mock`. In v9, `calls` stayed readable after the reload. Read `calls` before the reload, and create the mocks again after it.
+
 ## Element references
 
 Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
@@ -844,6 +1041,10 @@ A matched JavaScript file that is not in the TypeScript project, such as `wdio.c
 
 `@wdio/firefox-profile-service` no longer treats `legacy` as a service option. That flag only applied to Firefox 55 and older. Delete it. A leftover `legacy: true` is written into the profile as a preference named `legacy`.
 
+## Shared store service
+
+`get`, `getValue` and `getValueFromPool` of `@wdio/shared-store-service` return a stored `null` as `null`. In v9, they returned `undefined`. `get` and `getValue` still return `undefined` for a key that does not exist. If you clear a value with `set(key, null)`, also check for `null`.
+
 ## WebDriver protocol
 
 Every session is a [W3C WebDriver](https://w3c.github.io/webdriver/) session. WebdriverIO does not speak the JSON Wire Protocol or the Mobile JSON Wire Protocol. v9 removed those commands. v10 also drops the response envelope those protocols used, so a server that still returns it cannot start a session.
@@ -894,6 +1095,8 @@ A flat capability object in your config is still valid. WebdriverIO wraps `{ bro
 ### Command responses
 
 A command result is `{ "value": … }`. HTTP 200 with no `error` in `value` is success. A missing element is HTTP 404 with `value.error` set to `"no such element"`, which still allows a lazy element lookup. A numeric `status` on the body is ignored, including `status: 0` and the old `status: 7` ("no such element") code. Send the W3C error object instead.
+
+Most well-formed W3C errors, such as `session not created`, `timeout`, `script timeout`, `javascript error` or `unknown command`, are not retried. In v9, WebdriverIO sent these requests again, up to [`connectionRetryCount`](/docs/configuration#connectionretrycount) times. That option still applies to network failures, retryable HTTP status codes and `unknown error`. If a Grid or cloud service can refuse a session for a short time, use [`specFileRetries`](/docs/retry#add-retries-on-a-per-specfile-basis).
 
 The exported error type `JSONWPCommandError` is now `SessionRequestError`.
 

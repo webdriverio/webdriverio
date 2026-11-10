@@ -10,6 +10,8 @@ runs:
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version-file: ".nvmrc"
+        # the runner cache can hold a 24.x below the engines floor
+        check-latest: true
         cache: "pnpm"
 
     - name: 🏗️ Install Dependencies

@@ -12,12 +12,19 @@ pnpm run test:e2e:launch       # vitest launch helpers
 pnpm run test:e2e:testrunner   # headless wdio testrunner
 pnpm run test:e2e:webdriver    # local webdriver conf
 pnpm run test:e2e:classic
+pnpm run test:e2e:parallel     # parallel mode (contexts) in Chrome (also in the CI testrunner lane)
+pnpm run test:e2e:parallel-user-contexts # the same specs with parallelMode 'userContexts' (also in the CI testrunner lane)
 pnpm run test:e2e:jasmine      # Jasmine framework: sync and async expect
 pnpm run test:e2e:multi-remote
 pnpm run test:component        # e2e/browser-runner (needs @wdio/browser-runner)
 pnpm run test:e2e:session      # @wdio/session (Chrome, Firefox, Electron)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (see test-chromedriver.yml)
+pnpm run test:e2e:cucumberjs-json-reporter # @wdio/cucumberjs-json-reporter in Chrome, with its multiple-cucumber-html-reporter report (local only)
+pnpm run test:e2e:video-reporter # @wdio/video-reporter + Allure in Chrome; needs ffmpeg on PATH (also in the CI testrunner lane)
+pnpm run test:e2e:video-reporter-parallel # the same in Mocha and Cucumber parallel mode: one video per test, no frame of another test
+pnpm run test:e2e:html-reporter # @wdio/html-reporter in Chrome (local only)
+pnpm run test:e2e:html-reporter-parallel # the same in Mocha and Cucumber parallel mode: each log and screenshot under its test (also in the CI testrunner lane)
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only, not in CI
 pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
@@ -38,7 +45,8 @@ diff.
 - Chromedriver setup in `packages/wdio-utils` (`utils.ts`, `electronChromedriverProvider.ts`, `startWebDriver.ts`, `manager.ts`, `package.json`) + `e2e/wdio/chromedriver` → Chromedriver (Linux ARM64, macOS, Windows)
 - most other `packages/**` / `e2e/**` → core e2e + unit + smoke
 
-Match that locally. A reporter-only change does not need this folder.
+Match that locally. A reporter-only change does not need this folder, except the
+reporters with a real-browser suite in `e2e/wdio/reporters/` (run its `test:e2e:*` script).
 
 ## Guardrails
 

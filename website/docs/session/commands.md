@@ -306,6 +306,8 @@ Every snapshot is written to the artifacts dir. Output longer than --max-chars i
 
 The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.
 
+`--diff` prints a unified diff against the previous snapshot, the baseline `diff` uses, instead of the whole tree. It needs the same --scope, -i, --all and --urls as that snapshot, else the whole tree is printed. --offset above 1 and a web --viewport are usage errors. A diff longer than --max-chars is cut at a line and names the snapshot file. Without a previous snapshot the whole tree is printed. The file still gets the whole snapshot.
+
 ```sh
 npx wdio session snapshot
 ```
@@ -321,6 +323,7 @@ npx wdio session snapshot
 | `--boxes` | Append bounding boxes |
 | `--viewport` | Only what is in the viewport (web: does not update the diff baseline) |
 | `--selectors` | End each ref line with its best selector |
+| `--diff` | Print only what changed since the previous snapshot, as a unified diff |
 | `--compact` | Drop unnamed nodes that have no content |
 | `-u, --urls` | Include link hrefs |
 | `--file-only` | Only write the file |
@@ -347,6 +350,9 @@ npx wdio session snapshot --selectors -i
 
 # Act, then look again
 npx wdio session click e3 && npx wdio session snapshot -i
+
+# Act, then see only what changed
+npx wdio session click e3 && npx wdio session snapshot -i --diff
 ```
 
 See also: [`find`](#find), [`diff`](#diff), [`screenshot`](#screenshot).

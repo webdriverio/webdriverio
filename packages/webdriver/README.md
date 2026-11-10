@@ -154,7 +154,7 @@ Timeout for any WebDriver request to a driver or grid.
 
 <Option type="Number" default="3">
 
-Count of request retries to the Selenium server.
+Count of request retries to the WebDriver server.
 
 </Option>
 

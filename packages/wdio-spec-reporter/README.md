@@ -189,6 +189,10 @@ Set to `true` to display colored output in terminal
 ]
 ```
 
+## Parallel mode
+
+The reporter supports [parallel mode](https://webdriver.io/docs/parallel-tests) (`mochaOpts.parallelMode`, `cucumberOpts.parallelMode`): each Mocha `describe` block and each Cucumber scenario is shown under its own parent, also when tests run at the same time.
+
 ## Environment Options
 
 There are certain options you can set through environment variables:

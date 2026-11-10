@@ -170,7 +170,7 @@ describe('acceptDialog - Android', () => {
     it('should accept a dialog by button text on Android', async () => {
         await browser.acceptDialog('Allow')
 
-        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Allow']", { strict: false })
+        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Allow"]', { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(acceptAlertSpy).not.toHaveBeenCalled()
     })

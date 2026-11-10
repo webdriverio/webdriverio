@@ -5,7 +5,6 @@ import isPlainObject from 'is-plain-obj'
 import {
     findElement,
     findElements,
-    isStaleElementError,
     elementPromiseHandler,
     transformClassicToBidiSelector,
     createFunctionDeclarationFromString
@@ -165,26 +164,6 @@ describe('elementPromiseHandler', () => {
     })
 })
 
-it('isStaleElementError', () => {
-    const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
-    expect(isStaleElementError(staleElementChromeError)).toBe(true)
-    const staleElementFirefoxError = new Error('The element <nested-component> is no longer attached to the DOM')
-    expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
-    const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
-    expect(isStaleElementError(staleElementSafariError)).toBe(true)
-    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
-    expect(isStaleElementError(staleElementJSError)).toBe(true)
-    const staleElementBidiError = new Error('belongs to different document. Current document is')
-    expect(isStaleElementError(staleElementBidiError)).toBe(true)
-    // Chrome 155: a removed node, and an id that is not valid
-    const goneNodeChromeError = new Error('no such node - SharedId "f.60860673155B1A4024ABC7C44C41BEA2.d.CD649CEDA25EACD4665D146439AC33ED.e.3" was not found.')
-    expect(isStaleElementError(goneNodeChromeError)).toBe(true)
-    const invalidIdChromeError = new Error('no such node - SharedId "not-an-id" was not found.')
-    expect(isStaleElementError(invalidIdChromeError)).toBe(true)
-    const otherError = new Error('something else')
-    expect(isStaleElementError(otherError)).toBe(false)
-})
-
 describe('transformClassicToBidiSelector', () => {
     it('transforms classic css selector to BiDi', () => {
         const bidiSelector = transformClassicToBidiSelector('css selector', '.red')
@@ -204,17 +183,10 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.value).toBe('//html/body/section/div[6]/div/span')
     })
 
-    it('transforms classic link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('link text', 'GitHub Repo')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('GitHub Repo')
-    })
-
-    it('transforms classic partial link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('new')
-        expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
+    it('transforms classic link text selectors into a locator for all links', () => {
+        // the text of the links is compared after they were located
+        expect(transformClassicToBidiSelector('link text', 'GitHub Repo')).toEqual({ type: 'css', value: 'a' })
+        expect(transformClassicToBidiSelector('partial link text', 'new')).toEqual({ type: 'css', value: 'a' })
     })
 
     it('transforms aria selector to BiDi accessibility locator', () => {

@@ -190,7 +190,7 @@ export const config = {
     ],
     //
     // Framework you want to run your specs with.
-    // The following are supported: 'mocha', 'jasmine', and 'cucumber'
+    // The following are supported: 'mocha', 'jasmine', 'cucumber' and 'vitest'
     // See also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
@@ -251,9 +251,9 @@ export const config = {
         failFast: false,    // <boolean> abort the run on first failure
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source URIs
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
+        strict: true,       // <boolean> fail the run on a pending step
         tags: '',           // <string> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,     // <number> timeout for step definitions
+        timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
         scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
     },
@@ -341,7 +341,7 @@ export const config = {
     afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine only)
+     * Function to be executed before a test (in Mocha, Jasmine and Vitest only)
      * @param {object} test    test object
      * @param {object} context scope object the test was executed with
      */
@@ -364,7 +364,7 @@ export const config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine only)
+     * Function to be executed after a test (in Mocha, Jasmine and Vitest only)
      * @param {object}  test             test object
      * @param {object}  context          scope object the test was executed with
      * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`

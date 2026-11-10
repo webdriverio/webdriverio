@@ -8,7 +8,7 @@ import { initializeLauncherService, initializeWorkerService } from './initialize
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
-    userImport, getBrowserObject, enableFileLogging,
+    userImport, getBrowserObject, enableFileLogging, specFilePath,
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS, setCommandHookStore, unwrapCommand } from './shim.js'
 import * as asyncIterators from './pIteration.js'
@@ -20,7 +20,11 @@ import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.
 import {
     WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
 } from './kind.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
+import { toXPathStringLiteral } from './xpath.js'
+import { isStaleElementError } from './staleElement.js'
+import type { ChromedriverParameters } from './driverOptions.js'
 
 export {
     startWebDriver,
@@ -41,6 +45,7 @@ export {
     userImport,
     getBrowserObject,
     enableFileLogging,
+    specFilePath,
     asyncIterators,
 
     /**
@@ -100,5 +105,30 @@ export {
     knownRoles,
     ROLE_SYNONYMS,
     type AttributeTest,
-    type RoleRule
+    type RoleRule,
+
+    /**
+     * XPath 1.0 string literal of a value with any quotes
+     */
+    toXPathStringLiteral,
+
+    /**
+     * true when the error message is a stale element error of a driver
+     */
+    isStaleElementError,
+
+    /**
+     * BiDi context allocation for parallel test execution
+     */
+    allocateContext,
+    cleanupAllocation,
+    resolveMaxContexts,
+    type ParallelMode,
+    type ParallelContextAllocation,
+    type ParallelContextBrowser,
+
+    /**
+     * the Chromedriver options; loading this entry also types `WebdriverIO.GeckodriverOptions` etc.
+     */
+    type ChromedriverParameters
 }

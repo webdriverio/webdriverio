@@ -60,10 +60,12 @@ export const PROGRAM_TITLE = `
                     ${colorIt('test framework for Node.js')}
 `
 
+export const SUPPORTED_NODE_VERSIONS = '>=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1'
+
 export const UNSUPPORTED_NODE_VERSION = (
     '⚠️  Unsupported Node.js Version Error ⚠️\n' +
-    `You are using Node.js ${process.version} which is too old to be used with WebdriverIO.\n` +
-    'Please update to Node.js v22.19.0 to continue.\n'
+    `You are using Node.js ${process.version} which is not supported by WebdriverIO.\n` +
+    'Please update to Node.js v22.23.4, v24.22.1, v26.12.1 or a later release of these lines to continue.\n'
 )
 
 export const INSTALL_COMMAND: Record<PACKAGE_MANAGER, string> = {
@@ -132,13 +134,13 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
         { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
         { name: 'json', value: '@wdio/json-reporter$--$json' },
+        { name: 'cucumber-json', value: '@wdio/cucumberjs-json-reporter$--$cucumberjs-json' },
+        { name: 'video', value: '@wdio/video-reporter$--$video' },
+        { name: 'html', value: '@wdio/html-reporter$--$html' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
-        { name: 'video', value: 'wdio-video-reporter$--$video' },
-        { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },

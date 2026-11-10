@@ -12,6 +12,8 @@ A WebdriverIO service that provides a developer tools UI for running, debugging,
 npm install @wdio/devtools-service --save-dev
 ```
 
+Requires Node.js 22.23.4+, 24.22.1+ or 26.12.1+, also with WebdriverIO v9.
+
 ## Usage
 
 ### Test Runner
@@ -36,6 +38,8 @@ await browser.url('https://example.com')
 await browser.deleteSession()
 ```
 
+Requires a browser session with WebDriver BiDi (Chrome 114+, Firefox 130+), which WebdriverIO enables automatically. Appium sessions skip page capture that needs it; set `'wdio:enforceWebDriverClassic': true` in an Appium capability block (see [Mobile Testing](/docs/devtools/mobile)).
+
 ## Service Options
 
 ```ts
@@ -44,7 +48,7 @@ services: [['devtools', options]]
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `port` | `number` | random | Port the DevTools UI server listens on |
+| `port` | `number` | `3000` (a free port is used if it is taken) | Port the DevTools UI server listens on |
 | `hostname` | `string` | `'localhost'` | Hostname the DevTools UI server binds to |
 | `devtoolsCapabilities` | `Capabilities` | Chrome 1600x1200 | Capabilities used to open the DevTools UI window |
 | `screencast` | `ScreencastOptions` | - | Session video recording ([see Screencast](/docs/devtools/wdio/screencast)) |
@@ -53,10 +57,23 @@ services: [['devtools', options]]
 | `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'` ([see Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity)) |
 | `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'` |
 | `filmstrip` | `boolean` | `true` | Records a dense, continuous screencast filmstrip *into* the trace for smooth scrubbable playback in the player — dense frames alongside the per-action frames, thinned and content-addressed at export. Only applies when `mode: 'trace'` |
+| `traceResources` | `'styles' \| 'none'` | `'styles'` | Stores the stylesheets and fonts the pages used, so the player replays them from the archive rather than the site; `'none'` stores nothing. Images always replay from the site. Only applies when `mode: 'trace'` ([see Trace Mode](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources)) |
 | `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Per-test screenshot, attached inline to Allure (`image/png`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Per-test screencast video, retained per the given policy and attached inline to Allure (`video/webm`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `emitArtifactsManifest` | `boolean` | `false` | Writes `devtools-artifacts-<sessionId>.json` — a generic index of every produced artifact plus each test's state, for reporters/CI. Auto-enabled when `@wdio/allure-reporter` is in the config. Only applies when `mode: 'trace'` |
 | `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus passing/failing `expect(...)` matchers. Set `false` to opt out |
+| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text ([see Password masking](/docs/devtools/dashboard#password-masking)) |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page |
+
+## Runtime snapshot
+
+The service adds a `browser.getSnapshot()` command that returns an AI-readable accessibility tree of the current page (`text`) plus an `elements` map from short refs (`e1`, `e2`, …) to selectors:
+
+```ts
+const { text, elements } = await browser.getSnapshot({ inViewportOnly: true })
+```
+
+It reads the live page directly, with no trace-mode overhead. Its locators always use portable CSS / XPath, so a text locator can differ from the WebdriverIO-dialect one the trace player's A11y tab shows.
 
 ## Getting Started
 
@@ -84,7 +101,7 @@ Explore the WebDriverIO DevTools features in detail:
 
 ## Trace Player
 
-A trace recorded with `mode: 'trace'` opens in the first-party `show-trace` player (`npx show-trace path/to/trace.zip`) — DOM time-travel, the A11y tab and pick-locator element overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source tabs, and a scrubbable timeline (dense filmstrip, Cucumber Feature → Scenario → Step nesting).
+A trace recorded with `mode: 'trace'` opens in the first-party `show-trace` player (`npx show-trace path/to/trace.zip`) — DOM time-travel, the A11y tab and pick-locator element overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source tabs, and a scrubbable timeline (dense filmstrip, Cucumber Scenario → Step nesting).
 
 See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough and other compatible viewers.
 

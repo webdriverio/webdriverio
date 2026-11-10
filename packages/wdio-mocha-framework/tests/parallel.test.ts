@@ -5,6 +5,7 @@ import path from 'node:path'
 import { logMock } from '../../../__mocks__/@wdio/logger.js'
 
 import { collectTests, parseTimeoutString, runParallelTests } from '../src/parallel.js'
+import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -40,6 +41,11 @@ function mockSuite(title: string, opts?: {
         _beforeEach: opts?._beforeEach || [],
         _afterEach: opts?._afterEach || [],
     } as unknown as Suite
+}
+
+// Mocha Hook objects carry their declaring suite and original title; fns here stand in for them
+function mockHook(title: string, parent: { title: string, tests?: { title: string }[] }, fn: Function = () => {}): any {
+    return Object.assign(function (this: unknown, ...args: unknown[]) { return fn.apply(this, args) }, { title, parent: { tests: [], ...parent } })
 }
 
 // Helper to build a simplified ParallelBrowser for runParallelTests
@@ -374,11 +380,8 @@ describe('runParallelTests — suite hooks', () => {
 
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
 
-        // Prefetched-but-unused allocations may add creates; each must be closed too
-        const created = browser.browsingContextCreate.mock.calls.length
-        expect(created).toBeGreaterThanOrEqual(6)
-        expect(created).toBeLessThanOrEqual(6 + 2)
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
         // All contexts registered at allocate time are unregistered after close
         expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
@@ -404,10 +407,9 @@ describe('runParallelTests — hook events and pending', () => {
     })
 
     test('emits paired hook:start/hook:end with shared uid and per-hook duration', async () => {
-        const beforeEachFn = vi.fn().mockResolvedValue(undefined)
         const suite = mockSuite('root', {
             tests: [mockTest('t1')],
-            _beforeEach: [beforeEachFn],
+            _beforeEach: [mockHook('"before each" hook', { title: 'root' })],
         })
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
@@ -419,9 +421,83 @@ describe('runParallelTests — hook events and pending', () => {
         // start/end share a uid, anchored to the test uid (no cross-test collision)
         expect(starts[0].payload.uid).toBe(ends[0].payload.uid)
         expect(starts[0].payload.uid).toContain('test-0-0-0')
-        expect(starts[0].payload.title).toBe('before each hook for "root"')
+        expect(starts[0].payload.title).toBe('"before each" hook for root')
         expect(ends[0].payload.duration).toBeGreaterThanOrEqual(0)
         expect(ends[0].payload.state).toBe('pass')
+    })
+
+    const hookTitles = async (suite: Suite) => {
+        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        return emittedEvents.filter((e) => e.event === 'hook:start').map((e) => e.payload.title)
+    }
+
+    test('titles describe-level hooks like sequential mode, dropping the function name', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook: setup', { title: 'A' })],
+            _beforeEach: [mockHook('"before each" hook: prep', { title: 'A' })],
+            _afterEach: [mockHook('"after each" hook', { title: 'A' })],
+            _afterAll: [mockHook('"after all" hook', { title: 'A' })],
+        })
+        expect(await hookTitles(suite)).toEqual([
+            '"before all" hook for A',
+            '"before each" hook for A',
+            '"after each" hook for A',
+            '"after all" hook for A',
+        ])
+    })
+
+    test('titles hooks of an outer describe with the outer suite for tests in a nested describe', async () => {
+        const outer = { title: 'A' }
+        const inner = mockSuite('A.inner', { tests: [mockTest('t1')] })
+        const suite = mockSuite('', {
+            suites: [mockSuite('A', {
+                suites: [inner],
+                _beforeEach: [mockHook('"before each" hook', outer)],
+            })]
+        })
+        expect(await hookTitles(suite)).toEqual(['"before each" hook for A'])
+    })
+
+    test('dot-joins the hook fullTitle from the native title and the declaring suite path', async () => {
+        const outer = { title: 'A', parent: { title: 'top' }, tests: [{ title: 'a1' }] }
+        const suite = mockSuite('', {
+            suites: [mockSuite('A', {
+                tests: [mockTest('t1')],
+                _beforeAll: [mockHook('"before all" hook: setup', outer)],
+                _beforeEach: [mockHook('"before each" hook', outer)],
+                _afterAll: [mockHook('"after all" hook', { title: 'A', tests: [] })],
+            })]
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(emittedEvents.filter((e) => e.event === 'hook:start').map((e) => e.payload.fullTitle)).toEqual([
+            'top.A."before all" hook: setup for "a1"',
+            'top.A."before each" hook for "t1"',
+            'A."after all" hook in "A"',
+        ])
+    })
+
+    test('keeps the native Mocha title, function name included, for root-level hooks', async () => {
+        const root = { title: '', tests: [{ title: 'first' }, { title: 'last' }] }
+        const suite = mockSuite('', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook: boot', root)],
+            _beforeEach: [mockHook('"before each" hook: prep', root)],
+            _afterAll: [mockHook('"after all" hook', root)],
+        })
+        expect(await hookTitles(suite)).toEqual([
+            '"before all" hook: boot for "first"',
+            '"before each" hook: prep for "t1"',
+            '"after all" hook for "last"',
+        ])
+    })
+
+    test('uses "in {root}" for root-level suite hooks when the root has no tests', async () => {
+        const suite = mockSuite('', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: '', root: true, tests: [] })],
+        })
+        expect(await hookTitles(suite)).toEqual(['"before all" hook in "{root}"'])
     })
 
     test('reported test duration excludes hook time', async () => {
@@ -502,6 +578,197 @@ describe('runParallelTests — hook events and pending', () => {
         expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
         // afterAll still runs after a skipped test — Mocha parity
         expect(afterAllFn).toBeCalledTimes(1)
+    })
+})
+
+// ===========================================================================
+// TESTS: the events of a sequential Mocha run
+// ===========================================================================
+
+describe('runParallelTests — sequential event parity', () => {
+    let reporter: EventEmitter
+    let emittedEvents: any[]
+
+    beforeEach(() => {
+        reporter = new EventEmitter()
+        emittedEvents = []
+        for (const ev of ['test:start', 'test:pass', 'test:fail', 'test:pending', 'test:end', 'hook:start', 'hook:end']) {
+            reporter.on(ev, (p) => emittedEvents.push({ event: ev, payload: p }))
+        }
+    })
+
+    const order = () => emittedEvents.map((e) => e.event.startsWith('hook:') ? `${e.event} ${e.payload.title}` : e.event)
+    const withHooks = (fn?: Function) => mockSuite('root', {
+        tests: [mockTest('t1', fn)],
+        _beforeAll: [mockHook('"before all" hook', { title: 'root' })],
+        _beforeEach: [mockHook('"before each" hook', { title: 'root' })],
+        _afterEach: [mockHook('"after each" hook', { title: 'root' })],
+        _afterAll: [mockHook('"after all" hook', { title: 'root' })],
+    })
+    const hooksAfterResult = (result: string) => [
+        'hook:start "before all" hook for root', 'hook:end "before all" hook for root',
+        'test:start',
+        'hook:start "before each" hook for root', 'hook:end "before each" hook for root',
+        result, 'test:end',
+        'hook:start "after each" hook for root', 'hook:end "after each" hook for root',
+        'hook:start "after all" hook for root', 'hook:end "after all" hook for root',
+    ]
+
+    test('fails at start when a test has Mocha retries from its describe or from it().retries()', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1'), { ...mockTest('t2'), _retries: 1 }] })
+        await expect(runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js']))
+            .rejects.toThrow('retries is not supported in parallel mode (parallelMode: "contexts"): "t2" has 1 retry')
+        expect(emittedEvents).toEqual([])
+    })
+
+    test('sends context:end after the after hooks of a test, with its uid and context', async () => {
+        reporter.on('context:end', (p) => emittedEvents.push({ event: 'context:end', payload: p }))
+        await runParallelTests(withHooks() as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(order()).toEqual([...hooksAfterResult('test:pass'), 'context:end'])
+        const start = emittedEvents.find((e) => e.event === 'test:start').payload
+        expect(emittedEvents.at(-1).payload).toEqual({
+            type: 'context:end', cid: '0-0', specs: ['/spec.js'], uid: start.uid, contextId: start.contextId,
+        })
+    })
+
+    test.each([
+        ['a static pending test', mockSuite('root', { tests: [{ ...mockTest('t1'), pending: true }] })],
+        ['a test whose before hook fails', mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: 'root' }, () => { throw new Error('boom') })],
+        })],
+    ])('sends context:end for %s', async (_name, suite) => {
+        const ended: string[] = []
+        reporter.on('context:end', (p) => ended.push(p.uid))
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(ended).toEqual(['test-0-0-0'])
+    })
+
+    test('sends the result of a passing test before its afterEach and after hooks', async () => {
+        await runParallelTests(withHooks() as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(order()).toEqual(hooksAfterResult('test:pass'))
+    })
+
+    test('sends the result of a failing test before its afterEach and after hooks', async () => {
+        await runParallelTests(withHooks(() => { throw new Error('boom') }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(order()).toEqual(hooksAfterResult('test:fail'))
+    })
+
+    test('sends the result of a test that calls this.skip() before its afterEach and after hooks', async () => {
+        await runParallelTests(withHooks(function (this: any) { this.skip() }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(order()).toEqual(hooksAfterResult('test:pending'))
+    })
+
+    test('sends the result of a test that a before hook skips before the after hooks', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: 'root' }, function (this: any) { this.skip() })],
+            _afterAll: [mockHook('"after all" hook', { title: 'root' })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(order()).toEqual([
+            'hook:start "before all" hook for root', 'hook:end "before all" hook for root',
+            'test:pending', 'test:end',
+            'hook:start "after all" hook for root', 'hook:end "after all" hook for root',
+        ])
+    })
+
+    test.each([
+        ['before all', '_beforeAll'],
+        ['before each', '_beforeEach'],
+    ])('reports this.skip() in a %s hook as a pending hook, not as a failure', async (kind, key) => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            [key]: [mockHook(`"${kind}" hook`, { title: 'root' }, function (this: any) { this.skip() })],
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(0)
+        const hookEnd = emittedEvents.find((e) => e.event === 'hook:end')
+        expect(hookEnd.payload.error).toBeUndefined()
+        expect(hookEnd.payload.pending).toBe(true)
+        expect(hookEnd.payload.state).not.toBe('fail')
+        expect(emittedEvents.filter((e) => e.event === 'test:pending')).toHaveLength(1)
+        expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
+    })
+
+    test('fails this.skip() in an after all hook with Mocha\'s "`this.skip` forbidden", as a sequential run does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _afterAll: [mockHook('"after all" hook', { title: 'root' }, function (this: any) { this.skip() })],
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(1)
+        const hookEnd = emittedEvents.filter((e) => e.event === 'hook:end').at(-1)
+        expect(hookEnd.payload.error.message).toBe('`this.skip` forbidden')
+        expect(hookEnd.payload.pending).not.toBe(true)
+        expect(emittedEvents.filter((e) => e.event === 'test:pass')).toHaveLength(1)
+    })
+
+    test('sends the type, expected and actual values of an assertion error, as a sequential run does', async () => {
+        const assertion = Object.assign(new Error('expected 2 to equal 1'), { name: 'AssertionError', expected: 1, actual: 2 })
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1', () => { throw assertion })],
+            _afterEach: [mockHook('"after each" hook', { title: 'root' }, () => { throw assertion })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const expected = { name: 'AssertionError', message: 'expected 2 to equal 1', type: 'AssertionError', expected: 1, actual: 2 }
+        expect(emittedEvents.find((e) => e.event === 'test:fail').payload.error).toMatchObject(expected)
+        expect(emittedEvents.find((e) => e.event === 'test:end').payload.error).toMatchObject(expected)
+        expect(emittedEvents.find((e) => e.event === 'hook:end').payload.error).toMatchObject(expected)
+    })
+
+    test.each([
+        ['before all', '_beforeAll', '"before all" hook for "t1"'],
+        ['before each', '_beforeEach', '"before each" hook for "t2"'],
+    ])('fails a test that a failing %s hook skips with the text of Mocha', async (kind, key, hookTitle) => {
+        const hookError = new Error('hook boom')
+        const suite = mockSuite('root', {
+            tests: [mockTest('t2')],
+            [key]: [mockHook(`"${kind}" hook`, { title: 'root', tests: [{ title: 't1' }, { title: 't2' }] }, () => { throw hookError })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const fail = emittedEvents.find((e) => e.event === 'test:fail')
+        expect(fail.payload.error.message).toBe(`Test skipped due to failure in hook "${hookTitle}": hook boom`)
+        expect(fail.payload.error.stack).toBe(hookError.stack)
+    })
+
+    test.each([
+        ['before all', '_beforeAll', ['hook:start', 'hook:end']],
+        ['before each', '_beforeEach', ['test:start', 'hook:start', 'hook:end']],
+    ])('reports only the failing %s hook with failHookAffectedTests: false', async (kind, key, events) => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            [key]: [mockHook(`"${kind}" hook`, { title: 'root' }, () => { throw new Error('hook boom') })],
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { failHookAffectedTests: false })
+
+        expect(failures).toBe(1)
+        expect(emittedEvents.map((e) => e.event)).toEqual(events)
+    })
+
+    test('gives the wdio shim the Mocha timeout error of the test', async () => {
+        let timeoutError: any
+        const fn = function (this: any) { timeoutError = this._runnable._timeoutError(4000) }
+        const suite = mockSuite('root', { tests: [mockTest('t1', fn)] })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(timeoutError.message).toBe('Timeout of 4000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves. (/foo/bar.test.js)')
+        expect(timeoutError.code).toBe('ERR_MOCHA_TIMEOUT')
+    })
+
+    test('reports a timeout with the text of a sequential run', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('hangs forever', () => new Promise(() => {}))] })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { timeout: 20 })
+
+        expect(emittedEvents.find((e) => e.event === 'test:fail').payload.error.message).toBe(
+            'Timeout of 20ms exceeded. The execution in the test "root hangs forever" took too long. Try to reduce the run time ' +
+            'or increase your timeout for test specs (https://webdriver.io/docs/timeouts). (/foo/bar.test.js)'
+        )
     })
 })
 
@@ -832,18 +1099,72 @@ describe('runParallelTests — hook failure counting', () => {
 })
 
 describe('runParallelTests — reporter contextId', () => {
-    test('test:start and test:pending carry the browsing context id', async () => {
-        const reporter = new EventEmitter()
+    const EVENTS = ['test:start', 'test:pass', 'test:fail', 'test:pending', 'test:end', 'hook:start', 'hook:end']
+    const collect = (reporter: EventEmitter) => {
         const events: any[] = []
-        for (const ev of ['test:start', 'test:pending']) {
+        for (const ev of EVENTS) {
             reporter.on(ev, (p) => events.push({ event: ev, payload: p }))
         }
+        return events
+    }
+
+    test('test:start and test:pending carry the browsing context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
         const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2', undefined, true)] })
         const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
 
         expect(events.find((e) => e.event === 'test:start').payload.contextId).toBe('ctx-a')
         expect(events.find((e) => e.event === 'test:pending').payload.contextId).toBe('ctx-b')
+    })
+
+    test('hooks, pass and the closing test:end carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeEach: [mockHook('"before each" hook', { title: 'root' })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['hook:start', 'hook:end', 'test:pass', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
+    })
+
+    test('test:fail and its test:end carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', { tests: [mockTest('t1', () => { throw new Error('boom') })] })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['test:fail', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
+    })
+
+    test('static pending test:end carries the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', { tests: [mockTest('t1', undefined, true)] })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        expect(events.find((e) => e.event === 'test:end').payload.contextId).toBe('ctx-a')
+    })
+
+    test('the synthetic test:start, test:fail and test:end of a failing before hook carry the context id', async () => {
+        const reporter = new EventEmitter()
+        const events = collect(reporter)
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeAll: [mockHook('"before all" hook', { title: 'root' }, () => { throw new Error('setup') })],
+        })
+        await runParallelTests(suite as Suite, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+
+        for (const ev of ['hook:end', 'test:start', 'test:fail', 'test:end']) {
+            expect(events.find((e) => e.event === ev).payload.contextId, ev).toBe('ctx-a')
+        }
     })
 })
 
@@ -1057,14 +1378,33 @@ describe('runParallelTests — worker pool', () => {
         }
     })
 
-    test('cleans up a prefetched allocation that no test ends up using', async () => {
-        // 1 slot would prefetch only while tests remain; with 2 slots and 3 tests
-        // one slot's prefetch can lose the race for the last test.
+    test('creates exactly one context per test, with no spare left over', async () => {
         const browser = mockBrowser()
-        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
-        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        const suite = mockSuite('root', { tests: Array.from({ length: 8 }, (_, i) => mockTest(`t${i}`)) })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 4)
 
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(8)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(8)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('cleans up a spare that no test ends up using after an allocation failure', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        let failSecond!: (err: Error) => void
+        browser.browsingContextCreate.mockImplementation(async () => {
+            n++
+            if (n === 2) { return new Promise((_, reject) => { failSecond = reject }) }
+            if (n === 3) { failSecond(new Error('slot allocation failed')) }
+            return { context: `ctx-${n}` }
+        })
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        ).rejects.toThrow('slot allocation failed')
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(3)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
         expect(browser.__parallelContexts.size).toBe(0)
     })
 
@@ -1245,5 +1585,439 @@ describe('runParallelTests timeout warning', () => {
         await run(mockSuite('root', { tests: [{ ...mockTest('t'), _timeout: 5000 }] }))
 
         expect(timeoutWarnings()).toHaveLength(0)
+    })
+})
+
+// ===========================================================================
+// TESTS: runParallelTests — reported fullTitle matches sequential mode
+// ===========================================================================
+
+describe('runParallelTests — reported fullTitle', () => {
+    function nestedTree(fn: Function) {
+        const t = mockTest('t', fn)
+        const inner = mockSuite('inner', { tests: [t] }) as any
+        const outer = mockSuite('outer', { suites: [inner] }) as any
+        const root = mockSuite('', { suites: [outer] }) as any
+        outer.parent = root
+        inner.parent = outer
+        t.parent = inner
+        t.fullTitle = () => 'outer inner t'
+        return root as Suite
+    }
+
+    function run(grep?: RegExp) {
+        const reporter = new EventEmitter()
+        const emitted: any[] = []
+        for (const ev of ['test:start', 'test:pass', 'test:end', 'suite:start', 'suite:end']) {
+            reporter.on(ev, (p) => emitted.push({ event: ev, payload: p }))
+        }
+        const fn = vi.fn().mockResolvedValue(undefined)
+        const done = runParallelTests(nestedTree(fn), mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'], undefined, grep ? { grep } : undefined)
+        return { done, emitted, fn }
+    }
+
+    test('dot-joins test and suite fullTitle like sequential mode', async () => {
+        const { done, emitted } = run()
+        await done
+        for (const ev of ['test:start', 'test:pass', 'test:end']) {
+            expect(emitted.filter((e) => e.event === ev).map((e) => e.payload.fullTitle)).toEqual(['outer.inner.t'])
+        }
+        expect(emitted.filter((e) => e.event === 'suite:start').map((e) => e.payload.fullTitle)).toEqual(['outer', 'outer.inner'])
+        expect(emitted.filter((e) => e.event === 'suite:end').map((e) => e.payload.fullTitle)).toEqual(['outer.inner', 'outer'])
+    })
+
+    test('grep still matches the space-joined Mocha fullTitle', async () => {
+        const { done, fn } = run(/^outer inner t$/)
+        await done
+        expect(fn).toBeCalledTimes(1)
+    })
+})
+
+describe('runParallelTests — uncaught errors', () => {
+    const events = ['uncaughtException', 'unhandledRejection'] as const
+    let saved: Record<string, Function[]>
+    let escaped: unknown[]
+    let reporter: EventEmitter
+    let emitted: { event: string, payload: any }[]
+
+    beforeEach(() => {
+        // the errors must reach only the runner and this test, not Vitest's own handlers
+        saved = Object.fromEntries(events.map((e) => [e, process.listeners(e)]))
+        events.forEach((e) => process.removeAllListeners(e))
+        escaped = []
+        events.forEach((e) => process.on(e, (err: unknown) => { escaped.push(err) }))
+        reporter = new EventEmitter()
+        emitted = []
+        for (const event of ['test:start', 'test:pass', 'test:fail', 'test:pending', 'hook:end']) {
+            reporter.on(event, (payload) => emitted.push({ event, payload }))
+        }
+        return () => {
+            events.forEach((e) => process.removeAllListeners(e))
+            events.forEach((e) => saved[e].forEach((l) => process.on(e, l as any)))
+        }
+    })
+
+    const outcome = (title: string) => emitted.filter((e) => e.payload.title === title && e.event !== 'test:start').map((e) => e.event)
+
+    test('fails the test whose timer throws, as Mocha does, and runs the other tests', async () => {
+        const suite = mockSuite('root', {
+            tests: [
+                mockTest('throws later', async () => {
+                    setTimeout(() => { throw new Error('uncaught boom') }, 5)
+                    await new Promise((r) => setTimeout(r, 50))
+                }),
+                mockTest('other', async () => { await new Promise((r) => setTimeout(r, 20)) })
+            ]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('throws later')).toEqual(['test:fail'])
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toBe('uncaught boom')
+        expect(outcome('other')).toEqual(['test:pass'])
+        expect(failures).toBe(1)
+    })
+
+    test('fails the hook whose timer throws', async () => {
+        const afterEach = mockHook('cleanup', { title: 'root' }, async () => {
+            setTimeout(() => { throw new Error('hook boom') }, 5)
+            await new Promise((r) => setTimeout(r, 50))
+        })
+        const suite = mockSuite('root', { tests: [mockTest('passes')], _afterEach: [afterEach] })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('passes')).toEqual(['test:pass'])
+        expect(emitted.find((e) => e.event === 'hook:end')!.payload.error.message).toBe('hook boom')
+        expect(failures).toBe(1)
+    })
+
+    test('fails the afterEach whose timer throws after a failed test of the same window ended late', async () => {
+        const afterEach = mockHook('cleanup', { title: 'root' }, async () => {
+            setTimeout(() => { throw new Error('hook boom') }, 40)
+            await new Promise((r) => setTimeout(r, 80))
+        })
+        const suite = mockSuite('root', {
+            tests: [mockTest('throws early', async () => {
+                setTimeout(() => { throw new Error('test boom') }, 5)
+                // still runs when its afterEach starts
+                await new Promise((r) => setTimeout(r, 20))
+            })],
+            _afterEach: [afterEach]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toBe('test boom')
+        expect(emitted.find((e) => e.event === 'hook:end')!.payload.error?.message).toBe('hook boom')
+        expect(failures).toBe(2)
+    })
+
+    test('keeps the worker alive on an unhandled rejection and does not fail the test, as Mocha does', async () => {
+        let listenedDuringTest = 0
+        const suite = mockSuite('root', {
+            tests: [mockTest('rejects', async () => {
+                // without a listener Node ends the process on an unhandled rejection
+                listenedDuringTest = process.listenerCount('unhandledRejection') - 1
+                void Promise.reject(new Error('rejection boom'))
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(listenedDuringTest).toBe(1)
+        expect(outcome('rejects')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+        // the other listeners of the process still get it
+        expect(escaped.map((e) => (e as Error).message)).toEqual(['rejection boom'])
+    })
+
+    test('reports a test that calls this.skip() from a timer as pending, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('skips later', async function (this: any) {
+                setTimeout(() => { this.skip() }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('skips later')).toEqual(['test:pending'])
+        expect(failures).toBe(0)
+    })
+
+    test('ignores this.skip() called from a timer after its test ended', async () => {
+        const suite = mockSuite('root', {
+            tests: [
+                mockTest('ends first', function (this: any) { setTimeout(() => { this.skip() }, 10) }),
+                mockTest('runs longer', async () => { await new Promise((r) => setTimeout(r, 40)) })
+            ]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('ends first')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+    })
+
+    test('keeps the uncaught error listener until the last window is closed', async () => {
+        let listening = -1
+        const browser = mockBrowser()
+        browser.browsingContextClose = vi.fn(async () => {
+            await new Promise((r) => setTimeout(r, 20))
+            listening = process.listenerCount('uncaughtException') - 1
+        })
+        await runParallelTests(mockSuite('root', { tests: [mockTest('last')] }) as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(listening).toBe(1)
+    })
+
+    // a command with no await (`$('x').click()`) ends when its window closes or the session ends
+    test('keeps the worker alive on an unhandled rejection after the run, as Mocha does', async () => {
+        let rejectCommand!: (err: Error) => void
+        const suite = mockSuite('root', {
+            tests: [mockTest('no await', () => { void new Promise((_, reject) => { rejectCommand = reject }) })]
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        const listening = process.listenerCount('unhandledRejection') - 1
+        rejectCommand(new Error('the connection was closed'))
+        await new Promise((r) => setTimeout(r, 5))
+
+        expect(listening).toBe(1)
+    })
+
+    test('logs an uncaught error that comes after its test timed out', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('slow', async () => {
+                // the timeout fires at 50 ms, its grace period ends at 100 ms
+                setTimeout(() => { throw new Error('real cause') }, 70)
+                await new Promise((r) => setTimeout(r, 200))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { timeout: 50 })
+
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toMatch(/Timeout of 50ms exceeded/)
+        expect(failures).toBe(1)
+        expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('real cause'))
+    })
+
+    // Mocha's isError: an object with a string message is an error (also an Error of another realm)
+    test('keeps the message and stack of a thrown object that has a string message, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('object throw', async () => {
+                setTimeout(() => { throw { message: 'boom-obj', stack: 'boom-obj stack' } }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const { error } = emitted.find((e) => e.event === 'test:fail')!.payload
+        expect(error.message).toBe('boom-obj')
+        expect(error.stack).toBe('boom-obj stack')
+        expect(failures).toBe(1)
+    })
+
+    test('fails the test of a thrown value that has no string form', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('odd throw', async () => {
+                setTimeout(() => { throw Object.create(null) }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('odd throw')).toEqual(['test:fail'])
+        // the text of a sequential run
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toBe('the null-prototype {} was thrown, throw an Error :)')
+        expect(failures).toBe(1)
+    })
+
+    test('counts an error after the test ended as a failure of the run', async () => {
+        const suite = mockSuite('root', {
+            tests: [
+                mockTest('ends first', () => { setTimeout(() => { throw new Error('late boom') }, 10) }),
+                mockTest('runs longer', async () => { await new Promise((r) => setTimeout(r, 60)) })
+            ]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        expect(outcome('ends first')).toEqual(['test:pass'])
+        expect(outcome('runs longer')).toEqual(['test:pass'])
+        expect(failures).toBe(1)
+        expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('late boom'))
+    })
+
+    test('counts an error that comes after its test timed out as a failure of the run', async () => {
+        const wait = (ms: number) => () => new Promise((r) => setTimeout(r, ms))
+        const suite = mockSuite('root', {
+            tests: [mockTest('times out', async () => {
+                // the timeout (50 ms + 50 ms grace) fails the test at about 100 ms
+                setTimeout(() => { throw new Error('after timeout boom') }, 150)
+                await new Promise((r) => setTimeout(r, 500))
+            })],
+            // short hooks keep the run going in another window until about 320 ms
+            suites: [mockSuite('slow', {
+                tests: [mockTest('keeps running')],
+                _afterEach: Array.from({ length: 8 }, (_, i) => mockHook(`wait ${i}`, { title: 'slow' }, wait(40)))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { timeout: 50 })
+
+        expect(emitted.find((e) => e.event === 'test:fail')!.payload.error.message).toMatch(/Timeout of 50ms exceeded/)
+        expect(outcome('keeps running')).toEqual(['test:pass'])
+        // the timed-out test does not keep the error target of its window
+        expect(failures).toBe(2)
+        expect(logMock.error).toHaveBeenCalledWith(expect.stringContaining('after timeout boom'))
+    })
+
+    test('lets an uncaught error through with allowUncaught, as Mocha does', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('throws later', async () => {
+                setTimeout(() => { throw new Error('allowed boom') }, 5)
+                await new Promise((r) => setTimeout(r, 20))
+            })]
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { allowUncaught: true })
+
+        expect(outcome('throws later')).toEqual(['test:pass'])
+        expect(failures).toBe(0)
+        expect(escaped.map((e) => (e as Error).message)).toEqual(['allowed boom'])
+    })
+
+    test('removes its uncaught error listener after the run and adds its rejection listener only one time', async () => {
+        const before = process.listenerCount('uncaughtException')
+        const run = () => runParallelTests(mockSuite('root', { tests: [mockTest('passes')] }) as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        await run()
+        const rejectionListeners = process.listenerCount('unhandledRejection')
+        await run()
+        expect(process.listenerCount('uncaughtException')).toBe(before)
+        expect(process.listenerCount('unhandledRejection')).toBe(rejectionListeners)
+    })
+})
+
+// ===========================================================================
+// TESTS: runParallelTests — hookKind, hookSuiteUid and the declaring suite
+// ===========================================================================
+
+describe('runParallelTests — hookKind and hookSuiteUid', () => {
+    /** real Mocha suites and hooks: a hook knows its declaring suite */
+    function tree() {
+        const root = new Mocha().suite
+        root.beforeAll('root setup', () => {})
+        const outer = Mocha.Suite.create(root, 'outer')
+        outer.beforeAll(() => {})
+        outer.beforeEach(() => {})
+        outer.afterEach(() => {})
+        outer.afterAll(() => {})
+        const inner = Mocha.Suite.create(outer, 'inner')
+        inner.beforeAll(() => {})
+        inner.afterAll(() => {})
+        inner.addTest(new Mocha.Test('t1', () => {}))
+        return root
+    }
+
+    async function run(root: Suite) {
+        const reporter = new EventEmitter()
+        const emitted: { event: string, payload: any }[] = []
+        for (const ev of ['suite:start', 'hook:start', 'hook:end']) {
+            reporter.on(ev, (payload) => emitted.push({ event: ev, payload }))
+        }
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'])
+        const uidOf = (title: string) => emitted.find((e) => e.event === 'suite:start' && e.payload.title === title)!.payload.uid
+        return { emitted, uidOf }
+    }
+
+    beforeEach(() => {
+        logMock.debug.mockClear()
+    })
+
+    test('every hook type has its kind; an all-hook has its declaring suite as parent, parentUid and hookSuiteUid', async () => {
+        const { emitted, uidOf } = await run(tree())
+        const starts = emitted.filter((e) => e.event === 'hook:start').map(({ payload: p }) => [p.title, p.hookKind, p.parent, p.parentUid, p.hookSuiteUid, p.contextId])
+        expect(starts).toEqual([
+            // a root hook has no suite event: it keeps the suite of its test, as in earlier versions
+            ['"before all" hook: root setup in "{root}"', 'beforeAll', 'inner', uidOf('inner'), undefined, 'ctx-a'],
+            ['"before all" hook for outer', 'beforeAll', 'outer', uidOf('outer'), uidOf('outer'), 'ctx-a'],
+            ['"before all" hook for inner', 'beforeAll', 'inner', uidOf('inner'), uidOf('inner'), 'ctx-a'],
+            // each-hooks keep the suite of their test
+            ['"before each" hook for outer', 'beforeEach', 'inner', uidOf('inner'), undefined, 'ctx-a'],
+            ['"after each" hook for outer', 'afterEach', 'inner', uidOf('inner'), undefined, 'ctx-a'],
+            ['"after all" hook for inner', 'afterAll', 'inner', uidOf('inner'), uidOf('inner'), 'ctx-a'],
+            ['"after all" hook for outer', 'afterAll', 'outer', uidOf('outer'), uidOf('outer'), 'ctx-a']
+        ])
+        expect(logMock.debug).not.toHaveBeenCalled()
+    })
+
+    test('hook:end has the uid, kind and suite of its hook:start, also for a failing hook', async () => {
+        const root = tree()
+        root.suites[0].afterEach(() => { throw new Error('boom') })
+        const { emitted } = await run(root)
+        const hooks = emitted.filter((e) => e.event.startsWith('hook:'))
+        expect(hooks.length).toBe(16)
+        for (let i = 0; i < hooks.length; i += 2) {
+            const [start, end] = [hooks[i].payload, hooks[i + 1].payload]
+            expect([hooks[i].event, hooks[i + 1].event]).toEqual(['hook:start', 'hook:end'])
+            for (const key of ['uid', 'hookKind', 'hookSuiteUid', 'parent', 'parentUid']) {
+                expect(end[key]).toBe(start[key])
+            }
+        }
+        expect(hooks.find((h) => h.event === 'hook:end' && h.payload.error)!.payload.hookKind).toBe('afterEach')
+    })
+
+    test('a hook has the currentTest of sequential Mocha: first sibling for before all, last for after all, its test for each-hooks', async () => {
+        const root = new Mocha().suite
+        root.beforeAll('root setup', () => {})
+        const a = Mocha.Suite.create(root, 'A')
+        a.beforeAll(() => {})
+        a.beforeEach(() => {})
+        a.afterAll(() => {})
+        a.addTest(new Mocha.Test('a1', () => {}))
+        a.addTest(new Mocha.Test('a2', () => {}))
+        const child = Mocha.Suite.create(a, 'child')
+        child.addTest(new Mocha.Test('c1', () => {}))
+        const reporter = new EventEmitter()
+        const hooks: [string, string, string | undefined][] = []
+        let test = ''
+        reporter.on('test:start', (p) => { test = p.title })
+        for (const ev of ['hook:start', 'hook:end']) {
+            reporter.on(ev, (p) => hooks.push([ev, p.title, p.currentTest]))
+        }
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a', 'ctx-b', 'ctx-c'] }), reporter, '0-0', ['/spec.js'], 1)
+
+        const starts = hooks.filter(([ev]) => ev === 'hook:start').map(([, title, currentTest]) => [title, currentTest])
+        expect(starts).toEqual([
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'a1'],
+            ['"after all" hook for A', 'a2'],
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'a2'],
+            ['"after all" hook for A', 'a2'],
+            ['"before all" hook: root setup in "{root}"', undefined],
+            ['"before all" hook for A', 'a1'],
+            ['"before each" hook for A', 'c1'],
+            ['"after all" hook for A', 'a2'],
+        ])
+        expect(hooks.filter(([ev]) => ev === 'hook:end').map(([, , currentTest]) => currentTest)).toEqual(starts.map(([, currentTest]) => currentTest))
+        expect(test).toBe('c1')
+    })
+
+    test('a before all of a suite with only child suites has no currentTest', async () => {
+        const root = new Mocha().suite
+        const b = Mocha.Suite.create(root, 'B')
+        b.beforeAll('setup', () => {})
+        const child = Mocha.Suite.create(b, 'child')
+        child.addTest(new Mocha.Test('c1', () => {}))
+        const reporter = new EventEmitter()
+        const hooks: [string, string | undefined][] = []
+        reporter.on('hook:start', (p) => hooks.push([p.title, p.currentTest]))
+        await runParallelTests(root, mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'], 1)
+
+        expect(hooks).toEqual([['"before all" hook for B', undefined]])
+    })
+
+    test('a title that disagrees with the hook list is logged, and the hook list gives the kind', async () => {
+        const root = tree()
+        const hook = (root.suites[0] as unknown as { _beforeAll: { title: string }[] })._beforeAll[0]
+        hook.title = '"before each" hook'
+        const { emitted } = await run(root)
+        expect(emitted.find((e) => e.event === 'hook:start' && e.payload.title === '"before all" hook for outer')!.payload.hookKind).toBe('beforeAll')
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('"before each" hook'))
     })
 })

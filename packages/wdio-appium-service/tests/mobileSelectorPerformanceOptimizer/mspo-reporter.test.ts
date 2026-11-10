@@ -10,7 +10,8 @@ vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@w
 vi.mock('../../src/mobileSelectorPerformanceOptimizer/mspo-store.js', () => ({
     setCurrentSuiteName: vi.fn(),
     setCurrentTestFile: vi.fn(),
-    setCurrentTestName: vi.fn()
+    setCurrentTestName: vi.fn(),
+    setContextNamesResolver: vi.fn()
 }))
 
 describe('MobileSelectorPerformanceReporter', () => {

@@ -1,5 +1,7 @@
+import { toXPathStringLiteral } from '@wdio/utils'
+
 import type { SnapshotCandidate, SnapshotNode, SnapshotRef } from './format.js'
-import { nativeCandidates, xpathLiteral, type SelectorNode } from './selectors.js'
+import { nativeCandidates, uiSelectorLiteral, type SelectorNode } from './nativeSelectors.js'
 import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import { SnapshotError } from './errors.js'
@@ -297,7 +299,7 @@ const POSITIONAL_ATTRS: Record<'ios' | 'mac' | 'windows', string[]> = {
 function positionalOf (platform: NativePlatform, tag: string, attrs: Record<string, string>) {
     const bare = `//${tag}`
     if (platform === 'android') {
-        const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${JSON.stringify(value)})`
+        const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${method === 'resourceId' ? uiSelectorLiteral(value) : JSON.stringify(value)})`
         const matches = ([['description', attrs['content-desc']], ['resourceId', attrs['resource-id']], ['text', attrs.text]] as const)
             .filter(([, value]) => value)
             .map(([method, value]) => keyOf(method, value))
@@ -309,7 +311,7 @@ function positionalOf (platform: NativePlatform, tag: string, attrs: Record<stri
         return { own: bare, all, at: (n: number) => `(${bare})[${n}]` }
     }
     const names = POSITIONAL_ATTRS[platform]
-    const keyOf = (attr: string) => `${bare}[@${attr}=${xpathLiteral(attrs[attr])}]`
+    const keyOf = (attr: string) => `${bare}[@${attr}=${toXPathStringLiteral(attrs[attr])}]`
     const present = names.filter((name) => attrs[name])
     const own = present.length ? keyOf(present[0]) : bare
     return { own, all: [bare, ...present.map(keyOf)], at: (n: number) => `(${own})[${n}]` }
@@ -412,8 +414,11 @@ function resourceIdOf (selector: string) {
     if (plain) {
         return plain[1]
     }
-    const ui = /resourceId\("([^"]*)"\)|resourceId\('([^']*)'\)/.exec(selector)
-    return ui?.[1] ?? ui?.[2]
+    const ui = /resourceId\("((?:\\"|[^"])*)"\)|resourceId\('([^']*)'\)/.exec(selector)
+    if (ui?.[1] !== undefined) {
+        return ui[1].replace(/\\"/g, '"')
+    }
+    return ui?.[2]
 }
 
 /** `id=save` and `id=com.example:id/save` name the same Android resource. */
@@ -430,6 +435,11 @@ function matchingLocated (located: Located[], scope: string) {
     const exact = located.filter((entry) => entry.candidates.includes(scope) || entry.fallback === scope)
     if (exact.length) {
         return exact
+    }
+    const id = resourceIdOf(scope)
+    const sameId = id ? located.filter((entry) => entry.candidates.some((candidate) => resourceIdOf(candidate) === id)) : []
+    if (sameId.length) {
+        return sameId
     }
     return located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
 }

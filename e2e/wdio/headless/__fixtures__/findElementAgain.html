@@ -12,6 +12,7 @@
     <div id="date-host-area"></div>
     <div id="restore-area"><input id="restore" value="old"></div>
     <div id="select-area"><select id="select"><option value="a">Alpha</option><option value="b">Beta</option></select></div>
+    <div id="far-area" style="margin-top: 3000px"><p id="far">far</p></div>
 
     <script>
         const root = document.querySelector('#host').attachShadow({ mode: 'open' })
@@ -95,6 +96,14 @@
         window.renderSelect = () => {
             const select = document.querySelector('#select')
             select.replaceWith(select.cloneNode(true))
+        }
+
+        /**
+         * replace `#far` (below the viewport) with a new node
+         */
+        window.renderFar = () => {
+            const far = document.querySelector('#far')
+            far.replaceWith(far.cloneNode(true))
         }
 
         /**

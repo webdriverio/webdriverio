@@ -5,7 +5,8 @@ import { loadEnv } from 'vite'
 import { expect } from '@wdio/globals'
 
 const isMac = os.platform() === 'darwin' && process.env.CI
-const requiresBidi = process.argv.some((arg) => arg.endsWith('mock.test.ts'))
+// mock() needs WebDriver BiDi, and so does a test in another window: only BiDi reads the test page from there
+const requiresBidi = process.argv.some((arg) => /(mock|closeWindow|otherWindow)\.test\.ts$/.test(arg))
 
 /**
  * skip tests if:

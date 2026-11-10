@@ -113,7 +113,7 @@ With Mocha, all attempts of a test or hook share its timeout: Mocha starts the t
 
 ### Rerun full suites in Cucumber
 
-For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded. For this feature to work you need to set the `scenarioLevelReporter` to `true`.
+For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded.
 
 ### Rerun Step Definitions in Cucumber
 
@@ -140,6 +140,8 @@ Previously, only test- and suite-level retries were available, which are fine in
 But in any tests which involve state (such as on a server or in a database) the state may be left invalid after the first test failure. Any subsequent retries may have no chance of passing, due to the invalid state they would start with.
 
 A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
+
+The Vitest framework ignores `specFileRetries`: use `vitestOpts.retry`.
 
 ```js title="wdio.conf.js"
 export const config = {

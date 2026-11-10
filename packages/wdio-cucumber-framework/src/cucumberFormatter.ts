@@ -5,8 +5,8 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 
-import type { Payload } from './types.js'
-import { convertStatus } from './utils.js'
+import type { HookKind, Payload, TestRunHookStart, UserRunHook } from './types.js'
+import { getFeatureStack, getStepResult, hookKindOf, retriesForPickle, scenarioLabel, strictPendingWarning, testRunHookEnd, testRunHookStart, withAmbiguousMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -24,8 +24,10 @@ import type {
     TestStepStarted,
     TestStepFinished,
     TestStepResult,
-    TestCaseFinished,
-    Hook
+    Hook,
+    StepDefinition,
+    TestRunHookFinished,
+    TestRunHookStarted
 } from '@cucumber/messages'
 
 import {
@@ -35,7 +37,8 @@ import {
     getRule,
     getStepType,
     buildStepPayload,
-    getScenarioDescription
+    getScenarioDescription,
+    getScenarioResult
 } from './utils.js'
 
 import type { HookParams, ReporterScenario } from './types.js'
@@ -43,8 +46,11 @@ import type { HookParams, ReporterScenario } from './types.js'
 export default class CucumberFormatter extends Formatter {
     private _gherkinDocEvents: GherkinDocument[] = []
     private _hookEvent: Hook[] = []
+    /** the open BeforeAll / AfterAll by `testRunHookStarted.id` */
+    private _openRunHooks = new Map<string, TestRunHookStart>()
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
+    private _stepDefinitions = new Map<string, StepDefinition>()
     private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
@@ -56,6 +62,7 @@ export default class CucumberFormatter extends Formatter {
      */
     private _currentFeatureUid?: string
     private _featureStarts = new Map<string, number>()
+    private _featureIds = new Map<string, string>()
 
     private reporter: EventEmitter
     private cid: string
@@ -65,8 +72,19 @@ export default class CucumberFormatter extends Formatter {
     private tagsInTitle: boolean
     private ignoreUndefinedDefinitions: boolean
     private failAmbiguousDefinitions: boolean
+    private strict: boolean
+    private userRunHooks: Record<string, UserRunHook>
+    private retry: number
+    private retryTagFilter: string
+    private rootDir?: string
 
     private failedCount = 0
+    /** `failedCount` when the attempt started: a retried attempt does not count */
+    private _failedCountAtAttemptStart = 0
+    /** the retries that Cucumber gives the scenario that runs (`retry`, `retryTagFilter`) */
+    private _retries = 0
+    /** the scenarios that make the run fail with `strict` because their worst result is pending */
+    private _strictPendingScenarios: string[] = []
 
     private _featureStart?: Date
     private _scenarioStart?: Date
@@ -86,26 +104,40 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
                 results = []
+                this._failedCountAtAttemptStart = this.failedCount
                 this.onTestCaseStarted(envelope.testCaseStarted)
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
-                results.push(envelope.testStepFinished.testStepResult!)
-                this.onTestStepFinished(envelope.testStepFinished)
+                const testStepFinished = this.withAmbiguousMessage(envelope.testStepFinished)
+                results.push(testStepFinished.testStepResult!)
+                this.onTestStepFinished(testStepFinished)
             } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
                  */
                 if (envelope.testCaseFinished.willBeRetried) {
-                    return log.debug(
+                    log.debug(
                         `test case with id ${envelope.testCaseFinished.testCaseStartedId} will be retried, ignoring result`
                     )
+                    // scenario level: the attempt ends as a retry, as in Mocha (step level sends suite:retry at the next attempt)
+                    if (this.scenarioLevelReporter) {
+                        this.onTestCaseFinished(results, true)
+                    }
+                    this.failedCount = this._failedCountAtAttemptStart
+                    return
                 }
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.testRunHookStarted) {
+                this.onTestRunHookStarted(envelope.testRunHookStarted)
+            } else if (envelope.testRunHookFinished) {
+                this.onTestRunHookFinished(envelope.testRunHookFinished)
+            } else if (envelope.stepDefinition) {
+                this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
                 // do nothing for other envelopes
             }
@@ -119,6 +151,11 @@ export default class CucumberFormatter extends Formatter {
         this.tagsInTitle = options.parsedArgvOptions._tagsInTitle
         this.ignoreUndefinedDefinitions = options.parsedArgvOptions._ignoreUndefinedDefinitions
         this.failAmbiguousDefinitions = options.parsedArgvOptions._failAmbiguousDefinitions
+        this.strict = options.parsedArgvOptions._strict ?? false
+        this.retry = options.parsedArgvOptions._retry ?? 0
+        this.retryTagFilter = options.parsedArgvOptions._retryTagFilter ?? ''
+        this.rootDir = options.parsedArgvOptions._rootDir
+        this.userRunHooks = options.parsedArgvOptions._userRunHooks ?? {}
     }
 
     updateCurrentPickle(params: HookParams) {
@@ -152,7 +189,19 @@ export default class CucumberFormatter extends Formatter {
      * their `fullTitle` (Allure `historyId`) must not depend on the order.
      */
     featurePartUid(uri: string, feature: Feature) {
-        return this._currentFeatureUid ?? getFeatureId(uri, feature)
+        return this._currentFeatureUid ?? this.featureId(uri, feature)
+    }
+
+    /**
+     * the feature uid, once per file (`getFeatureId` reads the file system)
+     */
+    featureId(uri: string, feature: Feature) {
+        let id = this._featureIds.get(uri)
+        if (id === undefined) {
+            id = getFeatureId(uri, feature, this.rootDir)
+            this._featureIds.set(uri, id)
+        }
+        return id
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -169,7 +218,8 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: TestStep,
-        result: TestStepResult
+        result: TestStepResult,
+        hookKind?: HookKind
     ) {
         let error
         if (result.message) {
@@ -177,7 +227,8 @@ export default class CucumberFormatter extends Formatter {
             error.stack = result.message
         }
 
-        if (result.status === Status.FAILED) {
+        const strictPending = result.status === Status.PENDING && this.strict
+        if (result.status === Status.FAILED || strictPending) {
             this.failedCount++
         }
 
@@ -190,7 +241,7 @@ export default class CucumberFormatter extends Formatter {
                 : 0,
         })
 
-        this.emit('hook:end', payload)
+        this.emit('hook:end', { ...payload, ...(hookKind && { hookKind }) })
     }
 
     /**
@@ -201,61 +252,32 @@ export default class CucumberFormatter extends Formatter {
         feature: Feature,
         scenario: Pickle,
         step: PickleStep | undefined,
-        result: TestStepResult
+        result: TestStepResult,
+        retried = false
     ) {
-        let state = convertStatus(result.status)
-        let error = result.message ? new Error(result.message) : undefined
         const title = step ? step?.text : this.getTitle(scenario)
-        let titleSuffix = ''
-
-        if (result.status === Status.UNDEFINED) {
-            if (this.ignoreUndefinedDefinitions) {
-                /**
-                 * mark test as pending
-                 */
-                state = 'pending'
-                titleSuffix = ' (undefined step)'
-            } else {
-                /**
-                 * mark test as failed
-                 */
-                state = 'fail'
-                this.failedCount++
-
-                const err = new Error(
-                    (step ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
-                    'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
-                )
-
-                err.stack = `${err.message}\n\tat Feature(${uri}):1:1\n`
-                const featChildren = feature.children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])
-                if (featChildren) {
-                    err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
-
-                    const featStep = featChildren.scenario?.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
-                    if (featStep) {
-                        err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
-                    }
-                }
-
-                error = err
+        const { state, error, pendingReason, titleSuffix, failed } = getStepResult(
+            result,
+            {
+                title,
+                isStep: Boolean(step),
+                ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+                failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+                strict: this.strict,
+                featureStack: () => getFeatureStack(uri, feature, scenario, step),
             }
-        } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
-            state = 'fail'
+        )
+        if (failed) {
             this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
-        } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
-            state = 'fail'
-            this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
         }
+        // Cucumber retries an attempt with a FAILED result: the step ends as a retry, the scenario starts again
+        const stepRetried = Boolean(step) && result.status === Status.FAILED && (this._currentTestCase?.attempt ?? 0) < this._retries
 
         const common = {
             title: title,
             state,
             error,
+            ...(pendingReason ? { pendingReason } : {}),
             duration: this._testStart
                 ? Date.now() - this._testStart.getTime()
                 : 0,
@@ -271,7 +293,7 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: getFeatureId(uri, feature),
+                parent: this.featureId(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
@@ -283,7 +305,11 @@ export default class CucumberFormatter extends Formatter {
         if (titleSuffix) {
             payload.title += titleSuffix
         }
-        this.emit('test:' + state, payload)
+        this.emit(retried || stepRetried ? 'test:retry' : 'test:' + state, payload)
+        // as Mocha and Jasmine: a final result, then the end of the step or scenario (a retried scenario attempt has none)
+        if (!retried) {
+            this.emit('test:end', payload)
+        }
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
@@ -309,7 +335,7 @@ export default class CucumberFormatter extends Formatter {
         this._featureStart = new Date()
 
         const payload = {
-            uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+            uid: this.featureId(doc.uri as string, doc.feature as Feature),
             title: this.getTitle(doc.feature as Feature),
             type: 'feature',
             file: doc.uri,
@@ -335,6 +361,7 @@ export default class CucumberFormatter extends Formatter {
 
     onTestCaseStarted(testcase: TestCaseStarted) {
         this._currentTestCase = testcase
+        this._retries = 0
 
         const tc = this._testCases.find((tc) => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(
@@ -343,6 +370,10 @@ export default class CucumberFormatter extends Formatter {
         /* istanbul ignore if */
         if (!scenario) {
             return
+        }
+        // as Cucumber (test_case_runner.js): an attempt is retried while `attempt < retries`
+        if (this.retry) {
+            this._retries = retriesForPickle(scenario, { retry: this.retry, retryTagFilter: this.retryTagFilter }) ?? 0
         }
 
         const doc = this._gherkinDocEvents.find(
@@ -382,24 +413,7 @@ export default class CucumberFormatter extends Formatter {
             doc.uri &&
             doc !== this._currentDoc
         ) {
-            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
-            this._featureStarts.set(doc.uri, starts)
-            const featureId = getFeatureId(doc.uri as string, doc.feature as Feature)
-            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
-            const payload = {
-                uid: this._currentFeatureUid,
-                title: this.getTitle(doc.feature as Feature),
-                type: 'feature',
-                file: doc.uri,
-                tags: doc.feature?.tags,
-                description: doc.feature?.description,
-                keyword: doc.feature?.keyword,
-            }
-
-            this.emit('suite:start', payload)
-            this._currentDoc = doc
-            // the duration of this part of the feature
-            this._featureStart = new Date()
+            this.startFeaturePart(doc)
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
@@ -427,7 +441,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
+            parent: this.featureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -483,16 +497,33 @@ export default class CucumberFormatter extends Formatter {
 
             this._testStart = new Date()
             const type = getStepType(step)
-            const payload = buildStepPayload(
-                uri as string,
-                feature as Feature,
-                scenario as Pickle,
-                step as PickleStep,
-                { type }
-            )
+            const hookKind = hookKindOf(hook)
+            const payload = {
+                ...buildStepPayload(
+                    uri as string,
+                    feature as Feature,
+                    scenario as Pickle,
+                    step as PickleStep,
+                    { type }
+                ),
+                ...(hookKind && { hookKind })
+            }
 
             this.emit(`${type}:start`, payload)
         }
+    }
+
+    /**
+     * Cucumber 13 sends no message for an ambiguous step: list the matching step definitions
+     */
+    private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
+        const result = event.testStepResult
+        const stepDefinitionIds = () => this._testCases
+            .find((tc) => tc.id === this._currentTestCase?.testCaseId)
+            ?.testSteps.find((step) => step.id === event.testStepId)
+            ?.stepDefinitionIds ?? []
+        const withMessage = result && withAmbiguousMessage(result, stepDefinitionIds, this._stepDefinitions)
+        return withMessage === result ? event : { ...event, testStepResult: withMessage }
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
@@ -534,7 +565,8 @@ export default class CucumberFormatter extends Formatter {
                 feature as Feature,
                 scenario as Pickle,
                 step,
-                result
+                result,
+                hookKindOf(this._hookEvent.find((h) => h.id === teststep?.hookId))
             )
         }
 
@@ -547,7 +579,7 @@ export default class CucumberFormatter extends Formatter {
         )
     }
 
-    onTestCaseFinished(results: TestStepResult[]) {
+    onTestCaseFinished(results: TestStepResult[], retried = false) {
         const tc = this._testCases.find(
             (tc) => tc.id === this._currentTestCase?.testCaseId
         )
@@ -560,10 +592,11 @@ export default class CucumberFormatter extends Formatter {
             return
         }
 
-        /**
-         * propagate the first non passing result or the last one
-         */
-        const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
+        const finalResult = getScenarioResult(results, {
+            ignoreUndefinedDefinitions: this.ignoreUndefinedDefinitions,
+            failAmbiguousDefinitions: this.failAmbiguousDefinitions,
+            strict: this.strict,
+        })
 
         const doc = this._gherkinDocEvents.find(
             (gde) => gde.uri === scenario?.uri
@@ -571,11 +604,14 @@ export default class CucumberFormatter extends Formatter {
         const uri = doc?.uri
         const feature = doc?.feature
         this.updateCurrentPickle({ uri, feature, scenario })
+        if (!retried && this.strict && finalResult?.status === Status.PENDING) {
+            this._strictPendingScenarios.push(scenarioLabel(uri ?? scenario.uri, feature, scenario))
+        }
 
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
+            parent: this.featureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
@@ -589,15 +625,83 @@ export default class CucumberFormatter extends Formatter {
              * no step: the end event has the title, type and parent of the scenario,
              * as its `test:start` event
              */
-            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult)
+            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult, retried)
         }
         this.emit('suite:end', payload)
+    }
+
+    /**
+     * grouped specs: start a part of the feature (see `featurePartUid`)
+     */
+    startFeaturePart(doc: GherkinDocument) {
+        const starts = (this._featureStarts.get(doc.uri as string) ?? 0) + 1
+        this._featureStarts.set(doc.uri as string, starts)
+        const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
+        this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
+        const payload = {
+            uid: this._currentFeatureUid,
+            title: this.getTitle(doc.feature as Feature),
+            type: 'feature',
+            file: doc.uri,
+            tags: doc.feature?.tags,
+            description: doc.feature?.description,
+            keyword: doc.feature?.keyword,
+        }
+
+        this.emit('suite:start', payload)
+        this._currentDoc = doc
+        // the duration of this part of the feature
+        this._featureStart = new Date()
+    }
+
+    /**
+     * a user BeforeAll / AfterAll runs outside of any scenario: a hook of the feature, sent when it starts,
+     * so that the reporters give it the commands and logs of its body
+     */
+    onTestRunHookStarted({ id, hookId }: TestRunHookStarted) {
+        const hook = this.userRunHooks[hookId]
+        if (!hook) {
+            return
+        }
+        // grouped specs start a feature at its first scenario: a BeforeAll comes before any
+        if (this.usesSpecGrouping() && !this._currentDoc.uri) {
+            this.startFeaturePart(this._gherkinDocEvents[0])
+        }
+        const doc = this.usesSpecGrouping() ? this._currentDoc : this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
+        const start = testRunHookStart({
+            uid: id,
+            hook,
+            featureUid: this.featurePartUid(doc.uri as string, doc.feature as Feature),
+            uri: doc.uri as string,
+        })
+        this._openRunHooks.set(id, start)
+        this.emit('hook:start', start)
+    }
+
+    onTestRunHookFinished({ testRunHookStartedId, result }: TestRunHookFinished) {
+        const start = this._openRunHooks.get(testRunHookStartedId)
+        if (!start) {
+            // a WebdriverIO run hook (beforeFeature / afterFeature, only on a Cucumber timeout): no event, but a failure
+            if (result.status === Status.FAILED) {
+                this.failedCount++
+            }
+            return
+        }
+        this._openRunHooks.delete(testRunHookStartedId)
+        if (result.status === Status.FAILED) {
+            // the exit code of a run with `ignoreUndefinedDefinitions` (index.ts)
+            this.failedCount++
+        }
+        this.emit('hook:end', testRunHookEnd(start, result))
     }
 
     onTestRunFinished() {
         delete this._currentTestCase
 
         this.eventEmitter.emit('getFailedCount', this.failedCount)
+        if (this._strictPendingScenarios.length) {
+            log.warn(strictPendingWarning(this._strictPendingScenarios))
+        }
 
         if (this.usesSpecGrouping()) {
             const payload = {
@@ -623,7 +727,7 @@ export default class CucumberFormatter extends Formatter {
         }
 
         const payload = {
-            uid: getFeatureId(
+            uid: this.featureId(
                 gherkinDocEvent.uri as string,
                 gherkinDocEvent.feature as Feature
             ),

@@ -4,13 +4,13 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement, isStaleElementError } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
+import { checkElementsContainedIn, checkElementsConnected, checkLinksMatchText } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
@@ -160,7 +160,17 @@ export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
     } else if (parsedValue.property === 'font-family') {
         const font = cssValue(cssPropertyValue)
         const string = parsedValue.value
-        const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+        const families = ['']
+
+        for (const token of font) {
+            if (token.type === 'comma') {
+                families.push('')
+            } else {
+                families[families.length - 1] += `${token.string} `
+            }
+        }
+
+        const value = families.map(sanitizeCSS)
 
         parsedValue.value = sanitizeCSS(font[0].value as string || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
@@ -267,25 +277,6 @@ export function isElement(o: Selector) {
     )
 }
 
-export function isStaleElementError(err: Error) {
-    return (
-        // Chrome
-        err.message.includes('stale element reference') ||
-        // Firefox
-        err.message.includes('is no longer attached to the DOM') ||
-        // Safari
-        err.message.toLowerCase().includes('stale element found') ||
-        // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame') ||
-        // BIDI
-        err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference') ||
-        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
-        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
-        /no such node - SharedId ".*" was not found/.test(err.message)
-    )
-}
-
 /**
  * A stale element error that the element middleware handles: it finds the element again and
  * runs the command again. The "element wasn't found" error of a wait (an element that was not
@@ -348,12 +339,12 @@ export function transformClassicToBidiSelector(using: string, value: string): re
         return { type: 'xpath', value }
     }
 
-    if (using === 'link text') {
-        return { type: 'innerText', value }
-    }
-
-    if (using === 'partial link text') {
-        return { type: 'innerText', value, matchType: 'partial' }
+    /**
+     * The `innerText` locator matches any element, the link text strategies only
+     * `<a>` elements. Find all links, `filterLinksByText` then compares their text.
+     */
+    if (using === 'link text' || using === 'partial link text') {
+        return { type: 'css', value: 'a' }
     }
 
     if (using === 'aria') {
@@ -381,6 +372,24 @@ function toClassicSelector(using: string, value: string): { using: string, value
 
 function toAriaXPathLocator(value: string): remote.BrowsingContextLocator {
     return { type: 'xpath', value: getAriaXPathSelector(value) }
+}
+
+/**
+ * Keep only the links whose rendered text matches a link text selector. Other
+ * strategies are returned as is.
+ */
+async function filterLinksByText<T extends ElementReference>(
+    browser: WebdriverIO.Browser,
+    context: string,
+    nodes: T[],
+    using: string,
+    value: string
+): Promise<T[]> {
+    if ((using !== 'link text' && using !== 'partial link text') || nodes.length === 0) {
+        return nodes
+    }
+    const matches = await checkLinksMatchText(browser, nodes.map((node) => node[ELEMENT_KEY]), using, value, context)
+    return nodes.filter((_, i) => matches[i])
 }
 
 function getScopedElementId(ctx: WebdriverIO.Browser | WebdriverIO.Element) {
@@ -865,6 +874,7 @@ export async function findDeepElement(
         }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**
@@ -1071,6 +1081,7 @@ export async function findDeepElements(
             }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**

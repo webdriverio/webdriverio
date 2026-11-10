@@ -13,12 +13,12 @@ const log = logger('webdriver')
  * Internally it uses:
  * - Element tap:
  *      - the `click` command for Web environments (Chrome/Safari browsers, or hybrid apps)
- *      - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture)
+ *      - the Android [`mobile: clickGesture`](https://appium.github.io/appium-uiautomator2-driver/latest/reference/execute-methods/#mobile-clickgesture)
  * or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps, including the `scrollIntoView`
  * command for automatic scrolling
  * - Screen tap:
  *      - the `action` command for Web environments (Chrome/Safari browsers, or hybrid apps)
- *      - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture)
+ *      - the Android [`mobile: clickGesture`](https://appium.github.io/appium-uiautomator2-driver/latest/reference/execute-methods/#mobile-clickgesture)
  * or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps
  *
  * This difference makes the `tap` command a more reliable alternative to the `click` command for mobile apps.

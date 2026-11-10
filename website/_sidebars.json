@@ -403,6 +403,7 @@
                 "devtools/wdio/trace-mode",
                 "devtools/trace-player",
                 "devtools/allure",
+                "devtools/mobile",
                 "devtools/cross-framework",
                 "devtools/limitations"
               ]
