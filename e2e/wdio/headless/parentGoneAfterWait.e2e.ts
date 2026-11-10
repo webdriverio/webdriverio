@@ -5,7 +5,7 @@ import { browser, expect } from '@wdio/globals'
 
 const PAGE = '<title>parent</title><span class="t">other</span><div id="p"><span class="t">mine</span></div>'
 
-type Page = { calls: number, onSecondCall: (id: string) => HTMLElement | undefined }
+type Page = { calls: number, found: number, onSecondCall: (id: string) => HTMLElement | undefined }
 
 /**
  * the parent is found only by the second lookup: the check of `waitForExist`. The lookup after
@@ -14,7 +14,11 @@ type Page = { calls: number, onSecondCall: (id: string) => HTMLElement | undefin
 function onSecondCall (id: string) {
     const page = window as unknown as Page
     page.calls = (page.calls || 0) + 1
-    return page.calls === 2 ? document.getElementById(id) ?? undefined : undefined
+    if (page.calls !== 2) {
+        return undefined
+    }
+    page.found = (page.found || 0) + 1
+    return document.getElementById(id) ?? undefined
 }
 
 const PARENTS: Record<string, () => ReturnType<WebdriverIO.Browser['$']>> = {
@@ -23,6 +27,16 @@ const PARENTS: Record<string, () => ReturnType<WebdriverIO.Browser['$']>> = {
 }
 
 const NOT_FOUND = (command: string) => new RegExp(`Can't call ${command.replace(/\$/g, '\\$')} on element .* because element wasn't found`, 's')
+
+/**
+ * the query rejects after the wait found the parent, not with the timeout of a parent that never came
+ */
+async function rejectsAfterTheWait (query: () => Promise<unknown>, command: string) {
+    const start = Date.now()
+    await expect(query()).rejects.toThrow(NOT_FOUND(command))
+    expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout as number)
+    expect(await browser.execute(() => (window as unknown as Page).found)).toBe(1)
+}
 
 describe('a parent that is gone again after the implicit wait', () => {
     let server: Server
@@ -40,7 +54,7 @@ describe('a parent that is gone again after the implicit wait', () => {
     })
 
     beforeEach(async () => {
-        await browser.execute(`window.calls = 0; window.onSecondCall = ${onSecondCall.toString()}`)
+        await browser.execute(`window.calls = 0; window.found = 0; window.onSecondCall = ${onSecondCall.toString()}`)
     })
 
     after(async () => {
@@ -51,15 +65,15 @@ describe('a parent that is gone again after the implicit wait', () => {
 
     for (const [name, parent] of Object.entries(PARENTS)) {
         it(`${name}: a child query rejects and does not run from the document`, async () => {
-            await expect(parent().$('.t').getText()).rejects.toThrow(NOT_FOUND('$'))
+            await rejectsAfterTheWait(() => parent().$('.t').getText(), '$')
         })
 
         it(`${name}: a non-strict child query rejects and does not give a child outside the parent`, async () => {
-            await expect(parent().$('.t', { strict: false }).getText()).rejects.toThrow(NOT_FOUND('$'))
+            await rejectsAfterTheWait(() => parent().$('.t', { strict: false }).getText(), '$')
         })
 
         it(`${name}: a child list rejects and does not give the matches of the document`, async () => {
-            await expect(parent().$$('.t').getElements()).rejects.toThrow(NOT_FOUND('$$'))
+            await rejectsAfterTheWait(() => parent().$$('.t').getElements(), '$$')
         })
     }
 })
