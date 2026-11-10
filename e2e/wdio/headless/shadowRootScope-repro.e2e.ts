@@ -1,6 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
-import { browser, $, expect } from '@wdio/globals'
+import { browser, $, $$, expect } from '@wdio/globals'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -95,5 +95,20 @@ describe('shadow root scope resolution (regression repro)', () => {
         const html = await $('#wrapper').getHTML({ pierceShadowRoot: true })
         expect(html).toContain('inside shadow text')
         expect(html).toContain('shadowrootmode')
+    })
+
+    it('does not send the document element next to the document for an unscoped lookup', async () => {
+        const html = await $('html').getElement()
+        const startNodes = await collectLocateStartNodes(() => $('#target').getElement())
+        expect(startNodes.length).toBeGreaterThan(0)
+        for (const nodes of startNodes) {
+            // the document already contains it: both make the browser search the page twice
+            expect(nodes.map((node) => node.sharedId)).not.toContain(html.elementId)
+        }
+    })
+
+    it('finds the html element first for an unscoped lookup, as on a page without custom elements', async () => {
+        const elements = await $$('*').getElements()
+        expect(await elements[0].getTagName()).toBe('html')
     })
 })
