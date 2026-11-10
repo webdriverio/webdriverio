@@ -10,7 +10,7 @@ jobs:
     name: create-wdio E2E Test (${{ matrix.os }})
     permissions:
       contents: read
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -30,7 +30,8 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      # `npm init wdio` with the local create-wdio, then the generated example test
+      # `npm init wdio` with the local create-wdio wizard: web (with the generated example test),
+      # Android, iOS and macOS (the Appium installs)
       - name: create-wdio E2E Test
         run: pnpm run test:e2e:create-wdio
         shell: bash

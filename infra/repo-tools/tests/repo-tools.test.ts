@@ -88,6 +88,8 @@ describe('classify', () => {
         const pkg = classify(['packages/create-wdio/src/index.ts'])
         expect(pkg.lanes.create_wdio).toBe(true)
         expect(pkg.lanes.code).toBe(true)
+        expect(classify(['packages/wdio-cli/src/run.ts']).lanes.create_wdio).toBe(true)
+
         const report = classify(['e2e/create-wdio/run.ts'])
         expect(report.lanes.create_wdio).toBe(true)
         expect(report.lanes.code).toBe(false)
