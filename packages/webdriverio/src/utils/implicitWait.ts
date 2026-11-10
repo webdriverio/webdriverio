@@ -65,7 +65,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              */
             if (!nextElement?.elementId) {
                 throw new Error(
-                    `element with selector "${describeSelector(currentElement)}" has no match at index ${currentElement.index}`)
+                    `element with selector "${describeSelector(currentElement)}" has no match${currentElement.index === undefined ? '' : ` at index ${currentElement.index}`}`)
             }
 
             return nextElement
