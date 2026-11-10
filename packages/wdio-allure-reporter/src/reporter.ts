@@ -149,7 +149,7 @@ function withDefaultHost(labels: Label[]): Label[] {
         return withoutEmptyHosts
     }
     // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME
-    // (as in the other Allure JS reporters) or the machine name
+    // (the variable of the other Allure JS reporters; an empty value is ignored) or the machine name
     const defaultHost = process.env.ALLURE_LABEL_host || process.env.ALLURE_HOST_NAME || hostname()
     return [...withoutEmptyHosts, { name: LabelName.HOST, value: defaultHost }]
 }
