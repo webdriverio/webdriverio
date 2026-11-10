@@ -11,7 +11,8 @@ type PseudoElement = '::before' | '::after'
  *
  * Get a css property from a DOM-element selected by given selector. The return value
  * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
- * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
+ * and other standard properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
+ * CSS custom properties (`--*`) return their computed string value unchanged, with an empty `parsed` object.
  *
  * :::info
  *
@@ -110,7 +111,7 @@ async function getShorthandPropertyCSSValue(
 
     if (pseudoElement) {
         const cssValues = await Promise.all(
-            properties.map((prop) => getPseudoElementCSSValue(
+            properties.map((prop) => getComputedCSSValue(
                 this,
                 {
                     pseudoElement,
@@ -134,8 +135,9 @@ async function getPropertyCSSValue(
 ) {
     const { pseudoElement, cssProperty } = options
 
-    if (pseudoElement) {
-        return await getPseudoElementCSSValue(
+    // Driver endpoints can rewrite custom property names, so read them in the page.
+    if (pseudoElement || cssProperty.startsWith('--')) {
+        return await getComputedCSSValue(
             this,
             {
                 pseudoElement,
@@ -197,18 +199,21 @@ function mergeEqualSymmetricalValue(cssValues: string[]) {
     return newCssValues.join(' ')
 }
 
-async function getPseudoElementCSSValue(
+async function getComputedCSSValue(
     elem: WebdriverIO.Element,
-    options: Required<Options>
+    options: Options
 ): Promise<string> {
-    const { cssProperty, pseudoElement } = options
-    const read = (elem: Element, pseudoElement: string, cssProperty: string) => {
+    const { cssProperty, pseudoElement = null } = options
+    const read = (elem: Element, pseudoElement: string | null, cssProperty: string) => {
         // Check if element is still connected to the DOM
         // This helps detect stale elements in BiDi mode
         if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
             throw new Error('stale element reference: element is not attached to the page document')
         }
-        return (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number]
+        const style = window.getComputedStyle(elem, pseudoElement)
+        return cssProperty.startsWith('--')
+            ? style.getPropertyValue(cssProperty)
+            : style[cssProperty as unknown as number]
     }
 
     /**
@@ -217,7 +222,7 @@ async function getPseudoElementCSSValue(
      * the element's own context and passes the element as first argument.
      */
     const cssValue = await foreignContextId(elem)
-        ? await elem.execute(read as unknown as (el: HTMLElement, pseudoElement: string, cssProperty: string) => string, pseudoElement, cssProperty)
+        ? await elem.execute(read as unknown as (el: HTMLElement, pseudoElement: string | null, cssProperty: string) => string, pseudoElement, cssProperty)
         : await getBrowserObject(elem).execute(read, elem as unknown as Element, pseudoElement, cssProperty)
 
     return cssValue

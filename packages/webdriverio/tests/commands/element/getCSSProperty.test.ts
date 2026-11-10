@@ -83,6 +83,63 @@ describe('getCSSProperty test', () => {
         expect(property.value).toBe('1px 2px')
     })
 
+    it.each([
+        [undefined, '  MixedCase Value  '],
+        ['::before', '13px'],
+        ['::after', '42']
+    ] as const)('should read a custom property for pseudo element %s', async (pseudoElement, value) => {
+        const getPropertyValue = vi.fn().mockReturnValue(value)
+        globalThis.window.getComputedStyle = vi.fn().mockReturnValue({ getPropertyValue })
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        expect(await elem.getCSSProperty('--MixedCase', pseudoElement)).toEqual({
+            property: '--MixedCase',
+            value,
+            parsed: {}
+        })
+        expect(getPropertyValue).toHaveBeenCalledWith('--MixedCase')
+        expect(window.getComputedStyle).toHaveBeenCalledWith(expect.anything(), pseudoElement ?? null)
+    })
+
+    it('should return an empty value for an unset custom property', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue('')
+        const elem = await browser.$('#foo')
+
+        expect(await elem.getCSSProperty('--missing')).toEqual({
+            property: '--missing',
+            value: '',
+            parsed: {}
+        })
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, null, '--missing')
+    })
+
+    it('should preserve camelCase property reads for pseudo elements', async () => {
+        globalThis.window.getComputedStyle = vi.fn().mockReturnValue({ fontSize: '16px' })
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        const property = await elem.getCSSProperty('fontSize', '::before')
+        expect(property.value).toBe('16px')
+        expect(property.parsed.value).toBe(16)
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
