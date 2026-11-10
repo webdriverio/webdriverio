@@ -25,6 +25,14 @@ services: [
 
 Trace mode needs WebDriver BiDi (Chrome 114+, Firefox 130+), which WebdriverIO enables automatically.
 
+When a worker finishes, the WebdriverIO service prints the path of every trace it kept, whatever the `logLevel`:
+
+```text
+DevTools trace saved to /path/to/project/test-results/trace-<sessionId>.zip
+```
+
+A trace that a [`tracePolicy`](#retention--tracepolicy) decided against is not written and not printed.
+
 To try it, run the mocha example in trace mode with `DEVTOOLS_MODE=trace pnpm demo:wdio:mocha`; add `DEVTOOLS_TRACE_GRANULARITY=test DEVTOOLS_TRACE_POLICY=retain-on-failure` for per-test retention. The config is [`examples/wdio/mocha/wdio.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/mocha/wdio.conf.ts).
 
 Selenium and Nightwatch ship the same trace pipeline — see their adapter pages for framework-specific enable syntax: [Selenium](/docs/devtools/selenium#trace-mode) · [Nightwatch](/docs/devtools/nightwatch#trace-mode).
