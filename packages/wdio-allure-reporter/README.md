@@ -179,7 +179,7 @@ export const config = {
 
 ### Timeline labels
 
-The Allure timeline groups the tests by the `host` and `thread` labels. The reporter sets `thread` to the worker id (for example `0-0`) and `host` to the `ALLURE_HOST_NAME` environment variable, or to the machine name when it is not set. To give your own host, set `ALLURE_LABEL_host` or add `host` to the `globalLabels` option. The default host is then not added.
+The Allure timeline groups the tests by the `host` and `thread` labels. The reporter sets `thread` to the worker id (for example `0-0`) and `host` to the `ALLURE_HOST_NAME` environment variable, or to the machine name when it is not set. To give your own host for all tests, add `host` to the `globalLabels` option or set `ALLURE_LABEL_host`. A `host` label that a test sets itself, for example with `addLabel('host', 'grid-node-3')` or a Cucumber tag `@host=grid-node-3`, replaces it for that test.
 
 ## Supported Allure API
 

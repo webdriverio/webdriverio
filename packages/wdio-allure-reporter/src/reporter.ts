@@ -26,6 +26,7 @@ import {
     Stage as AllureStage,
     Status as AllureStatusEnum,
 } from 'allure-js-commons'
+import type { Label } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
 import { getEnvironmentLabels, getHostLabel, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
@@ -139,23 +140,26 @@ function splitTitlePathPart(part?: string): string[] {
 
 /**
  * The Allure timeline groups the results by host. The runtime adds the global labels to
- * every result, so skipped and failed hook results get the default host too.
+ * every result, so skipped and failed hook results get the default host too. The writer
+ * removes it from a result that has a host of its own.
  */
-function withDefaultHost(globalLabels: AllureReporterOptions['globalLabels']): AllureReporterOptions['globalLabels'] {
-    // a host from ALLURE_LABEL_host or the globalLabels option replaces the default one
-    if (getEnvironmentLabels().some((label) => label.name === LabelName.HOST)) {
-        return globalLabels
+function withDefaultHost(globalLabels: AllureReporterOptions['globalLabels']): { globalLabels: Label[], defaultHost?: string } {
+    const labels: Label[] = Array.isArray(globalLabels)
+        ? [...globalLabels]
+        : Object.entries(globalLabels ?? {}).flatMap(([name, value]) =>
+            (Array.isArray(value) ? value : [value]).map((labelValue) => ({ name, value: labelValue })))
+    // a host of the globalLabels option is the host of every result
+    const configuredHost = labels.find((label) => label.name === LabelName.HOST && label.value)?.value
+    if (configuredHost) {
+        return { globalLabels: labels, defaultHost: configuredHost }
     }
-    // ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
-    const host = getHostLabel()
-    if (Array.isArray(globalLabels)) {
-        return globalLabels.some((label) => label.name === LabelName.HOST) ? globalLabels : [...globalLabels, host]
+    // ALLURE_LABEL_host, else ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
+    const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
+        ?? getHostLabel().value
+    return {
+        globalLabels: [...labels.filter((label) => label.name !== LabelName.HOST), { name: LabelName.HOST, value: defaultHost }],
+        defaultHost
     }
-    const value = globalLabels?.[LabelName.HOST]
-    if (Array.isArray(value) ? value.length > 0 : value) {
-        return globalLabels
-    }
-    return { ...globalLabels, [LabelName.HOST]: host.value }
 }
 
 export default class AllureReporter extends WDIOReporter {
@@ -220,12 +224,13 @@ export default class AllureReporter extends WDIOReporter {
 
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
 
+        const { globalLabels, defaultHost } = withDefaultHost(rest.globalLabels)
         this._allureRuntime = new ReporterRuntime({
             ...rest,
-            globalLabels: withDefaultHost(rest.globalLabels),
+            globalLabels,
             links,
             environmentInfo: options.reportedEnvironmentVars,
-            writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
+            writer: new LinkingFileSystemWriter(resolveResultsDir(options), defaultHost),
         })
 
         this._capabilities = {}

@@ -1028,11 +1028,16 @@ describe('Host label', () => {
         clean(outputDir)
     })
 
-    const hostsOfOnePassingTest = async (options: AllureReporterOptions) => {
+    const hostsOfOnePassingTest = async (
+        options: AllureReporterOptions,
+        { beforeTest, duringTest }: { beforeTest?: () => void, duringTest?: (reporter: AllureReporter) => void } = {}
+    ) => {
         const reporter = new AllureReporter({ outputDir, ...options })
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
+        beforeTest?.()
         reporter.onTestStart(testStart())
+        duringTest?.(reporter)
         reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
@@ -1051,6 +1056,42 @@ describe('Host label', () => {
         ['a list', [{ name: LabelName.HOST, value: 'ci-agent-2' }]]
     ])('keeps a host label set through globalLabels as %s', async (_, globalLabels) => {
         expect(await hostsOfOnePassingTest({ globalLabels })).toEqual([{ name: LabelName.HOST, value: 'ci-agent-2' }])
+    })
+
+    it('keeps only the host that the test sets with addLabel', async () => {
+        expect(await hostsOfOnePassingTest({}, {
+            duringTest: (reporter) => reporter.addLabel({ name: LabelName.HOST, value: 'grid-node-3' })
+        })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
+    })
+
+    it.each([
+        ['ALLURE_LABEL_host', () => vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1'), {}],
+        ['the globalLabels option', () => {}, { globalLabels: { host: 'ci-agent-2' } }]
+    ])('keeps only the host that the test sets, also with a host from %s', async (_, setUp, options) => {
+        setUp()
+        expect(await hostsOfOnePassingTest(options, {
+            duringTest: (reporter) => reporter.addLabel({ name: LabelName.HOST, value: 'grid-node-3' })
+        })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
+    })
+
+    it('keeps only ALLURE_LABEL_host when it is set after the reporter starts', async () => {
+        expect(await hostsOfOnePassingTest({}, {
+            beforeTest: () => vi.stubEnv('ALLURE_LABEL_host', 'shard-2')
+        })).toEqual([{ name: LabelName.HOST, value: 'shard-2' }])
+    })
+
+    it('gives ALLURE_LABEL_host to the result of a failed "before all" hook', async () => {
+        vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1')
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: 'ci-agent-1' }])
     })
 
     it('adds the default host when the host of globalLabels has no value', async () => {
