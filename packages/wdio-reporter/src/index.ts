@@ -4,7 +4,7 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, shortenOutputValue, specFilePath, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
@@ -507,32 +507,30 @@ export default class WDIOReporter extends EventEmitter {
         /**
          * browser client event handlers
          */
-        this.on('client:beforeCommand', (payload) => {
+        const storeCommand = (payload: BeforeCommandArgs | AfterCommandArgs, type: 'command' | 'result') => {
             const target = getCommandTarget(payload)
             if (!target) {
                 return
             }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
+            /**
+             * keep a copy: the same payload goes to the hooks of every reporter, which
+             * can need the full values (e.g. a screenshot), and to other listeners
+             */
+            const entry: Record<string, unknown> = { ...payload, type }
+            const body = entry.body as { script?: string | Function } | undefined
+            if (body?.script) {
+                entry.body = {
+                    ...body,
+                    script: transformCommandScript(body.script)
                 }
             }
-            (target.output ??= []).push(Object.assign(payload, { type: 'command' }))
-        })
-        this.on('client:afterCommand', (payload) => {
-            const target = getCommandTarget(payload)
-            if (!target) {
-                return
+            for (const key of Object.keys(entry)) {
+                entry[key] = shortenOutputValue(entry[key])
             }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
-                }
-            }
-            (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
-        })
+            (target.output ??= []).push(entry as unknown as TestStats['output'][number])
+        }
+        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => storeCommand(payload, 'command'))
+        this.on('client:afterCommand', (payload: AfterCommandArgs) => storeCommand(payload, 'result'))
     }
 
     /**
