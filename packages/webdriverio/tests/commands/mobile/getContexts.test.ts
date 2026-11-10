@@ -465,13 +465,22 @@ describe('getContexts test', () => {
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
         vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.nonMatchingApp')
 
-        await expect(browser.getContexts({
-            androidWebviewConnectTimeout: 100,
-            androidWebviewConnectionRetryTime: 20,
-            returnDetailedContexts: true,
-        })).rejects.toThrow('The packageName \'com.nonMatchingApp\' could not be found!')
+        // fake timers: the number of retries must not depend on how fast the worker runs
+        vi.useFakeTimers()
+        try {
+            const failed = expect(browser.getContexts({
+                androidWebviewConnectTimeout: 100,
+                androidWebviewConnectionRetryTime: 20,
+                returnDetailedContexts: true,
+            })).rejects.toThrow('The packageName \'com.nonMatchingApp\' could not be found!')
+            await vi.advanceTimersByTimeAsync(100)
+            await failed
+        } finally {
+            vi.useRealTimers()
+        }
 
-        expect(executeSpy.mock.calls.length).toBeGreaterThan(1)
+        // one request at 0, 20, 40, 60 and 80 ms, the timeout ends the loop at 100 ms
+        expect(executeSpy).toHaveBeenCalledTimes(5)
         expect(executeSpy.mock.calls.every(([script]) => script === 'mobile: getContexts')).toBe(true)
     })
 
