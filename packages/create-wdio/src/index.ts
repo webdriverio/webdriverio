@@ -8,7 +8,7 @@ import semver from 'semver'
 import { Command, Option } from 'commander'
 import { resolve } from 'import-meta-resolve'
 
-import { runProgram, getPackageVersion } from './utils.js'
+import { runProgram, getPackageVersion, withSigintExit } from './utils.js'
 import {
     ANSWER_FLAGS, ANSWER_FLAGS_HELP, AnswerFlagError, answerFlagUsage, answerFlagsToArgs, describeAnswerFlag, parseAnswerFlags
 } from './answerFlags.js'
@@ -75,7 +75,7 @@ export async function run(operation = createWebdriverIO) {
         ].join('\n'))
         .parse(process.argv)
 
-    return operation(program.opts())
+    return withSigintExit(async () => operation(program.opts()))
 }
 
 /**

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
 import { buildTauriBanner, buildDioxusBanner, buildDevtoolsBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
 import type { ParsedAnswers, Questionnair } from '../types.js'
-import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
+import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages, withSigintExit } from '../utils.js'
 import { writeAgentSupport } from './agent.js'
 
 export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string, yes = false) {
@@ -63,12 +63,12 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         'Would you like to create one?'
     )
 
-    const { config } = await inquirer.prompt({
+    const { config } = await withSigintExit(() => inquirer.prompt({
         type: 'confirm',
         name: 'config',
         message,
         default: false
-    })
+    }))
 
     if (!config) {
         console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
@@ -76,7 +76,7 @@ export async function missingConfigurationPrompt(command: string, configPath: st
     }
 
     const parsedAnswers = await parseAnswers(false)
-    await runConfigCmd(parsedAnswers, 'latest')
+    await withSigintExit(() => runConfigCmd(parsedAnswers, 'latest'))
     return configPath
 }
 
