@@ -1,8 +1,10 @@
 import path from 'node:path'
+import vm from 'node:vm'
 
 import { describe, it, expect } from 'vitest'
 
 import { generateSpec, getterName, pageClassName, pageInstanceName } from '../../src/export/spec.js'
+import { stripTypes } from '../../src/exec/transform.js'
 import type { HistoryEntry } from '../../src/types.js'
 
 const step = (partial: Partial<HistoryEntry> & Pick<HistoryEntry, 'code'>): HistoryEntry => ({
@@ -40,6 +42,55 @@ describe('names', () => {
 })
 
 describe('generateSpec', () => {
+    it.each([
+        ["const select = $$; results.push((await select('a')).length)", 2],
+        ["results.push((await $$.call(null, 'a')).length)", 2],
+        ["const size: number = (await $$ /* comment */ ('a')).length; results.push(size)", 2],
+        ["$$ = () => ['custom']; results.push($$()[0])", 'custom'],
+        ["$$ = null; $$ ||= () => ['fallback']; results.push($$()[0]); return", 'fallback'],
+        ["let $$ = () => ['first']; $$ = () => ['local']; results.push($$()[0])", 'local'],
+        ["for ($$ of [() => ['loop']]) {} results.push($$()[0])", 'loop'],
+        ["const __wdioDollarDollar = 'alias'; $$ = () => [__wdioDollarDollar]; results.push($$()[0])", 'alias']
+    ])('replays selector reference: %s', async (code, expected) => {
+        for (const pageObjects of [false, true]) {
+            const [spec] = generateSpec([
+                step({ kind: 'exec', code: String(code) })
+            ], { title: 'selectors', pageObjects })
+            const results: unknown[] = []
+            let pending: Promise<void> | undefined
+            const source = spec.contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
+                `const { ${bindings.replace(/\$\$ as (\w+)/g, '$$: $1')} } = globals`
+            ))
+            vm.runInNewContext(stripTypes(source), {
+                globals: { browser: {}, $: () => {}, $$: async () => [1, 2], expect: () => {} },
+                results,
+                describe: (_title: string, fn: () => void) => fn(),
+                it: (_title: string, fn: () => Promise<void>) => { pending = fn() }
+            })
+            await pending
+            expect(results).toEqual([expected])
+        }
+    })
+
+    it('preserves an explicitly declared local $$', async () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "const $$ = () => ['local']; results.push($$()[0])" })
+        ], { title: 'local selector' })
+        const results: unknown[] = []
+        let pending: Promise<void> | undefined
+        const source = spec.contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
+            `const { ${bindings.replace(/\$\$ as (\w+)/g, '$$: $1')} } = globals`
+        ))
+        vm.runInNewContext(source, {
+            globals: { browser: {}, $: () => {}, $$: () => [], expect: () => {} },
+            results,
+            describe: (_title: string, fn: () => void) => fn(),
+            it: (_title: string, fn: () => Promise<void>) => { pending = fn() }
+        })
+        await pending
+        expect(results).toEqual(['local'])
+    })
+
     const entries: HistoryEntry[] = [
         step({ n: 1, kind: 'open', code: "await browser.url('http://localhost:3000/cart.html')", path: '/cart.html' }),
         step({ n: 2, kind: 'action', code: "await $('[data-testid=\"add-blue\"]').click()", path: '/cart.html' }),

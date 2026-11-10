@@ -79,6 +79,9 @@ describe('wdio session history and export', () => {
         await run('click', add)
         await run('exec', '-e', `await expect(ref('${checkout}')).toBeDisplayed()`)
         await run('exec', '-e', "expect((await $$('#products > li')).length).toBe(2)")
+        await run('exec', '-e', "const select = $$; expect((await select('#products > li')).length).toBe(2)")
+        await run('exec', '-e', "const size: number = (await $$ /* comment */ ('#products > li')).length; expect(size).toBe(2)")
+        await run('exec', '-e', "const savedSelect = $$; $$ = (...args) => savedSelect(...args); expect((await $$('#products > li')).length).toBe(2)")
 
         const spec = path.join(project.dir, 'cart.e2e.ts')
         const exported = await run('export', '--out', spec, '--title', 'cart')

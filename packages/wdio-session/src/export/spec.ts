@@ -4,6 +4,7 @@ import * as acorn from 'acorn'
 
 import type { HistoryEntry } from '../types.js'
 import { SessionError } from '../errors.js'
+import { stripTypes } from '../exec/transform.js'
 
 export interface ExportOptions {
     title: string
@@ -120,7 +121,8 @@ function parseProgram (code: string): ProgramNode | undefined {
         return acorn.parse(code, {
             ecmaVersion: 'latest',
             sourceType: 'module',
-            allowAwaitOutsideFunction: true
+            allowAwaitOutsideFunction: true,
+            allowReturnOutsideFunction: true
         }) as unknown as ProgramNode
     } catch {
         return undefined
@@ -213,14 +215,25 @@ interface SelectorEdit {
 }
 
 function selectorEdits (code: string) {
-    const ast = parseProgram(code)
+    const ast = parseProgram(stripTypes(code))
     const edits: SelectorEdit[] = []
     let needsDollar = false
     let needsDollarDollar = false
+    let assignsDollarDollar = false
     if (!ast) {
-        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$\s*\(/.test(code) }
+        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$(?![\w$])/.test(code), assignsDollarDollar: /\$\$\s*(?:=(?!=)|\+\+|--)/.test(code) }
     }
     walk(ast, (node) => {
+        if (node.type === 'Identifier' && node.name === '$$') {
+            needsDollarDollar = true
+        }
+        if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression' || node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
+            walk((node.left || node.argument) as ProgramNode | undefined, (target) => {
+                if (target.type === 'Identifier' && target.name === '$$') {
+                    assignsDollarDollar = true
+                }
+            })
+        }
         if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') {
             return
         }
@@ -238,7 +251,7 @@ function selectorEdits (code: string) {
         }
         edits.push({ start: node.start, end: node.end, selector: arg.value })
     })
-    return { edits, needsDollar, needsDollarDollar }
+    return { edits, needsDollar, needsDollarDollar, assignsDollarDollar }
 }
 
 export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): GeneratedFile[] {
@@ -256,6 +269,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     const hoisted: string[] = []
     let needsDollar = false
     let needsDollarDollar = false
+    let assignsDollarDollar = false
     const rendered = steps.map((entry) => {
         let code = entry.kind === 'marker'
             ? entry.code.split('\n').map((line) => line.startsWith('//') ? line : `// ${line}`).join('\n')
@@ -274,6 +288,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         const found = selectorEdits(code)
         needsDollar = needsDollar || found.needsDollar
         needsDollarDollar = needsDollarDollar || found.needsDollarDollar
+        assignsDollarDollar = assignsDollarDollar || found.assignsDollarDollar
         if (!opts.pageObjects) {
             return code
         }
@@ -307,9 +322,15 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         return node?.type === 'ImportDeclaration' && (node.specifiers as { local: { name: string } }[])
             .some((specifier) => specifier.local.name === '$$')
     })
+    const mutableDollarDollar = needsDollarDollar && assignsDollarDollar && !hasDollarDollarImport
+    let dollarDollarAlias = '__wdioDollarDollar'
+    const recordedCode = steps.map((entry) => entry.code).join('\n')
+    while (new RegExp(`\\b${dollarDollarAlias}\\b`).test(recordedCode)) {
+        dollarDollarAlias += '_'
+    }
     const dollars = [
         !opts.pageObjects || needsDollar ? '$' : '',
-        needsDollarDollar && !hasDollarDollarImport ? '$$' : ''
+        needsDollarDollar && !hasDollarDollarImport ? (mutableDollarDollar ? `$$ as ${dollarDollarAlias}` : '$$') : ''
     ].filter(Boolean)
     const imports = [
         `import { browser${dollars.length ? `, ${dollars.join(', ')}` : ''}, expect } from '@wdio/globals'`,
@@ -317,9 +338,10 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         ...pages.map((page) => `import ${page}Page from './pageobjects/${page}.page.ts'`)
     ]
     const instances = pages.map((page) => `const ${pageInstanceName(page)} = new ${page}Page()`)
+    // A mutable binding preserves recorded assignments; the block lets steps declare their own $$.
     const body = [
         ...instances,
-        ...rendered
+        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias}`, `{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
     ].filter(Boolean)
     const title = opts.title.replace(/'/g, "\\'")
     const spec = [
