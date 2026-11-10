@@ -399,9 +399,9 @@ describe('getContexts test', () => {
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
         const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.nonMatchingApp')
         await expect(browser.getContexts({
-            // Reduce the timeout to speed up the test
+            // Reduce the timeout to speed up the test: it ends during the first wait, so there is no retry
             androidWebviewConnectTimeout: 5,
-            androidWebviewConnectionRetryTime: 5,
+            androidWebviewConnectionRetryTime: 50,
             isAndroidWebviewVisible: false,
             returnAndroidDescriptionData: true,
             returnDetailedContexts: true,
@@ -409,6 +409,96 @@ describe('getContexts test', () => {
 
         expect(executeSpy).toHaveBeenCalledTimes(1)
         expect(currentPackageSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should ask Appium again on a retry and return the webview that is ready then (issue #16413)', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+        const [readyWebview] = androidChromeInternalContexts
+        // the page of the webview is not attached yet in the first answer
+        const attachingWebview = {
+            ...readyWebview,
+            pages: [{
+                ...readyWebview.pages[0],
+                description: readyWebview.pages[0].description.replace('"attached":true', '"attached":false')
+            }]
+        }
+        const executeSpy = vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce([attachingWebview] as any)
+            .mockResolvedValue([readyWebview] as any)
+        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+
+        const contexts = await browser.getContexts({
+            androidWebviewConnectTimeout: 2000,
+            androidWebviewConnectionRetryTime: 5,
+            returnDetailedContexts: true,
+        }) as any[]
+
+        expect(executeSpy).toHaveBeenCalledTimes(2)
+        expect(executeSpy).toHaveBeenNthCalledWith(2, 'mobile: getContexts')
+        expect(currentPackageSpy).toHaveBeenCalledTimes(1)
+        expect(contexts).toEqual([
+            { id: 'NATIVE_APP' },
+            expect.objectContaining({
+                id: 'WEBVIEW_com.wdiodemoapp',
+                packageName: 'com.wdiodemoapp',
+                url: 'https://webdriver.io/'
+            })
+        ])
+    })
+
+    it('should ask Appium again on every retry until the timeout when no webview gets ready', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+        const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
+        vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.nonMatchingApp')
+
+        await expect(browser.getContexts({
+            androidWebviewConnectTimeout: 100,
+            androidWebviewConnectionRetryTime: 20,
+            returnDetailedContexts: true,
+        })).rejects.toThrow('The packageName \'com.nonMatchingApp\' could not be found!')
+
+        expect(executeSpy.mock.calls.length).toBeGreaterThan(1)
+        expect(executeSpy.mock.calls.every(([script]) => script === 'mobile: getContexts')).toBe(true)
+    })
+
+    it('should pass waitForWebviewMs to every mobile: getContexts request of the retry logic', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+        const executeSpy = vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce([] as any)
+            .mockResolvedValue([androidChromeInternalContexts[0]] as any)
+        vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+
+        await browser.getContexts({
+            androidWebviewConnectTimeout: 2000,
+            androidWebviewConnectionRetryTime: 5,
+            returnDetailedContexts: true,
+            waitForWebviewMs: 3000,
+        })
+
+        expect(executeSpy).toHaveBeenCalledTimes(2)
+        expect(executeSpy).toHaveBeenNthCalledWith(1, 'mobile: getContexts', { waitForWebviewMs: 3000 })
+        expect(executeSpy).toHaveBeenNthCalledWith(2, 'mobile: getContexts', { waitForWebviewMs: 3000 })
     })
 
     it('should throw an error when the current app does not have any webviews', async () => {
@@ -423,9 +513,9 @@ describe('getContexts test', () => {
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue([androidChromeInternalContexts[0], androidChromeInternalContexts[androidChromeInternalContexts.length - 1]])
         const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.no.webviews')
         await expect(browser.getContexts({
-            // Reduce the timeout to speed up the test
+            // Reduce the timeout to speed up the test: it ends during the first wait, so there is no retry
             androidWebviewConnectTimeout: 5,
-            androidWebviewConnectionRetryTime: 5,
+            androidWebviewConnectionRetryTime: 50,
             isAndroidWebviewVisible: false,
             returnAndroidDescriptionData: true,
             returnDetailedContexts: true,
