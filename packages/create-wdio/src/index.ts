@@ -133,7 +133,8 @@ export async function createWebdriverIO(opts: ProgramOpts) {
             args.push(DEV_FLAG[pm])
         }
         args.push(`@wdio/cli${npmTag}`)
-        await runProgram(pm, args, { cwd: root, stdio: 'ignore' })
+        // quiet, but runProgram prints the output of the package manager when it fails
+        await runProgram(pm, args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
         console.log(chalk.green.bold('✔ Success!'))
     }
 

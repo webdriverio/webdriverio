@@ -105,6 +105,21 @@ test('runProgram reports exit code 2 as a failure by default', async () => {
     expect(console.log).toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
 })
 
+test('runProgram prints the output of a quiet command when it fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+        await runProgram('node', ['-e', 'console.log("added 0 packages"); console.error("npm error code E404"); process.exit(1)'], {
+            stdio: ['ignore', 'pipe', 'pipe']
+        }).catch((e) => e)
+        const printed = consoleError.mock.calls.flat().join('\n')
+        expect(printed).toContain('npm error code E404')
+        expect(printed).toContain('added 0 packages')
+        expect(process.exit).toBeCalledWith(1)
+    } finally {
+        consoleError.mockRestore()
+    }
+})
+
 test('getPackageVersion prefixes the version from package.json', async () => {
     vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify({ version: '1.2.3' }) as any)
     expect(await getPackageVersion()).toBe('v1.2.3')
@@ -612,6 +627,21 @@ test('npmInstall', async () => {
     await npmInstall(parsedAnswers, 'next')
     expect(installPackages).toBeCalledTimes(1)
     expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
+})
+
+test.each([
+    ['iOS', { mobileEnvironment: 'ios' }, 'appium-xcuitest-driver@^12'],
+    ['Android', { mobileEnvironment: 'android' }, 'appium-uiautomator2-driver@^8'],
+    ['macOS', { purpose: 'macos' }, 'appium-mac2-driver@^4']
+])('npmInstall installs the %s driver major that works with Appium 3', async (_, answers, driver) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [] },
+        packagesToInstall: [],
+        npmInstall: true,
+        ...answers
+    } as any, 'latest')
+    expect(vi.mocked(installPackages).mock.calls[0][1]).toContain(driver)
 })
 
 test('not npmInstall', async () => {

@@ -7,7 +7,8 @@ export default defineConfig({
             './e2e/standalone/*.test.ts',
             './e2e/launch/*.test.ts',
             './e2e/session/*.test.ts',
-            './e2e/wdio/*.test.ts'
+            './e2e/wdio/*.test.ts',
+            './e2e/create-wdio/*.test.ts'
         ],
         hookTimeout: 60 * 1000,
         /**
