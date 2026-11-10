@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { hostname } from 'node:os'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
@@ -16,7 +17,7 @@ import type {
 import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
-import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
+import type { ContentType, Label, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
 import {
     ContentType as AllureContentType,
     description,
@@ -137,6 +138,22 @@ function splitTitlePathPart(part?: string): string[] {
         .filter(Boolean)
 }
 
+/**
+ * The labels of a result without empty hosts, and with the default host when it has no
+ * host: the Allure timeline groups the results by host. A host from globalLabels,
+ * ALLURE_LABEL_host, a tag, addLabel or a listener is kept as it is.
+ */
+function withDefaultHost(labels: Label[]): Label[] {
+    const withoutEmptyHosts = labels.filter((label) => label.name !== LabelName.HOST || label.value)
+    if (withoutEmptyHosts.some((label) => label.name === LabelName.HOST)) {
+        return withoutEmptyHosts
+    }
+    // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME
+    // (the variable of the other Allure JS reporters; an empty value is ignored) or the machine name
+    const defaultHost = process.env.ALLURE_LABEL_host || process.env.ALLURE_HOST_NAME || hostname()
+    return [...withoutEmptyHosts, { name: LabelName.HOST, value: defaultHost }]
+}
+
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
@@ -204,6 +221,11 @@ export default class AllureReporter extends WDIOReporter {
             links,
             environmentInfo: options.reportedEnvironmentVars,
             writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
+            // last, so a host that a listener of the user adds is kept
+            listeners: [
+                ...(rest.listeners ?? []),
+                { beforeTestResultWrite: (result) => { result.labels = withDefaultHost(result.labels) } }
+            ],
         })
 
         this._capabilities = {}
