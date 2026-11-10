@@ -99,6 +99,8 @@ describe('shadow root scope resolution (regression repro)', () => {
 
     it('does not send the document element next to the document for an unscoped lookup', async () => {
         const html = await $('html').getElement()
+        // guard: an undefined id would make the check below pass without testing anything
+        expect(html.elementId).toBeTruthy()
         const startNodes = await collectLocateStartNodes(() => $('#target').getElement())
         expect(startNodes.length).toBeGreaterThan(0)
         for (const nodes of startNodes) {
