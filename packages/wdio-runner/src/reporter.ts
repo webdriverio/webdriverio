@@ -191,11 +191,21 @@ export default class BaseReporter {
      */
     waitForSync() {
         const startTime = Date.now()
+        const getUnsyncedReporter = () => this._reporters
+            .filter((reporter) => !reporter.isSynchronised)
+            .map((reporter) => reporter.constructor.name)
+
+        /**
+         * nothing to wait for, which is the case for every reporter that does
+         * not overwrite `isSynchronised`: don't hold the worker for an interval
+         */
+        if (!getUnsyncedReporter().length) {
+            return Promise.resolve(true)
+        }
+
         return new Promise((resolve, reject) => {
             const interval = setInterval(() => {
-                const unsyncedReporter = this._reporters
-                    .filter((reporter) => !reporter.isSynchronised)
-                    .map((reporter) => reporter.constructor.name)
+                const unsyncedReporter = getUnsyncedReporter()
 
                 if ((Date.now() - startTime) > this._config.reporterSyncTimeout! && unsyncedReporter.length) {
                     clearInterval(interval)
