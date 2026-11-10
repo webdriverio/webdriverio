@@ -299,7 +299,10 @@ const POSITIONAL_ATTRS: Record<'ios' | 'mac' | 'windows', string[]> = {
 function positionalOf (platform: NativePlatform, tag: string, attrs: Record<string, string>) {
     const bare = `//${tag}`
     if (platform === 'android') {
-        const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${method === 'resourceId' ? uiSelectorLiteral(value) : JSON.stringify(value)})`
+        // uiSelectorLiteral escapes only the quote, matching what UiAutomator2's
+        // selector parser unescapes; JSON.stringify would double backslashes and
+        // make text/description selectors that never match at runtime
+        const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${uiSelectorLiteral(value)})`
         const matches = ([['description', attrs['content-desc']], ['resourceId', attrs['resource-id']], ['text', attrs.text]] as const)
             .filter(([, value]) => value)
             .map(([method, value]) => keyOf(method, value))
@@ -339,6 +342,11 @@ interface BuildContext {
     all?: boolean
     allocate: () => string
     indexed: Map<XmlNode, { selector: string, matches: string[] }>
+    /**
+     * selector keys of skipped (hidden) nodes: they still match selectors at
+     * runtime, so they count when a visible ref judges its candidates unique
+     */
+    hiddenCounts: Map<string, number>
 }
 
 function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
@@ -354,6 +362,13 @@ function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
     const box = boundsOf(xml.attrs)
     const skip = hidden(xml.attrs, box)
     if (skip && !ctx.all) {
+        const position = ctx.indexed.get(xml)
+        if (position) {
+            const tagged = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, nameOf(platform, xml.name, xml.attrs)))
+            for (const key of new Set([...tagged.map((candidate) => candidate.selector), ...position.matches])) {
+                ctx.hiddenCounts.set(key, (ctx.hiddenCounts.get(key) || 0) + 1)
+            }
+        }
         return undefined
     }
     const role = roleOf(platform, xml.name, xml.attrs)
@@ -391,7 +406,14 @@ export interface ParsedNative {
 export function parseNativeSource (xml: string, platform: NativePlatform, opts: { all?: boolean, counter?: number } = {}): ParsedNative {
     let counter = opts.counter || 0
     const root = parseXml(xml)
-    const built = build(root, { platform, all: opts.all, allocate: () => `e${++counter}`, indexed: indexedSelectors(root, platform) })
+    const ctx = {
+        platform,
+        all: opts.all,
+        allocate: () => `e${++counter}`,
+        indexed: indexedSelectors(root, platform),
+        hiddenCounts: new Map<string, number>()
+    }
+    const built = build(root, ctx)
     const tree = built?.node || { role: 'document' }
     const located = built?.located || []
     const counts = new Map<string, number>()
@@ -399,6 +421,9 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
         for (const candidate of new Set([...candidates, ...matches])) {
             counts.set(candidate, (counts.get(candidate) || 0) + 1)
         }
+    }
+    for (const [key, n] of ctx.hiddenCounts) {
+        counts.set(key, (counts.get(key) || 0) + n)
     }
     const fallbacks = new Map(located.flatMap(({ node, fallback }) => node.ref ? [[node.ref, fallback] as const] : []))
     const refs = (built?.refs || []).map((ref) => {
