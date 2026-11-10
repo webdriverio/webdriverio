@@ -102,7 +102,7 @@ describe('generateSpec', () => {
             .toThrow('Step 4 still contains ref().')
     })
 
-    it('hoists static imports out of the test and leaves strings and $$ alone', () => {
+    it.each([undefined, false, true])('hoists static imports out of the test and leaves strings and $$ alone (pageObjects: %s)', (pageObjects) => {
         const [spec] = generateSpec([
             step({
                 kind: 'exec',
@@ -113,7 +113,7 @@ describe('generateSpec', () => {
                     'await $(selector).click()'
                 ].join('\n')
             })
-        ], { title: 'imports', pageObjects: true })
+        ], { title: 'imports', pageObjects })
         const bodyAt = spec.contents.indexOf('async () => {')
         expect(spec.contents.indexOf("import os from 'node:os'")).toBeLessThan(bodyAt)
         expect(spec.contents.slice(bodyAt)).not.toContain("import os from 'node:os'")
@@ -122,6 +122,21 @@ describe('generateSpec', () => {
         expect(spec.contents).toContain('await $(selector).click()')
         expect(spec.contents).toContain('import { browser, $, $$, expect }')
         expect(spec.contents).not.toContain('pageobjects/')
+    })
+
+    it('does not duplicate an existing $$ import', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "import { $$ } from '@wdio/globals'\nawait $$('a')" })
+        ], { title: 'imports' })
+        expect(spec.contents).toContain("import { browser, $, expect } from '@wdio/globals'")
+        expect(spec.contents).toContain("import { $$ } from '@wdio/globals'")
+    })
+
+    it('imports $$ when a TypeScript step cannot be parsed as JavaScript', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "const buttons: WebdriverIO.ElementArray = await $$ ('button')" })
+        ], { title: 'buttons' })
+        expect(spec.contents).toContain("import { browser, $, $$, expect } from '@wdio/globals'")
     })
 
     it('names a digit path as a valid page object', () => {

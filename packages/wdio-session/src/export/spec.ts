@@ -218,7 +218,7 @@ function selectorEdits (code: string) {
     let needsDollar = false
     let needsDollarDollar = false
     if (!ast) {
-        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$\(/.test(code) }
+        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$\s*\(/.test(code) }
     }
     walk(ast, (node) => {
         if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') {
@@ -268,13 +268,16 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
             hoisted.push(...split.imports)
             code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
         }
-        if (!opts.pageObjects || entry.kind === 'marker') {
+        if (entry.kind === 'marker') {
             return code
         }
-        const page = pageClassName(entry.path || '/')
         const found = selectorEdits(code)
         needsDollar = needsDollar || found.needsDollar
         needsDollarDollar = needsDollarDollar || found.needsDollarDollar
+        if (!opts.pageObjects) {
+            return code
+        }
+        const page = pageClassName(entry.path || '/')
         const ordered = [...found.edits].sort((a, b) => b.start - a.start)
         for (const edit of ordered) {
             const key = `${page}\0${edit.selector}`
@@ -299,9 +302,15 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     })
 
     const pages = [...new Set([...uses.values()].map((use) => use.page))]
-    const dollars = opts.pageObjects
-        ? [needsDollar ? '$' : '', needsDollarDollar ? '$$' : ''].filter(Boolean)
-        : ['$']
+    const hasDollarDollarImport = hoisted.some((code) => {
+        const node = parseProgram(code)?.body?.[0]
+        return node?.type === 'ImportDeclaration' && (node.specifiers as { local: { name: string } }[])
+            .some((specifier) => specifier.local.name === '$$')
+    })
+    const dollars = [
+        !opts.pageObjects || needsDollar ? '$' : '',
+        needsDollarDollar && !hasDollarDollarImport ? '$$' : ''
+    ].filter(Boolean)
     const imports = [
         `import { browser${dollars.length ? `, ${dollars.join(', ')}` : ''}, expect } from '@wdio/globals'`,
         ...[...new Set(hoisted)],

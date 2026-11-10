@@ -47,8 +47,10 @@ describe('wdio session history and export', () => {
     beforeAll(async () => {
         server = await startServer()
         project = createProject('export')
-        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'))
-        await run('open', 'chrome', `${server.url}/cart.html`)
+        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'), 'junction')
+        await run('open', 'chrome', `${server.url}/cart.html`,
+            ...(process.env.CHROME_BINARY ? ['--binary', process.env.CHROME_BINARY] : []),
+            ...(process.env.CHROME_NO_SANDBOX === '1' ? ['--arg=--no-sandbox'] : []))
     }, 60_000)
 
     afterAll(async () => {
@@ -76,6 +78,7 @@ describe('wdio session history and export', () => {
         expect(add).toMatch(/^e\d+$/)
         await run('click', add)
         await run('exec', '-e', `await expect(ref('${checkout}')).toBeDisplayed()`)
+        await run('exec', '-e', "expect((await $$('#products > li')).length).toBe(2)")
 
         const spec = path.join(project.dir, 'cart.e2e.ts')
         const exported = await run('export', '--out', spec, '--title', 'cart')
@@ -93,9 +96,10 @@ export const config = {
     maxInstances: 1,
     capabilities: [{
         browserName: 'chrome',
-        'goog:chromeOptions': { args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'] }
+        'goog:chromeOptions': { ${process.env.CHROME_BINARY ? `binary: ${JSON.stringify(process.env.CHROME_BINARY)}, ` : ''}args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'${process.env.CHROME_NO_SANDBOX === '1' ? ", '--no-sandbox'" : ''}] }
     }],
     logLevel: 'error',
+    injectGlobals: false,
     baseUrl: ${JSON.stringify(server.url)},
     framework: 'mocha',
     mochaOpts: { timeout: 60000 },
