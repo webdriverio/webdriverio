@@ -11,9 +11,16 @@ export default class DotReporter extends WDIOReporter {
     }
 
     /**
-     * pending tests
+     * skipped tests
      */
     onTestSkip(): void {
+        this.write(chalk.cyanBright('.'))
+    }
+
+    /**
+     * pending tests, e.g. a Cucumber step that returns 'pending'
+     */
+    onTestPending(): void {
         this.write(chalk.cyanBright('.'))
     }
 

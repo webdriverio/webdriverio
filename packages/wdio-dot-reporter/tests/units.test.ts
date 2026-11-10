@@ -18,6 +18,23 @@ const suite = (uid: string, type: string, parentUid?: string | null) => ({
 const step = (uid: string, parentUid: string) => ({ uid, title: uid, type: 'test', cid: '0-0', fullTitle: uid, parentUid })
 const hook = (title: string, parentUid: string, hookKind: string) => ({ uid: `${title}-hook`, title, type: 'hook', cid: '0-0', parent: parentUid, parentUid, hookKind })
 
+describe('dot reporter pending tests', () => {
+    it('writes a dot for a Cucumber step that returns pending, as for the steps it skips', () => {
+        const reporter = newReporter()
+        reporter.emit('suite:start', suite('F', 'feature', null))
+        reporter.emit('suite:start', suite('S1', 'scenario', 'F'))
+        reporter.emit('test:start', step('step-1', 'S1'))
+        reporter.emit('test:pending', { ...step('step-1', 'S1'), state: 'pending' })
+        reporter.emit('test:end', step('step-1', 'S1'))
+        reporter.emit('test:start', step('step-2', 'S1'))
+        reporter.emit('test:skip', step('step-2', 'S1'))
+        reporter.emit('test:end', step('step-2', 'S1'))
+        reporter.emit('suite:end', suite('S1', 'scenario'))
+        reporter.emit('suite:end', suite('F', 'feature'))
+        expect(dots(reporter)).toEqual(['cyanBright .', 'cyanBright .'])
+    })
+})
+
 describe('dot reporter hook of a feature', () => {
     it('writes an F for a failed Cucumber BeforeAll of the feature', () => {
         const reporter = newReporter()
