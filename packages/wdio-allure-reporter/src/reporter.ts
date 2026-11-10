@@ -137,9 +137,13 @@ function splitTitlePathPart(part?: string): string[] {
         .filter(Boolean)
 }
 
-function hostAndEnvironmentLabels() {
+function hostAndEnvironmentLabels(globalLabels: AllureReporterOptions['globalLabels']) {
     const environmentLabels = getEnvironmentLabels()
-    if (environmentLabels.some((label) => label.name === LabelName.HOST)) {
+    // a host from ALLURE_LABEL_host or the globalLabels option replaces the default one
+    const globalHost = Array.isArray(globalLabels)
+        ? globalLabels.some((label) => label.name === LabelName.HOST)
+        : Boolean(globalLabels && LabelName.HOST in globalLabels)
+    if (globalHost || environmentLabels.some((label) => label.name === LabelName.HOST)) {
         return environmentLabels
     }
     // ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
@@ -691,7 +695,7 @@ export default class AllureReporter extends WDIOReporter {
                     { name: LabelName.LANGUAGE, value: 'javascript' },
                     { name: LabelName.FRAMEWORK, value: 'wdio' },
                     { name: LabelName.THREAD, value: cid },
-                    ...hostAndEnvironmentLabels(),
+                    ...hostAndEnvironmentLabels(this._options.globalLabels),
                 ]
                 this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
 
@@ -1074,7 +1078,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...hostAndEnvironmentLabels(),
+            ...hostAndEnvironmentLabels(this._options.globalLabels),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }
@@ -1414,7 +1418,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...hostAndEnvironmentLabels(),
+            ...hostAndEnvironmentLabels(this._options.globalLabels),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }

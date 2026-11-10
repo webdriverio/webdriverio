@@ -1023,14 +1023,13 @@ describe('Host label', () => {
     const outputDir = temporaryDirectory()
 
     afterEach(() => {
-        vi.unstubAllEnvs()
+        // keep the file-level stubs: unstubAllEnvs would bring back the host variables of the shell
+        vi.stubEnv('ALLURE_LABEL_host', undefined)
         clean(outputDir)
     })
 
-    it('keeps a host label set through ALLURE_LABEL_host', async () => {
-        vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1')
-        const reporter = new AllureReporter({ outputDir })
-
+    const hostsOfOnePassingTest = async (options: AllureReporterOptions) => {
+        const reporter = new AllureReporter({ outputDir, ...options })
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
@@ -1039,8 +1038,19 @@ describe('Host label', () => {
         await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
-        const hosts = mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]
-        expect(hosts).toEqual([{ name: LabelName.HOST, value: 'ci-agent-1' }])
+        return mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]
+    }
+
+    it('keeps a host label set through ALLURE_LABEL_host', async () => {
+        vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1')
+        expect(await hostsOfOnePassingTest({})).toEqual([{ name: LabelName.HOST, value: 'ci-agent-1' }])
+    })
+
+    it.each([
+        ['an object', { host: 'ci-agent-2' }],
+        ['a list', [{ name: LabelName.HOST, value: 'ci-agent-2' }]]
+    ])('keeps a host label set through globalLabels as %s', async (_, globalLabels) => {
+        expect(await hostsOfOnePassingTest({ globalLabels })).toEqual([{ name: LabelName.HOST, value: 'ci-agent-2' }])
     })
 })
 
