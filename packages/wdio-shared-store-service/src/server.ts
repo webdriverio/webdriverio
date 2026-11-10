@@ -7,6 +7,17 @@ import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio
 const MAX_TIMEOUT = 15000
 const DEFAULT_TIMEOUT = 1000
 
+/**
+ * the client encodes the key as one path segment, polka passes it on as is
+ */
+const decodeKey = (key: string) => {
+    try {
+        return decodeURIComponent(key)
+    } catch {
+        return undefined
+    }
+}
+
 export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
     const store: JsonObject = {}
     const resourcePoolStore: Map<string, JsonArray> = new Map()
@@ -28,8 +39,11 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
             return res.end()
         })
-        .get('/:key', (req, res) => {
-            const key = req.params.key as string
+        .get('/:key', (req, res, next) => {
+            const key = decodeKey(req.params.key as string)
+            if (key === undefined) {
+                return next(`Invalid key '${req.params.key}'`)
+            }
             const value = key === '*'
                 ? store
                 : store[key]
@@ -47,7 +61,10 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             return res.end()
         })
         .get('/pool/:key', async (req, res, next) => {
-            const key = req.params.key as string
+            const key = decodeKey(req.params.key as string)
+            if (key === undefined) {
+                return next(`Invalid key '${req.params.key}'`)
+            }
 
             if (!resourcePoolStore.has(key)) {
                 return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
@@ -78,7 +95,10 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             }
         })
         .post('/pool/:key', (req, res, next) => {
-            const key = req.params.key as string
+            const key = decodeKey(req.params.key as string)
+            if (key === undefined) {
+                return next(`Invalid key '${req.params.key}'`)
+            }
             const value = req.body.value as JsonCompatible | JsonPrimitive
             const pool = resourcePoolStore.get(key)
 

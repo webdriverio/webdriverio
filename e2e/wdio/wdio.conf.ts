@@ -14,6 +14,7 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
         path.join(__dirname, 'headless', 'test.e2e.ts'),
         path.join(__dirname, 'headless', 'mocking.e2e.ts'),
+        path.join(__dirname, 'headless', 'executeDuringNavigation.e2e.ts'),
         path.join(__dirname, 'headless', 'shadowRootScope-repro.e2e.ts'),
         path.join(__dirname, 'headless', 'declarativeShadowRoot.e2e.ts'),
         path.join(__dirname, 'headless', 'strictSelectors.e2e.ts'),
@@ -21,9 +22,9 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'missingListItem.e2e.ts'),
         path.join(__dirname, 'headless', 'missingListItemPaths.e2e.ts'),
         path.join(__dirname, 'headless', 'missingListItemOverwrite.e2e.ts'),
+        path.join(__dirname, 'headless', 'parentGoneAfterWait.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
         path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
-        path.join(__dirname, 'headless', 'bidiMapperLog.e2e.ts'),
     ],
 
     /**

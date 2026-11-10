@@ -21,7 +21,7 @@ describe('Shared store service', () => {
         assert.equal(await browser.sharedStore.get('boolean'), true)
         assert.equal(await browser.sharedStore.get('number'), 123)
         assert.equal(await browser.sharedStore.get('string'), 'foobar')
-        assert.equal(await browser.sharedStore.get('null'), null)
+        assert.strictEqual(await browser.sharedStore.get('null'), null)
     })
 
     it('should be able to fetch all key/value pairs', async () => {
@@ -53,5 +53,20 @@ describe('Shared store service', () => {
         assert.equal(value1, 3)
         assert.equal(value2, 2)
         assert.equal(value3, 1)
+    })
+
+    it('should keep keys that contain URL characters', async () => {
+        for (const key of ['with/slash', 'with?query', 'with#hash', 'with%percent', 'with space']) {
+            await browser.sharedStore.set(key, `value of ${key}`)
+            assert.equal(await browser.sharedStore.get(key), `value of ${key}`)
+            await browser.sharedStore.setResourcePool(key, [])
+            await browser.sharedStore.addValueToPool(key, `pool value of ${key}`)
+            assert.equal(await browser.sharedStore.getValueFromPool(key), `pool value of ${key}`)
+        }
+    })
+
+    it('should return a null value from the resource pool', async () => {
+        await browser.sharedStore.setResourcePool('null-pool', [null])
+        assert.strictEqual(await browser.sharedStore.getValueFromPool('null-pool'), null)
     })
 })

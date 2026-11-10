@@ -9,6 +9,9 @@ const log = logger('webdriverio:mockRestoreAll')
  * for that tab or window. Inside a parallel test, it restores only the mocks
  * that the test created, also on tabs it opened.
  *
+ * All mocks are restored, also when one fails. The error is thrown afterwards: an
+ * `AggregateError` when several mocks fail.
+ *
  * <example>
     :mockRestoreAll.js
     it('should restore all mocks', async () => {

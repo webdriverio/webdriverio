@@ -59,9 +59,11 @@ export type VitestOpts = {
      * - `'contexts'`: windows share the default user context, so cookies,
      *   localStorage and service workers are shared across concurrent tests.
      * - `'userContexts'`: each test gets its own user context, so storage is
-     *   isolated per test. Every test pays its own login cost, and
-     *   `browser.mock()` remains session-wide. Throws if the driver does not
-     *   support `browser.createUserContext`.
+     *   isolated per test. Every test pays its own login cost. Throws if the
+     *   driver does not support `browser.createUserContext`.
+     *
+     * In both modes, a `browser.mock()` in a concurrent test only intercepts
+     * the window of that test.
      *
      * @default undefined
      */

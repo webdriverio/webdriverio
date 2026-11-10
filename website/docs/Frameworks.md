@@ -725,11 +725,13 @@ Please note that `./reports/` is the directory where `cucumber message` reports 
 
 `@wdio/vitest-framework` runs specs written in [Vitest](https://vitest.dev/) syntax (`describe`, `test`, `test.concurrent`, `test.extend`) through the WDIO testrunner. Vitest schedules the tests, so the testrunner starts no WDIO workers. `wdio.conf.ts` stays the source of truth for specs, capabilities, connection options and hooks. Use it when you want Vitest's API, especially [fixtures](pageobjects#page-objects-as-fixtures) and `test.concurrent`. Otherwise Mocha is the default choice.
 
-First, install the adapter package and `vitest` from NPM. `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
+First, install the adapter package, `@wdio/local-runner` and `vitest` from NPM (the testrunner loads the configured runner, `local` by default, even though Vitest schedules the tests). `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
 
 ```bash npm2yarn
-npm install @wdio/vitest-framework vitest --save-dev
+npm install @wdio/vitest-framework @wdio/local-runner vitest --save-dev
 ```
+
+`npm init wdio` and `wdio install` do not offer Vitest yet, so install the packages and set the option yourself.
 
 Then set `framework: 'vitest'` in your [config file](configurationfile):
 
@@ -826,7 +828,9 @@ Set them in `vitestOpts` in your `wdio.conf.ts`.
 Runs `test.concurrent` tests at the same time, each in its own browsing context. Requires a WebDriver BiDi session and the `'wdio:experimentalBiDiCommands': true` capability.
 
 - `'contexts'`: windows share the default user context, so cookies, `localStorage` and service workers are shared across concurrent tests.
-- `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies. `browser.mock()` remains session-wide in both modes.
+- `'userContexts'`: each test gets its own user context, so storage is isolated per test. Pick this when tests log in or change cookies.
+
+In both modes, a `browser.mock()` in a concurrent test only intercepts the window of that test. See [Which mock answers a request](/docs/api/mock#which-mock-answers-a-request).
 
 Type: `'contexts' | 'userContexts'`<br />
 Default: `undefined`
@@ -847,11 +851,14 @@ The framework controls some keys itself:
 - `include` is always the specs resolved from `wdio.conf.ts` (respecting `--spec` and `exclude`), so `vitestOpts.include` is ignored.
 - `pool` is always `'forks'`.
 - `setupFiles` from `vitestOpts` runs after the framework's own setup file instead of replacing it.
+- `globalSetup` runs once per run in the Vitest main process, where no browser session exists. Use `project.provide()` and `inject()` to hand values to the specs.
 - A `vitest.config.ts` file is not read. Put Vitest options in `vitestOpts`.
 
 ### Limitations
 
 - Multi-remote capabilities are not supported yet.
+- `specFileRetries` is ignored, with a warning in the log. Use `vitestOpts.retry`.
+- The `spec`, `dot` and `concise` reporters are ignored with a warning, because the console output comes from Vitest. Set `vitestOpts.reporters` to change it.
 - `expect.poll` is not available, because the global `expect` comes from `expect-webdriverio`.
 - `switchWindow` and `switchFrame` throw in a WebDriver BiDi session, which `parallelMode` requires. Inside concurrent tests, `getWindowSize`, `setWindowSize`, `throttleCPU`, `throttleNetwork` and classic window and frame protocol commands such as `switchToWindow` also throw, because they change session-wide state.
 - The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run, in `wdio.conf.ts` or in services.

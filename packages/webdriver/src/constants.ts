@@ -99,7 +99,7 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         default: 120000
     },
     /**
-     * Count of request retries to the Selenium server
+     * Count of request retries to the WebDriver server
      */
     connectionRetryCount: {
         type: 'number',
