@@ -22,6 +22,11 @@ export class NetworkManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
+    /**
+     * the children of a request by their request id, to find the one of a response or
+     * an error without a scan of the whole list for each event
+     */
+    #childrenById = new WeakMap<WebdriverIO.Request, Map<string, WebdriverIO.Request>>()
     #lastNetworkId?: string
     #lastNavigationByContext = new Map<Context, string>()
 
@@ -89,7 +94,7 @@ export class NetworkManager extends SessionManager {
         }
 
         const { request: id, headers, cookies, url } = log.request
-        request.children?.push({
+        const child: WebdriverIO.Request = {
             id,
             url,
             headers: headerListToObject(headers),
@@ -105,8 +110,18 @@ export class NetworkManager extends SessionManager {
                 expiry: cookie.expiry,
             })),
             timestamp: log.timestamp
-        })
+        }
+        request.children?.push(child)
 
+        let childrenById = this.#childrenById.get(request)
+        if (!childrenById) {
+            childrenById = new Map()
+            this.#childrenById.set(request, childrenById)
+        }
+        // as a search from the start of the list: the first child with this id
+        if (!childrenById.has(id)) {
+            childrenById.set(id, child)
+        }
     }
 
     #navigationStarted(log: local.BrowsingContextNavigationInfo) {
@@ -156,7 +171,7 @@ export class NetworkManager extends SessionManager {
             return
         }
 
-        const request = response.children?.find((child) => child.id === log.request.request)
+        const request = this.#childrenById.get(response)?.get(log.request.request)
         if (!request) {
             return
         }
@@ -228,7 +243,8 @@ export class NetworkManager extends SessionManager {
             return
         }
 
-        const request = response.children?.find((child) => child.id === log.request.request)
+        // the child is in `children` since its `beforeRequestSent` event: it gets its response there
+        const request = this.#childrenById.get(response)?.get(log.request.request)
         if (!request) {
             return
         }
@@ -238,7 +254,6 @@ export class NetworkManager extends SessionManager {
             mimeType: log.response.mimeType,
             status: log.response.status
         }
-        response.children?.push(request)
     }
 
     getRequestResponseData(navigationId: string) {
