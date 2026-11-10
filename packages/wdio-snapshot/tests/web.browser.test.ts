@@ -333,3 +333,16 @@ describe('svg descendants in the accessible name', () => {
         expect(byRole(result, 'link')[0].name).toBe('Docs Actual label')
     })
 })
+
+describe('icon only svg keeps its own node', () => {
+    it('names the button and still exposes the svg as an img node', () => {
+        const result = collect('<button><svg width="12" height="12" aria-label="Benefit available"></svg></button>')
+        expect(byRole(result, 'button')[0].name).toBe('Benefit available')
+        expect(byRole(result, 'img').map((n) => n.name)).toEqual(['Benefit available'])
+    })
+
+    it('does not collapse a link that has text next to the svg', () => {
+        const result = collect('<a href="/d">Discord<svg width="10" height="10" aria-label="(opens in new tab)"></svg></a>')
+        expect(byRole(result, 'link')[0].name).toBe('Discord (opens in new tab)')
+    })
+})

@@ -258,6 +258,31 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return ''
     }
 
+    /** an element whose only content is a labelled svg keeps that svg as its own img node */
+    function iconOnlySvg (el: Element): boolean {
+        let hasSvg = false
+        for (const c of childNodesOf(el)) {
+            if (c.nodeType === 3) {
+                if (collapse(c.textContent)) {
+                    return false
+                }
+                continue
+            }
+            if (c.nodeType !== 1) {
+                continue
+            }
+            const child = c as Element
+            if (child.tagName.toUpperCase() === 'SVG') {
+                if (svgTextName(child)) {
+                    hasSvg = true
+                }
+                continue
+            }
+            return false
+        }
+        return hasSvg
+    }
+
     /**
      * the contribution of the elements `aria-labelledby` names: a referenced node
      * contributes its own accessible name (`aria-label`, `alt`), not its raw text
@@ -1150,7 +1175,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return [out]
         }
 
-        const leaf = (NAME_FROM_CONTENT.has(role) || namedByText) && Boolean(name) && ![...el.querySelectorAll('*')].some((c) => {
+        const leaf = (NAME_FROM_CONTENT.has(role) || namedByText) && Boolean(name) && !iconOnlySvg(el) && ![...el.querySelectorAll('*')].some((c) => {
             if (isDecoy(c)) {
                 return false
             }
