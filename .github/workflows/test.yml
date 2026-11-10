@@ -88,7 +88,6 @@ jobs:
               - 'e2e/wdio/chromedriver/**'
             create_wdio:
               - 'packages/create-wdio/**'
-              - 'packages/wdio-cli/**'
               - 'e2e/create-wdio/**'
             # Core product / test code. Display-server, browser-runner, and session
             # trees are excluded so those dedicated suites can run on their own.

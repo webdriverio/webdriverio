@@ -88,9 +88,10 @@ describe('classify', () => {
         const pkg = classify(['packages/create-wdio/src/index.ts'])
         expect(pkg.lanes.create_wdio).toBe(true)
         expect(pkg.lanes.code).toBe(true)
-        expect(classify(['packages/wdio-cli/src/run.ts']).lanes.create_wdio).toBe(true)
+        // the e2e installs @wdio/cli from npm, so a wdio-cli change does not run it
+        expect(classify(['packages/wdio-cli/src/run.ts']).lanes.create_wdio).toBe(false)
 
-        const report = classify(['e2e/create-wdio/run.ts'])
+        const report = classify(['e2e/create-wdio/create-wdio.test.ts'])
         expect(report.lanes.create_wdio).toBe(true)
         expect(report.lanes.code).toBe(false)
         expect(planChecks(report, { e2e: true }).some((step) => step.cmd?.join(' ') === 'pnpm run test:e2e:create-wdio')).toBe(true)

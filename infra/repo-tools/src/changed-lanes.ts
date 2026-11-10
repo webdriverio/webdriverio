@@ -53,7 +53,6 @@ export const LANE_FILTERS: LaneFilters = {
     ],
     create_wdio: [
         'packages/create-wdio/**',
-        'packages/wdio-cli/**',
         'e2e/create-wdio/**'
     ],
     code: [

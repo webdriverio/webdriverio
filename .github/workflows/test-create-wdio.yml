@@ -10,7 +10,8 @@ jobs:
     name: create-wdio E2E Test (${{ matrix.os }})
     permissions:
       contents: read
-    timeout-minutes: 40
+    # more than the test timeouts (4 x 5 min) and the setup steps, so that Vitest reports a stuck setup
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
