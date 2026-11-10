@@ -615,6 +615,22 @@ describe('SpecReporter', () => {
             expect(result.length).toBe(1)
             expect(result[0]).toBe('cyan 2 skipped 5')
         })
+
+        it('should display the duration once with skipped and pending counts', () => {
+            tmpReporter['_stateCounts'].skipped = 2
+            tmpReporter['_stateCounts'].pending = 1
+            const result = tmpReporter.getCountDisplay('5')
+
+            expect(result).toEqual(['cyan 2 skipped 5', 'cyan 1 pending'])
+        })
+
+        it('should display the duration once with skipped and retried counts', () => {
+            tmpReporter['_stateCounts'].skipped = 2
+            tmpReporter['_stateCounts'].retried = 3
+            const result = tmpReporter.getCountDisplay('5')
+
+            expect(result).toEqual(['cyan 2 skipped 5', 'yellow 3 retried'])
+        })
     })
 
     describe('getFailureDisplay', () => {
