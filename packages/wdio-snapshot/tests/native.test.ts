@@ -308,7 +308,7 @@ describe('native snapshots of awkward page sources', () => {
         expect(parsed.refs[0].name).toBe('Next >')
         expect(parsed.refs[1].name).toBe('a > "b"')
         expect(parsed.refs[1].candidates.map((candidate) => candidate.selector)).toContain(
-            `//Edit[@Name='a > "b"']`
+            "//Edit[@Name='a > \"b\"']"
         )
     })
 
@@ -318,7 +318,7 @@ describe('native snapshots of awkward page sources', () => {
 </AppiumAUT>`, 'ios')
         const selectors = parsed.refs[0].candidates.map((candidate) => candidate.selector)
         expect(selectors).toContain('-ios predicate string:name == "say \\"hi\\""')
-        expect(parsed.located[0].matches).toContain(`//XCUIElementTypeButton[@name='say "hi"']`)
+        expect(parsed.located[0].matches).toContain("//XCUIElementTypeButton[@name='say \"hi\"']")
     })
 
     it('emits a Windows indexed xpath that keeps counting hidden controls', () => {

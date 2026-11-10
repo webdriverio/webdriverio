@@ -42,14 +42,14 @@ describe('page source reader', () => {
     })
 
     it('reads a self-closing tag whose attribute value ends in a slash', () => {
-        const xml = parseXml(`<node url="https://example.com/" text="ok"/>`)
+        const xml = parseXml('<node url="https://example.com/" text="ok"/>')
         expect(xml.attrs.url).toBe('https://example.com/')
         expect(xml.attrs.text).toBe('ok')
         expect(xml.children).toEqual([])
     })
 
     it('reads an attribute value that contains >', () => {
-        const xml = parseXml(`<hierarchy><node text="Next >" class="android.widget.Button"/></hierarchy>`)
+        const xml = parseXml('<hierarchy><node text="Next >" class="android.widget.Button"/></hierarchy>')
         const button = xml.children[0]
         expect(button.attrs.text).toBe('Next >')
         expect(button.attrs.class).toBe('android.widget.Button')
@@ -57,7 +57,7 @@ describe('page source reader', () => {
     })
 
     it('reads attributes that follow a value containing >', () => {
-        const xml = parseXml(`<hierarchy><node text="a > b" content-desc="desc" clickable="true" bounds="[0,0][10,10]"/></hierarchy>`)
+        const xml = parseXml('<hierarchy><node text="a > b" content-desc="desc" clickable="true" bounds="[0,0][10,10]"/></hierarchy>')
         expect(xml.children[0].attrs).toEqual({ text: 'a > b', 'content-desc': 'desc', clickable: 'true', bounds: '[0,0][10,10]' })
     })
 
@@ -71,7 +71,7 @@ describe('page source reader', () => {
     })
 
     it('skips comments and processing instructions', () => {
-        const xml = parseXml(`<?xml version="1.0" encoding="UTF-8"?><!-- a comment --><hierarchy><node text="a" /><!-- another --></hierarchy>`)
+        const xml = parseXml('<?xml version="1.0" encoding="UTF-8"?><!-- a comment --><hierarchy><node text="a" /><!-- another --></hierarchy>')
         expect(xml.name).toBe('hierarchy')
         expect(xml.children).toHaveLength(1)
         expect(xml.children[0].attrs.text).toBe('a')
@@ -84,7 +84,7 @@ describe('page source reader', () => {
     })
 
     it('decodes the five predefined entities in attribute values', () => {
-        const xml = parseXml(`<node a="&amp;" b="&lt;" c="&gt;" d="&quot;" e="&apos;" />`)
+        const xml = parseXml('<node a="&amp;" b="&lt;" c="&gt;" d="&quot;" e="&apos;" />')
         expect(xml.attrs).toEqual({ a: '&', b: '<', c: '>', d: '"', e: "'" })
     })
 
@@ -118,12 +118,12 @@ describe('page source reader', () => {
     })
 
     it('reads a CDATA section that contains < without breaking the scan', () => {
-        const xml = parseXml(`<root><![CDATA[if (a < b) {}]]></root>`)
+        const xml = parseXml('<root><![CDATA[if (a < b) {}]]></root>')
         expect(xml.children).toEqual([])
     })
 
     it('reads an attribute with whitespace around the equals sign', () => {
-        const xml = parseXml(`<node b = "2" c="3"/>`)
+        const xml = parseXml('<node b = "2" c="3"/>')
         expect(xml.attrs).toEqual({ b: '2', c: '3' })
     })
 
