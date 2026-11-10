@@ -723,6 +723,20 @@ describe('scrollIntoView test', () => {
                 ]))
             })
 
+            it('swipes up when the direction is explicitly undefined, as `browser.swipe()` does', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+
+                await elem.scrollIntoView({ direction: undefined })
+                const scrollIntoViewSwipes = getSwipeActions()
+                expect(scrollIntoViewSwipes).toHaveLength(1)
+
+                vi.mocked(fetch).mockClear()
+                await browser.swipe({ direction: undefined })
+                expect(scrollIntoViewSwipes).toEqual(getSwipeActions())
+            })
+
             it('does not look up the scrollable element when the element is already visible', async () => {
                 (browser.$$ as Mock).mockResolvedValue([])
                 isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockResolvedValueOnce(true) as unknown as Mock

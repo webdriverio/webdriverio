@@ -7,7 +7,7 @@ import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
 import { findChainAgain } from '../../utils/findChainAgain.js'
-import { calculateSwipeFromTo, getScrollableElement, getSwipeAreaRect, getSwipePercentage } from '../../utils/mobile.js'
+import { calculateSwipeFromTo, getScrollableElement, getSwipeAreaRect, getSwipePercentage, SWIPE_DEFAULTS } from '../../utils/mobile.js'
 import type { SwipeAreaRect } from '../../utils/mobile.js'
 
 const log = logger('webdriverio')
@@ -432,7 +432,8 @@ async function mobileScrollUntilVisible({
             swipeAreaRect = await getSwipeAreaRect(browser, scrollableElement || await getScrollableElement(browser))
         }
         const { from, to } = calculateSwipeFromTo({
-            direction,
+            // an explicit `direction: undefined` overwrites the default of the options: fall back as `browser.swipe()` does
+            direction: direction || SWIPE_DEFAULTS.DIRECTION,
             swipePercentage,
             rect: swipeAreaRect,
         })
