@@ -20,13 +20,17 @@ const isWindows = process.platform === 'win32'
 
 /**
  * A user starts from a clean shell. Remove:
- * - the npm_* / pnpm_* settings of the pnpm script (lowercase only: the NPM_CONFIG_* registry or proxy of the user stays)
+ * - the npm_* / pnpm_* settings of the pnpm script; npm gives its npm_config_user_agent to the wizard,
+ *   which then installs with pnpm
  * - NODE_PATH of the pnpm bin shim: the project would find the packages of this repo
  * - the variables that Vitest sets
- * Windows names ignore case: there, NPM_CONFIG_USER_AGENT and npm_config_user_agent are one variable
+ * Keep the npm connection settings of the user.
+ * Any case: on Windows, NPM_CONFIG_USER_AGENT and npm_config_user_agent are one variable.
  */
-const NOT_A_USER_ENV = new RegExp(String.raw`^(npm_|pnpm_|VITEST|(PNPM_SCRIPT_SRC_DIR|NODE_PATH|NODE_ENV|FORCE_TTY|TEST|MODE|DEV|PROD|SSR|BASE_URL)$)`, isWindows ? 'i' : '')
-const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !NOT_A_USER_ENV.test(key)))
+const NOT_A_USER_ENV = /^(npm_|pnpm_|VITEST|(PNPM_SCRIPT_SRC_DIR|NODE_PATH|NODE_ENV|FORCE_TTY|TEST|MODE|DEV|PROD|SSR|BASE_URL)$)/i
+const USER_NPM_SETTINGS = /^npm_config_(registry|proxy|https_proxy|noproxy|userconfig|cafile|strict_ssl)$/i
+const env = Object.fromEntries(Object.entries(process.env)
+    .filter(([key]) => USER_NPM_SETTINGS.test(key) || !NOT_A_USER_ENV.test(key)))
 
 interface Setup {
     name: string
@@ -156,6 +160,9 @@ describe('npm init wdio', () => {
                 expect((await readPackage(projectDir)).scripts?.wdio, 'the generated "wdio" script').toBeTruthy()
                 await run('npm', ['run', 'wdio'], projectDir, signal)
             }
+
+            // here, not in afterAll: on Windows, removing the 4 projects takes more than the hook timeout
+            await fs.rm(projectDir, { recursive: true, force: true })
         }, SETUP_TIMEOUT)
     }
 })
