@@ -203,6 +203,12 @@ describe('ShadowRootManager', () => {
             ['first-host', 'first-host-shadow'],
             ['second-host', 'second-host-shadow']
         ])
+        // the new root is the document: no document element next to it
+        expect(await manager.getShadowElementsByContextId('same-document-context')).toEqual([
+            'document-root',
+            'first-host-shadow',
+            'second-host-shadow'
+        ])
     })
 
     it('forgets only the subtree of a stale nested node, and everything for a stale document', async () => {
