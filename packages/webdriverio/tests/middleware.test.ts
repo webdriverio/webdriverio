@@ -135,7 +135,7 @@ describe('middleware', () => {
         const elem = await browser.$('#foo').getElement()
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
+        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, { [ELEMENT_KEY]: 'some-elem-123' }, 'bar'])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
         vi.mocked(fetch).mockClear()
@@ -473,6 +473,7 @@ describe('middleware', () => {
         it('elem NOT_FOUND and command = foo', async () => {
             browser.addCommand('foo', () => {}, { attachToElement: true })
             const elem = await browser.$('#nonexisting')
+            elem.selector = '#foo'
             // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
