@@ -203,10 +203,13 @@ Open a trace with the `show-trace` bin, shipped with `@wdio/nightwatch-devtools`
 
 ```sh
 npx show-trace test-results/trace-<sessionId>.zip   # in a project that installs the adapter
+npx show-trace test-results/                        # a folder of per-test zips, listed by test
 pnpm show-trace test-results/trace-<sessionId>.zip  # from the devtools monorepo
 ```
 
 See the [Trace Player](/docs/devtools/trace-player) page for the full walkthrough and keyboard shortcuts.
+
+To open a trace without installing anything, or to share a link to one, use the [hosted player](/docs/devtools/trace-player#hosted-player) at [trace.webdriver.io](https://trace.webdriver.io): it parses the zip in your browser tab and uploads nothing, opens a zip from a URL with `?trace=<url>`, and a [link](/docs/devtools/trace-player#links) can name the action and tab to open on.
 
 ### Per-test slicing & the BDD `describe/it` caveat
 

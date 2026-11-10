@@ -576,6 +576,7 @@ Open any trace `.zip` in the first-party player — the same DevTools UI in a de
 
 ```bash
 npx show-trace path/to/trace.zip      # in a project that installs the adapter
+npx show-trace test-results/          # a folder of per-test zips, listed by test
 pnpm show-trace path/to/trace.zip     # from the devtools monorepo
 ```
 
@@ -584,6 +585,8 @@ The `show-trace` bin ships with `@wdio/selenium-devtools`, so it's available in 
 Because the Selenium adapter captures the page's **DOM mutation stream** and a per-command element / accessibility snapshot alongside each screenshot, a Selenium trace drives the player's full feature set — DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, Cucumber Feature → Scenario → Step nesting, and the scrubbable timeline. A Python trace carries the same mutation stream and per-action snapshot (the element / a11y read is trace mode only there, and on by default); the Gherkin nesting is the one entry that has no pytest equivalent.
 
 The trace uses a portable NDJSON schema, so the same `.zip` (or directory) also opens in other compatible trace viewers. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough.
+
+To open a trace without installing anything, or to share a link to one, use the [hosted player](/docs/devtools/trace-player#hosted-player) at [trace.webdriver.io](https://trace.webdriver.io): it parses the zip in your browser tab and uploads nothing, opens a zip from a URL with `?trace=<url>`, and a [link](/docs/devtools/trace-player#links) can name the action and tab to open on.
 
 ## Public API
 

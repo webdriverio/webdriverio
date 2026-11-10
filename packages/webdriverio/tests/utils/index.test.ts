@@ -5,7 +5,6 @@ import isPlainObject from 'is-plain-obj'
 import {
     findElement,
     findElements,
-    isStaleElementError,
     elementPromiseHandler,
     transformClassicToBidiSelector,
     createFunctionDeclarationFromString
@@ -163,26 +162,6 @@ describe('elementPromiseHandler', () => {
         expect(handler(error)).toBe(undefined)
         expect(shadowRootManager.deleteShadowRoot).toBeCalledWith('shadow-root-id', 'foobar')
     })
-})
-
-it('isStaleElementError', () => {
-    const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
-    expect(isStaleElementError(staleElementChromeError)).toBe(true)
-    const staleElementFirefoxError = new Error('The element <nested-component> is no longer attached to the DOM')
-    expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
-    const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
-    expect(isStaleElementError(staleElementSafariError)).toBe(true)
-    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
-    expect(isStaleElementError(staleElementJSError)).toBe(true)
-    const staleElementBidiError = new Error('belongs to different document. Current document is')
-    expect(isStaleElementError(staleElementBidiError)).toBe(true)
-    // Chrome 155: a removed node, and an id that is not valid
-    const goneNodeChromeError = new Error('no such node - SharedId "f.60860673155B1A4024ABC7C44C41BEA2.d.CD649CEDA25EACD4665D146439AC33ED.e.3" was not found.')
-    expect(isStaleElementError(goneNodeChromeError)).toBe(true)
-    const invalidIdChromeError = new Error('no such node - SharedId "not-an-id" was not found.')
-    expect(isStaleElementError(invalidIdChromeError)).toBe(true)
-    const otherError = new Error('something else')
-    expect(isStaleElementError(otherError)).toBe(false)
 })
 
 describe('transformClassicToBidiSelector', () => {

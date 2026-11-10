@@ -20,6 +20,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Trace mode + `show-trace` player | ✓ | ✓ | ✓ | ✓ |
 | DOM time-travel (mutation capture) | ✓ | ◐ ¹ | ◐ ¹ | ✓ |
 | Network requests (browser sessions) | ✓ | ◐ ² | ◐ ³ | ✓ |
+| Stylesheets and fonts stored in the trace (`traceResources`, browser sessions) | ✓ | ✓ | ✓ | ✓ |
 | Screencast (`filmstrip` / video) | ✓ ⁴ | ✓ ⁵ | ◐ ⁶ | ✓ ⁷ |
 | Per-test granularity (`traceGranularity: 'test'`) | ✓ | ✓ | ◐ ⁸ | ✓ |
 | Retry-aware retention (`tracePolicy`) | ✓ | ✓ | ◐ ⁹ | ◐ ¹⁰ |
@@ -46,7 +47,8 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Safari kept frontmost so input lands (live mode) | ◐ ³⁰ | ✓ ³¹ | ◐ ³⁰ | ◐ ³⁰ |
 | Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✓ | ✓ | ✓ | ✕ ³² |
 | Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✓ | ✓ | ◐ ³³ | ✕ ³⁴ |
-| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁵ | ◐ ³⁵ | ◐ ³⁵ | ◐ ³⁵ |
+| Prints where each kept trace was written | ✓ ³⁵ | ◐ ³⁶ | ◐ ³⁶ | ◐ ³⁷ |
+| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ |
 
 ✓ supported. ◐ partial. ✕ not supported. A number points to its note below the table. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
@@ -118,6 +120,12 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 ³⁴ The Python adapter writes no artifacts manifest.
 
-³⁵ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
+³⁵ Printed to stdout whatever the `logLevel`.
+
+³⁶ Logs the path at info level through the adapter's logger rather than printing it, so a run that hides info messages does not show it.
+
+³⁷ Logs the path (the folder, for per-test traces) at info level through Python's `logging`, which hides info messages unless the run enables them (`--log-cli-level=INFO` under pytest).
+
+³⁸ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
 <!-- capability-matrix:cross-framework:end -->
