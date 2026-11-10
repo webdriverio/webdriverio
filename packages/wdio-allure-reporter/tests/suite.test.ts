@@ -1077,13 +1077,34 @@ describe('Host label', () => {
         ])
     })
 
-    it('gives the result with its host to the listeners of the user', async () => {
-        const seen: Label[][] = []
+    it('keeps a host that a listener of the user adds', async () => {
         const listeners = [{ beforeTestResultWrite: (result: { labels: Label[] }) => {
-            seen.push(result.labels.filter((label) => label.name === LabelName.HOST))
+            result.labels.push({ name: LabelName.HOST, value: 'from-listener' })
         } }]
-        expect(await hostsOfOnePassingTest({ listeners })).toEqual([{ name: LabelName.HOST, value: hostname() }])
-        expect(seen).toEqual([[{ name: LabelName.HOST, value: hostname() }]])
+        expect(await hostsOfOnePassingTest({ listeners })).toEqual([{ name: LabelName.HOST, value: 'from-listener' }])
+    })
+
+    it('removes an empty host when the result has another host', async () => {
+        expect(await hostsOfOnePassingTest({}, {
+            duringTest: (reporter) => {
+                reporter.addLabel({ name: LabelName.HOST, value: '' })
+                reporter.addLabel({ name: LabelName.HOST, value: 'grid-node-3' })
+            }
+        })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
+    })
+
+    it('gives ALLURE_LABEL_host set after the reporter starts to the result of a failed hook', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        vi.stubEnv('ALLURE_LABEL_host', 'shard-2')
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: 'shard-2' }])
     })
 
     it('keeps only ALLURE_LABEL_host when it is set after the reporter starts', async () => {

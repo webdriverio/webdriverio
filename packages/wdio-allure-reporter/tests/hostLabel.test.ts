@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { hostname } from 'node:os'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Label } from 'allure-js-commons'
 import { LabelName } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
@@ -16,24 +17,26 @@ vi.mock(
 )
 
 /**
- * its own file: allure-js-commons reads ALLURE_HOST_NAME once and keeps the value
+ * its own file: allure-js-commons reads ALLURE_HOST_NAME once and keeps a non-empty value,
+ * so the empty case runs first
  */
 describe('ALLURE_HOST_NAME', () => {
     const outputDir = temporaryDirectory()
 
     beforeAll(() => {
         vi.stubEnv('ALLURE_LABEL_host', undefined)
-        vi.stubEnv('ALLURE_HOST_NAME', 'build-agent-7')
+    })
+
+    afterEach(() => {
+        clean(outputDir)
     })
 
     afterAll(() => {
         vi.unstubAllEnvs()
-        clean(outputDir)
     })
 
-    it('is the default host', async () => {
+    const hostsOfOnePassingTest = async () => {
         const reporter = new AllureReporter({ outputDir })
-
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
@@ -42,7 +45,16 @@ describe('ALLURE_HOST_NAME', () => {
         await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
-        const hosts = mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]
-        expect(hosts).toEqual([{ name: LabelName.HOST, value: 'build-agent-7' }])
+        return mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]
+    }
+
+    it('falls back to the machine name when it is empty', async () => {
+        vi.stubEnv('ALLURE_HOST_NAME', '')
+        expect(await hostsOfOnePassingTest()).toEqual([{ name: LabelName.HOST, value: hostname() }])
+    })
+
+    it('is the default host', async () => {
+        vi.stubEnv('ALLURE_HOST_NAME', 'build-agent-7')
+        expect(await hostsOfOnePassingTest()).toEqual([{ name: LabelName.HOST, value: 'build-agent-7' }])
     })
 })

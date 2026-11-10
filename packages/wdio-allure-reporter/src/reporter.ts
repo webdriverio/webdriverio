@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { hostname } from 'node:os'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
@@ -16,7 +17,7 @@ import type {
 import WDIOReporter, { hookCountsAsFailure, knownFramework } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
-import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
+import type { ContentType, Label, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
 import {
     ContentType as AllureContentType,
     description,
@@ -26,7 +27,6 @@ import {
     Stage as AllureStage,
     Status as AllureStatusEnum,
 } from 'allure-js-commons'
-import type { Label } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
 import { getEnvironmentLabels, getHostLabel, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
@@ -139,15 +139,20 @@ function splitTitlePathPart(part?: string): string[] {
 }
 
 /**
- * The labels of a result with the default host when it has no host: the Allure timeline
- * groups the results by host. A host from globalLabels, ALLURE_LABEL_host, a tag or
- * addLabel is kept as it is.
+ * The labels of a result without empty hosts, and with the default host when it has no
+ * host: the Allure timeline groups the results by host. A host from globalLabels,
+ * ALLURE_LABEL_host, a tag, addLabel or a listener is kept as it is.
  */
-function withDefaultHost(labels: Label[], defaultHost: string): Label[] {
-    if (labels.some((label) => label.name === LabelName.HOST && label.value)) {
-        return labels
+function withDefaultHost(labels: Label[]): Label[] {
+    const withoutEmptyHosts = labels.filter((label) => label.name !== LabelName.HOST || label.value)
+    if (withoutEmptyHosts.some((label) => label.name === LabelName.HOST)) {
+        return withoutEmptyHosts
     }
-    return [...labels.filter((label) => label.name !== LabelName.HOST), { name: LabelName.HOST, value: defaultHost }]
+    // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME or the machine name
+    const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
+        || getHostLabel().value
+        || hostname()
+    return [...withoutEmptyHosts, { name: LabelName.HOST, value: defaultHost }]
 }
 
 export default class AllureReporter extends WDIOReporter {
@@ -212,18 +217,15 @@ export default class AllureReporter extends WDIOReporter {
 
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
 
-        // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME or the machine name
-        const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
-            ?? getHostLabel().value
         this._allureRuntime = new ReporterRuntime({
             ...rest,
             links,
             environmentInfo: options.reportedEnvironmentVars,
             writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
-            // first, so the listeners of the user get the result with its host
+            // last, so a host that a listener of the user adds is kept
             listeners: [
-                { beforeTestResultWrite: (result) => { result.labels = withDefaultHost(result.labels, defaultHost) } },
-                ...(rest.listeners ?? [])
+                ...(rest.listeners ?? []),
+                { beforeTestResultWrite: (result) => { result.labels = withDefaultHost(result.labels) } }
             ],
         })
 
