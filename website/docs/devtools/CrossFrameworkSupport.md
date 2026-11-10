@@ -6,7 +6,7 @@ description: "Compare how completely DevTools trace mode captures WebdriverIO, S
 
 The trace format and the `show-trace` player are identical across WebdriverIO / Selenium / Nightwatch; this page shows where capture completeness differs. For the full trace-mode reference, see [Trace Mode](/docs/devtools/wdio/trace-mode).
 
-The transforms that build a trace live in [`@wdio/devtools-trace`](https://github.com/webdriverio/devtools/tree/main/packages/trace), one layer below the adapters, so the **trace format and the `show-trace` player are identical for every adapter**: the same `.zip` (or directory) opens in the same player regardless of which produced it. The JavaScript adapters additionally share the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`).
+The transforms that build a trace live in [`@wdio/devtools-trace`](https://github.com/webdriverio/devtools/tree/main/packages/trace), one layer below the adapters, so the **trace format and the `show-trace` player are identical for every adapter**: the same `.zip` (or directory) opens in the same player regardless of which produced it. The JavaScript adapters additionally share the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`, `maskInputs`, `maskSelectors`, `traceResources`).
 
 **Capture completeness varies by adapter**, though. WebdriverIO is the most complete; Selenium, Nightwatch and Python cover the core flow with the gaps noted below. Framework-specific enable syntax lives on each adapter page; see [Selenium](/docs/devtools/selenium#trace-mode) and [Nightwatch](/docs/devtools/nightwatch#trace-mode).
 
@@ -30,6 +30,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | BiDi console / network capture | ✓ ¹⁸ | ✓ ¹⁸ | ◐ ¹⁹ | ✓ ¹⁸ |
 | A11y tab + pick-locator overlay (trace player) | ✓ | ✓ | ✓ | ✓ |
 | Transcript + Copy-for-LLM (trace player) | ✓ | ✓ | ✓ | ✓ |
+| Password fields masked in the replayed page (`maskInputs`, `maskSelectors`) | ✓ | ✓ | ✓ | ✓ |
 | One row per command in the Actions list | ✓ | ✓ | ✓ | ✓ |
 | Waits show as one row with what they issued nested under it | ✓ | ✓ | ◐ ²⁰ | ✓ |
 | Screenshot on every command row | ✓ | ✓ | ✓ | ✓ |
@@ -46,7 +47,8 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Safari kept frontmost so input lands (live mode) | ◐ ³⁰ | ✓ ³¹ | ◐ ³⁰ | ◐ ³⁰ |
 | Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✓ | ✓ | ✓ | ✕ ³² |
 | Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✓ | ✓ | ◐ ³³ | ✕ ³⁴ |
-| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁵ | ◐ ³⁵ | ◐ ³⁵ | ◐ ³⁵ |
+| Prints where each kept trace was written | ✓ ³⁵ | ◐ ³⁶ | ◐ ³⁶ | ◐ ³⁷ |
+| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ |
 
 ✓ supported. ◐ partial. ✕ not supported. A number points to its note below the table. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
@@ -118,6 +120,12 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 ³⁴ The Python adapter writes no artifacts manifest.
 
-³⁵ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
+³⁵ Printed to stdout whatever the `logLevel`.
+
+³⁶ Logs the path at info level through the adapter's logger rather than printing it, so a run that hides info messages does not show it.
+
+³⁷ Logs the path (the folder, for per-test traces) at info level through Python's `logging`, which hides info messages unless the run enables them (`--log-cli-level=INFO` under pytest).
+
+³⁸ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
 <!-- capability-matrix:cross-framework:end -->

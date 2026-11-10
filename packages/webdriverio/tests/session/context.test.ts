@@ -68,37 +68,48 @@ describe('ContextManager', () => {
         getContextManager(browser)
     })
 
-    it('throws a clear error if closeWindow returns no window handles (value undefined)', () => {
-        const resultHandlers = getListeners().result
-        expect(resultHandlers?.length).toBeGreaterThan(0)
-        const handler = resultHandlers![0]
-        expect(() => handler({ command: 'closeWindow', result: {} })).toThrow(
+    it('throws a clear error if closeWindow returns no window handles (value undefined)', async () => {
+        await expect(getContextManager(browser).switchToRemainingWindow(undefined)).rejects.toThrow(
             'All window handles were removed, causing WebdriverIO to close the session.'
         )
+        expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
-    it('throws a clear error if closeWindow returns an empty window handles array', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        expect(() => handler({ command: 'closeWindow', result: { value: [] } })).toThrow(
+    it('throws a clear error if closeWindow returns an empty window handles array', async () => {
+        await expect(getContextManager(browser).switchToRemainingWindow([])).rejects.toThrow(
             'All window handles were removed, causing WebdriverIO to close the session.'
         )
+        expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
-    it('switches to the first remaining window handle when closing a window', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        handler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
+    it('switches to the first remaining window handle when closing a window', async () => {
+        const manager = getContextManager(browser)
+        const resultHandler = getListeners().result![0]
+        resultHandler({ command: 'getWindowHandle', result: { value: 'closed-window' } })
+
+        await manager.switchToRemainingWindow(['handle-A', 'handle-B'])
+
         expect(browser.switchToWindow).toHaveBeenCalledWith('handle-A')
+        expect(manager.getCurrentWindowHandle()).toBeUndefined()
+        expect(await manager.getCurrentContext()).toBe('handle-A')
     })
 
-    it('rethrows a meaningful error if closeWindow result contains an error object', () => {
-        const resultHandlers = getListeners().result
-        const handler = resultHandlers![0]
-        const error = new Error('All window handles were removed, causing WebdriverIO to close the session.')
-        expect(() => handler({ command: 'closeWindow', result: { error } })).toThrow(
-            'All window handles were removed, causing WebdriverIO to close the session.'
-        )
+    it('resolves the switch after closing a window only when switchToWindow resolves', async () => {
+        let release!: () => void
+        browser.switchToWindow.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
+        let resolved = false
+        const switched = getContextManager(browser).switchToRemainingWindow(['handle-A']).then(() => { resolved = true })
+
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(resolved).toBe(false)
+        release()
+        await switched
+        expect(resolved).toBe(true)
+    })
+
+    it('does not switch from the result event of closeWindow', () => {
+        const resultHandler = getListeners().result![0]
+        resultHandler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
         expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
 
@@ -123,8 +134,198 @@ describe('ContextManager', () => {
         const resultHandlers = getListeners().result
         const handler = resultHandlers![0]
         const error = new Error('no such window')
-        handler({ command: 'switchToWindow', result: { error } })
+        handler({ command: 'switchToWindow', body: { handle: 'closed-tab' }, result: { error } })
         expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+    })
+
+    describe('a switchToWindow that fails in a BiDi session', () => {
+        const switchToWindow = { command: 'switchToWindow', body: { handle: 'closed-tab' } }
+        const setup = () => {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            const stub = createBrowserStub({ isBidi: true } as any)
+            const manager = getContextManager(stub.browser)
+            process.env.WDIO_UNIT_TESTS = wid
+            manager.setCurrentContext('context-1')
+            const emit = (event: string, payload: unknown) => stub.getListeners()[event]!.forEach((handler) => handler(payload))
+            return { manager, emit, browser: stub.browser }
+        }
+
+        it('keeps the context that the driver stays in', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it('keeps the context of a switch that finished while it was in flight', async () => {
+            const { manager, emit } = setup()
+            // another switch that was not awaited
+            const remaining = { command: 'switchToWindow', body: { handle: 'remaining-window' } }
+
+            emit('command', remaining)
+            emit('command', switchToWindow)
+            emit('result', { ...remaining, result: { value: null } })
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('remaining-window')
+        })
+
+        it('keeps the context from before overlapping switches that both fail', async () => {
+            const { manager, emit } = setup()
+            // another switch that was not awaited
+            const other = { command: 'switchToWindow', body: { handle: 'other-closed-tab' } }
+
+            emit('command', other)
+            emit('command', switchToWindow)
+            emit('result', { ...other, result: { error: new Error('no such window') } })
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        describe('with the results of overlapping switches in reverse order', () => {
+            const other = { command: 'switchToWindow', body: { handle: 'other-window' } }
+
+            it('uses the window of a switch that succeeds after a later one failed', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', other)
+                emit('command', switchToWindow)
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+                // the other switch has no result yet, so its window is the context until then
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...other, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('other-window')
+            })
+
+            it('keeps the context from before both switches when both fail', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', other)
+                emit('command', switchToWindow)
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+                emit('result', { ...other, result: { error: new Error('no such window') } })
+
+                expect(await manager.getCurrentContext()).toBe('context-1')
+            })
+
+            it('keeps the window of a later switch that succeeds before an earlier one', async () => {
+                const { manager, emit } = setup()
+
+                emit('command', switchToWindow)
+                emit('command', other)
+                emit('result', { ...other, result: { value: null } })
+                // a command after the awaited switch, before the earlier switch has a result
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+                expect(await manager.getCurrentContext()).toBe('other-window')
+            })
+
+            it('uses the window of an earlier switch that succeeds last, as the driver does', async () => {
+                const { manager, emit } = setup()
+                const first = { command: 'switchToWindow', body: { handle: 'first-window' } }
+
+                emit('command', first)
+                emit('command', other)
+                emit('result', { ...other, result: { value: null } })
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...first, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('first-window')
+            })
+
+            it('matches each result to its own request when a handle is pending twice', async () => {
+                const { manager, emit } = setup()
+                // as in `webdriver`, the command and the result event of a request share its body
+                const first = { command: 'switchToWindow', body: { handle: 'first-window' } }
+                const again = { command: 'switchToWindow', body: { handle: 'first-window' } }
+
+                emit('command', first)
+                emit('command', other)
+                emit('command', again)
+                emit('result', { ...again, result: { value: null } })
+                emit('result', { ...other, result: { value: null } })
+                // the switch to first-window without a result was sent before the one to other-window
+                expect(await manager.getCurrentContext()).toBe('other-window')
+                emit('result', { ...first, result: { value: null } })
+
+                expect(await manager.getCurrentContext()).toBe('first-window')
+            })
+        })
+
+        it('follows the request, not the event of a switchToWindow wrapper', async () => {
+            const { manager, emit } = setup()
+            // e.g. an overwritten `switchToWindow`: its event has the arguments as its body, and no handle
+            const wrapper = { command: 'switchToWindow', body: ['closed-tab'] }
+
+            emit('command', wrapper)
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+            emit('result', { command: 'switchToWindow', result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it('ignores the result of a switchToWindow wrapper when the switch succeeds', async () => {
+            const { manager, emit } = setup()
+            const request = { command: 'switchToWindow', body: { handle: 'other-window' } }
+
+            emit('command', { command: 'switchToWindow', body: ['other-window'] })
+            emit('command', request)
+            emit('result', { ...request, result: { value: null } })
+            // the result of a wrapper has no body
+            expect(() => emit('result', { command: 'switchToWindow', result: { value: null } })).not.toThrow()
+
+            expect(await manager.getCurrentContext()).toBe('other-window')
+            expect(manager.getCurrentWindowHandle()).toBe('other-window')
+        })
+
+        it.each([
+            ['the frame', { context: 'frame-1', parent: 'context-1', children: null }],
+            ['the parent of the frame', { context: 'frame-parent', parent: 'context-1', children: [{ context: 'frame-1', children: [] }] }]
+        ])('resolves the window again when %s is destroyed during the switch', async (_, destroyed) => {
+            const { manager, emit, browser } = setup()
+            ;(browser as any).getWindowHandle.mockResolvedValue('context-1')
+            manager.setCurrentContext('frame-1')
+
+            emit('command', switchToWindow)
+            emit('browsingContext.contextDestroyed', destroyed)
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            // the frame from before the switch is gone, so the next command resolves the window the driver is in
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            try {
+                expect(await manager.getCurrentContext()).toBe('context-1')
+                expect(browser.getWindowHandle).toHaveBeenCalled()
+            } finally {
+                process.env.WDIO_UNIT_TESTS = wid
+            }
+        })
+
+        it('keeps a newer context transition', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            manager.setCurrentContext('newer-context')
+            emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+            expect(await manager.getCurrentContext()).toBe('newer-context')
+        })
+
+        it('uses the new context when the switch succeeds', async () => {
+            const { manager, emit } = setup()
+
+            emit('command', switchToWindow)
+            emit('result', { ...switchToWindow, result: { value: null } })
+
+            expect(await manager.getCurrentContext()).toBe('closed-tab')
+        })
     })
 
     it('registers a listener for browsingContext.contextDestroyed in bidi sessions', () => {
@@ -435,10 +636,9 @@ describe('ContextManager', () => {
         stub.browser.switchToWindow.mockRejectedValue(sessionEnded(
             'Trying to run command "switchToWindow("handle-A")" after session has been deleted, aborting request without executing it'
         ))
-        getContextManager(stub.browser)
-        const resultHandlers = stub.getListeners().result
+        const manager = getContextManager(stub.browser)
 
-        await expect(resultHandlers![0]({ command: 'closeWindow', result: { value: ['handle-A'] } })).resolves.toBeUndefined()
+        await expect(manager.switchToRemainingWindow(['handle-A'])).resolves.toBeUndefined()
         expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: Trying to run command'))
     })
 
@@ -683,6 +883,19 @@ describe('ContextManager on mobile Android Chrome', () => {
         await switchAppiumContext('NATIVE_APP')
         expect(await manager.getCurrentContext()).toBe('NATIVE_APP')
         expect(manager.isNativeContext).toBe(true)
+    })
+
+    it('keeps the Appium context of a Classic session when switchToWindow fails', async () => {
+        const { manager, emit } = createAndroidChrome(false)
+        expect(await manager.getCurrentContext()).toBe('CHROMIUM')
+        const switchToWindow = { command: 'switchToWindow', body: { handle: 'closed-tab' } }
+
+        await emit('command', switchToWindow)
+        await emit('result', { ...switchToWindow, result: { error: new Error('no such window') } })
+
+        expect(await manager.getCurrentContext()).toBe('CHROMIUM')
+        expect(manager.mobileContext).toBe('CHROMIUM')
+        expect(manager.isNativeContext).toBe(false)
     })
 })
 

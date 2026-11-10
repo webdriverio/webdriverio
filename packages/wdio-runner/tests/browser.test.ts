@@ -5,6 +5,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import { MESSAGE_TYPES, browserChannelMessage, type Workers } from '@wdio/types'
 import { setWdioKind } from '@wdio/utils'
 import { remote } from 'webdriverio'
+// @ts-expect-error mock feature
+import { logMock } from '@wdio/logger'
 
 import BrowserFramework from '../src/browser.js'
 import type BaseReporter from '../src/reporter.js'
@@ -228,21 +230,61 @@ describe('BrowserFramework browser errors', () => {
             url: vi.fn().mockResolvedValue(undefined),
             setCookies: vi.fn().mockResolvedValue(undefined),
             execute: vi.fn(),
+            getWindowHandle: vi.fn().mockResolvedValue('test-page'),
+            getWindowHandles: vi.fn().mockResolvedValue(['test-page']),
             getLogs: vi.fn(),
             refresh: vi.fn().mockResolvedValue(undefined)
         }
         globals.browser = browser
         process.send = vi.fn() as unknown as typeof process.send
+        logMock.info.mockClear()
+        framework = createFramework({})
+    })
 
+    function createFramework (config: Partial<WebdriverIO.Config>) {
         const on = vi.spyOn(process, 'on').mockImplementation(() => process)
-        framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
+        const created = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 }, ...config } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
         handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
         on.mockRestore()
-    })
+        return created
+    }
+
+    // the tab of the test page that `browser.url()` returns in a WebDriver BiDi session
+    function testPageTab () {
+        return setWdioKind({ contextId: 'test-page', url: 'http://localhost:5173/?cid=0-0&spec=/project/spec.test.js', execute: vi.fn() }, 'browsing-context')
+    }
 
     afterEach(() => {
         vi.useRealTimers()
         process.send = originalSend
+    })
+
+    it('reports no load error for a test page that got its first byte less than 5 s ago, as right after a reload', async () => {
+        browser.execute.mockResolvedValue(undefined)
+        framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        const fetchExecutionState = browser.execute.mock.calls[0][0] as () => unknown
+        // times from the start of the navigation: the server sent the first byte after 6 s, as a cold Vite start
+        const page = {
+            document: { readyState: 'loading', title: '', querySelector: () => null, documentElement: { innerHTML: '' } },
+            window: {},
+            performance: { now: () => 10_999, getEntriesByType: () => [{ responseStart: 6000 }] }
+        }
+        vi.stubGlobal('document', page.document)
+        vi.stubGlobal('window', page.window)
+        vi.stubGlobal('performance', page.performance)
+        const loadError = { errors: [{ message: expect.stringContaining('Failed to load test page') }] }
+        try {
+            expect(fetchExecutionState()).toBeUndefined()
+            // a page that does not finish to load still reports why
+            page.performance.now = () => 11_000
+            expect(fetchExecutionState()).toMatchObject(loadError)
+            page.performance.now = () => 6000
+            page.document.readyState = 'interactive'
+            expect(fetchExecutionState()).toMatchObject(loadError)
+        } finally {
+            vi.unstubAllGlobals()
+        }
     })
 
     it('ignores browser log errors that are logged after the tests started', async () => {
@@ -310,6 +352,23 @@ describe('BrowserFramework browser errors', () => {
         expect(await result).toBe(0)
     })
 
+    it('reloads the tab of the test page for an outdated optimize dep, also when the test works in another window', async () => {
+        const tab = Object.assign(testPageTab(), { refresh: vi.fn().mockResolvedValue(undefined) })
+        tab.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.url.mockResolvedValue(tab)
+        browser.getLogs.mockResolvedValueOnce([
+            severeLog(1500, 'http://localhost/node_modules/.vite/deps/expect.js?v=1 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)')
+        ]).mockResolvedValue([])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(tab.refresh).toHaveBeenCalledTimes(1)
+        expect(browser.refresh).not.toHaveBeenCalled()
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+    })
+
     it('ignores a state check that is still running when the session ends', async () => {
         let rejectState!: (err: Error) => void
         browser.execute.mockReturnValue(new Promise((_, reject) => {
@@ -347,6 +406,180 @@ describe('BrowserFramework browser errors', () => {
             vi.useRealTimers()
             await new Promise((resolve) => setImmediate(resolve))
             expect(unhandled).toHaveBeenCalledWith(expect.objectContaining({ message: 'browser crashed' }), expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('reads the test page in its tab, also when the test works in another window', async () => {
+        const tab = testPageTab()
+        browser.url.mockResolvedValue(tab)
+        tab.execute
+            .mockResolvedValueOnce({ errors: [], hasViteError: false })
+            .mockResolvedValueOnce(1000)
+            .mockResolvedValue({ 'file.js': {} })
+        browser.getLogs.mockResolvedValueOnce([severeLog(1500)]).mockResolvedValue([])
+        framework = createFramework({ runner: ['browser', { coverage: { enabled: true } }] } as Partial<WebdriverIO.Config>)
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(browser.execute).not.toHaveBeenCalled()
+        // the state check, the start time of the tests and the coverage
+        expect(tab.execute).toHaveBeenCalledTimes(3)
+        // the tab has the handle of the test page
+        expect(browser.getWindowHandle).not.toHaveBeenCalled()
+        expect(vi.mocked(process.send!).mock.calls.map(([message]) => JSON.stringify(message)).join()).toContain('file.js')
+    })
+
+    it('reads the test page in its tab in watch mode, also when the last run left a popup as the current window', async () => {
+        const tab = testPageTab()
+        tab.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        const popup = setWdioKind({ contextId: 'popup', url: 'about:blank', execute: vi.fn() }, 'browsing-context')
+        browser.getWindowHandle.mockResolvedValue('popup')
+        Object.assign(browser, {
+            isBidi: true,
+            browsingContexts: vi.fn().mockResolvedValue([popup, tab])
+        })
+        browser.getLogs.mockResolvedValue([])
+        framework = createFramework({ sessionId: 'reused' })
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(browser.url).not.toHaveBeenCalled()
+        expect(browser.execute).not.toHaveBeenCalled()
+        expect(popup.execute).not.toHaveBeenCalled()
+        expect(tab.execute).toHaveBeenCalled()
+        // the tab has the handle of the test page
+        expect(browser.getWindowHandle).not.toHaveBeenCalled()
+    })
+
+    it('reads the current window when an overwrite of url() returns another value', async () => {
+        browser.url.mockResolvedValue(true)
+        browser.execute.mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).not.toHaveBeenCalled()
+            expect(browser.execute).toHaveBeenCalled()
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('reads the current window in WebDriver Classic, where url() returns the browser, and skips a check in a closed window', async () => {
+        browser.url.mockResolvedValue(setWdioKind(browser, 'browser'))
+        browser.getWindowHandle.mockResolvedValue('test-page')
+        browser.getWindowHandles.mockResolvedValue(['test-page'])
+        browser.execute
+            .mockRejectedValueOnce(Object.assign(new Error('target window already closed'), { name: 'no such window' }))
+            .mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).not.toHaveBeenCalled()
+            expect(browser.getWindowHandle).toHaveBeenCalledTimes(1)
+            expect(logMock.info).toHaveBeenCalledWith('Skip the browser error check: target window already closed')
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    // the errors that a state check gets when it runs in a window that closes, e.g. a popup after closeWindow()
+    const closedWindowErrors = {
+        'WebDriver BiDi': new Error('WebDriver Bidi command "script.callFunction" failed with error: no such frame - Context 92A1E179CF613B87930B5970E6AE1A9D not found'),
+        'WebDriver Classic': Object.assign(new Error('target window already closed'), { name: 'no such window' })
+    }
+
+    it.each([
+        ...Object.entries(closedWindowErrors),
+        ['a document that the page replaced', new Error('WebDriver Bidi command "script.callFunction" failed with error: unknown error - Cannot find context with specified id')]
+    ])('skips a state check that cannot read the test page, and logs why (%s)', async (_, error) => {
+        browser.execute.mockRejectedValueOnce(error).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getWindowHandles.mockResolvedValue(['test-page'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).not.toHaveBeenCalled()
+            expect(logMock.info).toHaveBeenCalledWith(`Skip the browser error check: ${(error as Error).message}`)
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it.each(Object.entries(closedWindowErrors))('still surfaces a state check in a window that closed when the test page is gone (%s)', async (_, error) => {
+        browser.execute.mockRejectedValueOnce(error).mockResolvedValue({ errors: [], hasViteError: false })
+        browser.getWindowHandles.mockResolvedValue(['popup'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(error, expect.anything())
+
+            await finishSpec(0)
+            expect(await result).toBe(0)
+        } finally {
+            process.off('unhandledRejection', unhandled)
+        }
+    })
+
+    it('still surfaces a state check in the tab of the test page when the test page is gone', async () => {
+        const tab = testPageTab()
+        tab.execute
+            .mockRejectedValueOnce(closedWindowErrors['WebDriver BiDi'])
+            .mockResolvedValue({ errors: [], hasViteError: false, testsStartedAt: 1000 })
+        browser.url.mockResolvedValue(tab)
+        browser.getWindowHandles.mockResolvedValue(['popup'])
+        browser.getLogs.mockResolvedValue([])
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+
+        try {
+            const result = framework.run()
+            await vi.advanceTimersByTimeAsync(600)
+            vi.useRealTimers()
+            await new Promise((resolve) => setImmediate(resolve))
+            expect(unhandled).toHaveBeenCalledWith(closedWindowErrors['WebDriver BiDi'], expect.anything())
 
             await finishSpec(0)
             expect(await result).toBe(0)

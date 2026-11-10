@@ -34,6 +34,10 @@ class FakeClient extends EventEmitter {
     forward = vi.fn(async () => {
         throw new Error('instance forward should not run')
     })
+
+    closeWindow = vi.fn(async () => {
+        throw new Error('instance closeWindow should not run')
+    })
 }
 
 describe('runClassicProtocolCommand', () => {
@@ -68,6 +72,19 @@ describe('runClassicProtocolCommand', () => {
             expect.objectContaining({ pathname: '/session/foobar-123/forward' }),
             expect.objectContaining({ method: 'POST' })
         )
+    })
+
+    it('deletes the classic window endpoint and returns the remaining window handles', async () => {
+        vi.mocked(fetch).setMockResponse([['window-2']])
+        const handles = await runClassicProtocolCommand.call(client as unknown as BaseClient, 'closeWindow')
+
+        expect(client.closeWindow).not.toHaveBeenCalled()
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/window' }),
+            expect.objectContaining({ method: 'DELETE' })
+        )
+        expect(handles).toEqual(['window-2'])
     })
 
     it('rejects an unknown classic command name', async () => {

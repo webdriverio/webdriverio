@@ -22,6 +22,15 @@ Pass options the way each adapter takes them:
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Continuous session video (`.webm`). Live mode only — for trace mode use `video`. Includes `maxBufferFrames` (default `2000`), the cap on frames held in memory. See [Screencast](/docs/devtools/wdio/screencast). |
 | `devtoolsCapabilities` | `Capabilities` | Chrome 1600×1200 | Capabilities used to open the DevTools UI window. WebdriverIO, live mode only. |
 
+## Masking options
+
+Apply in live and trace mode alike. See [Password masking](/docs/devtools/dashboard#password-masking) for what is and is not covered.
+
+| Option | Type / values | Default | Notes |
+|---|---|---|---|
+| `maskInputs` | `boolean` | `true` | Replace the value of every password field with `••••` in the replayed page (the recorded DOM, field state and value mutations). `false` records them as typed. Command rows always keep the typed text. |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text, value and text-bearing attributes of every element these CSS selectors match, and everything inside it, in the replayed page. |
+
 ## Trace-mode options
 
 Only apply when `mode: 'trace'`.

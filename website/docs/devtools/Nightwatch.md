@@ -98,6 +98,8 @@ module.exports = {
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Per-test video slice, retained per the given policy (e.g. `'retain-on-failure'`). Trace mode + `traceGranularity: 'test'` only. A non-`off` value starts the screencast recorder itself — you do **not** also need `filmstrip` or `screencast.enabled`. **Produce-only** — the `.webm` is written to the trace output dir (and the manifest when `emitArtifactsManifest: true`); not attached inline to Allure. |
 | `emitArtifactsManifest` | `boolean` | `false` | Write the `devtools-artifacts-<sessionId>.json` manifest (the generic index reporters/CI consume to discover produced artifacts) next to the trace. **Opt-in for Nightwatch** — it has no live Allure signal to auto-detect against, so unlike WDIO/Selenium it never auto-enables. Only applies when `mode: 'trace'`. |
 | `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus native `browser.assert`/`browser.verify`, including negated `.not.*` matchers. Set `false` to opt out. |
+| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text. See [Password masking](/docs/devtools/dashboard#password-masking). |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page. |
 
 > **Inline Allure attachment is not supported for Nightwatch.** Its official `nightwatch-allure` reporter is post-hoc (no live attach API), and `allure-js-commons`' `attachment()` no-ops in a Nightwatch run. So `screenshot` / `video` artifacts are *produced* (files, plus the artifacts manifest when `emitArtifactsManifest: true`) in the trace output dir but not attached to an Allure test. Per-test slicing — and therefore these artifacts — is meaningful for the Cucumber and exports-object interfaces; the BDD `describe/it` interface collapses to session granularity, so the per-test gate no-ops there.
 
@@ -202,10 +204,13 @@ Open a trace with the `show-trace` bin, shipped with `@wdio/nightwatch-devtools`
 
 ```sh
 npx show-trace test-results/trace-<sessionId>.zip   # in a project that installs the adapter
+npx show-trace test-results/                        # a folder of per-test zips, listed by test
 pnpm show-trace test-results/trace-<sessionId>.zip  # from the devtools monorepo
 ```
 
 See the [Trace Player](/docs/devtools/trace-player) page for the full walkthrough and keyboard shortcuts.
+
+To open a trace without installing anything, or to share a link to one, use the [hosted player](/docs/devtools/trace-player#hosted-player) at [trace.webdriver.io](https://trace.webdriver.io): it parses the zip in your browser tab and uploads nothing, opens a zip from a URL with `?trace=<url>`, and a [link](/docs/devtools/trace-player#links) can name the action and tab to open on.
 
 ### Per-test slicing & the BDD `describe/it` caveat
 

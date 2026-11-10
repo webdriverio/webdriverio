@@ -84,6 +84,8 @@ describe('scriptTimeoutOf', () => {
     it('uses the default of the WebDriver spec when the session timeout cannot be read', async () => {
         expect(await scriptTimeoutOf(fakeBrowser())).toBe(30_000)
         expect(await scriptTimeoutOf(fakeBrowser({}, 'session-1', async () => { throw new Error('unknown command') }))).toBe(30_000)
+        // a driver that does not follow W3C answers no timeouts object
+        expect(await scriptTimeoutOf(fakeBrowser({}, 'session-1', async () => null))).toBe(30_000)
         expect(await scriptTimeoutOf({ sessionId: 'x' } as unknown as WebdriverIO.Browser)).toBe(30_000)
     })
 
