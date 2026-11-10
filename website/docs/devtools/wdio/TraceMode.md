@@ -84,7 +84,7 @@ What each adapter shows:
 - **`zip`** (default) — single archive at `test-results/trace-<sessionId>.zip`.
 - **`ndjson-directory`** — same files unpacked into `test-results/trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-The `zip` opens in the first-party [`show-trace` player](/docs/devtools/trace-player); an `ndjson-directory` trace opens in other compatible trace viewers, or zip it first to open it in `show-trace`.
+The `zip` opens in the first-party [`show-trace` player](/docs/devtools/trace-player) or the [hosted player](/docs/devtools/trace-player#hosted-player) at trace.webdriver.io; an `ndjson-directory` trace opens in other compatible trace viewers, or zip it first to open it in `show-trace`.
 
 ## Trace granularity — `traceGranularity`
 
@@ -219,6 +219,8 @@ npx show-trace trace-<sessionId>.zip      # or via npx
 ```
 
 The player gives you DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source dock tabs, and a scrubbable timeline. The same portable `.zip` also opens in other standalone trace viewers and inside an Allure report's embedded viewer. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough, features, and keyboard shortcuts.
+
+To open a trace without installing anything, or to share a link to one, use the [hosted player](/docs/devtools/trace-player#hosted-player) at [trace.webdriver.io](https://trace.webdriver.io): it parses the zip in your browser tab and uploads nothing, opens a zip from a URL with `?trace=<url>`, and a [link](/docs/devtools/trace-player#links) can name the action and tab to open on.
 
 ## Locators in the A11y tab
 

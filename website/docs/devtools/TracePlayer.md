@@ -1,10 +1,12 @@
 ---
 id: trace-player
 title: Trace Player
-description: "Open trace-mode artifacts in the show-trace player for offline replay and review, or load them into other trace viewers."
+description: "Open trace-mode artifacts in the show-trace player or the hosted player at trace.webdriver.io for replay and review, link into them, or load them into other trace viewers."
 ---
 
 The `show-trace` player opens any trace produced in [Trace Mode](/docs/devtools/wdio/trace-mode) in the WebdriverIO DevTools UI itself — a dedicated, read-only **player** mode for offline replay, review, and AI-agent diffing.
+
+The same player also runs as a web page at [trace.webdriver.io](https://trace.webdriver.io), with nothing to install; see [Hosted player](#hosted-player).
 
 ## Demo
 
@@ -41,6 +43,47 @@ Beyond static frame stepping, the player reconstructs and cross-references the r
 - **Timeline input markers** — each action is marked on the scrub bar by kind: keyboard actions as a green bar, pointer actions (which carry a hit point) as a blue dot, others as a plain tick — so you can read the interaction rhythm at a glance.
 - **Cucumber nesting** — Cucumber runs nest under their scenario in the action tree. Depth varies by adapter (Selenium nests Feature → Scenario → Step, WebdriverIO Scenario → Step, Nightwatch Feature → Scenario); see [Cross-Framework Support](/docs/devtools/cross-framework).
 - **Dense filmstrip scrubbing** — with [`filmstrip`](/docs/devtools/wdio/trace-mode#dense-filmstrip--filmstrip) enabled, the timeline packs the dense frames for smooth scrubbing instead of one-frame-per-action jumps.
+- **Stored stylesheets and fonts**: the replayed page renders with the stylesheets and fonts the run used, served from the archive rather than the site under test, so it renders the same after the site changes, for a site the viewer cannot reach, and from an `https` page replaying an `http` site. Images still load from the site. The `traceResources` adapter option decides what a trace stores: `'styles'` (the default) stores stylesheets and fonts, `'none'` stores nothing.
+
+## Hosted player
+
+[trace.webdriver.io](https://trace.webdriver.io) is the same player as a web page, for opening a trace without installing anything. Pick one or several `.zip` files with its Open button, or drop zips or a folder of them on the page; several zips open as a run, listed by test, as they do in `show-trace`. A browser's file dialog picks files or folders, never both, so drop a folder rather than picking it.
+
+- **Nothing is uploaded.** The archive is parsed in the browser tab and sent nowhere, which matters because a trace records everything the run showed or typed.
+- **Read-only.** Run controls are absent, as in `show-trace`.
+- **Untrusted traces are safe to open.** A trace from someone else runs no script: its replayed page is rendered without any of its scripts, in the hosted player as in `show-trace` and the live dashboard.
+- **Styles come from the archive.** A replayed page takes its stylesheets and fonts from the trace and loads its images from the site under test, as in `show-trace`. From an `https` page the browser blocks `http` images, and any stylesheet the trace did not store, so a trace of an `http` site written with `traceResources: 'none'` can render unstyled in the hosted player and fully in `show-trace`.
+
+### Opening a trace from a URL
+
+Add `?trace=<url>` to download a zip and open it, so a CI job or a bug report can link straight to a trace:
+
+```text
+https://trace.webdriver.io/?trace=https%3A%2F%2Fci.example.com%2Fartifacts%2Ftrace.zip
+```
+
+- The URL must be `https`, or a path on the player's own origin.
+- Its host must send an `Access-Control-Allow-Origin` header that admits the player (`*` or `https://trace.webdriver.io`). Without it the browser refuses the download and the player says so.
+- The request carries no cookies, credentials or referrer, so a private artifact needs a URL that is its own credential, such as a pre-signed link. The player names a download by its host and path only, never its query.
+- A URL with its own query, such as a signed link, can be pasted as it is when `trace` is the last parameter: everything after `trace=` is then taken as the URL, `&` parameters included. Anywhere else, percent-encode it; an encoded URL ends at the first raw `&`, so other parameters can follow it.
+- An empty `trace=` is refused, as is a zip over 512 MB (opening one takes a few times its size in memory) and a body that does not start as a zip. A host that sends nothing for 30 seconds is given up on.
+
+The downloaded zip is then parsed in the tab like a picked file and sent nowhere.
+
+## Links
+
+The part of the address after `#` names a position in the trace, in the hosted player and in `show-trace` alike:
+
+```text
+https://trace.webdriver.io/?trace=https%3A%2F%2Fci.example.com%2Fartifacts%2Ftrace.zip#action=call@12&tab=network
+```
+
+- `action=<callId>` opens the trace on that action, by its `callId` in the zip (`call@12`, stable for the life of the zip).
+- `tab=<tab>` opens that bottom tab: `source`, `log`, `console`, `network`, `errors`, `a11y` or `transcript`.
+
+The player rewrites the address as you pick actions and tabs, without adding history entries, so the address bar always links to what you are looking at; copy it to share that view. A link applies to the trace the page opened with, and again whenever you edit the part after `#` yourself. Opening another trace by hand clears the link and the `?trace=` URL, since the address no longer names what is on screen. An action or tab the trace does not have is ignored. When several traces are open as a run, the link carries the tab only, since it names no entry of the run.
+
+Opening a trace keeps the bottom tab you last had open rather than switching to **Log**; a link's `tab=` takes precedence. Picking an action then shows its detail in **Log**.
 
 ## Other trace viewers
 

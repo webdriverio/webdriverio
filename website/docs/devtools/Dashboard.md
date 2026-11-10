@@ -55,4 +55,4 @@ devtools-backend listening at http://localhost:3000
 
 The Python adapter attaches to an already-listening server when `DEVTOOLS_PORT` is set, instead of starting a second one. The JavaScript adapters start their backend in-process; use their `port` option to choose the port.
 
-A second binary, `show-trace`, opens a trace archive in the offline player - see [Trace Player](/docs/devtools/trace-player).
+A second binary, `show-trace`, opens a trace archive in the offline player; the same player also runs as a web page at [trace.webdriver.io](https://trace.webdriver.io). See [Trace Player](/docs/devtools/trace-player).

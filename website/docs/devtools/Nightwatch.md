@@ -206,6 +206,8 @@ pnpm show-trace test-results/trace-<sessionId>.zip  # from the devtools monorepo
 
 See the [Trace Player](/docs/devtools/trace-player) page for the full walkthrough and keyboard shortcuts.
 
+To open a trace without installing anything, or to share a link to one, use the [hosted player](/docs/devtools/trace-player#hosted-player) at [trace.webdriver.io](https://trace.webdriver.io): it parses the zip in your browser tab and uploads nothing, opens a zip from a URL with `?trace=<url>`, and a [link](/docs/devtools/trace-player#links) can name the action and tab to open on.
+
 ### Per-test slicing & the BDD `describe/it` caveat
 
 The per-test options — `traceGranularity: 'test'`, and the `tracePolicy`, `screenshot`, and `video` options that pair with it — need a per-test hook to cut each test's slice. The **exports-object (mocha-style)** interface and **Cucumber** (per-scenario hooks) expose one, so they get real per-test slicing. The **BDD `describe/it`** interface is the exception: Nightwatch runs each `it()` internally and fires the plugin's per-test hook only once per module, so `traceGranularity: 'test'` collapses to a single **session-scoped** slice keyed to the first test. The artifacts manifest still lists every testcase with its correct state; only the per-test slice/artifact keying collapses. Session- and spec-granularity traces are unaffected.
