@@ -64,8 +64,8 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              * chained `$` from the document instead of from this element
              */
             if (!nextElement?.elementId) {
-                throw new Error(
-                    `element with selector "${describeSelector(currentElement)}" has no match${currentElement.index === undefined ? '' : ` at index ${currentElement.index}`}`)
+                // the catch below gives the "element wasn't found" error
+                throw new Error('not found after the wait')
             }
 
             return nextElement
