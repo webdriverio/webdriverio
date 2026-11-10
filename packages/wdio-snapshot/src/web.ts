@@ -1059,7 +1059,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (el.tagName.toUpperCase() === 'SVG') {
             // an icon that says something (a checkmark "Benefit available") is content; decoration is not
             const svgName = collapse(labelledBy(el) || el.getAttribute('aria-label') || el.querySelector(':scope > title')?.textContent)
-            return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) ? [{ role: 'img', name: truncate(svgName) }] : []
+            return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) && inView(el) ? [{ role: 'img', name: truncate(svgName) }] : []
         }
         if (SKIP_TAGS.has(el.tagName.toUpperCase())) {
             return []

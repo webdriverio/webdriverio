@@ -341,6 +341,16 @@ describe('icon only svg keeps its own node', () => {
         expect(byRole(result, 'img').map((n) => n.name)).toEqual(['Benefit available'])
     })
 
+    it('drops an icon only button that sits outside the viewport', () => {
+        const result = collect(`
+            <button style="position:absolute;top:10px;left:0;width:80px;height:30px"><svg width="12" height="12" aria-label="Near icon"></svg></button>
+            <button style="position:absolute;top:${FAR};left:0;width:80px;height:30px"><svg width="12" height="12" aria-label="Far icon"></svg></button>`, { viewport: true })
+        const all = names(result.tree)
+        expect(all).toContain('Near icon')
+        expect(all).not.toContain('Far icon')
+        expect(result.refs.map((ref) => ref.name)).toEqual(['Near icon'])
+    })
+
     it('does not collapse a link that has text next to the svg', () => {
         const result = collect('<a href="/d">Discord<svg width="10" height="10" aria-label="(opens in new tab)"></svg></a>')
         expect(byRole(result, 'link')[0].name).toBe('Discord (opens in new tab)')
