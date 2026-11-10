@@ -37,7 +37,7 @@ export async function installPackages (cwd: string, packages: string[], dev: boo
         console.error(
             `\n⚠️ Installing the packages failed${exitCode === undefined ? '' : ` (exit code ${exitCode})`}:\n\n` +
             `${(errorLines.length > 0 ? errorLines : output.slice(-20)).join('\n').trim() || shortMessage}\n\n` +
-            `Fix the error above, then install the packages with:\n${cmd}`
+            `Fix the error above, then run the wizard again. To check the install alone, run:\n${cmd}`
         )
         return false
     }

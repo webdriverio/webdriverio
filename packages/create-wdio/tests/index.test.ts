@@ -372,7 +372,7 @@ describe('install', () => {
 
     it('installPackages failing', async () => {
         // like execa: a failed command rejects unless `reject: false` is set
-        vi.mocked(execa).mockImplementation(((_: string, __: string[], options: { reject?: boolean }) => options.reject === false
+        vi.mocked(execa).mockImplementationOnce(((_: string, __: string[], options: { reject?: boolean }) => options.reject === false
             ? Promise.resolve({ exitCode: 1, failed: true, stdout: 'added 0 packages', stderr: [
                 'npm warn deprecated foo',
                 'npm error code ERESOLVE',
@@ -386,7 +386,7 @@ describe('install', () => {
             expect(message).toContain('npm error code ERESOLVE')
             expect(message).toContain('npm error peer appium@"^4.0.0-beta.6" from appium-xcuitest-driver@13.0.8')
             expect(message).not.toContain('npm warn deprecated foo')
-            expect(message).toMatch(/install the packages with:\n\S+ (install|add) foo bar/)
+            expect(message).toMatch(/run the wizard again\. To check the install alone, run:\n\S+ (install|add) foo bar/)
         } finally {
             consoleError.mockRestore()
         }

@@ -59,7 +59,7 @@ test('runConfigCommand stops with exit code 1 when the packages could not be ins
     vi.mocked(createWDIOConfig).mockClear()
     vi.mocked(npmInstall).mockResolvedValueOnce(false)
     try {
-        await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')
+        expect(await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')).toBe(false)
         expect(createWDIOConfig).not.toBeCalled()
         expect(process.exitCode).toBe(1)
     } finally {
@@ -468,5 +468,22 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
 
     vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
     await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
+    expect(runConfigCmd).toBeCalledTimes(1)
+})
+
+test('missingConfigurationPrompt fails when the wizard could not create the config', async () => {
+    // `wdio run` and `wdio install` exit with code 1 on this error, not prompt again
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: BackendChoice.Local,
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        reporters: [],
+        plugins: [],
+        services: [],
+        npmInstall: true
+    } as any)
+    const runConfigCmd = vi.fn().mockResolvedValue(false)
+    vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
+    await expect(missingConfigurationPrompt('run', 'foobar', runConfigCmd)).rejects.toThrow('configuration was not created')
     expect(runConfigCmd).toBeCalledTimes(1)
 })

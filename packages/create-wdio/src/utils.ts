@@ -45,6 +45,9 @@ export function runProgram(command: string, args: string[], options: SpawnOption
     const child = spawn(command, args, { stdio: 'inherit', ...options })
     // a quiet command (piped output) keeps its output to show it when it fails
     let output = ''
+    // decode as a stream: a character can be split across 2 chunks
+    child.stdout?.setEncoding('utf8')
+    child.stderr?.setEncoding('utf8')
     child.stdout?.on('data', (data) => (output += data))
     child.stderr?.on('data', (data) => (output += data))
     return new Promise<void>((resolve, rejects) => {
@@ -506,7 +509,7 @@ const SEP = '\n- '
  * The driver majors for the Appium major that `addServiceDeps` installs (`appium@^3`).
  * Their next majors need Appium 4.
  */
-export const APPIUM_DRIVERS = {
+const APPIUM_DRIVERS = {
     mac2: 'appium-mac2-driver@^4',
     uiautomator2: 'appium-uiautomator2-driver@^8',
     xcuitest: 'appium-xcuitest-driver@^12'
