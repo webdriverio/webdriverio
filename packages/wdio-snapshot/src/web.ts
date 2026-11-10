@@ -845,13 +845,15 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const info = accessibleNameInfo(el, role)
         const drift = nameDrift(el, info)
         const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
-        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
+        // `role/` and `aria/` resolve by name alone, so a name the element does not carry
+        // itself (taken from the walk's text fallback) must not produce them: they would
+        // point at the element that owns that name instead (an img inside a pointer-cursor
+        // div, a listitem next to one that carries the name via aria-label)
+        const ownName = Boolean(name) && info.name === name
+        if (ownName && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
             out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
-        // `aria/<name>` resolves to the element that carries the name itself: a wrapper
-        // whose name came from a descendant fallback must not get one, it would point
-        // at that descendant instead (an img inside a pointer-cursor div, for example)
-        if (name && info.name === name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
+        if (ownName && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
             out.push({ kind: 'aria', selector: `aria/${name}` })
         }
         if (el.id && !looksGenerated(el.id) && unique(`#${CSS.escape(el.id)}`)) {

@@ -288,7 +288,7 @@ describe('hint of an unnamed select', () => {
     })
 })
 
-describe('aria candidate matches the ref', () => {
+describe('candidates match the ref', () => {
     it('does not emit aria/<name> for a wrapper whose name came from a descendant', () => {
         const result = collect('<div id="wrap" style="cursor:pointer"><img alt="Copilot" width="40" height="40" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>')
         const wrapper = result.refs.find((r) => r.name === 'Copilot')
@@ -302,5 +302,20 @@ describe('aria candidate matches the ref', () => {
         const button = result.refs.find((r) => r.name === 'Save')
         expect(button).toBeDefined()
         expect(button!.candidates.some((c) => c.kind === 'aria')).toBe(true)
+    })
+
+    it('does not emit role/<role> for a name the element does not carry itself', () => {
+        const result = collect('<ul><li id="mine" tabindex="0" style="cursor:pointer">Report</li><li id="other" aria-label="Report">Other</li></ul>')
+        const mine = result.refs.find((r) => r.candidates.some((c) => c.kind === 'id' && c.selector === '#mine'))
+        expect(mine).toBeDefined()
+        expect(mine!.name).toBe('Report')
+        expect(mine!.candidates.some((c) => c.kind === 'role')).toBe(false)
+    })
+
+    it('still emits role/<role> when the element carries the name itself', () => {
+        const result = collect('<button><span>Nested label</span></button>')
+        const button = result.refs.find((r) => r.name === 'Nested label')
+        expect(button).toBeDefined()
+        expect(button!.candidates.some((c) => c.kind === 'role' && c.selector === 'role/button[name="Nested label"]')).toBe(true)
     })
 })
