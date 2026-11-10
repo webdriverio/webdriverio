@@ -32,6 +32,9 @@ describe('await-expect', () => {
                 'it(`bar`, async () => { expect(123).toMatchInlineSnapshot(); });',
                 'it(`bar`, async () => { expect.soft(someObject).toMatchSnapshot(); });',
                 'it(`bar`, async () => { expect().toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect().not.toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect.soft().toMatchSnapshot(); });',
+                'it(`bar`, async () => { foo.soft($(`.foo`)).toBeDisplayed(); });',
             ],
             invalid: [
                 {
