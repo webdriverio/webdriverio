@@ -50,7 +50,8 @@ Selenium and Nightwatch ship the same trace pipeline — see their adapter pages
 | `resources/page@<id>-<ts>-snapshot.txt` | Depth-indented accessibility-tree snapshot (AI-friendly) |
 | `resources/<sha1>.png` (or `.jpeg`) | Dense filmstrip frames, content-addressed, named by their actual image format |
 | `resources/src@<sha1>.txt` | Captured test source for the Source tab |
-| `resources/<sha1>` | Network response bodies, content-addressed |
+| `resources/<sha1>` | Network response bodies, and the stylesheets and fonts the pages used (see [`traceResources`](#stylesheets-and-fonts-traceresources)), content-addressed |
+| `page-resources.ndjson` | Index of the stored stylesheets and fonts, one line per URL; omitted when nothing was stored |
 
 ### What counts as an "action"
 
@@ -162,6 +163,32 @@ A non-retained slice is decided against and never written to disk. The retry-awa
 - Recording uses the screencast recorder — CDP push on Chrome/Chromium, screenshot polling elsewhere. On non-Chrome browsers the polling issues many `takeScreenshot` commands; pair with your reporter's step-silencing option (see [Allure Integration](/docs/devtools/allure)).
 
 `filmstrip` is available on all three adapters (WebdriverIO / Selenium / Nightwatch).
+
+## Stylesheets and fonts: `traceResources`
+
+By default a trace stores the stylesheets and fonts its pages used, and the player replays the page with them from the archive rather than loading them from the site under test. A replayed page therefore renders the same after the site changes, and for a viewer who cannot reach the site. Images still load from the site.
+
+```ts
+{
+  mode: 'trace',
+  traceResources: 'none' // 'styles' (default) | 'none'
+}
+```
+
+- **`'styles'`** (default) stores the stylesheets and fonts each archive's pages reference, each once by content hash, capped at 1 MiB per resource and 8 MiB per archive. A resource past a cap replays from the site.
+- **`'none'`** stores nothing, and the replayed page loads its stylesheets and fonts from the site as it runs.
+
+The page collector reads each resource back from the browser's HTTP cache, cross-origin ones only where the site allows CORS (a same-origin stylesheet it cannot read again falls back to its parsed rules), and the trace leaves those reads out of its network rows. Live mode reads nothing back.
+
+The Python adapter stores them too: turn it off with `--devtools-trace-resources none`, the ini key `devtools_trace_resources = none`, `DEVTOOLS_TRACE_RESOURCES=none`, or `enable(trace_resources="none")`. It needs a backend at least as new as the adapter's pinned version; an older one stores nothing.
+
+What it does not cover:
+
+- Images, media, and stylesheets or fonts from tracking hosts always replay from the site, as does anything past the size caps or a cross-origin stylesheet whose server sends no CORS headers.
+- The collector's reads happen in the page under test, so the page can see them: they show up in its own `PerformanceObserver` and Resource Timing buffer, so a real-user-monitoring script may report them, and a service worker answers them like any other fetch.
+- A cross-origin read the server refuses for CORS makes the browser log a CORS error in the page console, which the trace records.
+- A network row is dropped only when it is certainly a read. A row without the browser's own start time, or one the browser marked as a stylesheet or font load, stays, so a read can occasionally appear as a second row.
+- A native app has no document, so nothing is stored.
 
 ## Per-test screenshot & video — `screenshot` / `video`
 

@@ -363,6 +363,7 @@ A failed row carries a second button beside Rerun. It snapshots the attempt, rer
 | `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity). |
 | `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'`. |
 | `filmstrip` | `boolean` | `true` | Record a dense, continuous screencast into the trace for frame-by-frame scrubbing in the player. Only applies when `mode: 'trace'`. |
+| `traceResources` | `'styles' \| 'none'` | `'styles'` | Store the stylesheets and fonts the pages used, so the player replays them from the archive rather than the site; `'none'` stores nothing. Images always replay from the site. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources). |
 | `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screenshot, attached inline to Allure (`image/png`) via `allure-js-commons` when an Allure runner adapter is active. |
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
 | `emitArtifactsManifest` | `boolean` | auto | Write the `devtools-artifacts-<sessionId>.json` manifest — the generic index reporters/CI consume to discover produced artifacts — next to the trace. Off by default; **auto-enables** when an `allure-js-commons` runtime is active. Trace mode only. |
@@ -392,6 +393,7 @@ There is no options object - nothing devtools-specific has to appear in your tes
 |---|---|---|
 | `--devtools` | `devtools = true` | Capture this run and open the dashboard. |
 | `--devtools-trace` | `devtools_trace = true` | Capture this run and write a trace archive instead of opening a dashboard. Implies `--devtools`. |
+| `--devtools-trace-resources <styles\|none>` | `devtools_trace_resources = none` | Trace mode: store the stylesheets and fonts the pages used (`styles`, the default) or nothing (`none`). See [Stylesheets and fonts](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources). |
 | `--devtools-trace-granularity <session\|test>` | `devtools_trace_granularity = test` | One archive for the whole run (`session`, the default) or one per test. Implies `--devtools-trace`, unless an explicit `devtools_trace` value outranks it (see [the precedence table](#how-many-archives-and-which-ones-to-keep)). |
 | `--devtools-trace-policy <policy>` | `devtools_trace_policy = "retain-on-failure"` | Which archives are worth keeping. Implies `--devtools-trace` in the same way. See [How many archives, and which ones to keep](#how-many-archives-and-which-ones-to-keep). |
 | `--devtools-no-mask-inputs` | `devtools_mask_inputs = false` | Record password fields as typed in the replayed page instead of masking them. See [Password masking](/docs/devtools/dashboard#password-masking). |
@@ -406,6 +408,7 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_HOST=<host>` | Host the dashboard is reached on (default `localhost`). |
 | `DEVTOOLS_TRACE=1` | Write a trace archive instead of opening a dashboard. Selects the mode for a plain script; under pytest it does not opt the run in by itself. |
 | `DEVTOOLS_TRACE_GRANULARITY=<session\|test>` | Trace mode: one archive for the whole run, or one per test. Ambient, so it never selects trace mode by itself - pair it with `DEVTOOLS_TRACE=1`. |
+| `DEVTOOLS_TRACE_RESOURCES=none` | Trace mode: store no stylesheets or fonts in the archive. |
 | `DEVTOOLS_TRACE_POLICY=<policy>` | Trace mode: which archives are worth keeping. Ambient, so it never selects trace mode by itself - pair it with `DEVTOOLS_TRACE=1`. |
 | `DEVTOOLS_FILMSTRIP=0` | Trace mode: leave the dense filmstrip out of the archive. |
 | `DEVTOOLS_A11Y=0` | Trace mode: skip the per-action A11y tree and element rects. |
