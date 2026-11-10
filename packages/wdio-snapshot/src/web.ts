@@ -210,7 +210,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return ''
         }
         const el = node as Element
-        if (el.namespaceURI === 'http://www.w3.org/2000/svg' && el.tagName.toLowerCase() === 'svg') {
+        if (el.tagName.toUpperCase() === 'SVG') {
             return svgTextName(el)
         }
         if (SKIP_TAGS.has(el.tagName.toUpperCase()) || isHidden(el)) {
