@@ -23,8 +23,9 @@ const isWindows = process.platform === 'win32'
  * - the npm_* / pnpm_* settings of the pnpm script (lowercase only: the NPM_CONFIG_* registry or proxy of the user stays)
  * - NODE_PATH of the pnpm bin shim: the project would find the packages of this repo
  * - the variables that Vitest sets
+ * Windows names ignore case: there, NPM_CONFIG_USER_AGENT and npm_config_user_agent are one variable
  */
-const NOT_A_USER_ENV = /^(npm_|pnpm_|VITEST|(PNPM_SCRIPT_SRC_DIR|NODE_PATH|NODE_ENV|FORCE_TTY|TEST|MODE|DEV|PROD|SSR|BASE_URL)$)/
+const NOT_A_USER_ENV = new RegExp(String.raw`^(npm_|pnpm_|VITEST|(PNPM_SCRIPT_SRC_DIR|NODE_PATH|NODE_ENV|FORCE_TTY|TEST|MODE|DEV|PROD|SSR|BASE_URL)$)`, isWindows ? 'i' : '')
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !NOT_A_USER_ENV.test(key)))
 
 interface Setup {
