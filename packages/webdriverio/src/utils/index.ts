@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement, isStaleElementError } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -160,7 +160,17 @@ export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
     } else if (parsedValue.property === 'font-family') {
         const font = cssValue(cssPropertyValue)
         const string = parsedValue.value
-        const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+        const families = ['']
+
+        for (const token of font) {
+            if (token.type === 'comma') {
+                families.push('')
+            } else {
+                families[families.length - 1] += `${token.string} `
+            }
+        }
+
+        const value = families.map(sanitizeCSS)
 
         parsedValue.value = sanitizeCSS(font[0].value as string || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
@@ -264,28 +274,6 @@ export function isElement(o: Selector) {
         typeof HTMLElement === 'object'
             ? o instanceof HTMLElement
             : o && typeof o === 'object' && o !== null && (o as HTMLElement).nodeType === 1 && typeof (o as HTMLElement).nodeName === 'string'
-    )
-}
-
-export function isStaleElementError(err: Error) {
-    return (
-        // Chrome
-        err.message.includes('stale element reference') ||
-        // Firefox
-        err.message.includes('is no longer attached to the DOM') ||
-        // Safari
-        err.message.toLowerCase().includes('stale element found') ||
-        // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame') ||
-        // BIDI
-        err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference') ||
-        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
-        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
-        /no such node - SharedId ".*" was not found/.test(err.message) ||
-        // BIDI, Chrome: a node of the previous document, when the command waited for a navigation
-        // that the page started (e.g. a form submit)
-        err.message.includes('Node with given id does not belong to the document')
     )
 }
 

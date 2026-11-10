@@ -514,7 +514,13 @@ describe('click', () => {
     })
 
     it('treats every driver\'s stale element error the same', async () => {
-        for (const message of ['is no longer attached to the DOM', 'SharedId "f.1" belongs to different document', 'no such node - The node with the reference f.1 is not known']) {
+        for (const message of [
+            'is no longer attached to the DOM',
+            'SharedId "f.1" belongs to different document',
+            'no such node - The node with the reference f.1 is not known',
+            'no such node - SharedId "f.1.d.2.e.3" was not found.',
+            'unknown error - Node with given id does not belong to the document'
+        ]) {
             const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error(message) } }
             await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
         }
