@@ -1,5 +1,4 @@
 import process from 'node:process'
-import { hostname } from 'node:os'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
@@ -29,7 +28,7 @@ import {
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
-import { getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
+import { getEnvironmentLabels, getHostLabel, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { LinkingFileSystemWriter } from './writer.js'
@@ -143,7 +142,8 @@ function hostAndEnvironmentLabels() {
     if (environmentLabels.some((label) => label.name === LabelName.HOST)) {
         return environmentLabels
     }
-    return [{ name: LabelName.HOST, value: hostname() }, ...environmentLabels]
+    // ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
+    return [getHostLabel(), ...environmentLabels]
 }
 
 export default class AllureReporter extends WDIOReporter {
