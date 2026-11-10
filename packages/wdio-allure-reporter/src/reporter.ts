@@ -29,7 +29,7 @@ import {
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
-import { getEnvironmentLabels, getHostLabel, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
+import { getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { LinkingFileSystemWriter } from './writer.js'
@@ -148,10 +148,9 @@ function withDefaultHost(labels: Label[]): Label[] {
     if (withoutEmptyHosts.some((label) => label.name === LabelName.HOST)) {
         return withoutEmptyHosts
     }
-    // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME or the machine name
-    const defaultHost = getEnvironmentLabels().find((label) => label.name === LabelName.HOST && label.value)?.value
-        || getHostLabel().value
-        || hostname()
+    // ALLURE_LABEL_host, so skipped and failed hook results get it too, else ALLURE_HOST_NAME
+    // (as in the other Allure JS reporters) or the machine name
+    const defaultHost = process.env.ALLURE_LABEL_host || process.env.ALLURE_HOST_NAME || hostname()
     return [...withoutEmptyHosts, { name: LabelName.HOST, value: defaultHost }]
 }
 

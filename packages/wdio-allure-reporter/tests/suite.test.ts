@@ -1025,6 +1025,7 @@ describe('Host label', () => {
     afterEach(() => {
         // keep the file-level stubs: unstubAllEnvs would bring back the host variables of the shell
         vi.stubEnv('ALLURE_LABEL_host', undefined)
+        vi.stubEnv('ALLURE_HOST_NAME', undefined)
         clean(outputDir)
     })
 
@@ -1093,38 +1094,24 @@ describe('Host label', () => {
         })).toEqual([{ name: LabelName.HOST, value: 'grid-node-3' }])
     })
 
-    it('gives ALLURE_LABEL_host set after the reporter starts to the result of a failed hook', async () => {
-        const reporter = new AllureReporter({ outputDir })
-        vi.stubEnv('ALLURE_LABEL_host', 'shard-2')
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onHookStart(hookStart())
-        reporter.onHookEnd(hookFailed())
-        reporter.onSuiteEnd(suiteEnd())
-        await reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: 'shard-2' }])
-    })
-
     it('keeps only ALLURE_LABEL_host when it is set after the reporter starts', async () => {
         expect(await hostsOfOnePassingTest({}, {
             beforeTest: () => vi.stubEnv('ALLURE_LABEL_host', 'shard-2')
         })).toEqual([{ name: LabelName.HOST, value: 'shard-2' }])
     })
 
-    it('gives ALLURE_LABEL_host to the result of a failed "before all" hook', async () => {
-        vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1')
-        const reporter = new AllureReporter({ outputDir })
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onHookStart(hookStart())
-        reporter.onHookEnd(hookFailed())
-        reporter.onSuiteEnd(suiteEnd())
-        await reporter.onRunnerEnd(runnerEnd())
+    it('keeps a configured host and the host that the test sets, as on main', async () => {
+        expect(await hostsOfOnePassingTest({ globalLabels: { host: 'ci-agent-2' } }, {
+            duringTest: (reporter) => reporter.addLabel({ name: LabelName.HOST, value: 'grid-node-3' })
+        })).toEqual([{ name: LabelName.HOST, value: 'ci-agent-2' }, { name: LabelName.HOST, value: 'grid-node-3' }])
+    })
 
-        const { results } = getResults(outputDir)
-        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: 'ci-agent-1' }])
+    it.each([
+        ['build-agent-7', 'build-agent-7'],
+        ['', hostname()]
+    ])('takes the default host from ALLURE_HOST_NAME "%s"', async (hostName, expected) => {
+        vi.stubEnv('ALLURE_HOST_NAME', hostName)
+        expect(await hostsOfOnePassingTest({})).toEqual([{ name: LabelName.HOST, value: expected }])
     })
 
     it('adds the default host when the host of globalLabels has no value', async () => {
@@ -1145,8 +1132,14 @@ describe('Host label', () => {
         expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
     })
 
-    it('adds the default host to the result of a failed "before all" hook', async () => {
+    it.each([
+        ['the machine name', () => {}, () => {}, hostname()],
+        ['ALLURE_LABEL_host', () => vi.stubEnv('ALLURE_LABEL_host', 'ci-agent-1'), () => {}, 'ci-agent-1'],
+        ['ALLURE_LABEL_host set after the reporter starts', () => {}, () => vi.stubEnv('ALLURE_LABEL_host', 'shard-2'), 'shard-2']
+    ])('gives %s to the result of a failed "before all" hook', async (_, beforeReporter, afterReporter, expected) => {
+        beforeReporter()
         const reporter = new AllureReporter({ outputDir })
+        afterReporter()
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onHookStart(hookStart())
@@ -1156,7 +1149,7 @@ describe('Host label', () => {
 
         const { results } = getResults(outputDir)
         expect(results[0].status).toEqual(Status.BROKEN)
-        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
+        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: expected }])
     })
 })
 
