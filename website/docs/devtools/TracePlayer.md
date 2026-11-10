@@ -48,7 +48,7 @@ npx show-trace a/trace.zip b/trace.zip           # several zips
 
 ### Opening a trace someone else recorded
 
-A replayed trace runs no script. The page a trace recorded is rendered in a sandboxed frame, and its scripts, inline event handlers, `srcdoc` and `javascript:` URLs are dropped on every update, in `show-trace` and the live dashboard alike, so a trace from someone else can be opened safely. The replayed page still loads its own stylesheets and images from the site under test.
+A replayed trace runs no script. The page a trace recorded is rendered in a sandboxed frame, and its scripts, inline event handlers, `srcdoc` and `javascript:` URLs are dropped on every update, in `show-trace` and the live dashboard alike, so a trace from someone else can be opened safely. Its stylesheets and fonts replay from the trace when it stored them (`traceResources`, on by default); its images, and stylesheets a trace did not store, still load from the site under test.
 
 Opening a trace is still opening a recording of that run: it holds everything the run showed or typed (see [Trace Mode Limitations](/docs/devtools/limitations)).
 
