@@ -1052,6 +1052,38 @@ describe('Host label', () => {
     ])('keeps a host label set through globalLabels as %s', async (_, globalLabels) => {
         expect(await hostsOfOnePassingTest({ globalLabels })).toEqual([{ name: LabelName.HOST, value: 'ci-agent-2' }])
     })
+
+    it('adds the default host when the host of globalLabels has no value', async () => {
+        expect(await hostsOfOnePassingTest({ globalLabels: { host: undefined as unknown as string, team: 'qa' } }))
+            .toEqual([{ name: LabelName.HOST, value: hostname() }])
+    })
+
+    it('adds the default host to a skipped test that did not start', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results[0].status).toEqual(Status.SKIPPED)
+        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
+    })
+
+    it('adds the default host to the result of a failed "before all" hook', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(mapBy<Label>(results[0].labels, 'name')[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
+    })
 })
 
 const assertionResults: any = {

@@ -137,17 +137,25 @@ function splitTitlePathPart(part?: string): string[] {
         .filter(Boolean)
 }
 
-function hostAndEnvironmentLabels(globalLabels: AllureReporterOptions['globalLabels']) {
-    const environmentLabels = getEnvironmentLabels()
+/**
+ * The Allure timeline groups the results by host. The runtime adds the global labels to
+ * every result, so skipped and failed hook results get the default host too.
+ */
+function withDefaultHost(globalLabels: AllureReporterOptions['globalLabels']): AllureReporterOptions['globalLabels'] {
     // a host from ALLURE_LABEL_host or the globalLabels option replaces the default one
-    const globalHost = Array.isArray(globalLabels)
-        ? globalLabels.some((label) => label.name === LabelName.HOST)
-        : Boolean(globalLabels && LabelName.HOST in globalLabels)
-    if (globalHost || environmentLabels.some((label) => label.name === LabelName.HOST)) {
-        return environmentLabels
+    if (getEnvironmentLabels().some((label) => label.name === LabelName.HOST)) {
+        return globalLabels
     }
     // ALLURE_HOST_NAME or the machine name, as in the other Allure JS reporters
-    return [getHostLabel(), ...environmentLabels]
+    const host = getHostLabel()
+    if (Array.isArray(globalLabels)) {
+        return globalLabels.some((label) => label.name === LabelName.HOST) ? globalLabels : [...globalLabels, host]
+    }
+    const value = globalLabels?.[LabelName.HOST]
+    if (Array.isArray(value) ? value.length > 0 : value) {
+        return globalLabels
+    }
+    return { ...globalLabels, [LabelName.HOST]: host.value }
 }
 
 export default class AllureReporter extends WDIOReporter {
@@ -214,6 +222,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._allureRuntime = new ReporterRuntime({
             ...rest,
+            globalLabels: withDefaultHost(rest.globalLabels),
             links,
             environmentInfo: options.reportedEnvironmentVars,
             writer: new LinkingFileSystemWriter(resolveResultsDir(options)),
@@ -695,7 +704,7 @@ export default class AllureReporter extends WDIOReporter {
                     { name: LabelName.LANGUAGE, value: 'javascript' },
                     { name: LabelName.FRAMEWORK, value: 'wdio' },
                     { name: LabelName.THREAD, value: cid },
-                    ...hostAndEnvironmentLabels(this._options.globalLabels),
+                    ...getEnvironmentLabels(),
                 ]
                 this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
 
@@ -1078,7 +1087,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...hostAndEnvironmentLabels(this._options.globalLabels),
+            ...getEnvironmentLabels(),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }
@@ -1418,7 +1427,7 @@ export default class AllureReporter extends WDIOReporter {
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
-            ...hostAndEnvironmentLabels(this._options.globalLabels),
+            ...getEnvironmentLabels(),
         ]
         this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
     }
