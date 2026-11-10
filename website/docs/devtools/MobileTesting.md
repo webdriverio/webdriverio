@@ -38,18 +38,21 @@ All four adapters detect a native session and skip page-side capture on one. The
 | Mobile browser sessions (Chrome on Android, Safari on iOS) | ✓ | ✓ | ✓ | ✓ |
 | iOS (XCUITest): native apps and Safari | ✓ | ✓ | ✓ | ✓ |
 | Native session detected, page-side capture skipped | ✓ | ✓ | ✓ | ✓ |
-| Follows a hybrid app into its webview | ◐ ² | ◐ ³ | ◐ ³ | ◐ ³ |
-| Native app network through appium-interceptor (`appium:intercept`) | ✓ ⁴ | ✓ ⁴ | ✓ ⁴ | ✓ ⁴ |
+| Native app element list and accessibility tree per action (trace mode) | ✓ | ✓ | ✓ | ✕ ² |
+| Follows a hybrid app into its webview | ◐ ³ | ◐ ⁴ | ◐ ⁴ | ◐ ⁴ |
+| Native app network through appium-interceptor (`appium:intercept`) | ✓ ⁵ | ✓ ⁵ | ✓ ⁵ | ✓ ⁵ |
 
 ✓ supported. ◐ partial. ✕ not supported. A number points to its note below the table. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
-² Follows `switchContext('WEBVIEW_...')`; the object form (`{ title }` / `{ url }`) and `switchAppiumContext` leave capture on the native side.
+² On a native app the Python adapter takes only a screenshot per action; it reads no page source, so the trace has no element list or accessibility tree.
 
-³ Decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native.
+³ Follows `switchContext('WEBVIEW_...')`; the object form (`{ title }` / `{ url }`) and `switchAppiumContext` leave capture on the native side.
 
-⁴ Android only; appium-interceptor is an Android plugin.
+⁴ Decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native.
+
+⁵ Android only; appium-interceptor is an Android plugin.
 
 <!-- capability-matrix:mobile:end -->
 
@@ -59,7 +62,7 @@ The **device itself** needs no adapter support: it is derived from the session's
 
 A phone capture is framed as the device: a full-height device column with the action list and dock beside it, in **both** live mode and the [trace player](/docs/devtools/trace-player). The trace's `context-options` records the platform, model and OS version, read back on open so the player labels frames without guessing.
 
-On a native session the A11y tab and element data come from the platform's XML tree rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML.
+On a native session the A11y tab and element data come from the platform's XML tree (its page source, read once per action in trace mode by the WebdriverIO, Selenium and Nightwatch adapters; the Python adapter captures a screenshot alone) rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML. Reading the page source is the costly part of a native capture (most of it on iOS); `DEVTOOLS_CAPTURE_TIMING=1` reports it as the `pageSource` probe (see [Measuring capture cost](/docs/devtools/wdio/trace-mode#measuring-capture-cost)).
 
 ## Native app network
 

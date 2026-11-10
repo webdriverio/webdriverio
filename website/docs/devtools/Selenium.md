@@ -362,7 +362,7 @@ A failed row carries a second button beside Rerun. It snapshots the attempt, rer
 | `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
 | `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity). |
 | `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'`. |
-| `filmstrip` | `boolean` | `true` | Record a dense, continuous screencast into the trace for frame-by-frame scrubbing in the player. Only applies when `mode: 'trace'`. |
+| `filmstrip` | `boolean` | `true` | Record a dense, continuous screencast into the trace for frame-by-frame scrubbing in the player. Only applies when `mode: 'trace'`. The polling recorder skips a tick while a command or a per-action capture holds the driver (once the newest frame is three intervals old it polls anyway, so the longest gap is about three intervals plus one screenshot; never during a click, typing or a capture), and keeps each per-action capture's screenshot as a frame, so its polls do not queue in front of the test. |
 | `traceResources` | `'styles' \| 'none'` | `'styles'` | Store the stylesheets and fonts the pages used, so the player replays them from the archive rather than the site; `'none'` stores nothing. Images always replay from the site. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources). |
 | `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screenshot, attached inline to Allure (`image/png`) via `allure-js-commons` when an Allure runner adapter is active. |
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
@@ -487,13 +487,17 @@ The archive lands in `test-results/` beside the test file the first captured com
 
 **No dashboard window opens.** The artifact is the output, and a live run blocks on the window until you close it - a window would turn writing a file into an interactive session. The backend still starts, because it is what *builds* the archive: the trace transforms are TypeScript, so a Python run asks the backend for them rather than shipping a second copy of them. That is the one way this differs from the Node.js adapter's backend-free trace mode, and the reason [Node.js 22.23.4+, 24.22.1+ or 26.12.1+ is required in every mode](#configuration-options).
 
-Beyond the command rows, per-command screenshots and selectors, console and network that both modes capture, the archive carries:
+Trace mode captures the page (a screenshot, plus the A11y tree on a page) only after a command that can change it, as the Node.js adapter does. A read, wait or lookup (`find_element`, `.text`, `is_displayed()`, `is_enabled()`, `current_url`, `title`, `get_attribute`, ...) takes no screenshot, and its row shows the capture of the last command that took one. A command the adapter does not know to be a read is captured, so a script or an `actions` chain that moves the page is. Each test's first command with a row in the trace is captured even when it reads, so a test that opens with reads has a frame, and when reads follow a test's last capture, the test's end takes one more, stamped at that capture and replacing it. On a native app the capture is the screenshot alone.
+
+Without a pushed screencast (a native app, Safari, Firefox) the filmstrip is built from these screenshots, so a command that takes no capture can still take one for the filmstrip alone, with no row screenshot and no A11y tree: every command a `WebDriverWait` issues that returns (a poll that raises, such as `NoSuchElementException`, takes none), and any other read once 200 ms (the Node.js adapter's poll interval) have passed since the last frame. The end-of-test capture is a frame too, so the filmstrip ends where the test did.
+
+Beyond the command rows, screenshots and selectors, console and network described above, the archive carries:
 
 | In the archive | Default | Opt out |
 |---|---|---|
 | DOM time-travel - the mutation stream the player replays step by step | on | - |
 | Dense filmstrip - the screencast frames, carried into the trace instead of a `.webm` | on | `DEVTOOLS_FILMSTRIP=0` |
-| A11y tree and element overlay - read beside each action, at two extra round trips per command | on | `DEVTOOLS_A11Y=0` |
+| A11y tree and element overlay - read beside each captured command, at two extra round trips each | on | `DEVTOOLS_A11Y=0` |
 
 Trace mode encodes no `.webm`, so it needs no `ffmpeg` - the frames *are* the filmstrip.
 
@@ -690,7 +694,7 @@ DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, m
 
 In Python the run's own output also reaches the Console tab: Python `logging` records (selenium's and the adapter's) and the test's `print()` output, which is teed so your terminal still shows it.
 
-In Python screencast needs no configuration: Chrome streams frames over CDP, other browsers fall back to one screenshot per command, and encoding the `.webm` needs `ffmpeg` on `PATH`. In trace mode the same frames become the archive's dense filmstrip instead of a `.webm`, so nothing is encoded and `ffmpeg` is not needed.
+In Python screencast needs no configuration: Chrome streams frames over CDP, other browsers fall back to each command's screenshot, and encoding the `.webm` needs `ffmpeg` on `PATH`. In trace mode the same frames become the archive's dense filmstrip instead of a `.webm`, so nothing is encoded and `ffmpeg` is not needed; without a pushed stream that filmstrip is built from the captured commands' screenshots plus wait polls and reads at most every 200 ms (see [Trace mode](#trace-mode)).
 
 ## How It Works
 
@@ -728,7 +732,7 @@ The **DOM mutation stream** comes from the same browser-side collector as Node.j
 
 ## Mobile (Appium)
 
-Appium sessions are captured in live and trace mode, in both languages. A mobile-browser session is captured like a desktop one; a native app gets commands, screenshots and element data from the platform's XML tree, with no DOM. This adapter decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native (only the WebdriverIO service follows context switches).
+Appium sessions are captured in live and trace mode, in both languages. A mobile-browser session is captured like a desktop one; a native app gets commands, screenshots and element data from the platform's XML tree, with no DOM: in trace mode the Node.js adapter builds each action's element list and accessibility tree from the app's page source, read beside its screenshot, which on iOS is most of the capture's cost. The Python adapter reads no page source, so its native traces carry a screenshot per action and no element list or accessibility tree. This adapter decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native (only the WebdriverIO service follows context switches).
 
 Try it with `pnpm demo:selenium:mobile` (Node.js) or `pnpm demo:python:mobile` (Python), run from the root of a built checkout of the devtools repo (setup steps in [Running an example](/docs/devtools/mobile#running-an-example)). `DEVTOOLS_MOBILE_PLATFORM=ios` runs the iOS spec, and `DEVTOOLS_MOBILE=web` drives the device's own browser. Prerequisites are in [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md); see the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference. A native app's network is captured when the session sets `appium:intercept: true` and Appium runs the appium-interceptor plugin; see [Native app network](/docs/devtools/mobile#native-app-network).
 
