@@ -910,7 +910,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const info = accessibleNameInfo(el, role)
         const drift = nameDrift(el, info)
         const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
-        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
+        const ownName = Boolean(name) && info.name === name
+        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && ownName && roleNameCount(role, name) === 1) {
             out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
         if (name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
