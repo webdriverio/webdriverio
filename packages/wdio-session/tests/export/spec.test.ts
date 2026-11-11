@@ -90,6 +90,23 @@ describe('generateSpec', () => {
         expect(results).toEqual(['local'])
     })
 
+    it('keeps the steps flat when a step assigns $$ and no step declares its own', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: 'const saved = $$; $$ = (...args) => saved(...args)' }),
+            step({ kind: 'exec', code: "await $$('a')" })
+        ], { title: 'wrap' })
+        expect(spec.contents).toContain('        var $$ = __wdioDollarDollar\n\n        const saved = $$;')
+        expect(spec.contents).toContain("\n        await $$('a')")
+    })
+
+    it('puts the steps in a block when a step declares its own $$', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "await $$('a')" }),
+            step({ kind: 'exec', code: 'let $$ = () => [1]; $$ = () => [2]' })
+        ], { title: 'local' })
+        expect(spec.contents).toContain("        var $$ = __wdioDollarDollar\n\n        {\n            await $$('a')")
+    })
+
     it.each([
         "await browser.$$('a')",
         "await $('ul').$$('li')",

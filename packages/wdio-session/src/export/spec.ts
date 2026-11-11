@@ -216,32 +216,31 @@ interface SelectorEdit {
 }
 
 /**
- * Names that an assignment target writes: `$$`, `[$$]`, `{ key: $$ }`, `$$ = fallback`, `...$$`.
+ * Whether an assignment target writes `name`: `name`, `[name]`, `{ key: name }`, `name = fallback`, `...name`.
  * A member such as `el.$$` writes a property, not a binding.
  */
-function targetNames (node: ProgramNode | undefined | null, names: string[] = []) {
+function writes (node: ProgramNode | undefined | null, name: string): boolean {
     if (!node) {
-        return names
+        return false
     }
-    if (node.type === 'Identifier') {
-        names.push(node.name as string)
-    } else if (node.type === 'ArrayPattern') {
-        for (const element of node.elements as (ProgramNode | null)[]) {
-            targetNames(element, names)
-        }
-    } else if (node.type === 'ObjectPattern') {
-        for (const property of node.properties as ProgramNode[]) {
-            targetNames((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, names)
-        }
-    } else if (node.type === 'AssignmentPattern') {
-        targetNames(node.left as ProgramNode, names)
-    } else if (node.type === 'RestElement') {
-        targetNames(node.argument as ProgramNode, names)
+    switch (node.type) {
+    case 'Identifier':
+        return node.name === name
+    case 'ArrayPattern':
+        return (node.elements as (ProgramNode | null)[]).some((element) => writes(element, name))
+    case 'ObjectPattern':
+        return (node.properties as ProgramNode[]).some((property) => writes((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, name))
+    case 'AssignmentPattern':
+        return writes(node.left as ProgramNode, name)
+    case 'RestElement':
+        return writes(node.argument as ProgramNode, name)
+    default:
+        return false
     }
-    return names
 }
 
 const DOLLAR_DOLLAR_TEXT = /(?<![\w$.])\$\$(?![\w$])/
+const DOLLAR_DOLLAR_DECLARE_TEXT = /\b(?:let|const|class)\s+\$\$(?![\w$])/
 const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)\s*\$\$(?![\w$])/
 
 function selectorEdits (code: string) {
@@ -255,9 +254,15 @@ function selectorEdits (code: string) {
             edits,
             needsDollar: /(?<!\$)\$\(/.test(code),
             needsDollarDollar: DOLLAR_DOLLAR_TEXT.test(code),
-            assignsDollarDollar: DOLLAR_DOLLAR_ASSIGN_TEXT.test(code)
+            assignsDollarDollar: DOLLAR_DOLLAR_ASSIGN_TEXT.test(code),
+            declaresDollarDollar: DOLLAR_DOLLAR_DECLARE_TEXT.test(code)
         }
     }
+    // a top-level `let $$`, `const $$` or `class $$` of a step would clash with the `var $$` copy
+    const declaresDollarDollar = (ast.body || []).some((node) => (
+        (node.type === 'VariableDeclaration' && node.kind !== 'var' && (node.declarations as ProgramNode[]).some((declarator) => writes(declarator.id as ProgramNode, '$$'))) ||
+        (node.type === 'ClassDeclaration' && (node.id as ProgramNode | undefined)?.name === '$$')
+    ))
     // a key or a member name is not a reference to the global
     const names = new Set<unknown>()
     walk(ast, (node) => {
@@ -278,7 +283,7 @@ function selectorEdits (code: string) {
                 : (node.type === 'ForOfStatement' || node.type === 'ForInStatement') && (node.left as ProgramNode).type !== 'VariableDeclaration'
                     ? node.left
                     : undefined
-        if (target && targetNames(target as ProgramNode).includes('$$')) {
+        if (writes(target as ProgramNode | undefined, '$$')) {
             assignsDollarDollar = true
         }
         if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || node.callee.name !== '$') {
@@ -291,7 +296,7 @@ function selectorEdits (code: string) {
         }
         edits.push({ start: node.start, end: node.end, selector: arg.value })
     })
-    return { edits, needsDollar, needsDollarDollar, assignsDollarDollar }
+    return { edits, needsDollar, needsDollarDollar, assignsDollarDollar, declaresDollarDollar }
 }
 
 export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): GeneratedFile[] {
@@ -311,6 +316,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     let needsDollar = false
     let needsDollarDollar = false
     let assignsDollarDollar = false
+    let declaresDollarDollar = false
     const rendered = steps.map((entry) => {
         let code = entry.kind === 'marker'
             ? entry.code.split('\n').map((line) => line.startsWith('//') ? line : `// ${line}`).join('\n')
@@ -318,19 +324,18 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         if (entry.kind === 'open') {
             code = relativizeUrl(code, base)
         }
-        if (entry.kind !== 'marker') {
-            const split = splitImports(code, opts.cwd, opts.outDir)
-            hoisted.push(...split.imports)
-            split.locals.forEach((name) => imported.add(name))
-            code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
-        }
         if (entry.kind === 'marker') {
             return code
         }
+        const split = splitImports(code, opts.cwd, opts.outDir)
+        hoisted.push(...split.imports)
+        split.locals.forEach((name) => imported.add(name))
+        code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
         const found = selectorEdits(code)
         needsDollar = needsDollar || found.needsDollar
         needsDollarDollar = needsDollarDollar || found.needsDollarDollar
         assignsDollarDollar = assignsDollarDollar || found.assignsDollarDollar
+        declaresDollarDollar = declaresDollarDollar || found.declaresDollarDollar
         if (!opts.pageObjects) {
             return code
         }
@@ -379,10 +384,11 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         ...pages.map((page) => `import ${page}Page from './pageobjects/${page}.page.ts'`)
     ]
     const instances = pages.map((page) => `const ${pageInstanceName(page)} = new ${page}Page()`)
-    // the block keeps a step's own `let $$` or `const $$` from clashing with the `var $$`
+    // a block keeps a step's own `let $$` or `const $$` from clashing with the `var $$` copy
     const body = [
         ...instances,
-        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias}`, `{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
+        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias}`] : []),
+        ...(mutableDollarDollar && declaresDollarDollar ? [`{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
     ].filter(Boolean)
     const title = opts.title.replace(/'/g, "\\'")
     const spec = [
