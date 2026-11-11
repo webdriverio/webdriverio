@@ -405,6 +405,31 @@ describe('install', () => {
         }
     })
 
+    it('installPackages shows the Yarn errors from stdout', async () => {
+        vi.stubEnv('npm_config_user_agent', 'yarn/4.18.1 npm/? node/v24.22.1 darwin arm64')
+        // real Yarn 4 output: it writes its errors to stdout
+        vi.mocked(execa).mockResolvedValueOnce({ exitCode: 1, stderr: '', stdout: [
+            '➤ YN0000: · Yarn 4.18.1',
+            '➤ YN0000: ┌ Resolution step',
+            '➤ YN0002: │ ycodes@workspace:. doesn\'t provide webdriverio (p8c1d2), requested by @wdio/globals.',
+            '➤ YN0027: @wdio/cli@does-not-exist can\'t be resolved to a satisfying range',
+            '➤ YN0016: Registry failed to return tag "does-not-exist"',
+            '➤ YN0000: └ Completed in 0s 512ms',
+            '➤ YN0000: · Failed with errors in 0s 516ms'
+        ].join('\n') } as any)
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            expect(await installPackages('/foo/bar', ['@wdio/cli@does-not-exist'], true)).toBe(false)
+            const message = consoleError.mock.calls.flat().join('\n')
+            expect(message).toContain('YN0027: @wdio/cli@does-not-exist can\'t be resolved to a satisfying range')
+            expect(message).toContain('YN0016: Registry failed to return tag "does-not-exist"')
+            expect(message).not.toContain('YN0000')
+            expect(message).not.toContain('YN0002')
+        } finally {
+            consoleError.mockRestore()
+        }
+    })
+
     it('installPackages shows the output while it runs and keeps it for the error', async () => {
         vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
         await installPackages('/foo/bar', ['foo'], true)
