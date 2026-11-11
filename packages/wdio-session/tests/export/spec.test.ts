@@ -95,8 +95,25 @@ describe('generateSpec', () => {
             step({ kind: 'exec', code: 'const saved = $$; $$ = (...args) => saved(...args)' }),
             step({ kind: 'exec', code: "await $$('a')" })
         ], { title: 'wrap' })
-        expect(spec.contents).toContain('        var $$ = __wdioDollarDollar\n\n        const saved = $$;')
+        expect(spec.contents).toContain('        var $$ = __wdioDollarDollar;\n\n        const saved = $$;')
         expect(spec.contents).toContain("\n        await $$('a')")
+    })
+
+    it('ends the $$ copy, so a first step that starts with ( is not a call', async () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "(await $$('a')).forEach((n) => results.push(n))" }),
+            step({ kind: 'exec', code: '$$ = () => []' })
+        ], { title: 'paren' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, $$: async () => [1, 2], expect: () => {} })
+        expect(results).toEqual([1, 2])
+    })
+
+    it('puts the steps in a block when a TypeScript step that cannot be stripped assigns $$', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: 'const { $$ } = <any>{ $$: () => [] }' }),
+            step({ kind: 'exec', code: '$$ = () => [1]' })
+        ], { title: 'fallback' })
+        expect(spec.contents).toContain('        {\n            const { $$ } = <any>')
     })
 
     it('puts the steps in a block when a step declares its own $$', () => {
@@ -104,7 +121,7 @@ describe('generateSpec', () => {
             step({ kind: 'exec', code: "await $$('a')" }),
             step({ kind: 'exec', code: 'let $$ = () => [1]; $$ = () => [2]' })
         ], { title: 'local' })
-        expect(spec.contents).toContain("        var $$ = __wdioDollarDollar\n\n        {\n            await $$('a')")
+        expect(spec.contents).toContain("        var $$ = __wdioDollarDollar;\n\n        {\n            await $$('a')")
     })
 
     it.each([

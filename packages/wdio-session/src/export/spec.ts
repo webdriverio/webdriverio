@@ -4,7 +4,7 @@ import * as acorn from 'acorn'
 
 import type { HistoryEntry } from '../types.js'
 import { SessionError } from '../errors.js'
-import { stripTypes } from '../exec/transform.js'
+import { PARSE_OPTIONS, stripTypes } from '../exec/transform.js'
 
 export interface ExportOptions {
     title: string
@@ -118,12 +118,7 @@ interface ProgramNode {
 
 function parseProgram (code: string): ProgramNode | undefined {
     try {
-        return acorn.parse(code, {
-            ecmaVersion: 'latest',
-            sourceType: 'module',
-            allowAwaitOutsideFunction: true,
-            allowReturnOutsideFunction: true
-        }) as unknown as ProgramNode
+        return acorn.parse(code, PARSE_OPTIONS) as unknown as ProgramNode
     } catch {
         return undefined
     }
@@ -240,7 +235,6 @@ function writes (node: ProgramNode | undefined | null, name: string): boolean {
 }
 
 const DOLLAR_DOLLAR_TEXT = /(?<![\w$.])\$\$(?![\w$])/
-const DOLLAR_DOLLAR_DECLARE_TEXT = /\b(?:let|const|class)\s+\$\$(?![\w$])/
 const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)\s*\$\$(?![\w$])/
 
 function selectorEdits (code: string) {
@@ -255,7 +249,8 @@ function selectorEdits (code: string) {
             needsDollar: /(?<!\$)\$\(/.test(code),
             needsDollarDollar: DOLLAR_DOLLAR_TEXT.test(code),
             assignsDollarDollar: DOLLAR_DOLLAR_ASSIGN_TEXT.test(code),
-            declaresDollarDollar: DOLLAR_DOLLAR_DECLARE_TEXT.test(code)
+            // the text cannot show every declaration form, so the steps get the block
+            declaresDollarDollar: true
         }
     }
     // a top-level `let $$`, `const $$` or `class $$` of a step would clash with the `var $$` copy
@@ -387,7 +382,8 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     // a block keeps a step's own `let $$` or `const $$` from clashing with the `var $$` copy
     const body = [
         ...instances,
-        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias}`] : []),
+        // the semicolon stops a first step that starts with `(` or `[` from continuing this line
+        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias};`] : []),
         ...(mutableDollarDollar && declaresDollarDollar ? [`{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
     ].filter(Boolean)
     const title = opts.title.replace(/'/g, "\\'")
