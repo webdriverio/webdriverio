@@ -26,7 +26,7 @@ export interface TransformResult {
     readOnly: boolean
 }
 
-const PARSE_OPTIONS = {
+export const PARSE_OPTIONS = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     allowAwaitOutsideFunction: true,
