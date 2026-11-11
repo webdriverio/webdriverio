@@ -10,26 +10,35 @@ const SETTING = /^strictDepBuilds\s*:/m
 
 const exists = (file: string) => fs.access(file).then(() => true, () => false)
 
+// pnpm 10 and older only warn about build scripts, and pnpm 9 rejects a pnpm-workspace.yaml without `packages`
+const FIRST_STRICT_MAJOR = 11
+
+function pnpmMajor () {
+    const version = process.env.npm_config_user_agent?.match(/^pnpm\/(\d+)\./)
+    return version ? Number(version[1]) : undefined
+}
+
 /**
  * pnpm 11 and later fail the install on blocked build scripts. No package that the wizard
  * installs needs its build script, so save `strictDepBuilds: false` in the project: a later
  * `pnpm install` needs it too. A pnpm workspace in a parent folder keeps its own settings.
  */
-export async function savePnpmBuildSetting (root: string): Promise<'written' | 'kept' | 'parent-workspace'> {
+export async function savePnpmBuildSetting (root: string): Promise<{ result: 'written' | 'kept' | 'parent-workspace', file: string }> {
     for (let dir = path.dirname(root); dir !== path.dirname(dir); dir = path.dirname(dir)) {
-        if (await exists(path.join(dir, WORKSPACE_FILE))) {
-            return 'parent-workspace'
+        const parentFile = path.join(dir, WORKSPACE_FILE)
+        if (await exists(parentFile)) {
+            return { result: 'parent-workspace', file: parentFile }
         }
     }
 
     const file = path.join(root, WORKSPACE_FILE)
     const content = await fs.readFile(file, 'utf8').catch(() => '')
     if (SETTING.test(content)) {
-        return 'kept'
+        return { result: 'kept', file }
     }
     const separator = content && !content.endsWith('\n') ? '\n' : ''
     await fs.writeFile(file, `${content}${separator}strictDepBuilds: false\n`)
-    return 'written'
+    return { result: 'written', file }
 }
 
 /**
@@ -37,13 +46,21 @@ export async function savePnpmBuildSetting (root: string): Promise<'written' | '
  * @returns the install flags of the package manager
  */
 export async function preparePnpmInstall (pm: PACKAGE_MANAGER, root: string): Promise<string[]> {
-    if (pm !== 'pnpm') {
+    const major = pnpmMajor()
+    if (pm !== 'pnpm' || (major !== undefined && major < FIRST_STRICT_MAJOR)) {
         return []
     }
-    const setting = await savePnpmBuildSetting(root)
-    if (setting === 'kept') {
+    const { result, file } = await savePnpmBuildSetting(root)
+    if (result === 'kept') {
         return []
     }
     console.log('pnpm will skip the build scripts of the installed packages: WebdriverIO does not need them.')
-    return setting === 'parent-workspace' ? [PNPM_SKIP_BUILDS_FLAG] : []
+    if (result === 'written') {
+        return []
+    }
+    console.log(
+        `A later \`pnpm install\` of the workspace needs \`strictDepBuilds: false\` in ${file}, ` +
+        'or run `pnpm approve-builds`.'
+    )
+    return [PNPM_SKIP_BUILDS_FLAG]
 }

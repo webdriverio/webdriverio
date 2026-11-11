@@ -16,19 +16,19 @@ describe('savePnpmBuildSetting', () => {
     const workspaceFile = () => path.join(tmpDir, 'pnpm-workspace.yaml')
 
     it('creates pnpm-workspace.yaml', async () => {
-        expect(await savePnpmBuildSetting(tmpDir)).toBe('written')
+        expect(await savePnpmBuildSetting(tmpDir)).toEqual({ result: 'written', file: workspaceFile() })
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('strictDepBuilds: false\n')
     })
 
     it('adds the line to an existing file', async () => {
         await fs.writeFile(workspaceFile(), 'overrides:\n  a: b')
-        expect(await savePnpmBuildSetting(tmpDir)).toBe('written')
+        expect(await savePnpmBuildSetting(tmpDir)).toEqual({ result: 'written', file: workspaceFile() })
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('overrides:\n  a: b\nstrictDepBuilds: false\n')
     })
 
     it('keeps the user value', async () => {
         await fs.writeFile(workspaceFile(), 'strictDepBuilds: true\n')
-        expect(await savePnpmBuildSetting(tmpDir)).toBe('kept')
+        expect(await savePnpmBuildSetting(tmpDir)).toEqual({ result: 'kept', file: workspaceFile() })
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('strictDepBuilds: true\n')
     })
 
@@ -36,7 +36,7 @@ describe('savePnpmBuildSetting', () => {
         await fs.writeFile(workspaceFile(), 'packages:\n  - app\n')
         const app = path.join(tmpDir, 'app')
         await fs.mkdir(app)
-        expect(await savePnpmBuildSetting(app)).toBe('parent-workspace')
+        expect(await savePnpmBuildSetting(app)).toEqual({ result: 'parent-workspace', file: workspaceFile() })
         await expect(fs.access(path.join(app, 'pnpm-workspace.yaml'))).rejects.toThrow()
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('packages:\n  - app\n')
     })
@@ -47,9 +47,11 @@ describe('preparePnpmInstall', () => {
     beforeEach(async () => {
         tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'create-wdio-pnpm-'))
         vi.spyOn(console, 'log').mockImplementation(() => {})
+        vi.stubEnv('npm_config_user_agent', 'pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64')
     })
     afterEach(async () => {
         vi.restoreAllMocks()
+        vi.unstubAllEnvs()
         await fs.rm(tmpDir, { recursive: true, force: true })
     })
     const logged = () => vi.mocked(console.log).mock.calls.flat().join('\n')
@@ -79,5 +81,17 @@ describe('preparePnpmInstall', () => {
         expect(PNPM_SKIP_BUILDS_FLAG).toBe('--config.strict-dep-builds=false')
         expect(await preparePnpmInstall('pnpm', app)).toEqual(['--config.strict-dep-builds=false'])
         expect(logged()).toContain('pnpm will skip the build scripts')
+        // a later `pnpm install` of the workspace fails on the new build scripts: tell the user what to do
+        expect(logged()).toContain(path.join(tmpDir, 'pnpm-workspace.yaml'))
+        expect(logged()).toContain('strictDepBuilds: false')
+        expect(logged()).toContain('pnpm approve-builds')
+    })
+
+    it.each(['9.15.9', '10.34.0'])('does nothing with pnpm %s, which does not fail on build scripts', async (version) => {
+        // pnpm 9 also rejects a pnpm-workspace.yaml without a `packages` field
+        vi.stubEnv('npm_config_user_agent', `pnpm/${version} npm/? node/v24.22.1 darwin arm64`)
+        expect(await preparePnpmInstall('pnpm', tmpDir)).toEqual([])
+        await expect(fs.access(path.join(tmpDir, 'pnpm-workspace.yaml'))).rejects.toThrow()
+        expect(logged()).toBe('')
     })
 })
