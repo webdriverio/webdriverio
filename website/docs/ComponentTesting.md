@@ -33,6 +33,8 @@ npm init wdio@latest ./
 yarn create wdio ./
 ```
 
+With Yarn 2 or later, add `nodeLinker: node-modules` to the `.yarnrc.yml` file of the project first: Plug'n'Play is not supported.
+
 Once the configuration wizard starts, pick `browser` for running unit and component testing and choose one of the presets if desired otherwise go with _"Other"_ if you only want to run basic unit tests. You can also configure a custom Vite configuration if you use Vite already in your project. For more information check out all [runner options](/docs/runner#runner-options).
 
 :::info

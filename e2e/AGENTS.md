@@ -21,6 +21,7 @@ pnpm run test:e2e:session      # @wdio/session (Chrome, Firefox, Electron)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (see test-chromedriver.yml)
 pnpm run test:e2e:create-wdio  # npm init wdio with the local wizard: web test + Appium installs (one setup: -t web|android|ios|macos)
+CREATE_WDIO_PM=pnpm pnpm run test:e2e:create-wdio  # the same with pnpm, yarn or bun (latest release; web + android)
 pnpm run test:e2e:cucumberjs-json-reporter # @wdio/cucumberjs-json-reporter in Chrome, with its multiple-cucumber-html-reporter report (local only)
 pnpm run test:e2e:video-reporter # @wdio/video-reporter + Allure in Chrome; needs ffmpeg on PATH (also in the CI testrunner lane)
 pnpm run test:e2e:video-reporter-parallel # the same in Mocha and Cucumber parallel mode: one video per test, no frame of another test
@@ -44,7 +45,7 @@ diff.
 - `packages/wdio-session` + `e2e/session` → session e2e (ubuntu, parallel with component)
 - `packages/wdio-display-server`, `wdio-local-runner`, `e2e/wdio/display-server` → display-server
 - Chromedriver setup in `packages/wdio-utils` (`utils.ts`, `electronChromedriverProvider.ts`, `startWebDriver.ts`, `manager.ts`, `package.json`) + `e2e/wdio/chromedriver` → Chromedriver (Linux ARM64, macOS, Windows)
-- `packages/create-wdio` + `e2e/create-wdio` → create-wdio (Ubuntu, Windows, macOS)
+- `packages/create-wdio` + `e2e/create-wdio` → create-wdio (Ubuntu, Windows, macOS; npm, pnpm, Yarn and Bun)
 - most other `packages/**` / `e2e/**` → core e2e + unit + smoke
 
 Match that locally. A reporter-only change does not need this folder, except the

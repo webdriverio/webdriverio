@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import { vi, test, expect, beforeEach, afterEach, describe, it } from 'vitest'
 import ejs from 'ejs'
 import { $ } from 'execa'
-import { runProgram, getPackageVersion,
+import { runProgram, getPackageVersion, detectPackageManager,
 
     convertPackageHashToObject,
     generateTestFiles,
@@ -644,6 +644,34 @@ test.each([
     expect(vi.mocked(installPackages).mock.calls[0][1]).toContain(driver)
 })
 
+test.each([
+    ['JavaScript', false],
+    ['TypeScript', true]
+])('npmInstall installs @wdio/globals once for a %s project', async (_, isUsingTypeScript) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [] },
+        packagesToInstall: ['@wdio/local-runner'],
+        npmInstall: true,
+        isUsingTypeScript
+    } as any, 'latest')
+    // the generated tests import it: npm hoists it from @wdio/cli, pnpm does not
+    expect(vi.mocked(installPackages).mock.calls[0][1].filter((p: string) => p.startsWith('@wdio/globals'))).toHaveLength(1)
+})
+
+test.each(['vue', 'preact'])('npmInstall installs %s for its preset', async (preset) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [], preset: `@vitejs/plugin$--$${preset}` },
+        preset,
+        packagesToInstall: [],
+        npmInstall: true,
+        installTestingLibrary: false
+    } as any, 'latest')
+    // the generated component imports it: npm installs it as a peer, pnpm does not link it to the project
+    expect(installPackages).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([preset]), true)
+})
+
 test('not npmInstall', async () => {
     const parsedAnswers = {
         rawAnswers: {
@@ -850,4 +878,21 @@ afterEach(()=>{
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(installPackages).mockClear()
+})
+
+describe('detectPackageManager', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it.each([
+        ['npm/11.19.1 node/v24.22.1 darwin arm64 workspaces/false', 'npm'],
+        ['pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64', 'pnpm'],
+        ['yarn/4.18.1 npm/? node/v24.22.1 darwin arm64', 'yarn'],
+        ['bun/1.4.4 npm/? node/v26.3.0 darwin arm64', 'bun'],
+        ['', 'npm']
+    ])('detects %j as %s', (userAgent, pm) => {
+        vi.stubEnv('npm_config_user_agent', userAgent)
+        expect(detectPackageManager()).toBe(pm)
+    })
 })
