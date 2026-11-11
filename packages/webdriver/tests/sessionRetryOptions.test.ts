@@ -70,6 +70,21 @@ describe('session-only WebDriver request retries', () => {
         })
     })
 
+    it('keeps an explicit zero session retry override when regular retries are enabled', async () => {
+        const { calls, params } = await captureNewSession({
+            connectionRetryTimeout: 7000,
+            connectionRetryCount: 3,
+            sessionConnectionRetryCount: 0
+        })
+
+        expect(calls).toHaveLength(1)
+        expect(calls[0]).toMatchObject({
+            connectionRetryTimeout: 7000,
+            connectionRetryCount: 0
+        })
+        expect(params.connectionRetryCount).toBe(3)
+    })
+
     it('accepts valid overrides and rejects invalid numeric settings', () => {
         const base = { capabilities: { browserName: 'chrome' } }
         const accepted = validateConfig(DEFAULTS, {
