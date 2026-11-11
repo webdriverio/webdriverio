@@ -5,6 +5,7 @@ import elementContains from '../scripts/elementContains.js'
 import elementsContainedIn from '../scripts/elementsContainedIn.js'
 import elementsConnected from '../scripts/elementsConnected.js'
 import { executeInContext } from './bidi/index.js'
+import { GET_VISIBLE_TEXT } from './thirdParty/getVisibleText.js'
 
 const log = logger('webdriverio')
 
@@ -129,5 +130,50 @@ export async function checkElementsConnected (
             (el: Element) => el.isConnected,
             { [ELEMENT_KEY]: elementId } as unknown as HTMLElement
         )
+    )
+}
+
+/**
+ * The link text strategies of the spec: check, for each `<a>` of `elementIds`, whether
+ * its rendered text, trimmed, equals (`link text`) or contains (`partial link text`)
+ * `value`. In a single round trip with per-element fallback.
+ *
+ * @see https://w3c.github.io/webdriver/#link-text
+ */
+export async function checkLinksMatchText (
+    browser: WebdriverIO.Browser,
+    elementIds: string[],
+    using: 'link text' | 'partial link text',
+    value: string,
+    contextId?: string
+): Promise<boolean[]> {
+    const matchLinks = new Function('links', 'partial', 'value', `
+        const getVisibleText = ${GET_VISIBLE_TEXT}
+        return links.map((link) => {
+            const text = getVisibleText(link).trim()
+            return partial ? text.includes(value) : text === value
+        })
+    `)
+    const partial = using === 'partial link text'
+    return runBatchedElementCheck(
+        elementIds,
+        'link text',
+        contextId,
+        undefined,
+        () => run(browser, contextId)(
+            matchLinks,
+            elementIds.map((elementId) => ({ [ELEMENT_KEY]: elementId })),
+            partial,
+            value
+        ),
+        async (elementId) => {
+            const [matches] = await run(browser, contextId)<boolean[]>(
+                matchLinks,
+                [{ [ELEMENT_KEY]: elementId }],
+                partial,
+                value
+            )
+            return matches
+        }
     )
 }

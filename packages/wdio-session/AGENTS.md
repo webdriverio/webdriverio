@@ -25,3 +25,11 @@ test is not that proof.
 - `refId` accepts `e12` and `@e12`. `get count` on a ref must not call `$$`.
 - `generateSpec` always emits `describe` / `it`. `--framework` is recorded on
   the export result and does not change the file.
+- Every command reference in output goes through
+  `session.cmd(command, args, cliText)`; the CLI text is the default and must
+  stay byte-identical.
+- The agent's static import graph is allowlisted in
+  `tests/agent-imports.test.ts`; load CLI-only packages with
+  `await import('<pkg>')` or keep them out of the agent's graph.
+- Agent-only result fields come from `dispatch(req, { detail: true })`; never
+  add fields to `data` for the agent, since `data` is CLI `--json` output.

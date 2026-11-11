@@ -2,8 +2,13 @@ import path from 'node:path'
 import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { bidiGetTagName, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiGetTagName: vi.fn() }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isExisting test', () => {
@@ -50,5 +55,22 @@ describe('isExisting test', () => {
 
     afterEach(() => {
         vi.mocked(fetch).mockClear()
+    })
+
+    describe('with BiDi commands enabled', () => {
+        afterEach(() => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)
+        })
+
+        it('probes an element without selector through BiDi', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+            vi.mocked(bidiGetTagName).mockReset().mockResolvedValue('div')
+            const elem = await browser.$({ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } as never)
+            vi.mocked(fetch).mockClear()
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            expect(await elem.isExisting()).toBe(true)
+            expect(bidiGetTagName).toHaveBeenCalled()
+            expect(vi.mocked(fetch).mock.calls.map(([url]) => (url as URL).pathname).filter((p) => p.endsWith('/name'))).toEqual([])
+        })
     })
 })

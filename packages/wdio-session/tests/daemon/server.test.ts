@@ -99,7 +99,7 @@ describe('SessionServer', () => {
         const slow = s.enqueue(request(s.token, 'slow', { timeout: 20 }))
         await new Promise((r) => setTimeout(r, 5))
         const fast = s.enqueue(request(s.token, 'fast'))
-        expect(await slow).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
+        expect(await slow).toMatchObject({ ok: false, error: { code: 'TIMEOUT', hint: expect.stringContaining('The page may be hung') } })
         expect(await fast).toMatchObject({ ok: true, result: { text: 'fast' } })
         expect(order).toEqual(['start slow', 'end slow', 'start fast', 'end fast'])
     })

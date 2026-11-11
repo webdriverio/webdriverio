@@ -16,16 +16,20 @@ const MATCHERS = [
     'toBeExisting',
     'toBeFocused',
     'toBePresent',
+    'toBeReadOnly',
     'toBeRequested',
     'toBeRequestedTimes',
     'toBeRequestedWith',
+    'toBeRequired',
     'toBeSelected',
+    'toBeStable',
     'toExist',
     'toHaveAttribute',
     'toHaveChildren',
     'toHaveClipboardText',
     'toHaveComputedLabel',
     'toHaveComputedRole',
+    'toHaveCookie',
     'toHaveElementClass',
     'toHaveElementProperty',
     'toHaveHTML',
@@ -34,13 +38,16 @@ const MATCHERS = [
     'toHaveId',
     'toHaveLink',
     'toHaveLocalStorageItem',
+    'toHaveSessionStorageItem',
     'toHaveSize',
     'toHaveStyle',
+    'toHaveTagName',
     'toHaveText',
     'toHaveTitle',
     'toHaveUrl',
     'toHaveValue',
     'toHaveWidth',
+    'toHaveWindowCount',
 ]
 
 const selectorFunctions = ['$', '$$']
@@ -100,11 +107,24 @@ const awaitExpect = {
     create (context) {
         return {
             CallExpression (node) {
-                if (
-                    node.callee.type !== 'MemberExpression' ||
-                    node.callee.object.type !== 'CallExpression' ||
-                    node.callee.object.callee.name !== 'expect'
-                ) {
+                if (node.callee.type !== 'MemberExpression') {
+                    return
+                }
+                /**
+                 * look through `.not` and accept `expect.soft(...)`
+                 */
+                let expectCall = node.callee.object
+                if (expectCall.type === 'MemberExpression' && expectCall.property.name === 'not') {
+                    expectCall = expectCall.object
+                }
+                if (expectCall.type !== 'CallExpression') {
+                    return
+                }
+                const { callee } = expectCall
+                const expectFn = callee.type === 'MemberExpression' && callee.property.name === 'soft'
+                    ? callee.object
+                    : callee
+                if (expectFn.name !== 'expect') {
                     return
                 }
 
@@ -117,12 +137,12 @@ const awaitExpect = {
                 }
 
                 if (isSnapshotMatcher) {
-                    const expectArg = node.callee.object.arguments[0]
+                    const expectArg = expectCall.arguments[0]
                     const isLikelyWdioElement = (
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'Identifier' &&
                         selectorFunctions.includes(expectArg.callee.name)) ||
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'MemberExpression' &&
                         expectArg.callee.property.name &&
                         selectorFunctions.includes(expectArg.callee.property.name))

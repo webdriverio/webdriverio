@@ -23,12 +23,22 @@ describe('utils', () => {
             expect(isScreenshotCommand({ command: 'elementClick' } as CommandArgs)).toEqual(false)
             expect(isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' } as CommandArgs)).toEqual(true)
         })
+
+        // a WebDriver BiDi override (the v10 default for Chrome and Firefox) sends no endpoint
+        it('finds an element screenshot by its command name', () => {
+            expect(isScreenshotCommand({ command: 'takeElementScreenshot' } as CommandArgs)).toEqual(true)
+        })
     })
 
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
             const config: any = { framework: 'jasmine' }
             expect(getTestStatus({} as any, config)).toEqual(Status.FAILED)
+        })
+
+        // every name that initializePlugin loads (wdio-utils initializePlugin.ts)
+        it.each(['jasmine', 'Jasmine', '@wdio/jasmine-framework'])('return the jasmine status for framework %s', (framework) => {
+            expect(getTestStatus({} as any, { framework } as any)).toEqual(Status.FAILED)
         })
 
         it('broken for test with no error', () => {

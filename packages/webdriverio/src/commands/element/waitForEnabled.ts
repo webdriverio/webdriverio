@@ -1,4 +1,5 @@
 import type { WaitForOptions } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -49,7 +50,7 @@ export async function waitForEnabled(
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}enabled after ${timeout}ms`
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}enabled after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
     /**

@@ -1,4 +1,5 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
+import os from 'node:os'
 import path from 'node:path'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
@@ -114,6 +115,21 @@ describe('WebdriverIO module interface', () => {
             expect(registerSessionManager).toBeCalledTimes(1)
         })
 
+        /**
+         * a spec that calls `remote()` in a worker: its logs stay in the worker's log file
+         */
+        it('keeps a log file that is already set', async () => {
+            const outputDir = path.join(os.tmpdir(), 'wdio-remote-log-path')
+            process.env.WDIO_LOG_PATH = path.join(outputDir, 'spec-0-0.log')
+
+            try {
+                await remote({ outputDir, capabilities: { browserName: 'chrome' } })
+                expect(process.env.WDIO_LOG_PATH).toBe(path.join(outputDir, 'spec-0-0.log'))
+            } finally {
+                delete process.env.WDIO_LOG_PATH
+            }
+        })
+
         it('allows to propagate a modifier', async () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
@@ -223,12 +239,10 @@ describe('WebdriverIO module interface', () => {
                 expect.any(Function),
                 expect.any(Object),
                 expect.any(Function),
-                expect.arrayContaining([
-                    'getElement',
-                    'getElements',
-                    'emit',
-                ])
+                expect.arrayContaining(['getElement', 'getElements'])
             )
+            // 'emit' is an event function, not an element command
+            expect(vi.mocked(WebDriver.newSession).mock.calls.every((call) => !(call[4] as string[]).includes('emit'))).toBe(true)
         })
     })
 
@@ -436,6 +450,34 @@ describe('WebdriverIO module interface', () => {
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
         })
 
+        /**
+         * the capabilities of `attach()` come from the user, e.g. the ones the
+         * session had when it was created
+         */
+        it('reads the script timeout of the attached session, not the one of its capabilities', async () => {
+            const { scriptTimeoutOf } = await import('../src/utils/scriptTimeout.js')
+            const getTimeouts = vi.fn(async () => ({ implicit: 0, pageLoad: 300_000, script: 2_000 }))
+            vi.mocked(WebDriver.attachToSession).mockReturnValueOnce({
+                sessionId: 'attached-1',
+                options: {},
+                addCommand: vi.fn(),
+                overwriteCommand: vi.fn(),
+                strategies: new Map(),
+                isWebDriver: true,
+                capabilities: { browserName: 'chrome', timeouts: { implicit: 0, pageLoad: 300_000, script: 30_000 } },
+                on: vi.fn(),
+                getTimeouts
+            } as any)
+
+            const driver = await attach({
+                sessionId: 'attached-1',
+                capabilities: { browserName: 'chrome', timeouts: { implicit: 0, pageLoad: 300_000, script: 30_000 } }
+            })
+
+            expect(await scriptTimeoutOf(driver)).toBe(2_000)
+            expect(getTimeouts).toHaveBeenCalledTimes(1)
+        })
+
         it('should apply attach parameters with priority to Driver.attachToSession', async () => {
 
             let capturedParams
@@ -524,13 +566,10 @@ describe('WebdriverIO module interface', () => {
             expect.any(Function),
             expect.any(Object),
             expect.any(Function),
-            expect.arrayContaining([
-                'getElement',
-                'getElements',
-                'emit',
-            ])
-
+            expect.arrayContaining(['getElement', 'getElements'])
         )
+        // 'emit' is an event function, not an element command
+        expect(vi.mocked(WebDriver.newSession).mock.calls.every((call) => !(call[4] as string[]).includes('emit'))).toBe(true)
         expect(WebDriver.newSession).toHaveBeenCalledTimes(2)
     })
 

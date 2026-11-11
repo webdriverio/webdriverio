@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import { getContextManager } from 'webdriverio'
 
 import { contextTree } from './contexts.js'
@@ -11,6 +12,8 @@ export { DEFAULT_SETTLE_TIMEOUT }
 
 export const EFFECTS_CHANNEL = 'wdio-ai-effects'
 
+const log = logger('@wdio/ai-service')
+
 export const DEFAULT_QUIET = 100
 /**
  * longest wait for the page to render a frame after an action
@@ -19,7 +22,7 @@ const FLUSH_TIMEOUT = 200
 const POLL = 25
 
 const EVENTS = [
-    'network.beforeRequestSent', 'network.responseCompleted', 'network.fetchError',
+    'network.beforeRequestSent', 'network.responseStarted', 'network.responseCompleted', 'network.fetchError',
     'browsingContext.navigationStarted', 'browsingContext.load', 'browsingContext.domContentLoaded',
     'browsingContext.navigationFailed', 'browsingContext.fragmentNavigated',
     'browsingContext.contextCreated', 'browsingContext.userPromptOpened', 'script.message'
@@ -138,8 +141,12 @@ interface RequestParams {
     context?: string | null
     navigation?: string | null
     request: { request: string, url: string, method: string, destination?: string, initiatorType?: string | null }
+    redirectCount?: number
     response?: { status?: number }
+    errorText?: string
 }
+
+const hopOf = (params: RequestParams) => `${params.request.request}:${params.redirectCount ?? 0}`
 
 /**
  * Records the effect of one step at a time: call `start()` before the
@@ -156,7 +163,11 @@ export class EffectRecorder {
      */
     #contexts = new Set<string>()
     #pageUrl?: string
-    #inflight = new Map<string, { method: string, url: string }>()
+    #inflight = new Map<string, { method: string, url: string, hop: string, status?: number }>()
+    /**
+     * Chrome can send responseStarted before beforeRequestSent
+     */
+    #earlyStatus = new Map<string, number | undefined>()
     #requests = new Set<string>()
     #pendingNavigations = new Set<string>()
     #navigation?: string
@@ -194,6 +205,7 @@ export class EffectRecorder {
         }
         const on = <T>(event: string, handler: (params: T) => void) => (browser.on as unknown as (event: string, handler: (params: T) => void) => void).call(browser, event, handler)
         on('network.beforeRequestSent', (params: RequestParams) => this.#requestStarted(params))
+        on('network.responseStarted', (params: RequestParams) => this.#responseStarted(params))
         on('network.responseCompleted', (params: RequestParams) => this.#requestFinished(params, false))
         on('network.fetchError', (params: RequestParams) => this.#requestFinished(params, true))
         on('browsingContext.navigationStarted', (params: { context: string, navigation: string | null, url: string }) => this.#navigationStarted(params))
@@ -282,18 +294,33 @@ export class EffectRecorder {
     }
 
     #requestStarted (params: RequestParams) {
-        if (!this.#active) {
-            return
-        }
-        if (!this.#inPage(params.context)) {
-            return
-        }
         const { request, url, method, destination, initiatorType } = params.request
-        if (!isEffectRequest({ url, destination, initiatorType, navigation: params.navigation }) || isIgnored(url, this.config.ignore)) {
+        const hop = hopOf(params)
+        const status = this.#earlyStatus.get(hop)
+        this.#earlyStatus.delete(hop)
+        const skipped = !this.#active
+            ? 'no step is recorded'
+            : !this.#inPage(params.context)
+                ? `its context ${params.context} is not the page ${this.#page}`
+                : !isEffectRequest({ url, destination, initiatorType, navigation: params.navigation })
+                    ? `not an effect request (navigation ${params.navigation}, initiator ${initiatorType}, destination ${destination})`
+                    : isIgnored(url, this.config.ignore) ? 'ignored by the effects config' : undefined
+        if (skipped) {
+            log.debug(`effects: not counting ${method} ${url}: ${skipped}`)
             return
         }
-        this.#inflight.set(request, { method, url })
+        log.debug(`effects: request started ${method} ${url} (${request})`)
+        this.#inflight.set(request, { method, url, hop, status })
         this.#touch()
+    }
+
+    #responseStarted (params: RequestParams) {
+        const started = this.#inflight.get(params.request.request)
+        if (started?.hop === hopOf(params)) {
+            started.status = params.response?.status
+        } else if (this.#active) {
+            this.#earlyStatus.set(hopOf(params), params.response?.status)
+        }
     }
 
     #requestFinished (params: RequestParams, failed: boolean) {
@@ -302,7 +329,14 @@ export class EffectRecorder {
             return
         }
         this.#inflight.delete(params.request.request)
-        this.#requests.add(`${started.method} ${urlTemplate(started.url, this.#pageUrl)} → ${statusClass(params.response?.status, failed)}`)
+        /**
+         * a fetch error after the response keeps its status: Chrome can send
+         * net::ERR_ABORTED for a response the page received
+         */
+        const status = failed ? started.status : params.response?.status
+        const outcome = !failed ? status : status ? `${status}, then ${params.errorText}` : `failed (${params.errorText})`
+        log.debug(`effects: request finished ${started.method} ${started.url} (${params.request.request}): ${outcome}`)
+        this.#requests.add(`${started.method} ${urlTemplate(started.url, this.#pageUrl)} → ${statusClass(status)}`)
         this.#touch()
     }
 
@@ -327,6 +361,7 @@ export class EffectRecorder {
      */
     async start () {
         this.#inflight.clear()
+        this.#earlyStatus.clear()
         this.#requests.clear()
         this.#pendingNavigations.clear()
         this.#openedContexts.clear()
@@ -345,6 +380,14 @@ export class EffectRecorder {
         }
         this.#lastActivity = Date.now()
         this.#active = true
+        log.debug(`effects: step started on ${this.#page ?? 'a Classic session'} at ${this.#pageUrl}, contexts ${[...this.#contexts].join(', ')}`)
+    }
+
+    /**
+     * the step does not run after all: stop recording until the next start
+     */
+    cancel () {
+        this.#active = false
     }
 
     /**
@@ -393,7 +436,9 @@ export class EffectRecorder {
                 ...[...this.#inflight.values()].map(({ method, url }) => `${method} ${urlTemplate(url, this.#pageUrl)}`),
                 ...(this.#pendingNavigations.size ? ['a navigation'] : [])
             ]
-            return this.#effect()
+            const effect = this.#effect()
+            log.debug(`effects: step settled after ${timeout - (deadline - Date.now())} ms: ${JSON.stringify(effect)}${this.#unsettled.length ? `, still running: ${this.#unsettled.join(', ')}` : ''}`)
+            return effect
         } finally {
             this.#active = false
         }

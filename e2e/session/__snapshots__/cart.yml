@@ -8,9 +8,9 @@
     - list
       - listitem
         - text "Blue T-Shirt"
-        - button "Add to cart" [ref=e30]
+        - button "Add to cart" [ref=e30] ∈ "Blue T-Shirt"
       - listitem
         - text "Red Hoodie"
-        - button "Add to cart" [ref=e31]
+        - button "Add to cart" [ref=e31] ∈ "Red Hoodie"
     - heading "Your cart" [level=2]
     - button "Checkout" [ref=e32] [disabled]

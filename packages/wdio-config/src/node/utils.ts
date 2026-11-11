@@ -9,32 +9,26 @@ import { escape as escapeGlob } from 'glob'
  * survive ConfigParser's Windows separator normalization to forward slashes.
  */
 function resolveSpecGlobFromCWD (file: string): string {
-    const cwd = process.cwd()
-    const resolved = path.resolve(cwd, file)
+    let cwd = process.cwd()
     if (path.isAbsolute(file)) {
-        return resolved
+        return path.resolve(cwd, file)
     }
 
-    // On Windows, C:specs\\*.js is relative to the C: drive's current
-    // directory, not a folder literally named C:specs. Preserve this native
-    // path.resolve behavior and quote inherited CWD segments only when the
-    // drive matches. A different drive uses its own per-drive working dir.
+    // A drive-relative Windows path inherits that drive's working directory.
+    // Let Node select it before recording which segments are literal.
     let relativeFile = file
-    if (path.sep === '\\' && /^[A-Za-z]:[^\\/]/.test(file)) {
-        const requestedDrive = file.slice(0, 2).toLowerCase()
-        const cwdDrive = path.parse(cwd).root.slice(0, 2).toLowerCase()
-        if (requestedDrive !== cwdDrive) {
-            return resolved
-        }
+    if (path.sep === '\\' && /^[A-Za-z]:/.test(file)) {
+        cwd = path.resolve(cwd, file.slice(0, 2))
         relativeFile = file.slice(2)
     }
 
-    // Keep provenance through normalization: a user-authored ../[app] is
-    // a glob class, even if it happens to match an inherited CWD folder.
+    // Windows accepts both separators, including mixed paths. On POSIX a
+    // backslash is part of a filename, so it must not split a component.
+    const separator = path.sep === '\\' ? /[\\/]/ : '/'
     const root = path.parse(cwd).root
-    const parts = cwd.slice(root.length).split(path.sep)
+    const parts = cwd.slice(root.length).split(separator)
         .filter(Boolean).map(value => ({ value, inherited: true }))
-    for (const value of relativeFile.split(path.sep)) {
+    for (const value of relativeFile.split(separator)) {
         if (!value || value === '.') {
             continue
         }
@@ -44,8 +38,9 @@ function resolveSpecGlobFromCWD (file: string): string {
             parts.push({ value, inherited: false })
         }
     }
-    return root + parts.map(part => part.inherited
-        ? escapeGlob(part.value, { windowsPathsNoEscape: true })
+    const escapeLiteral = (value: string) => escapeGlob(value, { windowsPathsNoEscape: true })
+    return escapeLiteral(root) + parts.map(part => part.inherited
+        ? escapeLiteral(part.value)
         : part.value
     ).join(path.sep)
 }
@@ -67,7 +62,7 @@ export function makeRelativeToCWD (files: (string | string[])[] = [], escapeCwdG
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            : file.includes('/') || file.includes(path.sep)
+            : file.includes('/') || file.includes(path.sep) || (path.sep === '\\' && /^[A-Za-z]:/.test(file))
                 ? (escapeCwdGlob ? resolveSpecGlobFromCWD(file) : path.resolve(process.cwd(), file))
                 : file
         )
@@ -75,4 +70,3 @@ export function makeRelativeToCWD (files: (string | string[])[] = [], escapeCwdG
 
     return returnFiles
 }
-

@@ -477,7 +477,7 @@ export const emulate: ActionFn = async (session, args) => {
         const name = findDevice(value)
         if (!name) {
             const close = Object.keys(deviceDescriptorsSource).filter((n) => n.toLowerCase().includes(value.toLowerCase().split(' ')[0])).slice(0, 8)
-            throw usage(`Unknown device "${value}".`, close.length ? `Did you mean: ${close.join(', ')}?` : 'Run `wdio session emulate device` to list devices.')
+            throw usage(`Unknown device "${value}".`, close.length ? `Did you mean: ${close.join(', ')}?` : `Run \`${session.cmd('emulate', { sub: 'device' }, 'wdio session emulate device')}\` to list devices.`)
         }
         const device = deviceDescriptorsSource[name]
         await swap(session, 'device', () => browser.emulate('device', name))
@@ -693,7 +693,7 @@ export const emulate: ActionFn = async (session, args) => {
     }
     case 'viewport-meta': {
         if (value && value !== 'true') {
-            throw usage('Viewport meta emulation only accepts true.', 'Run `wdio session emulate viewport-meta`.')
+            throw usage('Viewport meta emulation only accepts true.', `Run \`${session.cmd('emulate', { sub: 'viewport-meta' }, 'wdio session emulate viewport-meta')}\`.`)
         }
         session.requireBidi('Viewport meta emulation')
         await swap(session, 'viewportMeta', () => browser.emulate('viewportMeta', true))
@@ -710,7 +710,7 @@ export const emulate: ActionFn = async (session, args) => {
     }
     case 'scripting': {
         if (needsValue('false') !== 'false') {
-            throw usage('Scripting can only be disabled.', 'Run `wdio session emulate scripting false`.')
+            throw usage('Scripting can only be disabled.', `Run \`${session.cmd('emulate', { sub: 'scripting', value: 'false' }, 'wdio session emulate scripting false')}\`.`)
         }
         session.requireBidi('Scripting emulation')
         await swap(session, 'scripting', () => browser.emulate('scripting', false))

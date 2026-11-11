@@ -122,3 +122,32 @@ describe('makeRelativeToCWD', () => {
         ])
     })
 })
+
+describe('makeRelativeToCWD with Windows path semantics', () => {
+    afterEach(() => {
+        vi.restoreAllMocks()
+        vi.doUnmock('node:path')
+        vi.resetModules()
+    })
+
+    it.each([
+        ['../specs/*.js', 'C:\\repo\\[[]app[]]\\specs\\*.js'],
+        ['..\\specs/../[ab]/*.js', 'C:\\repo\\[[]app[]]\\[ab]\\*.js'],
+        ['C:../specs/*.js', 'C:\\repo\\[[]app[]]\\specs\\*.js'],
+        ['C:login.spec.js', 'C:\\repo\\[[]app[]]\\config\\login.spec.js']
+    ])('resolves %s while preserving inherited literals and authored patterns', async (file, expected) => {
+        vi.spyOn(process, 'cwd').mockReturnValue('C:\\repo\\[app]\\config')
+        vi.resetModules()
+        vi.doMock('node:path', () => ({ default: path.win32 }))
+        const { makeRelativeToCWD: resolve } = await import('../../src/node/utils.js')
+        expect(resolve([file])).toEqual([expected])
+    })
+
+    it('quotes an inherited UNC share name', async () => {
+        vi.spyOn(process, 'cwd').mockReturnValue('\\\\server\\[share]\\config')
+        vi.resetModules()
+        vi.doMock('node:path', () => ({ default: path.win32 }))
+        const { makeRelativeToCWD: resolve } = await import('../../src/node/utils.js')
+        expect(resolve(['../specs/*.js'])).toEqual(['\\\\server\\[[]share[]]\\specs\\*.js'])
+    })
+})

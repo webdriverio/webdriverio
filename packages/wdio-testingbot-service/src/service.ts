@@ -13,6 +13,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     private _tbSecret?: string
     private _tbUser?: string
     private _failures = 0
+    private _failedScenarios = new Set<string>() // Cucumber scenarios counted in `_failures`
     private _testCnt = 0
 
     constructor (
@@ -150,9 +151,21 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param result.duration duration of scenario in milliseconds
      */
     afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
+        /**
+         * a retried scenario runs this hook for every attempt, with the same pickle:
+         * only the result of its last attempt counts
+         */
+        const scenarioId = world.pickle?.id
+        if (scenarioId && this._failedScenarios.delete(scenarioId)) {
+            --this._failures
+        }
+
         // check if scenario has failed
         if (!result.passed) {
             ++this._failures
+            if (scenarioId) {
+                this._failedScenarios.add(scenarioId)
+            }
         }
     }
 
@@ -223,6 +236,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
         const json = this.getBody(failures, calledOnReload, browserName)
         this._failures = 0
+        this._failedScenarios.clear()
         const response = await fetch(this.getRestUrl(sessionId), {
             method: 'PUT',
             body: JSON.stringify(json),

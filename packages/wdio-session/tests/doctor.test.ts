@@ -68,6 +68,15 @@ describe('doctor', () => {
         }
     })
 
+    it.each([
+        ['22.22.0', 'fail'], ['v22.23.4', 'ok'], ['23.11.0', 'fail'], ['24.21.0', 'fail'],
+        ['24.22.1', 'ok'], ['25.9.0', 'fail'], ['26.12.0', 'fail'], ['26.12.1', 'ok']
+    ])('checks Node.js %s against the supported versions', async (nodeVersion, status) => {
+        const result = await runDoctor({}, ctx(), { platform: 'linux', nodeVersion })
+        const row = (result.data as { checks: DoctorCheck[] }).checks.find((item) => item.id === 'node')
+        expect(row?.status).toBe(status)
+    })
+
     it('compares versions numerically', () => {
         expect(versionBelow('22.18.0', '22.19.0')).toBe(true)
         expect(versionBelow('22.19.0', '22.19.0')).toBe(false)
@@ -155,15 +164,15 @@ describe('doctor', () => {
     })
 
     it('fails Safari off macOS and warns when Chrome will be downloaded', async () => {
-        const result = await runDoctor({}, ctx(), { platform: 'linux', nodeVersion: '24.4.0' })
+        const result = await runDoctor({}, ctx(), { platform: 'linux', nodeVersion: '24.22.1' })
         const checks = (result.data as { checks: DoctorCheck[], ok: boolean }).checks
-        expect(checks.find((row) => row.id === 'node')).toMatchObject({ status: 'ok', message: '24.4.0' })
+        expect(checks.find((row) => row.id === 'node')).toMatchObject({ status: 'ok', message: '24.22.1' })
         expect(checks.find((row) => row.id === 'browser:safari')).toMatchObject({ status: 'fail', message: 'Safari requires macOS' })
         expect(checks.find((row) => row.id === 'browser:chrome')).toMatchObject({ status: 'warn', message: 'downloaded on first use' })
         expect(checks.find((row) => row.id === 'package:electron')?.status).toBe('warn')
         expect(checks.find((row) => row.id === 'binary:ffmpeg')?.status).toBe('warn')
         expect(ids(checks)).not.toContain('xcode')
-        expect(result.text?.startsWith('✔ node 24.4.0')).toBe(true)
+        expect(result.text?.startsWith('✔ node 24.22.1')).toBe(true)
     })
 
     it('fails a package the electron target needs', async () => {

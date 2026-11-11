@@ -104,10 +104,13 @@ This repository contains some of the core packages of the WebdriverIO project. T
 
 - [@wdio/allure-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-allure-reporter) - A WebdriverIO reporter plugin to create Allure Test Reports
 - [@wdio/concise-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter) - A WebdriverIO reporter plugin to create concise test reports
+- [@wdio/cucumberjs-json-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumberjs-json-reporter) - A WebdriverIO reporter that creates CucumberJS JSON files
 - [@wdio/dot-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter) - A WebdriverIO plugin to report in dot style
+- [@wdio/html-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-html-reporter) - A WebdriverIO reporter that creates an HTML report
 - [@wdio/junit-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-junit-reporter) - A WebdriverIO reporter that creates test results in XML format
 - [@wdio/spec-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter) - A WebdriverIO plugin to report in spec style
 - [@wdio/sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter) - A WebdriverIO reporter that sends test results to Sumologic for data analyses
+- [@wdio/video-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-video-reporter) - A WebdriverIO reporter that makes videos of failed tests and has optional Allure integration
 
 ### Services
 
@@ -136,6 +139,7 @@ Adapters that bring the WebdriverIO DevTools UI to test suites running outside W
 - [@wdio/cucumber-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework) - Adapter for [Cucumber](https://cucumber.io/) testing framework
 - [@wdio/jasmine-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework) - Adapter for [Jasmine](https://jasmine.github.io/) testing framework
 - [@wdio/mocha-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework) - Adapter for [Mocha](https://mochajs.org/) testing framework.
+- [@wdio/vitest-framework](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-vitest-framework) - Adapter for [Vitest](https://vitest.dev/) testing framework.
 
 ### Others
 

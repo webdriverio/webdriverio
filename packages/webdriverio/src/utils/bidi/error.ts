@@ -4,11 +4,11 @@ import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../commands/constant.js'
 
 export class WebdriverBidiExeception extends Error {
     #params: remote.ScriptCallFunctionParameters
-    #result: local.ScriptEvaluateResultException
+    #result: local.ScriptEvaluationResultException
 
     constructor (
         params: remote.ScriptCallFunctionParameters,
-        result: local.ScriptEvaluateResultException
+        result: local.ScriptEvaluationResultException
     ) {
         super(result.exceptionDetails.text)
         this.name = 'WebdriverBidiExeception'

@@ -89,7 +89,7 @@ npx wdio session click e2
 | `snapshot --compact` | The same tree with unnamed empty wrappers removed |
 | `snapshot --urls` | Link addresses on each link |
 | `find "Add to cart"` | A line from a fresh snapshot |
-| `diff` | What changed since the previous snapshot |
+| `diff`, `snapshot --diff` | What changed since the previous snapshot |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `pdf` | A PDF of the current page (`pdf report.pdf`). BiDi sessions print headed and headless |
 | `source` | The page HTML or the native XML |
@@ -138,6 +138,7 @@ npx wdio session close
 | --- | --- |
 | `SESSION_EXISTS` | The name is already running. Use `-s` another name, or `open --replace`. |
 | `REF_STALE` / `REF_NOT_FOUND` | Run `snapshot` again and use a ref from that output. |
+| `NOT_EDITABLE` | The `fill` target is not an editable field and has no single editable field inside it (or behind `aria-controls`/`aria-owns`/label). Run `snapshot --scope <target>` and fill the field ref. |
 | `MISSING_DEPENDENCY` | Install the package named in the error, or run `wdio session doctor <target>`. |
 | `MISSING_APPIUM_DRIVER` | Run the `npx appium driver install …` line from the error. |
 | `MISSING_CREDENTIALS` | Export the named variables. Doctor never prints their values. |

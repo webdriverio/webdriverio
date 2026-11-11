@@ -36,6 +36,10 @@ export function startServer (root = SITE): Promise<FixtureServer> {
             res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' })
             return res.end(JSON.stringify({ name: 'Real User' }))
         }
+        if (reqUrl.pathname === '/api/forbidden') {
+            res.writeHead(403, { 'content-type': 'application/json', 'access-control-allow-origin': '*' })
+            return res.end('{"message":"forbidden"}')
+        }
         if (reqUrl.pathname === '/api/slow') {
             return setTimeout(() => {
                 res.writeHead(200, { 'content-type': 'text/plain' })

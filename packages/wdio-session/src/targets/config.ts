@@ -1,12 +1,10 @@
-import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import { ConfigParser } from '@wdio/config/node'
+import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
-const require = createRequire(import.meta.url)
-
-import { usage } from '../errors.js'
+import { SessionError, usage } from '../errors.js'
 import { hasDisplay, isPlainObject, parseViewport, type OpenArgs } from './utils.js'
 import type { Applies, OpenPlan, PlatformKind, RemoteOptions, TargetPlan } from '../types.js'
 
@@ -139,13 +137,23 @@ function remoteFrom (config: Record<string, unknown>, args: OpenArgs): RemoteOpt
 
 async function loadConfig (configPath: string) {
     // Importing tsx registers its loader, so only TypeScript configs should load it.
-    if (/\.(c|m)?tsx?$/.test(configPath)) {
-        await import(pathToFileURL(require.resolve('tsx')).href)
+    const isTypeScript = /\.(c|m)?tsx?$/.test(configPath)
+    const tsx = isTypeScript ? await resolveOptionalDependency('tsx', { cwd: path.dirname(configPath), from: import.meta.url }) : null
+    if (tsx) {
+        await import(pathToFileURL(tsx).href)
     }
     const parser = new ConfigParser(configPath)
     try {
         await parser.initialize()
     } catch (err) {
+        // without tsx, Node's own type stripping is the only loader: a failure is likely a missing loader
+        if (isTypeScript && !tsx) {
+            throw new SessionError('MISSING_DEPENDENCY', `Could not load ${configPath} and tsx is not installed: ${(err as Error).message}`, {
+                package: 'tsx',
+                install: [installCommand('tsx', { cwd: path.dirname(configPath) })],
+                cause: err
+            })
+        }
         throw usage(`Could not load ${configPath}: ${(err as Error).message}`)
     }
     return parser

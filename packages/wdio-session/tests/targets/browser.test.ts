@@ -12,7 +12,7 @@ describe('browser targets', () => {
             browserName: 'chrome',
             webSocketUrl: true,
             pageLoadStrategy: 'eager',
-            'goog:chromeOptions': { args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=1280,720'] }
+            'goog:chromeOptions': { args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=1280,720', '--disable-blink-features=AutomationControlled'] }
         })
         expect(plan).toMatchObject({ headless: true, display: false, detach: false, viewport: { width: 1280, height: 720 } })
     })
@@ -25,10 +25,16 @@ describe('browser targets', () => {
             pageLoadStrategy: 'eager',
             browserVersion: '130',
             'ms:edgeOptions': {
-                args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=800,600', '--user-data-dir=/repo/p', '--lang=de'],
+                args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=800,600', '--user-data-dir=/repo/p', '--disable-blink-features=AutomationControlled', '--lang=de'],
                 binary: '/repo/bin/edge'
             }
         })
+    })
+
+    it('does not duplicate a user-supplied --disable-blink-features', () => {
+        const plan = browserPlan('chrome', { target: 'chrome', arg: ['--disable-blink-features=Foo'] }, { cwd: '/repo', platform: 'linux', env: {} })
+        const args = (plan.capabilities['goog:chromeOptions'] as { args: string[] }).args
+        expect(args.filter((arg) => arg.startsWith('--disable-blink-features'))).toEqual(['--disable-blink-features=Foo'])
     })
 
     it('builds Firefox capabilities', () => {

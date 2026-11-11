@@ -19,7 +19,7 @@ You can automate:
 -   **iOS apps** - on simulators or real devices
 -   **Android apps** - on emulators or real devices
 -   **Hybrid apps** - switching between native and web contexts
--   **Cloud devices** - via BrowserStack, Sauce Labs, TestMu, and TestingBot device clouds
+-   **Cloud devices** - via BrowserStack, Sauce Labs, TestMu, TestingBot, and Digital.ai device clouds
 
 ### Do I need to write code?
 
@@ -87,7 +87,7 @@ Yes. You can specify dimensions when starting the browser:
 
 "Start Chrome with a window size of 1920x1080"
 
-Supported dimensions: 400–3840 pixels wide, 400–2160 pixels tall. Default is 1920×1080.
+Supported dimensions: 400–3840 pixels wide, 400–2160 pixels tall. Default is 1280×800.
 
 ### Can I start the browser and navigate in one step?
 
@@ -110,7 +110,7 @@ Screenshots are automatically optimized:
 
 ### Can I interact with iframes?
 
-Yes. Use the `switch_frame` tool to switch into an iframe by CSS or XPath selector. All subsequent `click_element`, `set_value`, and `get_elements` calls operate within the switched frame. Omit the selector to switch back to the top-level frame. Iframes must be from the same origin as the main page.
+Yes. Use the `switch_frame` tool to switch into an iframe by CSS or XPath selector. Later tools act inside the switched frame until you switch back. Omit the selector to switch back to the top-level frame. Iframes must be from the same origin as the main page.
 
 ### Can I execute custom JavaScript?
 
@@ -169,7 +169,7 @@ By default, permissions are automatically granted (`autoGrantPermissions: true`)
 -   **Swipe:** Swipe up, down, left, or right (`swipe`)
 -   **Drag and Drop:** Drag from one element to another or to coordinates (`drag_and_drop`)
 
-Note: `long_press` is available through `execute_script` with Appium mobile commands.
+`long_press` is not a tool. Run the Appium `mobile:` long-press command through `execute_script`.
 
 ### How do I scroll in mobile apps?
 
@@ -207,7 +207,7 @@ Execute script "mobile: terminateApp" with args [{ bundleId: "com.example.app" }
 
 ### How does the AI assistant know which element to interact with?
 
-It uses the `wdio://session/current/elements` resource or `get_elements` tool to identify interactive elements on the page/screen. Each element comes with ready-to-use selectors.
+It uses the `wdio://session/current/elements` resource or, on mobile and Electron, the `get_elements` tool to identify interactive elements on the page/screen. Each element comes with ready-to-use selectors. In browsers, `snapshot` gives the same view as an accessibility tree with refs.
 
 ### What if there are too many elements on the page?
 
@@ -235,10 +235,11 @@ You can be more specific:
 
 ### What is the accessibility tree and when should I use it?
 
-The accessibility tree provides semantic information about page elements (roles, names, states). Use `get_accessibility_tree` when:
-- `get_elements` doesn't return expected elements
-- You need to find elements by accessibility role (button, link, textbox, etc.)
+The accessibility tree provides semantic information about page elements (roles, names, states). In browsers, `snapshot` returns it with refs. Use it when:
+- You need to find elements by text or by accessibility role (button, link, textbox, etc.)
 - You need detailed semantic information about elements
+
+`get_accessibility_tree` is listed only for Electron sessions. Use it there to filter by role:
 
 "Get accessibility tree filtered to button and link roles"
 
@@ -246,7 +247,9 @@ The accessibility tree provides semantic information about page elements (roles,
 
 ### Can I have multiple sessions at once?
 
-No. The MCP server uses a single-session model. Only one browser or app session can be active at a time.
+Yes. Give each session a `name`, and start the extra sessions with `onExisting: "keep"` so the default session keeps running. Target a session with `session: "<name>"` on any tool. Results from a named session start with `[session: <name> (<id8>)]` when you target it or when more than one session is live.
+
+"Start a Firefox session named admin and keep the Chrome session running"
 
 ### What happens when I close a session?
 
@@ -294,7 +297,7 @@ The element might not be visible or might have a different selector. Try:
 1. Asking Claude to get all visible elements first
 2. Providing a more specific selector
 3. Waiting for the page/app to fully load
-4. Using `inViewportOnly: false` to find off-screen elements
+4. Looking for off-screen elements: on mobile or Electron, use `get_elements` with `inViewportOnly: false`. In browsers, `snapshot` is not limited to the viewport unless you pass `viewport: true`.
 
 ### Browser won't start
 
@@ -377,7 +380,7 @@ This optimization reduces processing time and ensures Claude can handle the imag
 
 ### What are the current limitations?
 
--   **Single session:** Only one browser/app at a time
+-   **Session names:** Named sessions exist only while the server process runs
 -   **iframe support:** Same-origin iframes are supported via `switch_frame`; cross-origin iframes are not accessible due to browser security restrictions
 -   **File uploads:** Not directly supported via tools
 -   **Audio/Video:** Cannot interact with media playback

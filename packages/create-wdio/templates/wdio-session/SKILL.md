@@ -21,6 +21,8 @@ npx wdio session get text e9
 - **Every action reports what changed:** new or changed lines with their refs (`+ status "Saved"`), or the new page's elements after a navigation. You rarely need a separate `snapshot`.
 - **Chain steps with `&&`.** One shell call for several steps is faster, and a failing step stops the chain. Keep the steps that show the result (the filter that got applied, the item you picked) in calls of their own.
 - **Big page?** `find <text>` prints only the matching part of the page, with refs, and scrolls it into view. A long `snapshot` prints in parts: `--offset <line>` gives the next one. `read` gives an article's text.
+- **`snapshot --viewport` shows only what is on screen.** On the web it does not update the baseline `diff` compares with; run a plain `snapshot` (or `snapshot -i`) first to refresh it.
+- **Page changed on its own?** After a `wait` or a timer, `snapshot -i --diff` prints only the lines that changed since the last snapshot, or "No changes". With other `--scope`, `-i`, `--all` or `--urls` than that snapshot, it prints the whole tree instead.
 - **Output is ready to read.** No need for `head`, `grep`, `sed`, redirects or `sleep`: use `find`, `snapshot --offset` and `wait 2000`.
 - **Show your answer.** Before you answer, leave the page on what proves it (`find`/`scroll` to it): what's on screen is the evidence.
 - **No need to close.** The session shuts itself down when idle. Run `close` only to start over.
@@ -44,7 +46,7 @@ Run `npx wdio session <action> --help` only when an action fails or you need a f
 
 ## Code
 
-Use `exec` for loops, conditions and assertions. Pipe longer code on stdin:
+Use `exec` for loops, conditions and assertions. It runs in Node with `browser` and `$` in scope; page code goes in `await browser.execute(() => …)`. Pipe longer code on stdin:
 
 ```sh
 npx wdio session exec -e 'await expect($("h1")).toHaveText("Cart")'
@@ -74,6 +76,8 @@ npx wdio run wdio.conf.ts --debug=agent
 npx wdio session -s debug-0-0 snapshot -i
 npx wdio session -s debug-0-0 resume
 ```
+
+A debug session does not shut down when idle: the test waits until you run `resume`.
 
 ## Errors
 

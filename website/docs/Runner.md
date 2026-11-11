@@ -229,7 +229,7 @@ __Default:__ `false`
 
 #### `clean`
 
-Clean coverage results before running tests.
+Clean coverage results before running tests. The reports directory is only cleaned when `enabled` is `true`, so existing output in it is left alone while coverage is disabled.
 
 __Type:__ `boolean`<br />
 __Default:__ `true`

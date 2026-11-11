@@ -4,6 +4,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
 import type { CustomStrategyFunction } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -50,7 +51,7 @@ export function custom$$ (
          * $('.notExisting').$('.someElem')
          */
         if (!this.elementId) {
-            throw new Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
+            throw new Error(`Can't call custom$ on element with selector "${describeSelector(this)}" because element wasn't found`)
         }
 
         const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }

@@ -2,6 +2,7 @@ import type { local, remote } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
 
 import { deserialize } from '../../utils/bidi/index.js'
+import { getParallelContextStore } from '../../session/context.js'
 import { assertTopLevel, isBrowsingContext } from '../../session/browsingContext.js'
 
 /**
@@ -119,7 +120,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     }
 
     const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
-    const context = isBrowsingContext(this) ? this.contextId : await browser.getWindowHandle()
+    const context = isBrowsingContext(this) ? this.contextId : getParallelContextStore().getStore() ?? await browser.getWindowHandle()
     const src = 'return ' + script.toString()
     const fn = `(emit) => {
         const closure = new Function(${JSON.stringify(src)})

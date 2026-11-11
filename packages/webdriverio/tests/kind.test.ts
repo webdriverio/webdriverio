@@ -6,6 +6,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/index.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import WebDriverInterception from '../src/utils/interception/index.js'
+import { SESSION_MOCKS } from '../src/commands/browser/mock.js'
 import { getBrowsingContext } from '../src/browsingContext.js'
 import { contextIdOf, isBrowsingContext } from '../src/session/browsingContext.js'
 import { getContextManager } from '../src/session/context.js'
@@ -429,6 +430,8 @@ describe('WebdriverIO object brand matrix', () => {
     }
 
     async function bidiSession () {
+        // every test makes a browser with the same fake session id, so mocks of the one before would be found again
+        for (const key of Object.keys(SESSION_MOCKS)) { delete SESSION_MOCKS[key] }
         const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'bidi' } })
         stubBidi(browser)
         return browser as unknown as Loose
@@ -483,7 +486,10 @@ describe('WebdriverIO object brand matrix', () => {
             ['#14 resolved element .parentElement()', { from: (b) => b.$('#foo').$('#bar'), make: (el) => el.parentElement(), pending: 'element query', awaited: E }],
             ['#15 $$(s)[0]', { make: (b) => b.$$('#foo')[0], pending: 'list item', awaited: E }],
             ['#15 $$(s).at(0)', { make: (b) => b.$$('#foo').at(0), pending: 'list item', awaited: E }],
-            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: 'list item', awaited: 'rejects' }],
+            /**
+             * an index that the list does not reach after the wait is a "not found" element, like `$(s)` (#12576)
+             */
+            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: 'list item', awaited: E }],
             ['#17 $$(s)[0].$(s2)', { make: (b) => b.$$('#foo')[0].$('#bar'), pending: 'element query', awaited: E }],
             ['#17 $$(s)[0].$$(s2)', { make: (b) => b.$$('#foo')[0].$$('#bar'), pending: 'list query', awaited: A }],
             ['#18 $(s).$$(s2)[0]', { make: (b) => b.$('#foo').$$('#bar')[0], pending: 'list item', awaited: E }],
@@ -506,7 +512,7 @@ describe('WebdriverIO object brand matrix', () => {
             /**
              * an index past the end of a resolved query waits and refetches, a derived list does not
              */
-            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: 'list item', awaited: 'rejects' }],
+            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: 'list item', awaited: E }],
             ['#25 (await $$(s)).at(-1)', { from: (b) => b.$$('#foo'), make: (list) => list.at(-1), pending: E, awaited: E }],
             ['#25 (await $$(s).slice(0, 1))[5]', { from: (b) => b.$$('#foo').slice(0, 1), make: (list) => list[5], pending: NONE, awaited: NONE }],
             ['#26 [...await $$(s)]', { from: (b) => b.$$('#foo'), make: (list) => [...(list as unknown as unknown[])], pending: NONE, awaited: NONE }],
@@ -543,16 +549,12 @@ describe('WebdriverIO object brand matrix', () => {
     describe('single session: errors', () => {
         test.each<[string, Row]>([
             /**
-             * the fetch mock finds a child of a not-found element, so only the brands are relevant here
+             * a query from a not-found element rejects with its "element wasn't found" error, and
+             * does not run from the document instead (#16395)
              */
-            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: E }],
-            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: A }],
-            ['#65 parentElement() of a not-found element', {
-                make: (b) => b.$('#nonexisting').parentElement(),
-                pending: 'element query',
-                awaited: E,
-                hasError: true
-            }],
+            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: 'rejects' }],
+            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: 'rejects' }],
+            ['#65 parentElement() of a not-found element', { make: (b) => b.$('#nonexisting').parentElement(), pending: 'element query', awaited: 'rejects' }],
             ['#66 a command on a not-found element', { make: (b) => b.$('#nonexisting').getTagName(), pending: 'other promise', awaited: 'rejects' }],
             ['#67 custom$ with an unknown strategy', { make: (b) => b.custom$('nope', 'x'), pending: 'element query', awaited: 'rejects' }],
             ['#68 custom$$ with an unknown strategy', { make: (b) => b.custom$$('nope', 'x'), pending: 'list query', awaited: 'rejects' }],

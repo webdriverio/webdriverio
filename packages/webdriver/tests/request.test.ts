@@ -361,6 +361,50 @@ describe('webdriver request', () => {
             expect(calls() - before).toBe(1)
         })
 
+        it('should not retry a well-formed W3C error response', async () => {
+            const onRetry = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/execute/sync', {}, undefined, false, { onRetry })
+            const url = new URL('/session/foobar-123/execute/sync', baseUrl)
+            const fetchMock = vi.mocked(globalThis.fetch)
+            fetchMock.mockClear()
+            fetchMock.mockImplementationOnce(async () => Response.json(
+                { value: { error: 'javascript error', message: 'boom' } },
+                { status: 500 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({ script: 'throw 1' }) }, undefined, 3).catch((err: Error) => err)
+            expect(error.name).toBe('javascript error')
+            expect(onRetry).not.toHaveBeenCalled()
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not expose masked values in the error message', async () => {
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element/:elementId/value', {}, undefined, false, {})
+            req.maskedBody = { text: '**MASKED**' }
+            const url = new URL('/session/foobar-123/element/some-elem-123/value', baseUrl)
+            vi.mocked(globalThis.fetch).mockImplementationOnce(async () => Response.json(
+                { value: { error: 'invalid element state', message: 'nope' } },
+                { status: 400 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({ text: 'mySecretPassword' }) }, undefined, 0).catch((err: Error) => err)
+            expect(error.message).toContain('**MASKED**')
+            expect(error.message).not.toContain('mySecretPassword')
+        })
+
+        it('should not retry an invalid session id by error name', async () => {
+            const onRetry = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/url', {}, undefined, false, { onRetry })
+            const url = new URL('/session/foobar-123/url', baseUrl)
+            const fetchMock = vi.mocked(globalThis.fetch)
+            fetchMock.mockClear()
+            fetchMock.mockImplementationOnce(async () => Response.json(
+                { value: { error: 'invalid session id', message: 'gone' } },
+                { status: 404 }
+            ))
+            const error = await req['_request'](url, { body: JSON.stringify({}) }, undefined, 3).catch((err: Error) => err)
+            expect(error.name).toBe('invalid session id')
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
         it('should not fail code due to an empty server response', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
@@ -745,6 +789,44 @@ describe('webdriver request', () => {
             expect(SESSION_DISPATCHERS.size).toBe(0)
         })
 
+        it('should keep the session dispatcher while a failed DELETE /session/:sessionId can be retried', async () => {
+            const sessionId = 'retry-delete-session-id'
+            const deleteSessionRequest = new FetchRequest('DELETE', `/session/${sessionId}`, {})
+            const { fetch } = vi.mocked(await import('undici'))
+            fetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                text: async () => JSON.stringify({ value: { error: 'unknown error', message: 'grid hiccup' } })
+            } as any)
+            fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                text: async () => JSON.stringify({ value: null })
+            } as any)
+
+            await deleteSessionRequest.makeRequest({ ...defaultOptions, connectionRetryCount: 1 }, sessionId)
+            expect(fetch).toHaveBeenCalledTimes(2)
+            // the retry still reached the server through the same dispatcher
+            expect(fetch.mock.calls[1][1]).toHaveProperty('dispatcher', fetch.mock.calls[0][1]!.dispatcher)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
+        })
+
+        it('should cleanup the session dispatcher when DELETE /session/:sessionId fails on every attempt', async () => {
+            const sessionId = 'failed-delete-session-id'
+            const deleteSessionRequest = new FetchRequest('DELETE', `/session/${sessionId}`, {})
+            const { fetch } = vi.mocked(await import('undici'))
+            fetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                text: async () => JSON.stringify({ value: { error: 'unknown error', message: 'grid hiccup' } })
+            } as any)
+
+            await deleteSessionRequest.makeRequest({ ...defaultOptions, connectionRetryCount: 0 }, sessionId).catch((e) => e)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
+            fetch.mockReset()
+            fetch.mockImplementation((async () => ({ ok: true, status: 200, json: async () => ({}) })) as any)
+        })
+
         it('should not cleanup session dispatcher on non delete session DELETE requests', async () => {
             const sessionId = 'other-delete-session-id'
             const deleteCookieRequest = new FetchRequest('DELETE', `/session/${sessionId}/cookie`, {})
@@ -832,6 +914,47 @@ describe('webdriver request', () => {
             await req.createOptions({ ...defaultOptions, hostname: 'api.internal.com' })
             expect(ProxyAgent).not.toHaveBeenCalled()
             expect(Agent).toHaveBeenCalledTimes(1) // Once for global dispatcher mock, once for actual dispatcher
+        })
+
+        it('should not verify certificates if strictSSL is disabled', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(Agent).toHaveBeenCalledWith(expect.objectContaining({
+                connect: { rejectUnauthorized: false }
+            }))
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions({ ...defaultOptions, strictSSL: false })
+            expect(ProxyAgent).toHaveBeenCalledWith(expect.objectContaining({
+                requestTls: { rejectUnauthorized: false },
+                proxyTls: { rejectUnauthorized: false }
+            }))
+        })
+
+        it('should verify certificates by default', async () => {
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockClear()
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions({ ...defaultOptions, strictSSL: true })
+            expect(vi.mocked(Agent).mock.calls[0][0]).not.toHaveProperty('connect')
+
+            // the option is not set at all
+            expect(defaultOptions).not.toHaveProperty('strictSSL')
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(Agent).mock.calls[1][0]).not.toHaveProperty('connect')
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            await req.createOptions(defaultOptions)
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('requestTls')
+            expect(vi.mocked(ProxyAgent).mock.calls.at(-1)![0]).not.toHaveProperty('proxyTls')
         })
 
         it('should handle getGlobalDispatcher errors gracefully', async () => {

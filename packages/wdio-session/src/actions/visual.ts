@@ -175,7 +175,7 @@ export const visual: ActionFn = async (session, args) => {
         throw usage('visual needs save, check, accept or list.')
     }
     if ((sub === 'save' || sub === 'check') && !tag) {
-        throw usage('Give an image tag.', 'Example: `wdio session visual save home`.')
+        throw usage('Give an image tag.', `Example: \`${session.cmd('visual', { sub: 'save', tag: 'home' }, 'wdio session visual save home')}\`.`)
     }
     if (sub === 'accept' && !tag && !args.all) {
         throw usage('Give a tag or pass --all.')
@@ -239,7 +239,7 @@ function listVisual (session: Session, folders: VisualFolders): ActionOutcome {
 function acceptVisual (session: Session, folders: VisualFolders, tag: string, all: boolean): ActionOutcome {
     const actualDir = path.join(folders.screenshots, 'actual')
     if (!fs.existsSync(actualDir)) {
-        throw usage('No actual images to accept.', 'Run `wdio session visual check` first.')
+        throw usage('No actual images to accept.', `Run \`${session.cmd('visual', { sub: 'check' }, 'wdio session visual check')}\` first.`)
     }
     const files = fs.readdirSync(actualDir).filter((name) => name.endsWith('.png'))
     const records = recordsOf(session)
@@ -248,7 +248,7 @@ function acceptVisual (session: Session, folders: VisualFolders, tag: string, al
         ? files
         : files.filter((name) => record?.fileName === name)
     if (!wanted.length) {
-        throw usage(`No actual image for "${tag}".`, 'Run `wdio session visual check` first.')
+        throw usage(`No actual image for "${tag}".`, `Run \`${session.cmd('visual', { sub: 'check' }, 'wdio session visual check')}\` first.`)
     }
     const copied: string[] = []
     for (const name of wanted) {

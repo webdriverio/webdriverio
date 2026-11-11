@@ -407,7 +407,7 @@ describe('bidi e2e test', () => {
 
         describe('Scripts', () => {
 
-            it('can return a ScriptEvaluateResultSuccess', async () => {
+            it('can return a ScriptEvaluationResultSuccess', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -420,7 +420,7 @@ describe('bidi e2e test', () => {
                 }
                 const result = await browser.scriptCallFunction(params)
 
-                const expectedSuccessResult: remote.ScriptEvaluateResultSuccess = {
+                const expectedSuccessResult: remote.ScriptEvaluationResultSuccess = {
                     realm: 'expect.any(String)',
                     type: 'success',
                     result: {
@@ -434,7 +434,7 @@ describe('bidi e2e test', () => {
                 })
             })
 
-            it('can return a ScriptEvaluateResultException', async () => {
+            it('can return a ScriptEvaluationResultException', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -447,7 +447,7 @@ describe('bidi e2e test', () => {
                 }
                 const result = await browser.scriptCallFunction(params)
 
-                const expectedExceptionResult: remote.ScriptEvaluateResultException = {
+                const expectedExceptionResult: remote.ScriptEvaluationResultException = {
                     exceptionDetails: {
                         columnNumber: 20,
                         exception: {
@@ -751,5 +751,38 @@ describe('bidi e2e test', () => {
                 await browser.switchToWindow(original)
             }
         })
+    })
+
+    describe('a switchToWindow that fails', () => {
+        const closedTab = async () => {
+            const { context } = await browser.browsingContextCreate({ type: 'tab' })
+            await browser.browsingContextClose({ context })
+            return context
+        }
+        const handles: [string, () => Promise<string>][] = [
+            ['the handle of a closed tab', closedTab],
+            ['a handle that is not a window', async () => 'not-a-window-handle']
+        ]
+
+        for (const [name, getHandle] of handles) {
+            it(`keeps the BiDi context in the window the driver stays in, for ${name}`, async function () {
+                if (!browser.isBidi) {
+                    return this.skip()
+                }
+
+                await browser.url('https://guinea-pig.webdriver.io/')
+                const original = await browser.getWindowHandle()
+                const title = await browser.execute(() => document.title)
+                const handle = await getHandle()
+
+                // geckodriver gives "Unable to locate window"
+                await expect(browser.switchToWindow(handle)).rejects.toThrow(/no such window|Unable to locate window/)
+                try {
+                    expect(await browser.execute(() => document.title)).toBe(title)
+                } finally {
+                    await browser.switchToWindow(original)
+                }
+            })
+        }
     })
 })

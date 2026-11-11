@@ -7,7 +7,7 @@ import semver from 'semver'
 
 import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
-import { MIN_NODE_VERSION } from './constants.js'
+import { SUPPORTED_NODE_VERSIONS } from './constants.js'
 import { ensureRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from './daemon/state.js'
 import {
     APPIUM_DRIVERS, APPIUM_VERSION, PACKAGE_DEPENDENCIES, appiumCliPath,
@@ -161,8 +161,9 @@ function findBrowser (name: (typeof BROWSERS)[number], env: NodeJS.ProcessEnv, p
 
 async function checkNode (host: DoctorHost): Promise<DoctorCheck> {
     const version = host.nodeVersion || process.versions.node
-    if (versionBelow(version, MIN_NODE_VERSION)) {
-        return fail('node', `${version} is older than ${MIN_NODE_VERSION}`, `Install Node.js ${MIN_NODE_VERSION} or newer`)
+    const current = semver.coerce(version)
+    if (!current || !semver.satisfies(current, SUPPORTED_NODE_VERSIONS)) {
+        return fail('node', `${version} is not supported (${SUPPORTED_NODE_VERSIONS})`, 'Install Node.js 22.23.4, 24.22.1, 26.12.1 or a later release of these lines')
     }
     return ok('node', version)
 }

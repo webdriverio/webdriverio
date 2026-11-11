@@ -26,6 +26,14 @@ const ALL_HOOK_PATTERN = /^"(?:before|after)\s+all"/i
 const EACH_HOOK_PATTERN = /^"(?:before|after)\s+each"/i
 const AFTER_ALL_HOOK_PATTERN = /^"after\s+all"/i
 
+// the hook kind of the framework decides the scope; with no kind, the hook title
+const isAllHook = ({ name, scope }: WDIOHookStartMessage['data']) => scope ? scope !== 'each' : ALL_HOOK_PATTERN.test(name)
+const isEachHook = ({ name, scope }: WDIOHookStartMessage['data']) => scope ? scope === 'each' : EACH_HOOK_PATTERN.test(name)
+
+export function isOpen(messages: WDIORuntimeMessage[], startType: WDIORuntimeMessage['type'], endType: WDIORuntimeMessage['type']): boolean {
+    return findLastIndex(messages, ({ type }) => type === startType) > findLastIndex(messages, ({ type }) => type === endType)
+}
+
 export class AllureReportState {
     private _scopesStack: string[] = []
     private _scopeKindsStack: Array<'suite' | 'test'> = []
@@ -38,6 +46,13 @@ export class AllureReportState {
     private _processedIndex = 0
     private _pendingHookMessages: WDIORuntimeMessage[] = []
     private _isCapturingPendingHook: boolean = false
+    // the scope of the all-hooks of the root suite: every test of the run is a child of it
+    private _rootScopeUuid?: string
+    private _testUuids: string[] = []
+    private _standaloneUuid?: string
+    private _rootFixtures = new Set<string>()
+    // the fixture that was open when the current test started
+    private _testStartFixture?: string
 
     constructor(private allureRuntime: ReporterRuntime) {
     }
@@ -98,15 +113,11 @@ export class AllureReportState {
     }
 
     get hasPendingTest(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'allure:test:start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'allure:test:end')
-        return s > e
+        return isOpen(this.messages, 'allure:test:start', 'allure:test:end')
     }
 
     get hasPendingHook(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:end')
-        return s > e
+        return isOpen(this.messages, 'allure:hook:start', 'allure:hook:end')
     }
 
     get currentFeature(): string | undefined {
@@ -168,6 +179,15 @@ export class AllureReportState {
     }
 
     private async _startTest(message: WDIOTestStartMessage): Promise<void> {
+        if (message.data.standalone) {
+            // the test that ended keeps its open scope for its next after each hooks
+            const scopes = this._testScopePendingClose ? this._scopesStack.slice(0, -1) : this._scopesStack
+            const uuid = this.allureRuntime.startTest({ name: message.data.name, start: message.data.start }, [...this._rootScopes(), ...scopes])
+            this._trackTest(uuid)
+            this._executablesStack.push(uuid)
+            this._standaloneUuid = uuid
+            return
+        }
         if (this._currentTestUuid) {
             await this._writeLastTest()
         }
@@ -180,12 +200,14 @@ export class AllureReportState {
                 name,
                 start,
             },
-            [...this._scopesStack],
+            [...this._rootScopes(), ...this._scopesStack],
         )
 
+        this._trackTest(testUuid)
         this._executablesStack.push(testUuid)
         this._currentTestUuid = testUuid
         this._currentTestName = name
+        this._testStartFixture = this._fixturesStack.at(-1)
         this._openSteps = 0
 
         if (this._pendingHookMessages.length > 0 && !this.currentFeature) {
@@ -209,19 +231,28 @@ export class AllureReportState {
     }
 
     private async _endTest(message: WDIOTestEndMessage): Promise<void> {
-        const { status, stage, stop, duration, statusDetails } = message.data
+        const { status, stage, start, stop, duration, statusDetails } = message.data
         const testUuid = this._executablesStack.pop()
 
         if (!testUuid) {
             return
         }
-
-        await this._closeOpenedSteps(status, stop, statusDetails)
+        const standalone = testUuid === this._standaloneUuid
+        if (standalone) {
+            this._standaloneUuid = undefined
+        } else {
+            await this._closeOpenedSteps(status, stop, statusDetails)
+        }
         // The test's own scope is intentionally left open here - see _closeDanglingTestScope.
-        this._testScopePendingClose = true
+        if (!standalone) {
+            this._testScopePendingClose = true
+        }
 
         this.allureRuntime.updateTest(testUuid, r => {
             r.status = status
+            if (start !== undefined) {
+                r.start = start
+            }
             if (stage) {
                 r.stage = stage
             }
@@ -230,7 +261,32 @@ export class AllureReportState {
             }
         })
         this.allureRuntime.stopTest(testUuid, { stop, duration })
+        if (standalone) {
+            await this.allureRuntime.writeTest(testUuid)
+        }
+    }
 
+    private _rootScopes(): string[] {
+        return this._rootScopeUuid ? [this._rootScopeUuid] : []
+    }
+
+    // only the tests that ran before the root scope need the list
+    private _trackTest(uuid: string): void {
+        if (!this._rootScopeUuid) {
+            this._testUuids.push(uuid)
+        }
+    }
+
+    // opened at the first root all-hook, with the tests that ran before it
+    private _rootScope(): string {
+        if (!this._rootScopeUuid) {
+            const uuid = this.allureRuntime.startScope()
+            this.allureRuntime.updateScope(uuid, (scope) => { scope.tests.push(...this._testUuids) })
+            // later tests join the root scope through their scopes
+            this._testUuids = []
+            this._rootScopeUuid = uuid
+        }
+        return this._rootScopeUuid
     }
 
     // The suite scope is shared by every test started under it, so it must only ever hold a
@@ -245,10 +301,10 @@ export class AllureReportState {
     // is merely pending close (see _closeDanglingTestScope), which is exactly when a trailing
     // "after each" hook needs to attach. Anything else (no scope open at all) has nowhere safe
     // to attach to yet and is queued as a pending hook to be replayed later.
-    private _hasAttachableScope(hookName: string): boolean {
+    private _hasAttachableScope(hook: WDIOHookStartMessage['data']): boolean {
         const kind = this._scopeKindsStack[this._scopeKindsStack.length - 1]
         if (kind === 'suite') {
-            return ALL_HOOK_PATTERN.test(hookName)
+            return isAllHook(hook)
         }
         if (kind === 'test') {
             return Boolean(this._currentTestUuid)
@@ -257,22 +313,23 @@ export class AllureReportState {
     }
 
     private async _startHook(message: WDIOHookStartMessage): Promise<void> {
-        const { name, type, start } = message.data
+        const { name, type, start, scope } = message.data
 
-        const isAllHook = ALL_HOOK_PATTERN.test(name)
+        const allHook = isAllHook(message.data)
+        const afterAll = scope ? allHook && type === 'after' : AFTER_ALL_HOOK_PATTERN.test(name)
 
-        if (AFTER_ALL_HOOK_PATTERN.test(name) && this._currentTestUuid) {
+        if (afterAll && this._currentTestUuid) {
             await this._writeLastTest()
         }
         // Only an "all"-scoped hook needs the suite scope exposed - closing the dangling
         // test scope here for an "each"-scoped hook would destroy the very scope it needs
         // to attach to (see _closeDanglingTestScope).
-        if (isAllHook) {
+        if (allHook) {
             await this._closeDanglingTestScope()
         }
 
-        const testScopeUuid = this._scopesStack[this._scopesStack.length - 1]
-        if (!testScopeUuid || !this._hasAttachableScope(name)) {
+        const testScopeUuid = scope === 'root' ? this._rootScope() : this._scopesStack[this._scopesStack.length - 1]
+        if (!testScopeUuid || (scope !== 'root' && !this._hasAttachableScope(message.data))) {
             this._pendingHookMessages.push(message)
             this._isCapturingPendingHook = true
             return
@@ -280,6 +337,9 @@ export class AllureReportState {
 
         const hookUuid = this.allureRuntime.startFixture(testScopeUuid, type, { name, start })
         if (hookUuid) {
+            if (scope === 'root') {
+                this._rootFixtures.add(hookUuid)
+            }
             this._fixturesStack.push(hookUuid)
             this._openHookSteps.set(hookUuid, 0)
             this._hookMeta.set(hookUuid, { name, type })
@@ -351,7 +411,7 @@ export class AllureReportState {
                 continue
 
             case 'allure:suite:end':
-                await this._endSuite(lastMessage)
+                await this._endSuite(lastMessage || Boolean(message.data?.writeTest))
                 continue
 
             case 'allure:test:start':
@@ -362,13 +422,15 @@ export class AllureReportState {
                 this._addTestInfo(message)
                 continue
 
-            case 'allure:test:end':
+            case 'allure:test:end': {
+                const standalone = this._standaloneUuid !== undefined && last(this._executablesStack) === this._standaloneUuid
                 await this._endTest(message)
-                if (this._pendingHookMessages.length > 0 && !this.currentFeature) {
+                if (!standalone && this._pendingHookMessages.length > 0 && !this.currentFeature) {
                     await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', 'each')
                     await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', '')
                 }
                 continue
+            }
 
             case 'allure:hook:start':
                 await this._startHook(message)
@@ -401,8 +463,10 @@ export class AllureReportState {
                 continue
             }
 
-            const hookUuid = this._fixturesStack.at(-1)
-            const target = hookUuid ?? this._currentTestUuid
+            const openFixture = this._fixturesStack.at(-1)
+            // a result started in an open root fixture (its failed hook) keeps its metadata: the root scope holds every test
+            const hookUuid = openFixture && this._rootFixtures.has(openFixture) && this._testStartFixture === openFixture ? undefined : openFixture
+            const target = hookUuid ?? this._standaloneUuid ?? this._currentTestUuid
 
             if (!target) {
                 if (this._isCapturingPendingHook) {
@@ -414,7 +478,7 @@ export class AllureReportState {
             if (message.type === 'step_start') {
                 if (hookUuid) {
                     this._incHookSteps(hookUuid)
-                } else {
+                } else if (!this._standaloneUuid) {
                     this._openSteps++
                 }
             }
@@ -422,7 +486,7 @@ export class AllureReportState {
             if (message.type === 'step_stop') {
                 if (hookUuid) {
                     this._decHookSteps(hookUuid)
-                } else {
+                } else if (!this._standaloneUuid) {
                     this._openSteps = Math.max(0, this._openSteps - 1)
                 }
             }
@@ -444,6 +508,10 @@ export class AllureReportState {
         while (this._scopesStack.length > 0) {
             await this._closeScope()
         }
+        if (this._rootScopeUuid) {
+            await this.allureRuntime.writeScope(this._rootScopeUuid)
+            this._rootScopeUuid = undefined
+        }
     }
 
     private async _attachPendingHookToCurrentTest(kind: 'before' | 'after', testName: string, scope: 'each' | '' = 'each'): Promise<void> {
@@ -451,7 +519,7 @@ export class AllureReportState {
             return
         }
         const startIdx = this._pendingHookMessages.findIndex((m) =>
-            m.type === 'allure:hook:start' && m.data.type === kind && typeof m.data.name === 'string' && (scope === 'each' ? EACH_HOOK_PATTERN.test(m.data.name) : ALL_HOOK_PATTERN.test(m.data.name))
+            m.type === 'allure:hook:start' && m.data.type === kind && typeof m.data.name === 'string' && (scope === 'each' ? isEachHook(m.data) : isAllHook(m.data))
         )
         if (startIdx === -1) {
             return
@@ -469,7 +537,8 @@ export class AllureReportState {
             data: {
                 name: String(startMsg.data.name || ''),
                 type: kind,
-                start: startMsg.data.start
+                start: startMsg.data.start,
+                ...(startMsg.data.scope && { scope: startMsg.data.scope }),
             }
         })
 

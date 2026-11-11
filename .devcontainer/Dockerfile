@@ -1,4 +1,8 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm
+FROM mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm
+
+# the image can ship a 24.x below the engines floor; nvm/current/bin is first on PATH
+RUN su node -c '. /usr/local/share/nvm/nvm.sh && nvm install 24 && nvm alias default 24 \
+	&& ln -sfn "/usr/local/share/nvm/versions/node/$(nvm version 24)" /usr/local/share/nvm/current'
 
 # Installs Firefox ESR
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && apt-get install -y firefox-esr
@@ -10,7 +14,7 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_$(dpkg 
 ENV PATH="/opt/google/chrome:${PATH}"
 
 # Installs Microsoft Edge
-RUN if [[ $(dpkg --print-architecture) == "amd64" ]]; then \
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
         curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg && \
         install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/ && \
         sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list' && \
@@ -19,8 +23,8 @@ RUN if [[ $(dpkg --print-architecture) == "amd64" ]]; then \
         apt-get install -y microsoft-edge-stable ; \
 	fi
 
-RUN corepack enable \
+RUN su node -c "corepack enable \
 	&& corepack prepare pnpm@11.27.1 --activate \
-	&& npm i -g http-server diff-so-fancy
+	&& npm i -g http-server diff-so-fancy"
 
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt

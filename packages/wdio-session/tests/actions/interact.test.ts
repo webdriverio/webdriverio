@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 import { click, fill, navigate, normalizeUrl, parseKeys, press, type, upload } from '../../src/actions/interact.js'
 import { quote } from '../../src/quote.js'
+import { cliCmd } from '../../src/hints.js'
 import type { Session } from '../../src/session.js'
 
 describe('parseKeys', () => {
@@ -33,6 +34,7 @@ describe('parseKeys', () => {
 
 function uploadSession (element: Record<string, unknown>, plan: Record<string, unknown> = {}, isBidi = true) {
     return {
+        cmd: cliCmd,
         cwd: '/tmp',
         isBidi,
         plan,
@@ -138,6 +140,7 @@ describe('normalizeUrl', () => {
 /** a session with one ref, e2, that resolves to `element` */
 function refSession (element: Record<string, unknown>, browser: Record<string, unknown> = {}) {
     return {
+        cmd: cliCmd,
         browser,
         refs: {
             resolve: async () => element,
@@ -180,12 +183,12 @@ describe('fill', () => {
             execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('aria-valuenow')
                 ? { kind: 'text' }
                 : fn.toString().includes('getBoundingClientRect')
-                    ? { x: 10, y: 20, hit: true }
+                    ? { x: 10, y: 20, originX: 8, originY: 25, hit: true }
                     : actions.push('select')
         }
         const pointer = {
-            move: (opts: { x: number, y: number }) => {
-                actions.push(`move ${opts.x},${opts.y}`)
+            move: (opts: { x: number, y: number, origin: unknown }) => {
+                actions.push(`move ${opts.x},${opts.y} ${opts.origin === element ? 'element' : 'other'}`)
                 return pointer
             },
             down: () => (actions.push('down'), pointer),
@@ -194,7 +197,7 @@ describe('fill', () => {
         }
         const session = refSession(element, { action: () => pointer, keys: async (v: string) => keys.push(v) })
         await fill(session, { target: 'e2', text: 'SAVE20', $cwd: '/' })
-        expect(actions).toEqual(['move 10,20', 'down', 'up', 'perform', 'select'])
+        expect(actions).toEqual(['move 2,-5 element', 'down', 'up', 'perform', 'select'])
         expect(keys).toEqual(['SAVE20'])
     })
 
@@ -217,6 +220,87 @@ describe('fill', () => {
     })
 })
 
+describe('fill on an element that is not editable', () => {
+    /** the page-side answer for a wrapper: `editable: false` plus what was found in or around it */
+    const wrapper = (found: Record<string, unknown>) => ({ kind: 'text', editable: false, ...found })
+    const invalidState = () => {
+        const err = new Error('invalid element state: Element must be user-editable in order to clear it.')
+        err.name = 'invalid element state'
+        return err
+    }
+
+    it('fills the single editable field inside and says so', async () => {
+        const filled: string[] = []
+        const inner = { setValue: async (v: string) => { filled.push(v) } }
+        const outer = {
+            setValue: async () => { throw invalidState() },
+            execute: async () => wrapper({ count: 1, via: 'inside', selector: 'input', desc: 'search input' }),
+            $: (selector: string) => ({ getElement: async () => (filled.push(`$ ${selector}`), inner) })
+        }
+        const result = await fill(refSession(outer), { target: 'e2', text: 'shoes', $cwd: '/' })
+        expect(filled).toEqual(['$ input', 'shoes'])
+        expect(result.text).toBe('Filled the search input inside e2 (textbox "Name")')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').$(\'input\').setValue(\'shoes\')')
+        expect(result.history).toBe(result.code)
+    })
+
+    it('rejects a date the browser rejected for the field inside', async () => {
+        const inner = {
+            setValue: async () => {
+                throw new Error('The browser rejected the value "10/04/2026" for this input, which keeps its previous value.')
+            },
+            getValue: async () => ''
+        }
+        const outer = {
+            execute: async () => wrapper({ count: 1, via: 'inside', selector: 'input', desc: 'date input', type: 'date' }),
+            $: () => ({ getElement: async () => inner })
+        }
+        const err = await fill(refSession(outer), { target: 'e2', text: '10/04/2026', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('date input in e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('throws NOT_EDITABLE with a hint when the element holds several fields', async () => {
+        const outer = { setValue: async () => { throw invalidState() }, execute: async () => wrapper({ count: 2 }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.message).toContain('e2 (textbox "Name")')
+        expect(err.message).toContain('2 editable fields')
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('throws NOT_EDITABLE when there is no field at all', async () => {
+        const outer = { setValue: async () => { throw invalidState() }, execute: async () => wrapper({ count: 0 }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.message).toContain('no editable field')
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('maps a driver "invalid element state" to NOT_EDITABLE and keeps it as the cause', async () => {
+        const original = invalidState()
+        const outer = { setValue: async () => { throw original }, execute: async () => ({ kind: 'text', editable: true }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.cause).toBe(original)
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('leaves an editable input as it was', async () => {
+        const filled: string[] = []
+        const outer = {
+            setValue: async (v: string) => { filled.push(v) },
+            execute: async () => ({ kind: 'text', editable: true }),
+            $: () => { throw new Error('must not look inside an editable input') }
+        }
+        const result = await fill(refSession(outer), { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(filled).toEqual(['Ada'])
+        expect(result.text).toBe('Filled e2 (textbox "Name")')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'Ada\')')
+    })
+})
+
 /** a session whose page is at `urls[0]` before and `urls[1]` after the action */
 function clickSession (element: Record<string, unknown>, browser: Record<string, unknown> = {}, urls = ['https://a.test/', 'https://a.test/']) {
     let calls = 0
@@ -234,13 +318,25 @@ describe('click', () => {
         expect(result.text).toBe('Clicked e2 (textbox "Name")')
     })
 
-    it('fails at once for a hidden element, naming where a link goes', async () => {
+    it('fails at once for a hidden element, without leaking where a link goes', async () => {
         const element = {
             execute: async () => ({ state: 'hidden', x: 0, y: 0, href: 'https://a.test/nutrition' }),
             click: async () => { throw new Error('should not click') }
         }
-        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' }))
-            .rejects.toThrow('e2 (textbox "Name") is not visible on the page; it links to https://a.test/nutrition.')
+        const err = await click(clickSession(element), { target: 'e2', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") is not visible on the page.')
+        expect(JSON.stringify([err.message, err.hint])).not.toContain('https://a.test/nutrition')
+        expect(err.hint).toContain('take a new snapshot')
+        expect(err.hint).not.toContain('navigate')
+    })
+
+    it('names the control that dismisses the dialog covering an element', async () => {
+        const element = {
+            execute: async () => ({ state: 'covered', x: 5, y: 5, cover: 'dialog "Cookie settings"', dismiss: 'button "Accept all"' }),
+            click: async () => { throw new Error('should not click') }
+        }
+        const err = await click(clickSession(element), { target: 'e2', $cwd: '/' }).catch((e) => e)
+        expect(err.hint).toBe('Close it first: button "Accept all".')
     })
 
     it('fails at once for a covered element, naming what covers it', async () => {
@@ -252,20 +348,93 @@ describe('click', () => {
             .rejects.toThrow('e2 (textbox "Name") is covered by dialog "Cookie settings".')
     })
 
+    describe('covered by a sticky header', () => {
+        const pointerFor = (actions: string[], element: unknown) => {
+            const pointer = {
+                move: (opts: { x: number, y: number, origin: unknown }) => (actions.push(`move ${opts.x},${opts.y} ${opts.origin === element ? 'element' : 'other'}`), pointer),
+                down: () => pointer,
+                up: () => pointer,
+                perform: async () => actions.push('perform')
+            }
+            return pointer
+        }
+
+        it('scrolls to the middle once and clicks where the element is free', async () => {
+            const actions: string[] = []
+            const instant: unknown[] = []
+            const element = {
+                execute: async (_fn: unknown, arg?: unknown) => {
+                    instant.push(arg)
+                    return arg
+                        ? { state: 'ok', x: 30, y: 300, originX: 30, originY: 300 }
+                        : { state: 'covered', x: 30, y: 10, originX: 30, originY: 10, cover: 'nav "Shady Meadows"', sticky: true }
+                },
+                click: async () => { throw new Error('should click with the pointer') }
+            }
+            await click(clickSession(element, { action: () => pointerFor(actions, element) }), { target: 'e2', $cwd: '/' })
+            expect(instant).toEqual([false, true])
+            expect(actions).toEqual(['move 0,0 element', 'perform'])
+        })
+
+        it('clicks the free lower half of an element that is partly under the header', async () => {
+            const actions: string[] = []
+            const element = {
+                execute: async () => ({ state: 'ok', x: 30, y: 90, originX: 30, originY: 70.5, offCenter: true }),
+                click: async () => { throw new Error('should click with the pointer') }
+            }
+            await click(clickSession(element, { action: () => pointerFor(actions, element) }), { target: 'e2', $cwd: '/' })
+            expect(actions).toEqual(['move 0,20 element', 'perform'])
+        })
+
+        it('keeps the error when no point of the element is free', async () => {
+            const element = {
+                execute: async () => ({ state: 'covered', x: 30, y: 40, cover: 'nav "Shady Meadows"', sticky: true }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by nav "Shady Meadows".')
+        })
+
+        it('keeps the error for a dialog', async () => {
+            let checks = 0
+            const element = {
+                execute: async () => (checks++, { state: 'covered', x: 5, y: 5, cover: 'dialog "Cookie settings"', sticky: false }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by dialog "Cookie settings".')
+            expect(checks).toBe(1)
+        })
+
+        it('keeps the error when it is still covered after the scroll', async () => {
+            let checks = 0
+            const element = {
+                execute: async () => (checks++, { state: 'covered', x: 5, y: 5, cover: 'nav "Shady Meadows"', sticky: true }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by nav "Shady Meadows".')
+            expect(checks).toBe(2)
+        })
+    })
+
     it('clicks the label of a hidden radio button or checkbox', async () => {
         const actions: string[] = []
+        const labelElement = {}
         const pointer = {
-            move: (opts: { x: number, y: number }) => (actions.push(`move ${opts.x},${opts.y}`), pointer),
+            move: (opts: { x: number, y: number, origin: unknown }) => (actions.push(`move ${opts.x},${opts.y} ${opts.origin === labelElement ? 'label' : 'other'}`), pointer),
             down: () => (actions.push('down'), pointer),
             up: () => (actions.push('up'), pointer),
             perform: async () => actions.push('perform')
         }
+        const labelRef = { 'element-6066-11e4-a52e-4f735466cecf': 'label-id' }
         const element = {
-            execute: async () => ({ state: 'label', x: 40, y: 60 }),
+            execute: async () => ({ state: 'label', x: 40, y: 60, originX: 38, originY: 60, label: labelRef }),
+            $: async (ref: unknown) => ref === labelRef ? labelElement : undefined,
             click: async () => { throw new Error('should not click the hidden input') }
         }
         await click(clickSession(element, { action: () => pointer }), { target: 'e2', $cwd: '/' })
-        expect(actions).toEqual(['move 40,60', 'down', 'up', 'perform'])
+        expect(actions).toEqual(['move 2,0 label', 'down', 'up', 'perform'])
     })
 
     it('reports a page that is still loading instead of failing', async () => {
@@ -345,7 +514,13 @@ describe('click', () => {
     })
 
     it('treats every driver\'s stale element error the same', async () => {
-        for (const message of ['is no longer attached to the DOM', 'SharedId "f.1" belongs to different document', 'no such node - The node with the reference f.1 is not known']) {
+        for (const message of [
+            'is no longer attached to the DOM',
+            'SharedId "f.1" belongs to different document',
+            'no such node - The node with the reference f.1 is not known',
+            'no such node - SharedId "f.1.d.2.e.3" was not found.',
+            'unknown error - Node with given id does not belong to the document'
+        ]) {
             const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error(message) } }
             await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
         }
@@ -526,14 +701,81 @@ describe('fill on inputs that are not typed into', () => {
         expect(keys).toEqual(['ArrowLeft', 'ArrowRight'])
     })
 
-    it('rejects a date the input does not take', async () => {
+    /** a direct input: the first execute answers fillKind, the next ones how the browser stores the given value */
+    const direct = (type: string, stored?: string) => vi.fn()
+        .mockResolvedValueOnce({ kind: 'direct', type })
+        .mockResolvedValue(stored)
+
+    it('reports a value the input stores in its own format', async () => {
+        const element = {
+            execute: direct('color', '#ff8800'),
+            setValue: async () => {},
+            getValue: async () => '#ff8800'
+        }
+        const result = await fill(refSession(element), { target: 'e2', text: '#FF8800', $cwd: '/' })
+        expect(result.text).toBe('Set e2 (textbox "Name") to #ff8800 (it took #ff8800: the format of the input)')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'#FF8800\')')
+    })
+
+    it('rejects a date the page put back', async () => {
+        const element = {
+            execute: direct('date', '2026-10-04'),
+            setValue: async () => {},
+            getValue: async () => '2026-01-01'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take "2026-10-04"; it has "2026-01-01".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects an empty value a color input replaced with black', async () => {
+        const element = {
+            execute: direct('color', '#000000'),
+            setValue: async () => {},
+            getValue: async () => '#000000'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: '', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'USAGE' })
+        expect(err.message).toBe('e2 (textbox "Name") did not take ""; it has "#000000".')
+    })
+
+    it('rejects a date the browser rejected in setValue', async () => {
         const element = {
             execute: async () => ({ kind: 'direct', type: 'date' }),
-            setValue: async () => {},
+            setValue: async () => {
+                throw new Error('The browser rejected the value "10/04/2026" for this input, which keeps its previous value.')
+            },
             getValue: async () => ''
         }
-        await expect(fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }))
-            .rejects.toThrow('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        const err = await fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+        expect(err.hint).toBe('A date input takes values like 2026-10-04.')
+    })
+
+    it('rejects a range value the browser rejected in setValue', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'range' }),
+            setValue: async () => {
+                throw new Error('The browser rejected the value "loud" for this input, which keeps its previous value.')
+            },
+            getValue: async () => '50'
+        }
+        const err = await fill(refSession(element), { target: 'e2', text: 'loud', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") did not take "loud"; it has "50".')
+        expect(err.hint).toBe('A range input takes values like 50.')
+    })
+
+    it('keeps other setValue errors', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'date' }),
+            setValue: async () => {
+                throw new Error('element not interactable')
+            },
+            getValue: async () => ''
+        }
+        await expect(fill(refSession(element), { target: 'e2', text: '2026-10-04', $cwd: '/' }))
+            .rejects.toThrow('element not interactable')
     })
 
     it('moves an ARIA slider with arrow keys until it has the value', async () => {

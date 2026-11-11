@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY, type local } from 'webdriver'
+import isPlainObject from 'is-plain-obj'
 
 import {
     findElement,
     findElements,
-    isStaleElementError,
     elementPromiseHandler,
     transformClassicToBidiSelector,
     createFunctionDeclarationFromString
@@ -13,6 +13,50 @@ import {
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
 }))
+
+/**
+ * A custom strategy runs in the browser or the held browsing context that queries, not in
+ * the current context of the session. On an element, the element is a strategy argument,
+ * which routes the script, so it runs on the browser object as before.
+ */
+describe('the object that runs a custom strategy', () => {
+    const strategy = function items () { return [] }
+    const strategyRef = { strategy, strategyName: 'items', strategyArguments: ['a'] }
+    const ref = { [ELEMENT_KEY]: 'elem-1' }
+    const setup = () => {
+        const browser: any = { on: vi.fn(), execute: vi.fn().mockResolvedValue([ref]) }
+        const context: any = { on: vi.fn(), parent: browser, execute: vi.fn().mockResolvedValue([ref]) }
+        const element: any = { on: vi.fn(), parent: browser, elementId: 'parent-elem', execute: vi.fn() }
+        return { browser, context, element }
+    }
+
+    it('findElements runs it in the held browsing context that queries', async () => {
+        const { browser, context } = setup()
+        vi.mocked(isPlainObject).mockReturnValueOnce(true)
+
+        expect(await findElements.call(context, strategyRef as never)).toEqual([ref])
+        expect(context.execute).toHaveBeenCalledWith(strategy, 'a')
+        expect(browser.execute).not.toHaveBeenCalled()
+    })
+
+    it('findElement runs it in the held browsing context that queries', async () => {
+        const { browser, context } = setup()
+
+        expect(await findElement.call(context, strategyRef as never)).toEqual(ref)
+        expect(context.execute).toHaveBeenCalledWith(strategy, 'a')
+        expect(browser.execute).not.toHaveBeenCalled()
+    })
+
+    it('runs it on the browser object for an element', async () => {
+        const { browser, element } = setup()
+        vi.mocked(isPlainObject).mockReturnValueOnce(true)
+
+        await findElements.call(element, strategyRef as never)
+        await findElement.call(element, strategyRef as never)
+        expect(browser.execute).toHaveBeenCalledTimes(2)
+        expect(element.execute).not.toHaveBeenCalled()
+    })
+})
 
 describe('findElement', () => {
     it('should find element using JS function', async () => {
@@ -120,21 +164,6 @@ describe('elementPromiseHandler', () => {
     })
 })
 
-it('isStaleElementError', () => {
-    const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
-    expect(isStaleElementError(staleElementChromeError)).toBe(true)
-    const staleElementFirefoxError = new Error('The element <nested-component> is no longer attached to the DOM')
-    expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
-    const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
-    expect(isStaleElementError(staleElementSafariError)).toBe(true)
-    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
-    expect(isStaleElementError(staleElementJSError)).toBe(true)
-    const staleElementBidiError = new Error('belongs to different document. Current document is')
-    expect(isStaleElementError(staleElementBidiError)).toBe(true)
-    const otherError = new Error('something else')
-    expect(isStaleElementError(otherError)).toBe(false)
-})
-
 describe('transformClassicToBidiSelector', () => {
     it('transforms classic css selector to BiDi', () => {
         const bidiSelector = transformClassicToBidiSelector('css selector', '.red')
@@ -154,17 +183,10 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.value).toBe('//html/body/section/div[6]/div/span')
     })
 
-    it('transforms classic link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('link text', 'GitHub Repo')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('GitHub Repo')
-    })
-
-    it('transforms classic partial link text selector to BiDi', () => {
-        const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
-        expect(bidiSelector.type).toBe('innerText')
-        expect(bidiSelector.value).toBe('new')
-        expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
+    it('transforms classic link text selectors into a locator for all links', () => {
+        // the text of the links is compared after they were located
+        expect(transformClassicToBidiSelector('link text', 'GitHub Repo')).toEqual({ type: 'css', value: 'a' })
+        expect(transformClassicToBidiSelector('partial link text', 'new')).toEqual({ type: 'css', value: 'a' })
     })
 
     it('transforms aria selector to BiDi accessibility locator', () => {

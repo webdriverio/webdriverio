@@ -114,7 +114,8 @@ describe('wdio package', () => {
             const output = execFileSync(command, argv, { cwd: packageDir, encoding: 'utf8' })
             expect(JSON.parse(output)).toEqual(args)
         } finally {
-            rmSync(directory, { recursive: true, force: true })
+            // Windows can lock the copied pnpm.exe for a moment after the child exits
+            rmSync(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
         }
     })
 

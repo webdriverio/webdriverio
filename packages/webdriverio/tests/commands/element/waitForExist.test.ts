@@ -1,9 +1,14 @@
 import path from 'node:path'
-import { expect, describe, it, vi, beforeEach } from 'vitest'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { bidiGetTagName, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiGetTagName: vi.fn() }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForExists', () => {
@@ -95,5 +100,22 @@ describe('waitForExists', () => {
 
         expect(elem.elementId).toBe('some-elem-456')
         expect($Spy).not.toHaveBeenCalled()
+    })
+
+    describe('with BiDi commands enabled', () => {
+        afterEach(() => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)
+        })
+
+        it('validates the current element id through BiDi', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+            vi.mocked(bidiGetTagName).mockReset().mockResolvedValue('div')
+            const elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            expect(await elem.waitForExist({ timeout })).toBe(true)
+            expect(bidiGetTagName).toHaveBeenCalled()
+            expect(vi.mocked(fetch).mock.calls.map(([url]) => (url as URL).pathname).filter((p) => p.endsWith('/name'))).toEqual([])
+        })
     })
 })

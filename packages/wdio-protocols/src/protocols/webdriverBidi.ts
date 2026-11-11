@@ -90,7 +90,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.SessionNewResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       unhandledPromptBehavior?: SessionUserPromptHandler;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: SessionCapabilityResponse;\n   }\n   ```"
             }
         }
     },

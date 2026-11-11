@@ -56,6 +56,26 @@ describe('multi remote expect', () => {
             await expect(elements).toBeElementsArrayOfSize(0)
         })
 
+        it('should pass .not on an index that the list of every instance never reaches (#12576)', async () => {
+            const instances = [browserA, browserB, browserC]
+            const waitforTimeouts = instances.map((instance) => instance.options.waitforTimeout)
+            for (const instance of instances) {
+                instance.options.waitforTimeout = 1000
+            }
+            try {
+                const links = multiRemoteBrowser.$$('header a')
+
+                await expect(links[5]).not.toBeDisplayed()
+                await expect(links[5]).not.toExist()
+                expect(await links[5].isExisting()).toEqual([false, false, false])
+                await expect(links[5].click()).rejects.toThrow('Index out of bounds! $$(header a) returned only 3 elements.')
+            } finally {
+                instances.forEach((instance, index) => {
+                    instance.options.waitforTimeout = waitforTimeouts[index]
+                })
+            }
+        })
+
         it('should match an inline snapshot that is the same on every instance', async () => {
             await expect(multiRemoteBrowser.$('header h1')).toMatchInlineSnapshot('"<h1>WebdriverJS Testpage</h1>"')
         })
