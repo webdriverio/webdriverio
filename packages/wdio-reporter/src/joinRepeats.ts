@@ -3,11 +3,9 @@ import { isUserCommandOutput, isUserResultOutput, pairUserCommandOutput, textsOf
 const MAX_GROUP_SIZE = 4
 
 /**
- * Joins the runs of identical items: a group of 1 to 4 items that repeats at least 2 times in a row. The run that
- * covers the most items wins, and the smaller group on a tie. `join` gets the first copy of the group, the
- * number of repeats and the dropped copies; the other items stay as they are. With `fullKeyOf`, `keyOf` is a cheap
- * key, and the items are compared by their full key, which is read only for an item that a sibling at most 4 places
- * away matches by the cheap key.
+ * Joins a group of 1 to 4 items that repeats 2 or more times in a row (the longest run wins; on a tie, the
+ * smaller group). `join` gets the first copy, the count and the dropped copies. With `fullKeyOf`, `keyOf` is a
+ * cheap prefilter, and `fullKeyOf` decides.
  * @experimental the name and the rule may change
  */
 export function joinRepeats<T>(
@@ -191,9 +189,8 @@ export function userOutputReplacer(this: unknown, key: string, value: unknown): 
 }
 
 /**
- * `userOutputReplacer` for a report that shows the user commands as a tree: an output with user commands becomes
- * the entries of its joined tree (see `joinUserCommandTree`). The entries of joined repeats are removed, and the
- * first entry of a joined step or group gets `repeat: { count, size }`.
+ * `userOutputReplacer` that writes the joined tree (see `joinUserCommandTree`): the joined repeats are removed,
+ * and the first entry of a joined step or group gets `repeat: { count, size }`.
  * @experimental the name and the rule may change
  */
 export function joinedOutputReplacer(this: unknown, key: string, value: unknown): unknown {

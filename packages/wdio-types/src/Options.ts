@@ -209,16 +209,11 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      */
     maxSpyCollectedBodySize?: number
     /**
-     * Sends an event before and after each user command (the testrunner gives them to the reporters),
-     * in WebDriver BiDi sessions only. A user command is a command that your test code calls directly:
-     * a WebdriverIO command or a custom command.
-     * When it is not set, a session with the `wdio:experimentalBiDiCommands` capability sends them
-     * and other sessions do not. Set `true` to send them in every WebDriver BiDi session, `false`
-     * to send none, or `{ exclude: ['waitUntil'] }` to send all except the named commands (the
-     * commands that an excluded command runs are not sent either).
-     * `nested` sets which commands show their direct calls as child user commands: `'default'`
-     * (`waitUntil`, `waitFor*` and `expect.*`), `'none'`, `'all'`, or an object
-     * with a `mode` and the `expand` / `collapse` lists of names (a name can end with `*`).
+     * Sends an event before and after each command that your test code calls directly, for the reporters.
+     * WebDriver BiDi sessions only. Not set: only sessions with `wdio:experimentalBiDiCommands`;
+     * `true`: all; `false`: none; `{ exclude: ['waitUntil'] }`: all except these commands.
+     * `nested`: which commands show their direct calls (`'default'`, `'none'`, `'all'` or `{ mode, expand, collapse }`).
+     * See [userCommandEvents](https://webdriver.io/docs/configuration#usercommandevents).
      *
      * @default undefined
      * @experimental

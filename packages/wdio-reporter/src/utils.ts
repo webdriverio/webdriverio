@@ -9,8 +9,8 @@ import type { Output, UserCommandOutput, UserResultOutput } from './stats/test.j
 const FIRST_FUNCTION_REGEX = /function (\w+)/
 
 /**
- * The `error` of a `userResult` for a JSON report: `{ name, message }` for an object with a string `message`
- * (also an error from another realm, which `JSON.stringify` writes as `{}`), else the value as it is.
+ * The `error` of a `userResult` for a JSON report: `{ name, message }` for an error (also from another realm),
+ * else the value as it is.
  * @experimental the name and the rule may change
  */
 export function userCommandError(error: unknown): unknown {

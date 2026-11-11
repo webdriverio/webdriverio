@@ -153,7 +153,7 @@ export const config = {
 
 - `outputDir` - defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.json` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 
-- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter. In WebDriver BiDi sessions with user commands (see [User commands](https://webdriver.io/docs/customreporter#user-commands)), the WebDriver steps are the user commands, with the protocol commands that they run as child steps:
+- `disableWebdriverStepsReporting` - optional parameter (`false` by default), in order to log only custom steps to the reporter. In WebDriver BiDi sessions with [user commands](https://webdriver.io/docs/customreporter#user-commands), the WebDriver steps are the user commands, and their protocol commands are child steps:
 
   ```
   $(`#btn`) → found
@@ -169,7 +169,11 @@ export const config = {
     getText() → "Done"
   ```
 
-  A step name has the arguments (cut at 120 characters) and the result (cut at 60 characters, `found` / `not found` / `N found` for elements, nothing for a window handle or a result with no data). A child step has a `request` parameter and a `Request` attachment with the method, the resolved path and the body. The `Response` attachment has the whole result; a step whose name shows a whole string, number or boolean result has no `Response` attachment. The direct calls of `waitUntil`, the `waitFor*` commands and the assertions (and of the custom commands that you add to `expand`) are child steps (see [`userCommandEvents.nested`](https://webdriver.io/docs/configuration#usercommandevents)). Identical repeated steps are joined into one step with `× N` before the result is written, and the attachment files of the joined repeats are deleted. With `useCucumberStepReporter`, the Gherkin steps of a scenario are never joined, so the scenario keeps the steps of the feature file; only the steps inside them are joined. In WebDriver Classic sessions and in sessions with no user commands, the steps stay as before.
+  - A step name shows the arguments (cut at 120 characters) and the result (cut at 60 characters; `found`, `not found` or `N found` for elements).
+  - A protocol step has a `request` parameter and a `Request` attachment (method, path, body). The `Response` attachment has the whole result, except when the step name shows all of it.
+  - Which direct calls are child steps: see [`userCommandEvents.nested`](https://webdriver.io/docs/configuration#usercommandevents).
+  - Identical repeated steps are joined into one `× N` step. With `useCucumberStepReporter`, the Gherkin steps are never joined.
+  - WebDriver Classic sessions and sessions with no user commands do not change.
 
 - `issueLinkTemplate` - optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder with value specified in `addIssue(value)` call parameter. The same logic is applied if Cucumber is used and tag `issue` is set at any level, it will be converted to the link in the report. The parameter value example:
   ```
