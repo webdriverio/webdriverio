@@ -9,6 +9,10 @@ type Context = string
 const UNKNOWN_NAVIGATION_ID = 'UNKNOWN_NAVIGATION_ID'
 const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
 
+export function isTrackedNavigationUrl(url: string) {
+    return SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => url.startsWith(protocol))
+}
+
 /**
  * This class is responsible for managing shadow roots and their elements.
  * It allows to do deep element lookups and pierce into shadow DOMs across
@@ -19,6 +23,7 @@ export class NetworkManager extends SessionManager {
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
     #lastNetworkId?: string
+    #lastNavigationByContext = new Map<Context, string>()
 
     #navigationStartedListener = this.#navigationStarted.bind(this)
     #responseCompletedListener = this.#responseCompleted.bind(this)
@@ -78,7 +83,7 @@ export class NetworkManager extends SessionManager {
             return
         }
 
-        const request = this.#findRootRequest(log.navigation)
+        const request = this.#findRootRequest(log.navigation, log.context)
         if (!request) {
             return
         }
@@ -113,7 +118,7 @@ export class NetworkManager extends SessionManager {
             /**
              * ignore urls that users wouldn't navigate to
              */
-            !SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => log.url.startsWith(protocol))
+            !isTrackedNavigationUrl(log.url)
         ) {
             /**
              * Chrome v127 and below does not support yet navigation ids, hence we have to
@@ -134,6 +139,7 @@ export class NetworkManager extends SessionManager {
         }
 
         this.#lastNetworkId = log.navigation
+        this.#lastNavigationByContext.set(log.context, log.navigation)
         this.#requests.set(log.navigation, {
             url: log.url,
             headers: {},
@@ -145,7 +151,7 @@ export class NetworkManager extends SessionManager {
     }
 
     #fetchError (log: local.NetworkFetchErrorParameters) {
-        const response = this.#findRootRequest(log.navigation)
+        const response = this.#findRootRequest(log.navigation, log.context)
         if (!response) {
             return
         }
@@ -157,10 +163,21 @@ export class NetworkManager extends SessionManager {
         request.error = log.errorText
     }
 
-    #findRootRequest (navigationId: string | null) {
+    #findRootRequest (navigationId: string | null, context?: string | null) {
         const response = this.#requests.get(navigationId || UNKNOWN_NAVIGATION_ID)
         if (response) {
             return response
+        }
+
+        /**
+         * Subresources carry no navigation id: attribute them to the last navigation
+         * of their own context so parallel tabs don't share one. Iframe contexts are
+         * not tracked and fall through to the global fallback below.
+         */
+        const contextNavigation = context ? this.#lastNavigationByContext.get(context) : undefined
+        const contextRequest = contextNavigation ? this.#requests.get(contextNavigation) : undefined
+        if (contextRequest) {
+            return contextRequest
         }
 
         /**
@@ -177,7 +194,7 @@ export class NetworkManager extends SessionManager {
     }
 
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
-        const response = this.#findRootRequest(log.navigation)
+        const response = this.#findRootRequest(log.navigation, log.context)
         if (!response) {
             return
         }

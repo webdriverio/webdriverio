@@ -9,6 +9,9 @@ import type { Session } from '../session.js'
  */
 export const formatSnapshot = (tree: SnapshotNode, opts: FormatOptions = {}) => formatTree(tree, { frameHint: (ref) => `wdio session frame ${ref}`, ...opts })
 
+/** what `lastSnapshot` was taken with: `diff` only compares snapshots of the same view */
+export const snapshotView = (opts: Pick<SnapshotOptions, 'scope' | 'interactive' | 'all' | 'urls'>) => JSON.stringify({ scope: opts.scope ?? null, interactive: Boolean(opts.interactive), all: Boolean(opts.all), urls: Boolean(opts.urls) })
+
 async function viewportSize (session: Session): Promise<[number, number]> {
     const { width, height } = await session.browser.getWindowSize()
     return [width, height]
@@ -30,6 +33,7 @@ export async function renderSnapshot (session: Session, tree: SnapshotNode, refs
     }
     if (native || !opts.viewport) {
         session.lastSnapshot = formatSnapshot(tree, { frameHint: session.frameHint, interactive: opts.interactive })
+        session.lastSnapshotView = snapshotView(opts)
     }
     const view = native && opts.viewport ? inViewport(tree, ...await viewportSize(session)) ?? tree : tree
     const format = { frameHint: session.frameHint, depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact, selectors: opts.selectors }

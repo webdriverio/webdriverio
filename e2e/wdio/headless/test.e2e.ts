@@ -11,7 +11,6 @@ import { browser, $, $$, expect } from '@wdio/globals'
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
-import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
 
@@ -87,11 +86,13 @@ describe('main suite 1', () => {
      * the React builds of the `e2e` package, so the React pages need no network. They cover
      * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
      * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
-     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`.
+     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`. React 18
+     * is an alias too: the plain `react` of the `e2e` package is React 19 for the
+     * component tests, and React 19 has no UMD build.
      */
     const reactBuilds: Record<string, Record<string, string>> = {
         react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
-        react18: { react: 'react', 'react-dom': 'react-dom' }
+        react18: { react: 'react-18', 'react-dom': 'react-dom-18' }
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -1200,9 +1201,8 @@ describe('main suite 1', () => {
         it('should have sameSite in PascalCase for classic cases fallback', async function () {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setCookies([
-                // TODO one day, fix the Api not supporting classic PascalCase enaum
-                { name: 'test1-0', value: '123', sameSite: 'Strict' as SameSiteOptions },
-                { name: 'test1-1', value: '456', sameSite: 'None' as SameSiteOptions },
+                { name: 'test1-0', value: '123', sameSite: 'Strict' },
+                { name: 'test1-1', value: '456', sameSite: 'none' },
                 { name: 'test1-2', value: '789' }
             ])
 

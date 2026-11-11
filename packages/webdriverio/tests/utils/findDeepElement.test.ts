@@ -29,6 +29,7 @@ vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({
         getCurrentContext: mockGetCurrentContext,
     })),
+    getParallelContextStore: () => ({ getStore: () => undefined }),
 }))
 
 vi.mock('is-plain-obj', () => ({
@@ -663,46 +664,41 @@ describe('findDeepElement - aria accessibility locator', () => {
         expect(browser.findElementFromElement).not.toHaveBeenCalled()
     })
 
-    it('should search known shadow roots via Classic when BiDi aria xpath fallback is empty', async () => {
+    it('should search open shadow roots by script when BiDi aria xpath fallback is empty', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
         const browser = createMockBrowser({ isBidi: true })
         browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
         browser.findElement.mockResolvedValue({})
-        browser.findElementFromElement
-            .mockResolvedValueOnce({})
-            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+        browser.execute.mockResolvedValue([{ [ELEMENT_KEY]: 'shadow-xpath-node' }])
 
         const result = await findDeepElement.call(browser, 'aria/Described')
 
-        expect(browser.findElementFromElement).toHaveBeenCalledWith(
-            'shadow-1',
-            'xpath',
-            expect.stringContaining('@aria-describedby')
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.any(Function),
+            expect.stringContaining('@aria-describedby'),
+            null
         )
-        expect(browser.findElementFromElement).toHaveBeenCalledWith(
-            'shadow-2',
-            'xpath',
-            expect.stringContaining('@aria-describedby')
-        )
+        expect(browser.findElementFromElement).not.toHaveBeenCalled()
         expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
     })
 
-    it('should search known shadow roots via Classic for aria collections', async () => {
+    it('should search open shadow roots by script for aria collections', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
         const browser = createMockBrowser({ isBidi: true })
         browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
         browser.findElements.mockResolvedValue([])
-        browser.findElementsFromElement.mockResolvedValue([
+        browser.execute.mockResolvedValue([
             { [ELEMENT_KEY]: 'shadow-collection-node' },
         ])
 
         const result = await findDeepElements.call(browser, 'aria/Find me')
 
-        expect(browser.findElementsFromElement).toHaveBeenCalledWith(
-            'shadow-1',
-            'xpath',
-            expect.stringContaining('normalize-space(text()) = "Find me"')
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.any(Function),
+            expect.stringContaining('normalize-space(text()) = "Find me"'),
+            null
         )
+        expect(browser.findElementsFromElement).not.toHaveBeenCalled()
         expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-collection-node' }])
     })
 
@@ -876,5 +872,55 @@ describe('findDeepElement / findDeepElements - role selector', () => {
         ])
         expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Pay now', -1, null)
         expect(browser.findElement).not.toHaveBeenCalled()
+    })
+})
+
+describe('findDeepElement(s) - link text', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('should only return links whose text matches (link text)', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [{ sharedId: 'link-other' }, { sharedId: 'link-match' }],
+        })
+        browser.execute.mockResolvedValueOnce([false, true])
+
+        const result = await findDeepElement.call(browser, '=Click me')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(expect.objectContaining({
+            locator: { type: 'css', value: 'a' }
+        }))
+        const [, links, partial, value] = browser.execute.mock.calls[0]
+        expect(links).toEqual([{ [ELEMENT_KEY]: 'link-other' }, { [ELEMENT_KEY]: 'link-match' }])
+        expect(partial).toBe(false)
+        expect(value).toBe('Click me')
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'link-match' }))
+    })
+
+    it('should only return links whose text matches (partial link text)', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [{ sharedId: 'a-1' }, { sharedId: 'a-2' }, { sharedId: 'a-3' }],
+        })
+        browser.execute.mockResolvedValueOnce([true, false, true])
+
+        const result = await findDeepElements.call(browser, '*=Click')
+
+        expect(browser.execute.mock.calls[0][2]).toBe(true)
+        expect(result.map((node) => node[ELEMENT_KEY])).toEqual(['a-1', 'a-3'])
+    })
+
+    it('should not run the text check for other strategies', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'n-1' }] })
+
+        const result = await findDeepElements.call(browser, '.foo')
+
+        expect(browser.execute).not.toHaveBeenCalled()
+        expect(result.map((node) => node[ELEMENT_KEY])).toEqual(['n-1'])
     })
 })

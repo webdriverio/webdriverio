@@ -13,7 +13,7 @@ After your initial test run completes, click on any test case or suite in the De
 - **Live browser preview** - See your application's current state during test execution
 - **Command timeline** - View detailed logs with timestamps for each action
 - **Interactive rerunning** - Click any test or suite to re-execute it instantly
-- **Same-session execution** - Tests rerun in the same browser session for faster feedback
+- **Same dashboard window** - Reruns spawn a fresh test process and stream into the existing dashboard window, without opening new tabs
 - **Scrollable history** - Review any point in test execution
 
 ## Demo

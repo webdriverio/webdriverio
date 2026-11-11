@@ -51,6 +51,10 @@ export const LANE_FILTERS: LaneFilters = {
         'packages/wdio-utils/package.json',
         'e2e/wdio/chromedriver/**'
     ],
+    create_wdio: [
+        'packages/create-wdio/**',
+        'e2e/create-wdio/**'
+    ],
     code: [
         'packages/**',
         '!packages/wdio-display-server/**',
@@ -63,6 +67,7 @@ export const LANE_FILTERS: LaneFilters = {
         '!e2e/browser-runner/**',
         '!e2e/session/**',
         '!e2e/wdio/chromedriver/**',
+        '!e2e/create-wdio/**',
         'infra/**',
         '!infra/docs/**',
         '@types/**',
@@ -144,6 +149,7 @@ export function classify (files: readonly string[]): Omit<ChangeReport, 'base'> 
         session: false,
         display_server: false,
         chromedriver: false,
+        create_wdio: false,
         code: false
     }
     for (const lane of Object.keys(LANE_FILTERS) as LaneName[]) {

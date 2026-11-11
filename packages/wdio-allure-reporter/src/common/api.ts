@@ -27,7 +27,14 @@ import {
     testCaseId,
     tms
 } from 'allure-js-commons'
+import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 import { events } from '../constants.js'
+import { WdioTestRuntime } from '../WdioTestRuntime.js'
+
+// the launcher never constructs the worker-side reporter, so the api needs a runtime of its own
+if (!(globalThis as { allureTestRuntime?: unknown }).allureTestRuntime) {
+    setGlobalTestRuntime(new WdioTestRuntime())
+}
 
 // @ts-ignore
 /**

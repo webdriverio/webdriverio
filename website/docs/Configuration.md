@@ -126,7 +126,7 @@ Timeout for any WebDriver request to a driver or grid.
 
 <Option type="Number" default="3">
 
-Maximum count of request retries to the Selenium server.
+Maximum count of request retries to the WebDriver server. Network failures, retryable HTTP status codes and `unknown error` are retried. Most well-formed W3C errors, such as `session not created` or `timeout`, are not.
 
 </Option>
 
@@ -135,6 +135,18 @@ Maximum count of request retries to the Selenium server.
 <Option type="Number" default="180000">
 
 Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
+
+`execute` also stops at the `script` timeout of the session (30 seconds by default, see [`setTimeout`](/docs/api/browser/setTimeout)). For a `script` timeout longer than `bidiResponseTimeout`, increase both.
+
+</Option>
+
+### bidiConnectTimeout
+
+<Option type="Number" default="10000">
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic, and Bidi-only commands such as [`mock`](/docs/api/browser/mock) fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late. The same timeout limits the check of the WebDriver Bidi server in an Appium browser session: when the server gives no answer, the session continues with WebDriver Classic and logs a warning.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](/docs/runner#browser-runner), the connection waits until it opens or fails.
 
 </Option>
 
@@ -198,7 +210,6 @@ Function intercepting HTTP response objects after a WebDriver response has arriv
 <Option type="Boolean" default="true">
 
 Whether it does not require SSL certificate to be valid.
-It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
 
 </Option>
 
@@ -482,7 +493,7 @@ By default, it is set to `false` so logs are printed in real-time.
 
 <Option type="Boolean" default="true">
 
-Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
+Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must call `expect.assertSoftFailures()` to check soft assertions.
 
 </Option>
 
@@ -496,7 +507,7 @@ Services take over a specific job you don't want to take care of. They enhance y
 
 ### framework
 
-<Option type="String" default="mocha" values="mocha | jasmine | cucumber">
+<Option type="String" default="mocha" values="mocha | jasmine | cucumber | vitest">
 
 Defines the test framework to be used by the WDIO testrunner.
 
@@ -506,7 +517,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 <Option type="Object" default={`{ timeout: 10000 }`}>
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
+Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks). With Vitest, the key is [`vitestOpts`](./Frameworks.md#vitest-options).
 
 </Option>
 
@@ -699,6 +710,8 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 **Note:** Some hooks (`onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
 
+**Errors that no test reports:** with Jasmine and Cucumber, a promise that rejects when no test or step runs, before the worker ends (for example a command without `await` in the last `afterEach` hook, or in the `after` hook), fails the run, and the worker logs it as `Unhandled promise rejection that no test reports`. The worker goes on, so the reporters still write their reports. If a hook waits for that promise, the worker ends 60 seconds after its last activity, also with its reports. An error that is thrown when no test or step runs (for example in a timer) after the tests started ends the worker at once, with its reports. When the worker ends this way, the hooks that did not run yet (for example `after` or `afterSession`) do not run. Before the tests start (in the `beforeSession` and `before` hooks, or while the session starts), a thrown error ends the worker at once without reports, because no test ran yet, and a promise that rejects follows the rules above. While the Mocha tests run, Mocha handles these errors itself: it ignores an unhandled rejection, and an error thrown after the run ends the worker. The browser runner (`runner: 'browser'`) does not use these rules.
+
 ### onPrepare
 
 Gets executed once before all workers get launched.
@@ -781,7 +794,7 @@ Parameters:
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine only).
+Function to be executed before a test (in Mocha, Jasmine and Vitest only).
 
 Parameters:
 
@@ -790,7 +803,7 @@ Parameters:
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+Runs before a WebdriverIO command gets executed. For an element command, it runs before WebdriverIO waits for the element (see [Auto-waiting](./AutoWait.md)).
 
 Parameters:
 
@@ -799,7 +812,7 @@ Parameters:
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+Runs after a WebdriverIO command gets executed. For an element command, it runs after the wait for the element. When WebdriverIO retries an element command (for example after a stale element), the hook gets the result or the error of the last try.
 
 Parameters:
 
@@ -810,7 +823,7 @@ Parameters:
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Function to be executed after a test (in Mocha, Jasmine and Vitest) ends. It also runs after a test times out. With Mocha, the next test starts after this hook ends (Mocha waits for it up to one more timeout of the test, see [Timeouts](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks)).
 
 Parameters:
 

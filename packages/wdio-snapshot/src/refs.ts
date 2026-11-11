@@ -129,6 +129,10 @@ export class RefRegistry {
         if (entry.selector) {
             return entry.selector
         }
+        const last = entry.candidates.at(-1)
+        if (!last) {
+            throw this.#createError('REF_STALE', `${id} has no selector matching its element.`, { resnapshot: true })
+        }
         if (entry.kind === 'native') {
             await this.resolve(browser, id)
             return entry.selector || entry.candidates[0]
@@ -145,7 +149,6 @@ export class RefRegistry {
                 // invalid or ambiguous candidate, try the next one
             }
         }
-        const last = entry.candidates.at(-1)!
         entry.selector = last
         entry.unverified = true
         return last

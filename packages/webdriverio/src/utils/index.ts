@@ -4,13 +4,13 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement, isStaleElementError } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
+import { checkElementsContainedIn, checkElementsConnected, checkLinksMatchText } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
@@ -19,12 +19,16 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
+import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
+import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
+import { waitedFor } from './elementNotFound.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -156,7 +160,17 @@ export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
     } else if (parsedValue.property === 'font-family') {
         const font = cssValue(cssPropertyValue)
         const string = parsedValue.value
-        const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+        const families = ['']
+
+        for (const token of font) {
+            if (token.type === 'comma') {
+                families.push('')
+            } else {
+                families[families.length - 1] += `${token.string} `
+            }
+        }
+
+        const value = families.map(sanitizeCSS)
 
         parsedValue.value = sanitizeCSS(font[0].value as string || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
@@ -206,6 +220,16 @@ export function checkUnicode(value: string) {
     return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
+/**
+ * The object that runs a custom strategy: the browser or the held browsing context
+ * that queries, so the strategy runs in that context and not in the session's current
+ * one. On an element, the element is an argument of the strategy, which routes the
+ * script to its own context, as `fetchElementByJSFunction` does.
+ */
+function strategyScope (scope: WebdriverIO.Browser | WebdriverIO.Element, browserObject: WebdriverIO.Browser) {
+    return 'elementId' in scope ? browserObject : scope as WebdriverIO.Browser
+}
+
 function fetchElementByJSFunction(
     selector: ElementFunction,
     scope: WebdriverIO.Browser | WebdriverIO.Element,
@@ -231,7 +255,7 @@ function fetchElementByJSFunction(
      * its own context; `execute` passes the element as first argument.
      */
     const browser = getBrowserObject(scope)
-    if (browser.isBidi && heldBrowsingContext(scope)) {
+    if (browser.isBidi && (heldBrowsingContext(scope) || isParallelContextActive())) {
         /**
          * Classic serializes a `NodeList` (e.g. from `querySelectorAll`) as a
          * list of elements; make that an array here so BiDi does the same.
@@ -253,20 +277,21 @@ export function isElement(o: Selector) {
     )
 }
 
-export function isStaleElementError(err: Error) {
-    return (
-        // Chrome
-        err.message.includes('stale element reference') ||
-        // Firefox
-        err.message.includes('is no longer attached to the DOM') ||
-        // Safari
-        err.message.toLowerCase().includes('stale element found') ||
-        // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame') ||
-        // BIDI
-        err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
-    )
+/**
+ * A stale element error that the element middleware handles: it finds the element again and
+ * runs the command again. The "element wasn't found" error of a wait (an element that was not
+ * found again, or never found) is not one, also when its message has that text (a selector like
+ * `[data-error="stale element reference"]`).
+ */
+export function isStaleElementToFindAgain(err: unknown): err is Error {
+    /**
+     * also an error of another realm, which is not an `Error` instance
+     */
+    if (!err || typeof err !== 'object' || waitedFor(err)) {
+        return false
+    }
+    const { name, message } = err as Partial<Error>
+    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
 }
 
 /**
@@ -314,12 +339,12 @@ export function transformClassicToBidiSelector(using: string, value: string): re
         return { type: 'xpath', value }
     }
 
-    if (using === 'link text') {
-        return { type: 'innerText', value }
-    }
-
-    if (using === 'partial link text') {
-        return { type: 'innerText', value, matchType: 'partial' }
+    /**
+     * The `innerText` locator matches any element, the link text strategies only
+     * `<a>` elements. Find all links, `filterLinksByText` then compares their text.
+     */
+    if (using === 'link text' || using === 'partial link text') {
+        return { type: 'css', value: 'a' }
     }
 
     if (using === 'aria') {
@@ -347,6 +372,24 @@ function toClassicSelector(using: string, value: string): { using: string, value
 
 function toAriaXPathLocator(value: string): remote.BrowsingContextLocator {
     return { type: 'xpath', value: getAriaXPathSelector(value) }
+}
+
+/**
+ * Keep only the links whose rendered text matches a link text selector. Other
+ * strategies are returned as is.
+ */
+async function filterLinksByText<T extends ElementReference>(
+    browser: WebdriverIO.Browser,
+    context: string,
+    nodes: T[],
+    using: string,
+    value: string
+): Promise<T[]> {
+    if ((using !== 'link text' && using !== 'partial link text') || nodes.length === 0) {
+        return nodes
+    }
+    const matches = await checkLinksMatchText(browser, nodes.map((node) => node[ELEMENT_KEY]), using, value, context)
+    return nodes.filter((_, i) => matches[i])
 }
 
 function getScopedElementId(ctx: WebdriverIO.Browser | WebdriverIO.Element) {
@@ -403,10 +446,36 @@ async function findRelativeXPathInShadowRoots(
     const scope = getScopedElementId(ctx) ? ctx as WebdriverIO.Element : null
     try {
         const nodes = await browser.execute((expression: string, element: Element | null): Element[] => {
-            // Text selectors produce a union of relative paths. Refuse
-            // absolute selectors; they have different document-root semantics.
-            const branches = expression.split(/\s+\|\s+/)
-            if (!branches.every((branch) => branch.startsWith('.//'))) {
+            // Only top-level pipes separate XPath branches. Labels and nested
+            // predicates can contain pipes too, including inside concat().
+            const branches: string[] = []
+            let quote = ''
+            let depth = 0
+            let start = 0
+            for (let i = 0; i < expression.length; i++) {
+                const char = expression[i]
+                if (quote) {
+                    if (char === quote) {
+                        quote = ''
+                    }
+                    continue
+                }
+                if (char === '"' || char === "'") {
+                    quote = char
+                } else if (char === '[' || char === '(') {
+                    depth++
+                } else if (char === ']' || char === ')') {
+                    if (--depth < 0) {
+                        return []
+                    }
+                } else if (char === '|' && depth === 0) {
+                    branches.push(expression.slice(start, i).trim())
+                    start = i + 1
+                }
+            }
+            branches.push(expression.slice(start).trim())
+            // Absolute paths have different document-root semantics.
+            if (quote || depth !== 0 || !branches.every((branch) => branch.startsWith('.//'))) {
                 return []
             }
             const relative = branches.map((branch) =>
@@ -637,7 +706,7 @@ async function findInFrameByScript (
     if (using === 'role') {
         const { role, name } = JSON.parse(value) as RoleSelector
         const roleParams: remote.ScriptCallFunctionParameters = {
-            functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
+            functionDeclaration: createBidiFunctionDeclaration(withKnownElement(findByRole as unknown as Function, 3)),
             awaitPromise: true,
             arguments: [
                 LocalValue.getArgument(role),
@@ -661,7 +730,7 @@ async function findInFrameByScript (
         ? { using: 'xpath', value: getAriaXPathSelector(value) }
         : { using, value }
     const params: remote.ScriptCallFunctionParameters = {
-        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        functionDeclaration: createBidiFunctionDeclaration(withKnownElement(query as unknown as Function, 3)),
         awaitPromise: true,
         arguments: [
             LocalValue.getArgument(resolved.using),
@@ -704,7 +773,8 @@ type BidiStartNode = { sharedId: string }
 /**
  * Retry an `aria/` lookup with the XPath heuristic, searching the same
  * shadow-root start nodes as the primary BiDi query. Classic XPath is
- * used when BiDi rejects the relative expression or finds nothing.
+ * used when BiDi rejects the relative expression or finds nothing, except in
+ * a parallel scope where classic would search the session's main window.
  */
 async function findAriaElementViaXPathFallback(
     ctx: WebdriverIO.Browser | WebdriverIO.Element,
@@ -716,7 +786,8 @@ async function findAriaElementViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -733,8 +804,14 @@ async function findAriaElementViaXPathFallback(
                 return nodes[0]
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return undefined
     }
     return findElementViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -749,7 +826,8 @@ async function findAriaElementsViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -766,8 +844,14 @@ async function findAriaElementsViaXPathFallback(
                 return nodes
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return []
     }
     return findElementsViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -838,7 +922,11 @@ export async function findDeepElement(
      * we need to fall back to the regular WebDriver Classic command as BiDi
      * does not support relative xpath selectors with a start node
      */
-    if (using === 'xpath' && typeof selector === 'string' && (selector.startsWith('./') || selector.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+    if (using === 'xpath' && typeof selector === 'string' && /^(?:xpath:)?(?:\.\/|\.\.)/.test(selector) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            const [first] = await locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+            return first
+        }
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -902,6 +990,7 @@ export async function findDeepElement(
         }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**
@@ -996,6 +1085,9 @@ export async function findDeepElement(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
+        if (isParallelContextActive()) {
+            throw err
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -1037,7 +1129,10 @@ export async function findDeepElements(
      * we need to fall back to the regular WebDriver Classic command as BiDi
      * does not support relative xpath selectors with a start node
      */
-    if (using === 'xpath' && typeof selector === 'string' && (selector.startsWith('./') || selector.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+    if (using === 'xpath' && typeof selector === 'string' && /^(?:xpath:)?(?:\.\/|\.\.)/.test(selector) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            return locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+        }
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -1102,6 +1197,7 @@ export async function findDeepElements(
             }))
 
         nodes = returnUniqueNodes(nodes)
+        nodes = await filterLinksByText(browser, context, nodes, using, value)
 
         if (!(this as WebdriverIO.Element).elementId) {
             /**
@@ -1180,6 +1276,9 @@ export async function findDeepElements(
          */
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
+        }
+        if (isParallelContextActive()) {
+            throw err
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
@@ -1267,7 +1366,7 @@ export async function findElement(
     if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await browserObject.execute(strategy, ...strategyArguments)
+        let elem = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -1360,7 +1459,7 @@ export async function findElements(
      */
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyArguments } = selector as CustomStrategyReference
-        const elems = await browserObject.execute(strategy, ...strategyArguments)
+        const elems = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
@@ -1404,7 +1503,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
         if (isLoadedElement(arg)) {
             if (!arg.elementId) {
-                throw new Error(`The element with selector "${arg.selector}" you are trying to pass into the execute method wasn't found`)
+                throw new Error(`The element with selector "${describeSelector(arg)}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {
@@ -1422,7 +1521,9 @@ export function verifyArgsAndStripIfElement(args: unknown) {
  * getElementRect
  */
 export async function getElementRect(scope: WebdriverIO.Element) {
-    const rect = await scope.getElementRect(scope.elementId)
+    const rect = isBidiCommandsEnabled(getBrowserObject(scope) as WebdriverIO.Browser)
+        ? await bidiGetRect(scope)
+        : await scope.getElementRect(scope.elementId)
 
     const defaults = { x: 0, y: 0, width: 0, height: 0 }
 

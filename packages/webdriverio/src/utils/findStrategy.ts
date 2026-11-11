@@ -3,7 +3,7 @@ import { roleElements } from 'aria-query'
 
 import { environment } from '../environment.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR, ROLE_SELECTOR } from '../constants.js'
-import { knownRoles, ROLE_SYNONYMS } from '@wdio/utils'
+import { knownRoles, ROLE_SYNONYMS, toXPathStringLiteral } from '@wdio/utils'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -125,28 +125,8 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'role'
     }
 }
-/**
- * Quote a string as an XPath 1.0 literal so user-provided labels cannot
- * break out of the surrounding quotes.
- */
-export function escapeXPathString(value: string) {
-    if (!value.includes('"')) {
-        return `"${value}"`
-    }
-    if (!value.includes("'")) {
-        return `'${value}'`
-    }
 
-    const parts: string[] = []
-    for (const segment of value.split('"')) {
-        if (segment.length > 0) {
-            parts.push(`"${segment}"`)
-        }
-        parts.push('\'"\'')
-    }
-    parts.pop()
-    return `concat(${parts.join(', ')})`
-}
+const LOWER_CASE_TRANSLATION = '"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"'
 
 /**
  * XPath approximation of an accessible name lookup.
@@ -154,7 +134,7 @@ export function escapeXPathString(value: string) {
  * accessibility locators are unavailable.
  */
 export function getAriaXPathSelector(label: string) {
-    const escaped = escapeXPathString(label)
+    const escaped = toXPathStringLiteral(label)
     /**
      * A path inside a predicate that starts at the document root is evaluated
      * again for every node the outer path visits, so `.//*[@a = (//*[…]/@id)]`
@@ -391,13 +371,14 @@ export const findStrategy = function (
             )
         }
         const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
+        const literal = toXPathStringLiteral(insensitive ? query.toLowerCase() : query)
         if (insensitive) {
             conditions.push(
                 partial
-                    ? `contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${query.toLowerCase()}")${partialNot}`
-                    : `normalize-space(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")) = "${query.toLowerCase()}"`)
+                    ? `contains(translate(., ${LOWER_CASE_TRANSLATION}), ${literal})${partialNot}`
+                    : `normalize-space(translate(text(), ${LOWER_CASE_TRANSLATION})) = ${literal}`)
         } else {
-            conditions.push(partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`)
+            conditions.push(partial ? `contains(., ${literal})${partialNot}` : `normalize-space(text()) = ${literal}`)
         }
         const getValue = () => `.//${tag || '*'}[${conditions.join(' and ')}]`
         value = getValue()
@@ -405,7 +386,7 @@ export const findStrategy = function (
             conditions.pop()
             conditions.push(
                 `not(${value})`,
-                `normalize-space() = "${insensitive? query.toLowerCase() : query}"`
+                insensitive ? `normalize-space(translate(., ${LOWER_CASE_TRANSLATION})) = ${literal}` : `normalize-space() = ${literal}`
             )
             value = value + ' | ' + getValue()
         }

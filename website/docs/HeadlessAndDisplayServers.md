@@ -218,7 +218,7 @@ The full message is `Chrome failed to start: exited abnormally. (DevToolsActiveP
 
 ### Chrome fails with `user data directory is already in use`
 
-The full message starts with `session not created: probably user data directory is already in use`. It is often misleading: it usually means the browser crashed and restarted with the previous instance's profile directory. A stable display often resolves it. If not, pass a unique `--user-data-dir` per worker.
+The full message starts with `session not created: probably user data directory is already in use`. It is often misleading: it usually means the browser crashed and restarted with the previous instance's profile directory. A stable display often resolves it. If not, pass a unique `--user-data-dir` per session. Without a `--user-data-dir`, ChromeDriver uses a new temporary profile for each session. WebdriverIO never changes or deletes a `--user-data-dir` that you set, so set one to keep a profile.
 
 ### The launcher log shows `No display server could be started`
 

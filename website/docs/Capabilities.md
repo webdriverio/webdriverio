@@ -46,7 +46,7 @@ Specific options passed into Chromedriver when starting it.
 
 #### `wdio:geckodriverOptions`
 
-Specific options passed into Geckodriver when starting it.
+Specific options passed into Geckodriver when starting it. For example, `profileRoot` is the folder in which Geckodriver creates the temporary Firefox profile. On Windows in GitHub Actions, WebdriverIO sets it to `RUNNER_TEMP`; see [Firefox on Windows runners](githubactions#firefox-on-windows-runners).
 
 #### `wdio:edgedriverOptions`
 
@@ -60,7 +60,7 @@ Specific options passed into Safari when starting it.
 
 <Option type="number">
 
-Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
+Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](configuration/#maxinstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
 
 </Option>
 
@@ -85,6 +85,25 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 <Option type="boolean">
 
 By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
+
+For Chrome on Android through Appium (UiAutomator2 driver), WebdriverIO also sets `appium:chromedriverForwardBiDi: true`, so that Appium sends WebDriver Bidi on to Chromedriver. This needs Appium 3.9.0 or later and UiAutomator2 8.7.3 or later. When the WebDriver Bidi server of an Appium browser session can not run browser commands (for example with older versions), WebdriverIO continues the session with WebDriver Classic and logs a warning.
+
+</Option>
+
+#### `wdio:experimentalBiDiCommands`
+
+<Option type="boolean" default="false">
+
+In a WebDriver BiDi session, runs element commands and browser commands like `getTitle`, `getUrl`, `refresh` and `takeScreenshot` over WebDriver BiDi instead of WebDriver Classic. Required for [parallel tests in a spec file](./ParallelTests.md). Experimental: it changes some command behavior in every test, e.g. `addValue` and `clearValue` dispatch synthetic DOM events and `click` is sent through the Actions API. See [Behavior changes of the BiDi element commands](./ParallelTests.md#behavior-changes-of-the-bidi-element-commands).
+
+```ts
+{
+    browserName: 'chrome',
+    'wdio:experimentalBiDiCommands': true
+}
+```
+
+Chrome and Edge 137 to 156 get slower after each large BiDi message, e.g. a screenshot ([crbug.com/577213792](https://issues.chromium.org/issues/577213792)). Use Chrome 157 or Edge 158 and later.
 
 </Option>
 

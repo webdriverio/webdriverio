@@ -3,7 +3,7 @@ import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
 import { browser, expect } from '@wdio/globals'
 
-import { framesModel } from './model.js'
+import { framesModels } from './model.js'
 
 async function listen (pages: () => Record<string, string>) {
     const server = createServer((request, response) => {
@@ -47,28 +47,37 @@ describe('act() across frames and windows', () => {
 
     it('acts inside a held cross-origin frame', async () => {
         const frame = await paymentFrame()
-        const result = await frame.act('Pay now', { model: framesModel, cache: 'off' })
+        const result = await frame.act('Pay now', { model: framesModels.heldFrame, cache: 'off' })
         expect(result.summary).toBe('Paid')
         expect(await frame.$('#status').getText()).toBe('Paid')
         expect(await browser.getTitle()).toBe('Checkout')
     })
 
-    it('enters a cross-origin frame by itself and the steps replay without the model', async () => {
+    /**
+     * Recording and replay are two tests: on a slow CI machine each takes up
+     * to 30 s, together they come close to the Mocha timeout. The replay uses
+     * the steps the recording test cached under `id: 'pay'`.
+     */
+    it('enters a cross-origin frame by itself', async () => {
         await paymentFrame()
-        const recorded = await browser.act('Pay with the payment form', { id: 'pay', cache: 'write', model: framesModel })
+        const recorded = await browser.act('Pay with the payment form', { id: 'pay', cache: 'write', model: framesModels.entersFrame })
         expect(recorded.steps.map((step) => step.action)).toEqual(['frame', 'click', 'frame'])
         expect(await (await paymentFrame()).$('#status').getText()).toBe('Open')
+    })
 
-        const calls = framesModel.calls.length
+    it('replays the steps that enter the frame without the model', async () => {
+        const model = framesModels.entersFrame
+        const calls = model.calls.length
         await paymentFrame()
-        const replayed = await browser.act('Pay with the payment form', { id: 'pay', cache: 'locked', model: framesModel })
+        const replayed = await browser.act('Pay with the payment form', { id: 'pay', cache: 'locked', model })
         expect(replayed.source).toBe('cache')
-        expect(framesModel.calls).toHaveLength(calls)
+        expect(model.calls).toHaveLength(calls)
         const [page] = await browser.browsingContexts()
         expect(await (await page.frame(`${payments.origin}/pay`)).$('#status').getText()).toBe('Paid')
     })
 
     it('switches to a window an action opened and replays the switch', async () => {
+        const model = framesModels.newWindow
         const [page] = await browser.browsingContexts()
         const closeHelp = async () => {
             for (const context of await browser.browsingContexts()) {
@@ -80,19 +89,19 @@ describe('act() across frames and windows', () => {
         }
 
         await browser.url(`${shop.origin}/support`)
-        const recorded = await browser.act('Open the help and confirm it', { id: 'help', cache: 'write', model: framesModel })
+        const recorded = await browser.act('Open the help and confirm it', { id: 'help', cache: 'write', model })
         expect(recorded.summary).toBe('Confirmed in the help window')
         expect(recorded.steps.map((step) => step.action)).toEqual(['click', 'tabs', 'click'])
-        expect(framesModel.sentText()).toContain('a new window with /help')
+        expect(model.sentText()).toContain('a new window with /help')
         let help = (await browser.browsingContexts()).find((context) => context.url.endsWith('/help'))
         expect(await help!.$('#status').getText()).toBe('Confirmed')
 
         await closeHelp()
         await browser.url(`${shop.origin}/support`)
-        const calls = framesModel.calls.length
-        const replayed = await browser.act('Open the help and confirm it', { id: 'help', cache: 'locked', model: framesModel })
+        const calls = model.calls.length
+        const replayed = await browser.act('Open the help and confirm it', { id: 'help', cache: 'locked', model })
         expect(replayed.source).toBe('cache')
-        expect(framesModel.calls).toHaveLength(calls)
+        expect(model.calls).toHaveLength(calls)
         help = (await browser.browsingContexts()).find((context) => context.url.endsWith('/help'))
         expect(await help!.$('#status').getText()).toBe('Confirmed')
         await closeHelp()

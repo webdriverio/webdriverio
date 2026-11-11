@@ -1,0 +1,490 @@
+/*!
+ * report-styles
+ * Skinnied from Bootstrap v3.2.0 (http://getbootstrap.com)
+ * Copyright 2011-2014 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box
+}
+
+:before,
+:after {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box
+}
+
+html {
+    font-size: 10px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0)
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #333;
+    background-color: #fff
+}
+
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto
+}
+
+@media (min-width: 768px) {
+    .container {
+        width: 750px
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 970px
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 1170px
+    }
+}
+
+.page-header {
+    padding-bottom: 9px;
+    margin: 40px 0 20px;
+    border-bottom: 1px solid #eee
+}
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 10px
+}
+
+th {
+    text-align: left;
+}
+
+table {
+    border-spacing: 0;
+    border-collapse: collapse
+}
+
+.table>thead>tr>th,
+.table>tbody>tr>th,
+.table>tfoot>tr>th,
+.table>thead>tr>td,
+.table>tbody>tr>td,
+.table>tfoot>tr>td {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    border-top: 1px solid #ddd
+}
+
+.table>thead>tr>th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd
+}
+
+.table>caption+thead>tr:first-child>th,
+.table>colgroup+thead>tr:first-child>th,
+.table>thead:first-child>tr:first-child>th,
+.table>caption+thead>tr:first-child>td,
+.table>colgroup+thead>tr:first-child>td,
+.table>thead:first-child>tr:first-child>td {
+    border-top: 0
+}
+
+.table>tbody+tbody {
+    border-top: 2px solid #ddd
+}
+
+.table .table {
+    background-color: #fff
+}
+
+.table-bordered {
+    border: 1px solid #ddd
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1.1;
+    color: inherit
+}
+
+h1 small,
+h2 small,
+h3 small,
+h4 small,
+h5 small,
+h6 small,
+.h1 small,
+.h2 small,
+.h3 small,
+.h4 small,
+.h5 small,
+.h6 small,
+h1 .small,
+h2 .small,
+h3 .small,
+h4 .small,
+h5 .small,
+h6 .small,
+.h1 .small,
+.h2 .small,
+.h3 .small,
+.h4 .small,
+.h5 .small,
+.h6 .small {
+    font-weight: 400;
+    line-height: 1;
+    color: #777
+}
+
+h1,
+.h1,
+h2,
+.h2,
+h3,
+.h3 {
+    margin-top: 20px;
+    margin-bottom: 10px
+}
+
+h1 small,
+.h1 small,
+h2 small,
+.h2 small,
+h3 small,
+.h3 small,
+h1 .small,
+.h1 .small,
+h2 .small,
+.h2 .small,
+h3 .small,
+.h3 .small {
+    font-size: 65%
+}
+
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
+    margin-top: 10px;
+    margin-bottom: 10px
+}
+
+h4 small,
+.h4 small,
+h5 small,
+.h5 small,
+h6 small,
+.h6 small,
+h4 .small,
+.h4 .small,
+h5 .small,
+.h5 .small,
+h6 .small,
+.h6 .small {
+    font-size: 75%
+}
+
+h1,
+.h1 {
+    font-size: 36px
+}
+
+h2,
+.h2 {
+    font-size: 30px
+}
+
+h3,
+.h3 {
+    font-size: 24px
+}
+
+h4,
+.h4 {
+    font-size: 18px
+}
+
+h5,
+.h5 {
+    font-size: 14px
+}
+
+h6,
+.h6 {
+    font-size: 12px
+}
+
+p {
+    margin: 0 0 10px
+}
+
+.glyphicon-chevron-up:before {
+    content: "\e113"
+}
+
+.glyphicon-chevron-down:before {
+    content: "\e114"
+}
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url(glyphicons-halflings-regular.woff) format('woff');
+}
+
+.glyphicon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+
+body {
+  background-color: #fafafa;
+  font-weight: 200;
+}
+
+h1, .h1, h2, .h2, h3, .h3 {
+    margin: 10px;
+    font-weight: 200;
+}
+
+h1, .h1 {
+    font-size: 30px;
+}
+
+h2, .h2 {
+    font-size: 24px;
+}
+
+h3, .h3 {
+    font-size: 20px;
+}
+
+table {
+    width: 100%;
+}
+
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    /*border-color: #ECEFF1;*/
+}
+.description {
+    margin: 2px;
+    padding-left: 42px;
+    padding-right: 1px;
+    padding-bottom: 1px;
+    padding-top: 1px;
+}
+.table-bordered > tbody > tr, .table-bordered > tfoot > tr {
+    background-color: white;
+}
+
+.table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    border-color: #ECEFF1;
+}
+
+.step-table .step-name {
+    text-align: left;
+}
+
+.step-table .step-result {
+    text-align: left;
+}
+
+.step-table .step-line {
+    color: grey;
+    text-align: right;
+    display: inline;
+}
+.warning      {
+    background-color: #FFCDD2;
+    color: #AD2B2B;
+}
+span.error      {
+    color: #AD2B2B;
+}
+span.success    {
+    color: #53891E;
+}
+span.pending    {
+    color: grey;
+}
+.suite-header {
+    cursor: pointer;
+}
+.suite-feature {
+    background-color: #5e8cd1;;
+}
+.suite-scenario {
+    background-color: #5ed1c0;;
+}
+.expandable-control {
+    cursor: pointer;
+}
+.test-header {
+    cursor: pointer;
+}
+.test-expand {
+    margin: 2px;
+    padding: 1px;
+}
+.test-title {
+    margin: 2px;
+    padding: 1px;
+    text-align: left;
+}
+.test-pass, .suite-pass {
+    background-color: #C8E6C9;
+}
+
+.test-fail, .suite-fail {
+    background-color: #FFCDD2;
+}
+
+.test-skipped, .suite-pending {
+    background-color: #B5C8D1;;
+}
+
+.test-unknown, .suite-unknown {
+    background-color: #5EA3D1;;
+}
+.pre {
+    display: block;
+    padding: 9.5px;
+    margin: 0 0 10px;
+    margin-left: 0px;
+    font-size: 13px;
+    line-height: 1.42857143;
+    color: #333;
+    word-break: break-all;
+    word-wrap: break-word;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.log-output {
+    background-color: rgba(255, 192, 0, 0.36);
+    margin-left:24px;
+}
+
+.screenshotWrapper {
+    max-width: 1024px;
+    margin-left:24px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.screenshot {
+}
+.screenshot-small {
+    height: 20%;
+    width: 20%;
+}
+
+.screenshot-large {
+    height: 100%;
+    width: 100%;
+}
+
+.videoWrapper {
+    max-width: 1024px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video {
+    max-height: 50em;
+    height: 60vh;
+}
+
+.table-test {
+    margin: 0px;
+    margin-bottom: 2px;
+}
+
+tr.test-row {
+    border-top: 2px solid white;
+}
+
+.test-iteration{
+    background-color: #9bf8ff;
+}
+
+.assert {
+    background-color: #a39eff;
+    margin-left:24px;
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
+.stack {
+    background-color: rgba(156, 135, 255, 0.36);
+    margin-left:24px;
+}
+
+.filter {
+    border: 1px solid;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #ecda8c;
+    cursor: pointer;
+    /*color:white;*/
+}
+
+.filter-panel{
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+.filterOff{
+    border: 1px solid;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: rgba(138, 226, 219, 0.59);
+    cursor: pointer;
+    /*color:white;*/
+}
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+}

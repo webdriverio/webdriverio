@@ -99,6 +99,16 @@ describe('client', () => {
             expect(result).toBeUndefined()
         })
 
+        it.each([null, false, 0, ''])('should return a stored %j value as is', async (value) => {
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value }))
+            expect(await getValue('foo')).toBe(value)
+        })
+
+        it('should return undefined if the response has no value', async () => {
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({}))
+            expect(await getValue('foo')).toBeUndefined()
+        })
+
         it('should throw an error on get error', async () => {
             await expect(() => getValue('fail')).rejects.toThrowError('Mock error')
         })
@@ -140,6 +150,11 @@ describe('client', () => {
                     headers
                 })
                 expect(result).toEqual('getResult')
+            })
+
+            it.each([null, false, 0, ''])('should return a %j value from the pool as is', async (value) => {
+                vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value }))
+                expect(await getValueFromPool('foo')).toBe(value)
             })
         })
 

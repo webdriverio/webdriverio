@@ -14,7 +14,7 @@ export const MAX_QUEUE_LENGTH = 16
 export const EVENT_BUFFER_SIZE = 1000
 export const WATCHDOG_INTERVAL = 5_000
 export const EXEC_INLINE_LIMIT = 256 * 1024
-export const MIN_NODE_VERSION = '22.19.0'
+export const SUPPORTED_NODE_VERSIONS = '>=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1'
 
 export const EXIT_CODES = {
     OK: 0,

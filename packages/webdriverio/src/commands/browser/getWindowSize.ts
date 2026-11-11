@@ -1,4 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
+import { assertNotInParallelScope } from '../../utils/parallelGuard.js'
+
+const WINDOW_REASON = 'parallel tests share one OS window, use setViewport to size a test\'s page'
 
 interface BrowserSize {
     width: number
@@ -24,6 +27,8 @@ interface BrowserSize {
  *
  */
 export async function getWindowSize(this: WebdriverIO.Browser): Promise<BrowserSize> {
+    assertNotInParallelScope('getWindowSize', WINDOW_REASON)
+
     const browser = getBrowserObject(this)
 
     const { width, height } = await browser.getWindowRect() as BrowserSize

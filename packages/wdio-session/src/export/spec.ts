@@ -4,6 +4,7 @@ import * as acorn from 'acorn'
 
 import type { HistoryEntry } from '../types.js'
 import { SessionError } from '../errors.js'
+import { PARSE_OPTIONS, stripTypes } from '../exec/transform.js'
 
 export interface ExportOptions {
     title: string
@@ -61,16 +62,20 @@ export function getterName (selector: string) {
     } else if (raw.startsWith('#') || raw.startsWith('.')) {
         raw = raw.slice(1)
     } else {
+        const uiSelector = raw.match(/^android=new UiSelector\(\)\.(?:resourceId|text|description)\("((?:\\.|[^"\\])*)"\)/)
         const testid = raw.match(/data-testid=(['"])(.*?)\1/)
         const text = raw.match(/^[a-z][a-z0-9]*=(.+)$/i)
-        raw = testid?.[2] || text?.[1] || raw
+        raw = uiSelector?.[1] || testid?.[2] || text?.[1] || raw
     }
     const words = raw.replace(/[^a-zA-Z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean)
     const camel = words.map((word, i) => i === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()).join('')
     if (!camel) {
         return 'element'
     }
-    return /^\d/.test(camel) ? `el${camel}` : camel
+    /**
+     * a class cannot have a getter named `constructor`
+     */
+    return /^\d/.test(camel) || camel === 'constructor' ? `el${camel[0].toUpperCase()}${camel.slice(1)}` : camel
 }
 
 export function relativizeUrl (code: string, baseUrl?: string) {
@@ -113,11 +118,8 @@ interface ProgramNode {
 
 function parseProgram (code: string): ProgramNode | undefined {
     try {
-        return acorn.parse(code, {
-            ecmaVersion: 'latest',
-            sourceType: 'module',
-            allowAwaitOutsideFunction: true
-        }) as unknown as ProgramNode
+        // the export reads no node location
+        return acorn.parse(code, { ...PARSE_OPTIONS, locations: false }) as unknown as ProgramNode
     } catch {
         return undefined
     }
@@ -153,11 +155,12 @@ function relativeImport (source: string, fromDir: string, toDir: string) {
 function splitImports (code: string, fromDir?: string, toDir?: string) {
     const ast = parseProgram(code)
     if (!ast?.body) {
-        return { imports: [] as string[], body: code }
+        return { imports: [] as string[], locals: [] as string[], body: code }
     }
     const ranges = ast.body.filter((node) => node.type === 'ImportDeclaration')
     let body = code
     const imports: string[] = []
+    const locals = ranges.flatMap((node) => (node.specifiers as { local: { name: string } }[]).map((specifier) => specifier.local.name))
     for (const node of [...ranges].reverse()) {
         let text = code.slice(node.start, node.end).trim()
         const source = node.source
@@ -169,7 +172,7 @@ function splitImports (code: string, fromDir?: string, toDir?: string) {
         imports.unshift(text)
         body = `${body.slice(0, node.start)}${body.slice(node.end)}`
     }
-    return { imports, body: body.trim() }
+    return { imports, locals, body: body.trim() }
 }
 
 function rewriteDynamicImports (code: string, fromDir?: string, toDir?: string) {
@@ -208,23 +211,89 @@ interface SelectorEdit {
     selector: string
 }
 
+/**
+ * Whether an assignment target writes `name`: `name`, `[name]`, `{ key: name }`, `name = fallback`, `...name`.
+ * A member such as `el.$$` writes a property, not a binding.
+ */
+function writes (node: ProgramNode | undefined | null, name: string): boolean {
+    if (!node) {
+        return false
+    }
+    switch (node.type) {
+    case 'Identifier':
+        return node.name === name
+    case 'ArrayPattern':
+        return (node.elements as (ProgramNode | null)[]).some((element) => writes(element, name))
+    case 'ObjectPattern':
+        return (node.properties as ProgramNode[]).some((property) => writes((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, name))
+    case 'AssignmentPattern':
+        return writes(node.left as ProgramNode, name)
+    case 'RestElement':
+        return writes(node.argument as ProgramNode, name)
+    default:
+        return false
+    }
+}
+
+/**
+ * The target that a node writes: `x = …`, `x++`, `for (x of …)`. `for (const x of …)` declares a new binding.
+ */
+function assignmentTarget (node: ProgramNode) {
+    switch (node.type) {
+    case 'AssignmentExpression':
+        return node.left as ProgramNode
+    case 'UpdateExpression':
+        return node.argument as ProgramNode
+    case 'ForOfStatement':
+    case 'ForInStatement':
+        return (node.left as ProgramNode).type === 'VariableDeclaration' ? undefined : node.left as ProgramNode
+    default:
+        return undefined
+    }
+}
+
+// `$$` that is not a member name (`el.$$`); a spread (`...$$`) is a reference
+const DOLLAR_DOLLAR_TEXT = /(?<![\w$])(?<!(?:^|[^.])\.)\$\$(?![\w$])/
+const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)[ \t]*\$\$(?![\w$])/
+
 function selectorEdits (code: string) {
-    const ast = parseProgram(code)
+    const ast = parseProgram(stripTypes(code))
     const edits: SelectorEdit[] = []
     let needsDollar = false
     let needsDollarDollar = false
+    let assignsDollarDollar = false
     if (!ast) {
-        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$\(/.test(code) }
+        return {
+            edits,
+            needsDollar: /(?<!\$)\$\(/.test(code),
+            needsDollarDollar: DOLLAR_DOLLAR_TEXT.test(code),
+            assignsDollarDollar: DOLLAR_DOLLAR_ASSIGN_TEXT.test(code),
+            // the text cannot show every declaration form, so the steps get the block
+            declaresDollarDollar: true
+        }
     }
+    // a top-level `let $$`, `const $$` or `class $$` of a step would clash with the `var $$` copy,
+    // and the copy would overwrite a hoisted `function $$`
+    const declaresDollarDollar = (ast.body || []).some((node) => (
+        (node.type === 'VariableDeclaration' && node.kind !== 'var' && (node.declarations as ProgramNode[]).some((declarator) => writes(declarator.id as ProgramNode, '$$'))) ||
+        ((node.type === 'ClassDeclaration' || node.type === 'FunctionDeclaration') && (node.id as ProgramNode | undefined)?.name === '$$')
+    ))
+    // a key or a member name is not a reference to the global
+    const names = new Set<unknown>()
     walk(ast, (node) => {
-        if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') {
-            return
+        if (node.type === 'MemberExpression' && !node.computed) {
+            names.add(node.property)
         }
-        if (node.callee.name === '$$') {
+        if ((node.type === 'Property' || node.type === 'MethodDefinition' || node.type === 'PropertyDefinition') && !node.computed) {
+            names.add(node.key)
+        }
+        if (node.type === 'Identifier' && node.name === '$$' && !names.has(node)) {
             needsDollarDollar = true
-            return
         }
-        if (node.callee.name !== '$') {
+        if (writes(assignmentTarget(node), '$$')) {
+            assignsDollarDollar = true
+        }
+        if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || node.callee.name !== '$') {
             return
         }
         const arg = node.arguments?.[0]
@@ -234,7 +303,7 @@ function selectorEdits (code: string) {
         }
         edits.push({ start: node.start, end: node.end, selector: arg.value })
     })
-    return { edits, needsDollar, needsDollarDollar }
+    return { edits, needsDollar, needsDollarDollar, assignsDollarDollar, declaresDollarDollar }
 }
 
 export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): GeneratedFile[] {
@@ -250,8 +319,11 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     const uses = new Map<string, SelectorUse>()
     const taken = new Map<string, Set<string>>()
     const hoisted: string[] = []
+    const imported = new Set<string>()
     let needsDollar = false
     let needsDollarDollar = false
+    let assignsDollarDollar = false
+    let declaresDollarDollar = false
     const rendered = steps.map((entry) => {
         let code = entry.kind === 'marker'
             ? entry.code.split('\n').map((line) => line.startsWith('//') ? line : `// ${line}`).join('\n')
@@ -259,18 +331,26 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         if (entry.kind === 'open') {
             code = relativizeUrl(code, base)
         }
-        if (entry.kind !== 'marker') {
-            const split = splitImports(code, opts.cwd, opts.outDir)
-            hoisted.push(...split.imports)
-            code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
-        }
-        if (!opts.pageObjects || entry.kind === 'marker') {
+        if (entry.kind === 'marker') {
             return code
         }
-        const page = pageClassName(entry.path || '/')
+        const split = splitImports(code, opts.cwd, opts.outDir)
+        hoisted.push(...split.imports)
+        split.locals.forEach((name) => imported.add(name))
+        code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
+        // without page objects the scan can only add the `$$` import
+        if (!opts.pageObjects && !code.includes('$$')) {
+            return code
+        }
         const found = selectorEdits(code)
         needsDollar = needsDollar || found.needsDollar
         needsDollarDollar = needsDollarDollar || found.needsDollarDollar
+        assignsDollarDollar = assignsDollarDollar || found.assignsDollarDollar
+        declaresDollarDollar = declaresDollarDollar || found.declaresDollarDollar
+        if (!opts.pageObjects) {
+            return code
+        }
+        const page = pageClassName(entry.path || '/')
         const ordered = [...found.edits].sort((a, b) => b.start - a.start)
         for (const edit of ordered) {
             const key = `${page}\0${edit.selector}`
@@ -295,18 +375,32 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     })
 
     const pages = [...new Set([...uses.values()].map((use) => use.page))]
-    const dollars = opts.pageObjects
-        ? [needsDollar ? '$' : '', needsDollarDollar ? '$$' : ''].filter(Boolean)
-        : ['$']
+    const importDollarDollar = needsDollarDollar && !imported.has('$$')
+    // an ES import is read-only, so a step that assigns `$$` gets a `var` copy of the import
+    const mutableDollarDollar = importDollarDollar && assignsDollarDollar
+    let dollarDollarAlias = '__wdioDollarDollar'
+    if (mutableDollarDollar) {
+        const recordedCode = steps.map((entry) => entry.code).join('\n')
+        while (new RegExp(`\\b${dollarDollarAlias}\\b`).test(recordedCode)) {
+            dollarDollarAlias += '_'
+        }
+    }
+    const dollars = [
+        !opts.pageObjects || needsDollar ? '$' : '',
+        importDollarDollar ? (mutableDollarDollar ? `$$ as ${dollarDollarAlias}` : '$$') : ''
+    ].filter(Boolean)
     const imports = [
         `import { browser${dollars.length ? `, ${dollars.join(', ')}` : ''}, expect } from '@wdio/globals'`,
         ...[...new Set(hoisted)],
         ...pages.map((page) => `import ${page}Page from './pageobjects/${page}.page.ts'`)
     ]
     const instances = pages.map((page) => `const ${pageInstanceName(page)} = new ${page}Page()`)
+    // a block keeps a step's own `let $$` or `const $$` from clashing with the `var $$` copy
     const body = [
         ...instances,
-        ...rendered
+        // the semicolon stops a first step that starts with `(` or `[` from continuing this line
+        ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias};`] : []),
+        ...(mutableDollarDollar && declaresDollarDollar ? [`{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
     ].filter(Boolean)
     const title = opts.title.replace(/'/g, "\\'")
     const spec = [

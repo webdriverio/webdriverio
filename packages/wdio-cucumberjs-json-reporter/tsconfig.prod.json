@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.prod",
+    "compilerOptions": {
+        "outDir": "./build",
+        "rootDir": "./src"
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

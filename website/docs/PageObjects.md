@@ -1,7 +1,7 @@
 ---
 id: pageobjects
 title: Page Object Pattern
-description: "Structure your tests with the page object pattern by moving selectors and page-specific actions into reusable page classes."
+description: "Structure your tests with the page object pattern by moving selectors and page-specific actions into reusable page classes, and pass them to Vitest tests as fixtures."
 ---
 
 Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
@@ -123,6 +123,127 @@ describe('login form', () => {
 ```
 
 From the structural side, it makes sense to separate spec files and page objects into different directories. Additionally you can give each page object the ending: `.page.js`. This makes it more clear that you import a page object.
+
+## Page Objects As Fixtures
+
+With the [Vitest framework](frameworks#using-vitest) you can hand page objects to your tests as [Vitest fixtures](https://vitest.dev/guide/test-context.html#test-extend) instead of importing a shared instance. Each test then gets a fresh page object, declares in its signature which pages it needs, and can rely on setup and teardown (open the page, log in, log out) that the fixture runs around it. Mocha, Jasmine and Cucumber have no fixtures, so keep using exported instances there.
+
+Export the class next to the instance, so a fixture can create its own object:
+
+```ts title="test/pageobjects/page.ts"
+export default class Page {
+    async open (path: string) {
+        await browser.url(path)
+    }
+}
+```
+
+```ts title="test/pageobjects/login.page.ts"
+import Page from './page.js'
+
+export class LoginPage extends Page {
+    get username () { return $('#username') }
+    get password () { return $('#password') }
+    get submitBtn () { return $('form button[type="submit"]') }
+    get flash () { return $('#flash') }
+
+    async open () {
+        await super.open('/login')
+    }
+
+    async login (username: string, password: string) {
+        await this.username.setValue(username)
+        await this.password.setValue(password)
+        await this.submitBtn.click()
+    }
+}
+
+export default new LoginPage()
+```
+
+```ts title="test/pageobjects/secure.page.ts"
+import Page from './page.js'
+
+export class SecurePage extends Page {
+    get flash () { return $('#flash') }
+    get logoutBtn () { return $('a[href="/logout"]') }
+
+    async logout () {
+        await this.logoutBtn.click()
+    }
+}
+
+export default new SecurePage()
+```
+
+Define the fixtures once with `test.extend`. Code before `use()` is setup, code after it is teardown, and a fixture can depend on another fixture by destructuring it:
+
+```ts title="test/fixtures.ts"
+import { test as base } from 'vitest'
+
+import { LoginPage } from './pageobjects/login.page.js'
+import { SecurePage } from './pageobjects/secure.page.js'
+
+type PageFixtures = {
+    loginPage: LoginPage
+    securePage: SecurePage
+}
+
+export const test = base.extend<PageFixtures>({
+    // Vitest requires the first argument to be destructured, even when no fixture is used
+    // eslint-disable-next-line no-empty-pattern
+    loginPage: async ({}, use) => {
+        const loginPage = new LoginPage()
+        await loginPage.open()
+        await use(loginPage)
+    },
+    securePage: async ({ loginPage }, use) => {
+        await loginPage.login('tomsmith', 'SuperSecretPassword!')
+        const securePage = new SecurePage()
+        await use(securePage)
+        await securePage.logout()
+    }
+})
+```
+
+Import that `test` in your specs and ask for the page objects by name. A fixture only runs for the tests that use it, so `securePage` (and the login it needs) is skipped in the first test:
+
+```ts title="test/specs/login.spec.ts"
+import { describe } from 'vitest'
+
+import { test } from '../fixtures.js'
+
+describe('login form', () => {
+    test('should deny access with wrong creds', async ({ loginPage }) => {
+        await loginPage.login('foo', 'bar')
+        await expect(loginPage.flash).toHaveText('Your username is invalid!', { containing: true })
+    })
+
+    test('should allow access with correct creds', async ({ securePage }) => {
+        await expect(securePage.flash).toHaveText('You logged into a secure area!', { containing: true })
+    })
+})
+```
+
+`expect` is the global WebdriverIO assertion library. Don't import it from `vitest` (see [Using Vitest](frameworks#using-vitest)).
+
+Fixtures also work with `test.concurrent`. Fixture setup and teardown run inside the test, so their commands target the test's own window. Use `parallelMode: 'userContexts'` for fixtures that log in, because with `'contexts'` all concurrent tests share cookies, and one test's logout would end the others' sessions:
+
+```ts title="test/specs/secure.spec.ts"
+import { describe } from 'vitest'
+
+import { test } from '../fixtures.js'
+
+describe('secure area', () => {
+    test.concurrent('shows the welcome message', async ({ securePage }) => {
+        await expect(securePage.flash).toHaveText('You logged into a secure area!', { containing: true })
+    })
+
+    test.concurrent('shows the logout button', async ({ securePage }) => {
+        await expect(securePage.logoutBtn).toBeDisplayed()
+    })
+})
+```
 
 ## Going Further
 

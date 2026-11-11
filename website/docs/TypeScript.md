@@ -52,6 +52,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     {label: 'Mocha', value: 'mocha'},
     {label: 'Jasmine', value: 'jasmine'},
     {label: 'Cucumber', value: 'cucumber'},
+    {label: 'Vitest', value: 'vitest'},
   ]
 }>
 <TabItem value="mocha">
@@ -84,6 +85,17 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "@wdio/globals/types", "@wdio/cucumber-framework"]
+    }
+}
+```
+
+</TabItem>
+<TabItem value="vitest">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": ["node", "@wdio/globals/types", "@wdio/vitest-framework"]
     }
 }
 ```

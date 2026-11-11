@@ -233,6 +233,17 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      */
     [n: number]: ChainablePromiseElement
     /**
+     * The element at an index, as a chainable element, like `[n]`. A negative index
+     * counts back from the end of the list. The index is converted as with
+     * `Array.prototype.at`, so `at(1.5)` is element 1.
+     */
+    at(index: number): ChainablePromiseElement
+    /**
+     * A part of the list, as a list. An index past the end of that part does not
+     * run the query again, see `$$`.
+     */
+    slice(start?: number, end?: number): ChainablePromiseArray
+    /**
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
@@ -762,7 +773,8 @@ export type NewWindowOptions = {
     type?: 'tab' | 'window'
     /**
      * Top-level browsing context the new tab or window is opened from.
-     * A frame is rejected. BiDi only.
+     * A frame is rejected. BiDi only. In parallel mode, a tab or window is
+     * opened from the window of its test when this is not set.
      */
     referenceContext?: string | WebdriverIO.BrowsingContext
 }

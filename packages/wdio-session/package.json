@@ -1,6 +1,6 @@
 {
   "name": "@wdio/session",
-  "version": "10.0.2",
+  "version": "10.2.0",
   "description": "Drive browsers, mobile apps and desktop apps with WebdriverIO from the shell",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-session",
@@ -33,7 +33,7 @@
   },
   "typeScriptVersion": "6.0.3",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "repository": {
     "type": "git",
@@ -64,22 +64,26 @@
     "image-size": "^2.0.4",
     "picomatch": "^4.0.7",
     "semver": "^7.7.4",
-    "webdriverio": "workspace:*",
     "yargs": "^18.2.0"
   },
   "devDependencies": {
     "@types/picomatch": "^4.0.2",
     "@types/semver": "^7.5.8",
     "@types/yargs": "^17.0.33",
-    "expect-webdriverio": "^8.0.0-alpha.3",
-    "tsx": "^4.23.15"
+    "@wdio/electron-service": "^10.4.1",
+    "@wdio/visual-service": "^11.0.0",
+    "appium": "^3.8.0",
+    "expect-webdriverio": "^8.0.0",
+    "tsx": "^4.23.15",
+    "webdriverio": "workspace:*"
   },
   "peerDependencies": {
     "@wdio/electron-service": "*",
-    "@wdio/visual-service": "*",
+    "@wdio/visual-service": "^10.0.0 || ^11.0.0",
     "appium": "^3.0.0",
-    "expect-webdriverio": "*",
-    "tsx": "*"
+    "expect-webdriverio": "^8.0.0",
+    "tsx": "*",
+    "webdriverio": "^10.0.0"
   },
   "peerDependenciesMeta": {
     "@wdio/electron-service": {
@@ -96,6 +100,9 @@
     },
     "tsx": {
       "optional": true
+    },
+    "webdriverio": {
+      "optional": false
     }
   },
   "publishConfig": {

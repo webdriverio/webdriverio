@@ -1,4 +1,4 @@
-export type LaneName = 'ci' | 'docs' | 'component' | 'session' | 'display_server' | 'chromedriver' | 'code'
+export type LaneName = 'ci' | 'docs' | 'component' | 'session' | 'display_server' | 'chromedriver' | 'create_wdio' | 'code'
 
 export type LaneFilters = Record<LaneName, readonly string[]>
 
@@ -14,6 +14,7 @@ export interface LaneFlags {
     session: boolean
     display_server: boolean
     chromedriver: boolean
+    create_wdio: boolean
     code: boolean
 }
 

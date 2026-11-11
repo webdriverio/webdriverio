@@ -14,7 +14,12 @@ export const config: WebdriverIO.Config = {
          * in a classic session `$` doesn't look into shadow roots, so finding a
          * `shadow$` element again must use `shadow$`
          */
-        path.join(__dirname, 'headless', 'findElementAgain.e2e.ts')
+        path.join(__dirname, 'headless', 'findElementAgain.e2e.ts'),
+        path.join(__dirname, 'headless', 'actionClick.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItem.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItemPaths.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItemOverwrite.e2e.ts'),
+        path.join(__dirname, 'headless', 'parentGoneAfterWait.e2e.ts')
     ],
 
     /**

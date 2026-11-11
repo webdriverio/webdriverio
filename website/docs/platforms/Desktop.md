@@ -130,7 +130,7 @@ On Linux, WebdriverIO drives Electron, Tauri and Dioxus apps. Things to know:
 - Electron: [Common Issues](/docs/desktop-testing/electron/common-issues), e.g. "DevToolsActivePort file doesn't exist" in CI.
 - Tauri: [Troubleshooting](/docs/desktop-testing/tauri/troubleshooting), including Edge WebDriver and WebView2 version mismatches.
 - Dioxus: [Troubleshooting](/docs/desktop-testing/dioxus/troubleshooting).
-- macOS: see the [Appium Mac2 Driver](https://github.com/appium/appium-mac2-driver) project for driver-specific setup such as Xcode.
+- macOS: see the [Appium Mac2 Driver](https://appium.github.io/appium-mac2-driver/) project for driver-specific setup such as Xcode.
 
 ## Next steps
 

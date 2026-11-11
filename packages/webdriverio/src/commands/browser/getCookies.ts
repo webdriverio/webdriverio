@@ -3,6 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
+import { cookieMatchesUrl, getCookiePartition, toBidiCookieFilter, windowCookieScope, type WindowCookieScope } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -39,7 +40,7 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
- * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi)
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). With `wdio:experimentalBiDiCommands` and in a parallel test, the commands use the cookies of the window: without `sourceOrigin`, the cookies that the page sees (domain and path) or, with a `domain` in the filter, the cookies of that domain, with `sourceOrigin`, the WebDriver BiDi storage partition of that origin, and with null, all cookies of the window
  * @return {Cookie[]}                           requested cookies
  *
  */
@@ -54,12 +55,17 @@ export async function getCookies(
         return getCookiesClassic.call(this, filter)
     }
 
+    const scope = await windowCookieScope(this)
+    if (scope) {
+        return getWindowCookies(scope, filter, sourceOrigin)
+    }
+
     if (isBrowsingContext(this)) {
         return readBidiCookies(this.browser, {
             ...(sourceOrigin === null ? {} : {
                 partition: { type: 'context', context: this.contextId }
             }),
-            ...(typeof filter !== 'undefined' ? { filter } : {})
+            ...(typeof filter !== 'undefined' ? { filter: toBidiCookieFilter(filter) } : {})
         }, filter)
     }
 
@@ -76,12 +82,7 @@ export async function getCookies(
     // In some cases, the forced origin in BiDi does not allow to find back the cookies, so by using null we can bypass the partition and filter by name only.
     const params: remote.StorageGetCookiesParameters = sourceOrigin === null
         ? {}
-        : {
-            partition: {
-                type: 'storageKey',
-                sourceOrigin: sourceOrigin || url.origin
-            }
-        }
+        : { partition: getCookiePartition(sourceOrigin || url.origin) }
 
     if (typeof filter !== 'undefined') {
         params.filter = filter
@@ -90,19 +91,38 @@ export async function getCookies(
     return readBidiCookies(this, params, filter)
 }
 
+async function getWindowCookies(
+    { browser, partition, userContext, url }: WindowCookieScope,
+    filter?: remote.StorageCookieFilter,
+    sourceOrigin?: string | null
+) {
+    const params: remote.StorageGetCookiesParameters = {
+        partition: sourceOrigin
+            ? { type: 'storageKey', sourceOrigin, ...(userContext ? { userContext } : {}) }
+            : partition,
+        ...(typeof filter !== 'undefined' ? { filter: toBidiCookieFilter(filter) } : {})
+    }
+    const cookies = await readBidiCookies(browser, params, filter, true)
+    /**
+     * null and an explicit origin read all cookies of their jar, and a filter with a domain names the
+     * cookies to read, whatever page is open
+     */
+    return sourceOrigin === null || sourceOrigin || filter?.domain ? cookies : cookies.filter(cookieMatchesUrl(url))
+}
+
 async function readBidiCookies (
     browser: WebdriverIO.Browser,
     params: remote.StorageGetCookiesParameters,
-    filter?: remote.StorageCookieFilter
+    filter?: remote.StorageCookieFilter,
+    isolated = params.partition?.type === 'context'
 ): Promise<Cookie[]> {
     try {
         const { cookies } = await browser.storageGetCookies(params)
         /**
-         * A context partition is already the held tab. An empty result is that
-         * tab's cookies. The classic fallback would read the focused window.
+         * A context partition already names the right tab. An empty result is
+         * authoritative. The classic fallback would read the focused window.
          */
-        const partitionedByContext = params.partition?.type === 'context'
-        if (cookies.length === 0 && !partitionedByContext) {
+        if (cookies.length === 0 && !isolated) {
             log.debug('BiDi getCookies returned empty, falling back to classic')
             return getCookiesClassic.call(browser, filter)
         }
@@ -113,7 +133,7 @@ async function readBidiCookies (
                 : cookie.value.value,
         }))
     } catch (err) {
-        if (params.partition?.type === 'context') {
+        if (isolated) {
             throw err
         }
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
@@ -158,7 +178,9 @@ async function getCookiesClassic(
         (filter.value === undefined || filterValue === cookie.value) &&
         (filter.path === undefined || filter.path === cookie.path) &&
         (filter.domain === undefined || filter.domain === cookie.domain) &&
-        (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+        (filter.sameSite === undefined || (typeof filter.sameSite === 'string'
+            ? filter.sameSite.toLowerCase() === cookie.sameSite?.toLowerCase()
+            : filter.sameSite === cookie.sameSite)) &&
         (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
         (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
         (filter.secure === undefined || filter.secure === cookie.secure)
