@@ -40,6 +40,22 @@ describe('savePnpmBuildSetting', () => {
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('strictDepBuilds: true\n')
     })
 
+    it.each([
+        ['a quoted key', '"strictDepBuilds": true\n'],
+        ['a flow-style key', '{packages: ["."], strictDepBuilds: true}\n']
+    ])('keeps the user value with %s', async (_, content) => {
+        await fs.writeFile(workspaceFile(), content)
+        expect(await savePnpmBuildSetting(tmpDir)).toEqual({ result: 'kept', file: workspaceFile() })
+        expect(await fs.readFile(workspaceFile(), 'utf8')).toBe(content)
+    })
+
+    it('does not edit a flow-style file', async () => {
+        // a line after the braces would make the file invalid for pnpm
+        await fs.writeFile(workspaceFile(), '{packages: ["."]}\n')
+        expect(await savePnpmBuildSetting(tmpDir)).toEqual({ result: 'not-editable', file: workspaceFile() })
+        expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('{packages: ["."]}\n')
+    })
+
     it('uses the own file of a workspace inside another workspace', async () => {
         // pnpm uses the nearest pnpm-workspace.yaml
         const app = await parentWorkspace(tmpDir)
@@ -99,6 +115,12 @@ describe('preparePnpmInstall', () => {
         expect(logged()).toContain(`If ${path.join(tmpDir, 'pnpm-workspace.yaml')} lists this project`)
         expect(logged()).toContain(`else to ${path.join(app, 'pnpm-workspace.yaml')}`)
         expect(logged()).toContain('pnpm approve-builds')
+    })
+
+    it('passes the flag and tells where to add the setting when the file cannot be edited', async () => {
+        await fs.writeFile(path.join(tmpDir, 'pnpm-workspace.yaml'), '{packages: ["."]}\n')
+        expect(await preparePnpmInstall('pnpm', tmpDir)).toEqual(['--config.strict-dep-builds=false'])
+        expect(logged()).toContain(`needs \`strictDepBuilds: false\` in ${path.join(tmpDir, 'pnpm-workspace.yaml')}`)
     })
 
     it.each(['9.15.9', '10.34.0'])('does nothing with pnpm %s, which does not fail on build scripts', async (version) => {
