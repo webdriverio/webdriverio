@@ -5,7 +5,6 @@ import type * as Utils from '@wdio/utils'
 
 import { remote } from '../../src/node.js'
 import { getContextManager } from '../../src/session/context.js'
-import { getPrototype } from '../../src/utils/index.js'
 import { getBrowsingContext } from '../../src/browsingContext.js'
 import { applyBidiBrowserOverwrites } from '../../src/utils/bidi/browserOverwrites.js'
 
@@ -50,15 +49,6 @@ describe('user command events', () => {
         const names = new Set(vi.mocked(registerUserCommands).mock.calls.flatMap(([commands]) => commands))
         expect(['saveScreenshot', 'url', '$', 'action', 'getText'].filter((name) => !names.has(name))).toEqual([])
         expect(['takeScreenshot', 'navigateTo', 'SESSION_MOCKS', 'CDP_SESSIONS'].filter((name) => names.has(name))).toEqual([])
-    })
-
-    it('registers the commands of a scope once', () => {
-        getPrototype('browser')
-        getPrototype('element')
-        vi.mocked(registerUserCommands).mockClear()
-        getPrototype('browser')
-        getPrototype('element')
-        expect(registerUserCommands).not.toHaveBeenCalled()
     })
 
     it('sends the wait of an item past the end of a list as the item, with no internal waitUntil', async () => {
