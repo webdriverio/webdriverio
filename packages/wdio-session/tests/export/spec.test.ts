@@ -50,7 +50,8 @@ async function runSpec (contents: string, globals: Record<string, unknown>) {
     const source = contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
         `const { ${bindings.replace(/\$\$ as (\w+)/g, (_alias, local: string) => `$$: ${local}`)} } = globals`
     ))
-    vm.runInNewContext(stripTypes(source), {
+    // an ES module is strict, so the script is strict too
+    vm.runInNewContext(`'use strict';\n${stripTypes(source)}`, {
         globals,
         results,
         describe: (_title: string, fn: () => void) => fn(),
