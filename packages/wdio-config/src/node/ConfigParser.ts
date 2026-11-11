@@ -67,20 +67,6 @@ export default class ConfigParser {
             DEFAULT_CONFIGS()
         )
 
-        /**
-         * specs applied as CLI arguments should be relative from CWD
-         * rather than relative to the config file
-         */
-        if (_initialConfig.spec) {
-            const raw = _initialConfig.spec
-            const globs = makeRelativeToCWD(raw) as string[]
-            const literalPaths = makeRelativeToCWD(raw, false) as string[]
-            globs.forEach((glob, index) => {
-                this._literalCliSpecPaths.set(glob, literalPaths[index])
-            })
-            _initialConfig.spec = globs
-        }
-
         this.merge(_initialConfig, false)
     }
 
@@ -204,6 +190,21 @@ export default class ConfigParser {
      * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
      */
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
+        /**
+         * CLI specs are relative to CWD, not the config file. Keep the caller's
+         * arguments raw since the launcher passes them to workers. Resolving
+         * an escaped glob again corrupts Windows paths.
+         */
+        if (Array.isArray(object.spec)) {
+            const raw = object.spec
+            const globs = makeRelativeToCWD(raw) as string[]
+            const literalPaths = makeRelativeToCWD(raw, false) as string[]
+            globs.forEach((glob, index) => {
+                this._literalCliSpecPaths.set(glob, literalPaths[index])
+            })
+            object = { ...object, spec: globs }
+        }
+
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         // the exclude list of the config, before the one of the command line replaces it
@@ -455,7 +456,7 @@ export default class ConfigParser {
                 return
             }
 
-            // Constructor-resolved CLI paths already use forward slashes and
+            // Resolved CLI paths already use forward slashes and
             // may contain escape backslashes for literal CWD characters.
             const normalizeSeparators = !this._literalCliSpecPaths.has(filteredFile) || !path.isAbsolute(filteredFile)
             filteredFile = removeLineNumbers(filteredFile)
