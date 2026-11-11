@@ -47,10 +47,8 @@ describe('wdio session history and export', () => {
     beforeAll(async () => {
         server = await startServer()
         project = createProject('export')
-        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'), 'junction')
-        await run('open', 'chrome', `${server.url}/cart.html`,
-            ...(process.env.CHROME_BINARY ? ['--binary', process.env.CHROME_BINARY] : []),
-            ...(process.env.CHROME_NO_SANDBOX === '1' ? ['--arg=--no-sandbox'] : []))
+        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'))
+        await run('open', 'chrome', `${server.url}/cart.html`)
     }, 60_000)
 
     afterAll(async () => {
@@ -99,7 +97,7 @@ export const config = {
     maxInstances: 1,
     capabilities: [{
         browserName: 'chrome',
-        'goog:chromeOptions': { ${process.env.CHROME_BINARY ? `binary: ${JSON.stringify(process.env.CHROME_BINARY)}, ` : ''}args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'${process.env.CHROME_NO_SANDBOX === '1' ? ", '--no-sandbox'" : ''}] }
+        'goog:chromeOptions': { args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'] }
     }],
     logLevel: 'error',
     injectGlobals: false,

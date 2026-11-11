@@ -159,11 +159,12 @@ function relativeImport (source: string, fromDir: string, toDir: string) {
 function splitImports (code: string, fromDir?: string, toDir?: string) {
     const ast = parseProgram(code)
     if (!ast?.body) {
-        return { imports: [] as string[], body: code }
+        return { imports: [] as string[], locals: [] as string[], body: code }
     }
     const ranges = ast.body.filter((node) => node.type === 'ImportDeclaration')
     let body = code
     const imports: string[] = []
+    const locals = ranges.flatMap((node) => (node.specifiers as { local: { name: string } }[]).map((specifier) => specifier.local.name))
     for (const node of [...ranges].reverse()) {
         let text = code.slice(node.start, node.end).trim()
         const source = node.source
@@ -175,7 +176,7 @@ function splitImports (code: string, fromDir?: string, toDir?: string) {
         imports.unshift(text)
         body = `${body.slice(0, node.start)}${body.slice(node.end)}`
     }
-    return { imports, body: body.trim() }
+    return { imports, locals, body: body.trim() }
 }
 
 function rewriteDynamicImports (code: string, fromDir?: string, toDir?: string) {
@@ -214,6 +215,35 @@ interface SelectorEdit {
     selector: string
 }
 
+/**
+ * Names that an assignment target writes: `$$`, `[$$]`, `{ key: $$ }`, `$$ = fallback`, `...$$`.
+ * A member such as `el.$$` writes a property, not a binding.
+ */
+function targetNames (node: ProgramNode | undefined | null, names: string[] = []) {
+    if (!node) {
+        return names
+    }
+    if (node.type === 'Identifier') {
+        names.push(node.name as string)
+    } else if (node.type === 'ArrayPattern') {
+        for (const element of node.elements as (ProgramNode | null)[]) {
+            targetNames(element, names)
+        }
+    } else if (node.type === 'ObjectPattern') {
+        for (const property of node.properties as ProgramNode[]) {
+            targetNames((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, names)
+        }
+    } else if (node.type === 'AssignmentPattern') {
+        targetNames(node.left as ProgramNode, names)
+    } else if (node.type === 'RestElement') {
+        targetNames(node.argument as ProgramNode, names)
+    }
+    return names
+}
+
+const DOLLAR_DOLLAR_TEXT = /(?<![\w$.])\$\$(?![\w$])/
+const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)\s*\$\$(?![\w$])/
+
 function selectorEdits (code: string) {
     const ast = parseProgram(stripTypes(code))
     const edits: SelectorEdit[] = []
@@ -221,27 +251,37 @@ function selectorEdits (code: string) {
     let needsDollarDollar = false
     let assignsDollarDollar = false
     if (!ast) {
-        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$(?![\w$])/.test(code), assignsDollarDollar: /\$\$\s*(?:=(?!=)|\+\+|--)/.test(code) }
+        return {
+            edits,
+            needsDollar: /(?<!\$)\$\(/.test(code),
+            needsDollarDollar: DOLLAR_DOLLAR_TEXT.test(code),
+            assignsDollarDollar: DOLLAR_DOLLAR_ASSIGN_TEXT.test(code)
+        }
     }
+    // a key or a member name is not a reference to the global
+    const names = new Set<unknown>()
     walk(ast, (node) => {
-        if (node.type === 'Identifier' && node.name === '$$') {
+        if (node.type === 'MemberExpression' && !node.computed) {
+            names.add(node.property)
+        }
+        if ((node.type === 'Property' || node.type === 'MethodDefinition' || node.type === 'PropertyDefinition') && !node.computed) {
+            names.add(node.key)
+        }
+        if (node.type === 'Identifier' && node.name === '$$' && !names.has(node)) {
             needsDollarDollar = true
         }
-        if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression' || node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
-            walk((node.left || node.argument) as ProgramNode | undefined, (target) => {
-                if (target.type === 'Identifier' && target.name === '$$') {
-                    assignsDollarDollar = true
-                }
-            })
+        const target = node.type === 'AssignmentExpression'
+            ? node.left
+            : node.type === 'UpdateExpression'
+                ? node.argument
+                // `for (const $$ of …)` declares a new binding
+                : (node.type === 'ForOfStatement' || node.type === 'ForInStatement') && (node.left as ProgramNode).type !== 'VariableDeclaration'
+                    ? node.left
+                    : undefined
+        if (target && targetNames(target as ProgramNode).includes('$$')) {
+            assignsDollarDollar = true
         }
-        if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') {
-            return
-        }
-        if (node.callee.name === '$$') {
-            needsDollarDollar = true
-            return
-        }
-        if (node.callee.name !== '$') {
+        if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || node.callee.name !== '$') {
             return
         }
         const arg = node.arguments?.[0]
@@ -267,6 +307,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     const uses = new Map<string, SelectorUse>()
     const taken = new Map<string, Set<string>>()
     const hoisted: string[] = []
+    const imported = new Set<string>()
     let needsDollar = false
     let needsDollarDollar = false
     let assignsDollarDollar = false
@@ -280,6 +321,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         if (entry.kind !== 'marker') {
             const split = splitImports(code, opts.cwd, opts.outDir)
             hoisted.push(...split.imports)
+            split.locals.forEach((name) => imported.add(name))
             code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
         }
         if (entry.kind === 'marker') {
@@ -317,20 +359,19 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     })
 
     const pages = [...new Set([...uses.values()].map((use) => use.page))]
-    const hasDollarDollarImport = hoisted.some((code) => {
-        const node = parseProgram(code)?.body?.[0]
-        return node?.type === 'ImportDeclaration' && (node.specifiers as { local: { name: string } }[])
-            .some((specifier) => specifier.local.name === '$$')
-    })
-    const mutableDollarDollar = needsDollarDollar && assignsDollarDollar && !hasDollarDollarImport
+    const importDollarDollar = needsDollarDollar && !imported.has('$$')
+    // an ES import is read-only, so a step that assigns `$$` gets a `var` copy of the import
+    const mutableDollarDollar = importDollarDollar && assignsDollarDollar
     let dollarDollarAlias = '__wdioDollarDollar'
-    const recordedCode = steps.map((entry) => entry.code).join('\n')
-    while (new RegExp(`\\b${dollarDollarAlias}\\b`).test(recordedCode)) {
-        dollarDollarAlias += '_'
+    if (mutableDollarDollar) {
+        const recordedCode = steps.map((entry) => entry.code).join('\n')
+        while (new RegExp(`\\b${dollarDollarAlias}\\b`).test(recordedCode)) {
+            dollarDollarAlias += '_'
+        }
     }
     const dollars = [
         !opts.pageObjects || needsDollar ? '$' : '',
-        needsDollarDollar && !hasDollarDollarImport ? (mutableDollarDollar ? `$$ as ${dollarDollarAlias}` : '$$') : ''
+        importDollarDollar ? (mutableDollarDollar ? `$$ as ${dollarDollarAlias}` : '$$') : ''
     ].filter(Boolean)
     const imports = [
         `import { browser${dollars.length ? `, ${dollars.join(', ')}` : ''}, expect } from '@wdio/globals'`,
@@ -338,7 +379,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         ...pages.map((page) => `import ${page}Page from './pageobjects/${page}.page.ts'`)
     ]
     const instances = pages.map((page) => `const ${pageInstanceName(page)} = new ${page}Page()`)
-    // A mutable binding preserves recorded assignments; the block lets steps declare their own $$.
+    // the block keeps a step's own `let $$` or `const $$` from clashing with the `var $$`
     const body = [
         ...instances,
         ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias}`, `{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)

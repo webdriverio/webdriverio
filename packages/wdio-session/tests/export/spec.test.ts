@@ -41,12 +41,32 @@ describe('names', () => {
     })
 })
 
+/**
+ * Runs a generated spec with stub globals, the way the test runner gives them through `@wdio/globals`.
+ */
+async function runSpec (contents: string, globals: Record<string, unknown>) {
+    const results: unknown[] = []
+    let pending: Promise<void> | undefined
+    const source = contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
+        `const { ${bindings.replace(/\$\$ as (\w+)/g, (_alias, local: string) => `$$: ${local}`)} } = globals`
+    ))
+    vm.runInNewContext(stripTypes(source), {
+        globals,
+        results,
+        describe: (_title: string, fn: () => void) => fn(),
+        it: (_title: string, fn: () => Promise<void>) => { pending = fn() }
+    })
+    await pending
+    return results
+}
+
 describe('generateSpec', () => {
     it.each([
         ["const select = $$; results.push((await select('a')).length)", 2],
         ["results.push((await $$.call(null, 'a')).length)", 2],
         ["const size: number = (await $$ /* comment */ ('a')).length; results.push(size)", 2],
         ["$$ = () => ['custom']; results.push($$()[0])", 'custom'],
+        ["const saved = $$; $$ = (...args) => saved(...args); results.push((await $$('a')).length)", 2],
         ["$$ = null; $$ ||= () => ['fallback']; results.push($$()[0]); return", 'fallback'],
         ["let $$ = () => ['first']; $$ = () => ['local']; results.push($$()[0])", 'local'],
         ["for ($$ of [() => ['loop']]) {} results.push($$()[0])", 'loop'],
@@ -56,18 +76,7 @@ describe('generateSpec', () => {
             const [spec] = generateSpec([
                 step({ kind: 'exec', code: String(code) })
             ], { title: 'selectors', pageObjects })
-            const results: unknown[] = []
-            let pending: Promise<void> | undefined
-            const source = spec.contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
-                `const { ${bindings.replace(/\$\$ as (\w+)/g, '$$: $1')} } = globals`
-            ))
-            vm.runInNewContext(stripTypes(source), {
-                globals: { browser: {}, $: () => {}, $$: async () => [1, 2], expect: () => {} },
-                results,
-                describe: (_title: string, fn: () => void) => fn(),
-                it: (_title: string, fn: () => Promise<void>) => { pending = fn() }
-            })
-            await pending
+            const results = await runSpec(spec.contents, { browser: {}, $: () => {}, $$: async () => [1, 2], expect: () => {} })
             expect(results).toEqual([expected])
         }
     })
@@ -76,19 +85,33 @@ describe('generateSpec', () => {
         const [spec] = generateSpec([
             step({ kind: 'exec', code: "const $$ = () => ['local']; results.push($$()[0])" })
         ], { title: 'local selector' })
-        const results: unknown[] = []
-        let pending: Promise<void> | undefined
-        const source = spec.contents.replace(/^import \{ (.+) \} from '@wdio\/globals'$/m, (_match, bindings: string) => (
-            `const { ${bindings.replace(/\$\$ as (\w+)/g, '$$: $1')} } = globals`
-        ))
-        vm.runInNewContext(source, {
-            globals: { browser: {}, $: () => {}, $$: () => [], expect: () => {} },
-            results,
-            describe: (_title: string, fn: () => void) => fn(),
-            it: (_title: string, fn: () => Promise<void>) => { pending = fn() }
-        })
-        await pending
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, $$: () => [], expect: () => {} })
         expect(results).toEqual(['local'])
+    })
+
+    it.each([
+        "await browser.$$('a')",
+        "await $('ul').$$('li')",
+        'const lookup = { $$: 1 }',
+        'class Page { $$ () {} }',
+        // stripTypes cannot remove an angle-bracket cast, so this step takes the text fallback
+        "const n = <any>1; await browser.$$('a')"
+    ])('does not import $$ for a member or a key named $$: %s', (code) => {
+        const [spec] = generateSpec([step({ kind: 'exec', code })], { title: 'members' })
+        expect(spec.contents).toContain("import { browser, $, expect } from '@wdio/globals'")
+    })
+
+    it.each([
+        "(await $$('a'))[0].foo = 1",
+        "const el = await $('ul'); el.$$ = await $$('li')",
+        'for (const $$ of [() => []]) { $$() }',
+        // stripTypes cannot remove an angle-bracket cast, so this step takes the text fallback
+        'const n = <any>1; const pick = $$ => $$'
+    ])('keeps the plain $$ import when a step does not assign the global $$: %s', (code) => {
+        const [spec] = generateSpec([step({ kind: 'exec', code })], { title: 'reads' })
+        expect(spec.contents).toContain("import { browser, $, $$, expect } from '@wdio/globals'")
+        expect(spec.contents).not.toContain('__wdioDollarDollar')
+        expect(spec.contents).not.toContain('var $$')
     })
 
     const entries: HistoryEntry[] = [
