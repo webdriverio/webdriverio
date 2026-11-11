@@ -7,7 +7,7 @@ on:
 
 jobs:
   create_wdio:
-    name: create-wdio E2E Test (${{ matrix.os }})
+    name: create-wdio E2E Test (${{ matrix.os }}, ${{ matrix.pm }})
     permissions:
       contents: read
     # more than the test timeouts (4 x 5 min) and the setup steps, so that Vitest reports a stuck setup
@@ -16,6 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-15]
+        # npm runs 4 setups; pnpm, Yarn and Bun (their latest release) run web and android
+        pm: [npm, pnpm, yarn, bun]
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -31,8 +33,10 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      # `npm init wdio` with the local create-wdio wizard: web (with the generated example test),
-      # Android, iOS and macOS (the Appium installs)
+      # `<pm> create wdio` with the local create-wdio wizard: web (with the generated example test),
+      # Android, and with npm also iOS and macOS (the Appium installs)
       - name: create-wdio E2E Test
         run: pnpm run test:e2e:create-wdio
+        env:
+          CREATE_WDIO_PM: ${{ matrix.pm }}
         shell: bash
