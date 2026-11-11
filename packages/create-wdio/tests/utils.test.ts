@@ -659,10 +659,7 @@ test.each([
     expect(vi.mocked(installPackages).mock.calls[0][1].filter((p: string) => p.startsWith('@wdio/globals'))).toHaveLength(1)
 })
 
-test.each([
-    ['vue', 'vue'],
-    ['preact', 'preact']
-])('npmInstall installs %s for the %s preset', async (preset, pkg) => {
+test.each(['vue', 'preact'])('npmInstall installs %s for its preset', async (preset) => {
     vi.mocked(installPackages).mockClear()
     await npmInstall({
         rawAnswers: { services: [], preset: `@vitejs/plugin$--$${preset}` },
@@ -672,7 +669,7 @@ test.each([
         installTestingLibrary: false
     } as any, 'latest')
     // the generated component imports it: npm installs it as a peer, pnpm does not link it to the project
-    expect(vi.mocked(installPackages).mock.calls[0][1]).toContain(pkg)
+    expect(installPackages).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([preset]), true)
 })
 
 test('not npmInstall', async () => {

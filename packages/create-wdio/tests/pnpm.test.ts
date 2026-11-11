@@ -3,7 +3,15 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { PNPM_SKIP_BUILDS_FLAG, preparePnpmInstall, savePnpmBuildSetting } from '../src/pnpm.js'
+import { preparePnpmInstall, savePnpmBuildSetting } from '../src/pnpm.js'
+
+// a pnpm workspace in `dir` and an empty project folder `dir/app` in it
+async function parentWorkspace (dir: string) {
+    await fs.writeFile(path.join(dir, 'pnpm-workspace.yaml'), 'packages:\n  - app\n')
+    const app = path.join(dir, 'app')
+    await fs.mkdir(app)
+    return app
+}
 
 describe('savePnpmBuildSetting', () => {
     let tmpDir: string
@@ -32,10 +40,17 @@ describe('savePnpmBuildSetting', () => {
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('strictDepBuilds: true\n')
     })
 
+    it('uses the own file of a workspace inside another workspace', async () => {
+        // pnpm uses the nearest pnpm-workspace.yaml
+        const app = await parentWorkspace(tmpDir)
+        await fs.writeFile(path.join(app, 'pnpm-workspace.yaml'), 'packages:\n  - .\n')
+        expect(await savePnpmBuildSetting(app)).toEqual({ result: 'written', file: path.join(app, 'pnpm-workspace.yaml') })
+        expect(await fs.readFile(path.join(app, 'pnpm-workspace.yaml'), 'utf8')).toBe('packages:\n  - .\nstrictDepBuilds: false\n')
+        expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('packages:\n  - app\n')
+    })
+
     it('writes nothing inside a parent workspace', async () => {
-        await fs.writeFile(workspaceFile(), 'packages:\n  - app\n')
-        const app = path.join(tmpDir, 'app')
-        await fs.mkdir(app)
+        const app = await parentWorkspace(tmpDir)
         expect(await savePnpmBuildSetting(app)).toEqual({ result: 'parent-workspace', file: workspaceFile() })
         await expect(fs.access(path.join(app, 'pnpm-workspace.yaml'))).rejects.toThrow()
         expect(await fs.readFile(workspaceFile(), 'utf8')).toBe('packages:\n  - app\n')
@@ -66,6 +81,7 @@ describe('preparePnpmInstall', () => {
         expect(await preparePnpmInstall('pnpm', tmpDir)).toEqual([])
         expect(await fs.readFile(path.join(tmpDir, 'pnpm-workspace.yaml'), 'utf8')).toBe('strictDepBuilds: false\n')
         expect(logged()).toContain('pnpm will skip the build scripts')
+        expect(logged()).toContain(`strictDepBuilds: false\` in ${path.join(tmpDir, 'pnpm-workspace.yaml')}`)
     })
 
     it('keeps the setting of the user without a message', async () => {
@@ -75,15 +91,13 @@ describe('preparePnpmInstall', () => {
     })
 
     it('passes the flag inside a parent workspace', async () => {
-        await fs.writeFile(path.join(tmpDir, 'pnpm-workspace.yaml'), 'packages:\n  - app\n')
-        const app = path.join(tmpDir, 'app')
-        await fs.mkdir(app)
-        expect(PNPM_SKIP_BUILDS_FLAG).toBe('--config.strict-dep-builds=false')
+        const app = await parentWorkspace(tmpDir)
         expect(await preparePnpmInstall('pnpm', app)).toEqual(['--config.strict-dep-builds=false'])
         expect(logged()).toContain('pnpm will skip the build scripts')
-        // a later `pnpm install` of the workspace fails on the new build scripts: tell the user what to do
-        expect(logged()).toContain(path.join(tmpDir, 'pnpm-workspace.yaml'))
-        expect(logged()).toContain('strictDepBuilds: false')
+        // a later `pnpm install` fails on the new build scripts: the setting goes in the parent file when it
+        // lists the project, else in a file of the project (pnpm then uses the project as its own workspace)
+        expect(logged()).toContain(`If ${path.join(tmpDir, 'pnpm-workspace.yaml')} lists this project`)
+        expect(logged()).toContain(`else to ${path.join(app, 'pnpm-workspace.yaml')}`)
         expect(logged()).toContain('pnpm approve-builds')
     })
 

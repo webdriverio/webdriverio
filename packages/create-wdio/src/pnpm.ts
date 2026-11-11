@@ -3,15 +3,14 @@ import path from 'node:path'
 
 import type { PACKAGE_MANAGER } from './constants.js'
 
-export const PNPM_SKIP_BUILDS_FLAG = '--config.strict-dep-builds=false'
-
+const SKIP_BUILDS_FLAG = '--config.strict-dep-builds=false'
 const WORKSPACE_FILE = 'pnpm-workspace.yaml'
-const SETTING = /^strictDepBuilds\s*:/m
-
-const exists = (file: string) => fs.access(file).then(() => true, () => false)
-
+const STRICT_DEP_BUILDS = /^strictDepBuilds\s*:/m
 // pnpm 10 and older only warn about build scripts, and pnpm 9 rejects a pnpm-workspace.yaml without `packages`
 const FIRST_STRICT_MAJOR = 11
+const SKIP_BUILDS_MESSAGE = 'pnpm will skip the build scripts of the installed packages: WebdriverIO does not need them.'
+
+const exists = (file: string) => fs.access(file).then(() => true, () => false)
 
 function pnpmMajor () {
     const version = process.env.npm_config_user_agent?.match(/^pnpm\/(\d+)\./)
@@ -24,16 +23,19 @@ function pnpmMajor () {
  * `pnpm install` needs it too. A pnpm workspace in a parent folder keeps its own settings.
  */
 export async function savePnpmBuildSetting (root: string): Promise<{ result: 'written' | 'kept' | 'parent-workspace', file: string }> {
-    for (let dir = path.dirname(root); dir !== path.dirname(dir); dir = path.dirname(dir)) {
-        const parentFile = path.join(dir, WORKSPACE_FILE)
-        if (await exists(parentFile)) {
-            return { result: 'parent-workspace', file: parentFile }
+    const file = path.join(root, WORKSPACE_FILE)
+    // pnpm uses the nearest pnpm-workspace.yaml
+    if (!await exists(file)) {
+        for (let dir = path.dirname(root); dir !== path.dirname(dir); dir = path.dirname(dir)) {
+            const parentFile = path.join(dir, WORKSPACE_FILE)
+            if (await exists(parentFile)) {
+                return { result: 'parent-workspace', file: parentFile }
+            }
         }
     }
 
-    const file = path.join(root, WORKSPACE_FILE)
     const content = await fs.readFile(file, 'utf8').catch(() => '')
-    if (SETTING.test(content)) {
+    if (STRICT_DEP_BUILDS.test(content)) {
         return { result: 'kept', file }
     }
     const separator = content && !content.endsWith('\n') ? '\n' : ''
@@ -54,13 +56,15 @@ export async function preparePnpmInstall (pm: PACKAGE_MANAGER, root: string): Pr
     if (result === 'kept') {
         return []
     }
-    console.log('pnpm will skip the build scripts of the installed packages: WebdriverIO does not need them.')
     if (result === 'written') {
+        console.log(`${SKIP_BUILDS_MESSAGE} Saved \`strictDepBuilds: false\` in ${file}.`)
         return []
     }
+    // pnpm treats a project that the parent does not list as its own workspace root
     console.log(
-        `A later \`pnpm install\` of the workspace needs \`strictDepBuilds: false\` in ${file}, ` +
-        'or run `pnpm approve-builds`.'
+        `${SKIP_BUILDS_MESSAGE} A later \`pnpm install\` needs \`strictDepBuilds: false\`. ` +
+        `If ${file} lists this project, add it there, else to ${path.join(root, WORKSPACE_FILE)}. ` +
+        'You can also run `pnpm approve-builds`.'
     )
-    return [PNPM_SKIP_BUILDS_FLAG]
+    return [SKIP_BUILDS_FLAG]
 }

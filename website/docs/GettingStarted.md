@@ -77,6 +77,8 @@ or if you want to create a new project:
 pnpm create wdio@latest ./path/to/new/project
 ```
 
+With pnpm 11 or later, the wizard saves `strictDepBuilds: false` in the `pnpm-workspace.yaml` file of the project: pnpm then skips the build scripts of the installed packages instead of failing on them. WebdriverIO does not need these scripts. When only a parent folder has a `pnpm-workspace.yaml` file, the wizard changes no file and tells you where to add the setting.
+
 </TabItem>
 <TabItem value="bun">
 
@@ -116,6 +118,8 @@ npm init wdio@latest . -- --yes
 
 </TabItem>
 <TabItem value="yarn">
+
+With Yarn 2 or later, add `nodeLinker: node-modules` to the `.yarnrc.yml` file of the project first: Plug'n'Play is not supported.
 
 ```sh
 yarn create wdio . --yes

@@ -35,7 +35,7 @@ const env = Object.fromEntries(Object.entries(process.env)
     .filter(([key]) => USER_NPM_SETTINGS.test(key) || !NOT_A_USER_ENV.test(key)))
 
 interface Setup {
-    name: string
+    name: 'web' | 'android' | 'ios' | 'macos'
     flags: string[]
     // packages and the major the wizard must install
     installs: Record<string, number>
@@ -63,7 +63,7 @@ interface PackageManager {
     // writes the override that gives @wdio/cli the local create-wdio
     override: (dir: string, tarball: string) => Promise<void>
     lockfile: string
-    setups: string[]
+    setups: Setup['name'][]
 }
 
 const writeJson = (file: string, data: object) => fs.writeFile(file, JSON.stringify(data, null, 2))
@@ -73,7 +73,8 @@ const packageJson = (dir: string, extra: object) => writeJson(path.join(dir, 'pa
     ...extra
 })
 
-const PACKAGE_MANAGERS: Record<string, PackageManager> = {
+type PackageManagerName = 'npm' | 'pnpm' | 'yarn' | 'bun'
+const PACKAGE_MANAGERS: Record<PackageManagerName, PackageManager> = {
     npm: {
         // npm resolves a relative path from the project: it keeps spaces out of the shell line
         start: (tarball) => ['npm', 'exec', '--yes', `--package=file:../${path.posix.basename(tarball)}`, '--', 'create-wdio'],
@@ -112,7 +113,7 @@ const PACKAGE_MANAGERS: Record<string, PackageManager> = {
     }
 }
 
-const PM_NAME = process.env.CREATE_WDIO_PM || 'npm'
+const PM_NAME = (process.env.CREATE_WDIO_PM || 'npm') as PackageManagerName
 const PM = PACKAGE_MANAGERS[PM_NAME]
 if (!PM) {
     throw new Error(`Unknown CREATE_WDIO_PM "${PM_NAME}", use one of: ${Object.keys(PACKAGE_MANAGERS).join(', ')}`)

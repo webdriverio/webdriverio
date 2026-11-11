@@ -29,11 +29,11 @@ function isErrorLine (line: string) {
 export async function installPackages (cwd: string, packages: string[], dev: boolean) {
     const pm = detectPackageManager()
     const devParam = dev ? devFlag[pm] : ''
-    const flags = await preparePnpmInstall(pm, cwd)
+    const pnpmFlags = await preparePnpmInstall(pm, cwd)
 
     console.log('\n')
     // show the output while it runs, and keep it to repeat the error after it
-    const { stdout, stderr, exitCode, shortMessage } = await execa(pm, [installCommand[pm], ...packages, devParam, ...flags], {
+    const { stdout, stderr, exitCode, shortMessage } = await execa(pm, [installCommand[pm], ...packages, devParam, ...pnpmFlags], {
         cwd,
         reject: false,
         stdout: ['inherit', 'pipe'],
@@ -41,7 +41,7 @@ export async function installPackages (cwd: string, packages: string[], dev: boo
     })
 
     if (exitCode !== 0) {
-        const cmd = getInstallCommand(pm, packages, dev, flags)
+        const cmd = getInstallCommand(pm, packages, dev, pnpmFlags)
         const output = [stderr, stdout].map((text) => String(text || '')).join('\n').split(/\r?\n/)
         const errorLines = output.filter(isErrorLine)
         console.error(

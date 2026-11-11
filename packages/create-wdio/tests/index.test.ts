@@ -118,7 +118,6 @@ test('createWebdriverIO with NPM', async () => {
     vi.mocked(preparePnpmInstall).mockClear()
     await createWebdriverIO({ npmTag: 'latest' } as ProgramOpts)
     expect(preparePnpmInstall).toBeCalledWith('npm', expect.stringMatching(/someProjectName$/))
-    expect(vi.mocked(runProgram).mock.calls[0][1]).toEqual(['install', '@wdio/cli@latest'])
     expect(runProgram).toBeCalledWith(
         'npm',
         ['install', '@wdio/cli@latest'],
@@ -174,9 +173,10 @@ test('createWebdriverIO with no npm user agent should run npm commands', async (
 })
 
 test('createWebdriverIO with pnpm', async () => {
-    vi.stubEnv('npm_config_user_agent', 'pnpm/9.10.0 npm/? node/v20.11.0 darwin arm64')
+    vi.stubEnv('npm_config_user_agent', 'pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64')
     vi.mocked(preparePnpmInstall).mockClear().mockResolvedValueOnce(['--config.strict-dep-builds=false'])
     await createWebdriverIO({ npmTag: 'latest' } as ProgramOpts)
+    // the starter explains the setting too: the wizard may not install
     expect(preparePnpmInstall).toBeCalledWith('pnpm', expect.stringMatching(/someProjectName$/))
     expect(vi.mocked(preparePnpmInstall).mock.invocationCallOrder[0])
         .toBeLessThan(vi.mocked(runProgram).mock.invocationCallOrder[0])
@@ -446,14 +446,16 @@ describe('install', () => {
         vi.mocked(preparePnpmInstall).mockClear().mockResolvedValueOnce(['--config.strict-dep-builds=false'])
         await installPackages('/foo/bar', ['foo'], true)
         expect(preparePnpmInstall).toBeCalledWith('pnpm', '/foo/bar')
-        expect(vi.mocked(execa).mock.calls[0][1]).toEqual(['add', 'foo', '--save-dev', '--config.strict-dep-builds=false'])
+        expect(execa).toHaveBeenNthCalledWith(1, 'pnpm', ['add', 'foo', '--save-dev', '--config.strict-dep-builds=false'], expect.any(Object))
     })
 
     it('installPackages does not change the npm install', async () => {
         vi.stubEnv('npm_config_user_agent', 'npm/11.19.1 node/v24.22.1 darwin arm64 workspaces/false')
         vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
+        vi.mocked(preparePnpmInstall).mockClear()
         await installPackages('/foo/bar', ['foo'], true)
-        expect(vi.mocked(execa).mock.calls[0][1]).toEqual(['install', 'foo', '--save-dev'])
+        expect(preparePnpmInstall).toBeCalledWith('npm', '/foo/bar')
+        expect(execa).toHaveBeenNthCalledWith(1, 'npm', ['install', 'foo', '--save-dev'], expect.any(Object))
     })
 
     it('getInstallCommand', () => {
