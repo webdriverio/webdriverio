@@ -166,6 +166,17 @@ function run (command: string, args: string[], cwd: string, signal?: AbortSignal
     })
 }
 
+// the folder of `name` as Node resolves it from `fromDir` (pnpm keeps a dependency next to its dependent)
+async function resolvePackageDir (fromDir: string, name: string) {
+    for (let dir = await fs.realpath(fromDir); dir !== path.dirname(dir); dir = path.dirname(dir)) {
+        const candidate = path.join(dir, 'node_modules', name)
+        if (await fs.access(path.join(candidate, 'package.json')).then(() => true, () => false)) {
+            return candidate
+        }
+    }
+    throw new Error(`${name} not found from ${fromDir}`)
+}
+
 async function readPackage (dir: string) {
     return JSON.parse(await fs.readFile(path.join(dir, 'package.json'), 'utf8')) as { version: string, scripts?: Record<string, string> }
 }
@@ -220,9 +231,10 @@ describe(`${PM_NAME} create wdio`, () => {
 
             await expect(fs.access(path.join(projectDir, PM.lockfile)), `${PM_NAME} installed the packages`).resolves.toBeUndefined()
 
-            // the local version is often the published one: compare the wizard code
+            // the local version is often the published one: compare the wizard code that @wdio/cli loads
             const wizardFile = path.join('build', 'config', 'cli.js')
-            const wizard = await fs.readFile(path.join(projectDir, 'node_modules', 'create-wdio', wizardFile), 'utf8')
+            const wizardDir = await resolvePackageDir(path.join(projectDir, 'node_modules', '@wdio', 'cli'), 'create-wdio')
+            const wizard = await fs.readFile(path.join(wizardDir, wizardFile), 'utf8')
             const local = await fs.readFile(path.join(repoRoot, 'packages', 'create-wdio', wizardFile), 'utf8')
             expect(wizard === local, 'the wizard must come from the local create-wdio build').toBe(true)
 
