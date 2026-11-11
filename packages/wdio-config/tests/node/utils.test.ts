@@ -9,6 +9,7 @@ import { makeRelativeToCWD } from '../../src/node/utils.js'
 import FileSystemPathService from '../../src/node/FileSystemPathService.js'
 
 const cwd = path.resolve('/', 'project', 'root')
+const globPath = (...segments: string[]) => path.resolve(...segments).split(path.sep).join('/')
 
 describe('makeRelativeToCWD', () => {
     afterEach(() => {
@@ -18,21 +19,21 @@ describe('makeRelativeToCWD', () => {
     it('resolves a file with a directory from the current working directory', () => {
         vi.spyOn(process, 'cwd').mockReturnValue(cwd)
         expect(makeRelativeToCWD(['./specs/login.spec.js', '../other/login.spec.js'])).toEqual([
-            path.resolve(cwd, 'specs', 'login.spec.js'),
-            path.resolve(cwd, '..', 'other', 'login.spec.js')
+            globPath(cwd, 'specs', 'login.spec.js'),
+            globPath(cwd, '..', 'other', 'login.spec.js')
         ])
     })
 
     it('resolves a glob pattern with a directory from the current working directory (#14447)', () => {
         vi.spyOn(process, 'cwd').mockReturnValue(cwd)
         expect(makeRelativeToCWD(['./specs/*.spec.js', '../other/**/*.spec.js'])).toEqual([
-            path.resolve(cwd, 'specs', '*.spec.js'),
-            path.resolve(cwd, '..', 'other', '**', '*.spec.js')
+            globPath(cwd, 'specs', '*.spec.js'),
+            globPath(cwd, '..', 'other', '**', '*.spec.js')
         ])
     })
 
     it('quotes literal CWD glob characters even when the target is in a parent directory', () => {
-        const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-[app]-'))
+        const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-[app]-{one,two}-'))
         const configDir = path.join(workspace, 'config')
         const specsDir = path.join(workspace, 'specs')
         const spec = path.join(specsDir, 'login.spec.js')
@@ -42,8 +43,7 @@ describe('makeRelativeToCWD', () => {
             fs.writeFileSync(spec, '')
             vi.spyOn(process, 'cwd').mockReturnValue(configDir)
             const [pattern] = makeRelativeToCWD(['../specs/*.spec.js']) as string[]
-            // getFilePaths normalizes separators before it delegates to glob().
-            const files = new FileSystemPathService().glob(pattern.replace(/\\/g, '/'), configDir)
+            const files = new FileSystemPathService().glob(pattern, configDir)
             expect(files.map(filename => path.resolve(filename))).toContain(spec)
         } finally {
             fs.rmSync(workspace, { recursive: true, force: true })
@@ -54,7 +54,7 @@ describe('makeRelativeToCWD', () => {
         vi.spyOn(process, 'cwd').mockReturnValue(cwd)
         const nativeSpec = ['.', 'specs', '**', '*.spec.js'].join(path.sep)
         expect(makeRelativeToCWD([nativeSpec])).toEqual([
-            path.resolve(cwd, 'specs', '**', '*.spec.js')
+            globPath(cwd, 'specs', '**', '*.spec.js')
         ])
     })
 
@@ -75,7 +75,7 @@ describe('makeRelativeToCWD', () => {
             const drive = path.parse(workspace).root.slice(0, 2)
             const [pattern] = makeRelativeToCWD([drive + 'specs\\*.spec.js']) as string[]
             expect(pattern).not.toContain(drive + 'specs')
-            const matches = new FileSystemPathService().glob(pattern.replace(/\\/g, '/'), workspace)
+            const matches = new FileSystemPathService().glob(pattern, workspace)
             expect(matches.map(filename => path.resolve(filename))).toContain(spec)
         } finally {
             fs.rmSync(workspace, { recursive: true, force: true })
@@ -95,8 +95,8 @@ describe('makeRelativeToCWD', () => {
             vi.spyOn(process, 'cwd').mockReturnValue(bracketCwd)
             const [pattern] = makeRelativeToCWD(['../[app]/*.spec.js']) as string[]
             // Brackets supplied by the user still act as a glob class.
-            expect(pattern).toBe(path.join(workspace, '[app]', '*.spec.js'))
-            const files = new FileSystemPathService().glob(pattern.replace(/\\/g, '/'), bracketCwd)
+            expect(pattern).toBe(globPath(workspace, '[app]', '*.spec.js'))
+            const files = new FileSystemPathService().glob(pattern, bracketCwd)
             expect(files.map(file => path.resolve(file)).sort()).toEqual(
                 ['a', 'p'].map(dir => path.join(workspace, dir, 'target.spec.js')).sort()
             )
@@ -111,14 +111,14 @@ describe('makeRelativeToCWD', () => {
     })
 
     it('turns a file URL into a path', () => {
-        const file = path.resolve(cwd, 'specs', 'login.spec.js')
-        expect(makeRelativeToCWD([url.pathToFileURL(file).href])).toEqual([file])
+        const file = globPath(cwd, 'specs', 'login.spec.js')
+        expect(makeRelativeToCWD([url.pathToFileURL(file).href])).toEqual([globPath(file)])
     })
 
     it('resolves the values of a group', () => {
         vi.spyOn(process, 'cwd').mockReturnValue(cwd)
         expect(makeRelativeToCWD([['./specs/*.spec.js', 'login']])).toEqual([
-            [path.resolve(cwd, 'specs', '*.spec.js'), 'login']
+            [globPath(cwd, 'specs', '*.spec.js'), 'login']
         ])
     })
 })
@@ -131,10 +131,10 @@ describe('makeRelativeToCWD with Windows path semantics', () => {
     })
 
     it.each([
-        ['../specs/*.js', 'C:\\repo\\[[]app[]]\\specs\\*.js'],
-        ['..\\specs/../[ab]/*.js', 'C:\\repo\\[[]app[]]\\[ab]\\*.js'],
-        ['C:../specs/*.js', 'C:\\repo\\[[]app[]]\\specs\\*.js'],
-        ['C:login.spec.js', 'C:\\repo\\[[]app[]]\\config\\login.spec.js']
+        ['../specs/*.js', 'C:/repo/\\[app\\]/specs/*.js'],
+        ['..\\specs/../[ab]/*.js', 'C:/repo/\\[app\\]/[ab]/*.js'],
+        ['C:../specs/*.js', 'C:/repo/\\[app\\]/specs/*.js'],
+        ['C:login.spec.js', 'C:/repo/\\[app\\]/config/login.spec.js']
     ])('resolves %s while preserving inherited literals and authored patterns', async (file, expected) => {
         vi.spyOn(process, 'cwd').mockReturnValue('C:\\repo\\[app]\\config')
         vi.resetModules()
@@ -148,6 +148,6 @@ describe('makeRelativeToCWD with Windows path semantics', () => {
         vi.resetModules()
         vi.doMock('node:path', () => ({ default: path.win32 }))
         const { makeRelativeToCWD: resolve } = await import('../../src/node/utils.js')
-        expect(resolve(['../specs/*.js'])).toEqual(['\\\\server\\[[]share[]]\\specs\\*.js'])
+        expect(resolve(['../specs/*.js'])).toEqual(['//server/\\[share\\]/specs/*.js'])
     })
 })

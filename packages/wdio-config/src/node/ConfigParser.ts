@@ -440,13 +440,18 @@ export default class ConfigParser {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
+            // Constructor-resolved CLI paths already use forward slashes and
+            // may contain escape backslashes for literal CWD characters.
+            const normalizeSeparators = !this._literalCliSpecPaths.has(filteredFile) || !path.isAbsolute(filteredFile)
             filteredFile = removeLineNumbers(filteredFile)
             // Send wildcard or single file glob to getFilePaths
             // Return value will always be string[] or string [][]
             const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
                 group ? [[filteredFile]] : [filteredFile],
                 this._config.rootDir,
-                this._pathService
+                this._pathService,
+                undefined,
+                normalizeSeparators
             )
             if (this._pathService.isFile(filteredFile)) {
                 /**
@@ -522,7 +527,7 @@ export default class ConfigParser {
      * @param  {number} hierarchyDepth depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
-    static getFilePaths(patterns: Spec[], rootDir: string, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
+    static getFilePaths(patterns: Spec[], rootDir: string, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number, normalizeSeparators = true) {
         let files: Spec[] = []
         let groupedFiles: string[] = []
 
@@ -547,7 +552,7 @@ export default class ConfigParser {
             // But only call one level deep, can't have multiple levels of hierarchy
             if (Array.isArray(pattern) && !hierarchyDepth) {
                 // Will always only get a string array back
-                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, rootDir, findAndGlob, 1)
+                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, rootDir, findAndGlob, 1, normalizeSeparators)
                 files.push(groupedFiles)
             } else if (Array.isArray(pattern) && hierarchyDepth) {
                 log.error('Unexpected depth of hierarchical arrays')
@@ -555,7 +560,7 @@ export default class ConfigParser {
                 // files are already absolute, no need to glob them
                 files.push(pattern)
             } else {
-                pattern = pattern.toString().replace(/\\/g, '/')
+                pattern = normalizeSeparators ? pattern.toString().replace(/\\/g, '/') : pattern.toString()
                 let filenames = findAndGlob.glob(<string>pattern, rootDir)
                 filenames = filenames.filter(
                     (filename) => SUPPORTED_FILE_EXTENSIONS.find(

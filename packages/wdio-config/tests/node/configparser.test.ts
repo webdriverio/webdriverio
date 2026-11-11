@@ -670,15 +670,16 @@ describe('ConfigParser', () => {
             await expect(getSpecsFor(['./prefix-test-0*.ts'])).rejects.toThrow('not found')
         })
 
-        it('keeps literal CWD brackets in Cucumber feature line selectors', async () => {
-            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cucumber-[app]-'))
+        it('keeps literal CWD brackets and braces in Cucumber feature line selectors', async () => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cucumber-[app]-{one,two}-'))
             const feature = path.join(workspace, 'login.feature')
             fs.writeFileSync(feature, 'Feature: login\n')
             vi.spyOn(process, 'cwd').mockReturnValue(workspace)
             try {
                 const args = { spec: ['./login.feature:12'] }
                 const parser = new ConfigParser(FIXTURES_CONF, args)
-                await parser.initialize({ specs: [url.pathToFileURL(feature).href] })
+                await parser.initialize(args)
+                expect(parser.getSpecs()).toEqual([url.pathToFileURL(feature).href])
                 expect(parser.getConfig().cucumberFeaturesWithLineNumbers).toEqual([feature + ':12'])
             } finally {
                 vi.mocked(process.cwd).mockRestore()

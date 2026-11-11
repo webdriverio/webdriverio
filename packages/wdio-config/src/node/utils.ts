@@ -5,13 +5,14 @@ import { escape as escapeGlob } from 'glob'
 /**
  * A CWD directory name is a literal filesystem segment, never a glob pattern.
  * Quote only components actually inherited from CWD, leaving every
- * caller-authored pattern (including bracket classes and '*') untouched. Escapes
- * survive ConfigParser's Windows separator normalization to forward slashes.
+ * caller-authored pattern (including bracket classes and '*') untouched. Emit
+ * forward-slash glob paths so literal escapes need no separator normalization.
  */
 function resolveSpecGlobFromCWD (file: string): string {
     let cwd = process.cwd()
     if (path.isAbsolute(file)) {
-        return path.resolve(cwd, file)
+        const absolute = path.resolve(cwd, file)
+        return path.sep === '\\' ? absolute.replace(/\\/g, '/') : absolute
     }
 
     // A drive-relative Windows path inherits that drive's working directory.
@@ -38,11 +39,12 @@ function resolveSpecGlobFromCWD (file: string): string {
             parts.push({ value, inherited: false })
         }
     }
-    const escapeLiteral = (value: string) => escapeGlob(value, { windowsPathsNoEscape: true })
-    return escapeLiteral(root) + parts.map(part => part.inherited
+    const escapeLiteral = (value: string) => escapeGlob(value, { magicalBraces: true })
+    const globRoot = path.sep === '\\' ? root.replace(/\\/g, '/') : root
+    return escapeLiteral(globRoot) + parts.map(part => part.inherited
         ? escapeLiteral(part.value)
         : part.value
-    ).join(path.sep)
+    ).join('/')
 }
 
 /**
@@ -60,8 +62,9 @@ export function makeRelativeToCWD (files: (string | string[])[] = [], escapeCwdG
             continue
         }
 
-        returnFiles.push(file.startsWith('file:///')
-            ? url.fileURLToPath(file)
+        const literalFile = file.startsWith('file:///') ? url.fileURLToPath(file) : undefined
+        returnFiles.push(literalFile
+            ? (escapeCwdGlob ? escapeGlob(path.sep === '\\' ? literalFile.replace(/\\/g, '/') : literalFile, { magicalBraces: true }) : literalFile)
             : file.includes('/') || file.includes(path.sep) || (path.sep === '\\' && /^[A-Za-z]:/.test(file))
                 ? (escapeCwdGlob ? resolveSpecGlobFromCWD(file) : path.resolve(process.cwd(), file))
                 : file
