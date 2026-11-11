@@ -42,6 +42,18 @@ npm init wdio@latest ./path/to/new/project
 </TabItem>
 <TabItem value="yarn">
 
+:::note
+
+With Yarn 2 or later, Plug'n'Play is not supported. Before you run the wizard, add `nodeLinker: node-modules` to the `.yarnrc.yml` file of the project:
+
+```sh
+echo 'nodeLinker: node-modules' >> .yarnrc.yml
+```
+
+Yarn 1 is not supported.
+
+:::
+
 ```sh
 yarn create wdio .
 ```

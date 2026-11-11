@@ -21,6 +21,15 @@ macOS Appium setups and checks the installed Appium and driver majors
 (`pnpm run test:e2e:create-wdio -t android` for one). The other packages come from
 npm. CI runs it on Ubuntu, Windows and macOS (`.github/workflows/test-create-wdio.yml`).
 
+`CREATE_WDIO_PM=pnpm|yarn|bun` runs the same e2e with the latest release of that
+package manager (web and android; Yarn with `nodeLinker: node-modules`). CI runs
+each one on the 3 OSes. When you change the package manager code (`src/pnpm.ts`,
+`src/install.ts`, `detectPackageManager`, the package manager maps in
+`src/constants.ts`) or the installed packages, run
+`CREATE_WDIO_PM=<pm> pnpm run test:e2e:create-wdio -t web` for npm, pnpm, yarn
+and bun. npm hoists packages that pnpm does not link to the project: a package
+that a generated file imports must be in `packagesToInstall`.
+
 - `answers.generateTestFiles` is enforced in `createWDIOConfig` before it calls
   `generateTestFiles`. The generator itself always renders the selected
   framework templates. An empty directory listing does not prove generation
