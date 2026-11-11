@@ -272,10 +272,11 @@ function selectorEdits (code: string) {
             declaresDollarDollar: true
         }
     }
-    // a top-level `let $$`, `const $$` or `class $$` of a step would clash with the `var $$` copy
+    // a top-level `let $$`, `const $$` or `class $$` of a step would clash with the `var $$` copy,
+    // and the copy would overwrite a hoisted `function $$`
     const declaresDollarDollar = (ast.body || []).some((node) => (
         (node.type === 'VariableDeclaration' && node.kind !== 'var' && (node.declarations as ProgramNode[]).some((declarator) => writes(declarator.id as ProgramNode, '$$'))) ||
-        (node.type === 'ClassDeclaration' && (node.id as ProgramNode | undefined)?.name === '$$')
+        ((node.type === 'ClassDeclaration' || node.type === 'FunctionDeclaration') && (node.id as ProgramNode | undefined)?.name === '$$')
     ))
     // a key or a member name is not a reference to the global
     const names = new Set<unknown>()

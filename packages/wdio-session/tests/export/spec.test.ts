@@ -70,6 +70,7 @@ describe('generateSpec', () => {
         ["const saved = $$; $$ = (...args) => saved(...args); results.push((await $$('a')).length)", 2],
         ["$$ = null; $$ ||= () => ['fallback']; results.push($$()[0]); return", 'fallback'],
         ["let $$ = () => ['first']; $$ = () => ['local']; results.push($$()[0])", 'local'],
+        ["function $$ () { return ['custom'] }; results.push($$()[0]); $$ = () => []", 'custom'],
         ["for ($$ of [() => ['loop']]) {} results.push($$()[0])", 'loop'],
         ["const __wdioDollarDollar = 'alias'; $$ = () => [__wdioDollarDollar]; results.push($$()[0])", 'alias']
     ])('replays selector reference: %s', async (code, expected) => {
