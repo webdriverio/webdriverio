@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import WDIOCLInterface from '../src/interface.js'
 import { HookError } from '../src/utils.js'
@@ -306,6 +307,26 @@ describe('cli interface', () => {
 
         it('joins spec filenames', () => {
             expect(wdioClInterface.getFilenames(['foo', 'bar'])).toEqual('- foo, bar')
+        })
+
+        it('keeps spec file URLs intact', () => {
+            const spec = url.pathToFileURL(path.join(process.cwd(), 'test', 'specs', 'example.e2e.ts')).href
+            expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
+        })
+
+        it('keeps plain spec paths intact', () => {
+            const spec = path.join(process.cwd(), 'test', 'specs', 'example.e2e.ts')
+            expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
+        })
+
+        it('does not throw for a cwd that is an invalid regex', () => {
+            const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/project (1')
+            try {
+                const spec = url.pathToFileURL('/tmp/project (1/foo.ts').href
+                expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
+            } finally {
+                cwdSpy.mockRestore()
+            }
         })
     })
 

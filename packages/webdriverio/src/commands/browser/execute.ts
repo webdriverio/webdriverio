@@ -1,10 +1,11 @@
 import { getBrowserObject } from '@wdio/utils'
-import type { remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
 
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
+import { scriptTimeoutOf } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -28,6 +29,12 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  * object, class instance, `Map`, or `Set` is preserved the same way. A `FileList` that contains
  * files is returned as an array of `File` objects. A cyclic reference inside a value that also
  * contains a `Blob` or `File` is returned as `null`.
+ *
+ * A script that runs while a navigation that the page started is in progress, for example directly after
+ * `location.href = '/next'` or a form submit, runs on the page that the browser shows at that time, as on
+ * WebDriver Classic. Chrome runs it on the new page as soon as that page exists, and the page can still be
+ * loading. Firefox runs it on the old page. To read the new page, first wait for something that only the new page
+ * has, for example with `await $('#next-page-title').waitForExist()`.
  *
  * <example>
     :execute.js
@@ -84,10 +91,19 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
-            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            /**
+             * like in Classic, an element becomes its reference, and an element that was
+             * not found throws a clear error: the serializer would read it as a plain
+             * object and fail on its first command ("Unsupported type: function")
+             */
+            arguments: (verifyArgsAndStripIfElement(args) as unknown[]).map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }
+        }
+        const scriptTimeout = await scriptTimeoutOf(browser)
+        if (scriptTimeout !== null) {
+            Object.assign(params, { [BIDI_SCRIPT_TIMEOUT]: scriptTimeout })
         }
         const result = await browser.scriptCallFunction(params)
         return parseScriptResult(params, result)

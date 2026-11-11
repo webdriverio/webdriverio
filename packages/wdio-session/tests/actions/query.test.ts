@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { get, is } from '../../src/actions/query.js'
+import { cliCmd } from '../../src/hints.js'
 import type { Session } from '../../src/session.js'
 
 function session () {
@@ -17,6 +18,7 @@ function session () {
         isSelected: async () => true
     }
     return {
+        cmd: cliCmd,
         currentUrl: async () => 'https://example.com/shop',
         browser: {
             getTitle: async () => 'Shop',

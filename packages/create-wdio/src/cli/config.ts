@@ -64,9 +64,9 @@ export async function handler(argv: ConfigCommandArguments, runConfigCmd = runCo
         console.error(`Error: ${err.message}\nRun "wdio config --help" for all flags.`)
         return process.exit(2)
     }
-    await runConfigCmd(parsedAnswers, argv.npmTag, argv.yes)
+    const created = await runConfigCmd(parsedAnswers, argv.npmTag, argv.yes)
     return {
-        success: true,
+        success: created !== false,
         parsedAnswers,
         installedPackages: parsedAnswers.packagesToInstall.map((pkg) => pkg.split('--')[0])
     }

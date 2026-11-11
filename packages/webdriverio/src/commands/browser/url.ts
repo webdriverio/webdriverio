@@ -1,5 +1,5 @@
 import { validateUrl } from '../../utils/index.js'
-import { getContextManager } from '../../session/context.js'
+import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 import { navigateInContext, type UrlCommandOptions } from './navigateInContext.js'
@@ -173,9 +173,10 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    if (this.isBidi && path.startsWith('http')) {
+    const isHttp = path.startsWith('http')
+    if (this.isBidi && (isHttp || getParallelContextStore().getStore())) {
         const context = await getContextManager(this).getCurrentContext()
-        const request = await navigateInContext(this, context, path, options)
+        const request = await navigateInContext(this, context, isHttp ? path : validateUrl(path), options)
         return getBrowsingContext(this, contextIdValue(context), {
             isFrame: false,
             url: path,

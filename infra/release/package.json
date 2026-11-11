@@ -11,7 +11,7 @@
   "dependencies": {
     "@wdio/repo-utils": "workspace:*",
     "@octokit/rest": "^22.0.1",
-    "chalk": "^5.6.2",
+    "chalk": "^6.0.1",
     "cli-highlight": "^2.1.11",
     "inquirer": "^14.2.2",
     "lerna-changelog": "^2.2.0",

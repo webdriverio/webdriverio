@@ -1,4 +1,5 @@
 import type { WaitForOptions } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 interface WaitForDisplayedParams extends WaitForOptions {
     /**
@@ -60,7 +61,7 @@ export function waitForDisplayed (
         contentVisibilityAuto = true,
         opacityProperty = true,
         visibilityProperty = true,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}displayed${withinViewport ? ' within viewport' : ''} after ${timeout}ms`,
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}displayed${withinViewport ? ' within viewport' : ''} after ${timeout}ms`,
     }: WaitForDisplayedParams = {}
 ) {
 

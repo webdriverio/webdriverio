@@ -1,6 +1,7 @@
+import { refId } from '@wdio/snapshot'
+
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { refId } from './refs.js'
 import type { Session } from '../session.js'
 
 export interface ResolvedTarget {
@@ -62,14 +63,25 @@ export async function resolveTarget (session: Session, target: unknown): Promise
     const id = refId(target)
     if (id) {
         const element = await session.refs.resolve(scopeOf(session), id)
-        const selector = await session.refs.stableSelector(scopeOf(session), id, element)
         const entry = session.refs.get(id)!
+        const label = `${id} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
+        // a ref can have no selector at all, e.g. a nameless button repeated in shadow roots; the element
+        // resolved, so act on it: a new snapshot would give the same ref without selectors again
+        const selector = await session.refs.stableSelector(scopeOf(session), id, element).catch((err: unknown) => {
+            if (entry.candidates.length > 0) {
+                throw err
+            }
+        })
+        if (!selector) {
+            const ref = `ref(${quote(id)})`
+            return { element, selector: ref, code: `${ref} /* no selector matches this element, this step only replays in this session */`, label }
+        }
         return {
             element,
             selector,
             // a replay with a selector that misses the element would fail or act on another one
             code: inScope(session, `$(${quote(selector)})`) + (entry.unverified ? ' /* no selector matches only this element (closed shadow root?), this step may not replay */' : ''),
-            label: `${id} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
+            label
         }
     }
     let element: WebdriverIO.Element
@@ -78,14 +90,15 @@ export async function resolveTarget (session: Session, target: unknown): Promise
     } catch (err) {
         if ((err as Error).name === 'StrictSelectorError') {
             throw new SessionError('ELEMENT_NOT_FOUND', (err as Error).message.split('\n')[0], {
-                hint: 'Use a ref from `wdio session snapshot` or a narrower selector.'
+                hint: `Use a ref from \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\` or a narrower selector.`
             })
         }
         throw err
     }
     if (!element.elementId) {
+        const findText = target.replace(/^aria\//, '')
         throw new SessionError('ELEMENT_NOT_FOUND', `No element matches ${JSON.stringify(target)}.`, {
-            hint: `Run \`wdio session find ${JSON.stringify(target.replace(/^aria\//, ''))}\` or take a new snapshot.`
+            hint: `Run \`${session.cmd('find', { text: findText }, `wdio session find ${JSON.stringify(findText)}`)}\` or take a new snapshot.`
         })
     }
     return { element, selector: target, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }

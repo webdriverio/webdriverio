@@ -3,8 +3,14 @@ import type { Mock } from 'vitest'
 import { expect, describe, it, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
+import { findChainAgain } from '../../../src/utils/findChainAgain.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/findChainAgain.js', async (importOriginal) => {
+    const actual = (await importOriginal()) as { findChainAgain: typeof findChainAgain }
+    return { findChainAgain: vi.fn(actual.findChainAgain) }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 /**
@@ -346,6 +352,118 @@ describe('scrollIntoView test', () => {
             expect(scrollAction.y).toBe(0)
         })
 
+        /**
+         * BiDi gives a script the node that the page removed, with no error
+         */
+        describe('an element that the page rendered again', () => {
+            const removed = { isConnected: false, ownerDocument: {} } as unknown as HTMLElement
+            const stale = () => Object.assign(
+                new Error('stale element reference: element is not attached to the page document'),
+                { name: 'stale element reference' }
+            )
+
+            it('each script throws a stale element error for an element that is not on the page', async () => {
+                const execute = vi.spyOn(browser, 'execute')
+                await elem.scrollIntoView()
+                const scripts = execute.mock.calls.map(([script]) => script as (...args: unknown[]) => unknown)
+
+                expect(scripts.length).toBeGreaterThan(0)
+                for (const script of scripts) {
+                    await expect(Promise.resolve().then(() => script(removed, {}))).rejects.toThrow('stale element reference')
+                }
+            })
+
+            it('sends up a stale element error without the Web API fallback', async () => {
+                const execute = vi.spyOn(browser, 'execute').mockRejectedValue(stale())
+
+                await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                const webApiCalls = execute.mock.calls.filter(([script]) => /elem\.scrollIntoView\(/.test(String(script)))
+                expect(webApiCalls).toEqual([])
+            })
+
+            /**
+             * after a scroll, the scroll can make the page render the element again (a virtual list)
+             */
+            describe('after a scroll', () => {
+                const painted = {
+                    elemRect: { x: 15, y: 400, height: 30, width: 50 },
+                    viewport: { width: 600, height: 800 },
+                    scroll: { x: 0, y: 0 },
+                    isPainted: true
+                }
+                /**
+                 * the first measure gives `first`, then a script that gets the old element throws a stale
+                 * element error, and a measure of another element gives `measured`
+                 */
+                const renderedAgainOnScroll = (measured: object, first: object = painted) => vi.spyOn(browser, 'execute')
+                    .mockResolvedValueOnce(first)
+                    .mockImplementation((async (_script: unknown, element: unknown) => {
+                        if (element === elem) {
+                            throw stale()
+                        }
+                        return measured
+                    }) as never)
+
+                afterEach(() => {
+                    vi.mocked(findChainAgain).mockReset()
+                    vi.mocked(browser.execute).mockRestore()
+                })
+
+                it('ends without an error when the element that the page rendered again is painted', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    const execute = renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).resolves.toBeUndefined()
+                    expect(execute).toHaveBeenLastCalledWith(expect.any(Function), found)
+                })
+
+                it('scrolls the element that the page rendered again with the Web API when it is not painted', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    const execute = renderedAgainOnScroll({ ...painted, isPainted: false })
+
+                    await expect(elem.scrollIntoView({ block: 'center' })).resolves.toBeUndefined()
+                    expect(execute).toHaveBeenLastCalledWith(expect.any(Function), found, { block: 'center' })
+                })
+
+                it('sends up the stale element error when the Web API fails on the element that the page rendered again', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    // the Web API script also gets the options
+                    renderedAgainOnScroll({ ...painted, isPainted: false })
+                        .mockImplementation((async (_script: unknown, element: unknown, options?: unknown) => {
+                            if (element === elem || options) {
+                                throw stale()
+                            }
+                            return { ...painted, isPainted: false }
+                        }) as never)
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error when the element is gone', async () => {
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(undefined)
+                    renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error for an element that cannot be found again (an element reference)', async () => {
+                    vi.mocked(findChainAgain).mockImplementationOnce(async (element) => element)
+                    renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error after the probe, so the retry aligns the element', async () => {
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(await browser.$('#found'))
+                    renderedAgainOnScroll(painted, { ...painted, isPainted: false })
+
+                    await expect(elem.scrollIntoView({ block: 'center' })).rejects.toThrow('stale element reference')
+                })
+            })
+        })
     })
 
     describe('mobile web', () => {
@@ -367,6 +485,16 @@ describe('scrollIntoView test', () => {
             vi.mocked(fetch).mockClear()
         })
 
+        it('the Web API script throws a stale element error for an element that is not on the page', async () => {
+            const removed = { isConnected: false, ownerDocument: {} } as unknown as HTMLElement
+            const execute = vi.spyOn(browser, 'execute')
+            await elem.scrollIntoView()
+            const script = execute.mock.calls.map(([fn]) => fn).find((fn) => /elem\.scrollIntoView\(/.test(String(fn))) as unknown as (...args: unknown[]) => unknown
+            execute.mockRestore()
+
+            expect(() => script(removed, true)).toThrow('stale element reference')
+        })
+
         it('scrolls by default the element to the top', async () => {
             await elem.scrollIntoView()
             const { calls } = vi.mocked(fetch).mock
@@ -374,7 +502,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, (\w+)\) => elem\.scrollIntoView\(\1\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'start', inline: 'nearest' })
         })
@@ -386,7 +514,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, (\w+)\) => elem\.scrollIntoView\(\1\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(true)
         })
@@ -398,7 +526,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, (\w+)\) => elem\.scrollIntoView\(\1\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'end', inline: 'center' })
         })
@@ -503,6 +631,18 @@ describe('scrollIntoView test', () => {
                 expect(swipeSpy).toBeCalledTimes(5)
                 expect(err.message).toMatchSnapshot()
             }
+        })
+
+        it('throws a strict-mode violation at once instead of scrolling', async () => {
+            const strictError = new StrictSelectorError('~Continue', 2)
+            const isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockRejectedValue(strictError)
+            const swipeSpy = vi.spyOn(browser, 'swipe').mockResolvedValue(undefined)
+
+            await expect(elem.scrollIntoView()).rejects.toBe(strictError)
+            expect(isDisplayedSpy).toBeCalledTimes(1)
+            expect(swipeSpy).not.toBeCalled()
+            swipeSpy.mockRestore()
+            isDisplayedSpy.mockRestore()
         })
     })
 })

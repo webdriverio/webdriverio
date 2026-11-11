@@ -1,6 +1,7 @@
+import { refId } from '@wdio/snapshot'
+
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { refId } from '../snapshot/refs.js'
 import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
@@ -27,7 +28,7 @@ export const get: ActionFn = async (session, args) => {
     if (sub === 'count') {
         const selector = String(args.target ?? '')
         if (!selector) {
-            throw usage('Pass a selector.', 'Example: wdio session get count "aria/button"')
+            throw usage('Pass a selector.', `Example: ${session.cmd('get', { sub: 'count', target: 'aria/button' }, 'wdio session get count "aria/button"')}`)
         }
         if (refId(selector)) {
             try {
@@ -65,7 +66,7 @@ export const get: ActionFn = async (session, args) => {
     if (sub === 'attr') {
         const name = String(args.name ?? '')
         if (!name) {
-            throw usage('Pass an attribute name.', 'Example: wdio session get attr e3 href')
+            throw usage('Pass an attribute name.', `Example: ${session.cmd('get', { sub: 'attr', target: 'e3', name: 'href' }, 'wdio session get attr e3 href')}`)
         }
         const value = await target.element.getAttribute(name)
         return read(value ?? '', `await ${target.code}.getAttribute(${quote(name)})`, { name, value })

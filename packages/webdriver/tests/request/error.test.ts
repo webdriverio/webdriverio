@@ -97,6 +97,28 @@ describe('WebDriverResponseError', () => {
         expect(error.message).toMatchInlineSnapshot('"WebDriverError: The selector "!!" used with strategy "css selector" is invalid! when running "url" with method "POST" and args "{"using":"css selector","value":"!!"}""')
     })
 
+    it('reads the command args and the locator from a JSON string body', () => {
+        const body = JSON.stringify({ using: 'css selector', value: '!!' })
+        const error = new WebDriverResponseError(
+            { body: { value: { message: 'invalid locator' } } } as any,
+            cmdURL,
+            { body, method: 'POST' } as any
+        )
+        expect(error.message).toContain('The selector "!!" used with strategy "css selector" is invalid!')
+        expect(error.message).toContain(' and args ')
+        expect(error.message).toContain('css selector')
+    })
+
+    it('shows the args of a failing command sent as a JSON string', () => {
+        const error = new WebDriverResponseError(
+            { body: { value: { error: 'javascript error', message: 'boom' } } } as any,
+            cmdURL,
+            { body: JSON.stringify({ id: 'a@b.c' }), method: 'POST' } as any
+        )
+        expect(error.message).toContain('and args')
+        expect(error.message).toContain('a@b.c')
+    })
+
     it('captures unknown command errors', () => {
         const error = new WebDriverResponseError(
             {

@@ -174,6 +174,25 @@ describe('help output', () => {
         expect(stderr.text()).toBe('')
     })
 
+    describe('--timeout cap', () => {
+        const run = async (args: string[]) => {
+            const stderr = capture()
+            await runSessionCli(args, { stdout: capture().stream, stderr: stderr.stream, env: { WDIO_SESSION_DIR: '/nonexistent-wdio-session-dir' } })
+            return stderr.text()
+        }
+
+        it('caps an action timeout at 60000 ms and says so once', async () => {
+            const text = await run(['click', 'e1', '--timeout', '120000'])
+            expect(text.match(/is capped at 60000 ms/g)).toHaveLength(1)
+            expect(text).toContain('--timeout 120000')
+        })
+
+        it('leaves a timeout within the cap and wait alone', async () => {
+            expect(await run(['click', 'e1', '--timeout', '60000'])).not.toContain('capped')
+            expect(await run(['wait', 'e1', '--timeout', '120000'])).not.toContain('capped')
+        })
+    })
+
     it('rejects help for an unknown action', async () => {
         const stdout = capture()
         const stderr = capture()

@@ -1,3 +1,5 @@
+import { getBrowserObject } from '@wdio/utils'
+import { bidiIsSelected, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Will return true or false whether or not an `<option>` or `<input>` element of type
@@ -28,5 +30,9 @@
  *
  */
 export function isSelected (this: WebdriverIO.Element) {
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiIsSelected(this)
+    }
     return this.isElementSelected(this.elementId)
 }

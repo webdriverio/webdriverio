@@ -7,6 +7,7 @@ import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getElement } from '../../../src/utils/getElementObject.js'
+import { findElement, findElements, isStaleElementToFindAgain } from '../../../src/utils/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
@@ -19,8 +20,14 @@ vi.mock('../../../src/session/context.js', () => ({
         setCurrentContext: vi.fn(),
         findParentContext: vi.fn().mockReturnValue(undefined),
         findContext: vi.fn()
-    }))
+    })),
+    getParallelContextStore: () => ({ getStore: () => undefined })
 }))
+
+/**
+ * An `execute` script (string or function) that contains `text`
+ */
+const scriptContaining = (text: string) => expect.toSatisfy((script: unknown) => String(script).includes(text))
 
 vi.mock('../../../src/session/networkManager.js', () => ({
     getNetworkManager: vi.fn().mockReturnValue({
@@ -136,6 +143,36 @@ describe('browsing context', () => {
         await expect(page.addCommand('nope', () => {})).rejects.toThrow('only available on the browser')
         await expect(browser.switchWindow('https://example.com')).rejects.toThrow('switchWindow')
         await expect(browser.switchFrame(null)).rejects.toThrow('switchFrame')
+    })
+
+    it('keeps the cookies that the page of a frame sees with wdio:experimentalBiDiCommands', async () => {
+        (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = true
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example/' })
+        vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+            contexts: [{ context: 'frame-1', url: 'https://child.example/', userContext: 'default', children: [] }]
+        } as never)
+        const cookie = (name: string, domain: string) => ({ name, domain, path: '/', value: { type: 'string', value: name } })
+        vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({
+            cookies: [cookie('child', 'child.example'), cookie('top', 'example.com')]
+        } as never)
+        vi.spyOn(browser, 'storageDeleteCookies').mockResolvedValue({} as never)
+        await expect(frame.getCookies()).resolves.toMatchObject([{ name: 'child', value: 'child' }])
+        await frame.deleteCookies()
+        expect(browser.storageDeleteCookies).toHaveBeenCalledTimes(1)
+        expect(browser.storageDeleteCookies).toHaveBeenCalledWith({
+            filter: { name: 'child', domain: 'child.example', path: '/' },
+            partition: { type: 'storageKey', userContext: 'default' }
+        })
+    })
+
+    it('sends a sameSite cookie filter of a held context in lowercase to BiDi', async () => {
+        const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com/' })
+        vi.spyOn(browser, 'storageGetCookies').mockResolvedValue({ cookies: [] } as never)
+        vi.spyOn(browser, 'storageDeleteCookies').mockResolvedValue({} as never)
+        await page.getCookies({ sameSite: 'Strict' as never })
+        expect(browser.storageGetCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { sameSite: 'strict' } })
+        await page.deleteCookies({ name: 'a', sameSite: 'Lax' as never })
+        expect(browser.storageDeleteCookies).toHaveBeenCalledWith({ partition: { type: 'context', context: 'top-context' }, filter: { name: 'a', sameSite: 'lax' } })
     })
 
     it('scopes navigation, cookies, history, and prompts to the held context', async () => {
@@ -677,12 +714,14 @@ describe('browsing context', () => {
         })
 
         it('finds elements below an element of another context with browsingContext.locateNodes', async () => {
-            const { elem } = heldElement('frame-1', true)
+            const { context, elem } = heldElement('frame-1', true)
             const locate = vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
                 nodes: [{ type: 'node', sharedId: 'child-1' }]
             } as never)
+            const staleCheck = vi.spyOn(context, 'execute').mockResolvedValue(null)
 
             await expect(elem.findElementFromElement('elem-1', 'css selector', 'span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
+            expect(staleCheck).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' })
             expect(locate).toHaveBeenCalledWith({
                 context: 'frame-1',
                 locator: { type: 'css', value: 'span' },
@@ -692,6 +731,36 @@ describe('browsing context', () => {
 
             locate.mockResolvedValueOnce({ nodes: [] } as never)
             await expect(elem.findElementFromElement('elem-1', 'css selector', '.missing')).rejects.toThrow('no such element')
+        })
+
+        /**
+         * W3C "get a known element": BiDi still resolves a detached root element
+         */
+        it.each([
+            ['$$', () => findElements.call(heldElement('frame-1', true).elem, 'li')],
+            ['$', () => findElement.call(heldElement('frame-1', true).elem, 'li')],
+            ['$ by role', () => findElement.call(heldElement('frame-1', true).elem, 'role/button')]
+        ])('throws stale element reference for %s below a detached element of a held frame', async (_name, find) => {
+            const doc: { defaultView?: { document: unknown } } = {}
+            doc.defaultView = { document: doc }
+            const detached = { isConnected: false, ownerDocument: doc }
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'top-context', url: 'https://example.com', children: [{ context: 'frame-1', url: 'https://child.example', children: [] }] }]
+            } as never)
+            /**
+             * runs the BiDi script here, with `detached` for the root element
+             */
+            vi.spyOn(browser, 'scriptCallFunction').mockImplementation(async (params) => {
+                const args = (params.arguments ?? []).map((arg) => 'sharedId' in arg ? detached : (arg as { value?: unknown }).value ?? null)
+                try {
+                    await (0, eval)(`(${params.functionDeclaration})`)(...args)
+                    return { type: 'success', result: { type: 'number', value: 0 } } as never
+                } catch (err) {
+                    return { type: 'exception', exceptionDetails: { text: String(err) } } as never
+                }
+            })
+            const err = await find().catch((e: Error) => e)
+            expect(isStaleElementToFindAgain(err)).toBe(true)
         })
 
         it('evaluates a relative XPath with the element as context node', async () => {
@@ -743,8 +812,7 @@ describe('browsing context', () => {
 
             const link = await context.$('=Done link')
             expect(link.elementId).toBe('link-1')
-            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('querySelectorAll(\'a\')'))
-            expect(execute.mock.calls[0].slice(1)).toEqual([null, false, 'Done link'])
+            expect(execute).toHaveBeenCalledWith(scriptContaining('querySelectorAll(\'a\')'), null, false, 'Done link')
             expect(locate).not.toHaveBeenCalled()
         })
 
@@ -752,7 +820,7 @@ describe('browsing context', () => {
             const { context, elem } = heldElement('tab-2')
             const execute = vi.spyOn(context, 'execute').mockResolvedValue('Hello')
             await expect(elem.getText()).resolves.toBe('Hello')
-            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('return (function(){return (function(){'))
+            expect(execute).toHaveBeenCalledWith(scriptContaining('return (function(){return (function(){'), { [ELEMENT_KEY]: 'elem-1' })
         })
 
         it('scrolls an element into view before clicking it in another context', async () => {

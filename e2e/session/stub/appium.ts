@@ -7,7 +7,7 @@ import type { AddressInfo } from 'node:net'
 const ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
 
 const ANDROID_XML = fs.readFileSync(
-    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'packages', 'wdio-session', 'tests', '__fixtures__', 'pagesource', 'android.xml'),
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'packages', 'wdio-snapshot', 'tests', '__fixtures__', 'pagesource', 'android.xml'),
     'utf-8'
 )
 

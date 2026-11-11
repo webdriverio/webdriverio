@@ -1,15 +1,20 @@
+import logger from '@wdio/logger'
 import { setWdioKind } from '@wdio/utils'
 
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../session/networkManager.js'
-import { getContextManager } from '../../session/context.js'
+import { getNetworkManager, isTrackedNavigationUrl } from '../../session/networkManager.js'
+import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
+import WebDriverInterception, { parseLiteralUrlPattern } from '../../utils/interception/index.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
+
+const log = logger('webdriverio')
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
 const DEFAULT_NETWORK_IDLE_TIMEOUT = 5000
 const DEFAULT_WAIT_STATE = 'complete'
+const CONTEXT_GONE_MARKERS = ['context disposal', 'no such frame']
 
 export interface UrlCommandOptions {
     /**
@@ -97,10 +102,34 @@ export async function navigateInContext (
 
     let navigationError: unknown
     let request: WebdriverIO.Request | undefined = undefined
+    let mock: WebDriverInterception | undefined
+    /**
+     * restores the headers mock once: right after the navigation, or in the cleanup when
+     * the navigation failed before. A failed restore only warns, the navigation is done or
+     * has its own error, and the session may be gone.
+     */
+    const restoreHeadersMock = async () => {
+        const headersMock = mock
+        mock = undefined
+        try {
+            await headersMock?.restore()
+        } catch (err) {
+            log.warn(`Failed to restore the headers mock of the navigation to '${path}': ${err instanceof Error ? err.message : String(err)}`)
+        }
+    }
     try {
-        let mock: WebdriverIO.Mock | undefined
+        /**
+         * The headers go through a mock of this navigation only: it matches the URL literally,
+         * is not one of the mocks of the user (`browser.mock()` would reuse and later restore
+         * the user's mock of the same URL) and is not registered with them. It only intercepts
+         * the tab that navigates, so a request to the same URL from another tab does not take
+         * the headers.
+         */
         if (options.headers) {
-            mock = await browser.mock(path)
+            mock = await WebDriverInterception.initiate(parseLiteralUrlPattern(path), {}, browser, {
+                contexts: [contextIdValue(context)],
+                sessionKey: contextIdValue(context)
+            })
             mock.requestOnce({ headers: options.headers })
         }
 
@@ -130,23 +159,31 @@ export async function navigateInContext (
              * safe when this navigation is already that window.
              * @see https://github.com/w3c/webdriver-bidi/issues/878
              */
+            const isNavigationRace = err.message.includes('navigation canceled by concurrent navigation') ||
+                err.message.includes('failed with error: unknown error') ||
+                err.message.includes('no such frame')
+            if (!isNavigationRace) {
+                throw err
+            }
+            /**
+             * Parallel tests share one session, so the focused window is not
+             * this test's context. Retry over BiDi instead of `navigateTo`.
+             */
+            if (getParallelContextStore().getStore()) {
+                if (CONTEXT_GONE_MARKERS.some((marker) => err.message.includes(marker))) {
+                    throw err
+                }
+                return browser.browsingContextNavigate({ context, url: path, wait })
+            }
             const current = contextIdValue(await getContextManager(browser).getCurrentContext())
-            if (
-                contextIdValue(context) === current && (
-                    err.message.includes('navigation canceled by concurrent navigation') ||
-                    err.message.includes('failed with error: unknown error') ||
-                    err.message.includes('no such frame')
-                )
-            ) {
+            if (contextIdValue(context) === current) {
                 return browser.navigateTo(validateUrl(path))
             }
 
             throw err
         })
 
-        if (mock) {
-            await mock.restore()
-        }
+        await restoreHeadersMock()
 
         /**
          * Classic fallback (`navigateTo`) and some BiDi navigations (same-document)
@@ -159,7 +196,11 @@ export async function navigateInContext (
 
         const network = getNetworkManager(browser)
 
-        if (options.wait === 'networkIdle') {
+        /**
+         * The network manager does not track `about:` / `blob:` navigations, so
+         * polling pending requests for them would throw until timeout.
+         */
+        if (options.wait === 'networkIdle' && isTrackedNavigationUrl(path)) {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await browser.waitUntil(async () => {
                 return network.getPendingRequests(navigationId).length === 0
@@ -172,16 +213,22 @@ export async function navigateInContext (
             })
         }
 
-        request = await browser.waitUntil(
-            () => network.getRequestResponseData(navigationId),
-            {
-                interval: 1,
-                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
-            }
-        )
+        /**
+         * `about:`, `data:` and `file:` loads can emit no document request.
+         */
+        if (path.startsWith('http')) {
+            request = await browser.waitUntil(
+                () => network.getRequestResponseData(navigationId),
+                {
+                    interval: 1,
+                    timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
+                }
+            )
+        }
     } catch (err) {
         navigationError = err
     } finally {
+        await restoreHeadersMock()
         if (resetPreloadScript) {
             try {
                 await resetPreloadScript.remove()

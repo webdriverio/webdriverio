@@ -9,7 +9,7 @@
   "dependencies": {
     "@wdio/repo-utils": "workspace:*",
     "@octokit/rest": "^22.0.1",
-    "camelcase": "^9.0.0",
+    "camelcase": "^10.0.0",
     "cddl": "^0.23.0",
     "cddl2ts": "^0.13.0",
     "recast": "^0.24.0",

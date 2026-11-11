@@ -21,21 +21,24 @@ export async function installPackages (cwd: string, packages: string[], dev: boo
     const devParam = dev ? devFlag[pm] : ''
 
     console.log('\n')
-    const p = execa(pm, [installCommand[pm], ...packages, devParam], {
+    // show the output while it runs, and keep it to repeat the error after it
+    const { stdout, stderr, exitCode, shortMessage } = await execa(pm, [installCommand[pm], ...packages, devParam], {
         cwd,
-        stdout: process.stdout,
-        stderr: process.stderr
+        reject: false,
+        stdout: ['inherit', 'pipe'],
+        stderr: ['inherit', 'pipe']
     })
-    const { stdout, stderr, exitCode } = await p
 
     if (exitCode !== 0) {
         const cmd = getInstallCommand(pm, packages, dev)
-        const customError = (
-            '⚠️ An unknown error happened! Please retry ' +
-            `installing dependencies via "${cmd}"\n\n` +
-            `Error: ${stderr || stdout || 'unknown'}`
+        const output = String(stderr || stdout || '').split(/\r?\n/)
+        // npm "npm error" / "npm ERR!", pnpm "ERR_PNPM_…", yarn and bun "error"
+        const errorLines = output.filter((line) => /error|\bERR/i.test(line))
+        console.error(
+            `\n⚠️ Installing the packages failed${exitCode === undefined ? '' : ` (exit code ${exitCode})`}:\n\n` +
+            `${(errorLines.length > 0 ? errorLines : output.slice(-20)).join('\n').trim() || shortMessage}\n\n` +
+            `Fix the error above, then run the wizard again. To check the install alone, run:\n${cmd}`
         )
-        console.error(customError)
         return false
     }
 

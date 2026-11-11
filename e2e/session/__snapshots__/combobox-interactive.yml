@@ -1,0 +1,6 @@
+- document "Combobox Fixture" url=http://localhost:PORT/combobox.html
+  - main
+    - heading "Search" [level=1]
+    - search
+      - button "Go" [ref=e65]
+      - searchbox "Search the shop" [ref=e66]

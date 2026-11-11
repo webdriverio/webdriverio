@@ -91,7 +91,7 @@ export interface WebDriver extends Connection {
      */
     connectionRetryTimeout?: number
     /**
-     * Count of request retries to the Selenium server.
+     * Count of request retries to the WebDriver server.
      *
      * @default 3
      */
@@ -102,6 +102,15 @@ export interface WebDriver extends Connection {
      * @default 180000
      */
     bidiResponseTimeout?: number
+    /**
+     * Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it,
+     * the session continues with WebDriver Classic, where Bidi-only commands fail.
+     * Node.js only: in a browser (for example the browser runner) the connection waits
+     * until it opens or fails.
+     *
+     * @default 10000
+     */
+    bidiConnectTimeout?: number
     /**
      * Specify custom headers to pass into every request.
      */

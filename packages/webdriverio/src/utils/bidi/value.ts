@@ -241,7 +241,11 @@ export class LocalValue {
             }
             if (argument instanceof Array) {
                 const arr: (ReferenceValue | LocalValue)[] = []
-                argument.forEach((value) => {
+                /**
+                 * the `forEach` of an element list (`$$()`) is async: it would push the items
+                 * after the array is sent, and the script would get an empty array
+                 */
+                Array.prototype.forEach.call(argument, (value: unknown) => {
                     arr.push(LocalValue.getArgument(value))
                 })
                 return LocalValue.createArrayValue(arr)

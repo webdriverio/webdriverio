@@ -77,6 +77,7 @@ export default class ProxyDriver {
         delete userPrototype.debug
         delete userPrototype.saveScreenshot
         delete userPrototype.savePDF
+        delete userPrototype.closeWindow
 
         /**
          * initiate WebDriver Bidi

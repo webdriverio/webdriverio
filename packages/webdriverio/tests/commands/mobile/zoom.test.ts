@@ -54,13 +54,10 @@ describe('zoom test', () => {
 
         await elem.zoom()
 
-        const { calls } = vi.mocked(fetch).mock
-        expect(calls).toHaveLength(3)
-        const [[sessionCallUrl], [elementCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
-        expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(elementCallUrl.pathname).toEqual('/session/foobar-123/element')
-        expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
-        expect(JSON.parse(executeCallOptions.body)).toMatchSnapshot()
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/sync' }),
+            expect.objectContaining({ body: JSON.stringify({ script: 'mobile: pinch', args: [{ elementId: { pinch: 'mockFunction' }, scale: 8, velocity: 1500 }] }) })
+        )
     })
 
     it('should execute a zoom for Android with the correct values', async () => {

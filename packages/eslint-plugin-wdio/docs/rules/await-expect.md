@@ -11,6 +11,8 @@ describe('my feature', () => {
     it('should do something', async () => {
         await browser.url('/');
         expect(browser).toHaveTitle('Foobar');
+        expect($('#spinner')).not.toBeDisplayed();
+        expect.soft($('h1')).toHaveText('Welcome');
     });
 });
 ```
@@ -22,6 +24,8 @@ describe('my feature', () => {
     it('should do something', async () => {
         await browser.url('/');
         await expect(browser).toHaveTitle('Foobar');
+        await expect($('#spinner')).not.toBeDisplayed();
+        await expect.soft($('h1')).toHaveText('Welcome');
     });
 });
 ```
