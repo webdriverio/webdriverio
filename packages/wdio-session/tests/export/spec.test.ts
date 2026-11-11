@@ -241,11 +241,28 @@ describe('generateSpec', () => {
         expect(spec.contents).toContain("import { $$ } from '@wdio/globals'")
     })
 
-    it('imports $$ when a TypeScript step cannot be parsed as JavaScript', () => {
+    it('imports $$ for a TypeScript step with a type annotation', () => {
         const [spec] = generateSpec([
             step({ kind: 'exec', code: "const buttons: WebdriverIO.ElementArray = await $$ ('button')" })
         ], { title: 'buttons' })
         expect(spec.contents).toContain("import { browser, $, $$, expect } from '@wdio/globals'")
+    })
+
+    // stripTypes cannot remove an angle-bracket cast, so these steps take the text fallback
+    it.each([
+        "const n = <any>1; await $$ ('button')",
+        'const n = <any>1; send(...$$)'
+    ])('imports $$ from the text of a step that cannot be stripped: %s', (code) => {
+        const [spec] = generateSpec([step({ kind: 'exec', code })], { title: 'text' })
+        expect(spec.contents).toContain("import { browser, $, $$, expect } from '@wdio/globals'")
+    })
+
+    it('does not read a postfix update on the line before $$ as an assignment', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "const n = <any>1\nlet i = 0\ni++\n$$('a').length" })
+        ], { title: 'postfix' })
+        expect(spec.contents).toContain("import { browser, $, $$, expect } from '@wdio/globals'")
+        expect(spec.contents).not.toContain('__wdioDollarDollar')
     })
 
     it('names a digit path as a valid page object', () => {

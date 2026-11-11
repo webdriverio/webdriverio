@@ -118,7 +118,8 @@ interface ProgramNode {
 
 function parseProgram (code: string): ProgramNode | undefined {
     try {
-        return acorn.parse(code, PARSE_OPTIONS) as unknown as ProgramNode
+        // the export reads no node location
+        return acorn.parse(code, { ...PARSE_OPTIONS, locations: false }) as unknown as ProgramNode
     } catch {
         return undefined
     }
@@ -234,8 +235,26 @@ function writes (node: ProgramNode | undefined | null, name: string): boolean {
     }
 }
 
-const DOLLAR_DOLLAR_TEXT = /(?<![\w$.])\$\$(?![\w$])/
-const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)\s*\$\$(?![\w$])/
+/**
+ * The target that a node writes: `x = …`, `x++`, `for (x of …)`. `for (const x of …)` declares a new binding.
+ */
+function assignmentTarget (node: ProgramNode) {
+    switch (node.type) {
+    case 'AssignmentExpression':
+        return node.left as ProgramNode
+    case 'UpdateExpression':
+        return node.argument as ProgramNode
+    case 'ForOfStatement':
+    case 'ForInStatement':
+        return (node.left as ProgramNode).type === 'VariableDeclaration' ? undefined : node.left as ProgramNode
+    default:
+        return undefined
+    }
+}
+
+// `$$` that is not a member name (`el.$$`); a spread (`...$$`) is a reference
+const DOLLAR_DOLLAR_TEXT = /(?<![\w$])(?<!(?:^|[^.])\.)\$\$(?![\w$])/
+const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)[ \t]*\$\$(?![\w$])/
 
 function selectorEdits (code: string) {
     const ast = parseProgram(stripTypes(code))
@@ -270,15 +289,7 @@ function selectorEdits (code: string) {
         if (node.type === 'Identifier' && node.name === '$$' && !names.has(node)) {
             needsDollarDollar = true
         }
-        const target = node.type === 'AssignmentExpression'
-            ? node.left
-            : node.type === 'UpdateExpression'
-                ? node.argument
-                // `for (const $$ of …)` declares a new binding
-                : (node.type === 'ForOfStatement' || node.type === 'ForInStatement') && (node.left as ProgramNode).type !== 'VariableDeclaration'
-                    ? node.left
-                    : undefined
-        if (writes(target as ProgramNode | undefined, '$$')) {
+        if (writes(assignmentTarget(node), '$$')) {
             assignsDollarDollar = true
         }
         if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || node.callee.name !== '$') {
@@ -326,6 +337,10 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         hoisted.push(...split.imports)
         split.locals.forEach((name) => imported.add(name))
         code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
+        // without page objects the scan can only add the `$$` import
+        if (!opts.pageObjects && !code.includes('$$')) {
+            return code
+        }
         const found = selectorEdits(code)
         needsDollar = needsDollar || found.needsDollar
         needsDollarDollar = needsDollarDollar || found.needsDollarDollar
