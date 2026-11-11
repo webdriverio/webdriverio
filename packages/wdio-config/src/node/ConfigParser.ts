@@ -440,6 +440,21 @@ export default class ConfigParser {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
+            const literalFile = removeLineNumbers(this._literalCliSpecPaths.get(filteredFile) ?? filteredFile)
+            if (this._pathService.isFile(literalFile)) {
+                /**
+                 * Prefer an existing literal file to a glob with the same spelling.
+                 * Resolve relative files from CWD, not the config directory (#14447).
+                 */
+                filesToFilter.add(
+                    this._pathService.ensureAbsolutePath(
+                        literalFile,
+                        process.cwd()
+                    )
+                )
+                return
+            }
+
             // Constructor-resolved CLI paths already use forward slashes and
             // may contain escape backslashes for literal CWD characters.
             const normalizeSeparators = !this._literalCliSpecPaths.has(filteredFile) || !path.isAbsolute(filteredFile)
@@ -453,18 +468,7 @@ export default class ConfigParser {
                 undefined,
                 normalizeSeparators
             )
-            if (this._pathService.isFile(filteredFile)) {
-                /**
-                 * `isFile` found a relative path from the current working directory,
-                 * so it has to become absolute from there, not from the config file (#14447)
-                 */
-                filesToFilter.add(
-                    this._pathService.ensureAbsolutePath(
-                        filteredFile,
-                        process.cwd()
-                    )
-                )
-            } else if (globMatchedFiles.length) {
+            if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
                 // fileList can be a string[] or a string[][]

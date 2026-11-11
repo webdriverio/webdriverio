@@ -670,6 +670,25 @@ describe('ConfigParser', () => {
             await expect(getSpecsFor(['./prefix-test-0*.ts'])).rejects.toThrow('not found')
         })
 
+        it.each(['login[foo].js', 'login{foo,bar}.js'])('prefers the literal spec %s in a CWD with glob characters', async (filename) => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-spec-[app]-{one,two}-'))
+            const specsDir = path.join(workspace, 'specs')
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+            try {
+                fs.mkdirSync(specsDir)
+                for (const file of [filename, 'loginf.js', 'logino.js', 'loginfoo.js', 'loginbar.js']) {
+                    fs.writeFileSync(path.join(specsDir, file), '')
+                }
+                const args = { spec: [`./specs/${filename}`] }
+                const parser = new ConfigParser(FIXTURES_CONF, args)
+                await parser.initialize(args)
+                expect(parser.getSpecs()).toEqual([fileUrl(specsDir, filename)])
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+                fs.rmSync(workspace, { recursive: true, force: true })
+            }
+        })
+
         it('keeps literal CWD brackets and braces in Cucumber feature line selectors', async () => {
             const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cucumber-[app]-{one,two}-'))
             const feature = path.join(workspace, 'login.feature')
