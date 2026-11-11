@@ -101,7 +101,7 @@ export interface ChainablePromiseElement extends
  * in order. Prefer a `*Series` variant when the callback interacts with the
  * browser and the order of those interactions matters.
  */
-interface AsyncIterators<T> {
+interface AsyncIterators<T, FilterResult = T[]> {
     /**
      * Executes the callback once for each element, running the callbacks concurrently.
      */
@@ -167,11 +167,11 @@ interface AsyncIterators<T> {
      * Creates a new array with the elements that satisfy the callback, running the
      * callbacks concurrently.
      */
-    filter: (callback: (currentValue: T, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: unknown) => Promise<T[]>;
+    filter: (callback: (currentValue: T, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: unknown) => Promise<FilterResult>;
     /**
      * Same as `filter`, but runs only one callback at a time.
      */
-    filterSeries: (callback: (currentValue: T, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: unknown) => Promise<T[]>;
+    filterSeries: (callback: (currentValue: T, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: unknown) => Promise<FilterResult>;
     /**
      * Reduces the element list to a single value, awaiting the accumulator between
      * elements. Always runs one callback at a time, since each call depends on the
@@ -184,7 +184,7 @@ interface AsyncIterators<T> {
     entries(): AsyncIterableIterator<[number, T]>;
 }
 
-export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element, WebdriverIO.ElementArray> {
     /**
      * Awaiting the list yields the resolved `ElementArray`. Until then, `length`
      * is a promise and each index is a chainable element.
@@ -244,6 +244,11 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
     refetch(): Promise<WebdriverIO.ElementArray>
 
     /**
+     * Create a derived list that preserves these bounds when refetched.
+     */
+    slice(start?: number, end?: number): ChainablePromiseArray
+
+    /**
      * Returns an async iterator of key/value pairs for every index in the array.
      */
     entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>
@@ -290,7 +295,7 @@ export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
-interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
+interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element> | 'slice'>, AsyncIterators<WebdriverIO.Element, WebdriverIO.ElementArray> {
     /**
      * selector used to fetch this list, can be
      * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
@@ -323,6 +328,10 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      */
     refetch(): Promise<WebdriverIO.ElementArray>
     /**
+     * Create a derived list that preserves these bounds when refetched.
+     */
+    slice(start?: number, end?: number): WebdriverIO.ElementArray
+    /**
      * Async iterator so `for await (const el of $$('...'))` yields each element
      * whether or not the list has been awaited yet.
      */
@@ -335,7 +344,7 @@ export type ElementArray = ElementArrayExport
  * information as `ElementArray` — every entry is a `MultiRemoteElement` rather
  * than an `Element`, and `isMultiRemote` tells the two apart at runtime.
  */
-interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
+interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement> | 'slice'>, AsyncIterators<WebdriverIO.MultiRemoteElement, WebdriverIO.MultiRemoteElementArray> {
     /**
      * selector used to fetch this element array. Undefined when the entries do not share one selector.
      */
@@ -368,6 +377,10 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      * Re-execute the multi-remote query and derived filter/slice steps.
      */
     refetch(): Promise<WebdriverIO.MultiRemoteElementArray>
+    /**
+     * Create a derived list that preserves these bounds when refetched.
+     */
+    slice(start?: number, end?: number): WebdriverIO.MultiRemoteElementArray
     /**
      * Async iterator over the multi-remote elements in this list.
      */

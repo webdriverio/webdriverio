@@ -95,6 +95,11 @@ function normalizeSelector (selector: ElementArrayMetadata['selector']): Selecto
 }
 
 function prepareMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
+    // Mark explicit membership before normalization replaces an element list
+    // with its shared selector, including lists built for unresolved parents.
+    if (Array.isArray(metadata.selector)) {
+        metadata.refetch = false
+    }
     metadata.selector = normalizeSelector(metadata.selector)
     metadata.props = metadata.props ?? []
     metadata.foundWith = metadata.foundWith || '$$'
@@ -506,7 +511,7 @@ function create (elements: ElementList | undefined, loader: (() => Promise<Eleme
         wrappers: []
     }
     states.set(array, state)
-    // An explicit $([elements]) list has no originating selector query.
+    // An explicit $$([elements]) list has no originating selector query.
     // A refetch of that list must retain its membership, not rerun the common
     // selector that normalizeSelector exposes for compatibility.
     if (prepared.refetch === false && !prepared.rerun) {

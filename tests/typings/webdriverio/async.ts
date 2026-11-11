@@ -68,7 +68,13 @@ async function bar() {
 
     // the async iterators keep the multi-remote element type
     expectType<string[][]>(await mrElems.map((el) => el.instances))
-    expectType<WebdriverIO.MultiRemoteElement[]>(await mrElems.filter(async () => true))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElems.filter(async () => true))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await (await mrElems.filter(async () => true)).refetch())
+    expectType<WebdriverIO.MultiRemoteElementArray>(await (await mrElems.filterSeries(async () => true)).refetch())
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElems.slice(0, 2).refetch())
+    expectType<WebdriverIO.MultiRemoteElement>(
+        (await (await mrElems.slice(0, 2).filter(async () => true)).refetch())[0]
+    )
     await mrElems.forEach((el) => el.click())
 
     // interact with specific instance
@@ -448,7 +454,16 @@ async function bar() {
     const iteratorResult = await $$('').map((el) => el.getText())
     expectType<string[]>(iteratorResult)
     expectType<string[]>(await elems.map((el) => el.getText()))
-    expectType<WebdriverIO.Element[]>(await elems.filter(async () => true))
+    expectType<WebdriverIO.ElementArray>(await elems.filter(async () => true))
+    expectType<WebdriverIO.ElementArray>(await (await elems.filter(async () => true)).refetch())
+    expectType<WebdriverIO.ElementArray>(await (await elems.filterSeries(async () => true)).refetch())
+    expectType<WebdriverIO.ElementArray>(await elems.slice(0, 2).refetch())
+    expectType<WebdriverIO.ElementArray>(await $$('h1').slice(0, 2).refetch())
+    expectType<WebdriverIO.ElementArray>(await (await $$('h1').filter(async () => true)).refetch())
+    expectType<WebdriverIO.ElementArray>(await (await $$('h1').filterSeries(async () => true)).refetch())
+    expectType<WebdriverIO.Element>(
+        (await (await $$('h1').slice(0, 2).filter(async () => true)).refetch())[0]
+    )
     expectType<WebdriverIO.Element>(await elems.find(async () => true))
 
     // An examples of addValue command with enabled/disabled translation to Unicode

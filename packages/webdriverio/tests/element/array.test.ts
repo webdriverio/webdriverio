@@ -203,10 +203,10 @@ describe('ElementArray', () => {
     })
 
     it('keeps the chosen membership of an explicit list rather than refetching its shared selector', async () => {
-        const parent = { $: vi.fn() }
+        const parent = { $$: vi.fn() }
         const chosen = ElementArray.fromAsyncCallback(async () => [element('first')], {
             selector: '.item',
-            foundWith: '$',
+            foundWith: '$$',
             parent: parent as unknown as WebdriverIO.Browser,
             props: [],
             refetch: false
@@ -215,21 +215,21 @@ describe('ElementArray', () => {
         await chosen
         expect(chosen[1]).toBeUndefined()
         expect(chosen.at(1)).toBeUndefined()
-        expect((await chosen.refetch()).map((el) => el.elementId)).resolves.toEqual(['first'])
-        expect(parent.$).not.toHaveBeenCalled()
+        await expect((await chosen.refetch()).map((el) => el.elementId)).resolves.toEqual(['first'])
+        expect(parent.$$).not.toHaveBeenCalled()
     })
 
     it('refetches an original query and replays nested filter/slice steps', async () => {
         const parent = {
-            $: vi.fn(async () => ElementArray.fromResolved([
+            $$: vi.fn(async () => ElementArray.fromResolved([
                 element('a'), element('b'), element('c'), element('d')
-            ], { selector: '.item', foundWith: '$', props: [] }))
+            ], { selector: '.item', foundWith: '$$', props: [] }))
         }
         const original = ElementArray.fromAsyncCallback(async () => [
             element('a'), element('b'), element('c')
         ], {
             selector: '.item',
-            foundWith: '$',
+            foundWith: '$$',
             parent: parent as unknown as WebdriverIO.Browser,
             props: []
         })
@@ -241,20 +241,20 @@ describe('ElementArray', () => {
         const refreshed = await sliced.refetch()
         expect(await refreshed.map((el) => el.elementId)).toEqual(['d'])
         expect(refreshed[1]).toBeUndefined()
-        expect(parent.$).toHaveBeenCalledOnce()
-        expect(parent.$).toHaveBeenCalledWith('.item')
-        expect((await filtered.refetch()).map((el) => el.elementId)).resolves.toEqual(['b', 'd'])
+        expect(parent.$$).toHaveBeenCalledOnce()
+        expect(parent.$$).toHaveBeenCalledWith('.item')
+        await expect((await filtered.refetch()).map((el) => el.elementId)).resolves.toEqual(['b', 'd'])
     })
 
     it('preserves filterSeries callbacks and thisArg when refetching', async () => {
         const parent = {
-            $: vi.fn(async () => ElementArray.fromResolved([
+            $$: vi.fn(async () => ElementArray.fromResolved([
                 element('b'), element('c'), element('d')
-            ], { selector: '.item', foundWith: '$', props: [] }))
+            ], { selector: '.item', foundWith: '$$', props: [] }))
         }
         const original = ElementArray.fromResolved([element('a'), element('b')], {
             selector: '.item',
-            foundWith: '$',
+            foundWith: '$$',
             parent: parent as unknown as WebdriverIO.Browser,
             props: []
         })
@@ -263,8 +263,8 @@ describe('ElementArray', () => {
             return this.desired.has(el.elementId)
         }, context)
 
-        expect(filtered.map((el) => el.elementId)).resolves.toEqual(['b'])
-        expect((await filtered.refetch()).map((el) => el.elementId)).resolves.toEqual(['b', 'd'])
+        await expect(filtered.map((el) => el.elementId)).resolves.toEqual(['b'])
+        await expect((await filtered.refetch()).map((el) => el.elementId)).resolves.toEqual(['b', 'd'])
     })
 
     it('normalizes at() the same way a plain array does', () => {

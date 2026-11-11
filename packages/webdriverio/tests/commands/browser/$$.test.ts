@@ -50,6 +50,14 @@ describe('elements', () => {
         expect((await elems.getElements()).foundWith).toBe('$$')
         expect(Array.isArray(elems)).toBe(true)
         expect(elems.then).toBeUndefined()
+
+        const findElements = vi.spyOn(browser, 'findElements')
+        const refreshed = await elems.refetch()
+        expect(await refreshed.map((element) => element.elementId)).toEqual([
+            'some-elem-123', 'some-elem-456', 'some-elem-789'
+        ])
+        expect(findElements).toHaveBeenCalledOnce()
+        expect(findElements).toHaveBeenCalledWith('css selector', '.foo')
     })
 
     it('iterates, maps and indexes the list without awaiting it first', async () => {

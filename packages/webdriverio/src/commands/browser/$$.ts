@@ -40,7 +40,7 @@ import type { Selector } from '../../types.js'
  * (`const items = await $$('li'); await items[items.length]`). A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
  * or a `filter` does not: `$$('li').slice(0, 2)[3]` stays outside that window, and an index past a
  * filtered list does not resolve to an element the filter excluded. The same applies to
- * `$([existingElement])`: an explicit list never queries other matching elements to fill
+ * `$$([existingElement])`: an explicit list never queries other matching elements to fill
  * an out-of-range index. `.at()` uses the same index conversion as a plain array.
  *
  * To run a live query again, call `await elements.refetch()`. Filter and slice operations
@@ -112,10 +112,10 @@ export function $$ (
         refetch: boolean
     } = {
         selector: selector as Selector,
-        foundWith: '$',
+        foundWith: '$$',
         parent: this,
         props: [],
-        // $([existing elements]) is an explicit list, not a live selector.
+        // $$([existing elements]) is an explicit list, not a live selector.
         refetch: !Array.isArray(selector)
     }
 
