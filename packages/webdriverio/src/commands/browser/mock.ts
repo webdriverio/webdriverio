@@ -3,6 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
+import { getParallelContextStore } from '../../session/context.js'
 import { assertTopLevel, contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
@@ -36,6 +37,18 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  * The `URLPattern` is an experimental technology and not yet supported in some environments, e.g. Node.js.
  * We recommend to import [a polyfill](https://www.npmjs.com/package/urlpattern-polyfill)
  * until the feature is more widely supported.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * A second `mock` with the same URL pattern, the same filter options and the same scope
+ * (session-wide, tab or parallel test) replaces the first one: the first mock is restored, so it no longer changes requests or records
+ * calls. In a URL pattern, `*` already matches any characters, `/` included, and in a
+ * string pattern WebdriverIO changes `**` to `*`: `'**' + '/api'` and `'*' + '/api'`
+ * are the same pattern. To keep both mocks, give them different filter options.
+ * WebdriverIO does not change a `URLPattern` object: use a single `*` in it, as repeated
+ * wildcards before fixed text can make the match very slow and freeze a test.
  *
  * :::
  *
@@ -145,28 +158,29 @@ export async function mock(
 
     const browser = getBrowserObject(this)
     const context = await contextIdOf(this)
-    if (!SESSION_MOCKS[context]) {
-        SESSION_MOCKS[context] = new Set()
+    // a session-wide mock is keyed by session, so a switch of the current tab does not move it
+    const test = getParallelContextStore().getStore()
+    const contexts = isBrowsingContext(this) || test ? [context] : undefined
+    const sessionKey = contexts ? context : `session:${browser.sessionId}`
+    if (!SESSION_MOCKS[sessionKey]) {
+        SESSION_MOCKS[sessionKey] = new Set()
     }
     const normalizedFilterOptions = filterOptions || {}
-    for (const existingMock of Array.from(SESSION_MOCKS[context])) {
+    for (const existingMock of Array.from(SESSION_MOCKS[sessionKey])) {
         if (!existingMock.isSameDefinition(url, normalizedFilterOptions)) {
             continue
         }
 
         await existingMock.restore()
-        SESSION_MOCKS[context].delete(existingMock)
+        SESSION_MOCKS[sessionKey].delete(existingMock)
     }
 
-    /**
-     * A mock made on a held context only intercepts that context's requests.
-     * `browser.mock()` stays session-wide.
-     */
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
-        contexts: isBrowsingContext(this) ? [context] : undefined,
-        sessionKey: context
+        contexts,
+        sessionKey,
+        test
     })
-    SESSION_MOCKS[context].add(networkInterception)
+    SESSION_MOCKS[sessionKey].add(networkInterception)
 
     return networkInterception satisfies WebdriverIO.Mock
 }

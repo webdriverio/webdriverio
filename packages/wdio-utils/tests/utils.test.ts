@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import fs from 'node:fs/promises'
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
@@ -7,7 +8,7 @@ import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
     userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
-    isAbsolute
+    isAbsolute, specFilePath
 } from '../src/utils.js'
 import { setWdioKind } from '../src/kind.js'
 
@@ -286,6 +287,20 @@ describe('utils:isAbsolute', () => {
 
 })
 
+describe('specFilePath', () => {
+    it('gives a file URL as a path', () => {
+        const file = path.resolve('project', 'a.spec.js')
+        expect(specFilePath(url.pathToFileURL(file).href)).toBe(file)
+    })
+    it('keeps a path', () => {
+        expect(specFilePath('./a.spec.js')).toBe('./a.spec.js')
+    })
+    // an encoded `/` is not valid in a file path on any platform: the spec cannot run
+    it('fails for a URL that names no path', () => {
+        expect(() => specFilePath('file:///project/a%2Fb.spec.js')).toThrow()
+    })
+})
+
 describe('getBrowserObject', () => {
     it('should traverse up', () => {
         expect(getBrowserObject({
@@ -335,6 +350,39 @@ describe('enableFileLogging', () => {
 
         expect(fs.mkdir).toHaveBeenCalledWith(path.join(outputDir), { recursive: true })
         expect(process.env.WDIO_LOG_PATH).toBe(expectedLogPath)
+    })
+
+    /**
+     * @wdio/local-runner gives each worker its own log file. The worker runs
+     * enableFileLogging() again; replacing the path made a logger that opens its file
+     * later (with a log level above info: at its first warning) open and empty the
+     * launcher's wdio.log.
+     */
+    it('keeps a WDIO_LOG_PATH that is already set with keepLogPath', async () => {
+        process.env.WDIO_LOG_PATH = path.join('/path/to/log/directory', 'spec-0-0.log')
+
+        await enableFileLogging('/path/to/log/directory', { keepLogPath: true })
+
+        expect(fs.mkdir).toHaveBeenCalledWith(path.join('/path/to/log/directory'), { recursive: true })
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'spec-0-0.log'))
+    })
+
+    it('sets WDIO_LOG_PATH with keepLogPath when none is set', async () => {
+        await enableFileLogging('/path/to/log/directory', { keepLogPath: true })
+
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'wdio.log'))
+    })
+
+    /**
+     * the launcher: a `wdio run` started from a worker (e.g. a test of a plugin)
+     * inherits the worker's log file, and must not write into it
+     */
+    it('replaces a WDIO_LOG_PATH that is already set without keepLogPath', async () => {
+        process.env.WDIO_LOG_PATH = path.join('/path/to/outer', 'spec-0-0.log')
+
+        await enableFileLogging('/path/to/log/directory')
+
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'wdio.log'))
     })
 })
 

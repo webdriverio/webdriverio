@@ -8,6 +8,7 @@ import { ElementArray } from '../../element/array.js'
 import { findStrategy } from '../../utils/findStrategy.js'
 import type { Selector } from '../../types.js'
 import { foreignContext } from '../../utils/foreignContext.js'
+import { isParallelContextActive } from '../../utils/bidi/locate.js'
 
 const log = logger('webdriverio')
 
@@ -47,10 +48,10 @@ export function shadow$$ (
     return ElementArray.fromAsyncCallback(async () => {
         const browser = getBrowserObject(this)
         /**
-         * Get Element Shadow Root only sees the session's current context. For an
+         * Get Element Shadow Root only sees the session's current context (a parallel test runs in another tab). For an
          * element of another held context, use the shadow DOM shim directly.
          */
-        if (await foreignContext(this)) {
+        if (isParallelContextActive() || await foreignContext(this)) {
             return [...await this.$$(shadowFnFactory(selector, true))]
         }
 

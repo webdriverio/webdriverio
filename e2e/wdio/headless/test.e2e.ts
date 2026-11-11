@@ -11,7 +11,6 @@ import { browser, $, $$, expect } from '@wdio/globals'
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
-import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
 
@@ -19,8 +18,8 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
 /**
- * a React app with 3 `Item` components and a button that adds one, mounted with `mount`
- * and the React build of `/{build}/`
+ * a React app with 3 `Item` components, a button that adds one and a button that mounts
+ * the list again with new DOM nodes, mounted with `mount` and the React build of `/{build}/`
  */
 const reactApp = (build: string, mount: string) => `<title>React</title><div id="root"></div>
 <script src="/${build}/react.js"></script><script src="/${build}/react-dom.js"></script>
@@ -29,9 +28,11 @@ const h = React.createElement
 function Item (props) { return h('li', null, props.color) }
 function App () {
     const [colors, setColors] = React.useState(['red', 'blue', 'red'])
+    const [mounts, setMounts] = React.useState(0)
     return h('div', null,
-        h('ul', null, colors.map((color, index) => h(Item, { key: index, color }))),
-        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'))
+        h('ul', { key: mounts }, colors.map((color, index) => h(Item, { key: index, color }))),
+        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'),
+        h('button', { id: 'remount', onClick: () => setMounts(mounts + 1) }, 'remount'))
 }
 ${mount}
 </script>`
@@ -85,11 +86,13 @@ describe('main suite 1', () => {
      * the React builds of the `e2e` package, so the React pages need no network. They cover
      * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
      * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
-     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`.
+     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`. React 18
+     * is an alias too: the plain `react` of the `e2e` package is React 19 for the
+     * component tests, and React 19 has no UMD build.
      */
     const reactBuilds: Record<string, Record<string, string>> = {
         react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
-        react18: { react: 'react', 'react-dom': 'react-dom' }
+        react18: { react: 'react-18', 'react-dom': 'react-dom-18' }
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -714,6 +717,48 @@ describe('main suite 1', () => {
         }
 
         /**
+         * a React element is found again with `react$` or `react$$` and its props, when
+         * it wasn't rendered yet or React replaced its DOM node
+         */
+        describe('finding a component again', () => {
+            beforeEach(async () => {
+                await browser.url(`${navigationOrigin}/react18-create-root`)
+                await expect($$('li')).toBeElementsArrayOfSize(3)
+            })
+
+            it('isDisplayed finds a react$ element with its props once it is rendered', async () => {
+                const green = await browser.react$('Item', { props: { color: 'green' } })
+                expect(green.elementId).toBeUndefined()
+
+                await $('#add').click()
+                await browser.waitUntil(() => green.isDisplayed(), { timeout: 5000 })
+                await expect(green).toHaveText('green')
+            })
+
+            it('a command waits for a react$ element with its props', async () => {
+                const green = await browser.react$('Item', { props: { color: 'green' } })
+                await $('#add').click()
+                await expect(green.getText()).resolves.toBe('green')
+            })
+
+            it('a stale react$ element is found again with its props', async () => {
+                const blue = await browser.react$('Item', { props: { color: 'blue' } })
+                await expect(blue.getText()).resolves.toBe('blue')
+
+                await $('#remount').click()
+                await expect(blue.getText()).resolves.toBe('blue')
+            })
+
+            it('a stale react$$ element is found again at the same index', async () => {
+                const second = (await $('ul').react$$('Item'))[1]
+                await expect(second.getText()).resolves.toBe('blue')
+
+                await $('#remount').click()
+                await expect(second.getText()).resolves.toBe('blue')
+            })
+        })
+
+        /**
          * the commands inject their script and wait in the context of the frame
          */
         it('finds the components in a frame', async function () {
@@ -1156,9 +1201,8 @@ describe('main suite 1', () => {
         it('should have sameSite in PascalCase for classic cases fallback', async function () {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setCookies([
-                // TODO one day, fix the Api not supporting classic PascalCase enaum
-                { name: 'test1-0', value: '123', sameSite: 'Strict' as SameSiteOptions },
-                { name: 'test1-1', value: '456', sameSite: 'None' as SameSiteOptions },
+                { name: 'test1-0', value: '123', sameSite: 'Strict' },
+                { name: 'test1-1', value: '456', sameSite: 'none' },
                 { name: 'test1-2', value: '789' }
             ])
 

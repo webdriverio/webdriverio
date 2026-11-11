@@ -6,6 +6,7 @@ import { Command } from 'commander'
 import { execSync } from 'node:child_process'
 import { execa } from 'execa'
 import { run, createWebdriverIO } from '../src/index.js'
+import { SUPPORTED_NODE_VERSIONS } from '../src/constants.js'
 import { runProgram } from '../src/utils.js'
 import type { ProgramOpts } from '../src/types.js'
 import { getInstallCommand, installPackages } from '../src/install.js'
@@ -75,7 +76,16 @@ test('does not run if Node.js version is too low', async () => {
     const op = vi.fn().mockResolvedValue({})
     await run(op)
     expect(op).toBeCalledTimes(0)
-    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v22.19.0 to continue.'))
+    expect(semver.satisfies).toBeCalledWith(process.version, SUPPORTED_NODE_VERSIONS)
+    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v22.23.4, v24.22.1, v26.12.1'))
+})
+
+test.each([
+    ['22.22.0', false], ['22.23.4', true], ['23.11.0', false], ['24.21.0', false],
+    ['24.22.1', true], ['25.9.0', false], ['26.12.0', false], ['26.12.1', true], ['27.0.0', true]
+])('supports Node.js %s: %s', async (version, supported) => {
+    const actual = await vi.importActual<{ default: typeof semver }>('semver')
+    expect(actual.default.satisfies(version, SUPPORTED_NODE_VERSIONS)).toBe(supported)
 })
 
 test('createWebdriverIO with Yarn', async () => {
@@ -361,9 +371,35 @@ describe('install', () => {
     })
 
     it('installPackages failing', async () => {
-        vi.mocked(execa).mockResolvedValue({ stdout: 'foo', stderr: 'bar', exitCode: 1 } as any)
-        expect(await installPackages('/foo/bar', ['foo', 'bar'], false))
-            .toBe(false)
+        // like execa: a failed command rejects unless `reject: false` is set
+        vi.mocked(execa).mockImplementationOnce(((_: string, __: string[], options: { reject?: boolean }) => options.reject === false
+            ? Promise.resolve({ exitCode: 1, failed: true, stdout: 'added 0 packages', stderr: [
+                'npm warn deprecated foo',
+                'npm error code ERESOLVE',
+                'npm error peer appium@"^4.0.0-beta.6" from appium-xcuitest-driver@13.0.8'
+            ].join('\n') })
+            : Promise.reject(new Error('Command failed with exit code 1: npm install'))) as any)
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            expect(await installPackages('/foo/bar', ['foo', 'bar'], false)).toBe(false)
+            const message = consoleError.mock.calls.flat().join('\n')
+            expect(message).toContain('npm error code ERESOLVE')
+            expect(message).toContain('npm error peer appium@"^4.0.0-beta.6" from appium-xcuitest-driver@13.0.8')
+            expect(message).not.toContain('npm warn deprecated foo')
+            expect(message).toMatch(/run the wizard again\. To check the install alone, run:\n\S+ (install|add) foo bar/)
+        } finally {
+            consoleError.mockRestore()
+        }
+    })
+
+    it('installPackages shows the output while it runs and keeps it for the error', async () => {
+        vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
+        await installPackages('/foo/bar', ['foo'], true)
+        expect(vi.mocked(execa).mock.calls[0][2]).toMatchObject({
+            reject: false,
+            stdout: ['inherit', 'pipe'],
+            stderr: ['inherit', 'pipe']
+        })
     })
 
     it('getInstallCommand', () => {

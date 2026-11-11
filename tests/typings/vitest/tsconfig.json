@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "strict": false,
+    "lib": ["es2024"],
+    "module": "NodeNext",
+    "moduleResolution": "Node16",
+    "target": "ES2024",
+    "types": [
+      "@wdio/globals/types",
+      "@wdio/vitest-framework"
+    ]
+  }
+}

@@ -35,6 +35,8 @@ export const config = {
 }
 ```
 
+To also run the tests *inside* one spec file at the same time, each in its own browser window, see [Parallel Tests in a Spec File](./ParallelTests.md).
+
 ## Inherit From Main Config File
 
 If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.
@@ -208,7 +210,9 @@ Or, exclude a spec file when filtering using a suite:
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-If the `--exclude` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
+Each `--exclude` value is a path or a keyword on its own, so you can mix them. A value with `/`, `\` or `*` is a path. It is resolved from the working folder, then from the folder of the config file. A path that matches no file is an error, or a warning when you also pass a keyword.
+
+Any other value, such as `dialog` or `login.js`, is a keyword: it filters the spec filenames defined in your configuration.
 
 To exclude all specs with the word “dialog” in the spec file names, you could use:
 
@@ -238,7 +242,7 @@ In this example, if `signup` is a defined suite name, that suite will be exclude
 If you specify both `--suite X` and `--exclude X`, the exclusion takes precedence and suite `X` will not run.
 :::
 
-When the `--exclude` option is provided, it will override any patterns defined by the config `exclude` or a capability's `wdio:exclude`.
+When the `--exclude` option is provided, it replaces the patterns of the config `exclude`. A capability's `wdio:exclude` still applies.
 
 ## Run Suites and Test Specs
 
@@ -296,7 +300,7 @@ Please see [Options Page](configuration) for additional information on the bail 
 When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
 
 > CLI `--spec` argument > capability `wdio:specs` > config `specs`
-> CLI `--exclude` argument > config `exclude` > capability `wdio:exclude`
+> CLI `--exclude` argument > config `exclude`. A capability's `wdio:exclude` is always added.
 
 If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
 

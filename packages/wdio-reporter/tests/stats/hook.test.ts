@@ -26,6 +26,12 @@ test('should allow to be called complete', () => {
     expect(hook.end).toBeInstanceOf(Date)
 })
 
+test('keeps retried only when the payload has it', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    expect('retried' in new HookStats(payload)).toBe(false)
+    expect(new HookStats({ ...payload, retried: true }).retried).toBe(true)
+})
+
 test('should mark hook as failed if onComplete has errors', () => {
     const hook = new HookStats({
         cid: '0-0',
@@ -50,4 +56,55 @@ test('Should not mark hook as failed if onComplete has no errors', () => {
     expect(hook.errors).toBe(errors)
     expect(hook.error).toBeUndefined()
     expect(hook.state).not.toBe('failed')
+})
+
+test('keeps the context and the parent of a parallel hook', () => {
+    const hook = new HookStats({
+        cid: '0-0',
+        title: '"before each" hook for suite',
+        parent: 'suite',
+        uid: 'hook-0-0-1',
+        contextId: 'ctx-1',
+        parentUid: 'suite-0-0-0'
+    })
+    expect(hook.contextId).toBe('ctx-1')
+    expect(hook.parentUid).toBe('suite-0-0-0')
+})
+
+test('adds no context or parent property when the payload has none', () => {
+    const hook = new HookStats({
+        cid: '0-0',
+        title: 'foobar',
+        parent: 'barfoo'
+    })
+    expect(Object.keys(hook)).not.toContain('contextId')
+    expect(Object.keys(hook)).not.toContain('parentUid')
+})
+
+test('keeps failedTestUid only when the payload has it', () => {
+    const payload = { type: 'hook:start', title: 'foo', parent: 'bar', fullTitle: 'foo bar', uid: 'hook-1', cid: '0-0' } as any
+    expect('failedTestUid' in new HookStats(payload)).toBe(false)
+    expect(new HookStats({ ...payload, failedTestUid: 'test-1' }).failedTestUid).toBe('test-1')
+})
+
+test('keeps hookKind / hookSuiteUid only when the payload has them', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    const plain = new HookStats(payload)
+    expect('hookKind' in plain).toBe(false)
+    expect('hookSuiteUid' in plain).toBe(false)
+    expect(new HookStats({ ...payload, hookKind: 'afterAll', hookSuiteUid: 'suite-0-0-0' }))
+        .toMatchObject({ hookKind: 'afterAll', hookSuiteUid: 'suite-0-0-0' })
+})
+
+test('a skipped hook gets the state skipped, unless it has errors', () => {
+    const payload = { cid: '0-0', title: 'foobar', parent: 'barfoo' }
+    const skipped = new HookStats(payload)
+    skipped.complete([], true)
+    expect(skipped.state).toBe('skipped')
+    const failed = new HookStats(payload)
+    failed.complete([new Error('boom')], true)
+    expect(failed.state).toBe('failed')
+    const ran = new HookStats(payload)
+    ran.complete([])
+    expect(ran.state).toBeUndefined()
 })

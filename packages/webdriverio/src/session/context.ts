@@ -4,29 +4,167 @@ import logger from '@wdio/logger'
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
 import { environment } from '../environment.js'
+import { logBackgroundError } from '../utils/sessionEnded.js'
+import { isBidiCaptureEvent } from '../utils/screenshotEvents.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
+
+/**
+ * Any HTTP command (Classic, Chromium, Appium, Selenium) reaches the session's
+ * single focused window/frame, which concurrent tests share. An allowlist fails
+ * closed for any command not explicitly vetted. Safe means: does not read or
+ * mutate the focused window/frame AND does not change state shared by every
+ * concurrent test.
+ */
+export const PARALLEL_SAFE_CLASSIC_COMMANDS: readonly string[] = ['status', 'getTimeouts', 'getWindowHandles']
+
+const SESSION_GLOBAL_COMMANDS: readonly string[] = ['deleteSession', 'newSession', 'setTimeouts']
+const ALERT_COMMANDS: readonly string[] = ['acceptAlert', 'dismissAlert', 'getAlertText', 'sendAlertText']
+const COMPUTED_A11Y_COMMANDS: readonly string[] = ['getElementComputedRole', 'getElementComputedLabel']
+
+function parallelModeError(command: string) {
+    if (SESSION_GLOBAL_COMMANDS.includes(command)) {
+        return `${command} cannot run inside a parallel test: it changes the session that all concurrently running tests share ` +
+            '(browser.reloadSession() sends deleteSession, browser.setTimeout() sends setTimeouts). ' +
+            'Call it outside the test, e.g. in the `before` config hook.'
+    }
+    if (ALERT_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: alerts belong to a browsing context. ` +
+            'Use the per-context API instead on the context `browser.url()` returns, e.g. `const page = await browser.url(url); await page.acceptAlert()` ' +
+            '(also `dismissAlert()` and `getAlertText()` on the BrowsingContext).'
+    }
+    if (COMPUTED_A11Y_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: WebDriver BiDi has no command to read an element's computed role or label.`
+    }
+    return `${command} is not supported in parallel mode — ` +
+        "WebDriver Classic commands act on the session's focused window, which concurrent tests share. " +
+        `If you did not call ${command} yourself, a WebdriverIO command fell back to WebDriver Classic — please report it.`
+}
+
+/**
+ * Per-test context override for parallel it() execution.
+ *
+ * When tests run in parallel (each in its own browsing context), the
+ * framework sets a context ID here via `AsyncLocalStorage.run()`.
+ * `getCurrentContext()` checks this first, so every command
+ * (url, $, click, setValue, getText, etc.) automatically targets
+ * the correct browsing context.
+ *
+ * Outside parallel execution (sequential mode), the store is empty
+ * and behavior falls back to the session-global `#currentContext`.
+ */
+/** Key used to expose the parallel context store on the browser instance. */
+export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
+
+/** Key used to expose the set of framework-managed parallel contexts. */
+export const PARALLEL_CONTEXTS_KEY = '__parallelContexts'
+
+/**
+ * Minimal surface of `AsyncLocalStorage<string>`. The browser bundle must not
+ * import `node:async_hooks`, so the Node entry registers the real store.
+ */
+export interface ParallelContextStore {
+    getStore(): string | undefined
+    run<T>(contextId: string, fn: () => T): T
+}
+
+const noopParallelContextStore: ParallelContextStore = {
+    getStore: () => undefined,
+    run: (_contextId, fn) => fn()
+}
+
+let parallelContextStore: ParallelContextStore = noopParallelContextStore
+
+export function setParallelContextStore(store: ParallelContextStore) {
+    parallelContextStore = store
+}
+
+/**
+ * Contexts created by the parallel framework adapters (one tab per test).
+ * The session-global ContextManager must not re-anchor on navigations that
+ * happen inside these: each test owns its context via the ALS store, and
+ * re-anchoring (browsingContextGetTree + switchToWindow) would add a round
+ * trip per test navigation and mutate shared session-global state across
+ * concurrent tests.
+ */
+const parallelContexts = new Set<string>()
+
+export function registerParallelContext(contextId: string) {
+    parallelContexts.add(contextId)
+}
+
+export function unregisterParallelContext(contextId: string) {
+    parallelContexts.delete(contextId)
+}
+
+export function isParallelContext(contextId: string): boolean {
+    return parallelContexts.has(contextId)
+}
+
+/**
+ * Returns the parallel context store. The framework uses this to
+ * create per-test scopes:
+ *
+ *   parallelContextStore.run(contextId, async () => {
+ *       await test.fn()  // all commands target contextId
+ *   })
+ */
+export function getParallelContextStore() {
+    return parallelContextStore
+}
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
 }
 
 /**
- * The browsers that are an instance of a multi-remote browser. The browser object
- * is the key, not its context manager, so the mark stays after `reloadSession()`.
+ * A browser remains an instance of a multi-remote browser when its session
+ * manager is recreated by reloadSession().
  */
 const multiRemoteInstances = new WeakSet<WebdriverIO.Browser>()
 
-/**
- * Marks `browser` as an instance of a multi-remote browser, see `MultiRemote.addInstance`.
- * @param browser the browser of one multi-remote instance
- */
 export function registerMultiRemoteInstance(browser: WebdriverIO.Browser) {
     multiRemoteInstances.add(browser)
 }
 
 export type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
+
+interface WindowSwitches {
+    /**
+     * the `switchToWindow` commands without a result yet, in the order they were sent. A switch
+     * is superseded when one sent after it succeeds, or a newer transition sets the context.
+     */
+    pending: { handle: string, body: unknown, superseded?: boolean }[]
+    /**
+     * the context to go back to when the pending switches fail: the one before the switches
+     * (or that a newer transition set), then the handle of each switch that succeeds, in the
+     * order of the results
+     */
+    context?: string
+}
+
+/**
+ * The context that `switchToWindow` commands give: the target of the last one without a
+ * result yet that is not superseded, or else the context to go back to.
+ */
+function windowSwitchTarget ({ pending, context }: WindowSwitches) {
+    for (let i = pending.length - 1; i >= 0; i--) {
+        if (!pending[i].superseded) {
+            return pending[i].handle
+        }
+    }
+    return context
+}
+
+/**
+ * The pending switch a result is for. The command and the result event of a request share
+ * its body, so a switch to a handle that is pending more than once is still the right one.
+ */
+function findWindowSwitch ({ pending }: WindowSwitches, body: unknown, handle: string) {
+    const index = pending.findIndex((pendingSwitch) => pendingSwitch.body === body)
+    return index > -1 ? index : pending.findIndex((pendingSwitch) => pendingSwitch.handle === handle)
+}
 
 /**
  * This class is responsible for managing context in a WebDriver session. Many BiDi commands
@@ -40,8 +178,12 @@ export class ContextManager extends SessionManager {
     #isNativeContext: boolean
     #getContextSupport = true
     #currentWindowHandle?: string
+    /**
+     * the `switchToWindow` commands without a result yet, and the context to go back to when they fail
+     */
+    #windowSwitches?: WindowSwitches
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
-    #onCommandListener: (event: { command: string, body: unknown }) => void
+    #onCommandListener: (event: { command: string, body: unknown, endpoint?: string }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
     #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
     #destroyedListener: (destroyed: local.BrowsingContextInfo) => void
@@ -50,6 +192,22 @@ export class ContextManager extends SessionManager {
         super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
+        /**
+         * Expose the parallel context store and experimental Bidi flag
+         * on the browser instance so the Mocha framework adapter can
+         * access them without importing from 'webdriverio'.
+         */
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        // Expose the parallel-context registry so the framework adapters can
+        // register/unregister the tabs they create per test.
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY] = parallelContexts
+        // Cache the capability flag so per-command checks are O(1)
+        const reqCaps = browser.requestedCapabilities as unknown as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as unknown as Record<string, unknown> | undefined
+        ;(browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = !!(
+            reqCaps?.['wdio:experimentalBiDiCommands'] || sessCaps?.['wdio:experimentalBiDiCommands']
+        )
+
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
         this.#mobileContext = getMobileContext({
             capabilities,
@@ -64,8 +222,8 @@ export class ContextManager extends SessionManager {
         this.#destroyedListener = this.#contextDestroyed.bind(this)
 
         /**
-         * Listens for the 'closeWindow' browser command to handle context changes.
-         * (classic + bidi)
+         * Listens for the 'getWindowHandle' and 'switchToWindow' browser commands
+         * to cache the current window handle. (classic + bidi)
          */
         this.#browser.on('result', this.#onCommandResultBidiAndClassicListener)
 
@@ -92,9 +250,12 @@ export class ContextManager extends SessionManager {
              * Listen to the 'browsingContext.navigationStarted' event to handle context changes
              * through navigation within e.g. frames.
              */
+            /**
+             * not awaited: an error has no caller, e.g. when the session ends at once
+             */
             this.#browser.sessionSubscribe({
                 events: ['browsingContext.navigationStarted', 'browsingContext.contextDestroyed']
-            })
+            }).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err, this.#browser))
             this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
             this.#browser.on('browsingContext.contextDestroyed', this.#destroyedListener)
         }
@@ -121,27 +282,55 @@ export class ContextManager extends SessionManager {
         }
 
         /**
+         * Parallel test tabs are owned by their ALS-scoped test. Do not
+         * re-anchor the session-global context on their navigations — that
+         * would trigger a browsingContextGetTree + switchToWindow per test
+         * navigation and mutate shared state across concurrent tests.
+         */
+        if (isParallelContext(nav.context)) {
+            return
+        }
+
+        /**
          * a navigation event may have changed the tree structure, so we need to get the
          * current tree and see if our context is still there, if not, we need to reset
          * the context to the first context in the tree.
          */
-        const { contexts } = await this.#browser.browsingContextGetTree({})
-        /**
-         * check if the context is still in the tree, if not, switch to...
-         */
-        const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
-        /**
-         * ...the context we are navigating to
-         */
-        const newContext = contexts.find((context) => context.context === nav.context)
-        if (!hasContext && newContext) {
-            this.setCurrentContext(newContext.context)
-            await this.#browser.switchToWindow(this.#currentContext)
-            return
+        try {
+            const { contexts } = await this.#browser.browsingContextGetTree({})
+            /**
+             * check if the context is still in the tree, if not, switch to...
+             */
+            const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            /**
+             * ...the context we are navigating to
+             */
+            const newContext = contexts.find((context) => context.context === nav.context)
+            if (!hasContext && newContext) {
+                this.setCurrentContext(newContext.context)
+                await this.#browser.switchToWindow(this.#currentContext)
+                return
+            }
+        } catch (err) {
+            /**
+             * an event handler has no caller to give the error to, e.g. when the
+             * session ends while the tree is requested
+             */
+            logBackgroundError(log, `Failed to update the context after a navigation in "${nav.context}"`, err, this.#browser)
         }
     }
 
     async #contextDestroyed(destroyed: local.BrowsingContextInfo) {
+        /**
+         * A `switchToWindow` that fails goes back to the context from before it. If that
+         * context is gone (e.g. the page removed the frame), the next command resolves the
+         * window the driver is in instead.
+         */
+        const switches = this.#windowSwitches
+        if (switches?.context && this.findContext(switches.context, [destroyed], 'byContextId')) {
+            switches.context = undefined
+        }
+
         /**
          * no need to do anything if the destroyed context is not the current one
          */
@@ -209,7 +398,7 @@ export class ContextManager extends SessionManager {
                 this.#currentContext = undefined
                 this.#currentWindowHandle = undefined
             }
-            log.warn(`Failed to switch context after "${destroyed.context}" was destroyed: ${(err as Error).message}`)
+            logBackgroundError(log, `Failed to switch context after "${destroyed.context}" was destroyed`, err, this.#browser)
         }
     }
 
@@ -229,41 +418,6 @@ export class ContextManager extends SessionManager {
 
     #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
         /**
-         * the `closeWindow` command returns:
-         *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
-         */
-        if (event.command === 'closeWindow') {
-            // Clear cached window handle
-            this.#currentWindowHandle = undefined
-
-            const { value, error } = event.result as { value?: string[], error?: unknown }
-            const windowHandles = value || []
-            if (windowHandles.length === 0) {
-                this.#currentContext = undefined
-
-                /**
-                 * Closing the last window ends the session of this browser. An instance
-                 * of a multi-remote browser is one session of several, so the test goes
-                 * on with the other instances (#15043). An error of the command itself
-                 * reaches the caller as it is.
-                 */
-                if (multiRemoteInstances.has(this.#browser)) {
-                    if (!error) {
-                        log.warn(
-                            `All windows of the multi-remote instance with session "${this.#browser.sessionId}" ` +
-                            'were closed, so its session ended. The other instances keep running.'
-                        )
-                    }
-                    return
-                }
-
-                throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
-            }
-            this.#currentContext = windowHandles[0]
-            return this.#browser.switchToWindow(this.#currentContext)
-        }
-
-        /**
          * Update current window handle when 'getWindowHandle' succeeds
          */
         if (event.command === 'getWindowHandle') {
@@ -272,21 +426,62 @@ export class ContextManager extends SessionManager {
         }
 
         /**
-         * the `closeWindow` command returns:
-         *  > the body of the Close Window command request, including the window handle it's switching to.
-         *  > the result of the Close Window command, either an error object on failure, or null data on success.
+         * `switchToWindow` returns null on success, so the handle comes from the request body
          */
         if (event.command === 'switchToWindow') {
+            // the result of a wrapper, e.g. of an overwritten `switchToWindow`, has no body
+            const handle = (event.body as { handle?: unknown } | undefined)?.handle
+            if (typeof handle !== 'string') {
+                return
+            }
             const err = (event.result as { error?: unknown }).error || undefined
             // Only update current window handle when 'switchToWindow' has no error
             if (!err) {
-                const windowHandle = (event.body as { handle?: string }).handle || undefined
-                this.#currentWindowHandle = windowHandle
+                this.#currentWindowHandle = handle
+            }
+
+            const switches = this.#windowSwitches
+            const index = switches ? findWindowSwitch(switches, event.body, handle) : -1
+            if (switches && index > -1) {
+                // no newer transition changed the context while the switch ran
+                const unchanged = this.#currentContext === windowSwitchTarget(switches)
+                if (!err) {
+                    /**
+                     * The driver is in this window now. The results can come in another order
+                     * than the switches were sent, so a switch sent before this one is not where
+                     * commands go until its own result shows where the driver is.
+                     */
+                    switches.context = handle
+                    switches.pending.slice(0, index).forEach((pending) => { pending.superseded = true })
+                }
+                switches.pending.splice(index, 1)
+                /**
+                 * A switch that fails (e.g. the handle is of a closed tab) leaves the driver in the
+                 * window it was in, so BiDi commands go there again instead of to the handle that
+                 * failed, or to the target of a later switch that has no result yet.
+                 */
+                if (unchanged) {
+                    this.#setWindowSwitchContext(windowSwitchTarget(switches))
+                }
+                if (switches.pending.length === 0) {
+                    this.#windowSwitches = undefined
+                }
             }
         }
     }
 
-    #onCommand(event: { command: string, body: unknown }) {
+    #onCommand(event: { command: string, body: unknown, endpoint?: string }) {
+        // wrapper events also fire for BiDi overrides; only the HTTP request (with `endpoint`) reaches the focused window,
+        // except the reporter events of a BiDi capture, which copy the Classic `endpoint`
+        if (
+            typeof event.endpoint === 'string' &&
+            parallelContextStore.getStore() &&
+            !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command) &&
+            !isBidiCaptureEvent(event)
+        ) {
+            throw new Error(parallelModeError(event.command))
+        }
+
         /**
          * update frame context if user switches using 'switchToParentFrame'
          */
@@ -317,6 +512,8 @@ export class ContextManager extends SessionManager {
                     return
                 }
                 this.setCurrentContext(parentContext.context)
+            }).catch((err: Error) => {
+                logBackgroundError(log, 'Failed to update the context after switchToParentFrame', err, this.#browser)
             })
         }
 
@@ -325,7 +522,26 @@ export class ContextManager extends SessionManager {
          * which is WebDriver Classic only
          */
         if (event.command === 'switchToWindow') {
-            this.setCurrentContext((event.body as { handle: string }).handle)
+            /**
+             * The event of a wrapper, e.g. of an overwritten `switchToWindow`, has the arguments
+             * as its body. The request it sends has the handle and gets a result.
+             */
+            const handle = (event.body as { handle?: unknown } | undefined)?.handle
+            if (typeof handle === 'string') {
+                const switches = this.#windowSwitches ??= { pending: [], context: this.#currentContext }
+                /**
+                 * Switches can overlap, e.g. when one is not awaited. While the context is still
+                 * the one the pending switches give, the driver is in `switches.context`, and the
+                 * target of a switch without a result is not known to be valid. Otherwise a newer
+                 * transition set the context after the pending switches were sent.
+                 */
+                if (this.#currentContext !== windowSwitchTarget(switches)) {
+                    switches.context = this.#currentContext
+                    switches.pending.forEach((pending) => { pending.superseded = true })
+                }
+                switches.pending.push({ handle, body: event.body })
+                this.setCurrentContext(handle)
+            }
         }
 
         /**
@@ -348,14 +564,33 @@ export class ContextManager extends SessionManager {
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
         if (event.command === 'getAppiumContext') {
-            this.setCurrentContext((event.result as { value: string }).value)
+            this.#setAppiumContext((event.result as { value: string }).value)
         }
         if (
             event.command === 'switchAppiumContext' &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {
-            this.setCurrentContext(this.#mobileContext)
+            this.#setAppiumContext(this.#mobileContext, true)
+        }
+    }
+
+    /**
+     * Track the Appium context name (`NATIVE_APP`, `CHROMIUM`, `WEBVIEW_<pkg>`).
+     * In a BiDi session that name is not a browsing context id, so it does not
+     * become the current context: when the Appium context changes, the current
+     * context is reset and `getCurrentContext()` resolves the window handle again.
+     */
+    #setAppiumContext (name: string, switched = false) {
+        if (!this.#browser.isBidi) {
+            return this.setCurrentContext(name)
+        }
+
+        const changed = switched || name !== this.#mobileContext
+        this.#isNativeContext = name ? name === 'NATIVE_APP' : this.#isNativeContext
+        this.#mobileContext = name || undefined
+        if (changed) {
+            this.#currentContext = undefined
         }
     }
 
@@ -402,20 +637,58 @@ export class ContextManager extends SessionManager {
                     : undefined
         }
 
-        const windowHandle = this.#mobileContext || await this.#browser.getWindowHandle()
+        /**
+         * in a BiDi session a web context is addressed by its window handle, the
+         * Appium context name (e.g. `CHROMIUM`) is not a browsing context id
+         */
+        const useWindowHandle = this.#browser.isBidi && !this.#isNativeContext
+        const windowHandle = (!useWindowHandle && this.#mobileContext) || await this.#browser.getWindowHandle()
         this.setCurrentContext(windowHandle)
         return windowHandle
     }
 
+    /**
+     * Set the context that `switchToWindow` results give. The switch set it through
+     * `setCurrentContext`, so going back does the same, e.g. for the Appium context of a
+     * Classic session. Without a context, the next command resolves the window again.
+     */
+    #setWindowSwitchContext (context?: string) {
+        if (context) {
+            this.setCurrentContext(context)
+        } else {
+            this.#currentContext = undefined
+        }
+    }
+
+    /**
+     * Set the context that BiDi commands target. In a BiDi session this is a
+     * browsing context id (window handle), never an Appium context name, so it
+     * does not change the tracked Appium context.
+     */
     setCurrentContext (context: string) {
         this.#currentContext = context
-        if (this.#browser.isMobile) {
+        if (this.#browser.isMobile && !this.#browser.isBidi) {
             this.#isNativeContext = context ? context === 'NATIVE_APP' : this.#isNativeContext
             this.#mobileContext = context || undefined
         }
     }
 
     async getCurrentContext () {
+        /**
+         * If a parallel test scope is active, return that test's
+         * assigned context instead of the session-global one.
+         * Commands that resolve their target through the
+         * ContextManager (url, $, click, setValue, getText, etc.)
+         * pick up the correct context this way. Commands without
+         * a context parameter — the classic element endpoints in
+         * the element command files, url.ts and actions/base.ts —
+         * need explicit Bidi branches instead. No Proxy is used.
+         */
+        const parallelCtx = parallelContextStore.getStore()
+        if (parallelCtx) {
+            return parallelCtx
+        }
+
         if (!this.#currentContext) {
             return this.initialize()
         }
@@ -451,6 +724,43 @@ export class ContextManager extends SessionManager {
      */
     getCurrentWindowHandle() {
         return this.#currentWindowHandle
+    }
+
+    /**
+     * Select the first remaining window after `closeWindow`. The `closeWindow`
+     * command awaits it, so a WebDriver Classic command after it does not run
+     * in the closed window.
+     * @param windowHandles the remaining window handles that `closeWindow` returns
+     */
+    async switchToRemainingWindow (windowHandles?: string[]) {
+        this.#currentWindowHandle = undefined
+        if (!windowHandles?.length) {
+            this.#currentContext = undefined
+            this.#windowSwitches = undefined
+
+            /**
+             * Each multi-remote instance owns a separate session. Ending one
+             * must leave the other instances available to the test (#15043).
+             * A protocol failure rejects before this method is called.
+             */
+            if (multiRemoteInstances.has(this.#browser)) {
+                log.warn(
+                    `All windows of the multi-remote instance with session "${this.#browser.sessionId}" ` +
+                    'were closed, so its session ended. The other instances keep running.'
+                )
+                return
+            }
+            throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
+        }
+        this.#currentContext = windowHandles[0]
+        try {
+            await this.#browser.switchToWindow(this.#currentContext)
+        } catch (err) {
+            /**
+             * the window is closed, so a failed switch does not fail `closeWindow`, e.g. when the session ends at once
+             */
+            logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser)
+        }
     }
 
     get isNativeContext() {

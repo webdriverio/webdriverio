@@ -126,7 +126,7 @@ export interface ActOptions {
      */
     maxSteps?: number
     /**
-     * overall timeout in ms (default 60000)
+     * overall timeout in ms (default 60000); a step that still runs at that time finishes before the call fails
      */
     timeout?: number
     /**
@@ -199,7 +199,7 @@ export interface ExtractOptions {
      */
     maxSteps?: number
     /**
-     * overall timeout in ms (default 60000)
+     * overall timeout in ms (default 60000); a step that still runs at that time finishes before the call fails
      */
     timeout?: number
     /**

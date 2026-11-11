@@ -1,12 +1,16 @@
 import logger from '@wdio/logger'
-
-import { SESSION_MOCKS } from './mock.js'
+import { mocksOf, restoreMocks } from '../../utils/interception/scope.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
 /**
  * Restores all mock information and behavior stored in all registered
- * mocks of the session.
+ * mocks of the session. On a browsing context, it restores only the mocks made
+ * for that tab or window. Inside a parallel test, it restores only the mocks
+ * that the test created, also on tabs it opened.
+ *
+ * All mocks are restored, also when one fails. The error is thrown afterwards: an
+ * `AggregateError` when several mocks fail.
  *
  * <example>
     :mockRestoreAll.js
@@ -28,11 +32,8 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * @alias browser.mockRestoreAll
  */
-export async function mockRestoreAll (): Promise<void> {
-    for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
-        log.trace(`Clearing mocks for ${handle}`)
-        for (const mock of mocks) {
-            await mock.restore()
-        }
-    }
+export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
+    const mocks = mocksOf(this)
+    log.trace(`Restoring ${mocks.length} mock(s)`)
+    await restoreMocks(mocks)
 }

@@ -1,13 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
+import { UNICODE_CHARACTERS, getWdioKind, isStaleElementError } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
+import { refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
+import type { Cmd } from '../hints.js'
 import { quote } from '../quote.js'
 import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
-import { refId } from '../snapshot/refs.js'
 import { describeViewport } from './observe.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 import type { ActionArgs } from './index.js'
@@ -215,7 +216,7 @@ async function clickAt (session: Session, x: number, y: number, args: ActionArgs
     }
     // they are viewport pixels of the page, as in a screenshot, not of a frame inside it
     if (session.get?.('frame')) {
-        throw usage('Coordinates are viewport pixels of the page, and the session is inside a frame.', 'Run `wdio session frame top` first, or click a ref from the frame.')
+        throw usage('Coordinates are viewport pixels of the page, and the session is inside a frame.', `Run \`${session.cmd('frame', { target: 'top' }, 'wdio session frame top')}\` first, or click a ref from the frame.`)
     }
     const what = await scopeOf(session).execute(function (px: number, py: number) {
         const el = document.elementFromPoint(px, py)
@@ -233,7 +234,7 @@ async function clickAt (session: Session, x: number, y: number, args: ActionArgs
     if (!what) {
         throw usage(`Nothing is at ${x},${y}.`, 'Coordinates are viewport pixels from the top left, as in a screenshot; take one to check.')
     }
-    const text = await withNavigation(session, `Clicked ${what} at ${x},${y}`, () => pointerClick(session, { state: 'ok', x, y }))
+    const text = await withNavigation(session, `Clicked ${what} at ${x},${y}`, () => session.browser.action('pointer').move({ x, y, origin: 'viewport' }).down().up().perform())
     return done(text, `await browser.action('pointer').move({ x: ${x}, y: ${y}, origin: 'viewport' }).down().up().perform()`)
 }
 
@@ -282,13 +283,10 @@ export const click: ActionFn = async (session, args) => {
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
             ? ['Right-clicked', "click({ button: 'right' })", () => target.element.click({ button: 'right' })]
-            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => findAgain(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label))]
+            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => findAgain(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label, session.cmd))]
     const text = await withNavigation(session, `${verb} ${target.label}`, run)
     return done(text, `await ${target.code}.${call}`)
 }
-
-/** the stale element errors of each driver, as webdriverio's `isStaleElementError` knows them */
-const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference/i
 
 /**
  * A CSS path or position (`ul > li:nth-of-type(2)`), as opposed to a
@@ -329,24 +327,26 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
     throw new Error('stale element reference: no selector finds the element again')
 }
 
+const isStale = (err: unknown) => typeof (err as Error)?.message === 'string' && isStaleElementError(err as Error)
+
 /**
  * A page that re-renders a list (a dropdown that opened) replaces the
  * element between finding and clicking it. One more try on the element
  * found again; if that is stale too, say what happened instead of passing
  * on the driver's error.
  */
-async function retryStale (err: unknown, retry: () => Promise<unknown>, label: string) {
-    if (!STALE.test((err as Error)?.message ?? '')) {
+async function retryStale (err: unknown, retry: () => Promise<unknown>, label: string, cmd: Cmd) {
+    if (!isStale(err)) {
         throw err
     }
     try {
         return await retry()
     } catch (again) {
-        if (!STALE.test((again as Error)?.message ?? '')) {
+        if (!isStale(again)) {
             throw again
         }
         throw new SessionError('REF_STALE', `${label} was replaced by the page while it was clicked.`, {
-            hint: 'Take a new snapshot (`wdio session snapshot -i`) and click the new ref, or click it by its text, e.g. `wdio session click "aria/<name>"`.'
+            hint: `Take a new snapshot (\`${cmd('snapshot', { interactive: true }, 'wdio session snapshot -i')}\`) and click the new ref, or click it by its text, e.g. \`${cmd('click', { target: 'aria/<name>' }, 'wdio session click "aria/<name>"')}\`.`
         })
     }
 }
@@ -359,6 +359,7 @@ export const tap: ActionFn = async (session, args) => {
 
 /** how each input type `setValue` sets directly writes its value, for the error when one isn't taken */
 const FORMATS: Record<string, string> = {
+    range: '50',
     date: '2026-10-04',
     time: '14:30',
     'datetime-local': '2026-10-04T14:30',
@@ -370,7 +371,22 @@ const FORMATS: Record<string, string> = {
 /** most arrow key presses `fill` spends on an ARIA slider */
 const MAX_SLIDER_STEPS = 200
 
-interface FillKind { kind: 'direct' | 'slider' | 'text', type?: string, now?: number, min?: number, max?: number }
+/** what `fillKind` found in and around an element that takes no text itself */
+interface EditableInside {
+    count: number
+    via?: 'inside' | 'aria-controls' | 'label'
+    selector?: string
+    desc?: string
+}
+
+interface FillKind extends Partial<EditableInside> {
+    kind: 'direct' | 'slider' | 'text'
+    type?: string
+    now?: number
+    min?: number
+    max?: number
+    editable?: boolean
+}
 
 async function fillKind (target: ResolvedTarget): Promise<FillKind> {
     if (typeof target.element.execute !== 'function') {
@@ -385,7 +401,55 @@ async function fillKind (target: ResolvedTarget): Promise<FillKind> {
             const num = (name: string) => el.hasAttribute(name) ? Number(el.getAttribute(name)) : undefined
             return { kind: 'slider' as const, now: num('aria-valuenow'), min: num('aria-valuemin'), max: num('aria-valuemax') }
         }
-        return { kind: 'text' as const }
+        const NOT_TEXT = ['hidden', 'button', 'submit', 'reset', 'checkbox', 'radio', 'file', 'image', 'range', 'color']
+        const isEditable = (node: Element) => node.tagName === 'INPUT'
+            ? !NOT_TEXT.includes((node as HTMLInputElement).type)
+            : node.tagName === 'TEXTAREA' || node.tagName === 'SELECT' || (node as HTMLElement).isContentEditable
+        if (isEditable(el)) {
+            return { kind: 'text' as const, editable: true }
+        }
+        const isVisible = (node: Element) => {
+            const rect = node.getBoundingClientRect()
+            return rect.width > 0 && rect.height > 0 && getComputedStyle(node).visibility !== 'hidden'
+        }
+        const describe = (node: Element) => node.tagName === 'INPUT'
+            ? `${(node as HTMLInputElement).type} input`
+            : node.tagName === 'TEXTAREA' || node.tagName === 'SELECT' ? node.tagName.toLowerCase() : 'editable element'
+        const relative = (node: Element) => {
+            const tag = node.tagName.toLowerCase()
+            if (el.querySelectorAll(tag).length === 1) {
+                return tag
+            }
+            const parts: string[] = []
+            for (let n: Element | null = node; n && n !== el; n = n.parentElement) {
+                const same = Array.from(n.parentElement!.children).filter((c) => c.tagName === n!.tagName)
+                parts.unshift(`${n.tagName.toLowerCase()}${same.length > 1 ? `:nth-of-type(${same.indexOf(n) + 1})` : ''}`)
+            }
+            return parts.join(' > ')
+        }
+        const inside = Array.from(el.querySelectorAll('input, textarea, select, [contenteditable]')).filter((node) => isEditable(node) && isVisible(node))
+        if (inside.length > 1) {
+            return { kind: 'text' as const, editable: false, count: inside.length }
+        }
+        let found: Element | undefined = inside[0]
+        let via: 'inside' | 'aria-controls' | 'label' = 'inside'
+        if (!found) {
+            const root = el.getRootNode() as Document | ShadowRoot
+            const linked = new Set(['aria-controls', 'aria-owns']
+                .flatMap((name) => (el.getAttribute(name) || '').split(/\s+/).filter(Boolean))
+                .map((id) => root.getElementById?.(id) ?? document.getElementById(id))
+                .filter((node): node is HTMLElement => Boolean(node) && isEditable(node!)))
+            const control = el.tagName === 'LABEL' ? (el as HTMLLabelElement).control : null
+            const others = linked.size ? [...linked] : control && isEditable(control) ? [control] : []
+            if (others.length !== 1) {
+                return { kind: 'text' as const, editable: false, count: others.length }
+            }
+            found = others[0]
+            via = linked.size ? 'aria-controls' : 'label'
+        }
+        const selector = via === 'inside' ? relative(found) : found.id ? `#${CSS.escape(found.id)}` : undefined
+        const foundType = found.tagName === 'INPUT' ? (found as HTMLInputElement).type : undefined
+        return { kind: 'text' as const, editable: false, count: selector ? 1 : 0, via, selector, desc: describe(found), type: foundType }
     }).catch(() => undefined) as FillKind | undefined
     return kind && typeof kind === 'object' && 'kind' in kind ? kind : { kind: 'text' }
 }
@@ -450,18 +514,88 @@ function pressCode (keys: string[]) {
         : `for (let i = 0; i < ${count}; i++) {\n    await browser.keys(${quote(key)})\n}`)
 }
 
+const INVALID_STATE = /invalid element state/i
+
+function notEditable (session: Session, target: ResolvedTarget, given: unknown, what: string, cause?: unknown) {
+    return new SessionError('NOT_EDITABLE', `${target.label} is not an editable field${what ? `: ${what}` : ''}.`, {
+        hint: `Run \`${session.cmd('snapshot', { scope: given }, `wdio session snapshot --scope ${given}`)}\` to see the fields inside it.`,
+        cause
+    })
+}
+
 export const fill: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
+    try {
+        return await fillTarget(session, args, target)
+    } catch (err) {
+        if (err instanceof SessionError || !INVALID_STATE.test(`${(err as Error)?.name} ${(err as Error)?.message}`)) {
+            throw err
+        }
+        throw notEditable(session, target, args.target, '', err)
+    }
+}
+
+/** the element a non-editable one stands for: the single field inside it or the one it points to */
+async function editableBehind (session: Session, target: ResolvedTarget, given: unknown, kind: FillKind): Promise<{ inner: ResolvedTarget, text: string }> {
+    if (!kind.count || !kind.selector) {
+        const what = kind.count ? `it has ${kind.count} editable fields` : 'it has no editable field inside'
+        throw notEditable(session, target, given, what)
+    }
+    const selector = kind.selector
+    const where = { inside: 'inside', 'aria-controls': 'controlled by', label: 'of' }[kind.via!]
+    const text = `Filled the ${kind.desc} ${where} ${target.label}`
+    if (kind.via !== 'inside') {
+        const inner = await resolveTarget(session, selector)
+        return { inner, text }
+    }
+    const element = await target.element.$(selector).getElement()
+    return { inner: { element, selector, code: `${target.code}.$(${quote(selector)})`, label: `${kind.desc} in ${target.label}` }, text }
+}
+
+const notTaken = (target: ResolvedTarget, value: string, took: string, type?: string) =>
+    usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${type} input takes values like ${FORMATS[type!] ?? 'its own format'}.`)
+
+/** setValue, with a value the browser rejected (the input keeps its previous one) as a usage error */
+async function setValueOrUsage (target: ResolvedTarget, value: string, type?: string) {
+    try {
+        await target.element.setValue(value)
+    } catch (err) {
+        if (!(err instanceof Error && err.message.startsWith('The browser rejected the value'))) {
+            throw err
+        }
+        throw notTaken(target, value, await target.element.getValue(), type)
+    }
+}
+
+async function fillTarget (session: Session, args: ActionArgs, target: ResolvedTarget): Promise<ActionOutcome> {
     const value = String(args.text ?? '')
     const kind = await fillKind(target)
+    await assertNotBlocked(session, target)
+    if (kind.kind === 'text' && kind.editable === false) {
+        const { inner, text } = await editableBehind(session, target, args.target, kind)
+        await withPointerFallback(session, inner, () => setValueOrUsage(inner, value, kind.type), async () => {
+            await inner.element.execute((el) => (el as unknown as HTMLInputElement).select?.())
+            await session.browser.keys(value)
+        })
+        return done(text, `await ${inner.code}.setValue(${quote(value)})`)
+    }
     if (kind.kind === 'direct') {
         // setValue sets these directly, as their picker does (see webdriverio's setValue)
-        await target.element.setValue(value)
+        await setValueOrUsage(target, value, kind.type)
         const took = await target.element.getValue()
         if (took !== value && kind.type !== 'range') {
-            throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
+            // the browser writes some values its own way (#ff8800 for #FF8800); an empty one only stays empty
+            const own = value === '' ? '' : await target.element.execute((el: Element, given: string) => {
+                const input = document.createElement('input')
+                input.type = (el as HTMLInputElement).type
+                input.value = given
+                return input.value
+            }, value)
+            if (took !== own) {
+                throw notTaken(target, value, took, kind.type)
+            }
         }
-        const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
+        const note = took !== value ? ` (it took ${took}: ${kind.type === 'range' ? 'the nearest allowed value' : 'the format of the input'})` : ''
         if (kind.type === 'range') {
             /**
              * A slider widget can keep its own state and miss a value set
@@ -509,8 +643,19 @@ interface ClickPoint {
     y: number
     /** what covers the element: role or tag and its text */
     cover?: string
-    /** where a hidden link goes */
-    href?: string
+    /** the cover is fixed or sticky and no dialog or banner: scrolling the element to the middle can free it */
+    sticky?: boolean
+    /** the center is under a fixed or sticky element, this point of the element is free */
+    offCenter?: boolean
+    /** a control inside the dialog or banner that covers the element, which closes it: `button "Reject all"` */
+    dismiss?: string
+    /** the cover is a modal layer (aria-modal, a modal dialog or a full-screen fixed backdrop): it keeps input from the element, not only the pointer */
+    blocking?: boolean
+    /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
+    originX: number
+    originY: number
+    /** the label to click, when the element itself is hidden */
+    label?: Record<string, string>
 }
 
 /**
@@ -526,8 +671,8 @@ interface ClickPoint {
  * - covered: something else is at the element's center (a cookie banner, a
  *   dialog, a sticky header).
  */
-async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
-    return target.element.execute((el: Element) => {
+async function clickPoint (target: ResolvedTarget, instant = false): Promise<ClickPoint> {
+    return target.element.execute((el: Element, instantScroll: boolean) => {
         const visible = (node: Element) => {
             const rect = node.getBoundingClientRect()
             const style = getComputedStyle(node)
@@ -535,9 +680,61 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
             return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none'
         }
         const center = (node: Element) => {
-            node.scrollIntoView({ block: 'center', inline: 'center' })
+            // smooth scrolling would leave the rect read below mid-scroll
+            node.scrollIntoView(instantScroll ? { block: 'center', inline: 'center', behavior: 'instant' } : { block: 'center', inline: 'center' })
             const rect = node.getBoundingClientRect()
-            return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
+            return {
+                x: Math.round(rect.x + rect.width / 2),
+                y: Math.round(rect.y + rect.height / 2),
+                originX: (Math.max(rect.left, 0) + Math.min(rect.right, innerWidth)) / 2,
+                originY: (Math.max(rect.top, 0) + Math.min(rect.bottom, innerHeight)) / 2
+            }
+        }
+        const isSticky = (node: Element) => {
+            let fixed = false
+            for (let up: Element | null = node; up; up = up.parentElement) {
+                const position = getComputedStyle(up).position
+                const role = Element.prototype.getAttribute.call(up, 'role')
+                const hint = `${up.id} ${typeof up.className === 'string' ? up.className : ''}`
+                if (up.localName === 'dialog' || role === 'dialog' || role === 'alertdialog' || Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || /cookie|consent|gdpr|modal|popup/i.test(hint)) {
+                    return false
+                }
+                fixed ||= position === 'fixed' || position === 'sticky'
+            }
+            return fixed
+        }
+        const FULL_SCREEN = 0.9
+        const isModal = (node: Element) => {
+            try {
+                return Element.prototype.matches.call(node, ':modal')
+            } catch {
+                return false
+            }
+        }
+        const isFullScreenFixed = (node: Element) => {
+            if (getComputedStyle(node).position !== 'fixed') {
+                return false
+            }
+            const rect = node.getBoundingClientRect()
+            return rect.width >= innerWidth * FULL_SCREEN && rect.height >= innerHeight * FULL_SCREEN
+        }
+        // contains() stops at a shadow root: climb through the host
+        const holds = (up: Element, target: Element) => {
+            const parentOf = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')!.get!
+            for (let node: Node | null = target; node; node = parentOf.call(node) || (node instanceof ShadowRoot ? node.host : null)) {
+                if (node === up) {
+                    return true
+                }
+            }
+            return false
+        }
+        const isOverlay = (cover: Element, target: Element) => {
+            for (let up: Element | null = cover; up && !holds(up, target); up = up.parentElement) {
+                if (Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || isModal(up) || isFullScreenFixed(up)) {
+                    return true
+                }
+            }
+            return false
         }
         // native accessors: bot checks plant elements that shadow them (see `isDecoy` in web.ts)
         const describe = (node: Element) => {
@@ -570,47 +767,117 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
                 target = root.host
             }
         }
-        const href = (el as HTMLAnchorElement).href || undefined
+        const dismissIn = (cover: Element): string | undefined => {
+            const container = Element.prototype.closest.call(cover, 'dialog, [role="dialog"], [role="alertdialog"], [aria-modal="true"], [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [id*="gdpr" i], [class*="gdpr" i]') as Element | null
+            if (!container) {
+                return undefined
+            }
+            const preferred = /close|dismiss|reject|decline|×|✕|✖/i
+            for (const control of Element.prototype.querySelectorAll.call(container, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]') as NodeListOf<Element>) {
+                if (!visible(control) || Element.prototype.matches.call(control, '[disabled], [aria-disabled="true"]') || Element.prototype.closest.call(control, 'fieldset[disabled]')) {
+                    continue
+                }
+                const text = (Element.prototype.getAttribute.call(control, 'aria-label') || Element.prototype.getAttribute.call(control, 'value') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(control) as string | undefined || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+                if (!text) {
+                    continue
+                }
+                const role = Element.prototype.getAttribute.call(control, 'role') || (control.localName === 'a' ? 'link' : 'button')
+                if (preferred.test(text)) {
+                    return `${role} "${text}"`
+                }
+            }
+            return undefined
+        }
         if (!visible(el)) {
             const label = (el as HTMLInputElement).labels?.[0]
             if (label && visible(label)) {
                 const point = center(label)
                 const cover = coverAt(label, point.x, point.y)
                 return cover
-                    ? { state: 'covered' as const, ...point, cover: describe(cover) }
-                    : { state: 'label' as const, ...point }
+                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, label) }
+                    : { state: 'label' as const, ...point, label }
             }
-            return { state: 'hidden' as const, x: 0, y: 0, href }
+            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0 }
         }
-        const { x, y } = center(el)
+        const { x, y, originX, originY } = center(el)
         const cover = coverAt(el, x, y)
+        if (cover && isSticky(cover)) {
+            const rect = el.getBoundingClientRect()
+            const left = Math.max(rect.left, 0)
+            const right = Math.min(rect.right, innerWidth)
+            const top = Math.max(rect.top, 0)
+            const bottom = Math.min(rect.bottom, innerHeight)
+            const [cx, cy, w, h] = [(left + right) / 2, (top + bottom) / 2, right - left, bottom - top]
+            const samples = [
+                [cx, cy + h / 4], [cx, cy - h / 4], [cx - w / 4, cy], [cx + w / 4, cy],
+                [left + 2, top + 2], [right - 2, top + 2], [left + 2, bottom - 2], [right - 2, bottom - 2]
+            ]
+            for (const [sx, sy] of samples) {
+                const free = Math.round(sx) >= left && Math.round(sx) <= right && Math.round(sy) >= top && Math.round(sy) <= bottom && w > 0 && h > 0
+                if (free && !coverAt(el, Math.round(sx), Math.round(sy))) {
+                    return { state: 'ok' as const, x: Math.round(sx), y: Math.round(sy), originX: cx, originY: cy, offCenter: true }
+                }
+            }
+        }
         return cover
-            ? { state: 'covered' as const, x, y, cover: describe(cover), href }
-            : { state: 'ok' as const, x, y }
-    }) as Promise<ClickPoint>
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, el) }
+            : { state: 'ok' as const, x, y, originX, originY }
+    }, instant) as Promise<ClickPoint>
+}
+
+function coveredHint (point: ClickPoint) {
+    return point.dismiss
+        ? `Close it first: ${point.dismiss}.`
+        : 'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
+}
+
+function coveredError (target: ResolvedTarget, point: ClickPoint) {
+    return usage(
+        `${target.label} is covered by ${point.cover}.`,
+        coveredHint(point)
+    )
+}
+
+/** fill and select reach past a cover that keeps the pointer off, so only an overlay (dialog, modal layer) is an error */
+async function assertNotBlocked (session: Session, target: ResolvedTarget) {
+    if (!session.isWeb) {
+        return
+    }
+    const point = await recheckAboveSticky(target, await clickPoint(target, true).catch(() => undefined))
+    if (point?.state === 'covered' && point.blocking) {
+        throw coveredError(target, point)
+    }
+}
+
+/**
+ * A fixed header or footer covers what the driver scrolled to the edge of
+ * the viewport. Scrolling the element to the middle once frees it; anything
+ * else that is on top stays an error for the caller to report.
+ */
+async function recheckAboveSticky (target: ResolvedTarget, point: ClickPoint | undefined) {
+    if (point?.state !== 'covered' || !point.sticky) {
+        return point
+    }
+    return await clickPoint(target, true).catch(() => point)
 }
 
 /**
  * Click the element, or fail at once with what is in the way (see clickPoint).
  */
 async function clickChecked (session: Session, target: ResolvedTarget) {
-    const point = await clickPoint(target).catch(() => undefined)
+    const first = await clickPoint(target).catch(() => undefined)
+    const point = await recheckAboveSticky(target, first)
     if (point?.state === 'hidden') {
         throw usage(
-            `${target.label} is not visible on the page${point.href ? `; it links to ${point.href}` : ''}.`,
-            point.href
-                ? 'It may be inside a closed menu, tab or dialog: open that first, or navigate to the link.'
-                : 'It may be inside a closed menu, tab or dialog: open that first.'
+            `${target.label} is not visible on the page.`,
+            'It may be inside a closed menu, tab or dialog: open the menu or section that contains it, scroll to it, or take a new snapshot.'
         )
     }
     if (point?.state === 'covered') {
-        throw usage(
-            `${target.label} is covered by ${point.cover}.`,
-            'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
-        )
+        throw coveredError(target, point)
     }
-    if (point?.state === 'label') {
-        await pointerClick(session, point)
+    if (point?.state === 'label' || (point?.state === 'ok' && (point !== first || point.offCenter))) {
+        await pointerClick(session, target, point)
         return
     }
     try {
@@ -624,23 +891,27 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
         if (!/click intercepted|not interactable/i.test(`${(err as Error).name} ${(err as Error).message}`)) {
             throw err
         }
-        const again = await clickPoint(target).catch(() => undefined)
+        const again = await recheckAboveSticky(target, await clickPoint(target).catch(() => undefined))
         if (again?.state === 'ok' || again?.state === 'label') {
-            await pointerClick(session, again)
+            await pointerClick(session, target, again)
             return
         }
         if (again?.state === 'covered') {
-            throw usage(
-                `${target.label} is covered by ${again.cover}.`,
-                'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
-            )
+            throw coveredError(target, again)
         }
         throw err
     }
 }
 
-function pointerClick (session: Session, point: ClickPoint) {
-    return session.browser.action('pointer').move({ x: point.x, y: point.y, origin: 'viewport' }).down().up().perform()
+/**
+ * The point is in the viewport of the element's frame. A viewport origin is
+ * the top-level page's, so the move is relative to an element instead, which
+ * carries its frame into the action.
+ */
+async function pointerClick (session: Session, target: ResolvedTarget, point: ClickPoint) {
+    const origin = point.label ? await target.element.$(point.label as never) : target.element
+    const [x, y] = [Math.round(point.x - point.originX), Math.round(point.y - point.originY)]
+    return session.browser.action('pointer').move({ x, y, origin }).down().up().perform()
 }
 
 /**
@@ -664,15 +935,17 @@ async function withPointerFallback (session: Session, target: ResolvedTarget, ru
             const rect = el.getBoundingClientRect()
             const x = Math.round(rect.x + rect.width / 2)
             const y = Math.round(rect.y + rect.height / 2)
+            const originX = (Math.max(rect.left, 0) + Math.min(rect.right, innerWidth)) / 2
+            const originY = (Math.max(rect.top, 0) + Math.min(rect.bottom, innerHeight)) / 2
             // asked of the element's own (possibly closed) root, the hit is not retargeted to a host
             const root = el.getRootNode() as Document | ShadowRoot
             const hit = root.elementFromPoint(x, y)
-            return { x, y, hit: Boolean(hit && (hit === el || el.contains(hit))) }
+            return { x, y, originX, originY, hit: Boolean(hit && (hit === el || el.contains(hit))) }
         })
         if (!center.hit) {
             throw err
         }
-        await session.browser.action('pointer').move({ x: center.x, y: center.y, origin: 'viewport' }).down().up().perform()
+        await session.browser.action('pointer').move({ x: Math.round(center.x - center.originX), y: Math.round(center.y - center.originY), origin: target.element }).down().up().perform()
         await after?.()
     }
 }
@@ -743,6 +1016,7 @@ export const press: ActionFn = async (session, args) => {
 
 export const select: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
+    await assertNotBlocked(session, target)
     const value = String(args.value ?? '')
     const by = (args.by as string | undefined) || 'text'
     let call: string

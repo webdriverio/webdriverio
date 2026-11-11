@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path'
-import url from 'node:url'
 import os from 'node:os'
 
-import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
-import WDIOReporter from '@wdio/reporter'
+import type { RunnerStats, TestStats } from '@wdio/reporter'
+import WDIOReporter, { HookStats, SuiteStats, hookCountsAsFailure, isContextlessAllHook, sanitizeCaps, getSessions, specFilePath } from '@wdio/reporter'
 import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -24,7 +23,12 @@ interface JunitReporterAdditionalInformation {
     workerConsoleLog: string
     /** Additional properties for junit reporting */
     properties: { [keys: string]: string }
+    /** hooks of the parallel context of the test before it started */
+    hooks?: HookStats[]
 }
+
+// the hooks of a unit before its test
+const HOOKS_BEFORE_TEST = Symbol('junit hooks before test')
 
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
@@ -40,10 +44,18 @@ class JunitReporter extends WDIOReporter {
     private _activeFeature?: any
     private _activeFeatureName?: any
     private _testToAdditionalInformation: { [keys: string]: JunitReporterAdditionalInformation }
-    private _currentTest?: TestStats
     private _originalStdoutWrite: Function
     private _addWorkerLogs: boolean
     private _isWindows: boolean
+    // worker logs and properties of a hook: the base gives it the calls with no test
+    private _hookInformation = new Map<HookStats, JunitReporterAdditionalInformation>()
+    private _suiteNodes: { node: any, suite: SuiteStats }[] = []
+    // failed hooks written as testcases: their output is not in the testsuite
+    private _hookTestCases = new Map<object, HookStats>()
+    private _afterScenarioHooks = new Set<HookStats>()
+    private _lateTestCases: (() => void)[] = []
+    // hooks whose output a test took: their testcase does not write it again
+    private _takenHooks = new Set<HookStats>()
 
     constructor(public options: JUnitReporterOptions) {
         super(options)
@@ -59,7 +71,9 @@ class JunitReporter extends WDIOReporter {
         if (this._addWorkerLogs) {
             processObj.stdout.write = this._appendConsoleLog.bind(this)
         }
-        processObj.on(events.addProperty, this._addPropertyToCurrentTest.bind(this))
+        const addProperty = this._addPropertyToCurrentTest.bind(this)
+        this.onProcess(events.addProperty, addProperty)
+        this.on(events.addProperty, addProperty)
     }
 
     onTestRetry(testStats: TestStats) {
@@ -67,12 +81,30 @@ class JunitReporter extends WDIOReporter {
     }
 
     onTestStart(test: TestStats) {
-        // Reset stdout when a test starts
-        this._currentTest = test
         this._testToAdditionalInformation[test.uid] = {
             workerConsoleLog: '',
             properties: {},
-            uid: test.uid
+            uid: test.uid,
+            ...this._hooksBeforeTest()
+        }
+    }
+
+    onTestPending(test: TestStats) {
+        const hooks = this._hooksBeforeTest()
+        if (hooks && !this._testToAdditionalInformation[test.uid]) {
+            this._testToAdditionalInformation[test.uid] = { workerConsoleLog: '', properties: {}, uid: test.uid, ...hooks }
+        }
+    }
+
+    onHookStart(hook: HookStats) {
+        const unit = this.getContextUnit()
+        // a parallel unit, or a sequential scenario before its first step
+        if (unit && !unit.test) {
+            this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])!.push(hook)
+        }
+        const parent = this.parentOf(hook)
+        if (parent && this.isFeatureHook(hook) && (parent.suites.length || parent.tests.length)) {
+            this._afterScenarioHooks.add(hook)
         }
     }
 
@@ -81,17 +113,36 @@ class JunitReporter extends WDIOReporter {
         this.write(xml)
     }
 
+    // the hooks of the unit that ran before its test
+    private _hooksBeforeTest() {
+        const hooks = this.unitState(HOOKS_BEFORE_TEST, () => [] as HookStats[])?.splice(0)
+        hooks?.forEach((hook) => this._takenHooks.add(hook))
+        return hooks?.length ? { hooks } : undefined
+    }
+
+    // the owner of a worker log or a property: the stats that the base gives the calls of the caller
+    private _currentInformation(): JunitReporterAdditionalInformation | undefined {
+        const owner = this.getContextOwner()
+        if (!(owner instanceof HookStats)) {
+            return owner ? this._testToAdditionalInformation[owner.uid] : undefined
+        }
+        if (!this._hookInformation.has(owner)) {
+            this._hookInformation.set(owner, { uid: owner.uid, workerConsoleLog: '', properties: {} })
+        }
+        return this._hookInformation.get(owner)
+    }
+
     private _addPropertyToCurrentTest(dataObj: { name: string, value: string }) {
-        if (this._currentTest?.uid) {
-            this._testToAdditionalInformation[this._currentTest.uid].properties[dataObj.name] = dataObj.value
+        const info = this._currentInformation()
+        if (info) {
+            info.properties[dataObj.name] = dataObj.value
         }
     }
 
     private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
-        if (this._currentTest?.uid) {
-            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog = (this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog ?? '') + chunk
-            }
+        const info = this._currentInformation()
+        if (info && typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+            info.workerConsoleLog = (info.workerConsoleLog ?? '') + chunk
         }
         return this._originalStdoutWrite(chunk, encoding, callback)
     }
@@ -106,18 +157,64 @@ class JunitReporter extends WDIOReporter {
         /**
          * Add failed hooks to suite as tests.
          */
-        const failedHooks = suite.hooks.filter(hook => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
+        const failedHooks = suite.hooks.filter(hook => hookCountsAsFailure(hook) && hook.title.match(/^"(before|after)( all| each)?" hook/))
         failedHooks.forEach(hook => {
-            const { title, _duration, error, state } = hook
-            suite.tests.push({
-                _duration,
-                title,
-                error,
-                state: state as 'failed' | 'passed',
-                output: []
-            } as any)
+            suite.tests.push(this._hookTestCase(hook))
         })
         return suite
+    }
+
+    // a failed hook as a test: it keeps the output that the base gave the hook
+    private _hookTestCase(hook: HookStats) {
+        const { title, _duration, error, state } = hook
+        const test = {
+            _duration,
+            title,
+            error,
+            state: state as 'failed' | 'passed',
+            output: this._takenHooks.has(hook) ? [] : hook.output ?? []
+        } as unknown as TestStats
+        this._hookTestCases.set(test, hook)
+        return test
+    }
+
+    /**
+     * Add the failed hooks of a Cucumber scenario to its steps. Cucumber hooks have no
+     * Mocha style title (an unnamed `Before` has none at all), so take every failed hook.
+     * Hooks that ran before the first step go in front of the steps, so the scenario is
+     * reported as failed and not as skipped.
+     */
+    private _addFailedCucumberHooks(scenario: SuiteStats) {
+        const firstStep = scenario.tests[0]
+        const order = scenario.hooksAndTests ?? []
+        const indexOf = (entry: HookStats | TestStats) => order.findIndex((recorded) => recorded === entry || recorded.uid === entry.uid)
+        const firstStepIndex = firstStep ? indexOf(firstStep) : -1
+        const isBefore = (hook: HookStats) => {
+            if (!firstStep) {
+                return true
+            }
+            /**
+             * the reporter records hooks and steps in the order they ran, a start time
+             * can be the same for a step and the hook right after it
+             */
+            const hookIndex = indexOf(hook)
+            if (hookIndex !== -1 && firstStepIndex !== -1) {
+                return hookIndex < firstStepIndex
+            }
+            return new Date(hook.start).getTime() < new Date(firstStep.start).getTime()
+        }
+        const toStep = (hook: HookStats, before: boolean) => ({
+            _duration: hook._duration,
+            title: hook.title || (before ? 'Before hook' : 'After hook'),
+            error: hook.error,
+            state: 'failed',
+            output: []
+        }) as unknown as TestStats
+
+        const failedHooks = scenario.hooks.filter(hookCountsAsFailure)
+        scenario.tests.unshift(...failedHooks.filter(isBefore).map((hook) => toStep(hook, true)))
+        scenario.tests.push(...failedHooks.filter((hook) => !isBefore(hook)).map((hook) => toStep(hook, false)))
+        return scenario
     }
 
     /**
@@ -156,14 +253,16 @@ class JunitReporter extends WDIOReporter {
                     // default
                     testCase.failure(test.error.message)
                 }
-                testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
+                // a test can fail with more errors, e.g. its body and the afterEach that Vitest gives it
+                const stacks = (test.errors?.length ? test.errors : [test.error]).map((error) => error.stack?.replace(ansiRegex, '') ?? '')
+                testCase.standardError(`\n${stacks.join('\n')}\n`)
             } else {
                 testCase.failure()
             }
         }
 
-        for (const propName of Object.keys(this._testToAdditionalInformation[test.uid]?.properties ?? {})) {
-            testCase.property(propName, this._testToAdditionalInformation[test.uid].properties[propName])
+        for (const [propName, value] of this._propertiesOf(test)) {
+            testCase.property(propName, value)
         }
 
         const output = this._getStandardOutput(test)
@@ -186,11 +285,15 @@ class JunitReporter extends WDIOReporter {
                 .time(suite._duration / 1000)
                 .property('specId', 0)
                 .property(this._suiteTitleLabel, suite.title)
-                .property('capabilities', runner.sanitizedCapabilities)
+                .property('capabilities', capabilitiesName(runner))
                 .property(this._fileNameLabel, filePath)
             this._activeFeature = feature
             this._activeFeatureName = featureName
+            this._suiteNodes.push({ node: feature, suite })
 
+            const classNameFormat = this.options.classNameFormat
+                ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: featureName })
+                : `${this._packageName}.${featureName}`
             /**
              * When `cucumberOpts.scenarioLevelReporter` is enabled, whole scenarios are
              * reported as tests directly on the feature suite (no separate `scenario`
@@ -202,10 +305,17 @@ class JunitReporter extends WDIOReporter {
                 }
 
                 const test = suite.tests[testKey as any]
-                const classNameFormat = this.options.classNameFormat
-                    ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: featureName })
-                    : `${this._packageName}.${featureName}`
                 this._buildTestCase(feature, test, filePath, classNameFormat)
+            }
+
+            // a failed hook of the feature: a Cucumber BeforeAll / AfterAll, an AfterAll after the scenarios
+            for (const hook of suite.hooks.filter(hookCountsAsFailure)) {
+                const add = () => this._buildTestCase(feature, this._hookTestCase(hook), filePath, classNameFormat)
+                if (hook.hookKind === 'afterAll' || (!hook.hookKind && this._afterScenarioHooks.has(hook))) {
+                    this._lateTestCases.push(add)
+                } else {
+                    add()
+                }
             }
         } else if (this._activeFeature) {
             let scenario = suite
@@ -220,7 +330,7 @@ class JunitReporter extends WDIOReporter {
                 testCase.file(filePath)
             }
 
-            scenario = this._addFailedHooks(scenario)
+            scenario = this._addFailedCucumberHooks(scenario)
 
             let stepsOutput = ''
             let isFailing = false
@@ -262,7 +372,7 @@ class JunitReporter extends WDIOReporter {
                     stepEmoji = '❗'
                 }
                 const output = this._getStandardOutput(step)
-                stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
+                stepsOutput += stepEmoji + ' ' + step.title + '\n' + (output ? output + '\n' : '')
             }
 
             // Add properties for each step (Cucumber steps are tests in the scenario)
@@ -271,8 +381,8 @@ class JunitReporter extends WDIOReporter {
                     continue
                 }
                 const step = scenario.tests[stepKey as any]
-                for (const propName of Object.keys(this._testToAdditionalInformation[step.uid]?.properties ?? {})) {
-                    testCase.property(propName, this._testToAdditionalInformation[step.uid].properties[propName])
+                for (const [propName, value] of this._propertiesOf(step)) {
+                    testCase.property(propName, value)
                 }
             }
 
@@ -299,8 +409,9 @@ class JunitReporter extends WDIOReporter {
             .time(suite._duration / 1000)
             .property('specId', 0)
             .property(this._suiteTitleLabel, suite.title)
-            .property('capabilities', runner.sanitizedCapabilities)
+            .property('capabilities', capabilitiesName(runner))
             .property(this._fileNameLabel, filePath)
+        this._suiteNodes.push({ node: testSuite, suite })
 
         suite = this._addFailedHooks(suite)
 
@@ -334,10 +445,10 @@ class JunitReporter extends WDIOReporter {
                 .filter(Boolean)
                 .map((capability) => capability!.toLowerCase())
                 .join('.')
-                .replace(/ /g, '') || runner.sanitizedCapabilities
+                .replace(/ /g, '') || capabilitiesName(runner)
             this._packageName = this.options.packageName || browserstackSanitizedCapabilities
         } else {
-            this._packageName = this.options.packageName || runner.sanitizedCapabilities
+            this._packageName = this.options.packageName || capabilitiesName(runner)
         }
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
             || Object.values(this.suites).some((suite) => suite.type === 'feature' || suite.type === 'scenario')
@@ -361,6 +472,8 @@ class JunitReporter extends WDIOReporter {
          * results are not attributed to an arbitrary full path.
          */
         const assignedSuiteKeys = new Set<string>()
+        this._suiteNodes = []
+        this._lateTestCases = []
         runner.specs.forEach((specFileName) => {
             if (isCucumberFrameworkRunner) {
                 this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner, assignedSuiteKeys)
@@ -370,7 +483,51 @@ class JunitReporter extends WDIOReporter {
             }
         })
         this._addAmbiguousBasenameSuites(builder, runner, isCucumberFrameworkRunner, assignedSuiteKeys)
+        this._lateTestCases.forEach((add) => add())
+        this._addAllHookOutput()
         return builder.build() as unknown as string
+    }
+
+    /**
+     * The output of a contextless all-hook goes to the testsuite of its suite: a hook of
+     * the root suite to the first testsuite (before all) or the last one (after all).
+     */
+    private _addAllHookOutput() {
+        const hooksOf = new Map<SuiteStats | undefined, HookStats[]>()
+        const written = new Set(this._hookTestCases.values())
+        for (const suite of [this.currentSuites[0], ...Object.values(this.suites)]) {
+            for (const hook of (suite?.hooks ?? []).filter((hook) => isContextlessAllHook(hook) && !written.has(hook))) {
+                const owner = this.hookOwner(hook)
+                const key = owner instanceof SuiteStats ? owner : undefined
+                hooksOf.set(key, [...(hooksOf.get(key) ?? []), hook])
+            }
+        }
+        const rootHooks = hooksOf.get(undefined) ?? []
+        this._suiteNodes.forEach(({ node, suite }, index) => {
+            const hooks = [
+                ...(index === 0 ? rootHooks.filter((hook) => hook.hookKind === 'beforeAll') : []),
+                ...(hooksOf.get(suite) ?? []),
+                ...(index === this._suiteNodes.length - 1 ? rootHooks.filter((hook) => hook.hookKind === 'afterAll') : [])
+            ]
+            for (const hook of hooks) {
+                for (const [name, value] of Object.entries(this._hookInformation.get(hook)?.properties ?? {})) {
+                    node.property(name, value)
+                }
+            }
+            const text = hooks
+                .map((hook) => this._getStandardOutput({ uid: hook.uid, output: hook.output ?? [] }, this._hookInformation.get(hook)))
+                .filter(Boolean)
+                .join('\n')
+            if (text) {
+                // junit-report-builder has no system-out for a testsuite; 5.1.2 `build(parentElement)` returns the testsuite element
+                const build = node.build.bind(node)
+                node.build = (parent?: any) => {
+                    const element = build(parent)
+                    element.ele('system-out').cdata(`\n${text}\n`)
+                    return element
+                }
+            }
+        })
     }
 
     private _buildOrderedReport(
@@ -458,7 +615,7 @@ class JunitReporter extends WDIOReporter {
                 }
                 if (
                     !suite.file ||
-                    !this._isBasenameOnly(this._toFilePath(suite.file)) ||
+                    !this._isBasenameOnly(specFilePath(suite.file)) ||
                     this._matchingSpecCount(suite.file, runner.specs) <= 1
                 ) {
                     continue
@@ -473,12 +630,33 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _getStandardOutput(test: TestStats) {
+    private _informationOf(test: Pick<TestStats, 'uid'>) {
+        const hook = this._hookTestCases.get(test)
+        if (hook) {
+            return this._takenHooks.has(hook) ? undefined : this._hookInformation.get(hook)
+        }
+        return this._testToAdditionalInformation[test.uid]
+    }
+
+    // the hooks of the context before the test, then the test
+    private _ownersOf(test: Pick<TestStats, 'output'>, info?: JunitReporterAdditionalInformation) {
+        return [
+            ...(info?.hooks ?? []).map((hook) => ({ info: this._hookInformation.get(hook), output: hook.output ?? [] })),
+            { info, output: test.output }
+        ]
+    }
+
+    private _propertiesOf(test: Pick<TestStats, 'uid' | 'output'>) {
+        return this._ownersOf(test, this._informationOf(test)).flatMap(({ info }) => Object.entries(info?.properties ?? {}))
+    }
+
+    private _getStandardOutput(test: Pick<TestStats, 'uid' | 'output'>, info = this._informationOf(test)) {
+        const owners = this._ownersOf(test, info)
         let consoleOutput = ''
         if (this._addWorkerLogs) {
-            consoleOutput = this._testToAdditionalInformation[test.uid]?.workerConsoleLog ?? ''
+            consoleOutput = owners.map((owner) => owner.info?.workerConsoleLog ?? '').join('')
         }
-        const commandText = this._getCommandStandardOutput(test)
+        const commandText = this._getCommandStandardOutput({ output: owners.flatMap((owner) => owner.output) })
         let result = ''
         if (consoleOutput !== '') {
             result += consoleOutput
@@ -491,7 +669,7 @@ class JunitReporter extends WDIOReporter {
         return result
     }
 
-    private _getCommandStandardOutput(test: TestStats) {
+    private _getCommandStandardOutput(test: Pick<TestStats, 'output'>) {
         const standardOutput: string[] = []
         test.output.forEach((data) => {
             switch (data.type) {
@@ -515,10 +693,6 @@ class JunitReporter extends WDIOReporter {
         return JSON.stringify(limit(val))
     }
 
-    private _toFilePath(file: string) {
-        return file.startsWith('file://') ? url.fileURLToPath(file) : file
-    }
-
     private _isBasenameOnly(file: string) {
         return !file.includes('/') && !file.includes('\\')
     }
@@ -528,9 +702,9 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _matchingSpecCount(suiteFile: string, runnerSpecs: string[]) {
-        const suiteBase = path.basename(this._toFilePath(suiteFile))
+        const suiteBase = path.basename(specFilePath(suiteFile))
         return runnerSpecs.filter((spec) => (
-            this._fileNamesEqual(path.basename(this._toFilePath(spec)), suiteBase)
+            this._fileNamesEqual(path.basename(specFilePath(spec)), suiteBase)
         )).length
     }
 
@@ -553,7 +727,7 @@ class JunitReporter extends WDIOReporter {
             return 'unique'
         }
 
-        const suitePath = this._toFilePath(suiteFile)
+        const suitePath = specFilePath(suiteFile)
         if (!this._isBasenameOnly(suitePath)) {
             return 'unique'
         }
@@ -569,8 +743,8 @@ class JunitReporter extends WDIOReporter {
             return false
         }
 
-        file1 = this._toFilePath(file1)
-        file2 = this._toFilePath(file2)
+        file1 = specFilePath(file1)
+        file2 = specFilePath(file2)
 
         /**
          * Jasmine provides only filenames (e.g. `happyPath.spec.js`) while
@@ -587,4 +761,17 @@ class JunitReporter extends WDIOReporter {
 }
 
 export * from './common/api.js'
+/**
+ * the sanitized capabilities of a runner; a multi-remote run lists each instance and its browser
+ */
+function capabilitiesName (runner: RunnerStats): string {
+    if (!runner.isMultiRemote || !runner.capabilities || typeof runner.capabilities !== 'object') {
+        return runner.sanitizedCapabilities
+    }
+    return getSessions(runner.capabilities, true).map(({ name, capabilities }) => {
+        const caps = sanitizeCaps(capabilities as WebdriverIO.Capabilities).replace(/\./g, '_')
+        return caps ? `${name}-${caps}` : name
+    }).join('+')
+}
+
 export default JunitReporter

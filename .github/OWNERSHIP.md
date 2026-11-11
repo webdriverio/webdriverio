@@ -37,6 +37,7 @@ published as user docs — do not add developer footers there.
 | Mocha / Jasmine / Cucumber | `@wdio/*-framework` | |
 | Browser component tests | `@wdio/browser-runner` | CI `component` lane |
 | Persistent `wdio session` | `@wdio/session` | CI `session` lane |
+| Page and native snapshot trees | `@wdio/snapshot` | CI `session` lane |
 | Display server (Wayland / Xvfb) | `@wdio/display-server` | CI `display_server` lane |
 | Type generation / esbuild | `@wdio/compiler` | `infra/compiler` |
 | Docs index / scoped tests / CI lanes | `@wdio/repo-tools` | `infra/repo-tools` |

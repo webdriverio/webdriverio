@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`utils > getFailedMessage > should return an error message if the status is "failed" 1`] = `
+{
+  "error_message": "Error: expect(received).toEqual(expected) // deep equality
+
+Expected: "bar"
+Received: "foo"
+    at World.<anonymous> (/Users/wimselles/Git/cucumberjs-json-demo/steps.js:17:19)",
+}
+`;

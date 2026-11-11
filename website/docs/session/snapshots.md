@@ -31,7 +31,7 @@ The text layout of a snapshot, and the shape `--json` prints for it, are experim
 | --- | --- |
 | `snapshot --interactive` | The elements you can act on, each with a ref |
 | `find "Add to cart"` | Each match with the node around it, e.g. a whole list item, so a value next to the match comes along. `-A`, `-B` and `-C` print plain line context like grep |
-| `diff` | What changed since the previous snapshot |
+| `diff`, `snapshot --diff` | What changed since the previous snapshot. With `snapshot --diff`, `--offset` above 1 and a web `--viewport` are usage errors, and a diff longer than `--max-chars` is cut at a line and names the snapshot file |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `source` | The page HTML or the native XML |
 
@@ -73,6 +73,16 @@ With WebDriver BiDi, the snapshot also covers closed shadow roots, and elements 
 
 On Android, iOS, macOS and Windows the snapshot comes from the Appium page source. Two controls that share an accessibility id stay separate refs when the rest of their selectors differ. `snapshot --scope e3` limits the tree to that ref.
 
+## Repeated controls
+
+When several controls share a role and a name, such as the "Add to cart" button of every row in a product table, the ref line ends with `∈ "<text>"`, the text of the row, card or list item that holds that control and no other of the same name:
+
+```text
+- button "Add to cart" [ref=e9] ∈ "Desk lamp · Brass · In stock · $49.00"
+```
+
+The text is cut at 80 characters. A control whose item is a page landmark (a "Sign in" link in both the header and the footer) gets none. The label of a visible form control is not listed: the control carries the name.
+
 ## Native taps
 
 Web sessions use `click`. Mobile and native desktop sessions use `tap` on the same ref:
@@ -90,6 +100,7 @@ npx wdio session tap e3
 | `REF_STALE` | The element from the last snapshot is gone. Run `snapshot` and use a new ref. |
 | `REF_NOT_FOUND` | That id was never in this session. The ref in your command does not match the latest snapshot. |
 | `NO_MATCH` | `find` did not see that text. Snapshot and read the names that are actually there. |
+| `NOT_EDITABLE` | The `fill` target is not an editable field and has no single editable field inside it (or behind `aria-controls`/`aria-owns`/label). Run `snapshot --scope <target>` and fill the field ref. |
 
 ## Next steps
 

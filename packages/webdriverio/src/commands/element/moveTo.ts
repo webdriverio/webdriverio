@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 import type { MoveToOptions } from '../../types.js'
 import { foreignContext } from '../../utils/foreignContext.js'
+import { bidiGetRect, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
 const log = logger('webdriver')
 
@@ -26,7 +27,9 @@ export async function moveTo (
 ) {
     const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
-        const { width, height } = await this.getElementRect(this.elementId)
+        const { width, height } = isBidiCommandsEnabled(browser as WebdriverIO.Browser)
+            ? await bidiGetRect(this)
+            : await this.getElementRect(this.elementId)
         if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
             log.warn('xOffset would cause a out of bounds error as it goes outside of element')
         }

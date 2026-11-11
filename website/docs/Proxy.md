@@ -33,8 +33,10 @@ For more advanced proxy configurations or if you need programmatic control, you 
 #### Install undici
 
 ```bash npm2yarn
-npm install undici --save-dev
+npm install undici@8 --save-dev
 ```
+
+Since v10, WebdriverIO uses `undici` 8. It does not see a dispatcher that `undici` 6, or `undici` 7 older than 7.27, sets: its requests then skip the proxy, with no error.
 
 #### Add undici setGlobalDispatcher to your config file
 
@@ -67,6 +69,26 @@ If you use [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/s
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
+
+## Proxy For Browser And Driver Downloads
+
+WebdriverIO downloads the browser and the driver it needs when they are not installed yet.
+
+- **Geckodriver and Edgedriver** downloads use `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY`. A dispatcher set with `setGlobalDispatcher` wins over these variables.
+- **Chrome, Chromium, Firefox and Chromedriver** downloads use `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` only when one of these is true:
+  - the `proxy-agent` package is installed in your project:
+
+    ```bash
+    npm install --save-dev proxy-agent
+    ```
+
+  - Node.js runs with its built-in proxy support:
+
+    ```bash
+    NODE_USE_ENV_PROXY=1 npx wdio run ./wdio.conf.ts
+    ```
+
+  WebdriverIO does not install `proxy-agent` for you, because its dependency tree has security advisories without a fix. When a proxy variable is set and neither option is active, WebdriverIO logs a warning before the first download.
 
 ## Proxy Between Browser And Internet
 

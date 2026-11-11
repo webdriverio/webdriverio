@@ -6,7 +6,8 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-const contextMocks = vi.hoisted(() => ({
+const contextMocks = await vi.hoisted(async () => ({
+    parallelStore: new (await import('node:async_hooks')).AsyncLocalStorage<string>(),
     getCurrentWindowHandle: vi.fn((): string | undefined => 'top-level'),
     getCurrentContext: vi.fn(async () => 'frame-1')
 }))
@@ -16,7 +17,8 @@ vi.mock('../../../src/session/context.js', () => ({
         initialize: vi.fn().mockResolvedValue('top-level'),
         getCurrentWindowHandle: contextMocks.getCurrentWindowHandle,
         getCurrentContext: contextMocks.getCurrentContext
-    }))
+    })),
+    getParallelContextStore: () => contextMocks.parallelStore
 }))
 
 function scriptValue (value: string) {
@@ -171,6 +173,18 @@ describe('back and forward', () => {
                 delta: -1
             })
             expect(contextMocks.getCurrentContext).not.toHaveBeenCalled()
+        })
+
+        it('traverses the parallel test context instead of the session window', async () => {
+            browser.capabilities.pageLoadStrategy = 'none'
+
+            await contextMocks.parallelStore.run('parallel-ctx', () => browser.forward())
+
+            expect(browser.browsingContextTraverseHistory).toHaveBeenCalledWith({
+                context: 'parallel-ctx',
+                delta: 1
+            })
+            expect(browser.getWindowHandle).not.toHaveBeenCalled()
         })
 
         it('does not pass a frame context through', async () => {

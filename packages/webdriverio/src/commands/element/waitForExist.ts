@@ -1,5 +1,10 @@
 import { ELEMENT_KEY } from 'webdriver'
-import type { WaitForOptions, ChainablePromiseElement } from '../../types.js'
+import { getBrowserObject } from '@wdio/utils'
+
+import { canFindAgain, findElementAgain } from '../../utils/findElementAgain.js'
+import { bidiGetTagName, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import type { WaitForOptions } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -50,7 +55,7 @@ export async function waitForExist (
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
     const isExisting = await this.waitUntil(
@@ -64,7 +69,7 @@ export async function waitForExist (
      * as the user may expect to be able to access an element id after it has
      * calling `waitForExist`.
      */
-    if (!reverse && isExisting && typeof this.selector === 'string') {
+    if (!reverse && isExisting && canFindAgain(this)) {
         /**
          * If the element already has a valid elementId, we don't need to refetch it.
          * This prevents overwriting the element with a different one if the DOM order changed.
@@ -72,7 +77,8 @@ export async function waitForExist (
         let isCurrentIdValid = false
         if (this.elementId) {
             try {
-                await this.getElementTagName(this.elementId)
+                const browser = getBrowserObject(this) as WebdriverIO.Browser
+                await (isBidiCommandsEnabled(browser) ? bidiGetTagName(this) : this.getElementTagName(this.elementId))
                 isCurrentIdValid = true
             } catch {
                 // ignore
@@ -80,22 +86,8 @@ export async function waitForExist (
         }
 
         if (!isCurrentIdValid) {
-            let element: WebdriverIO.Element | ChainablePromiseElement
-
-            if (this.index !== undefined) {
-                const parent = this.parent as WebdriverIO.Element | WebdriverIO.Browser
-                const elements = this.isShadowElement
-                    ? await parent.shadow$$(this.selector as string)
-                    : await parent.$$(this.selector as string)
-                element = elements[this.index]
-            } else {
-                const parent = this.parent as WebdriverIO.Element | WebdriverIO.Browser
-                element = this.isShadowElement
-                    ? parent.shadow$(this.selector)
-                    : parent.$(this.selector, { strict: this.strict })
-            }
-
-            this.elementId = await element.elementId
+            const element = await findElementAgain(this, { wait: true })
+            this.elementId = element?.elementId as string
             this[ELEMENT_KEY] = this.elementId
         }
         delete this.error

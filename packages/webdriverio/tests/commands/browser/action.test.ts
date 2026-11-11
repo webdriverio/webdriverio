@@ -55,6 +55,29 @@ describe('action command', () => {
             .toThrowError(/more than one/)
     })
 
+    it.each(['𠮷', '𝄞', '😀', '👍🏽', '🇫🇷', '👨‍👩‍👧', 'e\u0301'])('supports a single Unicode grapheme %s in key actions', async (value) => {
+        await browser.action('key', { id: 'unicode' })
+            .down(value)
+            .up(value)
+            .perform()
+
+        const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)
+        expect(body).toEqual({
+            actions: [{
+                type: 'key',
+                id: 'unicode',
+                parameters: {},
+                actions: [{ type: 'keyDown', value }, { type: 'keyUp', value }]
+            }]
+        })
+    })
+
+    it.each(['down', 'up'] as const)('rejects multiple Unicode graphemes in key %s', (action) => {
+        for (const value of ['𠮷𝄞', '👍🏽🇫🇷', '👍🏽a', '🇫🇷🇫🇷', 'e\u0301a']) {
+            expect(() => browser.action('key')[action](value)).toThrowError(/more than one/)
+        }
+    })
+
     it('should trigger command key when Key.Ctrl is used', async () => {
         vi.mocked(os.type).mockReturnValue('Darwin')
         await browser.action('key', { id: 'foobar' })
@@ -211,6 +234,23 @@ describe('action command', () => {
         const calls = vi.mocked(fetch).mock.calls
         const [,,, [, performActionParam]] = calls as any
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
+    })
+
+    it('waits for a loaded origin element that was not on the page when it was looked up', async () => {
+        const origin = await browser.$('#drag')
+        // @ts-expect-error simulate an element that wasn't on the page at lookup
+        delete origin.elementId
+        delete origin['element-6066-11e4-a52e-4f735466cecf']
+        const waitForExist = vi.spyOn(origin, 'waitForExist')
+
+        await browser.action('pointer').move({ origin }).perform()
+
+        expect(waitForExist).toHaveBeenCalledTimes(1)
+        const [, performActionParam] = vi.mocked(fetch).mock.calls.find(([uri, params]) => (
+            String(uri).endsWith('/actions') && params?.method === 'POST'
+        ))!
+        expect(JSON.parse(performActionParam!.body as string).actions[0].actions[0].origin)
+            .toEqual({ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' })
     })
 
     it('resolves not resolved wdio elements in wheel action', async () => {

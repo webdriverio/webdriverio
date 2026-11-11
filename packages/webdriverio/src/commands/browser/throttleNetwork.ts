@@ -50,6 +50,7 @@
  */
 import { getBrowserObject } from '@wdio/utils'
 import logger from '@wdio/logger'
+import { assertNotInParallelScope } from '../../utils/parallelGuard.js'
 import type { ThrottleOptions } from '../../types.js'
 
 const log = logger('webdriverio:throttleNetwork')
@@ -135,6 +136,8 @@ export async function throttleNetwork (
     ) {
         throw new Error(`Invalid parameter for "throttleNetwork". Expected it to be typeof object or one of the following values: ${NETWORK_PRESET_TYPES.join(', ')} but found "${params}"`)
     }
+
+    assertNotInParallelScope('throttleNetwork', 'it targets the whole browser')
 
     /**
      * use WebDriver extension if connected with cloud service

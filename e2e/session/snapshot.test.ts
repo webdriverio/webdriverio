@@ -57,6 +57,20 @@ describe('wdio session snapshot', () => {
         await expect(await snapshot('-i', '--boxes')).toMatchFileSnapshot(golden('frames-boxes'))
     })
 
+    it('ends each ref line with its selector for -i --selectors', async () => {
+        await goto('/cart.html')
+        await expect(await snapshot('-i', '--selectors')).toMatchFileSnapshot(golden('cart-selectors'))
+    })
+
+    it('gives the input inside an ARIA 1.1 combobox wrapper its own ref that fill accepts', async () => {
+        await goto('/combobox.html')
+        const text = await snapshot('-i')
+        await expect(text).toMatchFileSnapshot(golden('combobox-interactive'))
+        const filled = await run('fill', refOf(text, 'searchbox'), 'dune')
+        expect(filled.code, filled.stderr).toBe(0)
+        expect((await run('get', 'value', '#autocomplete-0-input')).stdout.split('\n')[0]).toBe('dune')
+    })
+
     it('keeps the interactive snapshot of the cart page small', async () => {
         await goto('/cart.html')
         expect((await snapshot('-i')).length).toBeLessThanOrEqual(1500)
@@ -176,5 +190,43 @@ describe('wdio session snapshot', () => {
         const res = await run('source', '--json')
         expect(res.code, res.stderr).toBe(0)
         expect(fs.readFileSync(res.json.result.data.file, 'utf-8')).toContain('<title>Session Fixture</title>')
+    })
+
+    it('says which row a repeated control is in and drops the labels of visible inputs', async () => {
+        await goto('/table.html')
+        const first = (await snapshot('-i')).replace(/Full snapshot: .*/, 'Full snapshot: PATH')
+        await expect(first).toMatchFileSnapshot(golden('table-interactive'))
+        // the snapshot is paged: read on until the last line
+        let text = first
+        for (let page = first; /… lines \d+–(\d+) of (\d+)\./.test(page);) {
+            const [, end, total] = /… lines \d+–(\d+) of (\d+)\./.exec(page)!
+            if (end === total) {
+                break
+            }
+            page = await snapshot('-i', '--offset', String(Number(end) + 1))
+            text += '\n' + page
+        }
+        const repeated = text.split('\n').filter((l) => l.includes('"Choose This Flight"'))
+        expect(repeated).toHaveLength(200)
+        for (const line of repeated) {
+            const intent = JSON.parse(/∈ ("(?:[^"\\]|\\.)*")/.exec(line)![1])
+            expect(intent.length, line).toBeLessThanOrEqual(80)
+        }
+        expect(text).not.toMatch(/generic "(Name|Address)"/)
+    })
+
+    it('does not tag controls repeated across open dialogs but tags rows outside them', async () => {
+        await goto('/dialogs-open.html')
+        const lines = (await snapshot('-i')).split('\n')
+        const dialogControls = lines.filter((l) => /Next Month|Previous Month|Choose (Monday|Tuesday|Wednesday)/.test(l))
+        expect(dialogControls.length).toBeGreaterThan(0)
+        for (const line of dialogControls) {
+            expect(line).not.toContain(' ∈ ')
+        }
+        const book = lines.filter((l) => l.includes('"Book now"'))
+        expect(book).toHaveLength(2)
+        for (const line of book) {
+            expect(line).toContain(' ∈ ')
+        }
     })
 })

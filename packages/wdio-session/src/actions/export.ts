@@ -19,7 +19,7 @@ export const history: ActionFn = async (session, args) => {
 export const exportSpec: ActionFn = async (session, args) => {
     const entries = session.history.entries
     if (!entries.length) {
-        throw usage('No steps recorded.', 'Drive the session first, then run `wdio session export`.')
+        throw usage('No steps recorded.', `Drive the session first, then run \`${session.cmd('export', undefined, 'wdio session export')}\`.`)
     }
     const title = typeof args.title === 'string' && args.title ? args.title : session.name
     const framework = args.framework === 'jasmine' ? 'jasmine' : 'mocha'

@@ -1,3 +1,5 @@
+import { assertNotInParallelScope } from '../../utils/parallelGuard.js'
+
 /**
  * Throttles the CPU to emulate a slower processor.
  *
@@ -30,6 +32,8 @@ export async function throttleCPU (
     if (typeof factor !== 'number') {
         throw new Error('Invalid factor for "throttleCPU". Expected it to be a number (int)')
     }
+
+    assertNotInParallelScope('throttleCPU', 'it targets the whole browser')
 
     const failedConnectionMessage = 'No Puppeteer connection could be established which is required to use this command'
 

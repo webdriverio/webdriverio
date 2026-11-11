@@ -14,7 +14,7 @@ The highlights:
 - **[`browser.act()`](/docs/ai-steps)**: write a step as intent, let a model work it out once, then replay it as plain code without spending a token.
 - **[WebdriverIO DevTools](/docs/devtools)**: a live debugger and portable traces, for you and for your agent.
 - **Tabs, windows and frames as values** you hold, instead of a hidden pointer you switch.
-- **Breaking changes worth knowing**: W3C-only sessions, Appium 3, Node.js 22.19+ and a strict `$`.
+- **Breaking changes worth knowing**: W3C-only sessions, Appium 3, Node.js 22.23.4, 24.22.1 or 26.12.1, and a strict `$`.
 
 Upgrading an existing suite? Let your agent do it:
 
@@ -204,7 +204,7 @@ Sometimes "does it work" means "does it look right", and sometimes "the app" is 
 
 v10 removes a lot of old code, which makes WebdriverIO smaller, faster and easier for humans and agents to reason about:
 
-- Node.js **22.19** is the minimum version.
+- Node.js **22.23.4**, **24.22.1** or **26.12.1** is the minimum version.
 - Every session is a **W3C session**. The last parts of the JSON Wire Protocol are gone.
 - **Appium 3** is required, and the Appium 1/2 HTTP fallbacks are removed.
 - **Mocha 12**, **Cucumber 13** and **Vitest 5**.

@@ -116,7 +116,10 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
         path.join(__dirname, 'headless', 'mocking.e2e.ts'),
         path.join(__dirname, 'headless', 'browsingContextCommands.e2e.ts'),
-        path.join(__dirname, 'headless', 'roleSelector.e2e.ts')
+        path.join(__dirname, 'headless', 'roleSelector.e2e.ts'),
+        path.join(__dirname, 'headless', 'actionClick.e2e.ts'),
+        path.join(__dirname, 'headless', 'staleDuringNavigation.e2e.ts'),
+        path.join(__dirname, 'headless', 'parentGoneAfterWait.e2e.ts')
     ]],
 
     /**

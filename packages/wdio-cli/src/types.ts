@@ -1,5 +1,5 @@
 import type { Options, Reporters } from '@wdio/types'
-import type { NormalizedPackageJson } from 'read-pkg-up'
+import type { NormalizedPackageJson } from 'read-package-up'
 import type { SUPPORTED_PACKAGE_MANAGERS } from 'create-wdio/utils'
 
 export type PM = typeof SUPPORTED_PACKAGE_MANAGERS[number]

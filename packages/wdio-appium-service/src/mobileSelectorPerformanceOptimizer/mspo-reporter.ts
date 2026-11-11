@@ -1,8 +1,11 @@
 import WDIOReporter, { type SuiteStats, type TestStats } from '@wdio/reporter'
 import {
+    clearContextNamesResolver,
+    setContextNamesResolver,
     setCurrentSuiteName,
     setCurrentTestFile,
-    setCurrentTestName
+    setCurrentTestName,
+    type ContextNames
 } from './mspo-store.js'
 
 interface MobileSelectorPerformanceReporterOptions extends Record<string, unknown> {
@@ -11,10 +14,36 @@ interface MobileSelectorPerformanceReporterOptions extends Record<string, unknow
 
 export default class MobileSelectorPerformanceReporter extends WDIOReporter {
     private _reportDirectory?: string
+    readonly #resolver = () => this.getContextNames()
 
     constructor(options: MobileSelectorPerformanceReporterOptions) {
         super({ ...options, stdout: true })
         this._reportDirectory = options.reportDirectory
+        setContextNamesResolver(this.#resolver)
+    }
+
+    // the resolver is module-global: it must not outlive this reporter
+    onRunnerEnd(): void {
+        clearContextNamesResolver(this.#resolver)
+    }
+
+    /**
+     * Parallel mode: the names of the test of the caller's context and of its suite, as tests overlap.
+     * Sequential: `undefined`, the names of the last events stay
+     */
+    private getContextNames(): ContextNames | undefined {
+        const unit = this.getContextUnit()
+        if (!unit?.contextId) {
+            return undefined
+        }
+        // before its test: the open hook of the context
+        const owner = unit.test ?? this.getContextOwner()
+        const suite = owner && this.parentOf(owner)
+        return {
+            suiteName: suite && this.extractSuiteName(suite),
+            testFile: suite && this.extractTestFile(suite),
+            testName: unit.test && this.extractTestName(unit.test)
+        }
     }
 
     /**

@@ -5,7 +5,7 @@ import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 
 import { $ } from 'execa'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 
 import { EjsHelpers } from './templates/EjsHelpers.js'
 
@@ -43,6 +43,13 @@ const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
  */
 export function runProgram(command: string, args: string[], options: SpawnOptions, passUsageError = false) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
+    // a quiet command (piped output) keeps its output to show it when it fails
+    let output = ''
+    // decode as a stream: a character can be split across 2 chunks
+    child.stdout?.setEncoding('utf8')
+    child.stderr?.setEncoding('utf8')
+    child.stdout?.on('data', (data) => (output += data))
+    child.stderr?.on('data', (data) => (output += data))
     return new Promise<void>((resolve, rejects) => {
         let error: Error
         child.on('error', (e) => (error = e))
@@ -52,6 +59,9 @@ export function runProgram(command: string, args: string[], options: SpawnOption
                 return rejects(`Usage error calling: ${command} ${args.join(' ')}`)
             }
             if (code !== 0) {
+                if (output.trim()) {
+                    console.error(output.trim())
+                }
                 const errorMessage = (error && error.message) || `Error calling: ${command} ${args.join(' ')}`
                 printAndExit(errorMessage, signal)
                 return rejects(errorMessage)
@@ -493,10 +503,21 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     console.log(chalk.green(chalk.bold('✔ Success!\n')))
 }
 
+const SEP = '\n- '
+
+/**
+ * The driver majors for the Appium major that `addServiceDeps` installs (`appium@^3`).
+ * Their next majors need Appium 4.
+ */
+const APPIUM_DRIVERS = {
+    mac2: 'appium-mac2-driver@^4',
+    uiautomator2: 'appium-uiautomator2-driver@^8',
+    xcuitest: 'appium-xcuitest-driver@^12'
+} as const
+
 /**
  * run npm install only if required by the user
  */
-const SEP = '\n- '
 export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
@@ -572,13 +593,13 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
      * add Appium mobile drivers if desired
      */
     if (parsedAnswers.purpose === 'macos') {
-        parsedAnswers.packagesToInstall.push('appium-mac2-driver')
+        parsedAnswers.packagesToInstall.push(APPIUM_DRIVERS.mac2)
     }
     if (parsedAnswers.mobileEnvironment === 'android') {
-        parsedAnswers.packagesToInstall.push('appium-uiautomator2-driver')
+        parsedAnswers.packagesToInstall.push(APPIUM_DRIVERS.uiautomator2)
     }
     if (parsedAnswers.mobileEnvironment === 'ios') {
-        parsedAnswers.packagesToInstall.push('appium-xcuitest-driver')
+        parsedAnswers.packagesToInstall.push(APPIUM_DRIVERS.xcuitest)
     }
 
     /**
@@ -599,10 +620,12 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
         if (success) {
             console.log(chalk.green(chalk.bold('✔ Success!\n')))
         }
-    } else {
-        const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
-        console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
+        return success
     }
+
+    const installationCommand = getInstallCommand(pm, parsedAnswers.packagesToInstall, true)
+    console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
+    return true
 }
 
 function getPreset(parsedAnswers: ParsedAnswers) {

@@ -103,3 +103,21 @@ describe('getElements', () => {
         expect(elemError.stack).toEqual(error.stack)
     })
 })
+
+describe('the items of a list', () => {
+    it('share the wrapped commands of the list, and keep their own values (#16086)', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        const items = origGetElem.getElements.call(browser, '#foo', [
+            { 'element-6066-11e4-a52e-4f735466cecf': 'elem-a' },
+            { 'element-6066-11e4-a52e-4f735466cecf': 'elem-b' }
+        ])
+        expect(items[0].getText).toBe(items[1].getText)
+        expect(Object.prototype.hasOwnProperty.call(items[0], 'getText')).toBe(false)
+        expect(items.map((item) => [item.elementId, item.index, item.selector])).toEqual([['elem-a', 0, '#foo'], ['elem-b', 1, '#foo']])
+    })
+
+    it('is empty for an empty response', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        expect(origGetElem.getElements.call(browser, '#foo', [])).toEqual([])
+    })
+})

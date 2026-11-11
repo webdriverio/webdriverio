@@ -154,7 +154,7 @@ Timeout for any WebDriver request to a driver or grid.
 
 <Option type="Number" default="3">
 
-Count of request retries to the Selenium server.
+Count of request retries to the WebDriver server.
 
 </Option>
 
@@ -163,6 +163,16 @@ Count of request retries to the Selenium server.
 <Option type="Number" default="180000">
 
 Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. `execute`, that legitimately take longer than the default to resolve.
+
+</Option>
+
+### bidiConnectTimeout
+
+<Option type="Number" default="10000">
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic and Bidi-only commands fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](https://webdriver.io/docs/runner#browser-runner), the connection waits until it opens or fails.
 
 </Option>
 

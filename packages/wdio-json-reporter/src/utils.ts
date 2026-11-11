@@ -10,7 +10,9 @@ export function mapHooks (hooks: HookStats[]): Hook[] {
         associatedSuite: hook.parent,
         associatedTest: hook.currentTest,
         state: hook.errors && hook.errors.length && hook.state ? hook.state : 'passed',
-        error: hook.error
+        error: hook.error,
+        ...(hook.retried !== undefined && { retried: hook.retried }),
+        ...(hook.failedTestUid !== undefined && { failedTestUid: hook.failedTestUid })
     }))
 }
 
@@ -21,6 +23,7 @@ export function mapTests (tests: TestStats[]): Test[] {
         end: test.end,
         duration: test.duration,
         state: test.state,
-        error: test.error
+        error: test.error,
+        ...(test.retried && { retried: true })
     }))
 }

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SPA</title></head>
+<body>
+<div id="root"></div>
+<script>
+    setTimeout(() => {
+        document.getElementById('root').innerHTML = '<h1>Rendered late</h1><button>Book now</button>'
+    }, 500)
+</script>
+</body>
+</html>

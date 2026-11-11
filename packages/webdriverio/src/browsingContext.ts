@@ -268,8 +268,8 @@ export function enableBrowsingContextCommands (browser: WebdriverIO.Browser) {
 
 function commandProperties (): Record<string, PropertyDescriptor> {
     /**
-     * A fresh map every time. The monad wraps each function in place, so a
-     * shared map would wrap the same command again for the next context.
+     * A fresh map every time: `contextProperties()` adds the custom commands and
+     * overrides of one browser to it.
      */
     const commands: Record<string, Function> = {
         $,

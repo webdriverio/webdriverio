@@ -105,12 +105,26 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop(subElem)
 
         // move to
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(fetch).mock.calls[4][1]?.method).toContain('DELETE')
+        const origin = (elementId: string) => ({ 'element-6066-11e4-a52e-4f735466cecf': elementId })
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ body: JSON.stringify({ actions: [{
+                id: 'pointer3',
+                type: 'pointer',
+                parameters: { pointerType: 'touch' },
+                actions: [
+                    { type: 'pointerMove', button: 0, x: 0, y: 0, duration: 0, origin: origin('some-elem-123') },
+                    { type: 'pointerDown', button: 0 },
+                    { type: 'pause', duration: 10 },
+                    { type: 'pointerMove', button: 0, x: 0, y: 0, duration: 250, origin: origin('some-sub-elem-321') },
+                    { type: 'pointerUp', button: 0 }
+                ]
+            }] }) })
+        )
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ method: 'DELETE' })
+        )
     })
 
     it('should do a dragAndDrop with coordinates', async () => {

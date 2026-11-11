@@ -8,6 +8,10 @@ export type ScriptStep =
      */
     | { tool: string, args?: Record<string, unknown> | ((lastToolResult: string) => Record<string, unknown>) }
     | { text: string }
+    /**
+     * several tool calls in one answer, run at the same time
+     */
+    | { calls: { tool: string, args?: Record<string, unknown> }[] }
 
 const USAGE = { input_tokens: 100, output_tokens: 10, total_tokens: 110 }
 
@@ -55,6 +59,9 @@ export function scriptedModel (script: ScriptStep[]): ScriptedModel {
             const lastToolResult = last && ToolMessage.isInstance(last) ? last.text : ''
             if ('text' in step) {
                 return new AIMessage({ content: step.text, usage_metadata: USAGE })
+            }
+            if ('calls' in step) {
+                return new AIMessage({ content: '', tool_calls: step.calls.map(({ tool, args = {} }) => ({ id: `call_${++id}`, name: tool, args, type: 'tool_call' as const })), usage_metadata: USAGE })
             }
             const args = typeof step.args === 'function' ? step.args(lastToolResult) : step.args || {}
             return new AIMessage({ content: '', tool_calls: [{ id: `call_${++id}`, name: step.tool, args, type: 'tool_call' }], usage_metadata: USAGE })

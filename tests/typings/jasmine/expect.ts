@@ -81,3 +81,12 @@ function expectAsyncMatchers () {
         expectAsync(Promise.resolve(1)).toBeResolvedTo(1)
     ]
 }
+
+/**
+ * `expect.extend()` adds custom matchers to the global `expect`
+ */
+expect.extend({
+    toBeEven (actual: number) {
+        return { pass: actual % 2 === 0, message: () => `expected ${actual} to be even` }
+    }
+})

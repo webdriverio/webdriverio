@@ -28,6 +28,20 @@ const sep = '\n  - '
 const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
+// the error of a command in a window that closed: a WebDriver BiDi script command gives "no such frame", a WebDriver Classic command "no such window"
+function isClosedWindowError (err: Error) {
+    return err.name === 'no such window' || err.message.includes('no such frame')
+}
+
+// the test page has the cid of its worker in its URL
+function isTestPageOf (cid: string, url: string) {
+    try {
+        return new URL(url).searchParams.get('cid') === cid
+    } catch {
+        return false
+    }
+}
+
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 
 interface TestState {
@@ -49,12 +63,20 @@ declare global {
         __wdioErrors__: WDIOErrorEvent[]
         __wdioEvents__: BrowserTestEvent[]
         __wdioFailures__: number
+        __wdioTestsStartedAt__?: number
         __coverage__?: unknown
     }
 }
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
+    #testPageHandle?: string
+    /**
+     * the tab of the test page in a WebDriver BiDi session: the runner reads the test page there, also while
+     * the test works in another window. Without it (WebDriver Classic, where `url()` returns the browser),
+     * the runner reads the current window.
+     */
+    #testPageTab?: WebdriverIO.BrowsingContext
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
@@ -135,8 +157,16 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
-            await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            const testPage = await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            // an overwrite of `url()` can return another value
+            this.#testPageTab = getWdioKind(testPage) === 'browsing-context' ? testPage : undefined
+        } else if (browser.isBidi) {
+            // watch mode: the last run can leave another window as the current one, so find the tab by its URL
+            const tabs = await browser.browsingContexts().catch(() => [] as WebdriverIO.BrowsingContext[])
+            this.#testPageTab = tabs.find((tab) => isTestPageOf(this._cid, tab.url))
         }
+        // the tab has the handle in a WebDriver BiDi session
+        this.#testPageHandle = this.#testPageTab?.contextId ?? await browser.getWindowHandle().catch(() => undefined)
         // await browser.debug()
 
         /**
@@ -158,11 +188,21 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * run checks for errors here to avoid breakage in communication with the browser
          */
+        let settled = false
         const errorInterval = setInterval(
-            this.#checkForTestError.bind(this),
+            /**
+             * `clearInterval` does not stop a check that is still waiting for the browser:
+             * its command can fail when the session ends, and its result no longer matters
+             */
+            () => this.#checkForTestError().catch((err) => {
+                if (!settled) {
+                    throw err
+                }
+            }),
             ERROR_CHECK_INTERVAL)
 
         const state: TestState = await testStatePromise
+        settled = true
         clearTimeout(testTimeout)
         clearInterval(errorInterval)
 
@@ -170,7 +210,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * capture coverage if enabled
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
-            const coverageMap = await browser.execute(
+            const coverageMap = await this.#testPage.execute(
                 () => (window.__coverage__ || {}))
             const coverage = (
                 coverageMap && typeof coverageMap === 'object' && !Array.isArray(coverageMap)
@@ -478,7 +518,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #checkForTestError () {
-        const testError = await browser.execute(function fetchExecutionState () {
+        const testError = await this.#testPage.execute(function fetchExecutionState () {
+            // a page that got its first byte less than 5 s ago, e.g. right after a reload, has no title and no test framework yet
+            const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+            if (document.readyState === 'loading' && performance.now() - (navigation?.responseStart ?? 0) < 5000) {
+                return undefined
+            }
             let viteError
             const viteErrorElem = document.querySelector('vite-error-overlay')
             if (viteErrorElem && viteErrorElem.shadowRoot) {
@@ -495,27 +540,32 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
-            return { errors, hasViteError: Boolean(viteError) }
-        }).catch((err) => {
+            return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
+        }).catch(async (err) => {
             /**
-             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             * skip this check, the next one runs 500 ms later:
+             * - the page replaced its document, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             * - the check ran in a window that the test closed, e.g. a popup during `closeWindow()`, and the
+             *   test page is still open: only when the runner reads the current window (see `#testPageTab`)
              */
-            if (err.message.includes('Cannot find context with specified id')) {
-                return
+            const skip = err.message.includes('Cannot find context with specified id') ||
+                (isClosedWindowError(err) && await this.#isTestPageOpen())
+            if (!skip) {
+                throw err
             }
-
-            throw err
+            log.info(`Skip the browser error check: ${err.message}`)
         })
 
         if (!testError) {
             return
         }
 
-        if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
+        const { testsStartedAt: startedAtBeforeLogs, ...executionState } = testError
+        if ((executionState.errors && executionState.errors.length > 0) || executionState.hasViteError) {
             this.#resolveTestStatePromise?.({
                 events: [],
                 failures: 1,
-                ...testError
+                ...executionState
             })
         }
 
@@ -526,13 +576,28 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             ? (await browser.getLogs('browser').catch(() => []))
             : []
         const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
-        if (severeLogs.length) {
-            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
-                log.info('Retry test run due to outdated optimize dep')
-                this.#retryOutdatedOptimizeDep = true
-                return browser.refresh()
-            }
+        if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+            log.info('Retry test run due to outdated optimize dep')
+            this.#retryOutdatedOptimizeDep = true
+            return this.#testPage.refresh()
+        }
 
+        /**
+         * Once Mocha runs the tests, an error in the browser log belongs to a test
+         * (a caught failed request, a `console.error`, an invalid attribute): Mocha
+         * reports the test result, so it must not end the spec. Only errors logged
+         * before the tests started (setup) end it.
+         *
+         * Mocha can start between the execution state read above and `getLogs`,
+         * so without a start time, read it again after the logs.
+         */
+        const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
+            ? await this.#testPage.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
+            : startedAtBeforeLogs
+        const setupLogs = typeof testsStartedAt === 'number'
+            ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
+            : severeLogs
+        if (setupLogs.length) {
             this.#resolveTestStatePromise?.({
                 events: [],
                 failures: 1,
@@ -541,7 +606,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                  * error messages often look like:
                  * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
                  */
-                errors: severeLogs.map((log) => {
+                errors: setupLogs.map((log) => {
                     const [filename, message] = log.message!.split(' - ')
                     return {
                         filename: filename.startsWith('http') ? filename : undefined,
@@ -550,6 +615,21 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 })
             })
         }
+    }
+
+    async #isTestPageOpen () {
+        if (!this.#testPageHandle) {
+            return false
+        }
+        const handles = await browser.getWindowHandles().catch(() => [] as string[])
+        return handles.includes(this.#testPageHandle)
+    }
+
+    /**
+     * where the runner reads the test page: its tab in a WebDriver BiDi session, else the current window
+     */
+    get #testPage () {
+        return this.#testPageTab ?? browser
     }
 
     static init (cid: string, config: WebdriverIO.Config, specs: string[], _: unknown, reporter: BaseReporter) {

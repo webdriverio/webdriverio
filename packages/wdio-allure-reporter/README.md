@@ -177,6 +177,10 @@ export const config = {
 
 - `includeVersionInHistoryId` - optional parameter (`false` by default). Allure `historyId` is derived from the test title plus the browser or device family (`chrome`, `iphone 12`, …), not the worker `cid` and not the browser/OS version. That keeps trends stable when Chrome or a mobile OS updates between runs. Vendor aliases such as `Google Chrome` / `googlechrome` and `msedge` / `Microsoft Edge` are collapsed to the same family. Allure still records the full version on the test as a `browser`/`device` parameter. Set this to `true` only if you run the same test against multiple versions of the same browser or device (for example iOS 14 vs iOS 15 on an iPhone 12) and need separate history trends per version.
 
+### Timeline labels
+
+The Allure timeline groups the tests by the `host` and `thread` labels. The reporter sets `thread` to the worker id (for example `0-0`) on the results of the tests, and `host` to the `ALLURE_HOST_NAME` environment variable, or to the machine name when it is not set, on every result. The default is only added to a result that has no `host` label: a `host` from the `globalLabels` option, `ALLURE_LABEL_host` or `addLabel('host', 'grid-node-3')` is kept as it is.
+
 ## Supported Allure API
 
 ### Core API Functions
@@ -382,6 +386,7 @@ As shown in the example above, when this function is called, a screenshot image 
 
 ### Compatibility
 - **Allure**: Compatible with Allure Framework 3.x
+- **Parallel mode**: supported with Mocha and Cucumber [`parallelMode`](https://webdriver.io/docs/parallel-tests). With Mocha, `before()` and `after()` fixtures show once per test, as they run once per test.
 
 
 ## Getting Help

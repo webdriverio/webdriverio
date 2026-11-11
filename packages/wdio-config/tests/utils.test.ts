@@ -76,6 +76,30 @@ describe('applyHeadlessFlag', () => {
             args: ['-foo', '-headless']
         })
     })
+
+    it('should apply headless flag to the capabilities of each multi-remote instance', () => {
+        const caps: any = {
+            browserA: {
+                capabilities: { browserName: 'chrome', 'goog:chromeOptions': { args: ['--foo'] } }
+            },
+            browserB: {
+                capabilities: { browserName: 'firefox' }
+            },
+            browserC: {
+                capabilities: { alwaysMatch: { browserName: 'chrome' }, firstMatch: [] }
+            }
+        }
+        applyHeadlessFlag(caps, true)
+        expect(caps.browserA.capabilities['goog:chromeOptions']).toEqual({
+            args: ['--foo', '--headless', '--disable-gpu']
+        })
+        expect(caps.browserB.capabilities['moz:firefoxOptions']).toEqual({
+            args: ['-headless']
+        })
+        expect(caps.browserC.capabilities.alwaysMatch['goog:chromeOptions']).toEqual({
+            args: ['--headless', '--disable-gpu']
+        })
+    })
 })
 
 describe('utils', () => {

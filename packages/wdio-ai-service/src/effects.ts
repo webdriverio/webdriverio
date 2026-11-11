@@ -87,8 +87,8 @@ export function urlTemplate (url: string, pageUrl?: string) {
     return samehost || !pageUrl ? path : `${parsed.host}${path}`
 }
 
-export function statusClass (status?: number, failed?: boolean) {
-    if (failed || !status) {
+export function statusClass (status?: number) {
+    if (!status) {
         return 'failed'
     }
     return `${Math.floor(status / 100)}xx`
