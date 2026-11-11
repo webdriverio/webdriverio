@@ -17,6 +17,7 @@ import {
     INSTALL_COMMAND, DEV_FLAG, SUPPORTED_PACKAGE_MANAGERS, EXECUTER, EXECUTE_COMMAND
 } from './constants.js'
 import type { ProgramOpts } from './types.js'
+import { preparePnpmInstall } from './pnpm.js'
 
 const WDIO_COMMAND = 'wdio'
 let projectDir: string | undefined
@@ -125,6 +126,7 @@ export async function createWebdriverIO(opts: ProgramOpts) {
         }, null, 2))
     }
 
+    const flags = await preparePnpmInstall(pm, root)
     const cliInstalled = await isCLIInstalled(root)
     if (!cliInstalled) {
         console.log(`\nInstalling ${chalk.bold('@wdio/cli')} to initialize project...`)
@@ -132,7 +134,7 @@ export async function createWebdriverIO(opts: ProgramOpts) {
         if (opts.dev) {
             args.push(DEV_FLAG[pm])
         }
-        args.push(`@wdio/cli${npmTag}`)
+        args.push(...flags, `@wdio/cli${npmTag}`)
         // quiet, but runProgram prints the output of the package manager when it fails
         await runProgram(pm, args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] })
         console.log(chalk.green.bold('✔ Success!'))

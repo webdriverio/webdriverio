@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import { vi, test, expect, beforeEach, afterEach, describe, it } from 'vitest'
 import ejs from 'ejs'
 import { $ } from 'execa'
-import { runProgram, getPackageVersion,
+import { runProgram, getPackageVersion, detectPackageManager,
 
     convertPackageHashToObject,
     generateTestFiles,
@@ -850,4 +850,21 @@ afterEach(()=>{
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(installPackages).mockClear()
+})
+
+describe('detectPackageManager', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it.each([
+        ['npm/11.19.1 node/v24.22.1 darwin arm64 workspaces/false', 'npm'],
+        ['pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64', 'pnpm'],
+        ['yarn/4.18.1 npm/? node/v24.22.1 darwin arm64', 'yarn'],
+        ['bun/1.4.4 npm/? node/v26.3.0 darwin arm64', 'bun'],
+        ['', 'npm']
+    ])('detects %j as %s', (userAgent, pm) => {
+        vi.stubEnv('npm_config_user_agent', userAgent)
+        expect(detectPackageManager()).toBe(pm)
+    })
 })
