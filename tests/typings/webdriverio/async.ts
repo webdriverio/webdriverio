@@ -658,7 +658,7 @@ async function bar() {
     expectType<boolean>(
         await browser.$$('foo').every(async () => true)
     )
-    expectType<WebdriverIO.Element[]>(
+    expectType<WebdriverIO.ElementArray>(
         await browser.$$('foo').filter(async () => true)
     )
 
