@@ -214,7 +214,18 @@ jobs:
             done
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml')
 
-          # 6. Public IPv4 addresses in URLs (any scheme, any case, or "//IP") or after network
+          # 6. Lockfiles: a resolution from a tarball URL, git or a host that is not the registry.
+          #    An edited tarball URL installs other code with no package.json change.
+          lock_added=$(git diff --no-color --unified=0 "${base}...${head}" -- \
+              '*pnpm-lock.yaml' '*package-lock.json' '*npm-shrinkwrap.json' '*yarn.lock' \
+            | awk '/^diff --git /{h=0} /^@@ /{h=1; next} h && /^\+/{print substr($0, 2)}' \
+            | grep -E '(^|[{,[:space:]])(tarball|repo|commit):|type: git|"resolved":|^[[:space:]]+resolved ' \
+            | grep -vE '"resolved": "https://registry\.(npmjs\.org|yarnpkg\.com)/|resolved "https://registry\.(npmjs\.org|yarnpkg\.com)/' || true)
+          if [ -n "$lock_added" ]; then
+            sensitive "Lockfile resolution from a tarball URL, git or a non-registry host: $(printf '%s' "$lock_added" | head -3 | tr '\n' ' ')"
+          fi
+
+          # 7. Public IPv4 addresses in URLs (any scheme, any case, or "//IP") or after network
           #    tools. Exfiltration endpoints often use them. A bare a.b.c.d is not matched,
           #    because version numbers look the same.
           ip='([0-9]{1,3}\.){3}[0-9]{1,3}'
