@@ -21,8 +21,11 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # Every label event runs the full check on purpose: a skipped job counts as passing
+        # for a required check and could hide an earlier failure. A partial clone keeps it cheap.
         with:
           fetch-depth: 0
+          filter: blob:none
           persist-credentials: false
 
       - name: Check commits and changes of the pull request
