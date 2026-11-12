@@ -87,8 +87,9 @@ declare global {
             strictFileInteractability?: boolean
             /**
              * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
+             * In WebDriver BiDi sessions WebdriverIO sets `{ default: 'ignore' }` and handles prompts through `browser.on('dialog')`.
              */
-            unhandledPromptBehavior?: string
+            unhandledPromptBehavior?: string | { default: 'ignore' }
             /**
              * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
              */
