@@ -150,6 +150,20 @@ function defineScenarios () {
             }
         }
     }
+    scenarios.push({
+        id: 'mocha-discovery-quiet',
+        framework: 'mocha',
+        size: { name: 'discovery', count: 200, skips: 0, discovery: true },
+        profile: { name: 'quiet', logLevel: 'error' },
+        buildArgs: (fx) => ({
+            framework: 'mocha',
+            logLevel: 'error',
+            specs: [fx.discoveryPattern],
+            capabilities: Array.from({ length: 4 }, () => ({ browserName: 'chrome' })),
+            maxInstances: 4,
+            mochaOpts: { ui: 'bdd', timeout: 10000 }
+        })
+    })
     return scenarios
 }
 
@@ -173,7 +187,8 @@ async function measureScenario (scenario, iterations) {
     const sized = await generateFixtures({
         testCount: scenario.size.count,
         includeSkips: scenario.size.skips,
-        listSize: scenario.size.listSize
+        listSize: scenario.size.listSize,
+        discovery: scenario.size.discovery
     })
 
     try {

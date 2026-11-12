@@ -92,7 +92,11 @@ describe('launcher', () => {
 
         expect(onPrepare).toHaveBeenCalledTimes(1)
         expect(getSpecs).toHaveBeenCalledTimes(1)
+        expect(getSpecs).toHaveBeenCalledWith(undefined, undefined, { cache: true })
         expect(onPrepare.mock.invocationCallOrder[0]).toBeLessThan(getSpecs.mock.invocationCallOrder[0])
+        expect(localLauncher.configParser.clearSpecCache).toHaveBeenCalledTimes(1)
+        expect(onPrepare.mock.invocationCallOrder[0]).toBeLessThan(localLauncher.configParser.clearSpecCache.mock.invocationCallOrder[0])
+        expect(localLauncher.configParser.clearSpecCache.mock.invocationCallOrder[0]).toBeLessThan(getSpecs.mock.invocationCallOrder[0])
         expect(localLauncher.interface.totalWorkerCnt).toBe(1)
     })
 
@@ -475,7 +479,7 @@ describe('launcher', () => {
             )
             launcher.configParser = { getSpecs } as any
             expect(launcher['_formatSpecs'](capabilities as any, specFileRetries)).toStrictEqual(expected)
-            expect(getSpecs).toHaveBeenCalledWith(capabilities['wdio:specs'], capabilities['wdio:exclude'])
+            expect(getSpecs).toHaveBeenCalledWith(capabilities['wdio:specs'], capabilities['wdio:exclude'], { cache: true })
         })
 
         it('should ignore unprefixed specs and exclude on a capability', () => {
@@ -489,7 +493,7 @@ describe('launcher', () => {
             expect(launcher['_formatSpecs'](capabilities as any, 0)).toStrictEqual([
                 { files: ['/from-config.js'], retries: 0 }
             ])
-            expect(getSpecs).toHaveBeenCalledWith(undefined, undefined)
+            expect(getSpecs).toHaveBeenCalledWith(undefined, undefined, { cache: true })
         })
     })
 
@@ -913,7 +917,8 @@ describe('launcher', () => {
             launcher.configParser = {
                 getCapabilities: vi.fn().mockReturnValue({}),
                 getConfig: vi.fn().mockReturnValue(config),
-                initialize: vi.fn()
+                initialize: vi.fn(),
+                clearSpecCache: vi.fn()
             } as any
             launcher.runner = { initialize: vi.fn(), shutdown: vi.fn() } as any
             launcher['_runMode'] = vi.fn().mockImplementation(() => 0)
