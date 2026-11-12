@@ -478,3 +478,5 @@ Client events are triggered when certain interactions with the automation driver
   sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
   capabilities: [Object] }
 ```
+
+The base reporter also adds a copy of each command and result to the `output` of the test or hook that ran it (with `type: 'command'` or `type: 'result'`). The stats live until the worker ends, so the copy does not keep large values: the script of an `execute` command becomes `<script> [N bytes]`, a string longer than 10240 characters (for example a screenshot or a page source) becomes `<string> [N characters]`, and a larger `Buffer` becomes `<Buffer> [N bytes]`. To use the full value, read it from the payload of `onBeforeCommand` / `onAfterCommand`. Do not change that payload: the other reporters get the same object.

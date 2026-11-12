@@ -1232,3 +1232,95 @@ describe('WDIOReporter process listeners', () => {
         expect(counts()).toEqual(before)
     })
 })
+
+describe('command output of the stats', () => {
+    const LARGE = 'a'.repeat(1024 * 1024)
+    const test = { cid: '0-0', specs: [], uid: 't1', title: 't1', parent: 'p', fullTitle: 'p t1', pending: false }
+    const create = () => {
+        const reporter = new WDIOReporter({ logFile: tmp.fileSync().name })
+        reporter.emit('runner:start', { cid: '0-0', capabilities: {}, specs: runnerSpecs } as any)
+        reporter.emit('suite:start', { uid: 'suite-id', title: 'suite' })
+        reporter.emit('test:start', test)
+        return reporter
+    }
+    const screenshot = () => ({ sessionId: 's', command: 'takeScreenshot', method: 'GET', endpoint: '/session/:sessionId/screenshot', body: {} })
+
+    it('keeps a placeholder with the length of a large result value', () => {
+        const reporter = create()
+        reporter.emit('client:beforeCommand', screenshot())
+        reporter.emit('client:afterCommand', { ...screenshot(), result: { value: LARGE } })
+
+        expect(reporter.tests.t1.output).toEqual([
+            { ...screenshot(), type: 'command' },
+            { ...screenshot(), result: { value: `<string> [${LARGE.length} characters]` }, type: 'result' }
+        ])
+    })
+
+    it('keeps a placeholder for large strings of a request body and of nested values', () => {
+        const reporter = create()
+        reporter.emit('client:beforeCommand', {
+            sessionId: 's', command: 'pushFile', method: 'POST', endpoint: '/session/:sessionId/appium/device/push_file',
+            body: { path: '/data/local/tmp/file.png', data: LARGE }
+        })
+        // the command events of WebdriverIO commands: the arguments and the returned value
+        reporter.emit('client:beforeCommand', { sessionId: 's', command: 'uploadFile', body: ['/path/to/file', LARGE] })
+        reporter.emit('client:afterCommand', { sessionId: 's', command: 'execute', result: { value: { list: [{ source: LARGE, title: 'page' }] } } })
+
+        const [push, upload, execute] = reporter.tests.t1.output as any[]
+        expect(push.body).toEqual({ path: '/data/local/tmp/file.png', data: `<string> [${LARGE.length} characters]` })
+        expect(upload.body).toEqual(['/path/to/file', `<string> [${LARGE.length} characters]`])
+        expect(execute.result).toEqual({ value: { list: [{ source: `<string> [${LARGE.length} characters]`, title: 'page' }] } })
+    })
+
+    it('keeps a placeholder for a large Buffer', () => {
+        const reporter = create()
+        reporter.emit('client:afterCommand', { sessionId: 's', command: 'saveScreenshot', result: { value: Buffer.alloc(1024 * 1024) } })
+        expect((reporter.tests.t1.output[0] as any).result).toEqual({ value: `<Buffer> [${1024 * 1024} bytes]` })
+    })
+
+    it('keeps values up to the limit, errors and other objects as they are', () => {
+        const reporter = create()
+        const value = 'b'.repeat(10 * 1024)
+        const buffer = Buffer.alloc(10 * 1024)
+        const error = new Error(LARGE)
+        const result = { value: { value, buffer, list: [1, null, 'x'] } }
+        reporter.emit('client:afterCommand', { sessionId: 's', command: 'execute', result })
+        reporter.emit('client:afterCommand', { sessionId: 's', command: 'getPageSource', result: { error } })
+
+        const [kept, failed] = reporter.tests.t1.output as any[]
+        expect(kept.result).toBe(result)
+        expect(failed.result.error).toBe(error)
+    })
+
+    it('does not change the payload that the hooks of every reporter and other listeners get', () => {
+        const first = create()
+        const second = create()
+        const seen: { result: unknown, body: unknown, type: unknown }[] = []
+        second.onAfterCommand = (payload) => {
+            seen.push({ result: structuredClone(payload.result), body: structuredClone((payload as any).body), type: (payload as any).type })
+        }
+        const script = 'return document.documentElement.outerHTML'
+        const payload = {
+            sessionId: 's', command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync',
+            body: { script, args: [] }, result: { value: LARGE }
+        }
+        const body = payload.body
+        // the runner emits the same payload to each reporter
+        for (const reporter of [first, second]) {
+            reporter.emit('client:afterCommand', payload)
+        }
+
+        expect(seen).toEqual([{ result: { value: LARGE }, body: { script, args: [] }, type: undefined }])
+        expect(payload.body).toBe(body)
+        expect(payload).toEqual({
+            sessionId: 's', command: 'executeScript', method: 'POST', endpoint: '/session/:sessionId/execute/sync',
+            body: { script, args: [] }, result: { value: LARGE }
+        })
+        for (const reporter of [first, second]) {
+            expect(reporter.tests.t1.output).toEqual([{
+                ...payload, body: { script: `<script> [${script.length} bytes]`, args: [] },
+                result: { value: `<string> [${LARGE.length} characters]` }, type: 'result'
+            }])
+        }
+    })
+})

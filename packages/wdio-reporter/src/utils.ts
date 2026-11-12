@@ -222,3 +222,69 @@ export function transformCommandScript (script?: string|Function) {
     }
     return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
 }
+
+/**
+ * Strings of a command or its result that are longer than this are not kept in
+ * the `output` of a test or hook: the stats live until the worker ends, so
+ * screenshots, page sources and uploaded files would add up for the whole spec file.
+ */
+export const MAX_OUTPUT_STRING_LENGTH = 10 * 1024
+// plain objects and arrays deeper than this are kept as they are
+const MAX_OUTPUT_DEPTH = 10
+
+function isPlainObject (value: object): value is Record<string, unknown> {
+    const proto = Object.getPrototypeOf(value)
+    return proto === Object.prototype || proto === null
+}
+
+/**
+ * The value to keep in the `output` of the stats: a string longer than
+ * `MAX_OUTPUT_STRING_LENGTH` becomes `<string> [N characters]`, a typed array
+ * (e.g. a `Buffer`) of more bytes becomes `<Buffer> [N bytes]`. Plain objects
+ * and arrays that contain such a value are copied, all other values are
+ * returned as they are, so the value of the command event does not change.
+ * @param value value of a command or result event
+ */
+export function shortenOutputValue (value: unknown, depth = 0): unknown {
+    if (typeof value === 'string') {
+        return value.length > MAX_OUTPUT_STRING_LENGTH
+            ? `<string> [${value.length} characters]`
+            : value
+    }
+    if (!value || typeof value !== 'object' || depth >= MAX_OUTPUT_DEPTH) {
+        return value
+    }
+    if (ArrayBuffer.isView(value)) {
+        return value.byteLength > MAX_OUTPUT_STRING_LENGTH
+            ? `<${value.constructor.name}> [${value.byteLength} bytes]`
+            : value
+    }
+    if (Array.isArray(value)) {
+        if (Object.getPrototypeOf(value) !== Array.prototype) {
+            return value
+        }
+        let copy: unknown[] | undefined
+        for (let i = 0; i < value.length; i++) {
+            const item = value[i]
+            const shortened = shortenOutputValue(item, depth + 1)
+            if (!Object.is(shortened, item)) {
+                copy ??= value.slice()
+                copy[i] = shortened
+            }
+        }
+        return copy ?? value
+    }
+    if (!isPlainObject(value)) {
+        return value
+    }
+    let copy: Record<string, unknown> | undefined
+    for (const key of Object.keys(value)) {
+        const item = value[key]
+        const shortened = shortenOutputValue(item, depth + 1)
+        if (!Object.is(shortened, item)) {
+            copy ??= { ...value }
+            copy[key] = shortened
+        }
+    }
+    return copy ?? value
+}
