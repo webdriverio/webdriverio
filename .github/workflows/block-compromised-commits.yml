@@ -34,6 +34,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          ACTION: ${{ github.event.action }}
+          EVENT_LABEL: ${{ github.event.label.name }}
           OVERRIDE_LABEL: allow-sensitive-changes
         run: |
           set -euo pipefail
@@ -49,8 +51,13 @@ jobs:
           head="${HEAD_SHA}"
           base="origin/${BASE_REF}"
           fail=0
+          # The label only counts in the run started by adding it: that run checks the head SHA
+          # the maintainer reviewed. Any later push or label event ignores it, so a push after
+          # the approval fails again until the label is removed and added again.
           override=0
-          case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
+          if [ "$ACTION" = labeled ] && [ "$EVENT_LABEL" = "$OVERRIDE_LABEL" ]; then
+            case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
+          fi
           # Escape values for workflow commands, so file names cannot break an annotation.
           esc_data() { local s=$1; s=${s//'%'/'%25'}; s=${s//$'\r'/'%0D'}; s=${s//$'\n'/'%0A'}; printf '%s' "$s"; }
           esc_prop() { local s; s=$(esc_data "$1"); s=${s//:/'%3A'}; s=${s//,/'%2C'}; printf '%s' "$s"; }
@@ -117,7 +124,7 @@ jobs:
           sensitive() { # $1 = message; an error unless the override label is set
             local msg; msg=$(esc_data "$1")
             if [ "$override" = 1 ]; then echo "::warning::${msg} (allowed by label ${OVERRIDE_LABEL})"
-            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}'."; fail=1; fi
+            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}' (remove and add it again after each new push)."; fail=1; fi
           }
 
           # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
