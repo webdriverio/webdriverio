@@ -7,6 +7,8 @@ import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
 import { findChainAgain } from '../../utils/findChainAgain.js'
+import { calculateSwipeFromTo, getScrollableElement, getSwipeAreaRect, getSwipePercentage, SWIPE_DEFAULTS } from '../../utils/mobile.js'
+import type { SwipeAreaRect } from '../../utils/mobile.js'
 
 const log = logger('webdriverio')
 
@@ -402,6 +404,12 @@ async function mobileScrollUntilVisible({
     let isVisible = false
     let hasScrolled = false
     let scrolls = 0
+    /**
+     * the scrollable element and its rect don't change between the swipes of one call,
+     * so they are resolved once, when the first swipe is needed, and every swipe gets
+     * the coordinates `browser.swipe()` would calculate from them
+     */
+    let swipeAreaRect: SwipeAreaRect | undefined
 
     while (!isVisible && scrolls < maxScrolls) {
         try {
@@ -419,11 +427,22 @@ async function mobileScrollUntilVisible({
 
         if (isVisible) {break}
 
+        const swipePercentage = getSwipePercentage(percent || undefined)
+        if (!swipeAreaRect) {
+            swipeAreaRect = await getSwipeAreaRect(browser, scrollableElement || await getScrollableElement(browser))
+        }
+        const { from, to } = calculateSwipeFromTo({
+            // an explicit `direction: undefined` overwrites the default of the options: fall back as `browser.swipe()` does
+            direction: direction || SWIPE_DEFAULTS.DIRECTION,
+            swipePercentage,
+            rect: swipeAreaRect,
+        })
         await browser.swipe({
             direction,
             ...(duration ? { duration } : {}),
             ...(percent ? { percent } : {}),
-            ...(scrollableElement ? { scrollableElement } : {}),
+            from,
+            to,
         })
         hasScrolled = true
 

@@ -577,6 +577,7 @@ describe('scrollIntoView test', () => {
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
+            const rectSpy = vi.spyOn(browser, 'getElementRect').mockResolvedValue({ x: 0, y: 100, width: 400, height: 800 })
             const isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockResolvedValueOnce(false).mockResolvedValueOnce(true)
             const swipeSpy = vi.spyOn(browser, 'swipe').mockResolvedValue(undefined)
 
@@ -585,10 +586,12 @@ describe('scrollIntoView test', () => {
             // call the mobileScrollUntilVisible
             expect(isDisplayedSpy).toBeCalledTimes(2)
             expect(swipeSpy).toBeCalledTimes(1)
-            expect(swipeSpy).toBeCalledWith({ direction: 'up' })
+            // the coordinates `browser.swipe({ direction: 'up' })` calculates for this rect
+            expect(swipeSpy).toBeCalledWith({ direction: 'up', from: { x: 200, y: 880 }, to: { x: 200, y: 120 } })
 
             swipeSpy.mockRestore()
             isDisplayedSpy.mockRestore()
+            rectSpy.mockRestore()
         })
 
         it('scrolls to the left with some options', async () => {
@@ -597,6 +600,7 @@ describe('scrollIntoView test', () => {
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
+            const rectSpy = vi.spyOn(browser, 'getElementRect').mockResolvedValue({ x: 0, y: 100, width: 400, height: 800 })
             const isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockResolvedValueOnce(false).mockResolvedValueOnce(true)
             const swipeSpy = vi.spyOn(browser, 'swipe').mockResolvedValue(undefined)
 
@@ -609,9 +613,17 @@ describe('scrollIntoView test', () => {
             // call the mobileScrollUntilVisible
             expect(isDisplayedSpy).toBeCalledTimes(2)
             expect(swipeSpy).toBeCalledTimes(1)
-            expect(swipeSpy).toBeCalledWith({ direction: 'left', duration: 3000, percent: 0.5 })
+            // the coordinates `browser.swipe({ direction: 'left', percent: 0.5 })` calculates for this rect
+            expect(swipeSpy).toBeCalledWith({
+                direction: 'left',
+                duration: 3000,
+                percent: 0.5,
+                from: { x: 300, y: 500 },
+                to: { x: 100, y: 500 },
+            })
             swipeSpy.mockRestore()
             isDisplayedSpy.mockRestore()
+            rectSpy.mockRestore()
         })
 
         it('does not find the element after max 5 scrolls', async () => {
@@ -643,6 +655,180 @@ describe('scrollIntoView test', () => {
             expect(swipeSpy).not.toBeCalled()
             swipeSpy.mockRestore()
             isDisplayedSpy.mockRestore()
+        })
+
+        describe('scrollable element lookup', () => {
+            const rect = { x: 0, y: 100, width: 400, height: 800 }
+            let rectSpy: Mock
+            let isDisplayedSpy: Mock
+
+            /**
+             * the pointer actions of all swipes that reached the driver
+             */
+            const getSwipeActions = () => vi.mocked(fetch).mock.calls
+                .filter(([url, requestOptions]) => (
+                    (url as URL).pathname.endsWith('/actions') &&
+                    (requestOptions as RequestInit | undefined)?.method === 'POST'
+                ))
+                .map(([, requestOptions]) => JSON.parse((requestOptions as any).body).actions)
+                // the pointer id is a counter, unique per action
+                .map((actions) => actions.map(({ id: _id, ...action }: { id: string }) => action))
+
+            beforeEach(() => {
+                (browser.$$ as Mock).mockResolvedValue([{ elementId: 'scrollable-element-id' }])
+                rectSpy = vi.spyOn(browser, 'getElementRect').mockResolvedValue(rect) as unknown as Mock
+            })
+
+            afterEach(() => {
+                rectSpy.mockRestore()
+                isDisplayedSpy?.mockRestore()
+                vi.mocked(browser.$$).mockReset()
+            })
+
+            it('looks up the default scrollable element and its rect once for all swipes', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+
+                await elem.scrollIntoView()
+
+                expect(browser.$$).toBeCalledTimes(1)
+                expect(browser.$$).toBeCalledWith(defaultIOSSelector)
+                expect(rectSpy).toBeCalledTimes(1)
+                expect(rectSpy).toBeCalledWith('scrollable-element-id')
+                expect(getSwipeActions()).toHaveLength(3)
+            })
+
+            it('swipes with the same coordinates as `browser.swipe()` calculates itself', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+
+                await elem.scrollIntoView({ direction: 'down', percent: 0.6, duration: 2500 })
+                const scrollIntoViewSwipes = getSwipeActions()
+                expect(scrollIntoViewSwipes).toHaveLength(2)
+                expect(rectSpy).toBeCalledTimes(1)
+
+                vi.mocked(fetch).mockClear()
+                await browser.swipe({ direction: 'down', percent: 0.6, duration: 2500 })
+                await browser.swipe({ direction: 'down', percent: 0.6, duration: 2500 })
+                expect(scrollIntoViewSwipes).toEqual(getSwipeActions())
+                // a swipe down within the rect from 20% to 80% of its height
+                expect(scrollIntoViewSwipes[0][0].actions).toEqual(expect.arrayContaining([
+                    expect.objectContaining({ type: 'pointerMove', x: 200, y: 260 }),
+                    expect.objectContaining({ type: 'pointerMove', x: 200, y: 740, duration: 2500 }),
+                ]))
+            })
+
+            it('swipes up when the direction is explicitly undefined, as `browser.swipe()` does', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+
+                await elem.scrollIntoView({ direction: undefined })
+                const scrollIntoViewSwipes = getSwipeActions()
+                expect(scrollIntoViewSwipes).toHaveLength(1)
+
+                vi.mocked(fetch).mockClear()
+                await browser.swipe({ direction: undefined })
+                expect(scrollIntoViewSwipes).toEqual(getSwipeActions())
+            })
+
+            it('does not look up the scrollable element when the element is already visible', async () => {
+                (browser.$$ as Mock).mockResolvedValue([])
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockResolvedValueOnce(true) as unknown as Mock
+
+                await elem.scrollIntoView()
+
+                expect(browser.$$).not.toBeCalled()
+                expect(rectSpy).not.toBeCalled()
+            })
+
+            it('throws when there is no default scrollable element and a swipe is needed', async () => {
+                (browser.$$ as Mock).mockResolvedValue([])
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockResolvedValue(false) as unknown as Mock
+
+                await expect(elem.scrollIntoView()).rejects.toThrow(
+                    `Default scrollable element '${defaultIOSSelector}' was not found.`
+                )
+                expect(rectSpy).not.toBeCalled()
+                expect(getSwipeActions()).toHaveLength(0)
+            })
+
+            it('uses a provided scrollable element without looking up the default one', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+                const scrollableElement = { elementId: 'user-scrollable-id' } as unknown as WebdriverIO.Element
+
+                await elem.scrollIntoView({ scrollableElement })
+
+                expect(browser.$$).not.toBeCalled()
+                expect(rectSpy).toBeCalledTimes(1)
+                expect(rectSpy).toBeCalledWith('user-scrollable-id')
+                expect(getSwipeActions()).toHaveLength(3)
+            })
+
+            it('uses a provided chainable scrollable element without looking up the default one', async () => {
+                isDisplayedSpy = vi.spyOn(elem, 'isDisplayed')
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(false)
+                    .mockResolvedValueOnce(true) as unknown as Mock
+
+                // not awaited: a chainable promise element
+                await elem.scrollIntoView({ scrollableElement: browser.$('#scrollable') })
+
+                expect(browser.$$).not.toBeCalled()
+                expect(rectSpy).toBeCalledTimes(1)
+                expect(rectSpy).toBeCalledWith('some-elem-123')
+                expect(getSwipeActions()).toHaveLength(2)
+            })
+        })
+    })
+
+    describe('mobile native app on Android', () => {
+        let androidBrowser: WebdriverIO.Browser
+        let androidElem: WebdriverIO.Element
+
+        beforeAll(async () => {
+            androidBrowser = await remote({
+                capabilities: {
+                    mobileMode: true,
+                    nativeAppMode: true,
+                    platformName: 'Android',
+                    app: 'foo.apk',
+                } as any
+            })
+            androidElem = await androidBrowser.$('#foo')
+        })
+
+        it('looks up the default scrollable element and its rect once for all swipes', async () => {
+            vi.spyOn(androidBrowser, 'pause').mockResolvedValue(undefined)
+            const findSpy = vi.spyOn(androidBrowser, '$$').mockResolvedValue([{ elementId: 'scroll-view-id' }] as any)
+            const rectSpy = vi.spyOn(androidBrowser, 'getElementRect').mockResolvedValue({ x: 0, y: 0, width: 1080, height: 1920 })
+            vi.spyOn(androidElem, 'isDisplayed')
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(true)
+            const swipeSpy = vi.spyOn(androidBrowser, 'swipe')
+
+            await androidElem.scrollIntoView()
+
+            expect(findSpy).toBeCalledTimes(1)
+            expect(findSpy).toBeCalledWith(defaultAndroidSelector)
+            expect(rectSpy).toBeCalledTimes(1)
+            expect(rectSpy).toBeCalledWith('scroll-view-id')
+            expect(swipeSpy).toBeCalledTimes(3)
+            // never passes `scrollableElement` together with `from`/`to`, which `browser.swipe()` warns about
+            for (const [options] of swipeSpy.mock.calls) {
+                expect(options).toEqual({ direction: 'up', from: { x: 540, y: 1872 }, to: { x: 540, y: 48 } })
+            }
         })
     })
 })
