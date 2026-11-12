@@ -589,6 +589,7 @@ export default class SpecReporter extends WDIOReporter {
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.setMessageColor(text, State.SKIPPED))
+            duration = ''
         }
 
         // Get the pending tests
