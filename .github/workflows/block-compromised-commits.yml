@@ -81,13 +81,21 @@ jobs:
             fi
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}")
 
-          # 3. npm lifecycle scripts that run on install (the root postinstall runs every "postinstall:*").
-          hooks=$(git diff --unified=0 "${base}...${head}" -- '*package.json' \
-            | grep -E '^\+.*"(preinstall|install|postinstall|prepare|prepack|prepublish|prepublishOnly)(:[^"]*)?"[[:space:]]*:' || true)
-          if [ -n "$hooks" ]; then
-            if [ "$override" = 1 ]; then echo "::warning::Install lifecycle script changed (allowed by label ${OVERRIDE_LABEL}):"; else echo "::error::Install lifecycle script added or changed. A maintainer must review it and add the label '${OVERRIDE_LABEL}':"; fail=1; fi
-            printf '%s\n' "$hooks"
-          fi
+          mb=$(git merge-base "$base" "$head")
+          sensitive() { # $1 = message; an error unless the override label is set
+            if [ "$override" = 1 ]; then echo "::warning::$1 (allowed by label ${OVERRIDE_LABEL})"
+            else echo "::error::$1. A maintainer must review it and add the label '${OVERRIDE_LABEL}'."; fail=1; fi
+          }
+
+          # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
+          #    Both versions are parsed with jq, so escaped keys and line breaks cannot hide a hook.
+          lifecycle='^(pre|post)?(install|prepare|pack|publish|publishOnly)(:.*)?$|^dependencies$'
+          hooks_of() { jq -cS --arg re "$lifecycle" '(.scripts // {}) | with_entries(select(.key | test($re)))'; }
+          while IFS= read -r -d '' f; do
+            new=$(git show "${head}:${f}" | hooks_of) || { sensitive "Cannot parse ${f}"; continue; }
+            old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | hooks_of) || old='{}'
+            if [ "$old" != "$new" ]; then sensitive "Install lifecycle script added or changed in ${f}: ${new}"; fi
+          done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json')
 
           # 4. URLs with a public IPv4 address (data exfiltration endpoints use them often).
           ips=$(printf '%s\n' "$added" | grep -oE 'https?://([0-9]{1,3}\.){3}[0-9]{1,3}' \
