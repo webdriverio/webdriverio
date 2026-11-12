@@ -297,7 +297,7 @@ jobs:
           #    core.quotePath=false, and a header that git still quotes ends in '"'.
           lock_added=$(awk '/^diff --git /{h=0; lock = ($0 ~ /(pnpm-lock\.yaml|package-lock\.json|npm-shrinkwrap\.json|yarn\.lock)"?$/)}
                              /^@@ /{h=1; next} h && lock && /^\+/{print substr($0, 2)}' "$t/diff" \
-            | grep -E '(^|[{,[:space:]])["'"'"']?(tarball|repo|commit|type)["'"'"']?[[:space:]]*:|"resolved"[[:space:]]*:|^[[:space:]]+resolved ' \
+            | grep -E '(^|[{,[:space:]])["'"'"']?(tarball|repo|commit)["'"'"']?[[:space:]]*:|(^|[{,[:space:]])["'"'"']?type["'"'"']?[[:space:]]*:[[:space:]]*["'"'"']?(git|directory)|"resolved"[[:space:]]*:|^[[:space:]]+resolved ' \
             | grep -vE '"resolved": "https://registry\.(npmjs\.org|yarnpkg\.com)/|resolved "https://registry\.(npmjs\.org|yarnpkg\.com)/' || true)
           if [ -n "$lock_added" ]; then
             sensitive "Lockfile resolution from a tarball URL, git or a non-registry host: $(printf '%s' "$lock_added" | head -3 | tr '\n' ' ')"
