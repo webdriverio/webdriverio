@@ -131,7 +131,7 @@ jobs:
 
           # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
           #    Both versions are parsed with jq, so escaped keys and line breaks cannot hide a hook.
-          lifecycle='^(pre|post)?(install|prepare|pack|publish|publishOnly)(:.*)?$|^dependencies$'
+          lifecycle='^(pre|post)?(install|prepare|pack|publish|publishOnly)(:.*)?$|^dependencies$|^pnpm:devPreinstall$'
           remote_spec='(git\+|git:|github:|gitlab:|bitbucket:|https?:|file:|link:)'
           hooks_of() { jq -cS --arg re "$lifecycle" '(.scripts // {}) | with_entries(select(.key | test($re)))'; }
           # Dependencies from git, URLs or local paths (they can run their own install scripts),
