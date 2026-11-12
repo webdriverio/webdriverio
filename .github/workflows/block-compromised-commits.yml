@@ -68,7 +68,10 @@ jobs:
             fail=1
           fi
 
-          added=$(git diff --unified=0 "${base}...${head}" | grep -E '^\+[^+]' || true)
+          # Added lines, read inside hunks only: a code line that starts with "+" must not be
+          # mistaken for the "+++ b/file" header.
+          added=$(git diff --no-color --unified=0 "${base}...${head}" \
+            | awk '/^diff --git /{h=0} /^@@ /{h=1; next} h && /^\+/{print substr($0, 2)}')
 
           # 2. Hidden shell scripts (for example .ci-abc123.sh). No such file exists in the repo.
           #    -z and core.quotePath=false keep non-ASCII names unquoted; compare in lowercase.
