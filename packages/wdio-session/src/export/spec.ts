@@ -116,10 +116,10 @@ interface ProgramNode {
     [key: string]: unknown
 }
 
-function parseProgram (code: string): ProgramNode | undefined {
+function parseProgram (code: string, allowReturnOutsideFunction = true): ProgramNode | undefined {
     try {
         // the export reads no node location
-        return acorn.parse(code, { ...PARSE_OPTIONS, locations: false }) as unknown as ProgramNode
+        return acorn.parse(code, { ...PARSE_OPTIONS, allowReturnOutsideFunction, locations: false }) as unknown as ProgramNode
     } catch {
         return undefined
     }
@@ -257,7 +257,9 @@ const DOLLAR_DOLLAR_TEXT = /(?<![\w$])(?<!(?:^|[^.])\.)\$\$(?![\w$])/
 const DOLLAR_DOLLAR_ASSIGN_TEXT = /(?<![\w$.])\$\$\s*(?:(?:\*\*|<<|>>>?|&&|\|\||\?\?|[-+*/%&|^])?=(?![=>])|\+\+|--)|(?:\+\+|--)[ \t]*\$\$(?![\w$])/
 
 function selectorEdits (code: string) {
-    const ast = parseProgram(stripTypes(code))
+    // Extended session syntax is parsed for $$ imports, without broadening page-object rewrites.
+    const selectorAst = parseProgram(code, false)
+    const ast = selectorAst || parseProgram(stripTypes(code))
     const edits: SelectorEdit[] = []
     let needsDollar = false
     let needsDollarDollar = false
@@ -297,7 +299,7 @@ function selectorEdits (code: string) {
             return
         }
         const arg = node.arguments?.[0]
-        if (!arg || node.arguments?.length !== 1 || arg.type !== 'Literal' || typeof arg.value !== 'string') {
+        if (!selectorAst || !arg || node.arguments?.length !== 1 || arg.type !== 'Literal' || typeof arg.value !== 'string') {
             needsDollar = true
             return
         }
