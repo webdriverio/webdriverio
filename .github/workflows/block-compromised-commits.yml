@@ -20,13 +20,18 @@ jobs:
       group: block-compromised-commits-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        # Every label event runs the full check on purpose: a skipped job counts as passing
-        # for a required check and could hide an earlier failure. A partial clone keeps it cheap.
-        with:
-          fetch-depth: 0
-          filter: blob:none
-          persist-credentials: false
+      # git only, no action: the guard has no dependency on a third-party action and still
+      # runs when the org allows only its own actions. Every label event runs the full check
+      # on purpose: a skipped job counts as passing for a required check and could hide an
+      # earlier failure. A blob-less partial clone of the base branch keeps it cheap; no
+      # credentials are written to disk.
+      - name: Clone the base branch
+        env:
+          REPO: ${{ github.repository }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git clone --quiet --filter=blob:none --no-checkout --no-tags --single-branch \
+            --branch "${BASE_REF}" "https://github.com/${REPO}.git" .
 
       - name: Check commits and changes of the pull request
         env:
