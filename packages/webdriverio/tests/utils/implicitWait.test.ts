@@ -89,6 +89,32 @@ describe('implicitWait', () => {
         expect(waitedFor(error)).toBe(false)
     })
 
+    /**
+     * `waitForExist` looks for the element again after its wait and gives it the id: the
+     * command runs on it without another lookup (#16415)
+     */
+    it('uses the element that waitForExist found, without another lookup', async () => {
+        vi.mocked(findElementAgain).mockClear()
+        const el = missing(async () => {
+            Object.assign(el, { elementId: 'found-1' })
+            return true
+        })
+        const result = await implicitWait(el, 'click')
+        expect(result).toBe(el)
+        expect(result.elementId).toBe('found-1')
+        expect(findElementAgain).not.toHaveBeenCalled()
+    })
+
+    it('looks for the element again when waitForExist did not give it an id', async () => {
+        vi.mocked(findElementAgain).mockClear()
+        const found = { selector: '#missing', elementId: 'found-2' } as unknown as WebdriverIO.Element
+        vi.mocked(findElementAgain).mockResolvedValueOnce(found)
+        const el = missing(async () => true)
+        expect(await implicitWait(el, 'click')).toBe(found)
+        expect(findElementAgain).toHaveBeenCalledTimes(1)
+        expect(findElementAgain).toHaveBeenCalledWith(el, { wait: true })
+    })
+
     it('throws a strict-mode violation as it is, without a flag', async () => {
         const strict = new StrictSelectorError('#missing', 2)
         const error = await implicitWait(missing(async () => { throw strict }), 'getText').then(() => null, (err: Error) => err)
