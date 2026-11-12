@@ -71,6 +71,7 @@ jobs:
           attack_msg='^(chore: add ci helper|ci: restore|ci: cleanup|docs: add dependency audit notes)( \(#[0-9]+\))?$'
           bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
           incident=""
+          newest_bad=""
           # All commits, merges included: a merge made by wdio-bot must fail too.
           for c in $(git rev-list "${base}..${head}"); do
             # NUL-separated, so a "|" or other character in a name cannot shift the fields.
@@ -96,10 +97,11 @@ jobs:
             if [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then reason+="attack patch-id, "; fi
             if [ -n "$reason" ]; then
               incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
+              newest_bad=${newest_bad:-$c} # rev-list lists the newest commit first
             fi
           done
           if [ -n "$incident" ]; then
-            echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Rebase onto ${BASE_REF}: git fetch upstream && git rebase upstream/${BASE_REF}"
+            echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Drop them; a plain 'git rebase' copies them. If they are below your own commits: git fetch upstream && git rebase --onto upstream/${BASE_REF} ${newest_bad}. Otherwise use 'git rebase -i upstream/${BASE_REF}' and delete the listed commits."
             printf '%s' "$incident"
             fail=1
           fi
