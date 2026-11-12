@@ -790,6 +790,23 @@ describe('monad', () => {
             expect(modifier.mock.calls[0][1]).toEqual({ baseUrl: 'list' })
         })
 
+        it('defines the descriptors given beside the shared commands on the client and in its __propertiesObject__ (#16422)', () => {
+            const commandWrapper = vi.fn((name: string, fn: Function) => fn)
+            const shared = shareCommands({}, { scope: { value: 'element' }, someFunc: { value: () => 'some' }, emit: { value: () => 'shared' } }, commandWrapper)
+            const clientOf = (emit: Function) => webdriverMonad({}, (client: any) => client, { ...shared, emit: { value: emit } } as never)(sessionId)
+            const emitA = vi.fn(() => 'a')
+            const emitB = vi.fn(() => 'b')
+            const [a, b] = [clientOf(emitA), clientOf(emitB)]
+            const plain = webdriverMonad({}, (client: any) => client, shared as never)(sessionId)
+            expect(a.someFunc).toBe(b.someFunc)
+            expect([a.emit('x'), b.emit('y'), plain.emit('z')]).toEqual(['a', 'b', 'shared'])
+            expect(a.__propertiesObject__.emit.value).toBe(emitA)
+            expect(b.__propertiesObject__.emit.value).toBe(emitB)
+            expect(Object.keys(a.__propertiesObject__)).toContain('someFunc')
+            expect(a.__propertiesObject__.__elementOverrides__.value).toEqual({})
+            expect(commandWrapper).toHaveBeenCalledTimes(1)
+        })
+
         it('overwrites a command of one client only', () => {
             const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
             clients[0].overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)

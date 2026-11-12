@@ -65,10 +65,44 @@ interface SharedCommands {
      */
     own: PropertiesObject
     /**
+     * the `__propertiesObject__` of the shared commands, that each client copies
+     */
+    snapshot: PropertiesObject
+    /**
      * the options and the command wrapper of the list, which every client uses
      */
     options: object
     commandWrapper?: Function
+}
+
+/**
+ * A getter that makes the own `__propertiesObject__` of a client of shared commands on its
+ * first read, see `shareCommands`
+ */
+function ownPropertiesObject (snapshot: PropertiesObject): PropertyDescriptor {
+    return {
+        configurable: true,
+        get (this: object) {
+            const value = { ...snapshot, __elementOverrides__: { value: {} } }
+            Object.defineProperty(this, '__propertiesObject__', { value })
+            return value
+        }
+    }
+}
+
+/**
+ * The descriptors that a client of shared commands defines on itself: the ones of
+ * `shareCommands`, and the ones that the caller gives to the monad beside the shared commands,
+ * e.g. the `emit` of the parent of an element when elements of different parents share their
+ * commands. Those are not wrapped, and are in the `__propertiesObject__` of the client too.
+ */
+function sharedClientDescriptors (shared: SharedCommands, properties: PropertiesObject): PropertiesObject {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { scope, [SHARED_COMMANDS]: _shared, ...own } = properties
+    if (Reflect.ownKeys(own).length === 0) {
+        return shared.own
+    }
+    return { ...shared.own, ...own, __propertiesObject__: ownPropertiesObject({ ...shared.snapshot, ...own }) }
 }
 
 /**
@@ -137,9 +171,11 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
  * events and the commands that `addCommand` / `overwriteCommand` add to it).
  *
  * Every client uses the `options` and the command wrapper given here, also when its monad gets
- * others.
+ * others. A client can have descriptors of its own beside the shared commands, e.g. the `emit` of
+ * its parent: the monad gets `{ ...shareCommands(...), emit: { value } }`, see
+ * `sharedClientDescriptors`.
  *
- * Internal: `webdriverio` uses it for element lists. It is not a public API and can change in any
+ * Internal: `webdriverio` uses it for the elements of a browser. It is not a public API and can change in any
  * release.
  */
 export function shareCommands(options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
@@ -158,15 +194,8 @@ export function shareCommands(options: object, properties: PropertiesObject, com
      * uses it costs nothing.
      */
     const snapshot = descriptors.__propertiesObject__.value as PropertiesObject
-    own.__propertiesObject__ = {
-        configurable: true,
-        get (this: object) {
-            const value = { ...snapshot, __elementOverrides__: { value: {} } }
-            Object.defineProperty(this, '__propertiesObject__', { value })
-            return value
-        }
-    }
-    const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own, options, commandWrapper }
+    own.__propertiesObject__ = ownPropertiesObject(snapshot)
+    const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own, snapshot, options, commandWrapper }
     return { scope: properties.scope, [SHARED_COMMANDS]: { value: shared } }
 }
 
@@ -323,7 +352,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
          */
         const commandWrapper = shared ? shared.commandWrapper : clientCommandWrapper
         let client = shared
-            ? Object.create(prototype, shared.own)
+            ? Object.create(prototype, sharedClientDescriptors(shared, properties))
             : Object.create(prototype, clientProperties(options, properties, commandWrapper))
         client.sessionId = sessionId
 
