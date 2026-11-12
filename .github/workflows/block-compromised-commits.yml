@@ -65,7 +65,10 @@ jobs:
           # Build every list first. A failed git command stops the run here (set -e); inside
           # "< <(...)" or "for x in $(...)" it would only leave a loop empty and pass.
           t=$(mktemp -d)
-          git rev-list "${base}..${head}" > "$t/commits"
+          # One git log for the metadata of all commits (merges included; -z puts NUL between
+          # commits and fields), and one pipeline for the patch-ids of all non-merge commits.
+          { git log -z --format='%H%x00%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s' "${base}..${head}"; printf '\0'; } > "$t/meta"
+          git log -p --no-merges --format='commit %H' "${base}..${head}" | git patch-id --stable > "$t/pids"
           git -c core.quotePath=false diff -z --name-only "${base}...${head}" > "$t/changed-all"
           git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" > "$t/changed"
           git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json' > "$t/pkg"
@@ -82,18 +85,20 @@ jobs:
           incident=""
           newest_bad=""
           release_hits=""
+          pid_map=" "
+          while read -r p sha; do pid_map+="${sha}=${p} "; done < "$t/pids"
+          n=0
           # All commits, merges included: a merge made by wdio-bot must fail too.
-          while IFS= read -r c; do
-            # NUL-separated, so a "|" or other character in a name cannot shift the fields.
-            git log -1 --format='%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s%x00' "$c" > "$t/meta"
-            { IFS= read -r -d '' ae; IFS= read -r -d '' ce; IFS= read -r -d '' an; IFS= read -r -d '' cn
-              IFS= read -r -d '' at; IFS= read -r -d '' ct; IFS= read -r -d '' subject; } < "$t/meta"
+          # NUL-separated fields, so a "|" or other character in a name cannot shift them.
+          while IFS= read -r -d '' c && IFS= read -r -d '' ae && IFS= read -r -d '' ce \
+             && IFS= read -r -d '' an && IFS= read -r -d '' cn && IFS= read -r -d '' at \
+             && IFS= read -r -d '' ct && IFS= read -r -d '' subject; do
+            [ -n "$c" ] || continue
+            n=$((n + 1))
             [[ "$at" =~ ^[0-9]+$ ]] || at=$since # fail closed
             [[ "$ct" =~ ^[0-9]+$ ]] || ct=$since
-            pid=""
-            if [ "$(git rev-list --no-walk --count --min-parents=2 "$c")" = 0 ]; then # a merge has no single patch
-              pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
-            fi
+            pid="" # merges have no single patch, so no patch-id
+            case "$pid_map" in *" ${c}="*) pid=${pid_map#*" ${c}="}; pid=${pid%% *} ;; esac
             # The attack identity is never allowed. The release identity (publish.yml still uses it)
             # can be allowed with the label, for example in a backport that holds a release commit.
             attack_id=0; release_id=0
@@ -119,7 +124,10 @@ jobs:
               incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
               newest_bad=${newest_bad:-$c} # rev-list lists the newest commit first
             fi
-          done < "$t/commits"
+          done < "$t/meta"
+          if [ "$n" != "$(git rev-list --count "${base}..${head}")" ]; then
+            echo "::error::Could not read the metadata of every commit (${n} read)."; exit 1
+          fi
           if [ -n "$incident" ]; then
             echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Drop them; a plain 'git rebase' copies them. If they are below your own commits: git fetch upstream && git rebase --onto upstream/${BASE_REF} ${newest_bad}. Otherwise use 'git rebase -i upstream/${BASE_REF}' and delete the listed commits."
             printf '%s' "$incident"
@@ -132,15 +140,16 @@ jobs:
             | awk '/^diff --git /{h=0} /^@@ /{h=1; next} h && /^\+/{print substr($0, 2)}')
 
           # 2. Hidden shell scripts (for example .ci-abc123.sh). No such file exists in the repo.
-          #    -z and core.quotePath=false keep non-ASCII names unquoted; compare in lowercase.
+          #    -z and core.quotePath=false keep non-ASCII names unquoted; the match ignores case.
+          shopt -s nocasematch # case-insensitive [[ =~ ]] without a process per file
           while IFS= read -r -d '' f; do
-            lower=$(printf '%s' "$f" | tr '[:upper:]' '[:lower:]')
-            if [[ "$lower" =~ (^|/)\.[^/]+\.(sh|bash|zsh|ksh)$ ]]; then
+            if [[ "$f" =~ (^|/)\.[^/]+\.(sh|bash|zsh|ksh)$ ]]; then
               echo "::error file=$(esc_prop "$f")::Hidden shell script added or changed: $(esc_data "$f")"; fail=1
-            elif [[ "$lower" =~ \.(sh|bash|zsh|ksh)$ ]]; then
+            elif [[ "$f" =~ \.(sh|bash|zsh|ksh)$ ]]; then
               echo "::warning file=$(esc_prop "$f")::Shell script added or changed. Review it with care."
             fi
           done < "$t/changed"
+          shopt -u nocasematch
 
           mb=$(git merge-base "$base" "$head")
           sensitive() { # $1 = message; an error unless the override label is set
