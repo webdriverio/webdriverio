@@ -7,14 +7,14 @@ const APPIUM3_UPGRADE_HINT =
 
 /**
  * Returns true if the error indicates that the driver does not know about the
- * requested `mobile:` execute method (Appium 1/2, an outdated driver, or a
- * current driver that simply does not implement this extension).
+ * requested endpoint or `mobile:` execute method (Appium 1/2, an outdated driver, or a
+ * current driver that simply does not implement this endpoint/extension).
  */
-function isUnknownMethodError(err: unknown): boolean {
+export function isUnknownMethodError(err: unknown): boolean {
     if (!(err instanceof Error)) {
         return false
     }
-    const msg = err.message.toLowerCase()
+    const msg = `${err.name} ${err.message}`.toLowerCase()
     return msg.includes('unknown method') || msg.includes('unknown command')
 }
 

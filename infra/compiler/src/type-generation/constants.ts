@@ -35,7 +35,5 @@ export const returnTypeMap = {
     getActiveElement: 'ElementReference',
     getAllCookies: 'Cookie[]',
     send: 'BidiResponse',
-    getAppiumContext: 'Context',
-    getAppiumContexts: 'Context[]',
     getCredentials: 'Credential[]'
 }
