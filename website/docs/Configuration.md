@@ -801,6 +801,8 @@ Parameters:
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
 
+Throw a [`SevereServiceError`](./CustomServices.md#service-error-handling) in this hook to fail the test without running it (in Mocha and Jasmine). `afterTest` still runs for it.
+
 ### beforeCommand
 
 Runs before a WebdriverIO command gets executed. For an element command, it runs before WebdriverIO waits for the element (see [Auto-waiting](./AutoWait.md)).
@@ -835,6 +837,8 @@ Parameters:
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
 - `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+
+Throw a [`SevereServiceError`](./CustomServices.md#service-error-handling) in this hook to fail a test that passed (in Mocha and Jasmine), e.g. when the browser console log has errors. If the test has failed already, it keeps its own error.
 
 ### afterSuite
 

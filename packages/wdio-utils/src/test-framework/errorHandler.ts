@@ -34,3 +34,15 @@ export const logHookError = (hookName: string, hookResults: unknown[] = [], cid:
         })
     }
 }
+
+/**
+ * find the first `SevereServiceError` among the results of a hook. It is matched by name
+ * as the error class is exported by `webdriverio`, which `@wdio/utils` can't depend on
+ * (and a service can bring its own copy of it).
+ *
+ * @param   {Array}  hookResults hook functions results array
+ * @returns {Error=}             the severe error, if any hook threw one
+ */
+export const findSevereServiceError = (hookResults: unknown[] = []) => {
+    return hookResults.find((result): result is Error => result instanceof Error && result.name === 'SevereServiceError')
+}
