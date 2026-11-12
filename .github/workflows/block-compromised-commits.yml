@@ -163,17 +163,49 @@ jobs:
             fi
           done < <(git -c core.quotePath=false diff -z --name-only "${base}...${head}")
 
-          # 5. pnpm-workspace.yaml: build and hook settings, and new dependencies from git, URLs or paths.
-          build_keys_of() {
-            awk '/^[^[:space:]#]/ { keep = ($0 ~ /^(allowBuilds|onlyBuiltDependencies|neverBuiltDependencies|ignoredBuiltDependencies|dangerouslyAllowAllBuilds|pnpmfile|globalPnpmfile)[[:space:]]*:/) } keep'
-          }
-          specs_of() { grep -oE ":[[:space:]]*[\"']?${remote_spec}[^\"' ]+" | sort -u || true; }
-          while IFS= read -r -d '' f; do
-            if [ "$(git show "${mb}:${f}" 2>/dev/null | build_keys_of)" != "$(git show "${head}:${f}" | build_keys_of)" ]; then
-              sensitive "pnpm build or hook settings changed in ${f}"
+          # A dependency spec that can only resolve from the npm registry (no git, URL, path or tarball).
+          registry_spec() {
+            local v=$1
+            case "$v" in workspace:*|catalog:*) return 0 ;; esac
+            if [[ "$v" == npm:* ]]; then
+              v=${v#npm:}
+              [[ "$v" =~ ^(@[a-z0-9._~-]+/)?[a-z0-9._~-]+@[^/:[:space:]]*$ ]] || return 1
+              v=${v##*@}
             fi
-            added_specs=$(comm -13 <(git show "${mb}:${f}" 2>/dev/null | specs_of) <(git show "${head}:${f}" | specs_of))
-            if [ -n "$added_specs" ]; then sensitive "Dependency from git, a URL or a local path added in ${f}"; fi
+            [[ "$v" != */* && "$v" != *:* && "$v" != *\\* && "$v" != .* && ! "$v" =~ \.(tgz|tar|tar\.gz)$ ]]
+          }
+
+          # 5. pnpm-workspace.yaml (pnpm reads its settings here, and some run code: pnpmfile,
+          #    scriptShell, nodeOptions, allowBuilds, ...). Allowlist: only "packages",
+          #    "catalog(s)", and registry-only "overrides"/"packageExtensions" may change without
+          #    the label. Quoted keys are normalized; a line that is not "key:" fails closed.
+          keyed_lines() { # print "<top-level key><TAB><line>" for every line
+            awk '
+              /^[^[:space:]#]/ && !/^- / {
+                k = $0
+                if (k ~ /^"[^"]*"[[:space:]]*:/) { sub(/^"/, "", k); sub(/"[[:space:]]*:.*/, "", k) }
+                else if (k ~ /^'"'"'[^'"'"']*'"'"'[[:space:]]*:/) { sub(/^'"'"'/, "", k); sub(/'"'"'[[:space:]]*:.*/, "", k) }
+                else if (k ~ /^[A-Za-z0-9_.-]+[[:space:]]*:/) { sub(/[[:space:]]*:.*/, "", k) }
+                else { k = "<unparsed>" }
+              }
+              { print k "\t" $0 }'
+          }
+          while IFS= read -r -d '' f; do
+            changed=$(diff <(git show "${mb}:${f}" 2>/dev/null | keyed_lines) <(git show "${head}:${f}" | keyed_lines) \
+              | grep -E '^[<>] ' | cut -c3- || true)
+            for k in $(printf '%s\n' "$changed" | cut -f1 | sort -u); do
+              case "$k" in
+                packages|catalog|catalogs) ;;
+                overrides|packageExtensions)
+                  while IFS= read -r line; do
+                    [[ "$line" =~ :[[:space:]]*[^[:space:]#] ]] || continue # a key with no value
+                    v=${line#*:}; v=${v%%#*}; v=$(printf '%s' "$v" | sed -E "s/^[[:space:]]*['\"]?//; s/['\"]?[[:space:]]*$//")
+                    registry_spec "$v" || sensitive "Dependency spec that is not from the npm registry in ${f} (${k}): ${v}"
+                  done < <(printf '%s\n' "$changed" | awk -F'\t' -v k="$k" '$1 == k { sub(/^[^\t]*\t/, ""); print }' | sed -E 's/^[[:space:]]+//' | grep -v "^${k}[[:space:]]*:" || true)
+                  ;;
+                *) sensitive "pnpm setting '${k}' changed in ${f}" ;;
+              esac
+            done
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml')
 
           # 6. Public IPv4 addresses in URLs (any scheme, any case, or "//IP") or after network
