@@ -93,4 +93,8 @@ export const logos = [{
     img: 'bedrock.jpg',
     alt: 'Bedrock Streaming',
     url: 'https://www.bedrockstreaming.com/'
+}, {
+    img: 'wordfully.svg',
+    alt: 'Wordfully',
+    url: 'https://wordfully.ai/'
 }]
