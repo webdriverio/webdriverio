@@ -5,7 +5,9 @@ import { getContextManager } from '../../session/context.js'
 /**
  *
  * Close the current top-level browsing context, e.g. the current tab or window.
- * If it was the last one, the driver ends the session and the command rejects.
+ * If it was the last one, the driver ends the session and the command rejects,
+ * except for an instance of a multi-remote browser: that instance ends while the
+ * test can continue using the other instances.
  *
  * The command calls the WebDriver [closeWindow](/docs/api/webdriver#closewindow)
  * endpoint, then switches to the first remaining window. It resolves after that

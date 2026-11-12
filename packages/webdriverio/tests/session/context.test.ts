@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import {
     getContextManager,
+    registerMultiRemoteInstance,
     getParallelContextStore,
     setParallelContextStore,
     registerParallelContext,
@@ -111,6 +112,63 @@ describe('ContextManager', () => {
         const resultHandler = getListeners().result![0]
         resultHandler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
         expect(browser.switchToWindow).not.toHaveBeenCalled()
+    })
+
+    describe('closing the last window of a multi-remote instance (#15043)', () => {
+        it('ends only the marked instance and clears its cached context', async () => {
+            registerMultiRemoteInstance(browser)
+            const manager = getContextManager(browser)
+            manager.setCurrentContext('closed-window')
+            manager.setCurrentWindowHandle('closed-window')
+
+            await expect(manager.switchToRemainingWindow([])).resolves.toBeUndefined()
+
+            expect(browser.switchToWindow).not.toHaveBeenCalled()
+            expect(manager.getCurrentWindowHandle()).toBeUndefined()
+            expect(await manager.getCurrentContext()).toBe('')
+            expect(logMock.warn).toHaveBeenCalledWith(
+                `All windows of the multi-remote instance with session "${browser.sessionId}" ` +
+                'were closed, so its session ended. The other instances keep running.'
+            )
+        })
+
+        it('still awaits the switch when a marked instance has another window', async () => {
+            registerMultiRemoteInstance(browser)
+            let release!: () => void
+            browser.switchToWindow.mockImplementation(() => new Promise<void>((resolve) => { release = resolve }))
+            let resolved = false
+            const switched = getContextManager(browser).switchToRemainingWindow(['remaining-window'])
+                .then(() => { resolved = true })
+
+            expect(browser.switchToWindow).toHaveBeenCalledWith('remaining-window')
+            await Promise.resolve()
+            expect(resolved).toBe(false)
+            release()
+            await switched
+            expect(resolved).toBe(true)
+            expect(logMock.warn).not.toHaveBeenCalled()
+        })
+
+        it('keeps the instance marked when the session manager is recreated', async () => {
+            registerMultiRemoteInstance(browser)
+            const originalManager = getContextManager(browser)
+            for (const handler of [...(getListeners().command ?? [])]) {
+                handler({ command: 'deleteSession' })
+            }
+            const newManager = getContextManager(browser)
+
+            expect(newManager).not.toBe(originalManager)
+            await expect(newManager.switchToRemainingWindow([])).resolves.toBeUndefined()
+        })
+
+        it('does not change another browser into a multi-remote instance', async () => {
+            registerMultiRemoteInstance(browser)
+            const standalone = createBrowserStub()
+
+            await expect(getContextManager(standalone.browser).switchToRemainingWindow([])).rejects.toThrow(
+                'All window handles were removed, causing WebdriverIO to close the session.'
+            )
+        })
     })
 
     it('should cache the current window handle on getWindowHandle command', () => {
