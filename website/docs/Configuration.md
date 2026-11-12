@@ -357,6 +357,46 @@ Maximum size of the response body (in bytes) that can be returned when using the
 
 </Option>
 
+### userCommandEvents
+
+<Option type="Boolean|Object" default="undefined">
+
+Sends an event before and after each user command: a command that your test code calls directly (a WebdriverIO command, a custom command or an `expect-webdriverio` assertion). The reporters get these events (see [User commands](./CustomReporter.md#user-commands)), and a standalone script can listen to `userCommand` and `userResult` on the browser. Only WebDriver BiDi sessions send them, never WebDriver Classic or Appium sessions. This option is experimental.
+
+- Not set: only sessions with the `wdio:experimentalBiDiCommands` capability (also parallel mode) send them.
+- `true`: every WebDriver BiDi session sends them.
+- `false`: no session sends them.
+- `{ exclude: ['waitUntil'] }`: all commands except these, and except the commands that they run.
+
+`takeScreenshot` and `takeElementScreenshot` are never user commands, because their result is a base64 screenshot.
+
+`nested` sets which user commands show their direct calls as child user commands, with the `id` of the user command that runs them as `parent`. The reporters show them as child steps, and they join identical repeated steps into one step with `× N` (for example `getText() → "Click" × 8`):
+
+```js
+// the easy form
+userCommandEvents: { nested: 'default' } // 'default' | 'none' | 'all'
+
+// the complex form
+userCommandEvents: {
+    exclude: ['pause'],
+    nested: {
+        mode: 'default',       // the start list: 'default' | 'none' | 'all'
+        expand: ['getText'],   // these also show their direct calls
+        collapse: ['login']    // these stay one closed step
+    }
+}
+```
+
+- `'default'` (also when `nested` is not set): `waitUntil`, `waitFor*` (every command whose name starts with `waitFor`, also a custom command) and the assertions (`expect.*`) show their direct calls. Other commands stay one step: add a custom command to `expand` to see its direct calls.
+- `'none'`: no command shows its direct calls.
+- `'all'`: every command shows its direct calls, at every level. Use it for deep debugging, because it sends many more events.
+- A name in `expand` or `collapse` is a command name, or a name that ends with `*` (for example `waitFor*`).
+- The order of the rules: the top-level `exclude` wins over everything, then `collapse`, then `expand`, then `mode`.
+- A direct call shows its own direct calls only when its own command matches the rules.
+- An item that is not a string is ignored. A value that is not valid logs one warning, and `'default'` is used.
+
+</Option>
+
 ### region
 
 <Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | asia-south-2 | staging">

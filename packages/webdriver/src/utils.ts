@@ -2,6 +2,7 @@ import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import { runOutsideUserCommands } from '@wdio/utils'
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, AppiumProtocol, ChromiumProtocol,
@@ -606,7 +607,8 @@ export function parseBidiMessage (this: EventEmitter, data: ArrayBuffer) {
             return
         }
 
-        this.emit(payload.method as string, payload.params)
+        // a socket opened in a user command (`reloadSession`) runs its callbacks in that command
+        runOutsideUserCommands(() => this.emit(payload.method as string, payload.params))
     } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }

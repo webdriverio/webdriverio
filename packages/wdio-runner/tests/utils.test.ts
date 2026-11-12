@@ -122,6 +122,11 @@ describe('utils', () => {
             })
         })
 
+        it('should pass the userCommandEvents option of the testrunner to the session', async () => {
+            await initializeInstance({ userCommandEvents: { exclude: ['pause'] } } as WebdriverIO.Config, { browserName: 'chrome' })
+            expect(remote).toBeCalledWith(expect.objectContaining({ userCommandEvents: { exclude: ['pause'] } }))
+        })
+
         afterEach(() => {
             vi.mocked(attach).mockClear()
             vi.mocked(multiRemote).mockClear()
