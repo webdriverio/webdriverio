@@ -150,7 +150,7 @@ jobs:
 
           # The full diff, computed once into a file (a git failure stops the run). Added lines are
           # read inside hunks only: a code line that starts with "+" is not a "+++ b/file" header.
-          git diff --no-color --unified=0 "${base}...${head}" > "$t/diff"
+          git -c core.quotePath=false diff --no-color --unified=0 "${base}...${head}" > "$t/diff"
           added=$(awk '/^diff --git /{h=0} /^@@ /{h=1; next} h && /^\+/{print substr($0, 2)}' "$t/diff")
 
           # 2. Hidden shell scripts (for example .ci-abc123.sh). No such file exists in the repo.
@@ -285,8 +285,9 @@ jobs:
 
           # 6. Lockfiles: a resolution from a tarball URL, git or a host that is not the registry.
           #    An edited tarball URL installs other code with no package.json change. Keys may be
-          #    quoted ('tarball': ...), which YAML reads as the same key.
-          lock_added=$(awk '/^diff --git /{h=0; lock = ($0 ~ /(pnpm-lock\.yaml|package-lock\.json|npm-shrinkwrap\.json|yarn\.lock)$/)}
+          #    quoted ('tarball': ...), which YAML reads as the same key. The diff is made with
+          #    core.quotePath=false, and a header that git still quotes ends in '"'.
+          lock_added=$(awk '/^diff --git /{h=0; lock = ($0 ~ /(pnpm-lock\.yaml|package-lock\.json|npm-shrinkwrap\.json|yarn\.lock)"?$/)}
                              /^@@ /{h=1; next} h && lock && /^\+/{print substr($0, 2)}' "$t/diff" \
             | grep -E '(^|[{,[:space:]])["'"'"']?(tarball|repo|commit|type)["'"'"']?[[:space:]]*:|"resolved"[[:space:]]*:|^[[:space:]]+resolved ' \
             | grep -vE '"resolved": "https://registry\.(npmjs\.org|yarnpkg\.com)/|resolved "https://registry\.(npmjs\.org|yarnpkg\.com)/' || true)
