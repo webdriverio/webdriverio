@@ -287,3 +287,72 @@ describe('hint of an unnamed select', () => {
         expect(byRole(result, 'combobox')[0].hint).toBe('cardType in "Card Type"')
     })
 })
+
+describe('svg descendants in the accessible name', () => {
+    const LINKS = `
+        <a href="/a">Plain<svg width="10" height="10" aria-hidden="true"></svg></a>
+        <a href="/b">Labelled<svg width="10" height="10" aria-label="(opens in new tab)"></svg></a>
+        <a href="/c">Titled<svg width="10" height="10"><title>(opens in new tab)</title></svg></a>`
+
+    it('reads an svg aria-label or title into the name of the link that contains it', () => {
+        const result = collect(LINKS)
+        expect(byRole(result, 'link').map((n) => n.name)).toEqual([
+            'Plain',
+            'Labelled (opens in new tab)',
+            'Titled (opens in new tab)'
+        ])
+    })
+
+    it('keeps an aria-hidden svg out of the name, title and paths included', () => {
+        const result = collect('<a href="/d">Docs<svg aria-hidden="true"><title>icon</title><path d="M0 0h10v10z"></path></svg></a>')
+        expect(byRole(result, 'link')[0].name).toBe('Docs')
+    })
+
+    it('does not read text from inside an svg without a label or title', () => {
+        const result = collect('<a href="/e">Filled<svg width="10" height="10"><path d="M0 0h10v10z"></path></svg></a>')
+        expect(byRole(result, 'link')[0].name).toBe('Filled')
+    })
+
+    it('keeps a hidden svg out of the name even when it carries a label', () => {
+        const result = collect(`
+            <a href="/f">Hidden<svg style="display:none" aria-label="icon"></svg></a>
+            <a href="/g">Invisible<svg style="visibility:hidden" aria-label="icon"></svg></a>
+            <a href="/h">Inert<svg inert aria-label="icon"></svg></a>`)
+        expect(byRole(result, 'link').map((n) => n.name)).toEqual(['Hidden', 'Invisible', 'Inert'])
+    })
+
+    it('resolves a referenced aria-label and alt instead of its raw text', () => {
+        const result = collect(`
+            <a href="/j">Docs<svg aria-labelledby="real2"><title>Old title</title></svg></a><span id="real2" aria-label="Actual label">Old text</span>
+            <a href="/k">Docs<svg aria-labelledby="pic"><title>Old title</title></svg></a><img id="pic" alt="Picture">`)
+        expect(byRole(result, 'link').map((n) => n.name)).toEqual(['Docs Actual label', 'Docs Picture'])
+    })
+
+    it('prefers aria-labelledby over aria-label and title on the svg', () => {
+        const result = collect('<a href="/i">Docs<svg aria-labelledby="real" aria-label="wrong"><title>old title</title></svg></a><span id="real">Actual label</span>')
+        expect(byRole(result, 'link')[0].name).toBe('Docs Actual label')
+    })
+})
+
+describe('icon only svg keeps its own node', () => {
+    it('names the button and still exposes the svg as an img node', () => {
+        const result = collect('<button><svg width="12" height="12" aria-label="Benefit available"></svg></button>')
+        expect(byRole(result, 'button')[0].name).toBe('Benefit available')
+        expect(byRole(result, 'img').map((n) => n.name)).toEqual(['Benefit available'])
+    })
+
+    it('drops an icon only button that sits outside the viewport', () => {
+        const result = collect(`
+            <button style="position:absolute;top:10px;left:0;width:80px;height:30px"><svg width="12" height="12" aria-label="Near icon"></svg></button>
+            <button style="position:absolute;top:${FAR};left:0;width:80px;height:30px"><svg width="12" height="12" aria-label="Far icon"></svg></button>`, { viewport: true })
+        const all = names(result.tree)
+        expect(all).toContain('Near icon')
+        expect(all).not.toContain('Far icon')
+        expect(result.refs.map((ref) => ref.name)).toEqual(['Near icon'])
+    })
+
+    it('does not collapse a link that has text next to the svg', () => {
+        const result = collect('<a href="/d">Discord<svg width="10" height="10" aria-label="(opens in new tab)"></svg></a>')
+        expect(byRole(result, 'link')[0].name).toBe('Discord (opens in new tab)')
+    })
+})

@@ -210,6 +210,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return ''
         }
         const el = node as Element
+        if (el.tagName.toUpperCase() === 'SVG') {
+            return svgTextName(el)
+        }
         if (SKIP_TAGS.has(el.tagName.toUpperCase()) || isHidden(el)) {
             return ''
         }
@@ -231,11 +234,73 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return inline ? inner : ` ${inner} `
     }
 
-    /** the text of the elements `aria-labelledby` names, as they are (an svg `<title>` included) */
+    /**
+     * an `<svg>` contributes to the parent's accessible name through its own `aria-label`
+     * or its `<title>`; its paths and shapes never do. accname treats it that way, and
+     * Chrome names a footer link `Discord (opens in new tab)` for exactly this reason.
+     */
+    function svgTextName (el: Element): string {
+        if (isHidden(el)) {
+            return ''
+        }
+        const labelled = collapse(labelledBy(el))
+        if (labelled) {
+            return ` ${labelled} `
+        }
+        const label = el.getAttribute('aria-label')
+        if (label && collapse(label)) {
+            return ` ${label} `
+        }
+        const title = el.querySelector(':scope > title')
+        if (title?.textContent && collapse(title.textContent)) {
+            return ` ${title.textContent} `
+        }
+        return ''
+    }
+
+    /** an element whose only content is a labelled svg keeps that svg as its own img node */
+    function iconOnlySvg (el: Element): boolean {
+        let hasSvg = false
+        for (const c of childNodesOf(el)) {
+            if (c.nodeType === 3) {
+                if (collapse(c.textContent)) {
+                    return false
+                }
+                continue
+            }
+            if (c.nodeType !== 1) {
+                continue
+            }
+            const child = c as Element
+            if (child.tagName.toUpperCase() === 'SVG') {
+                if (svgTextName(child)) {
+                    hasSvg = true
+                }
+                continue
+            }
+            return false
+        }
+        return hasSvg
+    }
+
+    /**
+     * the contribution of the elements `aria-labelledby` names: a referenced node
+     * contributes its own accessible name (`aria-label`, `alt`), not its raw text
+     */
     function labelledBy (el: Element) {
         return (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean).map((id) => {
             const ref = (el.getRootNode() as Document).getElementById?.(id) || document.getElementById(id)
-            return ref?.textContent || ''
+            if (!ref) {
+                return ''
+            }
+            const label = ref.getAttribute('aria-label')
+            if (label && collapse(label)) {
+                return label
+            }
+            if (ref.tagName === 'IMG' || ref.tagName === 'AREA') {
+                return ref.getAttribute('alt') || ''
+            }
+            return ref.textContent || ''
         }).join(' ')
     }
 
@@ -845,7 +910,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const info = accessibleNameInfo(el, role)
         const drift = nameDrift(el, info)
         const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
-        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && roleNameCount(role, name) === 1) {
+        const ownName = Boolean(name) && info.name === name
+        if (name && selectable && !/[\n]/.test(name) && drift === 'none' && ownName && roleNameCount(role, name) === 1) {
             out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
         if (name && !/[\n]/.test(name) && drift === 'none' && ariaNameCount(name) === 1) {
@@ -993,8 +1059,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const order = seq++
         if (el.tagName.toUpperCase() === 'SVG') {
             // an icon that says something (a checkmark "Benefit available") is content; decoration is not
-            const svgName = collapse(el.getAttribute('aria-label') || labelledBy(el) || el.querySelector(':scope > title')?.textContent)
-            return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) ? [{ role: 'img', name: truncate(svgName) }] : []
+            const svgName = collapse(labelledBy(el) || el.getAttribute('aria-label') || el.querySelector(':scope > title')?.textContent)
+            return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) && inView(el) ? [{ role: 'img', name: truncate(svgName) }] : []
         }
         if (SKIP_TAGS.has(el.tagName.toUpperCase())) {
             return []
@@ -1110,7 +1176,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return [out]
         }
 
-        const leaf = (NAME_FROM_CONTENT.has(role) || namedByText) && Boolean(name) && ![...el.querySelectorAll('*')].some((c) => {
+        const leaf = (NAME_FROM_CONTENT.has(role) || namedByText) && Boolean(name) && !iconOnlySvg(el) && ![...el.querySelectorAll('*')].some((c) => {
             if (isDecoy(c)) {
                 return false
             }
