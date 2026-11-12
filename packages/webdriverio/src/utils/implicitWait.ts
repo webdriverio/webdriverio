@@ -18,12 +18,18 @@ const log = logger('webdriverio')
  * wait on element if:
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
+ * When refetching a chain, the original command decides whether its parents
+ * wait; `commandName` still names the immediate lookup in an error.
  */
-export default async function implicitWait (currentElement: WebdriverIO.Element, commandName: string): Promise<WebdriverIO.Element> {
+export default async function implicitWait (
+    currentElement: WebdriverIO.Element,
+    commandName: string,
+    commandToWaitFor = commandName
+): Promise<WebdriverIO.Element> {
     const browser = getBrowserObject(currentElement)
     const skipForMobileScroll = browser.isMobile && await browser.isNativeContext && (commandName === 'scrollIntoView' || commandName === 'tap')
 
-    if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
+    if (!currentElement.elementId && commandToWaitFor !== '$' && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandToWaitFor) && !skipForMobileScroll) {
         /**
          * `$$(selector)[index]` already waited `waitforTimeout` for the index, see
          * `elementAt` in `element/array.ts`: look for the item once more, without a second

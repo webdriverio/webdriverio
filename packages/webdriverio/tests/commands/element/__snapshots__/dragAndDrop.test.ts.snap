@@ -133,5 +133,3 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
   },
 ]
 `;
-
-exports[`dragAndDrop > should resolve target element 1`] = `undefined`;
