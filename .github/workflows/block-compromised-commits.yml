@@ -37,6 +37,8 @@ jobs:
           ACTION: ${{ github.event.action }}
           EVENT_LABEL: ${{ github.event.label.name }}
           OVERRIDE_LABEL: allow-sensitive-changes
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git fetch --no-tags --quiet origin "refs/pull/${PR_NUMBER}/head"
@@ -73,11 +75,21 @@ jobs:
           git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" > "$t/changed"
           git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json' > "$t/pkg"
           git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml' > "$t/ws"
+          # GitHub login of each commit: the API links every email of an account to its login, so a
+          # commit by the wdio-bot account fails even with an email we do not know. bot@webdriver.io
+          # (the release identity, also linked to wdio-bot) is left to rule 3.
+          if ! gh api "repos/${REPO}/compare/$(git rev-parse "$base")...${head}" --paginate -q '.commits[]
+                | select((.author.login == "wdio-bot" and (.commit.author.email | ascii_downcase) != "bot@webdriver.io")
+                         or (.committer.login == "wdio-bot" and (.commit.committer.email | ascii_downcase) != "bot@webdriver.io"))
+                | .sha' > "$t/bot-logins"; then
+            echo "::error::Could not read the commit authors from the GitHub API."; exit 1
+          fi
+          bot_logins=" $(tr '\n' ' ' < "$t/bot-logins")"
 
           # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
-          #    Match: any commit authored or committed by wdio-bot (both of its identities)
-          #    since the day of the attack, an attack commit message, or the patch-id
-          #    (content fingerprint) of a known attack commit.
+          #    Match: any commit authored or committed by wdio-bot since the day of the attack
+          #    (GitHub login, either noreply email format, or the name, ignoring case, spaces,
+          #    "-" and "_"), an attack commit message, or the patch-id of a known attack commit.
           since=1794355200 # 2026-11-11T00:00:00Z
           # Whole subject only (optional " (#123)" from a squash merge), so "ci: cleanup old jobs" is fine.
           attack_msg='^(chore: add ci helper|ci: restore|ci: cleanup|docs: add dependency audit notes)( \(#[0-9]+\))?$'
@@ -90,6 +102,7 @@ jobs:
           n=0
           # All commits, merges included: a merge made by wdio-bot must fail too.
           # NUL-separated fields, so a "|" or other character in a name cannot shift them.
+          shopt -s nocasematch # emails, names and messages are compared ignoring case
           while IFS= read -r -d '' c && IFS= read -r -d '' ae && IFS= read -r -d '' ce \
              && IFS= read -r -d '' an && IFS= read -r -d '' cn && IFS= read -r -d '' at \
              && IFS= read -r -d '' ct && IFS= read -r -d '' subject; do
@@ -103,15 +116,15 @@ jobs:
             # can be allowed with the label, for example in a backport that holds a release commit.
             attack_id=0; release_id=0
             for id in "$ae" "$ce"; do
-              case "$id" in
-                72550141+wdio-bot@users.noreply.github.com) attack_id=1 ;;
-                bot@webdriver.io) release_id=1 ;;
-              esac
+              if [[ "$id" =~ ^([0-9]+\+)?wdio-bot@users\.noreply\.github\.com$ ]]; then attack_id=1
+              elif [[ "$id" == "bot@webdriver.io" ]]; then release_id=1; fi
             done
             for name in "$an" "$cn"; do
-              [ "$name" = "WebdriverIO Bot" ] && attack_id=1
-              [ "$name" = "WebdriverIO Release Bot" ] && release_id=1
+              nm=${name//[ _-]/}
+              if [[ "$nm" =~ ^(webdriverio|wdio)bot$ ]]; then attack_id=1
+              elif [[ "$nm" == "webdriverioreleasebot" ]]; then release_id=1; fi
             done
+            [[ "$bot_logins" == *" ${c} "* ]] && attack_id=1
             after=0; { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; } && after=1
             reason=""
             if [ "$attack_id" = 1 ] && [ "$after" = 1 ]; then reason+="wdio-bot since 2026-11-11, "; fi
@@ -125,6 +138,7 @@ jobs:
               newest_bad=${newest_bad:-$c} # rev-list lists the newest commit first
             fi
           done < "$t/meta"
+          shopt -u nocasematch
           if [ "$n" != "$(git rev-list --count "${base}..${head}")" ]; then
             echo "::error::Could not read the metadata of every commit (${n} read)."; exit 1
           fi
