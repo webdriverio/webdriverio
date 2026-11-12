@@ -9,6 +9,22 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 
+const isAssertionMessage = (text: string) => {
+    const message = text.trim().toLowerCase()
+    return message.startsWith('assertionerror') || message.includes('expect')
+}
+
+/**
+ * Cucumber keeps only the first line of a failure in `error.message` and the
+ * full failure in `error.stack`, so a custom assertion message hides the rest.
+ * Read the message part of the stack, without the stack frames.
+ */
+const getStackMessage = (stack: string) => {
+    const lines = stack.split('\n')
+    const firstFrame = lines.findIndex((line) => /^\s+at\s/.test(line))
+    return (firstFrame === -1 ? lines : lines.slice(0, firstFrame)).join('\n')
+}
+
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object
@@ -29,19 +45,14 @@ export const getTestStatus = (
         }
 
         if (test.error.message) {
-            const message = test.error.message.trim().toLowerCase()
-
-            return message.startsWith('assertionerror') ||
-            message.includes('expect')
+            return isAssertionMessage(test.error.message) ||
+            (test.error.stack && isAssertionMessage(getStackMessage(test.error.stack)))
                 ? AllureStatus.FAILED
                 : AllureStatus.BROKEN
         }
 
         if (test.error.stack) {
-            const stackTrace = test.error.stack.trim().toLowerCase()
-
-            return stackTrace.startsWith('assertionerror') ||
-            stackTrace.includes('expect')
+            return isAssertionMessage(test.error.stack)
                 ? AllureStatus.FAILED
                 : AllureStatus.BROKEN
         }
