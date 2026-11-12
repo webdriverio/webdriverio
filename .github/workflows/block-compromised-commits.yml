@@ -38,22 +38,32 @@ jobs:
           case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
 
           # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
-          #    Match: wdio-bot author on the incident days, an attack commit message,
-          #    or the patch-id (content fingerprint) of a known attack commit.
+          #    Match: any commit authored or committed by wdio-bot (both of its identities)
+          #    since the day of the attack, an attack commit message, or the patch-id
+          #    (content fingerprint) of a known attack commit.
+          since=1794355200 # 2026-11-11T00:00:00Z
           bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
           incident=""
           for c in $(git rev-list --no-merges "${base}..${head}"); do
-            meta=$(git log -1 --format='%ae|%aI|%s' "$c")
-            email=${meta%%|*}; rest=${meta#*|}; date=${rest%%|*}; subject=${rest#*|}
+            IFS='|' read -r ae ce an cn at ct subject <<<"$(git log -1 --format='%ae|%ce|%an|%cn|%at|%ct|%s' "$c")"
             pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
-            if { [ "$email" = "72550141+wdio-bot@users.noreply.github.com" ] && [[ "$date" == 2026-11-1[12]* ]]; } \
-              || [[ "$subject" =~ ^(chore:\ add\ ci\ helper|ci:\ restore|ci:\ cleanup|docs:\ add\ dependency\ audit\ notes) ]] \
-              || [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then
-              incident+="  ${c:0:10} ${subject}"$'\n'
+            is_bot=0
+            for id in "$ae" "$ce"; do
+              case "$id" in 72550141+wdio-bot@users.noreply.github.com|bot@webdriver.io) is_bot=1 ;; esac
+            done
+            for name in "$an" "$cn"; do
+              [[ "$name" =~ ^WebdriverIO\ (Release\ )?Bot$ ]] && is_bot=1
+            done
+            reason=""
+            if [ "$is_bot" = 1 ] && { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; }; then reason+="wdio-bot since 2026-11-11, "; fi
+            if [[ "$subject" =~ ^(chore:\ add\ ci\ helper|ci:\ restore|ci:\ cleanup|docs:\ add\ dependency\ audit\ notes) ]]; then reason+="attack message, "; fi
+            if [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then reason+="attack patch-id, "; fi
+            if [ -n "$reason" ]; then
+              incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
             fi
           done
           if [ -n "$incident" ]; then
-            echo "::error::This branch contains commits from the 2026-11-11 wdio-bot compromise. Rebase onto ${BASE_REF}: git fetch upstream && git rebase upstream/${BASE_REF}"
+            echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Rebase onto ${BASE_REF}: git fetch upstream && git rebase upstream/${BASE_REF}"
             printf '%s' "$incident"
             fail=1
           fi
