@@ -118,7 +118,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             }
         },
         transform(code, id) {
-            if (id.includes('.vite/deps/expect.js')) {
+            if (id.includes('.vite/deps/expect.js') || id.includes('.vite/deps/@wdio_browser-runner___expect.js')) {
                 return {
                     code: code.replace(
                         'var fs = _interopRequireWildcard(require_graceful_fs());',
