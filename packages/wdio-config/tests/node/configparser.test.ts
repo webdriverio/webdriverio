@@ -1,10 +1,15 @@
 import url from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs'
+import os from 'node:os'
 
-import { vi, describe, it, expect, } from 'vitest'
+import { vi, describe, it, expect, afterEach } from 'vitest'
 import logger from '@wdio/logger'
+import { Minimatch } from 'minimatch'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
+import FileSystemPathService from '../../src/node/FileSystemPathService.js'
+import type { PathService } from '../../src/types.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
 import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
 import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
@@ -611,6 +616,192 @@ describe('ConfigParser', () => {
             })
             const { capabilities } = configParser.getConfig()
             expect(capabilities).toHaveLength(1)
+        })
+    })
+
+    describe('--spec from a working directory that is not the config directory (#14447)', () => {
+        /**
+         * run from `tests/`, the parent of the config directory `tests/__fixtures__`
+         */
+        const cwd = path.resolve(FIXTURES_PATH, '..')
+        const fileUrl = (...segments: string[]) => url.pathToFileURL(path.resolve(...segments)).href
+        const prefixSpecs = [
+            fileUrl(FIXTURES_PATH, 'prefix-test-01.ts'),
+            fileUrl(FIXTURES_PATH, 'prefix-test-02.ts')
+        ]
+
+        /**
+         * `fs` reads a relative path from the real working directory, which a
+         * worker thread cannot change, so read it from the mocked one
+         */
+        class CwdPathService extends FileSystemPathService {
+            isFile (filepath: string) {
+                return super.isFile(path.resolve(process.cwd(), filepath))
+            }
+        }
+
+        async function getSpecsFor (spec: string[]) {
+            vi.spyOn(process, 'cwd').mockReturnValue(cwd)
+            try {
+                const args = { spec }
+                const configParser = new ConfigParser(FIXTURES_CONF, args, new CwdPathService())
+                await configParser.initialize(args)
+                return configParser.getSpecs()
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+            }
+        }
+
+        it('resolves a glob pattern with a directory from the working directory', async () => {
+            expect(await getSpecsFor(['./__fixtures__/prefix-test-0*.ts'])).toEqual(prefixSpecs)
+        })
+
+        it('resolves a file with a directory from the working directory', async () => {
+            expect(await getSpecsFor(['./__fixtures__/prefix-test-01.ts'])).toEqual([prefixSpecs[0]])
+        })
+
+        it('resolves a file without a directory from the working directory', async () => {
+            expect(await getSpecsFor(['utils.test.ts'])).toEqual([fileUrl(cwd, 'utils.test.ts')])
+        })
+
+        it('still matches a glob pattern without a directory by file name', async () => {
+            expect(await getSpecsFor(['prefix-test-0*.ts'])).toEqual(prefixSpecs)
+        })
+
+        it('does not resolve a glob pattern from the config directory', async () => {
+            await expect(getSpecsFor(['./prefix-test-0*.ts'])).rejects.toThrow('not found')
+        })
+
+        it.each(['login[foo].js', 'login{foo,bar}.js'])('prefers the literal spec %s in a CWD with glob characters in launcher and worker', async (filename) => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-spec-[app]-{one,two}-'))
+            const specsDir = path.join(workspace, 'specs')
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+            try {
+                fs.mkdirSync(specsDir)
+                for (const file of [filename, 'loginf.js', 'logino.js', 'loginfoo.js', 'loginbar.js']) {
+                    fs.writeFileSync(path.join(specsDir, file), '')
+                }
+                let args = { spec: [`./specs/${filename}`] }
+                for (const stage of ['launcher', 'worker']) {
+                    const parser = new ConfigParser(FIXTURES_CONF, args)
+                    await parser.initialize(args)
+                    expect(parser.getSpecs(), stage).toEqual([fileUrl(specsDir, filename)])
+                    args = JSON.parse(JSON.stringify(args))
+                }
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+                fs.rmSync(workspace, { recursive: true, force: true })
+            }
+        })
+
+        it('keeps literal CWD brackets and braces in Cucumber feature line selectors in launcher and worker', async () => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cucumber-[app]-{one,two}-'))
+            const feature = path.join(workspace, 'login.feature')
+            fs.writeFileSync(feature, 'Feature: login\n')
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+            try {
+                let args = { spec: ['./login.feature:12:20'] }
+                for (const stage of ['launcher', 'worker']) {
+                    const parser = new ConfigParser(FIXTURES_CONF, args)
+                    await parser.initialize(args)
+                    expect(parser.getSpecs(), stage).toEqual([url.pathToFileURL(feature).href])
+                    expect(parser.getConfig().cucumberFeaturesWithLineNumbers, stage).toEqual([feature + ':12:20'])
+                    args = JSON.parse(JSON.stringify(args))
+                }
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+                fs.rmSync(workspace, { recursive: true, force: true })
+            }
+        })
+
+        it('preserves CLI arguments through config preflight, launcher and worker initialization', async () => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-handoff-[app]-{one,two}-'))
+            const specsDir = path.join(workspace, 'specs')
+            const args = { spec: ['./specs/*.spec.js'] }
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+            try {
+                fs.mkdirSync(specsDir)
+                for (const filename of ['login.spec.js', 'logout.spec.js']) {
+                    fs.writeFileSync(path.join(specsDir, filename), '')
+                }
+                // The CLI first reads tsConfigPath, then passes the same args to the launcher.
+                await new ConfigParser(FIXTURES_CONF, args).initialize()
+                const launcher = new ConfigParser(FIXTURES_CONF, args)
+                await launcher.initialize(args)
+                const expected = ['login.spec.js', 'logout.spec.js'].map(filename => fileUrl(specsDir, filename))
+                expect(launcher.getSpecs()).toEqual(expected)
+
+                // Local workers receive a serialized copy, without parser-local state.
+                const workerArgs = JSON.parse(JSON.stringify(args))
+                const worker = new ConfigParser(FIXTURES_CONF, workerArgs)
+                await worker.initialize(workerArgs)
+                expect(worker.getSpecs()).toEqual(expected)
+                expect(args).toEqual({ spec: ['./specs/*.spec.js'] })
+                expect(workerArgs).toEqual(args)
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+                fs.rmSync(workspace, { recursive: true, force: true })
+            }
+        })
+    })
+
+    describe('--spec launcher-to-worker handoff with Windows path semantics', () => {
+        afterEach(() => {
+            vi.restoreAllMocks()
+            vi.doUnmock('node:path')
+            vi.resetModules()
+        })
+
+        it.each<[string, string[]]>([
+            ['../specs/*.spec.js', ['login.spec.js', 'logout.spec.js']],
+            ['..\\specs\\*.spec.js', ['login.spec.js', 'logout.spec.js']],
+            ['..\\specs/./*.spec.js', ['login.spec.js', 'logout.spec.js']],
+            ['C:../specs/*.spec.js', ['login.spec.js', 'logout.spec.js']],
+            ['../specs/login[foo].js', ['login[foo].js']],
+            ['../specs/login{foo,bar}.js', ['login{foo,bar}.js']],
+            ['../specs/login[fo].js', ['loginf.js', 'logino.js']],
+            ['../specs/login{foo,bar}*.js', ['loginbar.js', 'loginfoo.js']],
+            ['../specs/login.feature:12:20', ['login.feature']]
+        ])('preserves the selected files and line selectors for %s', async (spec, expectedFiles) => {
+            vi.resetModules()
+            vi.doMock('node:path', () => ({ default: path.win32 }))
+            const { default: WindowsConfigParser } = await import('../../src/node/ConfigParser.js')
+            const cwd = 'C:\\repo\\[app]\\{one,two}\\config'
+            const specsDir = path.win32.resolve(cwd, '../specs')
+            const files = [
+                'login.spec.js', 'logout.spec.js', 'login.feature',
+                'login[foo].js', 'login{foo,bar}.js',
+                'loginf.js', 'logino.js', 'loginfoo.js', 'loginbar.js'
+            ].map(filename => path.win32.join(specsDir, filename))
+            const fileUrl = (filename: string) => url.pathToFileURL(filename, { windows: true }).href
+            // Match a Windows file inventory independently of the host filesystem.
+            const pathService: PathService = {
+                async loadFile<T>() {
+                    return { config: { capabilities: [], specs: [] } } as T
+                },
+                isFile: filename => files.includes(path.win32.resolve(cwd, filename)),
+                ensureAbsolutePath: (filename, rootDir) => filename.startsWith('file://')
+                    ? filename
+                    : fileUrl(path.win32.resolve(rootDir, filename)),
+                glob: pattern => {
+                    const matcher = new Minimatch(pattern, { platform: 'win32', matchBase: true })
+                    return files.filter(filename => matcher.match(filename.replace(/\\/g, '/'))).sort()
+                }
+            }
+            vi.spyOn(process, 'cwd').mockReturnValue(cwd)
+            let args = { spec: [spec] }
+            for (const stage of ['launcher', 'worker']) {
+                const parser = new WindowsConfigParser('C:\\config\\wdio.conf.js', args, pathService)
+                await parser.initialize(args)
+                expect(parser.getSpecs(), stage).toEqual(expectedFiles.map(filename => fileUrl(path.win32.join(specsDir, filename))))
+                if (spec.endsWith(':12:20')) {
+                    expect(parser.getConfig().cucumberFeaturesWithLineNumbers, stage).toEqual([
+                        path.win32.join(specsDir, 'login.feature') + ':12:20'
+                    ])
+                }
+                args = JSON.parse(JSON.stringify(args))
+            }
+            expect(args).toEqual({ spec: [spec] })
         })
     })
 
