@@ -70,8 +70,29 @@ interface Loggers {
 const loggers: Loggers = log.getLoggers() as Loggers
 let logLevelsConfig: Record<string, log.LogLevelDesc> = {}
 let maskingPatternsConfig: Record<string, RegExp[] | undefined> = {}
-const logCache = new Set()
+/**
+ * The lines that are logged before the log file exists, to write them into the file once
+ * it is there. A process that never gets a log file (no `outputDir`) must not keep all of
+ * its log output, so above `MAX_LOG_CACHE_LENGTH` characters the oldest lines are dropped.
+ */
+const logCache = new Set<string>()
+const MAX_LOG_CACHE_LENGTH = 1_000_000
+let logCacheLength = 0
 let logFile: fs.WriteStream | null
+
+function cacheLogLine (line: string) {
+    if (logCache.has(line)) {
+        return
+    }
+    logCache.add(line)
+    logCacheLength += line.length
+    // always keep the newest line, also when it alone is longer than the limit
+    while (logCacheLength > MAX_LOG_CACHE_LENGTH && logCache.size > 1) {
+        const oldest = logCache.values().next().value as string
+        logCache.delete(oldest)
+        logCacheLength -= oldest.length
+    }
+}
 
 const originalFactory = log.methodFactory
 const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
@@ -117,6 +138,7 @@ const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this:
                     }
                 })
                 logCache.clear()
+                logCacheLength = 0
             }
 
             if (!logsContainInitPackageError(unmaskedLogText)) {
@@ -126,7 +148,7 @@ const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this:
             logFile.write(maskedLogText)
         }
 
-        logCache.add(maskedLogText)
+        cacheLogLine(maskedLogText)
 
         // To not break console color formatting, we use the masked log text only when needed
         if (maskedLogText === unmaskedLogText) {
