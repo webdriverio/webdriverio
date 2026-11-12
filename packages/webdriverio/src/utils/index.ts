@@ -135,7 +135,11 @@ function sanitizeCSS(value?: string) {
  * @param  {string} cssProperty      name of css property to parse
  * @return {object}                  parsed css property
  */
-export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
+export function parseCSS(cssPropertyValue: string, cssProperty?: string): ParsedCSSValue {
+    if (cssProperty?.startsWith('--')) {
+        return { property: cssProperty, value: cssPropertyValue, parsed: {} }
+    }
+
     const parsedValue: ParsedCSSValue = {
         property: cssProperty,
         value: cssPropertyValue.toLowerCase().trim(),

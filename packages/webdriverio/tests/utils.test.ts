@@ -66,6 +66,23 @@ describe('utils', () => {
     })
 
     describe('parseCSS', () => {
+        it.each([
+            '',
+            '13px',
+            '42',
+            'MixedCase',
+            '  MixedCase Value  ',
+            'rgba(0, 136, 204, 1)',
+            'rgb-not-a-color',
+            'url("/Assets/MixedCase.svg")'
+        ])('should preserve custom property values without parsing: %s', (value) => {
+            expect(parseCSS(value, '--MixedCase')).toEqual({
+                property: '--MixedCase',
+                value,
+                parsed: {}
+            })
+        })
+
         it('should parse colors properly', () => {
             expect(parseCSS('rgba(0, 136, 204, 1)', 'color')).toEqual({
                 property: 'color',
