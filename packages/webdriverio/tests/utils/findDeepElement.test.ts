@@ -664,46 +664,41 @@ describe('findDeepElement - aria accessibility locator', () => {
         expect(browser.findElementFromElement).not.toHaveBeenCalled()
     })
 
-    it('should search known shadow roots via Classic when BiDi aria xpath fallback is empty', async () => {
+    it('should search open shadow roots by script when BiDi aria xpath fallback is empty', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
         const browser = createMockBrowser({ isBidi: true })
         browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
         browser.findElement.mockResolvedValue({})
-        browser.findElementFromElement
-            .mockResolvedValueOnce({})
-            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+        browser.execute.mockResolvedValue([{ [ELEMENT_KEY]: 'shadow-xpath-node' }])
 
         const result = await findDeepElement.call(browser, 'aria/Described')
 
-        expect(browser.findElementFromElement).toHaveBeenCalledWith(
-            'shadow-1',
-            'xpath',
-            expect.stringContaining('@aria-describedby')
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.any(Function),
+            expect.stringContaining('@aria-describedby'),
+            null
         )
-        expect(browser.findElementFromElement).toHaveBeenCalledWith(
-            'shadow-2',
-            'xpath',
-            expect.stringContaining('@aria-describedby')
-        )
+        expect(browser.findElementFromElement).not.toHaveBeenCalled()
         expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
     })
 
-    it('should search known shadow roots via Classic for aria collections', async () => {
+    it('should search open shadow roots by script for aria collections', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
         const browser = createMockBrowser({ isBidi: true })
         browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
         browser.findElements.mockResolvedValue([])
-        browser.findElementsFromElement.mockResolvedValue([
+        browser.execute.mockResolvedValue([
             { [ELEMENT_KEY]: 'shadow-collection-node' },
         ])
 
         const result = await findDeepElements.call(browser, 'aria/Find me')
 
-        expect(browser.findElementsFromElement).toHaveBeenCalledWith(
-            'shadow-1',
-            'xpath',
-            expect.stringContaining('normalize-space(text()) = "Find me"')
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.any(Function),
+            expect.stringContaining('normalize-space(text()) = "Find me"'),
+            null
         )
+        expect(browser.findElementsFromElement).not.toHaveBeenCalled()
         expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-collection-node' }])
     })
 
