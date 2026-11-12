@@ -90,12 +90,49 @@ jobs:
           # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
           #    Both versions are parsed with jq, so escaped keys and line breaks cannot hide a hook.
           lifecycle='^(pre|post)?(install|prepare|pack|publish|publishOnly)(:.*)?$|^dependencies$'
+          remote_spec='(git\+|git:|github:|gitlab:|bitbucket:|https?:|file:|link:)'
           hooks_of() { jq -cS --arg re "$lifecycle" '(.scripts // {}) | with_entries(select(.key | test($re)))'; }
+          # Dependencies from git, URLs or local paths (they can run their own install scripts),
+          # and the pnpm build permissions in package.json.
+          deps_of() {
+            jq -cS --arg re "^${remote_spec}" '{
+              remote: ([(.dependencies, .devDependencies, .optionalDependencies, .peerDependencies,
+                         .overrides, .resolutions, (.pnpm // {}).overrides)
+                        | select(type == "object") | to_entries[]
+                        | select((.value | type) == "string" and (.value | test($re)))
+                        | "\(.key)=\(.value)"] | unique),
+              build: ((.pnpm // {}) | {onlyBuiltDependencies, neverBuiltDependencies, ignoredBuiltDependencies,
+                                       allowBuilds, dangerouslyAllowAllBuilds})
+            }'
+          }
           while IFS= read -r -d '' f; do
             new=$(git show "${head}:${f}" | hooks_of) || { sensitive "Cannot parse ${f}"; continue; }
             old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | hooks_of) || old='{}'
             if [ "$old" != "$new" ]; then sensitive "Install lifecycle script added or changed in ${f}: ${new}"; fi
+            new=$(git show "${head}:${f}" | deps_of)
+            old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | deps_of) || old=''
+            if [ "$old" != "$new" ]; then sensitive "Dependency from git, a URL or a local path, or pnpm build settings, changed in ${f}"; fi
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json')
+
+          # 4. Other files that run code on install: npm/yarn config, pnpm hooks and git hooks.
+          while IFS= read -r -d '' f; do
+            if [[ "$f" =~ (^|/)(\.?pnpmfile\.[cm]?js|\.npmrc|\.yarnrc(\.yml)?)$ || "$f" =~ ^\.husky/ ]]; then
+              sensitive "Install configuration changed: ${f}"
+            fi
+          done < <(git -c core.quotePath=false diff -z --name-only "${base}...${head}")
+
+          # 5. pnpm-workspace.yaml: build and hook settings, and new dependencies from git, URLs or paths.
+          build_keys_of() {
+            awk '/^[^[:space:]#]/ { keep = ($0 ~ /^(allowBuilds|onlyBuiltDependencies|neverBuiltDependencies|ignoredBuiltDependencies|dangerouslyAllowAllBuilds|pnpmfile|globalPnpmfile)[[:space:]]*:/) } keep'
+          }
+          specs_of() { grep -oE ":[[:space:]]*[\"']?${remote_spec}[^\"' ]+" | sort -u || true; }
+          while IFS= read -r -d '' f; do
+            if [ "$(git show "${mb}:${f}" 2>/dev/null | build_keys_of)" != "$(git show "${head}:${f}" | build_keys_of)" ]; then
+              sensitive "pnpm build or hook settings changed in ${f}"
+            fi
+            added_specs=$(comm -13 <(git show "${mb}:${f}" 2>/dev/null | specs_of) <(git show "${head}:${f}" | specs_of))
+            if [ -n "$added_specs" ]; then sensitive "Dependency from git, a URL or a local path added in ${f}"; fi
+          done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml')
 
           # 4. URLs with a public IPv4 address (data exfiltration endpoints use them often).
           ips=$(printf '%s\n' "$added" | grep -oE 'https?://([0-9]{1,3}\.){3}[0-9]{1,3}' \
