@@ -264,14 +264,22 @@ jobs:
                 packages) ;;
                 catalog|catalogs|overrides|packageExtensions)
                   # Each added line must be a bare "key:" (a nested map), a comment, or a plain
-                  # "key: <registry spec>". Flow style, a value on the next line, anchors and
-                  # block scalars fail closed.
+                  # "key: <registry spec>", with an optional trailing " # comment". Flow style, a
+                  # value on the next line, anchors and block scalars fail closed.
                   while IFS= read -r line; do
                     l=${line#"${line%%[![:space:]]*}"}
                     if [ -z "$l" ] || [[ "$l" == \#* ]] || [[ "$l" =~ $bare_re ]]; then continue; fi
+                    l=${l%%[[:space:]]#*} # trailing comment
                     if [[ "$l" =~ $pair_re ]]; then
                       v=${BASH_REMATCH[2]}; v=${v%"${v##*[![:space:]]}"}
-                      v=${v#[\"\']}; v=${v%[\"\']}
+                      q=${v:0:1}
+                      if [[ "$q" == [\"\'] ]]; then
+                        # A quoted value must still be closed after the comment is removed.
+                        if [ "${#v}" -lt 2 ] || [ "${v: -1}" != "$q" ]; then
+                          sensitive "Line in ${f} (${k}) is not a simple 'key: value': ${line#"${line%%[![:space:]]*}"}"; continue
+                        fi
+                        v=${v:1:${#v}-2}
+                      fi
                       registry_spec "$v" || sensitive "Dependency spec that is not from the npm registry in ${f} (${k}): ${v}"
                     else
                       sensitive "Line in ${f} (${k}) is not a simple 'key: value': ${l}"
