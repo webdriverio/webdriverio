@@ -6,7 +6,7 @@ description: "Browse community boilerplate projects for WebdriverIO with Mocha, 
 
 Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.
 
-# v9 Boilerplate Projects
+# v10 Boilerplate Projects
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
@@ -38,6 +38,26 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
     - Mocha
 - Features
     - Electron API mocking
+
+## [cloudflightio/cross-platform-test-framework](https://github.com/cloudflightio/cross-platform-test-framework)
+Cross-platform E2E testing template that runs a single test suite against desktop browsers, mobile browsers and native Android and iOS apps, using the open-source Wikipedia apps as a real-world example.
+
+- Frameworks
+    - WebdriverIO v10
+    - Mocha
+    - Appium v3
+    - TypeScript
+- Features
+    - One codebase for multiple platforms (Microsoft Edge, Chrome on Android, Safari on iOS and native Android and iOS apps)
+    - Platform-aware selector system (`select()` / `selectArray()`) with variable support
+    - Page Object Model with shared commands and utilities
+    - Demo apps setup script - uses the open-source Wikipedia apps for demonstration purposes only
+    - Allure reporting with steps and screenshots
+    - Custom matchers extending `expect-webdriverio` for plain values (strings, numbers, booleans)
+      - Accept a custom failure message, so the Allure report shows what was verified with the actual and expected values instead of a generic assertion error
+      - Used by the `verify*` helpers (e.g. `verifyTextEquality()`, `verifyGreaterThan()`)
+
+# v9 Boilerplate Projects
 
 ## [syamphaneendra/webdriverio9-boilerplate](https://github.com/syamphaneendra/webdriverio9-boilerplate)
 
