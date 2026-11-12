@@ -1,5 +1,5 @@
 import { logHookError } from './errorHandler.js'
-import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
+import { executeHooksWithArgs, executeAsync, followFrameworkTimer, type FrameworkRunnable } from '../shim.js'
 import { fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
 
 import type {
@@ -100,7 +100,8 @@ export const testFrameworkFnWrapper = async function (
      * before the first `await`: Mocha starts the timeout of this test or hook
      * as soon as this function returns its promise
      */
-    followFrameworkTimer((this as { _runnable?: unknown } | undefined)?._runnable)
+    const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+    followFrameworkTimer(runnable)
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
     if (type === 'Test') {
@@ -126,7 +127,7 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
-    const timeoutTitle = (this as { _runnable?: unknown } | undefined)?._runnable
+    const timeoutTitle = runnable
         ? undefined
         : timeoutTitleOf(type, hookName, identitySnapshot?.[0], (specFn as Function | undefined)?.name)
 
@@ -137,7 +138,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle, runnable)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
             if (frameworkResult.result !== undefined) {
