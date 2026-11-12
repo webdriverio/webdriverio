@@ -299,8 +299,69 @@ describe('testFnWrapper', () => {
         await expect(testFnWrapper(...args)).rejects.toThrow('paused on step')
     })
 
+    describe('SevereServiceError in test hooks', () => {
+        const severe = () => Object.assign(new Error('console has errors'), { name: 'SevereServiceError' })
+        const buildTestArgs = (specFn: Function, type = 'Test') => [
+            type,
+            { specFn, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'a test' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'a test' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        it('fails a passed test when afterTest throws one', async () => {
+            const failure = severe()
+            executeHooksWithArgs.mockImplementation(async (name: string) => name === 'afterTest' ? [undefined, failure] : [])
+            const specFn = vi.fn()
+
+            // @ts-expect-error test args
+            await expect(testFnWrapper(...buildTestArgs(specFn))).rejects.toBe(failure)
+            expect(specFn).toBeCalledTimes(1)
+            const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+            expect(afterCall![2][1]).toMatchObject({ error: undefined, passed: true })
+        })
+
+        it('keeps the error of a failed test when afterTest throws one', async () => {
+            const failure = new Error('assertion failed')
+            executeHooksWithArgs.mockImplementation(async (name: string) => name === 'afterTest' ? [severe()] : [])
+
+            // @ts-expect-error test args
+            await expect(testFnWrapper(...buildTestArgs(() => { throw failure }))).rejects.toBe(failure)
+        })
+
+        it('fails the test without running it when beforeTest throws one', async () => {
+            const failure = severe()
+            executeHooksWithArgs.mockImplementation(async (name: string) => name === 'beforeTest' ? [failure] : [])
+            const specFn = vi.fn()
+
+            // @ts-expect-error test args
+            await expect(testFnWrapper(...buildTestArgs(specFn))).rejects.toBe(failure)
+            expect(specFn).not.toBeCalled()
+            // afterTest still runs so that services can clean up, and sees the failure
+            const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+            expect(afterCall![2][1]).toMatchObject({ error: failure, passed: false })
+        })
+
+        it('does not fail the test for other hook errors', async () => {
+            executeHooksWithArgs.mockImplementation(async () => [new Error('some hook failed')])
+            const specFn = vi.fn().mockReturnValue('done')
+
+            // @ts-expect-error test args
+            await expect(testFnWrapper(...buildTestArgs(specFn))).resolves.toBe('done')
+        })
+
+        it('does not apply to other types such as steps', async () => {
+            executeHooksWithArgs.mockImplementation(async () => [severe()])
+            const specFn = vi.fn().mockReturnValue('done')
+
+            // @ts-expect-error test args
+            await expect(testFnWrapper(...buildTestArgs(specFn, 'Step'))).resolves.toBe('done')
+        })
+    })
+
     afterEach(() => {
-        executeHooksWithArgs.mockClear()
+        executeHooksWithArgs.mockReset()
         setDebugAgentPause(undefined)
     })
 })
