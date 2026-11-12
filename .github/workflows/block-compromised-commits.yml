@@ -42,6 +42,8 @@ jobs:
           #    since the day of the attack, an attack commit message, or the patch-id
           #    (content fingerprint) of a known attack commit.
           since=1794355200 # 2026-11-11T00:00:00Z
+          # Whole subject only (optional " (#123)" from a squash merge), so "ci: cleanup old jobs" is fine.
+          attack_msg='^(chore: add ci helper|ci: restore|ci: cleanup|docs: add dependency audit notes)( \(#[0-9]+\))?$'
           bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
           incident=""
           for c in $(git rev-list --no-merges "${base}..${head}"); do
@@ -56,7 +58,7 @@ jobs:
             done
             reason=""
             if [ "$is_bot" = 1 ] && { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; }; then reason+="wdio-bot since 2026-11-11, "; fi
-            if [[ "$subject" =~ ^(chore:\ add\ ci\ helper|ci:\ restore|ci:\ cleanup|docs:\ add\ dependency\ audit\ notes) ]]; then reason+="attack message, "; fi
+            if [[ "$subject" =~ $attack_msg ]]; then reason+="attack message, "; fi
             if [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then reason+="attack patch-id, "; fi
             if [ -n "$reason" ]; then
               incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
