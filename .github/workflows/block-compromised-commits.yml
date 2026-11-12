@@ -258,14 +258,16 @@ jobs:
             sensitive "Lockfile resolution from a tarball URL, git or a non-registry host: $(printf '%s' "$lock_added" | head -3 | tr '\n' ' ')"
           fi
 
-          # 7. Public IPv4 addresses in URLs (any scheme, any case, or "//IP") or after network
-          #    tools. Exfiltration endpoints often use them. A bare a.b.c.d is not matched,
-          #    because version numbers look the same.
+          # 7. Public IPv4 addresses in URLs (any scheme, any case, "//IP", "//user@IP") or after
+          #    network tools. Exfiltration endpoints often use them. A bare a.b.c.d is not matched,
+          #    because version numbers look the same. An octet with a leading zero is always
+          #    flagged: curl and inet_aton read 010 as octal 8, so the private-range test is unsafe.
           ip='([0-9]{1,3}\.){3}[0-9]{1,3}'
           ips=$(printf '%s\n' "$added" \
-            | grep -oiE "([a-z][a-z0-9+.-]*:)?//${ip}|(^|[^a-z0-9_])(curl|wget|nc|ncat|socat|telnet|ssh|scp|sftp)[[:space:]][^;|&]*${ip}" \
+            | grep -oiE "([a-z][a-z0-9+.-]*:)?//([^/@[:space:]]*@)?${ip}|(^|[^a-z0-9_])(curl|wget|nc|ncat|socat|telnet|ssh|scp|sftp)[[:space:]][^;|&]*${ip}" \
             | grep -oE "$ip" \
-            | awk -F. '$1<=255 && $2<=255 && $3<=255 && $4<=255 && !($1==0 || $1==10 || $1==127 || ($1==169 && $2==254) || ($1==192 && $2==168) || ($1==172 && $2>=16 && $2<=31))' \
+            | awk -F. '{ octal = ($1 ~ /^0[0-9]/ || $2 ~ /^0[0-9]/ || $3 ~ /^0[0-9]/ || $4 ~ /^0[0-9]/) }
+                       octal || ($1<=255 && $2<=255 && $3<=255 && $4<=255 && !($1==0 || $1==10 || $1==127 || ($1==169 && $2==254) || ($1==192 && $2==168) || ($1==172 && $2>=16 && $2<=31)))' \
             | sort -u || true)
           if [ -n "$ips" ]; then
             sensitive "Public IP address added: $(printf '%s' "$ips" | tr '\n' ' ')"
