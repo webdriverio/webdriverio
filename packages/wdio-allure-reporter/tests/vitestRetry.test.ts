@@ -157,3 +157,95 @@ it('does not close another open hook with a hook that its test owns', async () =
     expect(results.map(({ name, status }) => `${name}=${status}`)).toEqual([])
 })
 
+describe('Vitest: skipped tests reported before nested suite:end after a failed beforeAll', () => {
+    for (const mode of ['sequential', 'concurrent'] as const) {
+        it(`${mode}: gives an outer skipped test its own suite titlePath and suite labels`, async () => {
+            const outputDir = temporaryDirectory()
+            const reporter = new AllureReporter({ outputDir, writeStream: { write: () => true } } as any)
+            let current: string | undefined
+            reporter.setContextIdResolver(() => current)
+            const emit = (event: string, payload: Record<string, unknown>, contextId?: string) => {
+                current = mode === 'concurrent' ? contextId : undefined
+                try {
+                    reporter.emit(event, { type: event, cid: CID, specs: [SPEC], file: SPEC, ...payload })
+                } finally {
+                    current = undefined
+                }
+            }
+            const ctx = (id: string) => (mode === 'concurrent' ? { contextId: id } : {})
+
+            emit('runner:start', {
+                capabilities: { browserName: 'chrome' }, config: { framework: 'vitest' },
+                isMultiRemote: false, sessionId: 'session', instanceOptions: {}, retry: 0
+            })
+            emit('suite:start', { uid: 'suite-0-0-0', title: 'Suite', fullTitle: 'Suite', parent: '', parentUid: null })
+            emit('suite:start', { uid: 'suite-0-0-1', title: 'Nested', fullTitle: 'Suite Nested', parent: 'Suite', parentUid: 'suite-0-0-0' })
+
+            const innerSkipped = {
+                uid: 'test-0-0-0', title: 'inner test', fullTitle: 'Suite Nested inner test',
+                parent: 'Nested', parentUid: 'suite-0-0-1', ...ctx('vitest-inner')
+            }
+            emit('test:start', innerSkipped, 'vitest-inner')
+            emit('test:pending', { ...innerSkipped, pending: true, duration: 0 }, 'vitest-inner')
+            emit('test:end', { ...innerSkipped, pending: true, passed: false, duration: 0 }, 'vitest-inner')
+            if (mode === 'concurrent') {
+                emit('context:end', { uid: innerSkipped.uid, contextId: 'vitest-inner' })
+            }
+
+            // Vitest reports the skipped test of the outer suite before emitting suite:end for Nested
+            const outerSkipped = {
+                uid: 'test-0-0-1', title: 'outer test', fullTitle: 'Suite outer test',
+                parent: 'Suite', parentUid: 'suite-0-0-0', ...ctx('vitest-outer')
+            }
+            emit('test:start', outerSkipped, 'vitest-outer')
+            emit('test:pending', { ...outerSkipped, pending: true, duration: 0 }, 'vitest-outer')
+            emit('test:end', { ...outerSkipped, pending: true, passed: false, duration: 0 }, 'vitest-outer')
+            if (mode === 'concurrent') {
+                emit('context:end', { uid: outerSkipped.uid, contextId: 'vitest-outer' })
+            }
+
+            // Also verify a skipped test reported via test:pending without a prior test:start
+            const directSkipped = {
+                uid: 'test-0-0-2', title: 'direct skipped test', fullTitle: 'Suite direct skipped test',
+                parent: 'Suite', parentUid: 'suite-0-0-0', ...ctx('vitest-direct')
+            }
+            emit('test:pending', { ...directSkipped, pending: true, duration: 0 }, 'vitest-direct')
+            emit('test:end', { ...directSkipped, pending: true, passed: false, duration: 0 }, 'vitest-direct')
+            if (mode === 'concurrent') {
+                emit('context:end', { uid: directSkipped.uid, contextId: 'vitest-direct' })
+            }
+
+            emit('suite:end', { uid: 'suite-0-0-1', title: 'Nested', fullTitle: 'Suite Nested', parent: 'Suite', parentUid: 'suite-0-0-0' })
+            emit('suite:end', { uid: 'suite-0-0-0', title: 'Suite', fullTitle: 'Suite', parent: '', parentUid: null })
+            emit('runner:end', { failures: 1, retries: 0 })
+            await vi.waitFor(() => expect(reporter.isSynchronised).toBe(true))
+
+            const results = getResults(outputDir).results as {
+                name: string
+                status: string
+                titlePath: string[]
+                labels: { name: string, value: string }[]
+            }[]
+            const inner = results.find((r) => r.name === 'inner test')!
+            const outer = results.find((r) => r.name === 'outer test')!
+            const direct = results.find((r) => r.name === 'direct skipped test')!
+            const suiteLabelsOf = (r: typeof outer) => r.labels
+                .filter((l) => l.name === 'parentSuite' || l.name === 'suite' || l.name === 'subSuite')
+                .map((l) => `${l.name}=${l.value}`)
+
+            expect(inner.status).toBe('skipped')
+            expect(inner.titlePath.slice(-2)).toEqual(['Suite', 'Nested'])
+            expect(suiteLabelsOf(inner)).toEqual(['parentSuite=Suite', 'suite=Nested'])
+
+            expect(outer.status).toBe('skipped')
+            expect(outer.titlePath.slice(-2)).not.toEqual(['Suite', 'Nested'])
+            expect(outer.titlePath.at(-1)).toBe('Suite')
+            expect(suiteLabelsOf(outer)).toEqual(['parentSuite=Suite'])
+
+            expect(direct.status).toBe('skipped')
+            expect(direct.titlePath.slice(-2)).not.toEqual(['Suite', 'Nested'])
+            expect(direct.titlePath.at(-1)).toBe('Suite')
+        })
+    }
+})
+
