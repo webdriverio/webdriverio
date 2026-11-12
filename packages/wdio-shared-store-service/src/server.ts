@@ -8,6 +8,11 @@ const MAX_TIMEOUT = 15000
 const DEFAULT_TIMEOUT = 1000
 
 /**
+ * gives a value of a resource pool to the request that waits for it
+ */
+type PoolWaiter = (value: JsonCompatible | JsonPrimitive) => void
+
+/**
  * the client encodes the key as one path segment, polka passes it on as is
  */
 const decodeKey = (key: string) => {
@@ -21,6 +26,11 @@ const decodeKey = (key: string) => {
 export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
     const store: JsonObject = {}
     const resourcePoolStore: Map<string, JsonArray> = new Map()
+    /**
+     * the requests that wait for a value of an empty pool, oldest first: a value that comes
+     * in goes to the oldest one at once, it does not wait for the timeout of that request
+     */
+    const poolWaiters: Map<string, PoolWaiter[]> = new Map()
     const app = polka()
         /**
          * middleware
@@ -58,9 +68,14 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             }
 
             resourcePoolStore.set(key, value)
+            // the requests that wait for this pool get the first values of the new one
+            const waiters = poolWaiters.get(key)
+            while (waiters?.length && value.length) {
+                waiters.shift()!(value.shift() as JsonCompatible | JsonPrimitive)
+            }
             return res.end()
         })
-        .get('/pool/:key', async (req, res, next) => {
+        .get('/pool/:key', (req, res, next) => {
             const key = decodeKey(req.params.key as string)
             if (key === undefined) {
                 return next(`Invalid key '${req.params.key}'`)
@@ -70,29 +85,34 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
                 return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
             }
 
-            let pool = resourcePoolStore.get(key) || []
+            const pool = resourcePoolStore.get(key) || []
 
             if (pool.length > 0) {
                 return res.end(JSON.stringify({ value: pool.shift() }))
             }
 
             const timeout = Math.min(parseInt(req.query.timeout as string) || DEFAULT_TIMEOUT, MAX_TIMEOUT)
+            const waiters = poolWaiters.get(key) || []
+            poolWaiters.set(key, waiters)
 
-            try {
-                const result = await new Promise((resolve, reject) => {
-                    setTimeout(function secondAttempt() {
-                        pool = resourcePoolStore.get(key) || []
-                        if (pool.length > 0) {
-                            resolve({ value: pool.shift() })
-                        }
-
-                        reject(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool' or 'addValueToPool'`)
-                    }, timeout)
-                })
-                res.end(JSON.stringify(result))
-            } catch (err) {
-                return next(err)
+            const stopWaiting = () => {
+                clearTimeout(timer)
+                const index = waiters.indexOf(waiter)
+                if (index !== -1) {
+                    waiters.splice(index, 1)
+                }
             }
+            const waiter: PoolWaiter = (value) => {
+                stopWaiting()
+                res.end(JSON.stringify({ value }))
+            }
+            const timer = setTimeout(() => {
+                stopWaiting()
+                next(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool' or 'addValueToPool'`)
+            }, timeout)
+            // a client that went away must not take a value out of the pool
+            res.on('close', stopWaiting)
+            waiters.push(waiter)
         })
         .post('/pool/:key', (req, res, next) => {
             const key = decodeKey(req.params.key as string)
@@ -106,7 +126,12 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
                 return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
             }
 
-            pool.push(value)
+            const waiter = poolWaiters.get(key)?.shift()
+            if (waiter) {
+                waiter(value)
+            } else {
+                pool.push(value)
+            }
             return res.end()
         })
 
