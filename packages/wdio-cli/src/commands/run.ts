@@ -56,6 +56,10 @@ export const cmdArgs = {
         desc: 'stop test runner after specific amount of tests have failed',
         type: 'number'
     },
+    globalTimeout: {
+        desc: 'stop test runner after the run took this many milliseconds, still running onComplete hooks',
+        type: 'number'
+    },
     baseUrl: {
         desc: 'shorten url command calls by setting a base url',
         type: 'string'

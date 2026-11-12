@@ -118,6 +118,8 @@ Options:
                 [choices: "trace", "debug", "info", "warn", "error", "silent"]
     --bail             stop test runner after specific amount of tests have
                        failed                                           [number]
+    --globalTimeout    stop test runner after the run took this many
+                       milliseconds, still running onComplete hooks     [number]
     --baseUrl          shorten url command calls by setting a base url  [string]
 -w, --waitforTimeout   timeout for all waitForXXX commands              [number]
 -s, --updateSnapshots  update DOM, image or test snapshots              [string]

@@ -15,6 +15,7 @@ export interface RunCommandArguments {
     key?: string
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
     bail?: number
+    globalTimeout?: number
     baseUrl?: string
     shard?: Options.ShardOptions
     waitforTimeout?: number
