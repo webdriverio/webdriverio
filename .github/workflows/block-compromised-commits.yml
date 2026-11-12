@@ -209,10 +209,14 @@ jobs:
             if [ "$old" != "$new" ]; then sensitive "Dependency spec that is not from the npm registry, or pnpm build settings, changed in ${f}: ${new}"; fi
           done < "$t/pkg"
 
-          # 4. Other files that run code on install: npm/yarn config, pnpm hooks and git hooks.
+          # 4. Other files that run code on install: npm/yarn config, pnpm hooks and git hooks, and
+          #    package manifests that pnpm reads but this check cannot parse (package.yaml/json5;
+          #    the repo has none).
           while IFS= read -r -d '' f; do
             if [[ "$f" =~ (^|/)(\.?pnpmfile\.[cm]?js|\.npmrc|\.yarnrc(\.yml)?)$ || "$f" =~ ^\.husky/ ]]; then
               sensitive "Install configuration changed: ${f}"
+            elif [[ "$f" =~ (^|/)package\.(yaml|yml|json5)$ ]]; then
+              sensitive "Package manifest in a format this check cannot read: ${f}"
             fi
           done < "$t/changed-all"
 
