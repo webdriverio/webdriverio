@@ -49,7 +49,5 @@ export function formatCliArgs(args: KeyValueArgs): string[] {
 }
 
 export function sanitizeCliOptionValue (value: ArgValue) {
-    const valueString = typeof value === 'object' ? JSON.stringify(value) : String(value)
-    // Encapsulate the value string in single quotes if it contains a white space
-    return /\s/.test(valueString) ? `'${valueString}'` : valueString
+    return typeof value === 'object' ? JSON.stringify(value) : String(value)
 }
