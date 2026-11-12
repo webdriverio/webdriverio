@@ -95,6 +95,33 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '0.36.0')
     })
 
+    test('skips Appium capabilities and capabilities with their own connection (#16418)', async () => {
+        await setupDriver({}, [{
+            // Chrome on a device through Appium, with the connection that `@wdio/appium-service` sets
+            platformName: 'Android',
+            browserName: 'chrome',
+            'appium:automationName': 'UiAutomator2',
+            hostname: '127.0.0.1',
+            port: 4723
+        }, {
+            // an Appium capability without connection options
+            platformName: 'Android',
+            browserName: 'chrome',
+            'appium:deviceName': 'Pixel 8'
+        }, {
+            // a capability that connects to its own grid
+            browserName: 'chrome',
+            hostname: 'grid.example.com',
+            port: 4444
+        }, {
+            // a local desktop browser
+            browserName: 'chrome',
+            browserVersion: '1'
+        }] as WebdriverIO.Capabilities[])
+        expect(setupChromedriver).toBeCalledTimes(1)
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1', undefined)
+    })
+
     test('with multi-remote capabilities', async () => {
         await setupDriver({}, {
             browserA: {
@@ -329,6 +356,36 @@ describe('setupBrowser', () => {
         expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
             browserName: 'firefox',
             browserVersion: '6'
+        })
+    })
+
+    test('skips Appium capabilities and capabilities with their own connection (#16418)', async () => {
+        await setupBrowser({}, [{
+            // Chrome on a device through Appium, with the connection that `@wdio/appium-service` sets
+            platformName: 'Android',
+            browserName: 'chrome',
+            'appium:automationName': 'UiAutomator2',
+            hostname: '127.0.0.1',
+            port: 4723
+        }, {
+            // an Appium capability without connection options
+            platformName: 'Android',
+            browserName: 'chrome',
+            'appium:deviceName': 'Pixel 8'
+        }, {
+            // a capability that connects to its own grid
+            browserName: 'chrome',
+            hostname: 'grid.example.com',
+            port: 4444
+        }, {
+            // a local desktop browser
+            browserName: 'chrome',
+            browserVersion: '1'
+        }] as WebdriverIO.Capabilities[])
+        expect(setupPuppeteerBrowser).toBeCalledTimes(1)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'chrome',
+            browserVersion: '1'
         })
     })
 
