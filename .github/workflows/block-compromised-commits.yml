@@ -239,6 +239,9 @@ jobs:
           #    label. Quoted keys are normalized; a line that is not "key:" fails closed.
           keyed_lines() { # print "<top-level key><TAB><line>" for every line
             awk '
+              # A comment at column 0 or a blank line belongs to no key (it would count as a
+              # change to the key above it).
+              /^#/ || /^[[:space:]]*$/ { next }
               /^[^[:space:]#]/ && !/^- / {
                 k = $0
                 if (k ~ /^"[^"]*"[[:space:]]*:/) { sub(/^"/, "", k); sub(/"[[:space:]]*:.*/, "", k) }
