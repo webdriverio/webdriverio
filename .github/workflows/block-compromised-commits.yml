@@ -169,7 +169,7 @@ jobs:
           sensitive() { # $1 = message; an error unless the override label is set
             local msg; msg=$(esc_data "$1")
             if [ "$override" = 1 ]; then echo "::warning::${msg} (allowed by label ${OVERRIDE_LABEL})"
-            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}' (remove and add it again after each new push)."; fail=1; fi
+            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}' as the last label: add the 'PR: ...' release label first, because any later push or label change cancels the approval (then remove and add '${OVERRIDE_LABEL}' again)."; fail=1; fi
           }
 
           if [ -n "$release_hits" ]; then
