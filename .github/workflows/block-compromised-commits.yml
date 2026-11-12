@@ -137,12 +137,17 @@ jobs:
             if [ -n "$added_specs" ]; then sensitive "Dependency from git, a URL or a local path added in ${f}"; fi
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml')
 
-          # 4. URLs with a public IPv4 address (data exfiltration endpoints use them often).
-          ips=$(printf '%s\n' "$added" | grep -oE 'https?://([0-9]{1,3}\.){3}[0-9]{1,3}' \
-            | grep -vE '://(127\.|10\.|0\.0\.0\.0|169\.254\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' | sort -u || true)
+          # 6. Public IPv4 addresses in URLs (any scheme, any case, or "//IP") or after network
+          #    tools. Exfiltration endpoints often use them. A bare a.b.c.d is not matched,
+          #    because version numbers look the same.
+          ip='([0-9]{1,3}\.){3}[0-9]{1,3}'
+          ips=$(printf '%s\n' "$added" \
+            | grep -oiE "([a-z][a-z0-9+.-]*:)?//${ip}|(^|[^a-z0-9_])(curl|wget|nc|ncat|socat|telnet|ssh|scp|sftp)[[:space:]][^;|&]*${ip}" \
+            | grep -oE "$ip" \
+            | awk -F. '$1<=255 && $2<=255 && $3<=255 && $4<=255 && !($1==0 || $1==10 || $1==127 || ($1==169 && $2==254) || ($1==192 && $2==168) || ($1==172 && $2>=16 && $2<=31))' \
+            | sort -u || true)
           if [ -n "$ips" ]; then
-            if [ "$override" = 1 ]; then echo "::warning::URL with a public IP address (allowed by label ${OVERRIDE_LABEL}):"; else echo "::error::URL with a public IP address added. A maintainer must review it and add the label '${OVERRIDE_LABEL}':"; fail=1; fi
-            printf '  %s\n' $ips
+            sensitive "Public IP address added: $(printf '%s' "$ips" | tr '\n' ' ')"
           fi
 
           if [ "$fail" = 0 ]; then echo "No compromised commits and no sensitive changes found."; fi
