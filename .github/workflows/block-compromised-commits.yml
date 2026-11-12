@@ -62,6 +62,15 @@ jobs:
           esc_data() { local s=$1; s=${s//'%'/'%25'}; s=${s//$'\r'/'%0D'}; s=${s//$'\n'/'%0A'}; printf '%s' "$s"; }
           esc_prop() { local s; s=$(esc_data "$1"); s=${s//:/'%3A'}; s=${s//,/'%2C'}; printf '%s' "$s"; }
 
+          # Build every list first. A failed git command stops the run here (set -e); inside
+          # "< <(...)" or "for x in $(...)" it would only leave a loop empty and pass.
+          t=$(mktemp -d)
+          git rev-list "${base}..${head}" > "$t/commits"
+          git -c core.quotePath=false diff -z --name-only "${base}...${head}" > "$t/changed-all"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" > "$t/changed"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json' > "$t/pkg"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml' > "$t/ws"
+
           # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
           #    Match: any commit authored or committed by wdio-bot (both of its identities)
           #    since the day of the attack, an attack commit message, or the patch-id
@@ -73,11 +82,11 @@ jobs:
           incident=""
           newest_bad=""
           # All commits, merges included: a merge made by wdio-bot must fail too.
-          for c in $(git rev-list "${base}..${head}"); do
+          while IFS= read -r c; do
             # NUL-separated, so a "|" or other character in a name cannot shift the fields.
+            git log -1 --format='%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s%x00' "$c" > "$t/meta"
             { IFS= read -r -d '' ae; IFS= read -r -d '' ce; IFS= read -r -d '' an; IFS= read -r -d '' cn
-              IFS= read -r -d '' at; IFS= read -r -d '' ct; IFS= read -r -d '' subject; } \
-              < <(git log -1 --format='%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s%x00' "$c")
+              IFS= read -r -d '' at; IFS= read -r -d '' ct; IFS= read -r -d '' subject; } < "$t/meta"
             [[ "$at" =~ ^[0-9]+$ ]] || at=$since # fail closed
             [[ "$ct" =~ ^[0-9]+$ ]] || ct=$since
             pid=""
@@ -99,7 +108,7 @@ jobs:
               incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
               newest_bad=${newest_bad:-$c} # rev-list lists the newest commit first
             fi
-          done
+          done < "$t/commits"
           if [ -n "$incident" ]; then
             echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Drop them; a plain 'git rebase' copies them. If they are below your own commits: git fetch upstream && git rebase --onto upstream/${BASE_REF} ${newest_bad}. Otherwise use 'git rebase -i upstream/${BASE_REF}' and delete the listed commits."
             printf '%s' "$incident"
@@ -120,7 +129,7 @@ jobs:
             elif [[ "$lower" =~ \.(sh|bash|zsh|ksh)$ ]]; then
               echo "::warning file=$(esc_prop "$f")::Shell script added or changed. Review it with care."
             fi
-          done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}")
+          done < "$t/changed"
 
           mb=$(git merge-base "$base" "$head")
           sensitive() { # $1 = message; an error unless the override label is set
@@ -160,14 +169,14 @@ jobs:
             new=$(git show "${head}:${f}" | deps_of)
             old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | deps_of) || old=''
             if [ "$old" != "$new" ]; then sensitive "Dependency spec that is not from the npm registry, or pnpm build settings, changed in ${f}: ${new}"; fi
-          done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json')
+          done < "$t/pkg"
 
           # 4. Other files that run code on install: npm/yarn config, pnpm hooks and git hooks.
           while IFS= read -r -d '' f; do
             if [[ "$f" =~ (^|/)(\.?pnpmfile\.[cm]?js|\.npmrc|\.yarnrc(\.yml)?)$ || "$f" =~ ^\.husky/ ]]; then
               sensitive "Install configuration changed: ${f}"
             fi
-          done < <(git -c core.quotePath=false diff -z --name-only "${base}...${head}")
+          done < "$t/changed-all"
 
           # A dependency spec that can only resolve from the npm registry (no git, URL, path or tarball).
           registry_spec() {
@@ -212,7 +221,7 @@ jobs:
                 *) sensitive "pnpm setting '${k}' changed in ${f}" ;;
               esac
             done
-          done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml')
+          done < "$t/ws"
 
           # 6. Lockfiles: a resolution from a tarball URL, git or a host that is not the registry.
           #    An edited tarball URL installs other code with no package.json change.
