@@ -81,6 +81,7 @@ jobs:
           bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
           incident=""
           newest_bad=""
+          release_hits=""
           # All commits, merges included: a merge made by wdio-bot must fail too.
           while IFS= read -r c; do
             # NUL-separated, so a "|" or other character in a name cannot shift the fields.
@@ -93,15 +94,25 @@ jobs:
             if [ "$(git rev-list --no-walk --count --min-parents=2 "$c")" = 0 ]; then # a merge has no single patch
               pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
             fi
-            is_bot=0
+            # The attack identity is never allowed. The release identity (publish.yml still uses it)
+            # can be allowed with the label, for example in a backport that holds a release commit.
+            attack_id=0; release_id=0
             for id in "$ae" "$ce"; do
-              case "$id" in 72550141+wdio-bot@users.noreply.github.com|bot@webdriver.io) is_bot=1 ;; esac
+              case "$id" in
+                72550141+wdio-bot@users.noreply.github.com) attack_id=1 ;;
+                bot@webdriver.io) release_id=1 ;;
+              esac
             done
             for name in "$an" "$cn"; do
-              [[ "$name" =~ ^WebdriverIO\ (Release\ )?Bot$ ]] && is_bot=1
+              [ "$name" = "WebdriverIO Bot" ] && attack_id=1
+              [ "$name" = "WebdriverIO Release Bot" ] && release_id=1
             done
+            after=0; { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; } && after=1
             reason=""
-            if [ "$is_bot" = 1 ] && { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; }; then reason+="wdio-bot since 2026-11-11, "; fi
+            if [ "$attack_id" = 1 ] && [ "$after" = 1 ]; then reason+="wdio-bot since 2026-11-11, "; fi
+            if [ "$release_id" = 1 ] && [ "$attack_id" = 0 ] && [ "$after" = 1 ]; then
+              release_hits+="${c:0:10} ${subject}; "
+            fi
             if [[ "$subject" =~ $attack_msg ]]; then reason+="attack message, "; fi
             if [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then reason+="attack patch-id, "; fi
             if [ -n "$reason" ]; then
@@ -137,6 +148,10 @@ jobs:
             if [ "$override" = 1 ]; then echo "::warning::${msg} (allowed by label ${OVERRIDE_LABEL})"
             else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}' (remove and add it again after each new push)."; fail=1; fi
           }
+
+          if [ -n "$release_hits" ]; then
+            sensitive "Commits by the wdio release bot (bot@webdriver.io) since 2026-11-11: ${release_hits%; }"
+          fi
 
           # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
           #    Both versions are parsed with jq, so escaped keys and line breaks cannot hide a hook.
