@@ -64,14 +64,18 @@ jobs:
           attack_msg='^(chore: add ci helper|ci: restore|ci: cleanup|docs: add dependency audit notes)( \(#[0-9]+\))?$'
           bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
           incident=""
-          for c in $(git rev-list --no-merges "${base}..${head}"); do
+          # All commits, merges included: a merge made by wdio-bot must fail too.
+          for c in $(git rev-list "${base}..${head}"); do
             # NUL-separated, so a "|" or other character in a name cannot shift the fields.
             { IFS= read -r -d '' ae; IFS= read -r -d '' ce; IFS= read -r -d '' an; IFS= read -r -d '' cn
               IFS= read -r -d '' at; IFS= read -r -d '' ct; IFS= read -r -d '' subject; } \
               < <(git log -1 --format='%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s%x00' "$c")
             [[ "$at" =~ ^[0-9]+$ ]] || at=$since # fail closed
             [[ "$ct" =~ ^[0-9]+$ ]] || ct=$since
-            pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
+            pid=""
+            if [ "$(git rev-list --no-walk --count --min-parents=2 "$c")" = 0 ]; then # a merge has no single patch
+              pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
+            fi
             is_bot=0
             for id in "$ae" "$ce"; do
               case "$id" in 72550141+wdio-bot@users.noreply.github.com|bot@webdriver.io) is_bot=1 ;; esac
