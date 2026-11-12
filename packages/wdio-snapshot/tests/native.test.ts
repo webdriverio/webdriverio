@@ -269,3 +269,76 @@ describe('native snapshots', () => {
         ].join('\n'))
     })
 })
+
+describe('native snapshots of awkward page sources', () => {
+    it('keeps the name of a control whose text or description contains >', () => {
+        expect(text('android-gt.xml', 'android')).toBe([
+            '- document',
+            '  - group',
+            '    - button "next > page" [ref=e1]',
+            '    - textbox "a > b" [ref=e2]',
+            '    - text "Total > 0"'
+        ].join('\n'))
+    })
+
+    it('emits UiSelector text and description selectors with a single backslash', () => {
+        const parsed = parseNativeSource(`<hierarchy>
+  <android.widget.EditText text="C:\\path" focusable="true" displayed="true" bounds="[0,0][10,10]" />
+</hierarchy>`, 'android')
+        const selectors = parsed.refs[0].candidates.map((candidate) => candidate.selector)
+        expect(selectors).toContain('android=new UiSelector().text("C:\\path")')
+        expect(parsed.located[0].matches).toContain('android=new UiSelector().text("C:\\path")')
+    })
+
+    it('does not count a hidden twin towards a unique candidate', () => {
+        const xml = `<hierarchy>
+  <android.widget.Button resource-id="com.app:id/save" clickable="true" displayed="true" bounds="[0,0][100,40]" />
+  <android.widget.Button resource-id="com.app:id/save" clickable="true" displayed="false" bounds="[0,0][0,0]" />
+</hierarchy>`
+        const { refs } = parseNativeSource(xml, 'android')
+        expect(refs[0].candidates[0].kind).toBe('indexed')
+        expect(refs[0].candidates[0].selector).toBe('android=new UiSelector().resourceId("com.app:id/save").instance(0)')
+    })
+
+    it('keeps a Windows name that contains > and quotes the XPath literal right', () => {
+        const parsed = parseNativeSource(`<Window>
+  <Button Name="Next >" IsEnabled="True" BoundingRectangle="0,0,80,30" />
+  <Edit Name='a > "b"' IsEnabled="True" BoundingRectangle="0,30,80,30" />
+</Window>`, 'windows')
+        expect(parsed.refs[0].name).toBe('Next >')
+        expect(parsed.refs[1].name).toBe('a > "b"')
+        expect(parsed.refs[1].candidates.map((candidate) => candidate.selector)).toContain(
+            "//Edit[@Name='a > \"b\"']"
+        )
+    })
+
+    it('quotes an iOS name with a quote in the predicate and the xpath candidate', () => {
+        const parsed = parseNativeSource(`<AppiumAUT>
+  <XCUIElementTypeButton type="XCUIElementTypeButton" name='say "hi"' label='say "hi"' visible="true" x="0" y="0" width="10" height="10" />
+</AppiumAUT>`, 'ios')
+        const selectors = parsed.refs[0].candidates.map((candidate) => candidate.selector)
+        expect(selectors).toContain('-ios predicate string:name == "say \\"hi\\""')
+        expect(parsed.located[0].matches).toContain("//XCUIElementTypeButton[@name='say \"hi\"']")
+    })
+
+    it('emits a Windows indexed xpath that keeps counting hidden controls', () => {
+        const parsed = parseNativeSource(`<Window>
+  <Button Name="Save" IsEnabled="True" BoundingRectangle="0,0,80,30" />
+  <Button Name="Save" IsEnabled="False" BoundingRectangle="0,0,0,0" />
+  <Button Name="Save" IsEnabled="True" BoundingRectangle="0,30,80,30" />
+</Window>`, 'windows')
+        expect(parsed.refs.map((ref) => ref.candidates[0].selector)).toEqual([
+            '(//Button[@Name="Save"])[1]',
+            '(//Button[@Name="Save"])[3]'
+        ])
+    })
+
+    it('does not count a hidden twin of a text selector either', () => {
+        const xml = `<hierarchy>
+  <android.widget.Button text="Go" clickable="true" displayed="true" bounds="[0,0][100,40]" />
+  <android.widget.Button text="Go" clickable="true" displayed="false" bounds="[0,0][0,0]" />
+</hierarchy>`
+        const { refs } = parseNativeSource(xml, 'android')
+        expect(refs[0].candidates[0].kind).toBe('indexed')
+    })
+})

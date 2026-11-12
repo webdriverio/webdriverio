@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy>
+  <android.widget.FrameLayout displayed="true" bounds="[0,0][1080,1920]">
+    <android.widget.Button text="Next >" content-desc="next > page" clickable="true" displayed="true" bounds="[0,0][200,40]" resource-id="com.example:id/next" />
+    <android.widget.EditText text="a > b" hint="Email > work" focusable="true" displayed="true" bounds="[0,40][200,80]" resource-id="com.example:id/email" />
+    <android.widget.TextView text="Total > 0" displayed="true" bounds="[0,80][200,120]" />
+  </android.widget.FrameLayout>
+</hierarchy>

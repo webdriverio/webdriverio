@@ -45,4 +45,16 @@ describe('native selectors', () => {
             { kind: 'class-chain', selector: '-ios class chain:**/XCUIElementTypeButton[`name == "Save"`]' }
         ])
     })
+
+    it('skips the class chain when the name contains a backtick, since there is no escape for it', () => {
+        const candidates = nativeCandidates({
+            platform: 'ios',
+            tag: 'XCUIElementTypeButton',
+            name: 'Save `draft`'
+        })
+        expect(candidates.some((candidate) => candidate.kind === 'class-chain')).toBe(false)
+        expect(candidates[0].kind).toBe('predicate')
+        expect(candidates[0].selector).toBe('-ios predicate string:name == "Save `draft`"')
+    })
 })
+
