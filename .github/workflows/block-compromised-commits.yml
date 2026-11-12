@@ -1,0 +1,88 @@
+name: Block Compromised Commits
+
+# Guard against the 2026-11-11 wdio-bot compromise and similar supply-chain changes.
+#
+# pull_request_target runs the copy of this file from the base branch, so a pull
+# request cannot edit the guard to make it pass. The job never runs code from the
+# pull request: it only reads git objects (git log, git diff) with read-only access.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check commits and changes of the pull request
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          OVERRIDE_LABEL: allow-sensitive-changes
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --quiet origin "refs/pull/${PR_NUMBER}/head"
+          head=$(git rev-parse FETCH_HEAD)
+          base="origin/${BASE_REF}"
+          fail=0
+          override=0
+          case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
+
+          # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
+          #    Match: wdio-bot author on the incident days, an attack commit message,
+          #    or the patch-id (content fingerprint) of a known attack commit.
+          bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
+          incident=""
+          for c in $(git rev-list --no-merges "${base}..${head}"); do
+            meta=$(git log -1 --format='%ae|%aI|%s' "$c")
+            email=${meta%%|*}; rest=${meta#*|}; date=${rest%%|*}; subject=${rest#*|}
+            pid=$(git show "$c" | git patch-id --stable | cut -d' ' -f1)
+            if { [ "$email" = "72550141+wdio-bot@users.noreply.github.com" ] && [[ "$date" == 2026-11-1[12]* ]]; } \
+              || [[ "$subject" =~ ^(chore:\ add\ ci\ helper|ci:\ restore|ci:\ cleanup|docs:\ add\ dependency\ audit\ notes) ]] \
+              || [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then
+              incident+="  ${c:0:10} ${subject}"$'\n'
+            fi
+          done
+          if [ -n "$incident" ]; then
+            echo "::error::This branch contains commits from the 2026-11-11 wdio-bot compromise. Rebase onto ${BASE_REF}: git fetch upstream && git rebase upstream/${BASE_REF}"
+            printf '%s' "$incident"
+            fail=1
+          fi
+
+          added=$(git diff --unified=0 "${base}...${head}" | grep -E '^\+[^+]' || true)
+
+          # 2. Hidden shell scripts (for example .ci-abc123.sh). No such file exists in the repo.
+          hidden=$(git diff --name-only --diff-filter=AMR "${base}...${head}" | grep -E '(^|/)\.[^/]+\.(sh|bash)$' || true)
+          if [ -n "$hidden" ]; then
+            echo "::error::Hidden shell script added or changed:"; printf '  %s\n' $hidden; fail=1
+          fi
+          other_sh=$(git diff --name-only --diff-filter=AMR "${base}...${head}" | grep -E '\.(sh|bash)$' | grep -vE '(^|/)\.[^/]+\.(sh|bash)$' || true)
+          for f in $other_sh; do echo "::warning file=${f}::Shell script added or changed. Review it with care."; done
+
+          # 3. npm lifecycle scripts that run on install (the root postinstall runs every "postinstall:*").
+          hooks=$(git diff --unified=0 "${base}...${head}" -- '*package.json' \
+            | grep -E '^\+.*"(preinstall|install|postinstall|prepare|prepack|prepublish|prepublishOnly)(:[^"]*)?"[[:space:]]*:' || true)
+          if [ -n "$hooks" ]; then
+            if [ "$override" = 1 ]; then echo "::warning::Install lifecycle script changed (allowed by label ${OVERRIDE_LABEL}):"; else echo "::error::Install lifecycle script added or changed. A maintainer must review it and add the label '${OVERRIDE_LABEL}':"; fail=1; fi
+            printf '%s\n' "$hooks"
+          fi
+
+          # 4. URLs with a public IPv4 address (data exfiltration endpoints use them often).
+          ips=$(printf '%s\n' "$added" | grep -oE 'https?://([0-9]{1,3}\.){3}[0-9]{1,3}' \
+            | grep -vE '://(127\.|10\.|0\.0\.0\.0|169\.254\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' | sort -u || true)
+          if [ -n "$ips" ]; then
+            if [ "$override" = 1 ]; then echo "::warning::URL with a public IP address (allowed by label ${OVERRIDE_LABEL}):"; else echo "::error::URL with a public IP address added. A maintainer must review it and add the label '${OVERRIDE_LABEL}':"; fail=1; fi
+            printf '  %s\n' $ips
+          fi
+
+          if [ "$fail" = 0 ]; then echo "No compromised commits and no sensitive changes found."; fi
+          exit "$fail"
