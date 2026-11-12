@@ -185,7 +185,7 @@ jobs:
           # Allowlist, same rules as registry_spec below.
           deps_of() {
             jq -cS '
-              def ok: (test("[/:\\\\]") | not) and (startswith(".") | not) and (test("\\.(tgz|tar|tar\\.gz)$") | not);
+              def ok: (test("[/:\\\\]") | not) and (startswith(".") | not) and (test("\\.(tgz|tar|tar\\.gz)$"; "i") | not);
               def registry_spec:
                 if test("^(workspace|catalog):") then true
                 elif startswith("npm:") then (.[4:] | test("^(@[a-z0-9._~-]+/)?[a-z0-9._~-]+@[^/:\\s]*$")) and (.[4:] | sub("^.*@"; "") | ok)
@@ -229,7 +229,8 @@ jobs:
               [[ "$v" =~ ^(@[a-z0-9._~-]+/)?[a-z0-9._~-]+@[^/:[:space:]]*$ ]] || return 1
               v=${v##*@}
             fi
-            [[ "$v" != */* && "$v" != *:* && "$v" != *\\* && "$v" != .* && ! "$v" =~ \.(tgz|tar|tar\.gz)$ ]]
+            # npm and pnpm treat a name ending in .tgz/.tar/.tar.gz (any case) as a local tarball.
+            [[ "$v" != */* && "$v" != *:* && "$v" != *\\* && "$v" != .* && ! "$v" =~ \.([tT][gG][zZ]|[tT][aA][rR](\.[gG][zZ])?)$ ]]
           }
 
           # 5. pnpm-workspace.yaml (pnpm reads its settings here, and some run code: pnpmfile,
