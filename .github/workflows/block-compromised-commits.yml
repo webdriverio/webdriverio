@@ -51,6 +51,9 @@ jobs:
           fail=0
           override=0
           case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
+          # Escape values for workflow commands, so file names cannot break an annotation.
+          esc_data() { local s=$1; s=${s//'%'/'%25'}; s=${s//$'\r'/'%0D'}; s=${s//$'\n'/'%0A'}; printf '%s' "$s"; }
+          esc_prop() { local s; s=$(esc_data "$1"); s=${s//:/'%3A'}; s=${s//,/'%2C'}; printf '%s' "$s"; }
 
           # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
           #    Match: any commit authored or committed by wdio-bot (both of its identities)
@@ -100,16 +103,17 @@ jobs:
           while IFS= read -r -d '' f; do
             lower=$(printf '%s' "$f" | tr '[:upper:]' '[:lower:]')
             if [[ "$lower" =~ (^|/)\.[^/]+\.(sh|bash|zsh|ksh)$ ]]; then
-              echo "::error file=${f}::Hidden shell script added or changed: ${f}"; fail=1
+              echo "::error file=$(esc_prop "$f")::Hidden shell script added or changed: $(esc_data "$f")"; fail=1
             elif [[ "$lower" =~ \.(sh|bash|zsh|ksh)$ ]]; then
-              echo "::warning file=${f}::Shell script added or changed. Review it with care."
+              echo "::warning file=$(esc_prop "$f")::Shell script added or changed. Review it with care."
             fi
           done < <(git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}")
 
           mb=$(git merge-base "$base" "$head")
           sensitive() { # $1 = message; an error unless the override label is set
-            if [ "$override" = 1 ]; then echo "::warning::$1 (allowed by label ${OVERRIDE_LABEL})"
-            else echo "::error::$1. A maintainer must review it and add the label '${OVERRIDE_LABEL}'."; fail=1; fi
+            local msg; msg=$(esc_data "$1")
+            if [ "$override" = 1 ]; then echo "::warning::${msg} (allowed by label ${OVERRIDE_LABEL})"
+            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}'."; fail=1; fi
           }
 
           # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
