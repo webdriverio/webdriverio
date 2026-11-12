@@ -16,6 +16,9 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    concurrency:
+      group: block-compromised-commits-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,12 +29,21 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           OVERRIDE_LABEL: allow-sensitive-changes
         run: |
           set -euo pipefail
           git fetch --no-tags --quiet origin "refs/pull/${PR_NUMBER}/head"
-          head=$(git rev-parse FETCH_HEAD)
+          # Check the commit this event is for, not whatever the PR ref points to now.
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --quiet origin "${HEAD_SHA}" || true
+          fi
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::Commit ${HEAD_SHA} is no longer available (force-pushed). The run for the new head checks it."
+            exit 1
+          fi
+          head="${HEAD_SHA}"
           base="origin/${BASE_REF}"
           fail=0
           override=0
