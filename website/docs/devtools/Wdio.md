@@ -65,6 +65,13 @@ services: [['devtools', options]]
 | `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text ([see Password masking](/docs/devtools/dashboard#password-masking)) |
 | `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page |
 
+## Test tree
+
+The sidebar lists each spec's suites and tests (each Cucumber feature's scenarios and steps) as they run, the same on WebdriverIO 9 and 10.
+
+- **Retries.** A retried test is one row. Its next attempt replaces the failed one in place, and the row shows the final attempt's result with its retry count; for a Cucumber scenario retried with `cucumberOpts.retry`, the count is on the scenario. The failed attempt is still recorded, so the retry-aware `tracePolicy` values see it.
+- **Failed Cucumber hooks.** A hook fails no step, so a failed `BeforeAll` or `AfterAll` shows as a failed row of its feature (an `AfterAll` below the scenarios), and a failed `Before` or `After` as a failed row of its scenario, carrying the hook's error. Each failed hook is a row of its own, titled with its position among the hooks of that kind on the same feature or scenario, whether those passed or failed: the second `After` hook is `After #2` even when the first passed. When a retried scenario runs again, the failed hooks of the earlier attempt leave the tree with the rest of that attempt. Mocha and Jasmine hooks are left to the framework's own reporting.
+
 ## Runtime snapshot
 
 The service adds a `browser.getSnapshot()` command that returns an AI-readable accessibility tree of the current page (`text`) plus an `elements` map from short refs (`e1`, `e2`, …) to selectors:
