@@ -150,7 +150,7 @@ For example, if you open up a URL:
 browser.url('https://socketio-chat-h9jt.herokuapp.com/')
 ```
 
-Each command’s result will be an object with the browser names as the key, and the command result as value, like so:
+Each command’s result is an array with one entry per browser, in the order of `browser.instances`, which lists the browser names in the order they appear in `capabilities`:
 
 ```js
 // wdio testrunner example
@@ -159,6 +159,7 @@ await browser.url('https://www.whatismybrowser.com')
 const elem = await $('.string-major')
 const result = await elem.getText()
 
+console.log(browser.instances) // returns: ['myChromeBrowser', 'myFirefoxBrowser']
 console.log(result[0]) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
 console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
