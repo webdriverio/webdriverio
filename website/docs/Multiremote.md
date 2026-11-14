@@ -150,7 +150,7 @@ For example, if you open up a URL:
 browser.url('https://socketio-chat-h9jt.herokuapp.com/')
 ```
 
-Each command’s result will be an object with the browser names as the key, and the command result as value, like so:
+Each command’s result is an array holding one entry per browser — the result of that instance’s command — in the order the capabilities were declared, like so:
 
 ```js
 // wdio testrunner example
@@ -162,6 +162,8 @@ const result = await elem.getText()
 console.log(result[0]) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
 console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
+
+The index follows the declaration order in the `capabilities` object, so `result[0]` belongs to the first declared browser and `result[1]` to the second. Call `browser.getInstance('myFirefoxBrowser')` when an action or a result should be tied to one named instance instead of the array.
 
 Notice that each command is executed one by one. This means that the command finishes once all browsers have executed it. This is helpful because it keeps the browser actions synced, which makes it easier to understand what’s currently happening.
 
