@@ -295,20 +295,38 @@ export const snapshot: ActionFn = async (session, args) => {
     }
     const opts = snapshotOptions(args)
     const { text, tree } = await takeSnapshot(session, opts)
-    if (args.$agent) {
-        const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
-        const lines = text.split('\n').length
-        const refs = countRefs(text)
-        const tooBig = agentMax !== undefined && text.length > agentMax
-        const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars: too big to return (max ${agentMax}). Use \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`scope\`.`
-        return { text: tooBig ? summary : text, data: { lines, refs, chars: text.length, tree, snapshot: text, tooBig } }
-    }
-    const file = session.artifact('snapshots', `${session.timestamp()}.yml`)
-    fs.writeFileSync(file, text + '\n')
-    // a whole number of characters, so the hints below repeat it as given
-    const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const lines = text.split('\n').length
     const refs = countRefs(text)
+    const writeSnapshot = () => {
+        const file = session.artifact('snapshots', `${session.timestamp()}.yml`)
+        fs.writeFileSync(file, text + '\n')
+        return file
+    }
+    if (args.$agent) {
+        if (args.fileOnly) {
+            const file = writeSnapshot()
+            return {
+                text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`,
+                data: { file, lines, refs, chars: text.length, tree, snapshot: text, tooBig: false },
+                files: [file]
+            }
+        }
+        const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
+        const tooBig = agentMax !== undefined && text.length > agentMax
+        if (tooBig) {
+            const file = writeSnapshot()
+            const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars: too big to return (max ${agentMax}). Full snapshot: ${file}. Use \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`scope\`.`
+            return {
+                text: summary,
+                data: { file, lines, refs, chars: text.length, tree, snapshot: text, tooBig: true },
+                files: [file]
+            }
+        }
+        return { text, data: { lines, refs, chars: text.length, tree, snapshot: text, tooBig: false } }
+    }
+    const file = writeSnapshot()
+    // a whole number of characters, so the hints below repeat it as given
+    const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const data = { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) }
     if (args.fileOnly) {
         return { text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`, data, files: [file] }

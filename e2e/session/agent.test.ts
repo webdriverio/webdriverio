@@ -30,7 +30,11 @@ describe('@wdio/session/agent', () => {
     }, 60_000)
 
     afterAll(async () => {
+        const artifactsDir = agent?.session.artifactsDir
         await agent?.dispose()
+        if (artifactsDir) {
+            fs.rmSync(artifactsDir, { recursive: true, force: true })
+        }
         await browser?.deleteSession()
         await server?.close()
     })
@@ -108,13 +112,30 @@ describe('@wdio/session/agent', () => {
         }
     })
 
-    it('does not return a snapshot above maxChars', async () => {
+    it('writes a file and returns its path when the snapshot exceeds maxChars', async () => {
         const snapshot = await agent.snapshot({ interactive: true, maxChars: 50 })
         expect(snapshot.tooBig).toBe(true)
-        expect(snapshot.text).toMatch(/^Snapshot: \d+ lines, \d+ refs, \d+ chars: too big to return \(max 50\)\./)
+        expect(snapshot.file).toBeDefined()
+        expect(fs.existsSync(snapshot.file!)).toBe(true)
+        expect(fs.readFileSync(snapshot.file!, 'utf8')).toContain('button "Add to cart"')
+        expect(snapshot.text).toMatch(/^Snapshot: \d+ lines, \d+ refs, \d+ chars: too big to return \(max 50\)\. Full snapshot: /)
+        expect(snapshot.text).toContain(snapshot.file!)
         expect(snapshot.refs).toBeGreaterThan(0)
         expect(snapshot.tree.role).toBe('document')
         expect(snapshot.page?.title).toBe('Shop · Cart')
+    })
+
+    it('writes a file and returns a summary when fileOnly is set', async () => {
+        const snapshot = await agent.snapshot({ interactive: true, fileOnly: true, maxChars: 10 })
+        expect(snapshot.tooBig).toBe(false)
+        expect(snapshot.file).toBeDefined()
+        expect(fs.existsSync(snapshot.file!)).toBe(true)
+        const contents = fs.readFileSync(snapshot.file!, 'utf8')
+        expect(contents).toContain('button "Add to cart"')
+        expect(snapshot.text).toBe(`Snapshot: ${snapshot.lines} lines, ${snapshot.refs} refs, ${snapshot.chars} chars → ${snapshot.file}`)
+        const ref = contents.match(/button "Add to cart" \[ref=(e\d+)\]/)?.[1]
+        expect(ref).toBeDefined()
+        expect(agent.ref(ref!)?.candidates.length).toBeGreaterThan(0)
     })
 
     it('names the commands of the caller in a stale ref error after a navigation', async () => {
