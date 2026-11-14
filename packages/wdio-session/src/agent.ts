@@ -109,6 +109,7 @@ export class AgentSession {
         return {
             text: result.text ?? '',
             tree: data.tree!,
+            ...(data.file ? { file: data.file } : {}),
             lines: data.lines,
             refs: data.refs,
             chars: data.chars,

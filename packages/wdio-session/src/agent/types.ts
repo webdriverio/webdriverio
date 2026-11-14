@@ -22,7 +22,7 @@ export interface ActionDataMap {
         lines: number
         refs: number
         chars: number
-        /** the snapshot file, not written by the agent's own `snapshot()` */
+        /** the snapshot file, always written on the CLI path and written by the agent when `tooBig` or `fileOnly` is set */
         file?: string
         /** the page shown in this answer, when the text is paged */
         from?: number
@@ -79,12 +79,17 @@ export interface AgentActionResult<A extends string = string> {
 
 export interface AgentSnapshotOptions extends SnapshotOptions {
     /**
-     * the snapshot is not returned above this size, `tooBig` is set and `text` is a summary
+     * the snapshot is not returned above this size, `tooBig` is set, the full snapshot is written to `file`, and `text` is a summary
      */
     maxChars?: number
+    /**
+     * write the snapshot to `file` and return a one-line summary with the path instead of returning the snapshot inline
+     */
+    fileOnly?: boolean
 }
 
 export interface AgentSnapshot extends TakenSnapshot {
+    file?: string
     lines: number
     refs: number
     chars: number

@@ -187,6 +187,7 @@ describe('createAgentSession', () => {
             const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
             const snapshot = await agent.snapshot({ interactive: true })
             expect(snapshot.text).toContain('button "Pay" [ref=e1]')
+            expect(snapshot.file).toBeUndefined()
             expect(snapshot).toMatchObject({ lines: 2, refs: 1, tooBig: false, page: { url: 'http://x/', title: 'Shop' } })
             expect(snapshot.tree.role).toBe('document')
             expect(snapshot.chars).toBe(snapshot.text.length)
@@ -194,13 +195,35 @@ describe('createAgentSession', () => {
             expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
         })
 
-        it('does not return a snapshot above maxChars, only its size', async () => {
-            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp() })
+        it('writes the full snapshot to a file when tooBig', async () => {
+            const artifactsDir = tmp()
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
             const snapshot = await agent.snapshot({ maxChars: 10 })
             expect(snapshot.tooBig).toBe(true)
-            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars: too big to return (max 10). Use \`wdio session find <text>\` or \`scope\`.`)
+            expect(snapshot.file?.startsWith(path.join(artifactsDir, 'snapshots'))).toBe(true)
+            expect(fs.existsSync(snapshot.file!)).toBe(true)
+            const written = fs.readFileSync(snapshot.file!, 'utf8')
+            expect(written).toContain('button "Pay" [ref=e1]')
+            expect(written.length).toBe(snapshot.chars + 1)
+            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars: too big to return (max 10). Full snapshot: ${snapshot.file}. Use \`wdio session find <text>\` or \`scope\`.`)
             expect(snapshot.tree.children).toHaveLength(1)
             expect(snapshot.refs).toBe(1)
+            expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
+        })
+
+        it('writes the snapshot and returns a summary when fileOnly is set', async () => {
+            const artifactsDir = tmp()
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
+            const snapshot = await agent.snapshot({ fileOnly: true, maxChars: 10 })
+            expect(snapshot.tooBig).toBe(false)
+            expect(snapshot.file?.startsWith(path.join(artifactsDir, 'snapshots'))).toBe(true)
+            expect(fs.existsSync(snapshot.file!)).toBe(true)
+            const written = fs.readFileSync(snapshot.file!, 'utf8')
+            expect(written).toContain('button "Pay" [ref=e1]')
+            expect(written.length).toBe(snapshot.chars + 1)
+            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars → ${snapshot.file}`)
+            expect(snapshot.tree.role).toBe('document')
+            expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
         })
 
         it('names the hint of the caller in the summary', async () => {
