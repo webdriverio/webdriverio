@@ -42,3 +42,13 @@ export const MATCHERS = [
     'toHaveWidth',
     'toHaveWindowCount',
 ]
+
+/**
+ * Async matchers that `@wdio/visual-service` adds to `expect`
+ */
+export const VISUAL_MATCHERS = [
+    'toMatchElementSnapshot',
+    'toMatchFullPageSnapshot',
+    'toMatchScreenSnapshot',
+    'toMatchTabbablePageSnapshot',
+]

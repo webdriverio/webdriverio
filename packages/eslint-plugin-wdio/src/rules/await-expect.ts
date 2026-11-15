@@ -1,7 +1,7 @@
 import type { Rule } from 'eslint'
 import type { Identifier } from 'estree'
 
-import { MATCHERS } from '../constants.js'
+import { MATCHERS, VISUAL_MATCHERS } from '../constants.js'
 
 const rule: Rule.RuleModule = {
     meta: {
@@ -46,7 +46,7 @@ const rule: Rule.RuleModule = {
                 }
 
                 const propertyName = (node.callee.property as Identifier).name
-                const isWdioMatcher = MATCHERS.includes(propertyName)
+                const isWdioMatcher = MATCHERS.includes(propertyName) || VISUAL_MATCHERS.includes(propertyName)
                 const isSnapshotMatcher = ['toMatchSnapshot', 'toMatchInlineSnapshot'].includes(propertyName)
 
                 if (!isWdioMatcher && !isSnapshotMatcher) {
