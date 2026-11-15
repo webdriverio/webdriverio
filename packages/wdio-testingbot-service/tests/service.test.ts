@@ -198,6 +198,26 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toEqual(0)
     })
 
+    it('afterTest ignores Jasmine marked Pending error messages', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        tbService.afterTest({} as Frameworks.Test, {}, { passed: false, error: '=> marked Pending' } as Frameworks.TestResult)
+
+        expect(tbService['_failures']).toEqual(0)
+    })
+
+    it('afterTest decrements failure count when a failed test is skipped on retry', () => {
+        const tbService = new TestingBotService({}, {}, {})
+        tbService['_failures'] = 0
+        const test = { file: 'test.js', fullTitle: 'suite > skipped on retry', parent: 'suite', title: 'skipped on retry' } as Frameworks.Test
+
+        tbService.afterTest(test, {}, { passed: false, retries: { attempts: 0, limit: 1 }, error: new Error('fail 0') } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(1)
+
+        tbService.afterTest(test, {}, { passed: false, skipped: true, retries: { attempts: 1, limit: 1 } } as Frameworks.TestResult)
+        expect(tbService['_failures']).toEqual(0)
+    })
+
     it('afterTest distinguishes separate tests with identical titles across suites/files', () => {
         const tbService = new TestingBotService({}, {}, {})
         tbService['_failures'] = 0

@@ -105,18 +105,25 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {object} test Test
      */
     afterTest (test: Frameworks.Test, _context: unknown, results: Frameworks.TestResult) {
-        if (results.skipped) {
-            return
-        }
-
         const testTitle = test.fullTitle || (test.parent && test.title ? `${test.parent} - ${test.title}` : undefined) || test.title || test.name || test.fullName
         const testKey = testTitle ? `${test.file || ''}#${testTitle}` : undefined
 
+        const isJasminePending = (typeof results.error === 'string' && results.error.includes('marked Pending')) || (!results.passed && results.skipped)
+
+        if (results.skipped || isJasminePending) {
+            if (testKey && this._failedTests.delete(testKey)) {
+                this._decrementFailures()
+            } else if (!testKey && test._retriedTest) {
+                this._decrementFailures()
+            }
+            return
+        }
+
         if (results.passed) {
             if (testKey && this._failedTests.delete(testKey)) {
-                --this._failures
+                this._decrementFailures()
             } else if (!testKey && test._retriedTest) {
-                --this._failures
+                this._decrementFailures()
             }
             return
         }
@@ -128,6 +135,12 @@ export default class TestingBotService implements Services.ServiceInstance {
             }
         } else if (!test._retriedTest) {
             ++this._failures
+        }
+    }
+
+    private _decrementFailures () {
+        if (this._failures > 0) {
+            --this._failures
         }
     }
 
