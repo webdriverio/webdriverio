@@ -1,4 +1,5 @@
 import type { Capabilities } from '@wdio/types'
+import type { SerializedSelectorProvider } from '@wdio/snapshot'
 
 /**
  * Applicability of an action: web (browsers, Electron renderer, mobile web),
@@ -115,6 +116,10 @@ export interface OpenPlan {
     display?: boolean
     visualOptions?: Record<string, unknown>
     configPath?: string
+    /**
+     * serialized in the plan so the daemon never imports provider modules
+     */
+    selectorProviders?: SerializedSelectorProvider[]
     provider?: string
     /**
      * a tunnel this session should start (BrowserStack Local)

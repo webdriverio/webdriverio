@@ -513,6 +513,21 @@ describe('click', () => {
         expect(clicked).toEqual(['new'])
     })
 
+    it('finds a replaced element again by a provider selector candidate through custom$$', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
+        const clicked: string[] = []
+        const replacement = { elementId: 'new-3', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => clicked.push('new') }
+        const browser = {
+            custom$$: () => ({ getElements: async () => [replacement] }),
+            $$: () => { throw new Error('a provider selector must not use $$') },
+            $: () => ({ getElement: async () => replacement })
+        }
+        const session = Object.assign(clickSession(replaced, browser), { plan: { selectorProviders: [{ name: 'ui5', locator: '() => null' }] } })
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'button', name: 'Open', candidates: ['ui5:x'], generation: 1 })
+        await click(session, { target: 'e2', $cwd: '/' })
+        expect(clicked).toEqual(['new'])
+    })
+
     it('treats every driver\'s stale element error the same', async () => {
         for (const message of [
             'is no longer attached to the DOM',

@@ -158,6 +158,18 @@ describe('wait', () => {
         expect(result.text).toContain('hidden')
     })
 
+    it('waits for a provider selector through custom$', async () => {
+        const calls: unknown[][] = []
+        const browser = {
+            custom$: async (...args: unknown[]) => (calls.push(args), { waitForDisplayed: async () => {} }),
+            $: () => { throw new Error('a provider selector must not use $') }
+        }
+        const session = { browser, plan: { selectorProviders: [{ name: 'ui5', locator: '() => null' }] } } as unknown as Session
+        const result = await wait(session, { target: 'ui5:x', $cwd: '/' })
+        expect(calls).toEqual([['ui5', 'x']])
+        expect(result.code).toBe('await browser.custom$(\'ui5\', "x").waitForDisplayed()')
+    })
+
     it('pauses for a short number of milliseconds and refuses a long sleep', async () => {
         vi.useFakeTimers()
         const pending = wait({ browser: {} } as unknown as Session, { target: '40', $cwd: '/' })

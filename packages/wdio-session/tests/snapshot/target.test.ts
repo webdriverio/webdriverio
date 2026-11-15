@@ -57,6 +57,49 @@ describe('resolveTarget', () => {
         expect(resolved.label).toBe('e5 (button)')
     })
 
+    it('records a provider selector as browser.custom$ and any other as $', async () => {
+        const session = (selector: string) => ({
+            browser: {},
+            plan: { selectorProviders: [{ name: 'ui5', locator: '() => null' }] },
+            refs: {
+                resolve: async () => ({ elementId: '1' }),
+                stableSelector: async () => selector,
+                get: (id: string) => ({ id, role: 'button', name: 'Open', candidates: [selector] })
+            }
+        })
+        const provider = await resolveTarget(session('ui5:{"id":"x"}') as unknown as Session, 'e7')
+        expect(provider.code).toBe('browser.custom$(\'ui5\', "{\\"id\\":\\"x\\"}")')
+        const plain = await resolveTarget(session('ui5x:1') as unknown as Session, 'e7')
+        expect(plain.code).toBe('$(\'ui5x:1\')')
+    })
+
+    it('finds a name:arg selector of a provider without a locator with $', async () => {
+        const element = { elementId: '1' }
+        const calls: string[] = []
+        const browser = {
+            custom$$: () => ({ getElements: async () => (calls.push('custom$$'), [element]) }),
+            $: (selector: string) => ({ getElement: async () => (calls.push(selector), element) })
+        }
+        const session = { browser, plan: { selectorProviders: [{ name: 'ui5' }] } } as unknown as Session
+        await resolveTarget(session, 'ui5:{"id":"x"}')
+        expect(calls).toEqual(['ui5:{"id":"x"}'])
+    })
+
+    it('finds a typed provider selector with custom$$ and any other with $', async () => {
+        const element = { elementId: '1' }
+        const browser = {
+            custom$$: (name: string, arg: string) => ({ getElements: async () => (calls.push(`${name} ${arg}`), [element]) }),
+            $: (selector: string) => ({ getElement: async () => (calls.push(selector), element) })
+        }
+        const calls: string[] = []
+        const session = { browser, plan: { selectorProviders: [{ name: 'ui5', locator: '() => null' }] } } as unknown as Session
+        const provider = await resolveTarget(session, 'ui5:{"id":"x"}')
+        expect(provider.element).toBe(element)
+        expect(provider.code).toBe('browser.custom$(\'ui5\', "{\\"id\\":\\"x\\"}")')
+        await resolveTarget(session, 'button')
+        expect(calls).toEqual(['ui5 {"id":"x"}', 'button'])
+    })
+
     it('still reports a ref without candidates whose element is gone as stale', async () => {
         const refs = new RefRegistry()
         refs.set({ id: 'e6', kind: 'web', role: 'button', name: '', candidates: [], generation: 1 })

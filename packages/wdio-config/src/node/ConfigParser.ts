@@ -17,7 +17,7 @@ const log = logger('@wdio/config:ConfigParser')
  * exclude paths already warned about: the config is parsed several times in a process
  */
 const warnedExcludes = new Set<string>()
-const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
+const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities', 'snapshots'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
@@ -209,7 +209,12 @@ export default class ConfigParser {
             mergeArrays: ([oldValue, newValue], utils, meta) => {
                 const key = meta?.key as KeyWithMergeDuplication
                 if (meta && MERGE_DUPLICATION.includes(key)) {
-                    const origWithoutObjectEntries = oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value !== 'object')
+                    /**
+                     * object entries are replaceable service/reporter classes; snapshot providers are kept as-is
+                     */
+                    const origWithoutObjectEntries = key === 'snapshots'
+                        ? oldValue
+                        : oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value !== 'object')
                     return Array.from(new Set(deepmerge(newValue, origWithoutObjectEntries)))
                 }
                 return utils.actions.defaultMerge

@@ -58,6 +58,15 @@ describe('get', () => {
         expect(counted.data).toEqual({ count: 2 })
     })
 
+    it('counts a provider selector through custom$$', async () => {
+        const element = { elementId: '1' }
+        const s = { ...session(), plan: { selectorProviders: [{ name: 'ui5', locator: '() => null' }] } } as unknown as Session
+        ;(s.browser as unknown as Record<string, unknown>).custom$$ = async (name: string, arg: string) => (name === 'ui5' && arg === 'x' ? [element] : [])
+        const counted = await get(s, { sub: 'count', target: 'ui5:x', $cwd: '/' })
+        expect(counted.text).toBe('1')
+        expect(counted.code).toBe('(await browser.custom$$(\'ui5\', "x")).length')
+    })
+
     it('counts a ref as the one element it names', async () => {
         const s = session()
         const element = { elementId: '1' }

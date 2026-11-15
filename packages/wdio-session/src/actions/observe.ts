@@ -23,7 +23,7 @@ const DEFAULT_MAX_CHARS = 8000
 async function collectTop (session: Session, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
     const browser = scopeOf(session)
     const classic = session.isBidi && browser === session.browser && session.get('classicScripts') !== false
-    const result = await collectWeb(browser, opts, { scope, transport: classic ? 'classic-first' : 'bidi' })
+    const result = await collectWeb(browser, opts, { scope, transport: classic ? 'classic-first' : 'bidi' }, session.plan?.selectorProviders)
     if (result.classicUnavailable) {
         session.set('classicScripts', false)
     }
@@ -131,7 +131,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 return undefined
             }
             collecting = true
-            const collected = await collectWeb(child as unknown as WebdriverIO.Browser, { ...opts, boxes: boxed, counter: session.refs.counter }, { transport: 'bidi' })
+            const collected = await collectWeb(child as unknown as WebdriverIO.Browser, { ...opts, boxes: boxed, counter: session.refs.counter }, { transport: 'bidi' }, session.plan?.selectorProviders)
                 .finally(() => (collecting = false))
             /**
              * The frame's page keeps the ids it handed out, also when the

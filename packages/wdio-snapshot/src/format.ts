@@ -36,11 +36,15 @@ export interface SnapshotNode {
 
 export type CandidateKind =
     | 'testid' | 'role' | 'aria' | 'id' | 'text' | 'name' | 'aria-label' | 'type' | 'class' | 'xpath-text' | 'css-path'
-    | 'accessibility-id' | 'resource-id' | 'predicate' | 'class-chain' | 'uiautomator' | 'xpath' | 'tag' | 'indexed'
+    | 'accessibility-id' | 'resource-id' | 'predicate' | 'class-chain' | 'uiautomator' | 'xpath' | 'tag' | 'indexed' | 'provider'
 
 export interface SnapshotCandidate {
     kind: CandidateKind
     selector: string
+    /**
+     * name of the selector provider that produced a `provider` candidate
+     */
+    provider?: string
 }
 
 /**

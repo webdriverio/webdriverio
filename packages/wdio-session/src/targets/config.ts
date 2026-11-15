@@ -2,6 +2,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import { ConfigParser } from '@wdio/config/node'
+import { loadSelectorProviders, serializeSelectorProviders, type SelectorProviderEntry } from '@wdio/snapshot/providers'
 import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
 import { SessionError, usage } from '../errors.js'
@@ -168,6 +169,7 @@ export async function configPlan (configPath: string, args: OpenArgs, ctx: PlanC
     const notes: string[] = []
     let visualOptions: Record<string, unknown> | undefined
     const services = Array.isArray(config.services) ? config.services : []
+    const serviceNames = services.map((entry) => serviceName(entry)?.name).filter((name): name is string => Boolean(name))
     for (const entry of services) {
         const service = serviceName(entry)
         if (!service) {
@@ -180,6 +182,11 @@ export async function configPlan (configPath: string, args: OpenArgs, ctx: PlanC
         if (service.name === 'visual') {
             visualOptions = service.options
         }
+    }
+    const snapshots = Array.isArray(config.snapshots) ? config.snapshots as SelectorProviderEntry[] : []
+    const providers = await loadSelectorProviders(snapshots, { cwd: path.dirname(configPath), services: serviceNames })
+    for (const provider of providers) {
+        notes.push(`Loaded selector provider "${provider.name}"`)
     }
     const headless = wantsHeadless(caps, args, env)
     const host = ctx.platform || process.platform
@@ -195,6 +202,7 @@ export async function configPlan (configPath: string, args: OpenArgs, ctx: PlanC
         notes,
         remote: remoteFrom(config, args),
         configPath,
+        selectorProviders: serializeSelectorProviders(providers),
         ...(visualOptions ? { visualOptions } : {})
     }
 }
