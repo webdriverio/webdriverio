@@ -82,6 +82,18 @@ const agent = await createAgentSession(browser, {
 })
 ```
 
+`onAction` is called before and after every action the agent runs, failed ones
+included, with an `AgentActionEvent` (`phase`, `id`, `action`, `args`,
+`durationMs`, `code`, `error`). A throwing handler does not affect the action:
+
+```ts
+const agent = await createAgentSession(browser, {
+    onAction: (event) => {
+        if (event.phase === 'after') console.log(event.action, event.durationMs, event.error?.code)
+    }
+})
+```
+
 Failures throw `SessionError`, with a `code` of type `ErrorCode`. Both are
 exported from `@wdio/session/agent`.
 

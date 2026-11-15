@@ -1,5 +1,6 @@
 import type { SnapshotNode } from '@wdio/snapshot'
 
+import type { ErrorCode } from '../constants.js'
 import type { SnapshotOptions, TakenSnapshot } from '../actions/observe.js'
 
 export interface PageInfo { url?: string; title?: string }
@@ -8,6 +9,23 @@ export type PageChange =
     | { kind: 'page'; frame: boolean; url?: string; title?: string; refs: number; snapshot?: string }
     | { kind: 'changed'; added: string[]; omitted: number }
     | { kind: 'removed'; removed: number }
+
+/** @experimental the fields may change */
+export interface AgentActionEvent {
+    phase: 'before' | 'after'
+    /** per-session counter, same on both phases of one action */
+    id: number
+    action: string
+    /** the caller's arguments, without `$`-prefixed internal keys */
+    args: Record<string, unknown>
+    /** epoch ms */
+    startedAt: number
+    durationMs?: number
+    code?: string
+    changes?: PageChange
+    page?: PageInfo
+    error?: { code: ErrorCode, message: string }
+}
 
 export interface TabData { index: number; handle: string; title: string; url: string; current: boolean }
 

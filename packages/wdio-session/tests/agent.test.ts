@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SnapshotNode } from '@wdio/snapshot'
 
-import { createAgentSession } from '../src/agent.js'
+import { createAgentSession, type AgentActionEvent } from '../src/agent.js'
 import { IMPLEMENTATIONS } from '../src/actions/index.js'
 
 const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
@@ -336,6 +336,99 @@ describe('createAgentSession', () => {
             const hint = (command: string) => command === 'snapshot' ? 'snapshot_tool' : undefined
             const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp(), hint })
             await expect(agent.run('click', { target: 'e99' })).rejects.toMatchObject({ code: 'REF_NOT_FOUND', hint: 'Run `snapshot_tool` to get refs.' })
+        })
+    })
+
+    describe('onAction', () => {
+        const page = () => ({ url: 'http://x/', tree: document('Shop', [pay]) })
+
+        it('emits a before and an after event with the same id for a successful action', async () => {
+            const events: AgentActionEvent[] = []
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction: (event) => events.push(event) })
+            const click = vi.spyOn(IMPLEMENTATIONS, 'click').mockImplementation(async () => ({ text: 'Clicked e1', code: 'await $(\'#pay\').click()' }))
+            try {
+                const result = await agent.run('click', { target: 'e1' })
+                expect(result.code).toBe('await $(\'#pay\').click()')
+                expect(events.map((event) => event.phase)).toEqual(['before', 'after'])
+                expect(events[0]).toMatchObject({ action: 'click', args: { target: 'e1' } })
+                expect(events[1].id).toBe(events[0].id)
+                expect(events[1].durationMs).toBeGreaterThanOrEqual(0)
+                expect(events[1].code).toBe(result.code)
+            } finally {
+                click.mockRestore()
+            }
+        })
+
+        it('reports a rejected action as an after event with its error code', async () => {
+            const events: AgentActionEvent[] = []
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction: (event) => events.push(event) })
+            await expect(agent.runAction('nope')).rejects.toMatchObject({ code: 'USAGE' })
+            expect(events.map((event) => event.phase)).toEqual(['before', 'after'])
+            expect(events[1].error).toMatchObject({ code: 'USAGE' })
+        })
+
+        it('does not change the result when the handler throws', async () => {
+            const plain = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp() })
+            const onAction = vi.fn(() => {
+                throw new Error('boom')
+            })
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction })
+            expect((await agent.snapshot({ interactive: true })).text).toBe((await plain.snapshot({ interactive: true })).text)
+            expect(onAction).toHaveBeenCalledTimes(2)
+            expect(onAction.mock.calls[1][0]).not.toHaveProperty('code')
+        })
+
+        it('ignores a rejected handler promise', async () => {
+            const unhandled = vi.fn()
+            process.on('unhandledRejection', unhandled)
+            try {
+                const calls: AgentActionEvent[] = []
+                const agent = await createAgentSession(pageBrowser(page()), {
+                    artifactsDir: tmp(),
+                    onAction: async (event) => {
+                        calls.push(event)
+                        throw new Error('x')
+                    }
+                })
+                await expect(agent.snapshot({ interactive: true })).resolves.toMatchObject({ text: expect.stringContaining('button "Pay"') })
+                await new Promise((resolve) => setImmediate(resolve))
+                expect(calls).toHaveLength(2)
+                expect(unhandled).not.toHaveBeenCalled()
+            } finally {
+                process.off('unhandledRejection', unhandled)
+            }
+        })
+
+        it('strips $-prefixed transport args from the event', async () => {
+            const events: AgentActionEvent[] = []
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction: (event) => events.push(event) })
+            await agent.snapshot({ interactive: true })
+            expect(events[0].args).toEqual({ interactive: true })
+        })
+
+        it('reports a non-SessionError failure as INTERNAL and rethrows the converted error', async () => {
+            const events: AgentActionEvent[] = []
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction: (event) => events.push(event) })
+            const click = vi.spyOn(IMPLEMENTATIONS, 'click').mockRejectedValue(new Error('boom'))
+            try {
+                // #dispatch converts the error before the onAction wrapper sees it, so the rejection is a SessionError, not the original Error
+                await expect(agent.run('click', { target: 'e1' })).rejects.toMatchObject({ code: 'INTERNAL', message: 'boom' })
+                expect(events[1].error).toEqual({ code: 'INTERNAL', message: 'boom' })
+            } finally {
+                click.mockRestore()
+            }
+        })
+
+        it('skips internal dispatches marked $internal', async () => {
+            const events: AgentActionEvent[] = []
+            const agent = await createAgentSession(pageBrowser(page()), { artifactsDir: tmp(), onAction: (event) => events.push(event) })
+            const click = vi.spyOn(IMPLEMENTATIONS, 'click').mockImplementation(async () => ({ text: 'Clicked e1' }))
+            try {
+                await agent.session.dispatch({ action: 'click', args: { target: 'e1', $internal: true }, cwd: agent.session.cwd }, { detail: true })
+                expect(events).toEqual([])
+            } finally {
+                click.mockRestore()
+            }
         })
     })
 })
