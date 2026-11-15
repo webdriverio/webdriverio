@@ -26,6 +26,11 @@
       "source": "./src/agent.ts",
       "import": "./build/agent.js"
     },
+    "./launch": {
+      "types": "./build/launch.d.ts",
+      "source": "./src/launch.ts",
+      "import": "./build/launch.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {

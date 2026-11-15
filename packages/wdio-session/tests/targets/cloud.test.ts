@@ -1,9 +1,10 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { buildPlan } from '../../src/targets/index.js'
+import { markCloudResult } from '../../src/targets/cloud.js'
 
 const ctx = {
     name: 'default',
@@ -154,5 +155,129 @@ describe('cloud providers', () => {
         expect(tb.capabilities).toMatchObject({ 'appium:app': 'tb://1' })
         expect((calls[0].init.body as FormData).get('file')).toBeTruthy()
         fs.rmSync(dir, { recursive: true, force: true })
+    })
+})
+
+describe('markCloudResult', () => {
+    const basic = `Basic ${Buffer.from('bs-user:bs-key').toString('base64')}`
+    const browser = { sessionId: 'abc', execute: vi.fn() } as unknown as WebdriverIO.Browser
+    let fetchMock: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+        browser.execute = vi.fn()
+        fetchMock = vi.fn(async () => new Response(null, { status: 200 }))
+        vi.stubGlobal('fetch', fetchMock)
+    })
+
+    it('marks a BrowserStack web session with a PUT and a basic auth header', async () => {
+        const bs = await plan({ target: 'chrome', provider: 'browserstack' })
+        await markCloudResult(bs, browser, { passed: false, reason: 'boom' })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api.browserstack.com/automate/sessions/abc.json', expect.objectContaining({
+            method: 'PUT',
+            headers: expect.objectContaining({ Authorization: basic, 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ status: 'failed', reason: 'boom' })
+        }))
+    })
+
+    it('marks a BrowserStack mobile session on app-automate', async () => {
+        const bs = await plan({ target: 'android', provider: 'browserstack', package: 'com.example', device: 'Pixel 8' })
+        await markCloudResult(bs, browser, { passed: true })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api-cloud.browserstack.com/app-automate/sessions/abc.json', expect.objectContaining({
+            method: 'PUT',
+            body: JSON.stringify({ status: 'passed' })
+        }))
+    })
+
+    it('marks a BrowserStack mobile browser session on automate', async () => {
+        const bs = await plan({ target: 'ios', provider: 'browserstack', browser: 'safari', device: 'iPhone 15' })
+        await markCloudResult(bs, browser, { passed: true })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api.browserstack.com/automate/sessions/abc.json', expect.objectContaining({
+            method: 'PUT',
+            body: JSON.stringify({ status: 'passed' })
+        }))
+    })
+
+    it('marks a Sauce Labs session in the plan region', async () => {
+        const sauce = await plan({ target: 'chrome', provider: 'saucelabs', region: 'eu-central-1' })
+        await markCloudResult(sauce, browser, { passed: false })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api.eu-central-1.saucelabs.com/rest/v1/sauce-user/jobs/abc', expect.objectContaining({
+            method: 'PUT',
+            body: JSON.stringify({ passed: false })
+        }))
+    })
+
+    it('marks a TestMu web session with a PATCH', async () => {
+        const lt = await plan({ target: 'chrome', provider: 'testmu' })
+        await markCloudResult(lt, browser, { passed: false })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api.lambdatest.com/automation/api/v1/sessions/abc', expect.objectContaining({
+            method: 'PATCH',
+            body: JSON.stringify({ status_ind: 'failed' })
+        }))
+    })
+
+    it('marks a TestMu mobile session through the lambda-status executor', async () => {
+        const lt = await plan({ target: 'android', provider: 'testmu', package: 'com.example', device: 'Pixel 8' })
+        await markCloudResult(lt, browser, { passed: true })
+
+        expect(browser.execute).toHaveBeenCalledWith('lambda-status=passed')
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('marks a TestingBot session with a form body including the reason', async () => {
+        const tb = await plan({ target: 'chrome', provider: 'testingbot' })
+        await markCloudResult(tb, browser, { passed: false, reason: 'boom' })
+
+        expect(fetchMock).toHaveBeenCalledWith('https://api.testingbot.com/v1/tests/abc', expect.objectContaining({ method: 'PUT' }))
+        const body = String(fetchMock.mock.calls[0][1].body)
+        expect(body).toContain('test%5Bsuccess%5D=0')
+        expect(body).toContain('test%5Bstatus_message%5D=boom')
+    })
+
+    it('refuses to mark a Sauce Labs session on a user-supplied host and sends no credentials', async () => {
+        const sauce = await plan({ target: 'chrome', provider: 'saucelabs' })
+        const proxied = { ...sauce, remote: { ...sauce.remote, hostname: 'ondemand.proxy.example.com' } }
+
+        await expect(markCloudResult(proxied, browser, { passed: true })).rejects.toMatchObject({
+            code: 'NOT_SUPPORTED',
+            message: expect.stringContaining('ondemand.proxy.example.com')
+        })
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('wraps a TestMu mobile lambda-status failure as INTERNAL naming the provider', async () => {
+        browser.execute = vi.fn(async () => {
+            throw new Error('executor down')
+        })
+        const lt = await plan({ target: 'android', provider: 'testmu', package: 'com.example', device: 'Pixel 8' })
+
+        await expect(markCloudResult(lt, browser, { passed: true })).rejects.toMatchObject({
+            code: 'INTERNAL',
+            message: 'Marking the testmu session failed: executor down'
+        })
+    })
+
+    it('throws a SessionError naming the provider and HTTP status when the API rejects', async () => {
+        fetchMock.mockResolvedValue(new Response('nope', { status: 500 }))
+        const bs = await plan({ target: 'chrome', provider: 'browserstack' })
+
+        await expect(markCloudResult(bs, browser, { passed: true })).rejects.toMatchObject({
+            code: 'INTERNAL',
+            message: 'Marking the browserstack session failed: HTTP 500'
+        })
+    })
+
+    it('throws a SessionError naming the provider when the request cannot be sent', async () => {
+        fetchMock.mockRejectedValue(new TypeError('fetch failed'))
+        const bs = await plan({ target: 'chrome', provider: 'browserstack' })
+
+        await expect(markCloudResult(bs, browser, { passed: true })).rejects.toMatchObject({
+            code: 'INTERNAL',
+            message: 'Marking the browserstack session failed: fetch failed'
+        })
     })
 })
