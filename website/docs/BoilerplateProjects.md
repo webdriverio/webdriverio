@@ -199,7 +199,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
 - Features
     - Contain sample test scenario in cucumber
     - Integrated cucumber html reports with Embedded videos on failures
-    - Integrated Lambdatest and CircleCI services
+    - Integrated TestMu AI (Formerly LambdaTest) and CircleCI services
     - Integrated Visual, Accessibility and API testing
     - Integrated Email functionality
     - Integrated s3 bucket for test reports storage and retrieval
