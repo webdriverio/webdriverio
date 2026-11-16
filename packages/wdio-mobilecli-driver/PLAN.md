@@ -64,7 +64,7 @@ Dependencies: `@wdio/utils`, `@wdio/types`, `@wdio/logger`, `webdriver` (all `wo
 Changes outside the package:
 - `infra/createPackage/src/templates.ts`: add `driver` to `PACKAGE_TYPES`, then scaffold with it (repo rule: no hand-made package layout).
 - `packages/webdriverio/src/utils/driver.ts` and `src/constants.ts`: resolve `automationProtocol` with the project fallback that services already have (see "How users load it").
-- `@wdio/types`: add the `wdio:mobilecliOptions` capability type (`url`, `deviceId`), next to the existing `wdio:` vendor capabilities.
+- `@wdio/types`: add the `mobilecli:*` capability types (first `mobilecli:udid`), next to the Appium capabilities. See "Capabilities" in section 2.
 - An example for the testrunner in `examples/` (next to the existing `examples/wdio` and `examples/appium`): a `wdio.conf.ts` plus one Mocha spec that runs the eight steps of the scope table against a real device.
 
 How users load it: through the testrunner config file. Everything lives in `wdio.conf.ts`, tests stay normal WDIO specs:
@@ -76,11 +76,11 @@ export const config: WebdriverIO.Config = {
     framework: 'mocha',
     specs: ['./test/**/*.ts'],
     automationProtocol: '@wdio/mobilecli-driver',
+    hostname: 'localhost', // where `mobilecli server start` runs
+    port: 12000,
     capabilities: [{
-        'wdio:mobilecliOptions': {
-            url: 'http://localhost:12000',            // default
-            deviceId: '<id from `mobilecli devices`>' // optional when one device is online
-        }
+        platformName: 'iOS',
+        'mobilecli:udid': '<id from `mobilecli devices`>' // optional when one device is online
     }]
 }
 ```
@@ -117,7 +117,7 @@ So this slice includes one small change in `webdriverio`: load and validate `aut
 |---|---|---|---|
 | 1 | `mobilecli/01-scaffold` | `driver` type in `infra/createPackage`, the scaffolded empty package, `PLAN.md` | package compiles, createPackage tests pass |
 | 2 | `mobilecli/02-protocol-resolution` | `automationProtocol` resolves like services do (`webdriverio`). Independent of mobilecli, so it could also go straight to `main` as its own fix | `webdriverio` unit tests |
-| 3 | `mobilecli/03-session` | `rpc` client, `newSession` (connect to a running server and device), `deleteSession`, the `wdio:mobilecliOptions` capability type | unit tests, typings, a testrunner run that connects and disconnects |
+| 3 | `mobilecli/03-session` | `rpc` client, `newSession` (connect to a running server and device), `deleteSession`, the `mobilecli:udid` capability | unit tests, typings, a testrunner run that connects and disconnects |
 | 4 | `mobilecli/04-find-and-source` | `tree`, element registry, the four find commands, `getPageSource` | unit tests on iOS and Android fixture trees, `$`/`$$` on a real device |
 | 5 | `mobilecli/05-interactions` | `click`/`tap`, `setValue`/`addValue`/`clearValue`, `getText`, the state commands | unit tests, the full flow with a text assertion on a real device |
 | 6 | `mobilecli/06-docs-example` | `README.md`, `AGENTS.md` (develop and test), the testrunner example | example runs end to end with `wdio run` |
@@ -174,7 +174,7 @@ Design choices inside the driver:
 - **Transport**: HTTP `/rpc`. Stateless, matches mobilecli's own tests (`mobilecli/test/server.spec.ts`), no `ws` dependency, no 4-concurrent-requests limit.
 - **Element ids**: the driver keeps a registry `elementId -> { using, value, index, parentId, last node }`. Each element command re-dumps the tree and re-resolves. Gone means a `stale element reference` error (WDIO's middleware re-finds on that name). Not found returns the `{ error: 'no such element' }` shape WDIO expects.
 - **Page source**: generate XML from the JSON tree (tag = `type`, attributes = the element fields plus `x`/`y`/`width`/`height`). XPath runs on this XML. `@xmldom/xmldom` and `xpath` are already used in `packages/wdio-appium-service/package.json`, so the same libraries can be used.
-- **Capabilities**: `platformName` plus a new vendor key `wdio:mobilecliOptions` (`deviceId`, `deviceName`, `deviceType`, `osVersion`, `bundleId`, `app`, `binaryPath`, `url`, `autoStart`). Exact key names to be confirmed in the spike.
+- **Capabilities**: standard ones first. `platformName` (W3C) for the platform, and the server address from the WebdriverIO connection options `hostname`, `port`, `protocol` and `path`. Everything specific to the device or the app uses the `mobilecli:` prefix with the same names as the Appium capabilities: `mobilecli:udid` (first slice), later `mobilecli:deviceName`, `mobilecli:platformVersion`, `mobilecli:app`, `mobilecli:bundleId`, `mobilecli:appPackage`, `mobilecli:appActivity`, `mobilecli:noReset`. The `appium:` prefix is not used, since it is Appium's namespace. Reporters read `appium:deviceName`, `appium:platformVersion` and `appium:udid` by name, so `@wdio/reporter` needs a small change to also read the `mobilecli:` ones.
 - **Binary**: lookup order `binaryPath` option, local `mobilecli` npm package, `mobilecli` on PATH. Missing: throw an error with the install command. `server.info` gives the version, compared against a tested range with a warning. A small check command can come later.
 - **Escape hatch**: `browser.execute('mobilecli: device.fold.set', { state: 'open' })` forwards any RPC method, same idea as Appium's `mobile:`.
 
@@ -268,7 +268,7 @@ Nothing in `webdriverio` is required to load the driver. Needed work, by owner:
 |---|---|---|
 | New package `@wdio/mobilecli-driver` | `packages/wdio-mobilecli-driver` | The driver itself |
 | Add a `driver` package type | `infra/createPackage/src/templates.ts` (`PACKAGE_TYPES`) | `pnpm run create` only knows reporter, service, runner, framework, tool. AGENTS.md forbids hand-made layouts |
-| Type for `wdio:mobilecliOptions` | `@wdio/types` (capabilities) | Shared capability types live there |
+| Types for the `mobilecli:*` capabilities | `@wdio/types` (capabilities) | Shared capability types live there |
 | Docs: `automationProtocol` text says "only webdriver is supported" | `website/docs/Configuration.md:258`, package README, `.github/OWNERSHIP.md` | Docs and ownership |
 | Test lanes for the new package | `infra/repo-tools`, `.github/workflows/test.yml` | Scoped tests and CI |
 

@@ -279,7 +279,8 @@ export interface WithRequestedMultiRemoteCapabilities {
 }
 
 export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,
-    WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities {
+    WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities,
+    MobilecliCapabilities {
 
     // Appium Options
     'appium:options'?: AppiumOptions
@@ -590,6 +591,19 @@ export interface EdgeCapabilities {
     'ms:inPrivate'?: boolean
     'ms:extensionPaths'?: string[]
     'ms:startPage'?: string
+}
+
+/**
+ * Capabilities of the mobilecli automation protocol driver
+ * (`automationProtocol: '@wdio/mobilecli-driver'`). They use the same names
+ * as the Appium capabilities, with the `mobilecli:` prefix.
+ */
+export interface MobilecliCapabilities {
+    /**
+     * The id of the device to run on, as listed by `mobilecli devices`.
+     * It can be left out when exactly one device is online.
+     */
+    'mobilecli:udid'?: string
 }
 
 /**
