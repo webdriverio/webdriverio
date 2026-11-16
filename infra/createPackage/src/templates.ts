@@ -1,4 +1,4 @@
-export const PACKAGE_TYPES = ['reporter', 'service', 'runner', 'framework', 'tool'] as const
+export const PACKAGE_TYPES = ['reporter', 'service', 'runner', 'framework', 'driver', 'tool'] as const
 export type PackageType = typeof PACKAGE_TYPES[number]
 
 export interface PackageScaffold {

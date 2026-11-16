@@ -22,6 +22,14 @@ describe('getPackageNames', () => {
         })
     })
 
+    it('builds the names of an automation protocol driver', () => {
+        expect(PACKAGE_TYPES).toContain('driver')
+        expect(getPackageNames('mobilecli', 'driver')).toEqual({
+            fullPackageName: 'wdio-mobilecli-driver',
+            fullScopedPackageName: '@wdio/mobilecli-driver'
+        })
+    })
+
     it('omits the type suffix for tools', () => {
         expect(getPackageNames('session', 'tool')).toEqual({
             fullPackageName: 'wdio-session',

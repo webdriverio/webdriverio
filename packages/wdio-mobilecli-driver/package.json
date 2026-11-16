@@ -1,0 +1,40 @@
+{
+  "name": "@wdio/mobilecli-driver",
+  "version": "10.2.0",
+  "description": "A WebdriverIO driver that runs WebdriverIO commands on mobile devices through mobilecli",
+  "author": "Wim Selles <wim@wswebcreation.nl>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mobilecli-driver",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-mobilecli-driver"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-driver",
+    "mobilecli",
+    "mobile"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
+  },
+  "typeScriptVersion": "6.0.3",
+  "dependencies": {
+    "@wdio/types": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
