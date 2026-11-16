@@ -40,6 +40,7 @@ Read from the WDIO command sources (`packages/webdriverio/src/commands/element/*
 - Element: `elementClick`, `getElementText`, `elementClear`, `elementSendKeys`, `getElementTagName` (used by `isExisting` and waits), `isElementDisplayed`, `isElementEnabled`, `getElementRect`, `getElementAttribute`
 - Browser: `getPageSource`, `executeScript` (only `mobile: tap` and `mobile: clickGesture`, which is what `tap()` calls), `deleteSession`
 - Session start needs: `getWindowHandle` (returns `NATIVE_APP`), `setTimeouts` (stores the value)
+- Every other WebDriver and Appium command exists as a function that throws `The command "<name>" is not supported by @wdio/mobilecli-driver`, so a missing command is not a `this.<name> is not a function`
 
 Not found returns the `{ error: 'no such element', message }` shape. A registered element that is gone throws an error named `stale element reference`, so WDIO finds it again.
 
@@ -59,11 +60,11 @@ New package `packages/wdio-mobilecli-driver` (`@wdio/mobilecli-driver`), TypeScr
 | `AGENTS.md` | how to develop it and how to test it. The repo rule (`packages/AGENTS.md`) keeps contributor commands out of READMEs, so they go here |
 | `PLAN.md` | this plan and the investigation, excluded from the npm package |
 
-Dependencies: `@wdio/utils`, `@wdio/types`, `@wdio/logger`, `webdriver` (all `workspace:*`). No new third-party dependency.
+Dependencies: `@wdio/utils`, `@wdio/types`, `@wdio/logger`, `@wdio/protocols`, `webdriver` (all `workspace:*`). No new third-party dependency.
 
 Changes outside the package:
 - `infra/createPackage/src/templates.ts`: add `driver` to `PACKAGE_TYPES`, then scaffold with it (repo rule: no hand-made package layout).
-- `packages/webdriverio/src/utils/driver.ts` and `src/constants.ts`: resolve `automationProtocol` with the project fallback that services already have (see "How users load it").
+- No change in `packages/webdriverio`. A fallback that resolves `automationProtocol` from the project was built and dropped, see "How users load it".
 - `@wdio/types`: add the `mobilecli:*` capability types (first `mobilecli:udid`), next to the Appium capabilities. See "Capabilities" in section 2.
 - An example for the testrunner in `examples/` (next to the existing `examples/wdio` and `examples/appium`): a `wdio.conf.ts` plus one Mocha spec that runs the eight steps of the scope table against a real device.
 
@@ -102,11 +103,11 @@ Checked in the code that the testrunner allows this:
 
 The plain package name is the intended, permanent form. `import.meta.resolve('@wdio/mobilecli-driver')` is only a workaround and should not be what users write. What the code does today:
 - `automationProtocol` is imported from inside the `webdriverio` package with plain Node resolution and no fallback (`packages/webdriverio/src/utils/driver.ts:39`, validation in `packages/webdriverio/src/constants.ts:30`).
-- In a normal project `webdriverio` sits inside the project's `node_modules`, so by Node's lookup rules the plain name should be found. Not run yet.
+- In a normal project `webdriverio` sits inside the project's `node_modules`, so by Node's lookup rules the plain name is found. That also holds for pnpm's `.pnpm` layout, checked with a mock package in that layout.
 - It is not found when `webdriverio` lives outside the project's `node_modules` tree. That is the case in this monorepo (the repo root `node_modules/@wdio` only links `config` and `repl`), and for global installs.
 - Service and reporter names do not have this problem: `safeImport` (`packages/wdio-utils/src/utils.ts:235`) first resolves from the package and then falls back to the project's `node_modules`.
 
-So this slice includes one small change in `webdriverio`: load and validate `automationProtocol` with the same resolution fallback that services use (`safeImport`), with a unit test. Then the plain name works everywhere, including the example in this repo.
+Decision: the core is not changed for this. A fallback like the one of services was built as PR 2 and dropped: it needs the `import-meta-resolve` package in `webdriverio` (Node only resolves from another directory behind an experimental flag), and a normal install does not need it. Where `webdriverio` is linked or global, the config can use `automationProtocol: import.meta.resolve('@wdio/mobilecli-driver')`.
 
 ### Branches and small PRs
 - One long-lived integration branch, `feat/mobilecli-driver`, cut from `main`. Nothing goes to `main` until the driver is ready to show.
@@ -116,8 +117,8 @@ So this slice includes one small change in `webdriverio`: load and validate `aut
 | PR | Topic branch | Content | Proof |
 |---|---|---|---|
 | 1 | `mobilecli/01-scaffold` | `driver` type in `infra/createPackage`, the scaffolded empty package, `PLAN.md` | package compiles, createPackage tests pass |
-| 2 | `mobilecli/02-protocol-resolution` | `automationProtocol` resolves like services do (`webdriverio`). Independent of mobilecli, so it could also go straight to `main` as its own fix | `webdriverio` unit tests |
-| 3 | `mobilecli/03-session` | `rpc` client, `newSession` (connect to a running server and device), `deleteSession`, the `mobilecli:udid` capability | unit tests, typings, a testrunner run that connects and disconnects |
+| 2 | `mobilecli/02-protocol-resolution` | Dropped, see "How users load it" | |
+| 3 | `mobilecli/03-session` | `rpc` client, `newSession` (connect to a running server and device), `deleteSession`, a clear error for every command that is not supported yet | unit tests, a testrunner run that connects and disconnects |
 | 4 | `mobilecli/04-find-and-source` | `tree`, element registry, the four find commands, `getPageSource` | unit tests on iOS and Android fixture trees, `$`/`$$` on a real device |
 | 5 | `mobilecli/05-interactions` | `click`/`tap`, `setValue`/`addValue`/`clearValue`, `getText`, the state commands | unit tests, the full flow with a text assertion on a real device |
 | 6 | `mobilecli/06-docs-example` | `README.md`, `AGENTS.md` (develop and test), the testrunner example | example runs end to end with `wdio run` |
@@ -275,7 +276,7 @@ Nothing in `webdriverio` is required to load the driver. Needed work, by owner:
 Not planned: a spec file in `@wdio/protocols`. Those specs describe HTTP endpoint + method pairs, and mobilecli is JSON-RPC. The RPC method types stay inside the driver package.
 
 To verify in a spike before building (these are unknowns, not assumptions):
-1. Module resolution: `import('@wdio/mobilecli-driver')` runs from inside the `webdriverio` package (`driver.ts:39`, `constants.ts:30`). With pnpm's strict layout a bare name may not resolve from there. If it fails, either users pass an absolute path or `webdriverio` needs a small change to resolve from the project root.
+1. Module resolution: answered. The plain name resolves in a normal install, and `webdriverio` is not changed for the other cases (see "How users load it" in section 0).
 2. Session start calls: `ContextManager.initialize()` (`packages/webdriverio/src/session/context.ts:590-637`) calls `getWindowHandle()` when no mobile context is known. The driver must answer `getWindowHandle` and `getContext` (for example with `NATIVE_APP`).
 3. Which protocol command each native code path of `getValue`, `isDisplayed`, `scrollIntoView` and `swipe` really calls, to fix the minimal command list.
 4. Parallel workers: several workers probing and starting one server on port 12000, and two workers picking the same device. mobilecli has no local device pool (only cloud `remote allocate`). v1 proposal: require an explicit `deviceId` per capability when more than one device is online.
