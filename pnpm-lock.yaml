@@ -1410,6 +1410,12 @@ importers:
         specifier: ^7.1.0
         version: 7.2.0
 
+  packages/wdio-mobilecli-driver:
+    dependencies:
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+
   packages/wdio-mocha-framework:
     dependencies:
       '@types/mocha':
