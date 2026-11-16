@@ -137,14 +137,16 @@ class Timer {
         }
 
         // autocorrect timer
-        const diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
+        // one clock read: a second read can get the next ms and stop the last check one interval early
+        const elapsed = Date.now() - (this._startTime || 0)
+        const diff = elapsed - (this._ticks++ * this._delay)
         const delay = Math.max(0, this._delay - diff)
 
         // clear old timeoutID
         this._stop()
 
         // check if we have time to one more tick
-        if (this._hasTime(delay)) {
+        if (this._hasTime(elapsed, delay)) {
             this._timeoutId = setTimeout(this._tick.bind(this), delay)
         } else {
             this._stopMain()
@@ -153,8 +155,8 @@ class Timer {
         }
     }
 
-    private _hasTime (delay: number) {
-        return (Date.now() - (this._startTime || 0) + delay) <= this._timeout
+    private _hasTime (elapsed: number, delay: number) {
+        return elapsed + delay <= this._timeout
     }
 
     private _wasConditionExecuted () {

@@ -725,10 +725,10 @@ Please note that `./reports/` is the directory where `cucumber message` reports 
 
 `@wdio/vitest-framework` runs specs written in [Vitest](https://vitest.dev/) syntax (`describe`, `test`, `test.concurrent`, `test.extend`) through the WDIO testrunner. Vitest schedules the tests, so the testrunner starts no WDIO workers. `wdio.conf.ts` stays the source of truth for specs, capabilities, connection options and hooks. Use it when you want Vitest's API, especially [fixtures](pageobjects#page-objects-as-fixtures) and `test.concurrent`. Otherwise Mocha is the default choice.
 
-First, install the adapter package and `vitest` from NPM. `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
+First, install the adapter package, `@wdio/local-runner` and `vitest` from NPM (the testrunner loads the configured runner, `local` by default, even though Vitest schedules the tests). `vitest` is a peer dependency, so your project and the adapter share one copy. `expect-webdriverio` is installed with the adapter:
 
 ```bash npm2yarn
-npm install @wdio/vitest-framework vitest --save-dev
+npm install @wdio/vitest-framework @wdio/local-runner vitest --save-dev
 ```
 
 `npm init wdio` and `wdio install` do not offer Vitest yet, so install the packages and set the option yourself.
@@ -851,6 +851,7 @@ The framework controls some keys itself:
 - `include` is always the specs resolved from `wdio.conf.ts` (respecting `--spec` and `exclude`), so `vitestOpts.include` is ignored.
 - `pool` is always `'forks'`.
 - `setupFiles` from `vitestOpts` runs after the framework's own setup file instead of replacing it.
+- `globalSetup` runs once per run in the Vitest main process, where no browser session exists. Use `project.provide()` and `inject()` to hand values to the specs.
 - A `vitest.config.ts` file is not read. Put Vitest options in `vitestOpts`.
 
 ### Limitations

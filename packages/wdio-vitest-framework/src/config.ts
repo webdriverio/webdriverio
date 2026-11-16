@@ -102,9 +102,15 @@ export async function toVitestConfig({ config, specs, configFile, args, onEvent 
         environment: 'node'
     }
 
+    // Vitest runs each sequence.groupOrder as one pool with one maxWorkers and throws when projects in a group differ, so projects are grouped by their limit. Groups start at 1 because Vitest moves projects with groupOrder 0 and maxWorkers 1 into a sequential bucket that runs last, which would break the first-appearance order
+    const groupOrders = new Map<number, number>()
     const projects = (config.capabilities as Capabilities.RequestedStandaloneCapabilities[]).map((requested, index) => {
         const cap = ('alwaysMatch' in requested ? requested.alwaysMatch : requested) as WebdriverIO.Capabilities
         const perCapability = cap['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
+        const maxWorkers = isPositiveNumber(config.maxInstances) ? Math.min(perCapability, config.maxInstances) : perCapability
+        if (!groupOrders.has(maxWorkers)) {
+            groupOrders.set(maxWorkers, groupOrders.size + 1)
+        }
         return {
             // extends: true inherits the root options. Array options such as include
             // and setupFiles are concatenated, so repeating them would register the setup file twice.
@@ -112,7 +118,8 @@ export async function toVitestConfig({ config, specs, configFile, args, onEvent 
             test: {
                 name: `${cap.browserName ?? 'browser'}-${index}`,
                 provide: { wdioCapabilities: requested, wdioConfigFile: configFile, wdioArgs: args ?? {}, wdioProjectIndex: index, [ATTACHMENT_DIR_KEY]: attachmentDir },
-                maxWorkers: isPositiveNumber(config.maxInstances) ? Math.min(perCapability, config.maxInstances) : perCapability
+                maxWorkers,
+                sequence: { groupOrder: groupOrders.get(maxWorkers) }
             } satisfies InlineConfig
         }
     })

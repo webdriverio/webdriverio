@@ -22,11 +22,19 @@ describe('await-expect', () => {
                 'it(`bar`, async () => expect(`.foo`).toHaveTitle() );',
                 'it(`bar`, async () => { await Promise.all([ expect(`.foo`).toHaveTitle() ]) });',
                 'bar()',
+                'it(`bar`, async () => { await expect($(`.foo`)).not.toBeDisplayed(); });',
+                'it(`bar`, async () => { await expect.soft($(`.foo`)).toBeDisplayed(); });',
+                'it(`bar`, async () => { expect(1).not.toBe(2) });',
                 // Snapshot matchers validation
                 'it(`bar`, async () => { await expect($(`.foo`)).toMatchSnapshot(); });',
                 'it(`bar`, async () => { await expect($(`.foo`)).toMatchInlineSnapshot(); });',
                 'it(`bar`, async () => { expect(someObject).toMatchSnapshot(); });',
                 'it(`bar`, async () => { expect(123).toMatchInlineSnapshot(); });',
+                'it(`bar`, async () => { expect.soft(someObject).toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect().toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect().not.toMatchSnapshot(); });',
+                'it(`bar`, async () => { expect.soft().toMatchSnapshot(); });',
+                'it(`bar`, async () => { foo.soft($(`.foo`)).toBeDisplayed(); });',
             ],
             invalid: [
                 {
@@ -57,6 +65,18 @@ describe('await-expect', () => {
                     code : 'expect($$(`.foo`)).toBeElementsArrayOfSize(1)',
                     errors,
                 },
+                {
+                    code : 'expect($(`.foo`)).not.toBeDisplayed()',
+                    errors,
+                },
+                {
+                    code : 'expect.soft($(`.foo`)).toBeDisplayed()',
+                    errors,
+                },
+                {
+                    code : 'expect.soft(browser).not.toHaveTitle(`foo`)',
+                    errors,
+                },
                 // Snapshot matchers invalidation
                 {
                     code : 'expect($(`.foo`)).toMatchSnapshot()',
@@ -72,6 +92,14 @@ describe('await-expect', () => {
                 },
                 {
                     code : 'expect(browser.$(`.foo`)).toMatchSnapshot()',
+                    errors,
+                },
+                {
+                    code : 'expect.soft($(`.foo`)).toMatchSnapshot()',
+                    errors,
+                },
+                {
+                    code : 'expect($(`.foo`)).not.toMatchSnapshot()',
                     errors,
                 },
             ],

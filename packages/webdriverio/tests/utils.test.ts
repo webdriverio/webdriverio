@@ -97,6 +97,22 @@ describe('utils', () => {
             })
         })
 
+        it.each(['"ACME, Inc"', "'ACME, Inc'"])('should preserve commas inside quoted font name %s', (family) => {
+            const result = parseCSS(`${family}, Arial, sans-serif`, 'font-family')
+
+            expect(result.parsed.value).toEqual([
+                'acme, inc',
+                'arial',
+                'sans-serif'
+            ])
+        })
+
+        it('should preserve spaces in unquoted font names', () => {
+            const result = parseCSS('Helvetica Neue, Arial', 'font-family')
+
+            expect(result.parsed.value).toEqual(['helvetica neue', 'arial'])
+        })
+
         it('should parse number with unit values', () => {
             expect(parseCSS('100px', 'width')).toEqual({
                 property: 'width',

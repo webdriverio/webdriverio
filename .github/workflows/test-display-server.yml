@@ -122,7 +122,8 @@ jobs:
               sudo chmod -R 755 /workspace/
 
               # pnpm is already installed in the Docker image
-              pnpm install --frozen-lockfile
+              # only sharp may build (allowBuilds), these tests do not use it, and its download from GitHub can time out
+              pnpm install --frozen-lockfile --ignore-scripts
 
               cd e2e && pnpm test:display-server:${{ matrix.test }}
             "

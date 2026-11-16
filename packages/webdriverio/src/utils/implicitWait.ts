@@ -58,9 +58,14 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              */
             const nextElement = await findElementAgain(currentElement, { wait: true })
 
-            if (!nextElement) {
-                throw new Error(
-                    `element with selector "${describeSelector(currentElement)}" has no match at index ${currentElement.index}`)
+            /**
+             * the element can be replaced again between the wait and the lookup. The lookup then
+             * gives a "not found" element without an element id, and returning it would run a
+             * chained `$` from the document instead of from this element
+             */
+            if (!nextElement?.elementId) {
+                // the catch below gives the "element wasn't found" error
+                throw new Error('not found after the wait')
             }
 
             return nextElement

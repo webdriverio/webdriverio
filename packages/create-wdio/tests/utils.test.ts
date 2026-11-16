@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import { vi, test, expect, beforeEach, afterEach, describe, it } from 'vitest'
 import ejs from 'ejs'
 import { $ } from 'execa'
-import { runProgram, getPackageVersion,
+import { runProgram, getPackageVersion, detectPackageManager,
 
     convertPackageHashToObject,
     generateTestFiles,
@@ -103,6 +103,21 @@ test('runProgram reports exit code 2 as a failure by default', async () => {
     await runProgram('node', ['-e', 'process.exit(2)'], {}).catch((e) => e)
     expect(process.exit).toBeCalledWith(1)
     expect(console.log).toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
+})
+
+test('runProgram prints the output of a quiet command when it fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+        await runProgram('node', ['-e', 'console.log("added 0 packages"); console.error("npm error code E404"); process.exit(1)'], {
+            stdio: ['ignore', 'pipe', 'pipe']
+        }).catch((e) => e)
+        const printed = consoleError.mock.calls.flat().join('\n')
+        expect(printed).toContain('npm error code E404')
+        expect(printed).toContain('added 0 packages')
+        expect(process.exit).toBeCalledWith(1)
+    } finally {
+        consoleError.mockRestore()
+    }
 })
 
 test('getPackageVersion prefixes the version from package.json', async () => {
@@ -614,6 +629,49 @@ test('npmInstall', async () => {
     expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
 })
 
+test.each([
+    ['iOS', { mobileEnvironment: 'ios' }, 'appium-xcuitest-driver@^12'],
+    ['Android', { mobileEnvironment: 'android' }, 'appium-uiautomator2-driver@^8'],
+    ['macOS', { purpose: 'macos' }, 'appium-mac2-driver@^4']
+])('npmInstall installs the %s driver major that works with Appium 3', async (_, answers, driver) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [] },
+        packagesToInstall: [],
+        npmInstall: true,
+        ...answers
+    } as any, 'latest')
+    expect(vi.mocked(installPackages).mock.calls[0][1]).toContain(driver)
+})
+
+test.each([
+    ['JavaScript', false],
+    ['TypeScript', true]
+])('npmInstall installs @wdio/globals once for a %s project', async (_, isUsingTypeScript) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [] },
+        packagesToInstall: ['@wdio/local-runner'],
+        npmInstall: true,
+        isUsingTypeScript
+    } as any, 'latest')
+    // the generated tests import it: npm hoists it from @wdio/cli, pnpm does not
+    expect(vi.mocked(installPackages).mock.calls[0][1].filter((p: string) => p.startsWith('@wdio/globals'))).toHaveLength(1)
+})
+
+test.each(['vue', 'preact'])('npmInstall installs %s for its preset', async (preset) => {
+    vi.mocked(installPackages).mockClear()
+    await npmInstall({
+        rawAnswers: { services: [], preset: `@vitejs/plugin$--$${preset}` },
+        preset,
+        packagesToInstall: [],
+        npmInstall: true,
+        installTestingLibrary: false
+    } as any, 'latest')
+    // the generated component imports it: npm installs it as a peer, pnpm does not link it to the project
+    expect(installPackages).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([preset]), true)
+})
+
 test('not npmInstall', async () => {
     const parsedAnswers = {
         rawAnswers: {
@@ -820,4 +878,21 @@ afterEach(()=>{
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(installPackages).mockClear()
+})
+
+describe('detectPackageManager', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it.each([
+        ['npm/11.19.1 node/v24.22.1 darwin arm64 workspaces/false', 'npm'],
+        ['pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64', 'pnpm'],
+        ['yarn/4.18.1 npm/? node/v24.22.1 darwin arm64', 'yarn'],
+        ['bun/1.4.4 npm/? node/v26.3.0 darwin arm64', 'bun'],
+        ['', 'npm']
+    ])('detects %j as %s', (userAgent, pm) => {
+        vi.stubEnv('npm_config_user_agent', userAgent)
+        expect(detectPackageManager()).toBe(pm)
+    })
 })

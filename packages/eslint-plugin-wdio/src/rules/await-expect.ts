@@ -24,11 +24,24 @@ const rule: Rule.RuleModule = {
                  * validate we have an expect statement that
                  * calls some of the WebdriverIO matchers
                  */
-                if (
-                    node.callee.type !== 'MemberExpression' ||
-                    node.callee.object.type !== 'CallExpression' ||
-                    (node.callee.object.callee as Identifier).name !== 'expect'
-                ) {
+                if (node.callee.type !== 'MemberExpression') {
+                    return
+                }
+                /**
+                 * look through `.not` and accept `expect.soft(...)`
+                 */
+                let expectCall = node.callee.object
+                if (expectCall.type === 'MemberExpression' && (expectCall.property as Identifier).name === 'not') {
+                    expectCall = expectCall.object
+                }
+                if (expectCall.type !== 'CallExpression') {
+                    return
+                }
+                const { callee } = expectCall
+                const expectFn = callee.type === 'MemberExpression' && (callee.property as Identifier).name === 'soft'
+                    ? callee.object
+                    : callee
+                if ((expectFn as Identifier).name !== 'expect') {
                     return
                 }
 
@@ -42,12 +55,12 @@ const rule: Rule.RuleModule = {
 
                 if (isSnapshotMatcher) {
                     const selectorFunctions = ['$', '$$']
-                    const expectArg = node.callee.object.arguments[0]
+                    const expectArg = expectCall.arguments[0]
                     const isLikelyWdioElement = (
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'Identifier' &&
                         selectorFunctions.includes(expectArg.callee.name)) ||
-                        (expectArg.type === 'CallExpression' &&
+                        (expectArg?.type === 'CallExpression' &&
                         expectArg.callee.type === 'MemberExpression' &&
                         (expectArg.callee.property as Identifier).name &&
                         selectorFunctions.includes((expectArg.callee.property as Identifier).name))

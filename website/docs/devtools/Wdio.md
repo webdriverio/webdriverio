@@ -57,10 +57,13 @@ services: [['devtools', options]]
 | `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'` ([see Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity)) |
 | `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'` |
 | `filmstrip` | `boolean` | `true` | Records a dense, continuous screencast filmstrip *into* the trace for smooth scrubbable playback in the player — dense frames alongside the per-action frames, thinned and content-addressed at export. Only applies when `mode: 'trace'` |
+| `traceResources` | `'styles' \| 'none'` | `'styles'` | Stores the stylesheets and fonts the pages used, so the player replays them from the archive rather than the site; `'none'` stores nothing. Images always replay from the site. Only applies when `mode: 'trace'` ([see Trace Mode](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources)) |
 | `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Per-test screenshot, attached inline to Allure (`image/png`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Per-test screencast video, retained per the given policy and attached inline to Allure (`video/webm`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `emitArtifactsManifest` | `boolean` | `false` | Writes `devtools-artifacts-<sessionId>.json` — a generic index of every produced artifact plus each test's state, for reporters/CI. Auto-enabled when `@wdio/allure-reporter` is in the config. Only applies when `mode: 'trace'` |
 | `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus passing/failing `expect(...)` matchers. Set `false` to opt out |
+| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text ([see Password masking](/docs/devtools/dashboard#password-masking)) |
+| `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page |
 
 ## Runtime snapshot
 

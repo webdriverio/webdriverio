@@ -86,7 +86,8 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
 
     const sessionId = browser.sessionId
     const fromSession = typeof browser.getTimeouts === 'function'
-        ? await browser.getTimeouts().then(({ script }) => script, () => undefined)
+        // a driver that does not follow W3C can answer null
+        ? await browser.getTimeouts().then((timeouts) => timeouts?.script, () => undefined)
         : undefined
     const script = fromSession === null || typeof fromSession === 'number' ? fromSession : DEFAULT_SCRIPT_TIMEOUT
     /**

@@ -109,6 +109,18 @@ describe('middleware', () => {
         expect(isAfterNavigationDisplayed).toHaveBeenCalledTimes(2)
     })
 
+    it('should refetch an element of the previous document after a navigation that the page started (Chrome BiDi)', async () => {
+        const isAfterSubmitDisplayed = vi.fn()
+            .mockRejectedValueOnce(new Error('WebDriver Bidi command "script.callFunction" failed with error: unknown error - Node with given id does not belong to the document'))
+            .mockResolvedValueOnce(false)
+        browser.addCommand('isAfterSubmitDisplayed', isAfterSubmitDisplayed, { attachToElement: true })
+        const elem = await browser.$('#foo')
+
+        // @ts-expect-error undefined custom command
+        await expect(elem.isAfterSubmitDisplayed()).resolves.toBe(false)
+        expect(isAfterSubmitDisplayed).toHaveBeenCalledTimes(2)
+    })
+
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -123,7 +135,7 @@ describe('middleware', () => {
         const elem = await browser.$('#foo').getElement()
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
+        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, { [ELEMENT_KEY]: 'some-elem-123' }, 'bar'])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
         vi.mocked(fetch).mockClear()
@@ -461,6 +473,7 @@ describe('middleware', () => {
         it('elem NOT_FOUND and command = foo', async () => {
             browser.addCommand('foo', () => {}, { attachToElement: true })
             const elem = await browser.$('#nonexisting')
+            elem.selector = '#foo'
             // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)

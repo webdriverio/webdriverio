@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { hostname } from 'node:os'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
 import type { Label, Parameter, Link, StepResult } from 'allure-js-commons'
 import { Status, LabelName, LinkType, Stage } from 'allure-js-commons'
@@ -23,10 +24,14 @@ let processOn: any
 beforeAll(() => {
     processOn = process.on.bind(process)
     process.on = vi.fn()
+    // the default host check must not depend on host variables of the shell
+    vi.stubEnv('ALLURE_LABEL_host', undefined)
+    vi.stubEnv('ALLURE_HOST_NAME', undefined)
 })
 
 afterAll(() => {
     process.on = processOn
+    vi.unstubAllEnvs()
 })
 
 describe('reporter option "useCucumberStepReporter" set to true', () => {
@@ -105,6 +110,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 expect(features[0].value).toEqual('MyFeature')
                 expect(languages[0].value).toEqual('javascript')
                 expect(frameworks[0].value).toEqual('wdio')
+                expect(labels[LabelName.HOST]).toEqual([{ name: LabelName.HOST, value: hostname() }])
             })
 
             it('should add browser name as test argument', () => {

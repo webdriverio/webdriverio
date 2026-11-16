@@ -118,6 +118,12 @@ describe('execute BiDi script timeout', () => {
         expect(sentScriptTimeout(browser)).toBe(60_000)
     })
 
+    it('runs the script with the WebDriver default when the driver answers no timeouts', async () => {
+        const browser = scriptTimeoutBrowser({}, async () => null)
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(30_000)
+    })
+
     it('sets no script timeout for a null one', async () => {
         const browser = scriptTimeoutBrowser({ timeouts: { script: null } })
         await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
