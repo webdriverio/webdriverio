@@ -106,12 +106,67 @@ describe('RpcClient', () => {
             .rejects.toThrow('The mobilecli server at http://localhost:12000/rpc did not answer "device.info" within 20ms')
     })
 
+    it('says which call the server did not answer in time if it stalls on the body', async () => {
+        vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+            const body = new ReadableStream({
+                start (controller) {
+                    init.signal!.addEventListener('abort', () => controller.error(init.signal!.reason))
+                }
+            })
+            return new Response(body)
+        }))
+
+        await expect(new RpcClient(URL, 20).call('device.info'))
+            .rejects.toThrow('The mobilecli server at http://localhost:12000/rpc did not answer "device.info" within 20ms')
+    })
+
+    it('sends the configured headers with every request', async () => {
+        const fetchMock = mockServer({ 'server.info': () => ({}) })
+        const rpc = new RpcClient(URL, undefined, { Authorization: 'Bearer token', 'Content-Type': 'text/plain' })
+
+        await rpc.call('server.info')
+
+        expect(fetchMock.mock.calls[0][1]!.headers).toEqual({
+            Authorization: 'Bearer token',
+            'Content-Type': 'application/json'
+        })
+    })
+
+    it('returns undefined for a method without a result, as mobilecli leaves it out', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"jsonrpc":"2.0","id":1}')))
+
+        expect(await new RpcClient(URL).call('device.io.tap')).toBeUndefined()
+    })
+
     it('says that the server is not mobilecli if the answer is not JSON', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html>Not Found</html>', { status: 404 })))
 
         await expect(new RpcClient(URL).call('server.info')).rejects.toThrow(
-            'The server at http://localhost:12000/rpc did not answer "server.info" with JSON (status 404). ' +
+            'The server at http://localhost:12000/rpc did not answer "server.info" with a JSON-RPC response (status 404). ' +
             'Is this a mobilecli server? Response: <html>Not Found</html>'
         )
+    })
+
+    it('shows the answer of a server that fails with JSON that is not JSON-RPC', async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('{"message":"Bad Gateway"}', { status: 502 })))
+        const rpc = new RpcClient(URL)
+
+        await expect(rpc.call('device.resolve')).rejects.toThrow(
+            'The server at http://localhost:12000/rpc did not answer "device.resolve" with a JSON-RPC response (status 502). ' +
+            'Is this a mobilecli server? Response: {"message":"Bad Gateway"}'
+        )
+
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('{"message":"ok"}')))
+        await expect(rpc.call('device.resolve')).rejects.toThrow('did not answer "device.resolve" with a JSON-RPC response (status 200)')
+
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('{"jsonrpc":"2.0","id":1}', { status: 502 })))
+        await expect(rpc.call('device.resolve')).rejects.toThrow('did not answer "device.resolve" with a JSON-RPC response (status 502)')
+    })
+
+    it('throws the error of mobilecli whatever the status of the response is', async () => {
+        const body = '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"Server error","data":"device is offline"}}'
+        vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 500 })))
+
+        await expect(new RpcClient(URL).call('device.info')).rejects.toThrow('device is offline')
     })
 })

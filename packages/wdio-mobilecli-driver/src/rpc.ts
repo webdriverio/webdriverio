@@ -53,11 +53,19 @@ export function getServerUrl (options: Pick<Options, 'protocol' | 'hostname' | '
 export class RpcClient {
     url: string
     timeout: number
+    headers: Record<string, string>
     #id = 0
 
-    constructor (url: string, timeout = DEFAULT_REQUEST_TIMEOUT) {
+    /**
+     * @param url      address of the JSON-RPC endpoint, see `getServerUrl`
+     * @param timeout  how long one call may take, in ms
+     * @param headers  headers for every request, e.g. the `Authorization` of
+     *                 a proxy in front of the server (the `headers` option)
+     */
+    constructor (url: string, timeout = DEFAULT_REQUEST_TIMEOUT, headers: Record<string, string> = {}) {
         this.url = url
         this.timeout = timeout
+        this.headers = headers
     }
 
     /**
@@ -72,14 +80,20 @@ export class RpcClient {
         const id = ++this.#id
         log.debug('RPC', method, params)
 
+        /**
+         * the timeout is for the whole answer: a server can send the headers
+         * and then stall on the body
+         */
         let response: Response
+        let text: string
         try {
             response = await fetch(this.url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...this.headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
                 signal: AbortSignal.timeout(this.timeout)
             })
+            text = await response.text()
         } catch (err) {
             if (err instanceof Error && err.name === 'TimeoutError') {
                 throw new Error(`The mobilecli server at ${this.url} did not answer "${method}" within ${this.timeout}ms`, { cause: err })
@@ -87,13 +101,15 @@ export class RpcClient {
             throw new Error(`Could not reach the mobilecli server at ${this.url}. ${INSTALL_HINT}`, { cause: err })
         }
 
-        const text = await response.text()
-        let body: RpcResponse<T>
-        try {
-            body = JSON.parse(text)
-        } catch {
+        /**
+         * Anything that is not a JSON-RPC response does not come from
+         * mobilecli, e.g. the 502 of a proxy. mobilecli leaves `result` out
+         * if a method returns nothing, so its absence is not an error.
+         */
+        const body = parseResponse<T>(text)
+        if (!body || (!body.error && !response.ok)) {
             throw new Error(
-                `The server at ${this.url} did not answer "${method}" with JSON (status ${response.status}). ` +
+                `The server at ${this.url} did not answer "${method}" with a JSON-RPC response (status ${response.status}). ` +
                 'Is this a mobilecli server?' + (text ? ` Response: ${text.slice(0, 200)}` : '')
             )
         }
@@ -104,6 +120,15 @@ export class RpcClient {
 
         log.debug('RPC RESULT', method, body.result)
         return body.result as T
+    }
+}
+
+function parseResponse<T> (text: string): RpcResponse<T> | undefined {
+    try {
+        const body = JSON.parse(text)
+        return body && body.jsonrpc === '2.0' ? body : undefined
+    } catch {
+        return undefined
     }
 }
 

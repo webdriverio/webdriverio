@@ -38,12 +38,16 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
+The server address comes from the connection options of WebdriverIO: `protocol`, `hostname`, `port` and `path`. The `headers` option is sent with every request, for example the `Authorization` header of a proxy in front of a remote server.
+
 ### Capabilities
 
 | Capability | Description |
 |---|---|
 | `platformName` | `iOS` or `Android`. Optional: the session gets it from the device. If it is set and the device is of the other platform, the session does not start. |
 | `mobilecli:udid` | The id of the device, as listed by `mobilecli devices`. Optional when exactly one device is online. |
+
+With `alwaysMatch` and `firstMatch`, the session starts with the first `firstMatch` entry that matches a device.
 
 ### Sessions
 

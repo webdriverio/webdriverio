@@ -103,6 +103,71 @@ describe('MobilecliDriver', () => {
             expect(client.capabilities).toEqual({ platformName: 'Android', 'mobilecli:udid': ANDROID_DEVICE.id })
         })
 
+        it('starts with the first firstMatch entry that matches a device', async () => {
+            const fetchMock = mockDevices(ANDROID_DEVICE)
+
+            const client = await newSession({
+                capabilities: {
+                    alwaysMatch: {},
+                    firstMatch: [{ platformName: 'iOS' }, { platformName: 'Android' }]
+                }
+            })
+
+            expect(client.capabilities).toEqual({ platformName: 'Android', 'mobilecli:udid': ANDROID_DEVICE.id })
+            expect(getRequests(fetchMock).map(({ method }) => method))
+                .toEqual(['device.resolve', 'device.resolve', 'device.info'])
+        })
+
+        it('skips a firstMatch entry with a device that mobilecli does not find', async () => {
+            mockDevices(IOS_DEVICE, ANDROID_DEVICE)
+
+            const client = await newSession({
+                capabilities: {
+                    alwaysMatch: { platformName: 'iOS' },
+                    firstMatch: [{ 'mobilecli:udid': 'nope' }, { 'mobilecli:udid': ANDROID_DEVICE.id }, { 'mobilecli:udid': IOS_DEVICE.id }]
+                }
+            })
+
+            expect(client.capabilities).toEqual({ platformName: 'iOS', 'mobilecli:udid': IOS_DEVICE.id })
+        })
+
+        it('says why each firstMatch entry does not match', async () => {
+            mockDevices(ANDROID_DEVICE)
+
+            await expect(newSession({
+                capabilities: {
+                    alwaysMatch: { platformName: 'iOS' },
+                    firstMatch: [{}, { 'mobilecli:udid': 'nope' }]
+                }
+            })).rejects.toThrow(
+                'None of the "firstMatch" capabilities matches a device:\n' +
+                `- {"platformName":"iOS"}: The capability "platformName" is "iOS", but the device ${ANDROID_DEVICE.id} is an Android device. ` +
+                'Set "mobilecli:udid" to a device of that platform, see "mobilecli devices".\n' +
+                '- {"platformName":"iOS","mobilecli:udid":"nope"}: error finding device: device not found: nope'
+            )
+        })
+
+        it('does not try the next firstMatch entry if the server can not be reached', async () => {
+            const fetchMock = vi.fn().mockRejectedValue(new TypeError('fetch failed'))
+            vi.stubGlobal('fetch', fetchMock)
+
+            await expect(newSession({
+                capabilities: { alwaysMatch: {}, firstMatch: [{ platformName: 'iOS' }, { platformName: 'Android' }] }
+            })).rejects.toThrow('Could not reach the mobilecli server')
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
+        it('sends the headers option to the server', async () => {
+            const fetchMock = mockDevices(IOS_DEVICE)
+
+            await newSession({ headers: { Authorization: 'Bearer token' }, capabilities: {} })
+
+            for (const [, init] of fetchMock.mock.calls) {
+                expect(init!.headers).toEqual({ Authorization: 'Bearer token', 'Content-Type': 'application/json' })
+            }
+            expect(fetchMock).toHaveBeenCalledTimes(2)
+        })
+
         it('uses the connection options of WebdriverIO for the server', async () => {
             const fetchMock = mockDevices(IOS_DEVICE)
 

@@ -7,7 +7,7 @@ import type { Automation, Capabilities } from '@wdio/types'
 
 import { getProtocolCommands } from './commands.js'
 import { DEFAULT_REQUEST_TIMEOUT, PACKAGE_NAME, PLATFORM_NAMES } from './constants.js'
-import { RpcClient, getServerUrl } from './rpc.js'
+import { RpcClient, RpcError, getServerUrl } from './rpc.js'
 import type { DeviceInfo, DeviceInfoResult, Options, ResolvedDevice, Session } from './types.js'
 
 const log = logger('@wdio/mobilecli-driver')
@@ -35,11 +35,14 @@ export default class MobilecliDriver {
         }
 
         const requestedCapabilities = { ...options.capabilities } as Capabilities.RequestedStandaloneCapabilities
-        const requested = getRequestedCapabilities(requestedCapabilities)
-        const rpc = new RpcClient(getServerUrl(options), options.connectionRetryTimeout || DEFAULT_REQUEST_TIMEOUT)
+        const rpc = new RpcClient(
+            getServerUrl(options),
+            options.connectionRetryTimeout || DEFAULT_REQUEST_TIMEOUT,
+            options.headers
+        )
 
         log.info(`Initiate new session using mobilecli at ${rpc.url}`)
-        const device = await connectToDevice(rpc, requested)
+        const { requested, device } = await findDevice(rpc, getCapabilityCandidates(requestedCapabilities))
         const capabilities: WebdriverIO.Capabilities = {
             ...requested,
             platformName: PLATFORM_NAMES[device.platform] || device.platform,
@@ -77,13 +80,45 @@ export default class MobilecliDriver {
 MobilecliDriver satisfies Automation.Driver<Options>
 
 /**
- * `capabilities` can have the W3C form with `alwaysMatch` and `firstMatch`
+ * a device that does not fit the capabilities, so the next candidate is tried
  */
-function getRequestedCapabilities (capabilities: Capabilities.RequestedStandaloneCapabilities): WebdriverIO.Capabilities {
-    if ('alwaysMatch' in capabilities) {
-        return { ...capabilities.firstMatch?.[0], ...capabilities.alwaysMatch }
+class NoMatchError extends Error {}
+
+/**
+ * `capabilities` can have the W3C form with `alwaysMatch` and `firstMatch`.
+ * Then every entry of `firstMatch`, merged with `alwaysMatch`, is a set of
+ * capabilities that the session may start with.
+ */
+function getCapabilityCandidates (capabilities: Capabilities.RequestedStandaloneCapabilities): WebdriverIO.Capabilities[] {
+    if (!('alwaysMatch' in capabilities) && !('firstMatch' in capabilities)) {
+        return [capabilities as WebdriverIO.Capabilities]
     }
-    return capabilities as WebdriverIO.Capabilities
+    const { alwaysMatch = {}, firstMatch = [] } = capabilities as Capabilities.W3CCapabilities
+    return (firstMatch.length ? firstMatch : [{}]).map((entry) => ({ ...alwaysMatch, ...entry }))
+}
+
+/**
+ * Connect to the device of the first candidate that fits one, in the order
+ * of `firstMatch`. A candidate does not fit if mobilecli finds no device for
+ * it or if its device is of another platform. Any other failure, e.g. a
+ * server that is not running, ends the search.
+ */
+async function findDevice (rpc: RpcClient, candidates: WebdriverIO.Capabilities[]) {
+    const mismatches: string[] = []
+    for (const requested of candidates) {
+        try {
+            return { requested, device: await connectToDevice(rpc, requested) }
+        } catch (err) {
+            if (!(err instanceof NoMatchError)) {
+                throw err
+            }
+            if (candidates.length === 1) {
+                throw new Error(err.message, { cause: err.cause })
+            }
+            mismatches.push(`${JSON.stringify(requested)}: ${err.message}`)
+        }
+    }
+    throw new Error(`None of the "firstMatch" capabilities matches a device:\n- ${mismatches.join('\n- ')}`)
 }
 
 /**
@@ -97,17 +132,24 @@ async function connectToDevice (rpc: RpcClient, requested: WebdriverIO.Capabilit
     const udid = requested['mobilecli:udid']
     const resolved = await rpc.call<ResolvedDevice>('device.resolve', udid ? { deviceId: udid } : {}).catch((err: Error) => {
         /**
+         * only an answer of mobilecli says that there is no device for these
+         * capabilities, e.g. "device not found"
+         */
+        if (!(err instanceof RpcError)) {
+            throw err
+        }
+        /**
          * mobilecli answers with a hint for its command line
          */
-        if (!udid && err.message.includes('multiple devices found')) {
-            throw new Error(`${err.message}. In WebdriverIO, set the capability "mobilecli:udid" to one of them.`, { cause: err })
-        }
-        throw err
+        const hint = !udid && err.message.includes('multiple devices found')
+            ? '. In WebdriverIO, set the capability "mobilecli:udid" to one of them.'
+            : ''
+        throw new NoMatchError(err.message + hint, { cause: err })
     })
 
     const platformName = requested.platformName
     if (platformName && platformName.toLowerCase() !== resolved.platform.toLowerCase()) {
-        throw new Error(
+        throw new NoMatchError(
             `The capability "platformName" is "${platformName}", but the device ${resolved.id} is an ` +
             `${PLATFORM_NAMES[resolved.platform] || resolved.platform} device. ` +
             'Set "mobilecli:udid" to a device of that platform, see "mobilecli devices".'
