@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
 import MobilecliDriver from '../src/index.js'
-import { ANDROID_DEVICE, IOS_DEVICE, getRequests, mockDevices } from './__fixtures__/server.js'
+import { ANDROID_DEVICE, IOS_DEVICE, getRequests, mockDevices, mockServer } from './__fixtures__/server.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -220,6 +220,23 @@ describe('MobilecliDriver', () => {
                 'error finding device: multiple devices found (2), please specify --device or MOBILECLI_DEVICE with one of: ' +
                 `[${IOS_DEVICE.id}, ${ANDROID_DEVICE.id}]. In WebdriverIO, set the capability "mobilecli:udid" to one of them.`
             )
+        })
+
+        it('fails with the answer of the server if it has no device in it', async () => {
+            mockServer({ 'device.resolve': () => undefined })
+            await expect(newSession({ capabilities: {} }))
+                .rejects.toThrow('The mobilecli server answered "device.resolve" without a device: undefined')
+
+            mockServer({ 'device.resolve': () => ({ id: IOS_DEVICE.id }) })
+            await expect(newSession({ capabilities: {} }))
+                .rejects.toThrow(`The mobilecli server answered "device.resolve" without a device: {"id":"${IOS_DEVICE.id}"}`)
+
+            mockServer({
+                'device.resolve': () => ({ id: IOS_DEVICE.id, platform: 'ios', type: 'simulator' }),
+                'device.info': () => ({ status: 'ok' })
+            })
+            await expect(newSession({ capabilities: {} }))
+                .rejects.toThrow('The mobilecli server answered "device.info" without a device: {"status":"ok"}')
         })
 
         it('fails with a hint if the server is not running', async () => {

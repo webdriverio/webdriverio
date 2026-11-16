@@ -146,6 +146,9 @@ async function connectToDevice (rpc: RpcClient, requested: WebdriverIO.Capabilit
             : ''
         throw new NoMatchError(err.message + hint, { cause: err })
     })
+    if (!resolved?.id || !resolved.platform) {
+        throw new Error(`The mobilecli server answered "device.resolve" without a device: ${JSON.stringify(resolved)}`)
+    }
 
     const platformName = requested.platformName
     if (platformName && platformName.toLowerCase() !== resolved.platform.toLowerCase()) {
@@ -156,6 +159,9 @@ async function connectToDevice (rpc: RpcClient, requested: WebdriverIO.Capabilit
         )
     }
 
-    const { device } = await rpc.call<DeviceInfoResult>('device.info', { deviceId: resolved.id })
-    return device
+    const info = await rpc.call<DeviceInfoResult>('device.info', { deviceId: resolved.id })
+    if (!info?.device?.id || !info.device.platform) {
+        throw new Error(`The mobilecli server answered "device.info" without a device: ${JSON.stringify(info)}`)
+    }
+    return info.device
 }
