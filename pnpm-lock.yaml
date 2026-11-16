@@ -1412,9 +1412,21 @@ importers:
 
   packages/wdio-mobilecli-driver:
     dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../webdriver
 
   packages/wdio-mocha-framework:
     dependencies:
