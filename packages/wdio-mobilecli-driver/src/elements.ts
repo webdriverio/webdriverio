@@ -103,6 +103,15 @@ export class ElementRegistry {
     }
 
     /**
+     * Forget what was seen of one element: a newer look did not find it.
+     * Without this a read right after could still use what an older look
+     * saw of it.
+     */
+    forgetObservation (elementId: string) {
+        this.#seen.delete(elementId)
+    }
+
+    /**
      * forget what was seen: the driver did something on the screen
      */
     forgetObservations () {

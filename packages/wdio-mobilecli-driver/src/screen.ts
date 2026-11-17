@@ -49,11 +49,19 @@ export function forgetScreen (session: Session) {
 /**
  * Do something on the screen. What the driver saw of the elements is not
  * true anymore after it.
+ * @param  options.mask  hide the `text` of the call in the log, see
+ *                       `RpcClient.call`
  */
-export async function act (session: Session, method: string, params: Record<string, unknown> = {}, timeout?: number) {
+export async function act (
+    session: Session,
+    method: string,
+    params: Record<string, unknown> = {},
+    timeout?: number,
+    { mask = false }: { mask?: boolean } = {}
+) {
     forgetScreen(session)
     try {
-        return await session.rpc.call(method, { deviceId: session.device.id, ...params }, timeout)
+        return await session.rpc.call(method, { deviceId: session.device.id, ...params }, timeout, { mask })
     } finally {
         forgetScreen(session)
     }
@@ -119,6 +127,7 @@ async function look (session: Session, elementId: string): Promise<Observation |
         return session.elements.observe(elementId, node, session.settings.stabilityWindow, session.lastDump!.at)
     } catch (error) {
         if (error instanceof ElementError && error.name === 'stale element reference') {
+            session.elements.forgetObservation(elementId)
             return null
         }
         throw error

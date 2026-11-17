@@ -1,5 +1,6 @@
-import logger from '@wdio/logger'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import { commandCallStructure } from '@wdio/utils'
+import { CommandRuntimeOptions } from 'webdriver'
 import { WebDriverProtocol, AppiumProtocol, type Protocol } from '@wdio/protocols'
 
 import { PACKAGE_NAME } from '../constants.js'
@@ -71,7 +72,7 @@ export function getApiCommands (session: Session): Record<string, ApiCommand> {
         tap () {
             return this.click()
         },
-        async setValue (_original, value) {
+        async setValue (_original, value, options?: { mask?: boolean }) {
             if (typeof value !== 'string' && typeof value !== 'number') {
                 throw new Error('The setValue command only takes string or number values.')
             }
@@ -83,7 +84,15 @@ export function getApiCommands (session: Session): Record<string, ApiCommand> {
             if (!this.elementId) {
                 await this.waitForExist()
             }
-            return fill.call(this, this.elementId, String(value))
+            /**
+             * `{ mask: true }` hides the text in the log and the events, as
+             * `addValue()` of WebdriverIO does it
+             */
+            const args: unknown[] = [this.elementId, String(value)]
+            if (options) {
+                args.push(new CommandRuntimeOptions(options))
+            }
+            return fill.apply(this, args)
         }
     }
 }
@@ -169,12 +178,42 @@ export function getProtocolCommands (session: Session): PropertyDescriptorMap {
 }
 
 /**
+ * the commands with a text that `{ mask: true }` hides, and where it is in
+ * their parameters
+ */
+const TEXT_PARAMETERS: Record<string, number> = {
+    elementSendKeys: 1,
+    setElementValue: 1
+}
+
+/**
+ * The parameters of a command as the log and the events show them. With
+ * `{ mask: true }` (the `CommandRuntimeOptions` that WebdriverIO passes as
+ * the last parameter) the text is replaced, the same as the `webdriver`
+ * package does it. The options themselves are not shown.
+ */
+export function getShownArgs (name: string, args: unknown[]) {
+    const options = args.at(-1)
+    if (!(options instanceof CommandRuntimeOptions)) {
+        return args
+    }
+
+    const shown = args.slice(0, -1)
+    const index = TEXT_PARAMETERS[name]
+    if (options.mask && index !== undefined && typeof shown[index] === 'string' && shown[index] !== '') {
+        shown[index] = SENSITIVE_DATA_REPLACER
+    }
+    return shown
+}
+
+/**
  * Log a command and tell the listeners of the client about it, the way the
  * `webdriver` package does. Reporters and services listen to these events.
  */
 function wrapCommand (session: Session, name: string, command: Command) {
     return async function (this: Client, ...args: unknown[]) {
-        const event = { command: name, method: 'POST', endpoint: session.rpc.url, body: { args } }
+        const shownArgs = getShownArgs(name, args)
+        const event = { command: name, method: 'POST', endpoint: session.rpc.url, body: { args: shownArgs } }
 
         try {
             if (session.ended) {
@@ -182,7 +221,7 @@ function wrapCommand (session: Session, name: string, command: Command) {
             }
 
             session.wait = getWaitOptions(session, this.options)
-            log.info('COMMAND', commandCallStructure(name, args))
+            log.info('COMMAND', commandCallStructure(name, shownArgs))
             this.emit('command', event)
             const value = await command(session, ...args as never[])
             log.info('RESULT', value)

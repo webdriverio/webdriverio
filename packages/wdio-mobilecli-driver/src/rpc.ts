@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 
 import {
     CLOSED_CONNECTION_RETRIES, DEFAULT_HOSTNAME, DEFAULT_PORT, DEFAULT_PROTOCOL, DEFAULT_REQUEST_TIMEOUT,
@@ -74,13 +74,21 @@ export class RpcClient {
      * @param  params  parameters of the method
      * @param  timeout how long this call may take, in ms, if it differs
      *                 from the timeout of the client
+     * @param  options.mask  hide the `text` parameter in the log, for text
+     *                 that a test typed with `{ mask: true }`. mobilecli
+     *                 still gets the text.
      * @return the `result` of the response
      * @throws an `RpcError` if the server answers with an error, an `Error`
      *         if the server can not be reached or does not answer in time
      */
-    async call<T = unknown> (method: string, params: Record<string, unknown> = {}, timeout = this.timeout): Promise<T> {
+    async call<T = unknown> (
+        method: string,
+        params: Record<string, unknown> = {},
+        timeout = this.timeout,
+        { mask = false }: { mask?: boolean } = {}
+    ): Promise<T> {
         const id = ++this.#id
-        log.debug('RPC', method, params)
+        log.debug('RPC', method, mask && 'text' in params ? { ...params, text: SENSITIVE_DATA_REPLACER } : params)
 
         /**
          * the timeout is for the whole answer: a server can send the headers

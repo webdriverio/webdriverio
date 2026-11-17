@@ -48,7 +48,29 @@ describe('hideKeyboard', () => {
 
         await hideKeyboard(session)
 
-        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 60000)
+        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 60000, { mask: false })
+    })
+
+    it('does not wait longer than a minute, also if other calls to mobilecli may take longer', async () => {
+        mockServer({ 'device.io.keyboard.hide': () => ({ dismissed: true }) })
+        const session = createSession()
+        session.rpc = new RpcClient('http://localhost:12000/rpc', 120000)
+        const call = vi.spyOn(session.rpc, 'call')
+
+        await hideKeyboard(session)
+
+        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 60000, { mask: false })
+    })
+
+    it('waits less with a shorter setting keyboardTimeout', async () => {
+        mockServer({ 'device.io.keyboard.hide': () => ({ dismissed: true }) })
+        const session = createSession(undefined, undefined, { keyboardTimeout: 5000 })
+        session.rpc = new RpcClient('http://localhost:12000/rpc', 120000)
+        const call = vi.spyOn(session.rpc, 'call')
+
+        await hideKeyboard(session)
+
+        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 5000, { mask: false })
     })
 
     it('gives mobilecli the time of the setting keyboardTimeout', async () => {
@@ -59,7 +81,7 @@ describe('hideKeyboard', () => {
 
         await hideKeyboard(session)
 
-        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 90000)
+        expect(call).toHaveBeenCalledWith('device.io.keyboard.hide', { deviceId: IOS_DEVICE.id }, 90000, { mask: false })
     })
 
     it('throws the reason of mobilecli if the keyboard can not be hidden', async () => {

@@ -23,7 +23,9 @@ interface AppDevice {
  *                  an `.apk` for Android, an `.app` folder or a `.zip` with
  *                  one for an iOS simulator, an `.ipa` for an iOS device
  * @param  timeout  how long the install may take, `installTimeout` of the
- *                  capability `mobilecli:options`
+ *                  capability `mobilecli:options`. It is used in place of
+ *                  the timeout of other calls to mobilecli, also when it is
+ *                  shorter.
  * @return what mobilecli read from the app file, `undefined` if it could
  *         not read it
  */
@@ -36,7 +38,7 @@ export async function installApp (rpc: RpcClient, deviceId: string, appPath: str
     const result = await rpc.call<InstallResult>(
         'device.apps.install',
         { deviceId, path: appPath },
-        Math.max(rpc.timeout, timeout)
+        timeout
     )
     return result?.app?.packageName ? result.app : undefined
 }

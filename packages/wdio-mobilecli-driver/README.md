@@ -256,6 +256,8 @@ An element that is not on the screen is not scrolled to. `click()` and `tap()` w
 
 mobilecli types into the field that has the focus, so the driver taps the element first. An element that already has the focus is not tapped: `addValue` then adds the text where the cursor is, and on iOS a tap on a field that has the focus opens the edit menu, after which the text is lost. Only `string` and `number` values are supported.
 
+With `{ mask: true }`, for example `$('~password').setValue(password, { mask: true })`, the text is replaced with `**MASKED**` in the log and in the events for reporters, as in WebdriverIO. mobilecli still gets the text. Both platforms report a password field with dots, so `getPageSource()` does not show it either.
+
 ## The keyboard
 
 Typing opens the on-screen keyboard, and it stays open. mobilecli leaves the keyboard out of the UI tree, so the driver can not see that an element is behind it: a tap on that element hits the keyboard. Close the keyboard first:

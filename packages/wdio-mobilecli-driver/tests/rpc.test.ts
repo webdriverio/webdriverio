@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
+import logger from '@wdio/logger'
+
 import { ConnectionClosedError, RpcClient, RpcError, getServerUrl } from '../src/rpc.js'
 import { mockServer, ServerError } from './__fixtures__/server.js'
 
@@ -41,6 +43,28 @@ describe('RpcClient', () => {
             headers: { 'Content-Type': 'application/json' }
         }))
         expect(JSON.parse(init!.body as string)).toEqual({ jsonrpc: '2.0', id: 1, method: 'server.info', params: {} })
+    })
+
+    it('hides the text in the log with the option mask, and sends it', async () => {
+        const fetchMock = mockServer({ 'device.io.fill': () => undefined })
+        const log = logger('test')
+        vi.mocked(log.debug).mockClear()
+
+        await new RpcClient(URL).call('device.io.fill', { deviceId: 'd', text: 'secret' }, undefined, { mask: true })
+
+        expect(log.debug).toHaveBeenCalledWith('RPC', 'device.io.fill', { deviceId: 'd', text: '**MASKED**' })
+        expect(JSON.stringify(vi.mocked(log.debug).mock.calls)).not.toContain('secret')
+        expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string).params).toEqual({ deviceId: 'd', text: 'secret' })
+    })
+
+    it('logs the text without the option mask', async () => {
+        mockServer({ 'device.io.fill': () => undefined })
+        const log = logger('test')
+        vi.mocked(log.debug).mockClear()
+
+        await new RpcClient(URL).call('device.io.fill', { deviceId: 'd', text: 'Hello' })
+
+        expect(log.debug).toHaveBeenCalledWith('RPC', 'device.io.fill', { deviceId: 'd', text: 'Hello' })
     })
 
     it('sends the parameters and counts the request ids', async () => {

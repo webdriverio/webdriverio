@@ -97,6 +97,15 @@ export interface ScreenDump {
     served: Map<string, number>
 }
 
+/**
+ * The options of a command that types: `CommandRuntimeOptions` of the
+ * `webdriver` package, which WebdriverIO passes as the last parameter of
+ * `elementSendKeys` for `addValue(text, { mask: true })`
+ */
+export interface TextOptions {
+    mask?: boolean
+}
+
 export interface WaitOptions {
     timeout: number
     interval: number

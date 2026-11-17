@@ -2,6 +2,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
 import { getElementText } from '../../../src/commands/element/getElementText.js'
+import { isElementDisplayed } from '../../../src/commands/element/isElementDisplayed.js'
 import { ANDROID_DEVICE } from '../../__fixtures__/server.js'
 import { ANDROID_TREE, IOS_TREE } from '../../__fixtures__/trees.js'
 import { NO_WAIT, createSession, findElementId, mockScreen } from '../../__fixtures__/session.js'
@@ -14,6 +15,17 @@ afterEach(() => {
 })
 
 describe('getElementText', () => {
+    it('does not read an element that a newer look at the screen did not find', async () => {
+        const session = createSession(undefined, NO_WAIT)
+        const { screen } = mockScreen(IOS_TREE)
+        const general = await findElementId(session, 'accessibility id', 'General', { justNow: true })
+
+        screen.tree = [IOS_TREE[0]]
+        expect(await isElementDisplayed(session, general)).toBe(false)
+
+        await expect(getElementText(session, general)).rejects.toThrow('no matching element found')
+    })
+
     it('reads the text of an element on iOS', async () => {
         const session = createSession()
         mockScreen(IOS_TREE)

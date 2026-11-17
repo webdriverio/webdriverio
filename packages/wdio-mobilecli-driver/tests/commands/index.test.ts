@@ -1,8 +1,12 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { addElementCommands, getProtocolCommands } from '../../src/commands/index.js'
+import logger from '@wdio/logger'
+import { CommandRuntimeOptions } from 'webdriver'
+
+import { addElementCommands, getProtocolCommands, getShownArgs } from '../../src/commands/index.js'
 import type { Session } from '../../src/types.js'
+import { IOS_DEVICE, getRequests } from '../__fixtures__/server.js'
 import { createSession, findElementId, getMethods, mockInput } from '../__fixtures__/session.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -96,6 +100,22 @@ describe('getProtocolCommands', () => {
         ])
     })
 
+    it('hides the text of addValue(text, { mask: true }) in the log and the events, and types it', async () => {
+        const fetchMock = mockInput({ focused: true })
+        const input = await findElementId(session, 'accessibility id', 'text-input')
+        const log = logger('test')
+        vi.mocked(log.info).mockClear()
+        vi.mocked(log.debug).mockClear()
+
+        await client.elementSendKeys(input, 'secret', new CommandRuntimeOptions({ mask: true }))
+
+        expect(client.emit.mock.calls.map(([, event]) => event.body.args)).toEqual([[input, '**MASKED**'], [input, '**MASKED**']])
+        const logged = JSON.stringify([...vi.mocked(log.info).mock.calls, ...vi.mocked(log.debug).mock.calls])
+        expect(logged).not.toContain('secret')
+        expect(logged).toContain('**MASKED**')
+        expect(getRequests(fetchMock).at(-1)).toEqual({ method: 'device.io.text', params: { deviceId: IOS_DEVICE.id, text: 'secret' } })
+    })
+
     it('emits the error of a command', async () => {
         const error = await client.navigateTo('https://webdriver.io').catch((err) => err)
 
@@ -103,6 +123,23 @@ describe('getProtocolCommands', () => {
             command: 'navigateTo',
             result: { error }
         }))
+    })
+})
+
+describe('getShownArgs', () => {
+    it('hides the text of a command that types, with { mask: true }', () => {
+        expect(getShownArgs('elementSendKeys', ['element-1', 'secret', new CommandRuntimeOptions({ mask: true })])).toEqual(['element-1', '**MASKED**'])
+        expect(getShownArgs('setElementValue', ['element-1', 'secret', new CommandRuntimeOptions({ mask: true })])).toEqual(['element-1', '**MASKED**'])
+    })
+
+    it('shows the text without { mask: true }, and not the options', () => {
+        expect(getShownArgs('elementSendKeys', ['element-1', 'Hello', new CommandRuntimeOptions({ mask: false })])).toEqual(['element-1', 'Hello'])
+        expect(getShownArgs('elementSendKeys', ['element-1', 'Hello'])).toEqual(['element-1', 'Hello'])
+    })
+
+    it('does not hide an empty text or the parameters of other commands', () => {
+        expect(getShownArgs('elementSendKeys', ['element-1', '', new CommandRuntimeOptions({ mask: true })])).toEqual(['element-1', ''])
+        expect(getShownArgs('elementClick', ['element-1', new CommandRuntimeOptions({ mask: true })])).toEqual(['element-1'])
     })
 })
 
@@ -169,6 +206,25 @@ describe('addElementCommands', () => {
         const client = Object.create({}, getProtocolCommands(createSession()))
         expect(client.setElementValue).toBe(undefined)
         expect(client.mobilecliFill).toBe(undefined)
+    })
+
+    it('hides the text of setValue(text, { mask: true }) in the log and the events, and fills it', async () => {
+        const session = createSession()
+        const fetchMock = mockInput()
+        const element = createElement(await findElementId(session, 'accessibility id', 'text-input'))
+        const log = logger('test')
+        vi.mocked(log.info).mockClear()
+        vi.mocked(log.debug).mockClear()
+
+        await getCommands(session).setValue.call(element, vi.fn(), 'secret', { mask: true })
+
+        expect(element.emit.mock.calls.map(([, event]) => event.body.args)).toEqual([
+            [element.elementId, '**MASKED**'],
+            [element.elementId, '**MASKED**']
+        ])
+        const logged = JSON.stringify([...vi.mocked(log.info).mock.calls, ...vi.mocked(log.debug).mock.calls])
+        expect(logged).not.toContain('secret')
+        expect(getRequests(fetchMock).at(-1)).toEqual({ method: 'device.io.fill', params: { deviceId: IOS_DEVICE.id, text: 'secret' } })
     })
 
     it('waits for an element that is not on the screen yet before setValue() fills it', async () => {

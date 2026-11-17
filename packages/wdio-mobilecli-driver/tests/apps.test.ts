@@ -43,7 +43,7 @@ describe('installApp', () => {
         expect(await installApp(rpc(), IOS_DEVICE.id, APP_PATH)).toBe(undefined)
     })
 
-    it('gives the install more time than other calls', async () => {
+    it('gives the install the time of the setting installTimeout, not the timeout of other calls', async () => {
         mockServer({ 'device.apps.install': () => installed(APP) })
         const timeout = vi.spyOn(AbortSignal, 'timeout')
 
@@ -51,10 +51,19 @@ describe('installApp', () => {
         expect(timeout).toHaveBeenLastCalledWith(190000)
 
         await installApp(new RpcClient('http://localhost:12000/rpc', 600000), IOS_DEVICE.id, APP_PATH)
-        expect(timeout).toHaveBeenLastCalledWith(600000)
+        expect(timeout).toHaveBeenLastCalledWith(190000)
 
         await installApp(rpc(), IOS_DEVICE.id, APP_PATH, 300000)
         expect(timeout).toHaveBeenLastCalledWith(300000)
+    })
+
+    it('waits less with a shorter setting installTimeout', async () => {
+        mockServer({ 'device.apps.install': () => installed(APP) })
+        const timeout = vi.spyOn(AbortSignal, 'timeout')
+
+        await installApp(new RpcClient('http://localhost:12000/rpc', 120000), IOS_DEVICE.id, APP_PATH, 30000)
+
+        expect(timeout).toHaveBeenLastCalledWith(30000)
     })
 
     it('throws the reason of mobilecli if the install fails', async () => {

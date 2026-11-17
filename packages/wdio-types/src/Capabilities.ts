@@ -628,15 +628,17 @@ export interface MobilecliOptions {
     /**
      * How long a command of an element (`click`, `setValue`, `getText`, ...)
      * waits until it can use the element. It is the action timeout of
-     * Mobilewright. A command can set its own with the option `timeout`.
+     * Mobilewright. A command has no timeout of its own: to change it from
+     * a line of a test on, use `browser.setTimeout({ implicit })`, and to
+     * give one command more time, use a wait command before it, for
+     * example `waitForEnabled({ timeout })`.
      *
      * @default the `waitforTimeout` of WebdriverIO, which is 5000
      */
     actionTimeout?: number
     /**
      * How long a command waits between two reads of the screen while it
-     * waits for its element. A command can set its own with the option
-     * `interval`.
+     * waits for its element.
      *
      * @default the `waitforInterval` of WebdriverIO, which is 100
      */

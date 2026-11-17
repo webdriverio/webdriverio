@@ -1,5 +1,5 @@
 import { act, focusForFill } from '../../screen.js'
-import type { Session } from '../../types.js'
+import type { Session, TextOptions } from '../../types.js'
 
 /**
  * `setValue()`: replace what is in the field with the text, in one call.
@@ -13,9 +13,11 @@ import type { Session } from '../../types.js'
  * that calls this function, see `getApiCommands`. It is logged and sent to
  * the reporters as `setElementValue`, like a command.
  * Mobilewright: `locator.fill()`. mobilecli: `device.io.fill`
+ * @param  options  for `setValue(text, { mask: true })`: the text is not
+ *                  logged
  */
-export async function setElementValue (session: Session, elementId: string, text: string) {
+export async function setElementValue (session: Session, elementId: string, text: string, options?: TextOptions) {
     await focusForFill(session, elementId)
-    await act(session, 'device.io.fill', { text: String(text) })
+    await act(session, 'device.io.fill', { text: String(text) }, undefined, { mask: options?.mask === true })
     return null
 }
