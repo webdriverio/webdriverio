@@ -169,4 +169,79 @@ describe('wait', () => {
     it('requires exactly one thing to wait for', async () => {
         await expect(wait({ browser: {} } as unknown as Session, { text: 'Hi', url: '/x', $cwd: '/' })).rejects.toThrow('Say what to wait for.')
     })
+
+    it('scopes selector, text, url, fn, and load waits to the held BiDi frame', async () => {
+        const waitForDisplayed = vi.fn(async () => undefined)
+        const frame = {
+            contextId: 'frame-1',
+            isFrame: true,
+            getUrl: async () => 'https://child.example/frame.html',
+            $: (selector: string) => ({
+                getText: async () => (selector === 'body' ? 'Inside frame' : ''),
+                getElement: async () => ({ waitForDisplayed })
+            }),
+            execute: async (script: unknown) => {
+                if (script === pageNetworkState) {
+                    return { ready: 'complete', completed: 2, inflight: 0 }
+                }
+                const source = String(script)
+                if (source.includes('readyState')) {
+                    return 'complete'
+                }
+                return source.includes('frameReady')
+            }
+        }
+        const browser = {
+            $: () => {
+                throw new Error('queried top-level browser instead of held frame')
+            },
+            execute: async () => {
+                throw new Error('executed in top-level browser instead of held frame')
+            },
+            waitUntil: async (cond: () => Promise<boolean>) => {
+                expect(await cond()).toBe(true)
+            }
+        }
+        const store = new Map<string, unknown>([
+            ['activeContext', frame],
+            ['contextVars', { names: { 'frame-1': 'frame' } }]
+        ])
+        const session = {
+            browser,
+            currentUrl: async () => 'https://parent.example/',
+            get: (key: string) => store.get(key)
+        } as unknown as Session
+
+        const bySelector = await wait(session, { target: 'button.save', $cwd: '/' })
+        expect(waitForDisplayed).toHaveBeenCalledOnce()
+        expect(bySelector.code).toBe("await frame.$('button.save').waitForDisplayed()")
+
+        const byText = await wait(session, { text: 'Inside', $cwd: '/' })
+        expect(byText.code).toBe("await browser.waitUntil(async () => (await frame.$('body').getText()).includes('Inside'))")
+
+        const byUrl = await wait(session, { url: '**/frame.html', $cwd: '/' })
+        expect(byUrl.code).toContain('await frame.getUrl()')
+
+        const byFn = await wait(session, { fn: 'window.frameReady === true', $cwd: '/' })
+        expect(byFn.code).toBe("await browser.waitUntil(async () => Boolean(await frame.execute('return Boolean(window.frameReady === true)')))")
+
+        const byLoad = await wait(session, { load: 'load', $cwd: '/' })
+        expect(byLoad.code).toContain('await frame.execute(')
+
+        vi.useFakeTimers()
+        vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+        const idleSession = {
+            ...session,
+            browser: {
+                ...browser,
+                waitUntil: async (cond: () => Promise<boolean>) => {
+                    expect(await cond()).toBe(false)
+                    vi.setSystemTime(Date.now() + 500)
+                    expect(await cond()).toBe(true)
+                }
+            }
+        } as unknown as Session
+        const byIdle = await wait(idleSession, { load: 'networkidle', $cwd: '/' })
+        expect(byIdle.code).toContain('await frame.execute(')
+    })
 })

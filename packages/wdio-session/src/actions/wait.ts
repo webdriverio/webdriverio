@@ -2,7 +2,7 @@ import { refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { inScope, resolveTarget, scopeOf, scopeTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_LIMIT = 10_000
@@ -85,9 +85,9 @@ export async function installNetworkProbe (session: Session) {
     await session.browser.execute(pageNetworkState).catch(() => {})
 }
 
-function networkIdleCode () {
+function networkIdleCode (receiver: string) {
     return `await browser.waitUntil(async () => {
-    const state = await browser.execute(${pageNetworkState.toString()})
+    const state = await ${receiver}.execute(${pageNetworkState.toString()})
     return state.ready === 'complete' && state.inflight === 0
 })`
 }
@@ -123,8 +123,8 @@ async function waiter (session: Session, target: string) {
         const resolved = await resolveTarget(session, target)
         return resolved
     }
-    const element = await session.browser.$(target).getElement()
-    return { element, code: `$(${quote(target)})`, label: JSON.stringify(target) }
+    const element = await scopeOf(session).$(target).getElement()
+    return { element, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }
 }
 
 export const wait: ActionFn = async (session, args) => {
@@ -144,6 +144,8 @@ export const wait: ActionFn = async (session, args) => {
     }
     const timeoutMsg = (what: string) => `${what} (waited ${limit}ms)`
     const options = (what: string) => ({ timeout: limit, timeoutMsg: timeoutMsg(what) })
+    const scope = scopeOf(session)
+    const receiver = scopeTarget(session)
 
     if (args.fn !== undefined) {
         const expression = String(args.fn)
@@ -152,28 +154,29 @@ export const wait: ActionFn = async (session, args) => {
         }
         const script = `return Boolean(${expression})`
         await session.browser.waitUntil(
-            async () => Boolean(await session.browser.execute(script)),
+            async () => Boolean(await scope.execute(script)),
             options(`Condition was not true: ${expression}`)
         )
-        return done(`Condition is true: ${expression}`, `await browser.waitUntil(async () => Boolean(await browser.execute(${quote(script)})))`)
+        return done(`Condition is true: ${expression}`, `await browser.waitUntil(async () => Boolean(await ${receiver}.execute(${quote(script)})))`)
     }
     if (args.text !== undefined) {
         const text = String(args.text)
         await session.browser.waitUntil(async () => {
-            const body = await session.browser.$('body').getText()
+            const body = await scope.$('body').getText()
             return body.includes(text)
         }, options(`Text ${JSON.stringify(text)} did not appear`))
-        return done(`Text appeared: ${text}`, `await browser.waitUntil(async () => (await $('body').getText()).includes(${quote(text)}))`)
+        return done(`Text appeared: ${text}`, `await browser.waitUntil(async () => (await ${inScope(session, "$('body')")}.getText()).includes(${quote(text)}))`)
     }
     if (args.url !== undefined) {
         const pattern = String(args.url)
+        const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
         await session.browser.waitUntil(
-            async () => matchUrl(pattern, await session.currentUrl({ throwOnError: true }) ?? ''),
+            async () => matchUrl(pattern, (held ? await held.getUrl().catch(() => '') : await session.currentUrl({ throwOnError: true })) ?? ''),
             options(`URL did not match ${pattern}`)
         )
         const check = pattern.includes('*')
-            ? `new RegExp(${quote(urlGlob(pattern))}).test(await browser.getUrl())`
-            : `(await browser.getUrl()).includes(${quote(pattern)})`
+            ? `new RegExp(${quote(urlGlob(pattern))}).test(await ${receiver}.getUrl())`
+            : `(await ${receiver}.getUrl()).includes(${quote(pattern)})`
         return done(`URL matches ${pattern}`, `await browser.waitUntil(async () => ${check})`)
     }
     if (args.load !== undefined) {
@@ -185,7 +188,7 @@ export const wait: ActionFn = async (session, args) => {
             let last = ''
             let since = 0
             await session.browser.waitUntil(async () => {
-                const state = await session.browser.execute(pageNetworkState) as PageNetwork
+                const state = await scope.execute(pageNetworkState) as PageNetwork
                 const bidi = session.get?.<Set<string>>('networkInflight')?.size ?? 0
                 const now = Date.now()
                 if (state.ready !== 'complete' || state.inflight > 0 || bidi > 0) {
@@ -201,17 +204,17 @@ export const wait: ActionFn = async (session, args) => {
                 }
                 return now - since >= NETWORK_QUIET_MS
             }, options('The page did not become network-idle'))
-            return done('Page is network-idle', networkIdleCode())
+            return done('Page is network-idle', networkIdleCode(receiver))
         }
         const ready = load === 'load' ? 'complete' : 'interactive'
         const check = load === 'load'
             ? 'document.readyState === \'complete\''
             : 'document.readyState === \'interactive\' || document.readyState === \'complete\''
         await session.browser.waitUntil(async () => {
-            const state = await session.browser.execute(() => document.readyState) as string
+            const state = await scope.execute(() => document.readyState) as string
             return load === 'load' ? state === 'complete' : state === 'interactive' || state === 'complete'
         }, options(`document.readyState did not reach ${ready}`))
-        return done(`Page reached ${load}`, `await browser.waitUntil(async () => await browser.execute(() => ${check}))`)
+        return done(`Page reached ${load}`, `await browser.waitUntil(async () => await ${receiver}.execute(() => ${check}))`)
     }
 
     const target = String(args.target ?? '')
