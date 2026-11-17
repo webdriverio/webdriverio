@@ -62,6 +62,13 @@ export function mockServer (handlers: Record<string, Handler>) {
  * a server with the given devices online
  */
 export function mockDevices (...devices: typeof IOS_DEVICE[]) {
+    return mockServer(deviceHandlers(...devices))
+}
+
+/**
+ * the methods of a session start, for a server with the given devices online
+ */
+export function deviceHandlers (...devices: typeof IOS_DEVICE[]): Record<string, Handler> {
     const find = (deviceId?: unknown) => {
         if (!deviceId && devices.length === 1) {
             return devices[0]
@@ -76,13 +83,13 @@ export function mockDevices (...devices: typeof IOS_DEVICE[]) {
         return device
     }
 
-    return mockServer({
+    return {
         'device.resolve': ({ deviceId }) => {
             const { id, platform, type } = find(deviceId)
             return { id, platform, type }
         },
         'device.info': ({ deviceId }) => ({ device: find(deviceId) })
-    })
+    }
 }
 
 /**

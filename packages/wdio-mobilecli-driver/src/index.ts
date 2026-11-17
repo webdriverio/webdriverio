@@ -5,9 +5,12 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 import type { Automation, Capabilities } from '@wdio/types'
 
-import { getProtocolCommands } from './commands.js'
+import { installAndLaunchApp } from './apps.js'
+import { addElementCommands, getProtocolCommands } from './commands/index.js'
+import { ElementRegistry } from './elements.js'
 import { DEFAULT_REQUEST_TIMEOUT, PACKAGE_NAME, PLATFORM_NAMES } from './constants.js'
 import { RpcClient, RpcError, getServerUrl } from './rpc.js'
+import { getSettings, getWaitOptions } from './settings.js'
 import type { DeviceInfo, DeviceInfoResult, Options, ResolvedDevice, Session } from './types.js'
 
 const log = logger('@wdio/mobilecli-driver')
@@ -21,7 +24,8 @@ export default class MobilecliDriver {
     /**
      * Start a session: connect to a running mobilecli server and to a device
      * that it knows. mobilecli has no sessions, so the session id is made up
-     * by the driver. Nothing is started or installed on the device.
+     * by the driver. With the capability `mobilecli:app` the app is installed
+     * and started, without it nothing changes on the device.
      */
     static async newSession (
         options: Options,
@@ -43,13 +47,28 @@ export default class MobilecliDriver {
 
         log.info(`Initiate new session using mobilecli at ${rpc.url}`)
         const { requested, device } = await findDevice(rpc, getCapabilityCandidates(requestedCapabilities))
+        const settings = getSettings(requested)
         const capabilities: WebdriverIO.Capabilities = {
             ...requested,
             platformName: PLATFORM_NAMES[device.platform] || device.platform,
             'mobilecli:udid': device.id
         }
 
-        const session: Session = { id: randomUUID(), rpc, device, timeouts: {}, ended: false }
+        const appPath = requested['mobilecli:app']
+        if (appPath) {
+            await installAndLaunchApp(rpc, device, appPath, settings)
+        }
+
+        const session: Session = {
+            id: randomUUID(),
+            rpc,
+            device,
+            timeouts: {},
+            settings,
+            wait: getWaitOptions({ settings, timeouts: {} }, options),
+            elements: new ElementRegistry(),
+            ended: false
+        }
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const monad = webdriverMonad(
             { ...options, capabilities, requestedCapabilities },
@@ -62,7 +81,7 @@ export default class MobilecliDriver {
         )
 
         log.info(`Session ${session.id} runs on ${device.name} (${device.platform} ${device.version || ''}, ${device.id})`)
-        return monad(session.id, customCommandWrapper, implicitWaitExclusionList)
+        return addElementCommands(monad(session.id, customCommandWrapper, implicitWaitExclusionList), session)
     }
 
     static attachToSession (): never {
@@ -159,7 +178,7 @@ async function connectToDevice (rpc: RpcClient, requested: WebdriverIO.Capabilit
         )
     }
 
-    const info = await rpc.call<DeviceInfoResult>('device.info', { deviceId: resolved.id })
+    const info = await rpc.callWithRetry<DeviceInfoResult>('device.info', { deviceId: resolved.id })
     if (!info?.device?.id || !info.device.platform) {
         throw new Error(`The mobilecli server answered "device.info" without a device: ${JSON.stringify(info)}`)
     }

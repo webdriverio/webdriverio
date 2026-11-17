@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { RpcClient, RpcError, getServerUrl } from '../src/rpc.js'
+import { ConnectionClosedError, RpcClient, RpcError, getServerUrl } from '../src/rpc.js'
 import { mockServer, ServerError } from './__fixtures__/server.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -95,6 +95,61 @@ describe('RpcClient', () => {
             'Install mobilecli ("npm install -g mobilecli") and start the server with "mobilecli server start".'
         )
         expect(error.cause).toEqual(new TypeError('fetch failed'))
+    })
+
+    describe('if the server closes the connection without an answer', () => {
+        const closed = () => new TypeError('fetch failed', { cause: Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' }) })
+        const answer = (result: unknown) => new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result }))
+
+        it('says so, and not that the server can not be reached', async () => {
+            vi.stubGlobal('fetch', vi.fn().mockRejectedValue(closed()))
+
+            const error = await new RpcClient(URL).call('device.info').catch((err) => err)
+            expect(error).toBeInstanceOf(ConnectionClosedError)
+            expect(error.message).toBe(
+                'The mobilecli server at http://localhost:12000/rpc closed the connection before it answered "device.info". ' +
+                'It does that when a call takes longer than its own time limit, for example while its agent starts on the device.'
+            )
+        })
+
+        it('does not send a call again by default', async () => {
+            const fetchMock = vi.fn().mockRejectedValueOnce(closed()).mockResolvedValue(answer('ok'))
+            vi.stubGlobal('fetch', fetchMock)
+
+            await expect(new RpcClient(URL).call('device.info')).rejects.toBeInstanceOf(ConnectionClosedError)
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
+
+        it('sends the call again with callWithRetry', async () => {
+            const fetchMock = vi.fn()
+                .mockRejectedValueOnce(closed())
+                .mockRejectedValueOnce(closed())
+                .mockResolvedValue(answer({ device: 'found' }))
+            vi.stubGlobal('fetch', fetchMock)
+
+            expect(await new RpcClient(URL).callWithRetry('device.info', { deviceId: 'a' })).toEqual({ device: 'found' })
+            expect(fetchMock).toHaveBeenCalledTimes(3)
+            expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual(expect.objectContaining({
+                method: 'device.info',
+                params: { deviceId: 'a' }
+            }))
+        })
+
+        it('gives up after two more calls', async () => {
+            const fetchMock = vi.fn().mockRejectedValue(closed())
+            vi.stubGlobal('fetch', fetchMock)
+
+            await expect(new RpcClient(URL).callWithRetry('device.info')).rejects.toBeInstanceOf(ConnectionClosedError)
+            expect(fetchMock).toHaveBeenCalledTimes(3)
+        })
+
+        it('does not send the call again after another failure', async () => {
+            const fetchMock = vi.fn().mockRejectedValue(new TypeError('fetch failed'))
+            vi.stubGlobal('fetch', fetchMock)
+
+            await expect(new RpcClient(URL).callWithRetry('device.info')).rejects.toThrow('Could not reach the mobilecli server')
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+        })
     })
 
     it('says which call the server did not answer in time', async () => {

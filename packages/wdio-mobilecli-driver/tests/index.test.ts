@@ -157,6 +157,24 @@ describe('MobilecliDriver', () => {
             expect(fetchMock).toHaveBeenCalledTimes(1)
         })
 
+        it('does not start with a setting in mobilecli:options that it does not know', async () => {
+            mockDevices(IOS_DEVICE)
+
+            await expect(newSession({ capabilities: { 'mobilecli:options': { actionTimout: 10000 } as object } }))
+                .rejects.toThrow('The capability "mobilecli:options" has the unknown setting "actionTimout"')
+        })
+
+        it('waits as long as actionTimeout and pollInterval of mobilecli:options say', async () => {
+            mockDevices(IOS_DEVICE)
+
+            const client = await newSession({
+                waitforTimeout: 3000,
+                capabilities: { 'mobilecli:options': { actionTimeout: 10000, pollInterval: 50 } }
+            }) as Client & { getTimeouts (): Promise<unknown> }
+
+            expect(await client.getTimeouts()).toEqual({ implicit: 10000 })
+        })
+
         it('sends the headers option to the server', async () => {
             const fetchMock = mockDevices(IOS_DEVICE)
 
