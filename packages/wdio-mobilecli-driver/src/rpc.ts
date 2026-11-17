@@ -1,7 +1,7 @@
-import logger from '@wdio/logger'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 
 import {
-    DEFAULT_HOSTNAME, DEFAULT_PORT, DEFAULT_PROTOCOL, DEFAULT_REQUEST_TIMEOUT,
+    CLOSED_CONNECTION_RETRIES, DEFAULT_HOSTNAME, DEFAULT_PORT, DEFAULT_PROTOCOL, DEFAULT_REQUEST_TIMEOUT,
     INSTALL_HINT, RPC_ENDPOINT
 } from './constants.js'
 import type { Options } from './types.js'
@@ -72,13 +72,23 @@ export class RpcClient {
      * Call a method of the server.
      * @param  method  name of the method, e.g. `device.info`
      * @param  params  parameters of the method
+     * @param  timeout how long this call may take, in ms, if it differs
+     *                 from the timeout of the client
+     * @param  options.mask  hide the `text` parameter in the log, for text
+     *                 that a test typed with `{ mask: true }`. mobilecli
+     *                 still gets the text.
      * @return the `result` of the response
      * @throws an `RpcError` if the server answers with an error, an `Error`
      *         if the server can not be reached or does not answer in time
      */
-    async call<T = unknown> (method: string, params: Record<string, unknown> = {}): Promise<T> {
+    async call<T = unknown> (
+        method: string,
+        params: Record<string, unknown> = {},
+        timeout = this.timeout,
+        { mask = false }: { mask?: boolean } = {}
+    ): Promise<T> {
         const id = ++this.#id
-        log.debug('RPC', method, params)
+        log.debug('RPC', method, mask && 'text' in params ? { ...params, text: SENSITIVE_DATA_REPLACER } : params)
 
         /**
          * the timeout is for the whole answer: a server can send the headers
@@ -91,12 +101,20 @@ export class RpcClient {
                 method: 'POST',
                 headers: { ...this.headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
-                signal: AbortSignal.timeout(this.timeout)
+                signal: AbortSignal.timeout(timeout)
             })
             text = await response.text()
         } catch (err) {
             if (err instanceof Error && err.name === 'TimeoutError') {
-                throw new Error(`The mobilecli server at ${this.url} did not answer "${method}" within ${this.timeout}ms`, { cause: err })
+                throw new Error(`The mobilecli server at ${this.url} did not answer "${method}" within ${timeout}ms`, { cause: err })
+            }
+            if (isClosedConnection(err)) {
+                throw new ConnectionClosedError(
+                    `The mobilecli server at ${this.url} closed the connection before it answered "${method}". ` +
+                    'It does that when a call takes longer than its own time limit, ' +
+                    'for example while its agent starts on the device.',
+                    { cause: err }
+                )
             }
             throw new Error(`Could not reach the mobilecli server at ${this.url}. ${INSTALL_HINT}`, { cause: err })
         }
@@ -121,6 +139,40 @@ export class RpcClient {
         log.debug('RPC RESULT', method, body.result)
         return body.result as T
     }
+
+    /**
+     * Call a method again if the server closes the connection without an
+     * answer, see `ConnectionClosedError`. The server goes on with the work
+     * of the first call, so the next call is fast. Only for methods that can
+     * be called twice without harm.
+     * @param retries  how often the call is sent again
+     */
+    async callWithRetry<T = unknown> (method: string, params: Record<string, unknown> = {}, retries = CLOSED_CONNECTION_RETRIES): Promise<T> {
+        for (let attempt = 0; ; attempt++) {
+            try {
+                return await this.call<T>(method, params)
+            } catch (err) {
+                if (!(err instanceof ConnectionClosedError) || attempt >= retries) {
+                    throw err
+                }
+                log.warn(`${err.message} Calling "${method}" again (${attempt + 1}/${retries}).`)
+            }
+        }
+    }
+}
+
+/**
+ * The server closed the connection without an answer. mobilecli does that
+ * when a call takes longer than the write timeout of its HTTP server (10
+ * seconds for most methods, `extendedWriteDeadline` in
+ * `mobilecli/server/server.go`), e.g. a `device.info` that has to start the
+ * agent on the device first.
+ */
+export class ConnectionClosedError extends Error {}
+
+function isClosedConnection (err: unknown) {
+    const code = (err as { cause?: { code?: string } })?.cause?.code
+    return code === 'UND_ERR_SOCKET' || code === 'ECONNRESET'
 }
 
 function parseResponse<T> (text: string): RpcResponse<T> | undefined {

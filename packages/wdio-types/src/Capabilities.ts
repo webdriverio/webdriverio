@@ -604,6 +604,104 @@ export interface MobilecliCapabilities {
      * It can be left out when exactly one device is online.
      */
     'mobilecli:udid'?: string
+    /**
+     * The app to install and start when the session starts: an `.apk` for
+     * Android, an `.app` folder or a `.zip` with one for an iOS simulator,
+     * an `.ipa` for an iOS device. It is a path on the machine where the
+     * mobilecli server runs. Without it the session starts with what is on
+     * the screen of the device.
+     */
+    'mobilecli:app'?: string
+    /**
+     * Settings of the driver: how long it waits and how it reads the
+     * screen. All of them are optional and in milliseconds, unless said
+     * otherwise.
+     */
+    'mobilecli:options'?: MobilecliOptions
+}
+
+/**
+ * The settings of the mobilecli automation protocol driver, see the
+ * capability `mobilecli:options`.
+ */
+export interface MobilecliOptions {
+    /**
+     * How long a command of an element (`click`, `setValue`, `getText`, ...)
+     * waits until it can use the element. It is the action timeout of
+     * Mobilewright. A command has no timeout of its own: to change it from
+     * a line of a test on, use `browser.setTimeout({ implicit })`, and to
+     * give one command more time, use a wait command before it, for
+     * example `waitForEnabled({ timeout })`.
+     *
+     * @default the `waitforTimeout` of WebdriverIO, which is 5000
+     */
+    actionTimeout?: number
+    /**
+     * How long a command waits between two reads of the screen while it
+     * waits for its element.
+     *
+     * @default the `waitforInterval` of WebdriverIO, which is 100
+     */
+    pollInterval?: number
+    /**
+     * An element is tapped when two reads of the screen show it at the
+     * same place. This is the time between these two reads.
+     *
+     * @default 50
+     */
+    stabilityDelay?: number
+    /**
+     * How long a read of the screen counts as the first of the two reads
+     * that have to show an element at the same place.
+     *
+     * @default 1000
+     */
+    stabilityWindow?: number
+    /**
+     * How long a read of the screen is used again in place of a new one,
+     * as long as the driver did nothing on the screen. Several finds and
+     * reads in a row then share one read of the screen, which makes a test
+     * faster. With `0` every find and every command reads the screen
+     * itself.
+     *
+     * @default 100
+     */
+    screenFreshTime?: number
+    /**
+     * How often a find can search the same selector in one read of the
+     * screen, a count. WebdriverIO searches a second time right after it
+     * waited for an element.
+     *
+     * @default 2
+     */
+    maxSearchesPerScreen?: number
+    /**
+     * How long `addValue` waits until the element that it tapped has the
+     * focus, before it types.
+     *
+     * @default 3000
+     */
+    focusTimeout?: number
+    /**
+     * How long `hideKeyboard` can take.
+     *
+     * @default 60000
+     */
+    keyboardTimeout?: number
+    /**
+     * How long the install of the app of `mobilecli:app` can take.
+     *
+     * @default 190000
+     */
+    installTimeout?: number
+    /**
+     * How long the driver waits until the app of `mobilecli:app` is in the
+     * foreground after it was started. The session does not start if it is
+     * not. A real device can need more than a simulator.
+     *
+     * @default 20000
+     */
+    appLaunchTimeout?: number
 }
 
 /**
