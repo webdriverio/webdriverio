@@ -30,11 +30,7 @@ describe('@wdio/session/agent', () => {
     }, 60_000)
 
     afterAll(async () => {
-        const artifactsDir = agent?.session.artifactsDir
         await agent?.dispose()
-        if (artifactsDir) {
-            fs.rmSync(artifactsDir, { recursive: true, force: true })
-        }
         await browser?.deleteSession()
         await server?.close()
     })
@@ -136,6 +132,14 @@ describe('@wdio/session/agent', () => {
         const ref = contents.match(/button "Add to cart" \[ref=(e\d+)\]/)?.[1]
         expect(ref).toBeDefined()
         expect(agent.ref(ref!)?.candidates.length).toBeGreaterThan(0)
+
+        const scoped = await agent.snapshot({ scope: '#products', interactive: true, fileOnly: true })
+        expect(scoped.tooBig).toBe(false)
+        expect(scoped.file).toBeDefined()
+        const scopedContents = fs.readFileSync(scoped.file!, 'utf8')
+        expect(scopedContents).toContain('button "Add to cart"')
+        expect(scopedContents).not.toContain('Checkout')
+        expect(scopedContents).not.toContain('Cart (')
     })
 
     it('names the commands of the caller in a stale ref error after a navigation', async () => {
@@ -166,9 +170,12 @@ describe('@wdio/session/agent', () => {
         }
     })
 
-    it('keeps the history in memory and leaves the browser session open on dispose', async () => {
-        expect(fs.existsSync(path.join(agent.session.artifactsDir, 'history.json'))).toBe(false)
+    it('keeps the history in memory, removes its temporary artifacts dir, and leaves the browser session open on dispose', async () => {
+        const artifactsDir = agent.session.artifactsDir
+        expect(fs.existsSync(path.join(artifactsDir, 'history.json'))).toBe(false)
+        expect(fs.existsSync(path.join(artifactsDir, 'snapshots'))).toBe(true)
         await agent.dispose()
+        expect(fs.existsSync(artifactsDir)).toBe(false)
         expect(await browser.getTitle()).toBe('Shop · Cart')
     })
 

@@ -31,7 +31,8 @@ Install `webdriverio` next to this package: it is a required peer dependency.
 
 `@wdio/session/agent` runs the same actions, snapshots and refs on a browser
 your code already owns, for example in a test or a `remote()` script. There is
-no daemon. `dispose()` leaves the browser session open.
+no daemon. `dispose()` removes a temporary `artifactsDir` it created and leaves
+the browser session open.
 
 > **Experimental:** the `@wdio/session/agent` API, the snapshot text and the
 > `RefEntry` fields `ref()` returns may change in a minor release. The ref
