@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 
-import { consoleLevel, consoleText, ingestElectronLogs, networkEntry, parseServiceLogLine, remoteValueText, responseStats } from '../../src/daemon/capture.js'
+import { consoleLevel, consoleText, inflightCount, ingestElectronLogs, networkEntry, parseServiceLogLine, remoteValueText, responseStats, startEventCapture } from '../../src/daemon/capture.js'
 import { RingBuffer } from '../../src/daemon/events.js'
 import type { Session } from '../../src/session.js'
 import { requestMatches, mockBody } from '../../src/actions/network.js'
@@ -116,5 +116,48 @@ describe('ingestElectronLogs', () => {
         } finally {
             fs.rmSync(dir, { recursive: true, force: true })
         }
+    })
+})
+
+describe('inflight request tracking', () => {
+    it('tracks in-flight BiDi requests by browsing context and filters by scope', async () => {
+        const handlers = new Map<string, (params: unknown) => void>()
+        const store = new Map<string, unknown>()
+        const session = {
+            name: 'test',
+            isBidi: true,
+            isWeb: true,
+            applies: ['W'],
+            logs: new RingBuffer(),
+            network: new RingBuffer(),
+            disposers: [],
+            get: (key: string) => store.get(key),
+            set: (key: string, value: unknown) => store.set(key, value),
+            browser: {
+                sessionSubscribe: async () => ({}),
+                on: (event: string, fn: (params: unknown) => void) => handlers.set(event, fn),
+                off: () => {}
+            }
+        } as unknown as Session
+
+        await startEventCapture(session, { logs: false })
+        const before = handlers.get('network.beforeRequestSent')!
+        const completed = handlers.get('network.responseCompleted')!
+        const failed = handlers.get('network.fetchError')!
+
+        before({ context: 'parent-tab', request: { request: 'r1', method: 'GET', url: 'https://parent.example/poll' } })
+        before({ context: 'frame-1', request: { request: 'r2', method: 'GET', url: 'https://frame.example/api' } })
+        before({ context: 'other-tab', request: { request: 'r3', method: 'GET', url: 'https://other.example/poll' } })
+
+        expect(inflightCount(session)).toBe(3)
+        expect(inflightCount(session, new Set(['frame-1']), true)).toBe(1)
+        expect(inflightCount(session, new Set(['other-frame']), true)).toBe(0)
+
+        completed({ context: 'frame-1', request: { request: 'r2', method: 'GET', url: 'https://frame.example/api' }, response: { status: 200 } })
+        expect(inflightCount(session, new Set(['frame-1']), true)).toBe(0)
+        expect(inflightCount(session)).toBe(2)
+
+        failed({ context: 'parent-tab', request: { request: 'r1', method: 'GET', url: 'https://parent.example/poll' }, errorText: 'aborted' })
+        expect(inflightCount(session)).toBe(1)
     })
 })

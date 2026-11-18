@@ -244,4 +244,71 @@ describe('wait', () => {
         const byIdle = await wait(idleSession, { load: 'networkidle', $cwd: '/' })
         expect(byIdle.code).toContain('await frame.execute(')
     })
+
+    it('ignores unrelated parent and sibling requests during held-frame networkidle waits', async () => {
+        vi.useFakeTimers()
+        vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+        const frame = {
+            contextId: 'frame-1',
+            isFrame: true,
+            execute: async () => ({ ready: 'complete', completed: 1, inflight: 0 })
+        }
+        const inflight = new Map<string, string | undefined>([
+            ['req-parent', 'parent-tab'],
+            ['req-sibling', 'frame-2'],
+            ['req-child', 'subframe-1']
+        ])
+        const store = new Map<string, unknown>([
+            ['activeContext', frame],
+            ['contextVars', { names: { 'frame-1': 'frame' } }],
+            ['networkInflight', inflight]
+        ])
+        const session = {
+            browser: {
+                browsingContextGetTree: async () => ({
+                    contexts: [{ context: 'frame-1', children: [{ context: 'subframe-1', children: [] }] }]
+                }),
+                waitUntil: async (cond: () => Promise<boolean>) => {
+                    expect(await cond()).toBe(false)
+                    inflight.delete('req-child')
+                    expect(await cond()).toBe(false)
+                    vi.setSystemTime(Date.now() + 500)
+                    expect(await cond()).toBe(true)
+                }
+            },
+            get: (key: string) => store.get(key)
+        } as unknown as Session
+
+        const result = await wait(session, { load: 'networkidle', $cwd: '/' })
+        expect(result.text).toBe('Page is network-idle')
+        expect(inflight.size).toBe(2)
+    })
+
+    it('ignores background tab requests during top-level BiDi networkidle waits', async () => {
+        vi.useFakeTimers()
+        vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+        const inflight = new Map<string, string | undefined>([
+            ['req-other-tab', 'tab-2']
+        ])
+        const store = new Map<string, unknown>([
+            ['networkInflight', inflight]
+        ])
+        const session = {
+            isBidi: true,
+            browser: {
+                getWindowHandle: async () => 'tab-1',
+                browsingContextGetTree: async () => ({ contexts: [{ context: 'tab-1', children: [] }] }),
+                execute: async () => ({ ready: 'complete', completed: 1, inflight: 0 }),
+                waitUntil: async (cond: () => Promise<boolean>) => {
+                    expect(await cond()).toBe(false)
+                    vi.setSystemTime(Date.now() + 500)
+                    expect(await cond()).toBe(true)
+                }
+            },
+            get: (key: string) => store.get(key)
+        } as unknown as Session
+
+        const result = await wait(session, { load: 'networkidle', $cwd: '/' })
+        expect(result.text).toBe('Page is network-idle')
+    })
 })

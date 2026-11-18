@@ -90,16 +90,19 @@ export function responseStats (timings: Timings | undefined, response: ResponseL
 }
 
 interface CapturedRequest {
+    context?: string | null
     request?: { request?: string, method?: string, url?: string, timings?: Timings, initiatorType?: string | null, destination?: string }
     timestamp?: number
     response?: ResponseLike & { status?: number }
     errorText?: string
 }
 
-function inflightIds (session: Session) {
-    let ids = session.get<Set<string>>('networkInflight')
+type InflightRequests = Map<string, string | undefined>
+
+function inflightRequests (session: Session) {
+    let ids = session.get<InflightRequests>('networkInflight')
     if (!ids) {
-        ids = new Set()
+        ids = new Map()
         session.set('networkInflight', ids)
     }
     return ids
@@ -110,12 +113,33 @@ function noteRequest (session: Session, params: CapturedRequest, open: boolean) 
     if (!id) {
         return
     }
-    const ids = inflightIds(session)
+    const ids = inflightRequests(session)
     if (open) {
-        ids.add(id)
+        ids.set(id, params.context ?? undefined)
     } else {
         ids.delete(id)
     }
+}
+
+export function inflightCount (
+    session: Session,
+    scopeContexts?: ReadonlySet<string>,
+    excludeUntagged = false
+): number {
+    const inflight = session.get?.<InflightRequests | Set<string>>('networkInflight')
+    if (!inflight) {
+        return 0
+    }
+    if (inflight instanceof Set || !scopeContexts) {
+        return inflight.size
+    }
+    let count = 0
+    for (const context of inflight.values()) {
+        if (context ? scopeContexts.has(context) : !excludeUntagged) {
+            count++
+        }
+    }
+    return count
 }
 
 export function networkEntry (params: CapturedRequest, failed: boolean): Omit<NetworkEntry, 'seq'> | undefined {

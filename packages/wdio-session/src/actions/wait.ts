@@ -1,5 +1,6 @@
 import { refId } from '@wdio/snapshot'
 
+import { inflightCount } from '../daemon/capture.js'
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { inScope, resolveTarget, scopeOf, scopeTarget } from '../snapshot/target.js'
@@ -118,6 +119,39 @@ export function matchUrl (pattern: string, url: string) {
     return new RegExp(urlGlob(pattern)).test(url)
 }
 
+type TreeNode = { context: string, children?: unknown[] | null }
+
+function collectContextIds (nodes: TreeNode[], out: Set<string>) {
+    for (const node of nodes) {
+        if (node.context) {
+            out.add(node.context)
+        }
+        if (Array.isArray(node.children)) {
+            collectContextIds(node.children as TreeNode[], out)
+        }
+    }
+}
+
+async function scopeContextIds (session: Session, rootId: string | undefined) {
+    if (!rootId) {
+        return undefined
+    }
+    const ids = new Set<string>([rootId])
+    const inflight = session.get?.<Map<string, string | undefined> | Set<string>>('networkInflight')
+    if (
+        inflight instanceof Map
+        && inflight.size > 0
+        && typeof session.browser.browsingContextGetTree === 'function'
+        && [...inflight.values()].some((ctx) => ctx && ctx !== rootId)
+    ) {
+        const tree = await session.browser.browsingContextGetTree({ root: rootId }).catch(() => undefined)
+        if (tree?.contexts) {
+            collectContextIds(tree.contexts as TreeNode[], ids)
+        }
+    }
+    return ids
+}
+
 async function waiter (session: Session, target: string) {
     if (refId(target)) {
         const resolved = await resolveTarget(session, target)
@@ -145,6 +179,7 @@ export const wait: ActionFn = async (session, args) => {
     const timeoutMsg = (what: string) => `${what} (waited ${limit}ms)`
     const options = (what: string) => ({ timeout: limit, timeoutMsg: timeoutMsg(what) })
     const scope = scopeOf(session)
+    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
     const receiver = scopeTarget(session)
 
     if (args.fn !== undefined) {
@@ -169,7 +204,6 @@ export const wait: ActionFn = async (session, args) => {
     }
     if (args.url !== undefined) {
         const pattern = String(args.url)
-        const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
         await session.browser.waitUntil(
             async () => matchUrl(pattern, (held ? await held.getUrl().catch(() => '') : await session.currentUrl({ throwOnError: true })) ?? ''),
             options(`URL did not match ${pattern}`)
@@ -185,11 +219,16 @@ export const wait: ActionFn = async (session, args) => {
             throw usage(`Unknown load state "${load}".`, 'Use domcontentloaded, load or networkidle.')
         }
         if (load === 'networkidle') {
+            const rootId = held?.contextId
+                ?? (session.isBidi && typeof session.browser.getWindowHandle === 'function'
+                    ? await session.browser.getWindowHandle().catch(() => undefined)
+                    : undefined)
             let last = ''
             let since = 0
             await session.browser.waitUntil(async () => {
                 const state = await scope.execute(pageNetworkState) as PageNetwork
-                const bidi = session.get?.<Set<string>>('networkInflight')?.size ?? 0
+                const scopeIds = await scopeContextIds(session, rootId)
+                const bidi = inflightCount(session, scopeIds, Boolean(held))
                 const now = Date.now()
                 if (state.ready !== 'complete' || state.inflight > 0 || bidi > 0) {
                     last = ''
