@@ -464,6 +464,43 @@ importers:
         specifier: workspace:*
         version: link:../../packages/webdriverio
 
+  examples/wdio/vite-angular-example:
+    dependencies:
+      '@angular/compiler':
+        specifier: ^21.0.0
+        version: 21.2.26
+      '@angular/core':
+        specifier: ^21.0.0
+        version: 21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)
+      '@angular/platform-browser':
+        specifier: ^21.0.0
+        version: 21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))
+      rxjs:
+        specifier: ^7.8.0
+        version: 7.8.2
+    devDependencies:
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cli
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      typescript:
+        specifier: ~5.9.0
+        version: 5.9.3
+
   examples/wdio/vite-vue-example:
     dependencies:
       vue:
@@ -2754,6 +2791,41 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  '@angular/common@21.2.26':
+    resolution: {integrity: sha512-2lnNdImIHaeTmYqW+lEKeU9vPauNLz8NgM2MoZs7kV9D+CfPMi90F5VwRg0q16J/UiKS8uiYIYmUeaoo2wu4Pg==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    peerDependencies:
+      '@angular/core': 21.2.26
+      rxjs: ^6.5.3 || ^7.4.0
+
+  '@angular/compiler@21.2.26':
+    resolution: {integrity: sha512-awrZjb8ok4TE871RVCvVkPfO63vmW0whqslXQ1s5sSFzlYoYDGxQznVbp0PoDiYU+QpoxMK50Lec/J2l0+0fjw==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+
+  '@angular/core@21.2.26':
+    resolution: {integrity: sha512-EXALAnHRhhBj9WAYend5IIpFlpqPq+HM3OrHxBiWNQoqxOfFKnmRKGERLlX3FEDSzWQt+iZcZHpd2569Xo0pMA==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    peerDependencies:
+      '@angular/compiler': 21.2.26
+      rxjs: ^6.5.3 || ^7.4.0
+      zone.js: ~0.15.0 || ~0.16.0
+    peerDependenciesMeta:
+      '@angular/compiler':
+        optional: true
+      zone.js:
+        optional: true
+
+  '@angular/platform-browser@21.2.26':
+    resolution: {integrity: sha512-0yJN5FZX88SqdAnsmZC5E0MGpkQyG4CXjdWN3wTX3vFMsnetvm9MqyZKalxNFneucXV0KLrb8oRma5San3Hmeg==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    peerDependencies:
+      '@angular/animations': 21.2.26
+      '@angular/common': 21.2.26
+      '@angular/core': 21.2.26
+    peerDependenciesMeta:
+      '@angular/animations':
+        optional: true
 
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
@@ -13940,6 +14012,9 @@ packages:
   rw@1.3.3:
     resolution: {integrity: sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==}
 
+  rxjs@7.8.2:
+    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
+
   safaridriver@3.0.0:
     resolution: {integrity: sha512-NJSsR0tgn5j4fhg7vj4kD5mQ+t2ZRH3GX1jdUYraEjej9j8ZtBXEe4WZh2/89i7S9+GO3cZKWhUisWb7gyjRwA==}
     engines: {node: '>=22.19.0'}
@@ -15850,6 +15925,29 @@ snapshots:
       '@algolia/client-common': 5.47.0
 
   '@alloc/quick-lru@5.2.0': {}
+
+  '@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/core': 21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
+  '@angular/compiler@21.2.26':
+    dependencies:
+      tslib: 2.8.1
+
+  '@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)':
+    dependencies:
+      rxjs: 7.8.2
+      tslib: 2.8.1
+    optionalDependencies:
+      '@angular/compiler': 21.2.26
+
+  '@angular/platform-browser@21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))':
+    dependencies:
+      '@angular/common': 21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)
+      tslib: 2.8.1
 
   '@antfu/install-pkg@1.1.0':
     dependencies:
@@ -29736,6 +29834,10 @@ snapshots:
       queue-microtask: 1.2.3
 
   rw@1.3.3: {}
+
+  rxjs@7.8.2:
+    dependencies:
+      tslib: 2.8.1
 
   safaridriver@3.0.0: {}
 

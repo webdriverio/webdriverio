@@ -11,6 +11,7 @@
     "test:multi-remote": "wdio run ./multiremote/wdio.conf.js",
     "test:customReporter": "wdio run ./custom-reporter/wdio.conf.js",
     "test:customService": "wdio run ./custom-service/wdio.conf.js",
+    "test:angular": "pnpm --dir ./vite-angular-example run wdio",
     "test:viteVue": "cd ./vite-vue-example && npm run wdio"
   },
   "dependencies": {

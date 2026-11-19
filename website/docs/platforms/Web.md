@@ -87,7 +87,7 @@ Browser capabilities that need WebDriver BiDi (Chrome, Edge and Firefox; not Saf
 Component and unit testing in a real browser:
 
 - [Component Testing](/docs/component-testing): how the Vite-based [Browser Runner](/docs/runner#browser-runner) works and how to set it up.
-- Framework guides: [React](/docs/component-testing/react), [Vue.js](/docs/component-testing/vue), [Svelte](/docs/component-testing/svelte), [SolidJS](/docs/component-testing/solid), [Preact](/docs/component-testing/preact), [Lit](/docs/component-testing/lit), [Stencil](/docs/component-testing/stencil).
+- Framework guides: [Angular](/docs/component-testing/angular), [React](/docs/component-testing/react), [Vue.js](/docs/component-testing/vue), [Svelte](/docs/component-testing/svelte), [SolidJS](/docs/component-testing/solid), [Preact](/docs/component-testing/preact), [Lit](/docs/component-testing/lit), [Stencil](/docs/component-testing/stencil).
 - [Mocking](/docs/component-testing/mocking) and [Coverage](/docs/component-testing/coverage) for component tests.
 
 Visual and accessibility testing:

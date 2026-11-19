@@ -120,6 +120,7 @@
                   "type": "category",
                   "label": "Framework Setup",
                   "items": [
+                    "component-testing/angular",
                     "component-testing/lit",
                     "component-testing/vue",
                     "component-testing/svelte",

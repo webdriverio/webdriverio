@@ -150,4 +150,4 @@ This will ensure the browser correctly opens the right server instance hosted on
 
 ## Examples
 
-You can find various examples for testing components using popular component frameworks in our [example repository](https://github.com/webdriverio/component-testing-examples).
+For an Angular component with an inline template, follow the [Angular setup guide](/docs/component-testing/angular). You can also run complete examples for several frameworks from our [example repository](https://github.com/webdriverio/component-testing-examples).
