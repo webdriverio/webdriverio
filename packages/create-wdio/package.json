@@ -62,7 +62,7 @@
     "normalize-package-data": "^9.0.0",
     "read-package-up": "^12.0.0",
     "semver": "^7.6.3",
-    "type-fest": "^5.10.0",
+    "type-fest": "^6.0.0",
     "yargs": "^18.2.0"
   },
   "devDependencies": {
