@@ -141,7 +141,7 @@ export interface HookFunctions {
      * @param exitCode      runner exit code: 0 - success, 1 - fail
      * @param config        wdio configuration object
      * @param capabilities  list of capabilities details
-     * @param results       test results
+     * @param results       spec job counts: finished, passed, failed and retries
      */
     onComplete?(
         exitCode: number,

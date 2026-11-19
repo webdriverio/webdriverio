@@ -752,7 +752,16 @@ Parameters:
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `result` (`object`): results object containing test results
+- `results` (`object`): counts of spec jobs across workers. A job runs a spec file or a group of spec files for one capability configuration.
+
+  | Field | What it counts |
+  | --- | --- |
+  | `finished` | Jobs that reached their final attempt, including skipped jobs. |
+  | `passed` | Jobs that passed. |
+  | `failed` | Jobs that failed with no spec retries remaining. |
+  | `retries` | Failed attempts that triggered a spec retry. |
+
+For example, if a spec containing three tests passes on its second attempt, it contributes `{ finished: 1, passed: 1, failed: 0, retries: 1 }`. For individual test outcomes, use [`afterTest`](#aftertest) with Mocha or Jasmine, or [`afterScenario`](#afterscenario) with Cucumber.
 
 ### onReload
 
