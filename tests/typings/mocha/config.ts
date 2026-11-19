@@ -1,8 +1,15 @@
 import { some } from "expect-webdriverio/api"
 
+// A third-party Mocha package can register its interface with @types/mocha.
+declare module 'mocha' {
+    interface InterfaceContributions {
+        '@example/custom-tdd': never
+    }
+}
+
 const config: WebdriverIO.Config = {
     mochaOpts: {
-        ui: 'qunit',
+        ui: '@example/custom-tdd',
         failHookAffectedTests: false,
         // @ts-expect-error
         fullTrace: 'wrong param'
