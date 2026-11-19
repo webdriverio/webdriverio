@@ -65,7 +65,8 @@ class JunitReporter extends WDIOReporter {
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
-            : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
+            // keep the letters (with their combining marks) and digits of every language, not only ASCII ones
+            : /[^\p{L}\p{M}\p{N}@]+/u // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
 
         const processObj: any = process
         if (this._addWorkerLogs) {

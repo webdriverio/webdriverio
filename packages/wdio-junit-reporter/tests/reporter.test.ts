@@ -98,6 +98,21 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_prepareName']('Chrome @something_odd.foobar')).toMatchSnapshot()
     })
 
+    it('keeps the letters and digits of every language in suite and test names', () => {
+        expect(reporter['_prepareName']('Größe prüfen')).toBe('Größe prüfen')
+        expect(reporter['_prepareName']('ログインできる')).toBe('ログインできる')
+        expect(reporter['_prepareName']('हिन्दी पाठ')).toBe('हिन्दी पाठ')
+        expect(reporter['_prepareName']('Größe_prüfen.v2 @smoke')).toBe('Größe prüfen v2 @smoke')
+
+        const [suite] = Object.values(structuredClone(suitesLog)) as any[]
+        suite.title = 'ログイン'
+        suite.tests[0].title = 'パスワードが違うとエラーになる'
+        reporter.suites = { [suite.uid]: suite } as any
+        const xml = reporter['_buildJunitXml'](mochaRunnerLog as any)
+        expect(xml).toContain('<testsuite name="ログイン"')
+        expect(xml).toContain('name="パスワードが違うとエラーになる"')
+    })
+
     it('has a suiteNameFormat option for setting names manually', () => {
         reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: /foobar/ })
         expect(reporter['_prepareName']('Skipped_foobar_test')).toMatchSnapshot()
