@@ -42,13 +42,13 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | Run, Rerun and Run all from the dashboard | ◐ ²¹ | ◐ ²¹ | ◐ ²¹ | ✓ |
 | Preserve & Rerun (compare a failed run with its rerun) | ✓ | ✓ | ✓ | ✓ |
 | Dashboard window opens by itself in live mode, and can be turned off | ◐ ²² | ✓ ²³ | ◐ ²⁴ | ✓ ²⁵ |
-| Turn off per-command screenshots (`captureScreenshots`) | ✕ ²⁶ | ✓ | ✕ ²⁷ | ✕ ²⁷ |
-| Force the test browser headless (`headless`) | ✕ ²⁸ | ◐ ²⁹ | ✕ ²⁸ | ✕ ²⁸ |
-| Safari kept frontmost so input lands (live mode) | ◐ ³⁰ | ✓ ³¹ | ◐ ³⁰ | ◐ ³⁰ |
-| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✓ | ✓ | ✓ | ✕ ³² |
-| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✓ | ✓ | ◐ ³³ | ✕ ³⁴ |
-| Prints where each kept trace was written | ✓ ³⁵ | ◐ ³⁶ | ◐ ³⁶ | ◐ ³⁷ |
-| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ | ◐ ³⁸ |
+| Turn off per-command screenshots (`captureScreenshots`) | ✕ ²⁶ | ✓ | ✕ ²⁷ | ✕ ²⁸ |
+| Force the test browser headless (`headless`) | ✕ ²⁹ | ◐ ³⁰ | ✕ ²⁹ | ✕ ²⁹ |
+| Safari kept frontmost so input lands (live mode) | ◐ ³¹ | ✓ ³² | ◐ ³¹ | ◐ ³¹ |
+| Unpacked trace output (`traceFormat: 'ndjson-directory'`) | ✓ | ✓ | ✓ | ✕ ³³ |
+| Artifacts manifest for CI and reporters (`emitArtifactsManifest`) | ✓ | ✓ | ◐ ³⁴ | ✕ ³⁵ |
+| Prints where each kept trace was written | ✓ ³⁶ | ◐ ³⁷ | ◐ ³⁷ | ◐ ³⁸ |
+| Network without BiDi (Safari, Appium mobile browsers) | ◐ ³⁹ | ◐ ³⁹ | ◐ ³⁹ | ◐ ³⁹ |
 
 ✓ supported. ◐ partial. ✕ not supported. A number points to its note below the table. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
@@ -64,7 +64,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 ⁶ Nightwatch exposes no stable CDP handle, so frames come from a `takeScreenshot` poll every 200 ms.
 
-⁷ Chromium streams over CDP; other browsers take one frame per command.
+⁷ Chromium streams over CDP; other browsers take a frame per page-changing command, plus wait polls and reads at most every 200 ms.
 
 ⁸ Nightwatch fires the global `beforeEach` / `afterEach` once per test module for `describe/it` and exports-object tests, so they collapse to one slice keyed to the first test; Cucumber scenarios get real per-test slices.
 
@@ -106,26 +106,28 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 
 ²⁷ No option: every command row takes a screenshot.
 
-²⁸ No option: set headless in the browser capabilities, as for any run.
+²⁸ No option: in live mode every command row takes a screenshot; in trace mode every row of a page-changing command does.
 
-²⁹ The option adds `--headless=old` to `goog:chromeOptions` only, so other browsers stay headed; set their own headless capability.
+²⁹ No option: set headless in the browser capabilities, as for any run.
 
-³⁰ Brings Safari to the front once after the session starts (live mode, local macOS), so a click issued after another window took the front can still land nowhere.
+³⁰ The option adds `--headless=old` to `goog:chromeOptions` only, so other browsers stay headed; set their own headless capability.
 
-³¹ Brings Safari to the front before each element click, type, clear and submit.
+³¹ Brings Safari to the front once after the session starts (live mode, local macOS), so a click issued after another window took the front can still land nowhere.
 
-³² The Python adapter has no option for it and sends no format in its export request, so the backend writes a zip.
+³² Brings Safari to the front before each element click, type, clear and submit.
 
-³³ Nightwatch has no live Allure signal to turn the manifest on by itself, so it stays opt-in.
+³³ The Python adapter has no option for it and sends no format in its export request, so the backend writes a zip.
 
-³⁴ The Python adapter writes no artifacts manifest.
+³⁴ Nightwatch has no live Allure signal to turn the manifest on by itself, so it stays opt-in.
 
-³⁵ Printed to stdout whatever the `logLevel`.
+³⁵ The Python adapter writes no artifacts manifest.
 
-³⁶ Logs the path at info level through the adapter's logger rather than printing it, so a run that hides info messages does not show it.
+³⁶ Printed to stdout whatever the `logLevel`.
 
-³⁷ Logs the path (the folder, for per-test traces) at info level through Python's `logging`, which hides info messages unless the run enables them (`--log-cli-level=INFO` under pytest).
+³⁷ Logs the path at info level through the adapter's logger rather than printing it, so a run that hides info messages does not show it.
 
-³⁸ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
+³⁸ Logs the path (the folder, for per-test traces) at info level through Python's `logging`, which hides info messages unless the run enables them (`--log-cli-level=INFO` under pytest).
+
+³⁹ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
 <!-- capability-matrix:cross-framework:end -->
