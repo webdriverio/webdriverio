@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { applyMochaDefaults, dottedFullTitle, formatMessage, setupEnv } from '../src/common.js'
@@ -149,6 +149,10 @@ describe('formatMessage', () => {
 })
 
 describe('setupEnv', () => {
+    beforeEach(() => {
+        vi.mocked(wrapGlobalTestMethod).mockClear()
+    })
+
     test.each(['tdd', '@example/custom-tdd', '/project/custom-tdd.js', '/project/custom-tdd.cjs'])('wraps TDD tests and hooks for %s', (ui) => {
         const hooks = {
             beforeHook: 'beforeHook123' as any,
