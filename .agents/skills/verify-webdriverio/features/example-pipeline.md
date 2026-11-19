@@ -5,6 +5,7 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 ## Sub-features
 
 - `example-standalone` starts Chrome headless through `remote()` and prints the loaded URL.
+- `example-multi-remote-close-window` closes one instance's last window and uses the other instance in both BiDi and Classic.
 - `example-mocha` runs the Mocha testrunner against Chrome and asserts the WebdriverIO docs title.
 - `example-pageobject` runs a page-object suite against a real login form in Chrome.
 - `example-frameworks` runs the Jasmine, Cucumber, multi-remote, custom reporter, and custom service testrunner examples.
@@ -12,7 +13,7 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 
 ## How to get to it (user POV)
 
-- Standalone script: `examples/standalone/sample.js`
+- Standalone scripts: `examples/standalone/sample.js` and `examples/standalone/multi-remote-close-window.js`
 - Testrunner examples, from `examples/wdio`: `pnpm run test:mocha`, `test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`
 - Page objects: `examples/pageobject` then `pnpm run test`
 - BiDi scripts: `examples/bidi/logging.js`, `examples/bidi/scripting.js`, `examples/bidi/multiremote-mock.js`, and `examples/bidi/history.js` (Chrome with `webSocketUrl: true`)
@@ -27,6 +28,7 @@ Preconditions:
 - The machine can reach the URL the script opens.
 
 - **Standalone Chrome.** Run `cd examples/standalone && node sample.js`. Exit 0 and stdout contains `https://webdriver.io/`. The script deletes the session. A thrown error prints `Something went wrong:` and still deletes the session; that is a failure.
+- **Multi-remote last window.** Run `cd examples/standalone && node multi-remote-close-window.js`. Exit 0 and stdout contains both `BiDi: closed A; B remains usable` and `Classic: closed A; B remains usable`. Each mode starts two headless Chrome sessions, closes A, asserts B's title, then deletes the sessions. A failed assertion or cleanup makes the script fail.
 - **Mocha testrunner.** Run `cd examples/wdio && pnpm run test:mocha`. Exit 0. The spec reporter shows the title assertion passing. `onPrepare` prints `let's go` and `onComplete` prints `that's it`.
 - **Page objects.** Run `cd examples/pageobject && pnpm run test`. Exit 0. Specs assert `Your username is invalid!` and `You logged into a secure area!` on `http://the-internet.herokuapp.com`.
 - **Other testrunner examples.** Run the matching script from `examples/wdio/package.json` (`test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`). Exit 0 and the spec reporter shows passing tests.
