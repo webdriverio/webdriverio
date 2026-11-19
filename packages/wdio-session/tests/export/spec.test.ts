@@ -188,6 +188,27 @@ describe('generateSpec', () => {
         expect(page).toContain('get checkout () { return $("aria/Checkout") }')
     })
 
+    it.each([
+        "const lookup = ($: (selector: string) => string) => $('#id'); results.push(lookup((selector) => selector))",
+        "const $ = (selector: string) => selector; results.push($('#id'))",
+        "const $ = (selector) => selector; results.push($('#id')); return"
+    ])('preserves local selectors in steps requiring extended parsing: %s', async (code) => {
+        const files = generateSpec([step({ kind: 'exec', code })], { title: 'local selectors', pageObjects: true })
+        expect(files).toHaveLength(1)
+        expect(files[0].contents).toContain(code)
+        const results = await runSpec(files[0].contents, { browser: {}, $: () => { throw new Error('Unexpected WDIO selector') }, expect: () => {} })
+        expect(results).toEqual(['#id'])
+    })
+
+    it('keeps typed selectors inline while importing both commands', async () => {
+        const code = "const selected: string = await $ /* comment */ ('#id'); results.push(selected, (await $$ /* comment */ ('li')).length)"
+        const files = generateSpec([step({ kind: 'exec', code })], { title: 'typed selectors', pageObjects: true })
+        expect(files).toHaveLength(1)
+        expect(files[0].contents).toContain(code)
+        const results = await runSpec(files[0].contents, { browser: {}, $: (selector: string) => selector, $$: () => [1, 2], expect: () => {} })
+        expect(results).toEqual(['#id', 2])
+    })
+
     it('deduplicates getters on one page', () => {
         const files = generateSpec([
             step({ code: "await $('aria/Add to cart').click()\nawait $('button=Add to cart').click()", path: '/cart.html' })
