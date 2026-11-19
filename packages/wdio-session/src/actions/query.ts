@@ -2,7 +2,7 @@ import { refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { inScope, resolveTarget, scopeOf, scopeTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const read = (text: string, code: string, data?: Record<string, unknown>): ActionOutcome => ({
@@ -17,13 +17,16 @@ async function targetOf (session: Session, value: unknown) {
 
 export const get: ActionFn = async (session, args) => {
     const sub = String(args.sub ?? '')
+    const scope = scopeOf(session)
+    const receiver = scopeTarget(session)
     if (sub === 'title') {
-        const title = await session.browser.getTitle()
-        return read(title, 'await browser.getTitle()', { title })
+        const title = await scope.getTitle()
+        return read(title, `await ${receiver}.getTitle()`, { title })
     }
     if (sub === 'url') {
-        const url = await session.currentUrl({ throwOnError: true }) ?? ''
-        return read(url, 'await browser.getUrl()', { url })
+        const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+        const url = (held ? await held.getUrl() : await session.currentUrl({ throwOnError: true })) ?? ''
+        return read(url, `await ${receiver}.getUrl()`, { url })
     }
     if (sub === 'count') {
         const selector = String(args.target ?? '')
@@ -41,9 +44,9 @@ export const get: ActionFn = async (session, args) => {
                 throw err
             }
         }
-        const elements = await session.browser.$$(selector)
+        const elements = await scope.$$(selector)
         const count = elements.length
-        return read(String(count), `await $$(${quote(selector)}).length`, { count })
+        return read(String(count), `await ${inScope(session, `$$(${quote(selector)})`)}.length`, { count })
     }
 
     const needsTarget = new Set(['text', 'html', 'value', 'attr', 'box'])

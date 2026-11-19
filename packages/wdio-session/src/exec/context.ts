@@ -161,11 +161,11 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         // a ref from the snapshot works as a selector too: `$('e12')`, `$('[ref=e12]')`
         $: (...args: Parameters<WebdriverIO.Browser['$']>) => {
             const id = refSelector(args[0])
-            return id ? ref(id) : session.browser.$(...args)
+            return id ? ref(id) : scopeOf(session).$(...args)
         },
         $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => {
             const id = refSelector(args[0])
-            return id ? chainableList(id) : session.browser.$$(...args)
+            return id ? chainableList(id) : scopeOf(session).$$(...args)
         },
         ref,
         session: {

@@ -55,7 +55,37 @@ describe('get', () => {
     it('counts selector matches', async () => {
         const counted = await get(session(), { sub: 'count', target: 'a', $cwd: '/' })
         expect(counted.text).toBe('2')
+        expect(counted.code).toBe("await $$('a').length")
         expect(counted.data).toEqual({ count: 2 })
+    })
+
+    it('reads title, url, and selector count from the held BiDi frame', async () => {
+        const s = session()
+        const frame = {
+            contextId: 'frame-1',
+            isFrame: true,
+            getTitle: async () => 'Child frame',
+            getUrl: async () => 'https://example.com/frame.html',
+            $$: async (selector: string) => (selector === 'button' ? [{}, {}, {}] : [])
+        }
+        const store = new Map<string, unknown>([
+            ['activeContext', frame],
+            ['contextVars', { names: { 'frame-1': 'frame' } }]
+        ])
+        Object.assign(s, { get: (key: string) => store.get(key) })
+
+        const title = await get(s, { sub: 'title', $cwd: '/' })
+        expect(title.text).toBe('Child frame')
+        expect(title.code).toBe('await frame.getTitle()')
+
+        const url = await get(s, { sub: 'url', $cwd: '/' })
+        expect(url.text).toBe('https://example.com/frame.html')
+        expect(url.code).toBe('await frame.getUrl()')
+
+        const counted = await get(s, { sub: 'count', target: 'button', $cwd: '/' })
+        expect(counted.text).toBe('3')
+        expect(counted.code).toBe("await frame.$$('button').length")
+        expect(counted.data).toEqual({ count: 3 })
     })
 
     it('counts a ref as the one element it names', async () => {

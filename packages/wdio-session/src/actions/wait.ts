@@ -1,8 +1,9 @@
 import { refId } from '@wdio/snapshot'
 
+import { inflightCount } from '../daemon/capture.js'
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { inScope, resolveTarget, scopeOf, scopeTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_LIMIT = 10_000
@@ -85,9 +86,9 @@ export async function installNetworkProbe (session: Session) {
     await session.browser.execute(pageNetworkState).catch(() => {})
 }
 
-function networkIdleCode () {
+function networkIdleCode (receiver: string) {
     return `await browser.waitUntil(async () => {
-    const state = await browser.execute(${pageNetworkState.toString()})
+    const state = await ${receiver}.execute(${pageNetworkState.toString()})
     return state.ready === 'complete' && state.inflight === 0
 })`
 }
@@ -118,13 +119,46 @@ export function matchUrl (pattern: string, url: string) {
     return new RegExp(urlGlob(pattern)).test(url)
 }
 
+type TreeNode = { context: string, children?: unknown[] | null }
+
+function collectContextIds (nodes: TreeNode[], out: Set<string>) {
+    for (const node of nodes) {
+        if (node.context) {
+            out.add(node.context)
+        }
+        if (Array.isArray(node.children)) {
+            collectContextIds(node.children as TreeNode[], out)
+        }
+    }
+}
+
+async function scopeContextIds (session: Session, rootId: string | undefined) {
+    if (!rootId) {
+        return undefined
+    }
+    const ids = new Set<string>([rootId])
+    const inflight = session.get?.<Map<string, string | undefined>>('networkInflight')
+    if (
+        inflight
+        && inflight.size > 0
+        && typeof session.browser.browsingContextGetTree === 'function'
+        && [...inflight.values()].some((ctx) => ctx && ctx !== rootId)
+    ) {
+        const tree = await session.browser.browsingContextGetTree({ root: rootId }).catch(() => undefined)
+        if (tree?.contexts) {
+            collectContextIds(tree.contexts as TreeNode[], ids)
+        }
+    }
+    return ids
+}
+
 async function waiter (session: Session, target: string) {
     if (refId(target)) {
         const resolved = await resolveTarget(session, target)
         return resolved
     }
-    const element = await session.browser.$(target).getElement()
-    return { element, code: `$(${quote(target)})`, label: JSON.stringify(target) }
+    const element = await scopeOf(session).$(target).getElement()
+    return { element, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }
 }
 
 export const wait: ActionFn = async (session, args) => {
@@ -144,6 +178,9 @@ export const wait: ActionFn = async (session, args) => {
     }
     const timeoutMsg = (what: string) => `${what} (waited ${limit}ms)`
     const options = (what: string) => ({ timeout: limit, timeoutMsg: timeoutMsg(what) })
+    const scope = scopeOf(session)
+    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+    const receiver = scopeTarget(session)
 
     if (args.fn !== undefined) {
         const expression = String(args.fn)
@@ -152,28 +189,28 @@ export const wait: ActionFn = async (session, args) => {
         }
         const script = `return Boolean(${expression})`
         await session.browser.waitUntil(
-            async () => Boolean(await session.browser.execute(script)),
+            async () => Boolean(await scope.execute(script)),
             options(`Condition was not true: ${expression}`)
         )
-        return done(`Condition is true: ${expression}`, `await browser.waitUntil(async () => Boolean(await browser.execute(${quote(script)})))`)
+        return done(`Condition is true: ${expression}`, `await browser.waitUntil(async () => Boolean(await ${receiver}.execute(${quote(script)})))`)
     }
     if (args.text !== undefined) {
         const text = String(args.text)
         await session.browser.waitUntil(async () => {
-            const body = await session.browser.$('body').getText()
+            const body = await scope.$('body').getText()
             return body.includes(text)
         }, options(`Text ${JSON.stringify(text)} did not appear`))
-        return done(`Text appeared: ${text}`, `await browser.waitUntil(async () => (await $('body').getText()).includes(${quote(text)}))`)
+        return done(`Text appeared: ${text}`, `await browser.waitUntil(async () => (await ${inScope(session, "$('body')")}.getText()).includes(${quote(text)}))`)
     }
     if (args.url !== undefined) {
         const pattern = String(args.url)
         await session.browser.waitUntil(
-            async () => matchUrl(pattern, await session.currentUrl({ throwOnError: true }) ?? ''),
+            async () => matchUrl(pattern, (held ? await held.getUrl() : await session.currentUrl({ throwOnError: true })) ?? ''),
             options(`URL did not match ${pattern}`)
         )
         const check = pattern.includes('*')
-            ? `new RegExp(${quote(urlGlob(pattern))}).test(await browser.getUrl())`
-            : `(await browser.getUrl()).includes(${quote(pattern)})`
+            ? `new RegExp(${quote(urlGlob(pattern))}).test(await ${receiver}.getUrl())`
+            : `(await ${receiver}.getUrl()).includes(${quote(pattern)})`
         return done(`URL matches ${pattern}`, `await browser.waitUntil(async () => ${check})`)
     }
     if (args.load !== undefined) {
@@ -182,11 +219,13 @@ export const wait: ActionFn = async (session, args) => {
             throw usage(`Unknown load state "${load}".`, 'Use domcontentloaded, load or networkidle.')
         }
         if (load === 'networkidle') {
+            const rootId = held?.contextId
             let last = ''
             let since = 0
             await session.browser.waitUntil(async () => {
-                const state = await session.browser.execute(pageNetworkState) as PageNetwork
-                const bidi = session.get?.<Set<string>>('networkInflight')?.size ?? 0
+                const state = await scope.execute(pageNetworkState) as PageNetwork
+                const scopeIds = await scopeContextIds(session, rootId)
+                const bidi = inflightCount(session, scopeIds)
                 const now = Date.now()
                 if (state.ready !== 'complete' || state.inflight > 0 || bidi > 0) {
                     last = ''
@@ -201,17 +240,17 @@ export const wait: ActionFn = async (session, args) => {
                 }
                 return now - since >= NETWORK_QUIET_MS
             }, options('The page did not become network-idle'))
-            return done('Page is network-idle', networkIdleCode())
+            return done('Page is network-idle', networkIdleCode(receiver))
         }
         const ready = load === 'load' ? 'complete' : 'interactive'
         const check = load === 'load'
             ? 'document.readyState === \'complete\''
             : 'document.readyState === \'interactive\' || document.readyState === \'complete\''
         await session.browser.waitUntil(async () => {
-            const state = await session.browser.execute(() => document.readyState) as string
+            const state = await scope.execute(() => document.readyState) as string
             return load === 'load' ? state === 'complete' : state === 'interactive' || state === 'complete'
         }, options(`document.readyState did not reach ${ready}`))
-        return done(`Page reached ${load}`, `await browser.waitUntil(async () => await browser.execute(() => ${check}))`)
+        return done(`Page reached ${load}`, `await browser.waitUntil(async () => await ${receiver}.execute(() => ${check}))`)
     }
 
     const target = String(args.target ?? '')
