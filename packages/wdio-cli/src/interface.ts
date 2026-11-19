@@ -342,6 +342,21 @@ export default class WDIOCLInterface extends EventEmitter {
         return this.log('\n\n' + shutdownMessage)
     }
 
+    /**
+     * print why the run was stopped when `globalTimeout` elapsed
+     * @param timeout     the configured `globalTimeout` in milliseconds
+     * @param specsLeft   number of spec files that will not be started
+     */
+    globalTimeoutTrigger(timeout: number, specsLeft: number) {
+        const notStarted = specsLeft > 0
+            ? ` ${specsLeft} spec file${specsLeft === 1 ? '' : 's'} will not be started.`
+            : ''
+        return this.log(
+            '\n\n' + chalk.red(`The test run exceeded the globalTimeout of ${timeout}ms.`) + notStarted +
+            '\nEnding WebDriver sessions gracefully ...'
+        )
+    }
+
     printReporters() {
         /**
          * print reporter output
