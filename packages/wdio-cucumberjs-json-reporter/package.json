@@ -37,7 +37,7 @@
   },
   "typeScriptVersion": "6.0.3",
   "dependencies": {
-    "@cucumber/gherkin": "42.0.1",
+    "@cucumber/gherkin": "43.0.0",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
