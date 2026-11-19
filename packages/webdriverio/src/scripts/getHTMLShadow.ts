@@ -44,8 +44,12 @@ export default function getHTMLShadow (
         return { id, html, styles }
     })
 
-    return {
-        html: (element as HTMLElement)[includeSelectorTag ? 'outerHTML' : 'innerHTML'],
-        shadowElementHTML
-    }
+    const html = (element as HTMLElement)[includeSelectorTag ? 'outerHTML' : 'innerHTML']
+
+    /**
+     * the ids only mark the hosts in the HTML above, the page must not keep them
+     */
+    shadowElementIds.forEach(([, elem]) => typeof elem.removeAttribute === 'function' && elem.removeAttribute('data-wdio-shadow-id'))
+
+    return { html, shadowElementHTML }
 }

@@ -25,6 +25,7 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'parentGoneAfterWait.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
         path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
+        path.join(__dirname, 'headless', 'getHTML.e2e.ts'),
     ],
 
     /**
