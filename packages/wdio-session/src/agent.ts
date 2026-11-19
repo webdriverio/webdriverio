@@ -251,6 +251,7 @@ export class AgentSession {
             try {
                 fs.rmSync(this.session.artifactsDir, { recursive: true, force: true })
             } catch {
+                // Best-effort temp cleanup: avoid failing teardown if files are locked or already gone
                 void 0
             }
         }
@@ -290,6 +291,7 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
             try {
                 fs.rmSync(artifactsDir, { recursive: true, force: true })
             } catch {
+                // Best-effort temp cleanup: preserve the original startup error
                 void 0
             }
         }
