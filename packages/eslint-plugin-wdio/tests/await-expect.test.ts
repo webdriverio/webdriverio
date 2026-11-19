@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { RuleTester } from 'eslint'
 import rule from '../src/rules/await-expect.js'
-import { MATCHERS } from '../src/constants.js'
+import { MATCHERS, VISUAL_MATCHERS } from '../src/constants.js'
 
 const ruleTester = new RuleTester({})
 
@@ -35,6 +35,7 @@ describe('await-expect', () => {
                 'it(`bar`, async () => { expect().not.toMatchSnapshot(); });',
                 'it(`bar`, async () => { expect.soft().toMatchSnapshot(); });',
                 'it(`bar`, async () => { foo.soft($(`.foo`)).toBeDisplayed(); });',
+                ...VISUAL_MATCHERS.map((matcher) => `it(\`bar\`, async () => { await expect(browser).${matcher}(\`home\`); });`),
             ],
             invalid: [
                 {
@@ -102,6 +103,11 @@ describe('await-expect', () => {
                     code : 'expect($(`.foo`)).not.toMatchSnapshot()',
                     errors,
                 },
+                // Visual service matchers
+                ...VISUAL_MATCHERS.map((matcher) => ({
+                    code : `expect(browser).${matcher}(\`home\`)`,
+                    errors,
+                })),
             ],
         })
     })
