@@ -121,3 +121,25 @@ describe('the items of a list', () => {
         expect(origGetElem.getElements.call(browser, '#foo', [])).toEqual([])
     })
 })
+
+describe('how an element was found', () => {
+    const response = [{ 'element-6066-11e4-a52e-4f735466cecf': 'elem-a' }, { 'element-6066-11e4-a52e-4f735466cecf': 'elem-b' }]
+
+    it('gives an element and the items of a list the command and the arguments of their query, `$` and `$$` by default', async () => {
+        const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { browserName: 'foobar' } })
+        const element = origGetElem.getElement.call(browser, '#foo', response[0])
+        expect([element.foundWith, element.props]).toEqual(['$', []])
+        const shadow = origGetElem.getElement.call(element, '#inner', response[1], { isShadowElement: true, foundWith: 'shadow$' })
+        expect([shadow.foundWith, shadow.props, shadow.parent]).toEqual(['shadow$', [], element])
+        const items = origGetElem.getElements.call(browser, '#foo', response)
+        expect(items.map((item) => [item.foundWith, item.props, item.index])).toEqual([['$$', [], 0], ['$$', [], 1]])
+        const custom = origGetElem.getElements.call(browser, { strategy: () => null, strategyName: 'byTestId', strategyArguments: ['row'] }, response, { foundWith: 'custom$$', queryProps: ['row'] })
+        expect(custom.map((item) => [item.foundWith, item.props, item.isShadowElement, item.isReactElement])).toEqual([['custom$$', ['row'], false, false], ['custom$$', ['row'], false, false]])
+    })
+
+    it('gives the options of a react query only when they are set', () => {
+        expect(origGetElem.reactArguments({ props: {}, state: {} })).toEqual([])
+        expect(origGetElem.reactArguments({ props: { id: 1 }, state: {} })).toEqual([{ props: { id: 1 } }])
+        expect(origGetElem.reactArguments({ state: { open: true } })).toEqual([{ state: { open: true } }])
+    })
+})

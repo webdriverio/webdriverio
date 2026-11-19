@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, runUserCommand } from '@wdio/utils'
 
 import { foreignContextId, isBrowsingContext } from '../../session/browsingContext.js'
 import { getParallelContextStore } from '../../session/context.js'
@@ -136,6 +136,12 @@ export default class BaseAction {
      * @param skipRelease set to true if `releaseActions` command should not be invoked
      */
     async perform(skipRelease = false) {
+        // `action()` returns this builder, so `perform()` is the user command
+        const types = this.sequence.map((seq) => seq.type)
+        return runUserCommand(this.#instance, 'action', [types], () => this.#perform(skipRelease))
+    }
+
+    async #perform(skipRelease: boolean) {
         /**
          * transform chainable / not resolved elements into WDIO elements
          */

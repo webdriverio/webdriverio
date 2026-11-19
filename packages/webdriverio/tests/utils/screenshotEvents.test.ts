@@ -1,4 +1,6 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, it, expect, vi } from 'vitest'
+import { setUserCommandStore, registerUserCommands, runUserCommand } from '@wdio/utils'
 
 import { withScreenshotEvents } from '../../src/utils/screenshotEvents.js'
 import { FOREIGN_ELEMENT_ENDPOINTS } from '../../src/utils/foreignContext.js'
@@ -12,6 +14,19 @@ describe('withScreenshotEvents', () => {
         expect(vi.mocked(browser.emit).mock.calls).toEqual([
             ['command', screenshotEvent],
             ['result', { ...screenshotEvent, result: { value: 'data' } }]
+        ])
+    })
+
+    it('gives the events the user command that takes the screenshot as owner, not as parent', async () => {
+        setUserCommandStore(new AsyncLocalStorage())
+        registerUserCommands(['saveScreenshot'])
+        const browser = { isBidi: true, options: { userCommandEvents: true }, emit: vi.fn() } as unknown as WebdriverIO.Browser
+        await runUserCommand(browser, 'saveScreenshot', ['a.png'], () => withScreenshotEvents(browser, 'takeScreenshot', () => Promise.resolve('data')))
+        const calls = vi.mocked(browser.emit).mock.calls.filter(([event]) => event === 'command' || event === 'result')
+        const [[, userCommand]] = vi.mocked(browser.emit).mock.calls as [string, { id: number }][]
+        expect(calls).toEqual([
+            ['command', { ...screenshotEvent, owner: userCommand.id }],
+            ['result', { ...screenshotEvent, owner: userCommand.id, result: { value: 'data' } }]
         ])
     })
 

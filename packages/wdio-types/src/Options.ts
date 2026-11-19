@@ -208,6 +208,30 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default 10485760 (10MB)
      */
     maxSpyCollectedBodySize?: number
+    /**
+     * Sends an event before and after each command that your test code calls directly, for the reporters.
+     * WebDriver BiDi sessions only. Not set: only sessions with `wdio:experimentalBiDiCommands`;
+     * `true`: all; `false`: none; `{ exclude: ['waitUntil'] }`: all except these commands.
+     * `nested`: which commands show their direct calls (`'default'`, `'none'`, `'all'` or `{ mode, expand, collapse }`).
+     * See [userCommandEvents](https://webdriver.io/docs/configuration#usercommandevents).
+     *
+     * @default undefined
+     * @experimental
+     */
+    userCommandEvents?: boolean | { exclude?: string[], nested?: NestedUserCommands }
+}
+
+/**
+ * Which user commands show their direct calls as child user commands
+ * @experimental
+ */
+export type NestedUserCommands = 'default' | 'none' | 'all' | {
+    /** the start list: `'default'` (`waitUntil`, `waitFor*` and `expect.*`), `'none'` or `'all'` */
+    mode?: 'default' | 'none' | 'all'
+    /** commands that also show their direct calls */
+    expand?: string[]
+    /** commands that stay one closed step */
+    collapse?: string[]
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {
