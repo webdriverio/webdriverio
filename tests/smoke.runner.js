@@ -1389,6 +1389,20 @@ const severeErrorTest = async () => {
         onComplete: () => { throw new SevereServiceError('ups') }
     }).then(() => false, () => true)
     assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
+
+    const afterTestFailed = await launch(
+        'severeErrorTest - afterTestFailed',
+        path.resolve(__dirname, 'helpers', 'severe-after-test.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'test-passing.js')] }
+    ).then(() => false, () => true)
+    assert.equal(afterTestFailed, true, 'Expected afterTest to fail the test')
+
+    const beforeTestFailed = await launch(
+        'severeErrorTest - beforeTestFailed',
+        path.resolve(__dirname, 'helpers', 'severe-before-test.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'test-passing.js')] }
+    ).then(() => false, () => true)
+    assert.equal(beforeTestFailed, true, 'Expected beforeTest to fail the test')
 }
 
 /**

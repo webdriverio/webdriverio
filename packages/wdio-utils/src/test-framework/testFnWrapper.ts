@@ -1,4 +1,4 @@
-import { logHookError } from './errorHandler.js'
+import { logHookError, findSevereServiceError } from './errorHandler.js'
 import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
 import { fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
 
@@ -109,7 +109,13 @@ export const testFrameworkFnWrapper = async function (
     if (type === 'Hook' && hookName) {
         beforeArgs.push(hookName)
     }
-    await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
+    const beforeResults = await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs)
+    await logHookError(`Before${type}`, beforeResults, cid)
+
+    /**
+     * a `SevereServiceError` thrown in `beforeTest` fails the test without running it
+     */
+    const severeBeforeError = type === 'Test' ? findSevereServiceError(beforeResults) : undefined
 
     /**
      * Snapshot the runnable identity BEFORE running the spec/hook body.
@@ -137,6 +143,9 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
+        if (severeBeforeError) {
+            throw severeBeforeError
+        }
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
@@ -233,10 +242,18 @@ export const testFrameworkFnWrapper = async function (
         }
     }
 
-    await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
+    const afterResults = await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs])
+    await logHookError(`After${type}`, afterResults, cid)
 
     if (error && !error.matcherName) {
         throw error
+    }
+    /**
+     * a `SevereServiceError` thrown in `afterTest` fails a test that has not failed otherwise
+     */
+    const severeAfterError = type === 'Test' ? findSevereServiceError(afterResults) : undefined
+    if (severeAfterError) {
+        throw severeAfterError
     }
     if (skip && autoSkipError) {
         throw autoSkipError
