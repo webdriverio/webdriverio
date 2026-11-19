@@ -404,7 +404,7 @@ export const config = {
      * @param {object} exitCode 0 - success, 1 - fail
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {<Object>} results object containing test results
+     * @param {object} results spec job counts: finished, passed, failed and retries
      */
     onComplete: function (exitCode, config, capabilities, results) {
     },
