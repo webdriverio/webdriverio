@@ -86,6 +86,8 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 
 By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
 
+In a WebDriver BiDi session, WebdriverIO also replaces any `unhandledPromptBehavior` capability with `{ default: 'ignore' }`. The browser applies the prompt handler the instant a prompt opens, so any other value closes the prompt before a test can read it. Handle prompts through [`browser.on('dialog')`](/docs/api/dialog) instead, or set this flag to keep the WebDriver Classic semantics of `unhandledPromptBehavior`.
+
 For Chrome on Android through Appium (UiAutomator2 driver), WebdriverIO also sets `appium:chromedriverForwardBiDi: true`, so that Appium sends WebDriver Bidi on to Chromedriver. This needs Appium 3.9.0 or later and UiAutomator2 8.7.3 or later. When the WebDriver Bidi server of an Appium browser session can not run browser commands (for example with older versions), WebdriverIO continues the session with WebDriver Classic and logs a warning.
 
 </Option>

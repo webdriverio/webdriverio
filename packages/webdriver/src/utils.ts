@@ -87,7 +87,11 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         /**
          * allow WebdriverIO to handle alerts
          */
-        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        capabilities.alwaysMatch.unhandledPromptBehavior = { default: 'ignore' }
+        /**
+         * a firstMatch value would otherwise win in the normalization below
+         */
+        capabilities.firstMatch?.forEach((match) => delete match.unhandledPromptBehavior)
         /**
          * without it, Appium answers WebDriver Bidi itself and has no `browsingContext` module
          */
