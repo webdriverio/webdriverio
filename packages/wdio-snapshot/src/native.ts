@@ -299,9 +299,8 @@ const POSITIONAL_ATTRS: Record<'ios' | 'mac' | 'windows', string[]> = {
 function positionalOf (platform: NativePlatform, tag: string, attrs: Record<string, string>) {
     const bare = `//${tag}`
     if (platform === 'android') {
-        // uiSelectorLiteral escapes only the quote, matching what UiAutomator2's
-        // selector parser unescapes; JSON.stringify would double backslashes and
-        // make text/description selectors that never match at runtime
+        // see nativeSelectors.ts for why uiSelectorLiteral is used instead of
+        // JSON.stringify
         const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${uiSelectorLiteral(value)})`
         const matches = ([['description', attrs['content-desc']], ['resourceId', attrs['resource-id']], ['text', attrs.text]] as const)
             .filter(([, value]) => value)
@@ -362,13 +361,21 @@ function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
     const box = boundsOf(xml.attrs)
     const skip = hidden(xml.attrs, box)
     if (skip && !ctx.all) {
-        const position = ctx.indexed.get(xml)
-        if (position) {
-            const tagged = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, nameOf(platform, xml.name, xml.attrs)))
-            for (const key of new Set([...tagged.map((candidate) => candidate.selector), ...position.matches])) {
-                ctx.hiddenCounts.set(key, (ctx.hiddenCounts.get(key) || 0) + 1)
+        // count the skipped node and every hidden descendant: a candidate that
+        // matches a visible element must know about twins that sit inside a
+        // hidden container, or it would be offered as unique while matching
+        // several elements
+        const countHidden = (node: XmlNode) => {
+            const position = ctx.indexed.get(node)
+            if (position) {
+                const tagged = nativeCandidates(selectorInfo(platform, node.name, node.attrs, nameOf(platform, node.name, node.attrs)))
+                for (const key of new Set([...tagged.map((candidate) => candidate.selector), ...position.matches])) {
+                    ctx.hiddenCounts.set(key, (ctx.hiddenCounts.get(key) || 0) + 1)
+                }
             }
+            node.children.forEach(countHidden)
         }
+        countHidden(xml)
         return undefined
     }
     const role = roleOf(platform, xml.name, xml.attrs)

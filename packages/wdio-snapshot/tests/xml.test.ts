@@ -70,6 +70,22 @@ describe('page source reader', () => {
         expect(xml.children[1].attrs.text).toBe('plain')
     })
 
+    it('removes comments, CDATA and processing instructions in one source-order pass', () => {
+        // CDATA markers inside a comment must not delete the real element
+        // sitting between them
+        const xml = parseXml('<!-- <![CDATA[ --><node text="real"/><!-- ]]> -->')
+        expect(xml.name).toBe('node')
+        expect(xml.attrs.text).toBe('real')
+    })
+
+    it('does not hang on an unterminated tag full of quote pairs', () => {
+        // the unquoted alternative used to overlap with the quoted-string
+        // alternatives, which made matching this input take exponential time
+        const source = '<a ' + 'x="1" '.repeat(64)
+        const xml = parseXml(source)
+        expect(xml.children).toEqual([])
+    })
+
     it('skips comments and processing instructions', () => {
         const xml = parseXml('<?xml version="1.0" encoding="UTF-8"?><!-- a comment --><hierarchy><node text="a" /><!-- another --></hierarchy>')
         expect(xml.name).toBe('hierarchy')

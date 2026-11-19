@@ -290,6 +290,23 @@ describe('native snapshots of awkward page sources', () => {
         expect(parsed.located[0].matches).toContain('android=new UiSelector().text("C:\\path")')
     })
 
+    it('counts a twin inside a hidden container towards the visible candidate', () => {
+        // a visible element and a hidden container holding a twin of it share
+        // the same resource id: the selector matches two elements, so the
+        // visible one must not keep a unique candidate
+        // (https://github.com/screwdriver-cd/screwdriver is unrelated; see the
+        // PR review by Winify on #16438)
+        const xml = `<hierarchy>
+  <android.widget.Button resource-id="com.app:id/save" clickable="true" displayed="true" bounds="[0,0][100,40]" />
+  <android.view.ViewGroup displayed="false" bounds="[0,0][0,0]">
+    <android.widget.Button resource-id="com.app:id/save" clickable="true" displayed="true" bounds="[0,0][0,0]" />
+  </android.view.ViewGroup>
+</hierarchy>`
+        const { refs } = parseNativeSource(xml, 'android')
+        expect(refs[0].candidates[0].kind).toBe('indexed')
+        expect(refs[0].candidates[0].selector).toBe('android=new UiSelector().resourceId("com.app:id/save").instance(0)')
+    })
+
     it('does not count a hidden twin towards a unique candidate', () => {
         const xml = `<hierarchy>
   <android.widget.Button resource-id="com.app:id/save" clickable="true" displayed="true" bounds="[0,0][100,40]" />

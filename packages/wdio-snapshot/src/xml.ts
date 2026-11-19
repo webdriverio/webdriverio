@@ -23,17 +23,21 @@ function decode (value: string) {
  * attributes and element children.
  */
 export function parseXml (source: string): XmlNode {
+    // comments, processing instructions and CDATA sections are removed in a
+    // single source-order pass: a sequential pass would let CDATA markers
+    // inside a comment delete real elements that sit between them
+    // (e.g. `<!-- <![CDATA[ --><node/><!-- ]]> -->`)
     const xml = source
-        .replace(/<\?[\s\S]*?\?>/g, '')
-        // CDATA can contain markup-looking text (`<![CDATA[<node/>]]>`), which
-        // the tag scanner would otherwise read as real elements
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\?[\s\S]*?\?>/g, '')
     const root: XmlNode = { name: '#root', attrs: {}, children: [] }
     const stack: XmlNode[] = [root]
     // quoted strings are matched as alternatives so a `>` inside an attribute
     // value (e.g. `text="Next >"`) does not end the tag early
-    const tag = /<(\/)?([^\s!/>]+)((?:"[^"]*"|'[^']*'|[^>])*)>/g
+    // quotes are excluded from the unquoted alternative so it cannot overlap
+    // with the quoted-string branches: an unterminated tag full of quote pairs
+    // would otherwise trigger exponential backtracking and freeze the
+    // synchronous parse
+    const tag = /<(\/)?([^\s!/>]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
     // whitespace around the = of an attribute is valid XML
     const attr = /([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'))?/g
     let match: RegExpExecArray | null
