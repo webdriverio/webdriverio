@@ -20,6 +20,34 @@ If you need to set a different path for `tsconfig.json` please set the TSCONFIG_
 
 Alternatively, you can use the [environment variable](https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path) for `tsx`.
 
+#### Custom Export Conditions
+
+If a package uses a custom condition in its `package.json` `exports` or `imports`, enable that condition in Node before starting WebdriverIO. For example, a monorepo may use a `development` condition to load TypeScript source instead of built JavaScript. Setting `compilerOptions.customConditions` in `tsconfig.json` configures TypeScript's resolution; it does not enable the condition in Node at runtime.
+
+On macOS or Linux:
+
+```bash
+NODE_OPTIONS="${NODE_OPTIONS:-} --conditions=development" npx wdio run ./wdio.conf.ts
+```
+
+On Windows with PowerShell:
+
+```powershell
+$previousNodeOptions = $env:NODE_OPTIONS
+try {
+    $env:NODE_OPTIONS = "$previousNodeOptions --conditions=development"
+    npx wdio run ./wdio.conf.ts
+} finally {
+    $env:NODE_OPTIONS = $previousNodeOptions
+}
+```
+
+Replace `development` with the condition used by your package. Both examples preserve existing `NODE_OPTIONS` flags. To enable more than one condition, repeat the flag, for example `--conditions=development --conditions=custom`.
+
+Set `NODE_OPTIONS` in the environment that starts the command when the condition is needed by `wdio.conf.ts` or one of its imports. Setting it through `runnerEnv` is too late for those imports because WebdriverIO must load the configuration before it can read `runnerEnv`. The environment-level setting also reaches child worker processes.
+
+See Node's [custom conditions documentation](https://nodejs.org/api/packages.html#resolving-user-conditions) for how conditions select package exports.
+
 
 #### Type Checking
 
