@@ -757,8 +757,19 @@ export const geolocation: ActionFn = async (session, args) => {
     const accuracy = typeof args.accuracy === 'number' ? args.accuracy : undefined
     const { browser } = session
     if (session.applies.includes('M')) {
-        await browser.setGeoLocation({ latitude, longitude, altitude: 0 })
-        return done(`Location set to ${latitude}, ${longitude}`, `await browser.setGeoLocation({ latitude: ${latitude}, longitude: ${longitude}, altitude: 0 })`)
+        const platformName = String((session.browser.capabilities as WebdriverIO.Capabilities).platformName || '').toLowerCase()
+        try {
+            if (['ios', 'tvos', 'watchos'].includes(platformName)) {
+                await browser.executeScript('mobile: setSimulatedLocation', [{ latitude, longitude }])
+                return done(`Location set to ${latitude}, ${longitude}`, `await browser.executeScript('mobile: setSimulatedLocation', [{ latitude: ${latitude}, longitude: ${longitude} }])`)
+            } else if (platformName === 'android') {
+                await browser.executeScript('mobile: setGeolocation', [{ latitude, longitude, altitude: 0 }])
+                return done(`Location set to ${latitude}, ${longitude}`, `await browser.executeScript('mobile: setGeolocation', [{ latitude: ${latitude}, longitude: ${longitude}, altitude: 0 }])`)
+            }
+        } catch {
+            await browser.setGeoLocation({ latitude, longitude, altitude: 0 })
+            return done(`Location set to ${latitude}, ${longitude}`, `await browser.setGeoLocation({ latitude: ${latitude}, longitude: ${longitude}, altitude: 0 })`)
+        }
     }
     if (!session.isBidi) {
         if (!isChromium(session)) {
