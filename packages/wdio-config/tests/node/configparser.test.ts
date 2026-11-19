@@ -237,6 +237,44 @@ describe('ConfigParser', () => {
             expect(specs).toContain(INDEX_PATH)
         })
 
+        it('should resolve a relative spec glob pattern from CWD rather than the config directory', async () => {
+            const relativeGlob = path.relative(process.cwd(), path.join(__dirname, '*.test.ts')).replace(/\\/g, '/')
+            const args = { spec: [relativeGlob] }
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, args)
+            await configParser.initialize(args)
+            const specs = configParser.getSpecs()
+            expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.ts'))
+        })
+
+        it('should resolve a relative exclude glob pattern from CWD when not found in the config directory', async () => {
+            const relativeSpecGlob = path.relative(process.cwd(), path.join(__dirname, '*.test.ts')).replace(/\\/g, '/')
+            const relativeExcludeGlob = path.relative(process.cwd(), path.join(__dirname, 'FileSystem*.test.ts')).replace(/\\/g, '/')
+            const args = { spec: [relativeSpecGlob], exclude: [relativeExcludeGlob] }
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, args)
+            await configParser.initialize(args)
+            const specs = configParser.getSpecs()
+            expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.ts'))
+        })
+
+        it('should resolve a relative literal exclude file path from CWD when not found in the config directory', async () => {
+            const relativeSpecGlob = path.relative(process.cwd(), path.join(__dirname, '*.test.ts')).replace(/\\/g, '/')
+            const relativeExcludeFile = path.relative(process.cwd(), path.join(__dirname, 'FileSystemPathService.test.ts')).replace(/\\/g, '/')
+            const args = { spec: [relativeSpecGlob], exclude: [relativeExcludeFile] }
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, args)
+            vi.spyOn(configParser['_pathService'], 'isFile').mockImplementation((filepath: string) =>
+                path.resolve(process.cwd(), filepath) === path.join(__dirname, 'FileSystemPathService.test.ts')
+            )
+            vi.spyOn(configParser['_pathService'], 'ensureAbsolutePath').mockImplementation((filepath: string, rootDir: string) =>
+                path.isAbsolute(filepath) ? path.normalize(filepath) : path.resolve(rootDir, filepath)
+            )
+            await configParser.initialize(args)
+            const specs = configParser.getSpecs()
+            expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.ts'))
+        })
+
         it('should allow specifying a spec file which is Cucumber feature file with line number', async () => {
             const configParser = await ConfigParserForTest(FIXTURES_CONF)
             await configParser.initialize({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2] })

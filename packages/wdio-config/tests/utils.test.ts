@@ -1,6 +1,9 @@
+import path from 'node:path'
+import url from 'node:url'
 import { describe, it, expect } from 'vitest'
 
 import { isCloudCapability, removeLineNumbers, validObjectOrArray, applyHeadlessFlag } from '../src/utils.js'
+import { makeRelativeToCWD } from '../src/node/utils.js'
 
 describe('applyHeadlessFlag', () => {
     it('should add headless flags for Chrome', () => {
@@ -164,6 +167,33 @@ describe('utils', () => {
 
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
+        })
+    })
+
+    describe('makeRelativeToCWD', () => {
+        it('should resolve relative paths and glob patterns with forward or backward slashes from CWD', () => {
+            expect(makeRelativeToCWD([
+                'tests/filters/*.spec.ts',
+                './tests/filters/test1.spec.ts',
+                'tests\\filters\\*.spec.ts',
+                ['./nested/*.spec.ts'],
+                'mocha.test01*.js',
+                'keyword'
+            ])).toEqual([
+                path.resolve(process.cwd(), 'tests/filters/*.spec.ts'),
+                path.resolve(process.cwd(), './tests/filters/test1.spec.ts'),
+                path.resolve(process.cwd(), 'tests\\filters\\*.spec.ts'),
+                [path.resolve(process.cwd(), './nested/*.spec.ts')],
+                'mocha.test01*.js',
+                'keyword'
+            ])
+        })
+
+        it('should convert file URLs to file paths', () => {
+            const fileUrl = url.pathToFileURL(path.resolve(process.cwd(), 'tests/test1.spec.ts')).href
+            expect(makeRelativeToCWD([fileUrl])).toEqual([
+                url.fileURLToPath(fileUrl)
+            ])
         })
     })
 })
