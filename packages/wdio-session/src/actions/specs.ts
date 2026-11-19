@@ -77,6 +77,7 @@ export const OPEN_OPTIONS = {
     headed: { type: 'boolean', desc: 'Show the browser window' },
     headless: { type: 'boolean', desc: 'Run without a window (the default for browsers; overrides --headed)' },
     snapshot: { type: 'boolean', default: true, desc: 'Print the interactive snapshot of the opened page (use --no-snapshot to skip)' },
+    'selector-provider': { type: 'string', array: true, desc: 'Module exporting a snapshot selector provider' },
     viewport: { type: 'string', desc: 'Initial viewport, e.g. 1280x720' },
     'browser-version': { type: 'string', desc: 'Browser version' },
     binary: { type: 'string', desc: 'Browser binary' },

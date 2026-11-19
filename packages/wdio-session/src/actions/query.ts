@@ -1,8 +1,8 @@
-import { refId } from '@wdio/snapshot'
+import { queryAll, refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { providerCode, providerNames, resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const read = (text: string, code: string, data?: Record<string, unknown>): ActionOutcome => ({
@@ -41,9 +41,10 @@ export const get: ActionFn = async (session, args) => {
                 throw err
             }
         }
-        const elements = await session.browser.$$(selector)
-        const count = elements.length
-        return read(String(count), `await $$(${quote(selector)}).length`, { count })
+        const names = providerNames(session.plan)
+        const count = (await queryAll(session.browser, selector, names)).length
+        const code = providerCode(selector, names, 'browser', 'custom$$')
+        return read(String(count), code ? `(await ${code}).length` : `await $$(${quote(selector)}).length`, { count })
     }
 
     const needsTarget = new Set(['text', 'html', 'value', 'attr', 'box'])

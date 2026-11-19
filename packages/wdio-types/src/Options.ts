@@ -21,6 +21,17 @@ export interface ShardOptions {
     current: number
 }
 
+export interface SnapshotSelectorProvider {
+    name: string
+    attributes?: string[]
+    // `unknown` here would reject providers typed for a concrete element
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    candidates?: (el: any) => unknown
+    locator?: (arg: string) => unknown
+}
+
+export type SnapshotEntry = string | [string, Record<string, unknown>] | SnapshotSelectorProvider
+
 /**
  * WebdriverIO allows to connect to different WebDriver endpoints by capability
  * so these connection options need to be part of capabilities
@@ -310,6 +321,20 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * your test setup with almost no effort.
      */
     services?: ServiceEntry[]
+    /**
+     * Selector providers that `wdio session` uses to build element selectors. Provider
+     * candidates rank before the built-in ones.
+     *
+     * An entry is a file path (relative to the config file), a package name (loads
+     * `<package>/selector-provider`, else the default export), a `[path, options]` tuple
+     * (a default export that is a function is called with the options), or an inline
+     * provider object. Services listed in `services` are also checked for a
+     * `<package>/selector-provider` export. `candidates` and `locator` run in the page
+     * and must be self-contained.
+     *
+     * e.g. `snapshots: [{ name: 'e2e', attributes: ['data-e2e'] }]`
+     */
+    snapshots?: SnapshotEntry[]
     /**
      * Defines the test framework to be used by the WDIO testrunner.
      */

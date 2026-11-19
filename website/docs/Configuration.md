@@ -505,6 +505,33 @@ Services take over a specific job you don't want to take care of. They enhance y
 
 </Option>
 
+### snapshots
+
+<Option type="(String | [String, Object] | Object)[]" default="[]">
+
+Selector providers that `wdio session` uses to build element selectors. The test runner does not read this option. Provider candidates rank before the built-in ones. An entry is one of:
+
+- a file path, relative to the config file, e.g. `'./selectors/e2e.mjs'`;
+- a package name, which loads `<package>/selector-provider`, or the package's default export when it has no such export. A plain name such as `'e2e-tools'` first tries `@wdio/e2e-tools-service/selector-provider` and `wdio-e2e-tools-service/selector-provider`;
+- a `[path, options]` tuple, e.g. `['./selectors/e2e.mjs', { attribute: 'data-e2e' }]`. A default export that is a function is called with the options and returns a provider or an array of providers;
+- an inline provider object, `{ name, attributes?, candidates?, locator? }`.
+
+[`services`](#services) are also checked for a `<package>/selector-provider` export and skipped when they have none.
+
+`candidates` and `locator` run in the page, so they must be self-contained: no closures over outer variables and no imports. Generator methods and methods with computed names are rejected when the session opens. A `candidates` function may return a promise; one that takes longer than 2 seconds contributes no candidates.
+
+A `name:arg` selector resolves through the provider's `locator` via `custom$`, so only a provider with a `locator` accepts that form. Provider names must be unique across `snapshots`, `services` and `--selector-provider`.
+
+```js
+snapshots: [
+    'e2e-tools',
+    ['./selectors/ui5.mjs', { attribute: 'data-ui5' }],
+    { name: 'e2e', attributes: ['data-e2e'] }
+]
+```
+
+</Option>
+
 ### framework
 
 <Option type="String" default="mocha" values="mocha | jasmine | cucumber | vitest">

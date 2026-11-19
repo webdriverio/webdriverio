@@ -32,6 +32,11 @@ export interface CollectOptions {
      * Costs extra page-side work per snapshot, so it is off by default.
      */
     extendedCandidates?: boolean
+    /**
+     * attributes of selector providers: an element that carries one gets a `provider`
+     * candidate, kept when the attribute selector matches it alone
+     */
+    providerAttributes?: { name: string, attr: string }[]
 }
 
 export interface CollectResult {
@@ -40,12 +45,20 @@ export interface CollectResult {
     refs: SnapshotRef[]
 }
 
+interface PageProvider {
+    name: string
+    fn?: (el: Element) => unknown
+    locator?: boolean
+}
+
 /**
  * Walks the DOM and returns an accessibility tree with refs (RFC §8.2).
  * Runs in the browser: it must not reference anything outside its body.
  */
 /* c8 ignore start: runs in the browser */
-export function collectInPage (opts: CollectOptions, scope?: Element | null): CollectResult {
+export function collectInPage (opts: CollectOptions, scope?: Element | null): CollectResult
+export function collectInPage (opts: CollectOptions, scope?: Element | null, providers?: PageProvider[]): CollectResult | Promise<CollectResult>
+export function collectInPage (opts: CollectOptions, scope?: Element | null, providers?: PageProvider[]): CollectResult | Promise<CollectResult> {
     type Node = SnapshotNode
     const w = window as unknown as { __wdioSession?: { refs: Map<string, WeakRef<Element>>, ids: WeakMap<Element, string> } }
     const store = opts.assignRefs === 'ephemeral'
@@ -70,6 +83,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     const SECTIONING = 'article,aside,main,nav,section'
     /** unique candidates a ref gets besides the positional last resort */
     const MAX_CANDIDATES = 3
+    /** longest wait for an async selector provider; one that is slower contributes no candidates */
+    const PROVIDER_TIMEOUT_MS = 2000
     /** longest text of a `tag=text` candidate */
     const MAX_CANDIDATE_TEXT = 40
     /** longest context text after the hint of an unnamed control */
@@ -828,8 +843,57 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return `concat(${parts.join(', ')})`
     }
 
+    const unique = (selector: string) => deepQueryAll(document, selector).length === 1
+    const dedupe = (list: SnapshotCandidate[]) => list.filter((c, i) => list.findIndex((o) => o.selector === c.selector) === i)
+    const pendingProvided: { candidates: SnapshotCandidate[], builtins: SnapshotCandidate[], pending: Promise<SnapshotCandidate[]> }[] = []
+
+    function providedBy (provider: PageProvider, value: unknown): SnapshotCandidate[] {
+        const selectors = (Array.isArray(value) ? value : [value]).filter((s): s is string => typeof s === 'string' && s !== '')
+        return selectors
+            .filter((selector) => selector.startsWith(`${provider.name}:`) ? provider.locator : unique(selector))
+            .map((selector): SnapshotCandidate => ({ kind: 'provider', selector, provider: provider.name }))
+    }
+
+    /**
+     * The provider candidates in provider order, whether each provider is sync or async.
+     * `now` holds them all when none is async; otherwise `pending` resolves to them.
+     */
+    function providerCandidates (el: Element): { now: SnapshotCandidate[], pending?: Promise<SnapshotCandidate[]> } {
+        const attributed: SnapshotCandidate[] = []
+        const slots: (SnapshotCandidate[] | Promise<SnapshotCandidate[]>)[] = [attributed]
+        for (const { name, attr } of opts.providerAttributes ?? []) {
+            const value = el.getAttribute(attr)
+            const selector = value && `[${attr}="${CSS.escape(value)}"]`
+            if (selector && unique(selector)) {
+                attributed.push({ kind: 'provider', selector, provider: name })
+            }
+        }
+        for (const provider of providers ?? []) {
+            if (!provider.fn) {
+                continue
+            }
+            let result: unknown
+            try {
+                result = provider.fn(el)
+            } catch {
+                continue
+            }
+            if (typeof (result as PromiseLike<unknown> | undefined)?.then === 'function') {
+                const settled = Promise.resolve(result).then((value) => providedBy(provider, value), () => [])
+                const timedOut = new Promise<[]>((resolve) => setTimeout(resolve, PROVIDER_TIMEOUT_MS, []))
+                slots.push(Promise.race([settled, timedOut]))
+            } else {
+                slots.push(providedBy(provider, result))
+            }
+        }
+        if (slots.every((slot): slot is SnapshotCandidate[] => Array.isArray(slot))) {
+            return { now: slots.flat() }
+        }
+        return { now: [], pending: Promise.all(slots).then((lists) => lists.flat()) }
+    }
+
     function candidates (el: Element, role: string, name: string): SnapshotCandidate[] {
-        const unique = (selector: string) => deepQueryAll(document, selector).length === 1
+        const provided = providerCandidates(el)
         const out: SnapshotCandidate[] = []
         // extended kinds stop once a ref has enough; base kinds stay complete for stale-ref recovery
         const room = () => out.length < MAX_CANDIDATES
@@ -900,7 +964,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 out.push({ kind: 'css-path', selector: anchored })
             }
         }
-        return out.filter((c, i) => out.findIndex((o) => o.selector === c.selector) === i)
+        const result = dedupe([...provided.now, ...out])
+        if (provided.pending) {
+            pendingProvided.push({ candidates: result, builtins: out, pending: provided.pending })
+        }
+        return result
     }
 
     function assignRef (el: Element) {
@@ -1223,6 +1291,12 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
     addIntents(refsAssigned)
     const tree: Node = { role: 'document', name: document.title, url: location.href, children }
-    return { tree, counter, refs }
+    if (!pendingProvided.length) {
+        return { tree, counter, refs }
+    }
+    return Promise.all(pendingProvided.map((p) => p.pending)).then((lists) => {
+        pendingProvided.forEach(({ candidates: list, builtins }, i) => list.splice(0, list.length, ...dedupe([...lists[i], ...builtins])))
+        return { tree, counter, refs }
+    })
 }
 /* c8 ignore stop */

@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { loadSelectorProviders, serializeSelectorProviders } from '@wdio/snapshot/providers'
 import { DEFAULT_IDLE_TIMEOUT, DEFAULT_LAUNCH_TIMEOUT } from '../constants.js'
 import { usage } from '../errors.js'
 import { parseDuration } from '../daemon/events.js'
@@ -9,7 +10,7 @@ import { applyCloudProvider } from './cloud.js'
 import { configPlan } from './config.js'
 import { electronPlan } from './electron.js'
 import { MOBILE_SESSION_START_TIMEOUT, appiumTargetPlan } from './mobile.js'
-import { deepMerge, parseCapabilitiesFlag, parseRemoteUrl, type OpenArgs } from './utils.js'
+import { deepMerge, parseCapabilitiesFlag, parseRemoteUrl, toArray, type OpenArgs } from './utils.js'
 import { nativeWebviewPlan } from './webview.js'
 import type { OpenPlan } from '../types.js'
 
@@ -111,6 +112,13 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
         throw usage(`Unknown target "${target}".`, `Use one of ${ALL_TARGETS.join(', ')} or a path to a wdio config file.`)
     }
 
+    const flagged = await loadSelectorProviders(toArray(args.selectorProvider), { cwd: ctx.cwd })
+    plan.selectorProviders = [...(plan.selectorProviders ?? []), ...serializeSelectorProviders(flagged)]
+    const names = plan.selectorProviders.map((provider) => provider.name)
+    const duplicate = names.find((name, i) => names.indexOf(name) !== i)
+    if (duplicate) {
+        throw usage(`Selector provider "${duplicate}" is loaded more than once.`, 'Remove one of the entries that load it from snapshots, services or --selector-provider.')
+    }
     const extra = parseCapabilitiesFlag(args.capabilities, ctx.cwd)
     if (Object.keys(extra).length) {
         plan.capabilities = deepMerge(plan.capabilities as Record<string, unknown>, extra) as OpenPlan['capabilities']

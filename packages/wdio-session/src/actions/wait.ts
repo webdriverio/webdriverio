@@ -1,8 +1,8 @@
-import { refId } from '@wdio/snapshot'
+import { parseProviderSelector, refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { providerCode, providerNames, resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_LIMIT = 10_000
@@ -123,8 +123,12 @@ async function waiter (session: Session, target: string) {
         const resolved = await resolveTarget(session, target)
         return resolved
     }
-    const element = await session.browser.$(target).getElement()
-    return { element, code: `$(${quote(target)})`, label: JSON.stringify(target) }
+    const names = providerNames(session.plan)
+    const provider = parseProviderSelector(target, names)
+    const element = provider
+        ? await session.browser.custom$(provider.name, provider.arg)
+        : await session.browser.$(target).getElement()
+    return { element, code: providerCode(target, names, 'browser') ?? `$(${quote(target)})`, label: JSON.stringify(target) }
 }
 
 export const wait: ActionFn = async (session, args) => {

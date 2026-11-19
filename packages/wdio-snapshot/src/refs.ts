@@ -1,5 +1,6 @@
 import type {} from 'webdriverio'
 
+import type { SerializedSelectorProvider } from './providers.js'
 import { SnapshotError } from './errors.js'
 
 export const REF_PATTERN = /^e\d+$/
@@ -50,6 +51,33 @@ export function refId (value: string): string | undefined {
     return REF_PATTERN.test(id) ? id : undefined
 }
 
+const PROVIDER_NAME_PATTERN = '[a-z][\\w-]*'
+export const PROVIDER_NAME = new RegExp(`^${PROVIDER_NAME_PATTERN}$`)
+const PROVIDER_SELECTOR = new RegExp(`^(${PROVIDER_NAME_PATTERN}):(.*)$`, 's')
+
+/**
+ * Names of the providers that have a `locator`: only those resolve `name:arg` selectors
+ */
+export function locatorProviderNames (list: Pick<SerializedSelectorProvider, 'name' | 'locator'>[] = []): string[] {
+    return list.filter((provider) => provider.locator).map((provider) => provider.name)
+}
+
+/**
+ * `name` and `arg` of a `name:arg` selector of one of the `names` providers, else undefined
+ */
+export function parseProviderSelector (selector: string, names: string[]): { name: string, arg: string } | undefined {
+    const match = PROVIDER_SELECTOR.exec(selector)
+    return match && names.includes(match[1]) ? { name: match[1], arg: match[2] } : undefined
+}
+
+/**
+ * `name:arg` selectors of a registered selector provider go to `custom$$`, anything else to `$$`
+ */
+export function queryAll (browser: WebdriverIO.Browser, selector: string, providerNames: string[] = []) {
+    const provider = parseProviderSelector(selector, providerNames)
+    return provider ? browser.custom$$(provider.name, provider.arg) : browser.$$(selector)
+}
+
 export const refFunction = (id: string) => new Function(`return (window.__wdioSession && window.__wdioSession.refs.get(${JSON.stringify(id)}) || { deref: function () { return null } }).deref() || null`) as () => HTMLElement
 
 export class RefRegistry {
@@ -57,9 +85,11 @@ export class RefRegistry {
     #counter = 0
     generation = 0
     #createError: RefErrorFactory
+    #providerNames: string[]
 
-    constructor (opts: { createError?: RefErrorFactory } = {}) {
+    constructor (opts: { createError?: RefErrorFactory, providerNames?: string[] } = {}) {
         this.#createError = opts.createError ?? ((code, message) => new SnapshotError(code, message))
+        this.#providerNames = opts.providerNames ?? []
     }
 
     get counter () {
@@ -109,7 +139,7 @@ export class RefRegistry {
             return el
         }
         for (const candidate of entry.selector ? [entry.selector] : entry.candidates) {
-            const els = await browser.$$(candidate).getElements()
+            const els = await queryAll(browser, candidate, this.#providerNames).getElements()
             if (els.length === 1) {
                 entry.selector = candidate
                 return els[0]
@@ -140,7 +170,7 @@ export class RefRegistry {
         const target = element || await this.resolve(browser, id)
         for (const candidate of entry.candidates) {
             try {
-                const els = await browser.$$(candidate).getElements()
+                const els = await queryAll(browser, candidate, this.#providerNames).getElements()
                 if (els.length === 1 && await els[0].isEqual(target)) {
                     entry.selector = candidate
                     return candidate

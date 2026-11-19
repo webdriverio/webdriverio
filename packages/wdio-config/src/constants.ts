@@ -20,6 +20,7 @@ export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     framework: 'mocha' as const,
     reporters: [],
     services: [],
+    snapshots: [],
     maxInstances: 100,
     maxInstancesPerCapability: DEFAULT_MAX_INSTANCES_PER_CAPABILITY,
     injectGlobals: true,
