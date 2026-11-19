@@ -249,15 +249,19 @@ wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 
 ## Run Multiple, Specific Test Specs
 
-It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to run. WebdriverIO's `wdio` command line utility accepts piped-in filenames (from `find`, `grep`, or others).
-
-Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
+When running in a terminal, you can pipe one spec path per line into `wdio run`. For example, run only specs containing a particular string:
 
 ```sh
-grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
+grep -rl --include='*.js' 'myText' ./test/specs | npx wdio run ./wdio.conf.js
 ```
 
-_**Note:** This will_ not _override the `--spec` flag for running a single spec._
+When standard input is a pipe and standard output is a terminal, the CLI waits for the input to close. A nonempty list replaces the specs from the configuration and any `--spec` arguments. An empty pipe leaves your selection as configured.
+
+When standard output is redirected or captured (for example, by a CI job or a Node.js child process), pass paths with `--spec` instead. In a Git pre-push hook, standard input may contain Git ref updates. Redirect it from `/dev/null` if those lines should not be used as spec paths:
+
+```sh
+npx wdio run ./wdio.conf.js --spec ./test/specs/login.js < /dev/null
+```
 
 ## Running Specific Tests with MochaOpts
 
