@@ -31,7 +31,9 @@ Install `webdriverio` next to this package: it is a required peer dependency.
 
 `@wdio/session/agent` runs the same actions, snapshots and refs on a browser
 your code already owns, for example in a test or a `remote()` script. There is
-no daemon. `dispose()` leaves the browser session open.
+no daemon. `dispose()` removes a temporary `artifactsDir` it created and leaves
+the browser session open, so paths returned by `snapshot()` or `screenshot()`
+are only valid until `dispose()` unless you pass your own `artifactsDir`.
 
 > **Experimental:** the `@wdio/session/agent` API, the snapshot text and the
 > `RefEntry` fields `ref()` returns may change in a minor release. The ref
@@ -61,8 +63,10 @@ from a recorded step. It takes untyped arguments.
 
 `snapshot(opts)` returns an `AgentSnapshot`: `text`, the `tree`, and the
 `lines`, `refs` and `chars` counts, plus `page` and `notes` when there are any.
-`maxChars` caps the size. Above it `tooBig` is `true` and `text` is a summary.
-It writes no file and works for app (Appium) sessions too.
+`maxChars` caps the inline size. Above it `tooBig` is `true`, the full snapshot
+is written to `file`, and `text` is a summary pointing to it. With
+`fileOnly: true`, the snapshot is always written to `file` and `text` is a
+summary with its path. Both work for app (Appium) sessions too.
 
 Action results carry structured fields next to `text` and `code`:
 

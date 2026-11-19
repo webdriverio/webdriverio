@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 
 import type { ActionArgsOf, AgentActionName } from '../src/actions/args.js'
-import type { AgentSession } from '../src/agent.js'
+import type { AgentSession, AgentSnapshot, AgentSnapshotOptions } from '../src/agent.js'
 
 declare const agent: AgentSession
 
@@ -23,6 +23,10 @@ describe('action args types', () => {
         expectTypeOf<{ interactive: true }>().toMatchTypeOf<ActionArgsOf<'snapshot'>>()
         expectTypeOf<ActionArgsOf<'snapshot'>['maxChars']>().toEqualTypeOf<number | undefined>()
         expectTypeOf<ActionArgsOf<'snapshot'>['fileOnly']>().toEqualTypeOf<boolean | undefined>()
+        expectTypeOf<AgentSnapshotOptions['maxChars']>().toEqualTypeOf<number | undefined>()
+        expectTypeOf<AgentSnapshotOptions['fileOnly']>().toEqualTypeOf<boolean | undefined>()
+        expectTypeOf<AgentSnapshot['file']>().toEqualTypeOf<string | undefined>()
+        void agent.snapshot({ fileOnly: true })
     })
 
     it('choices narrow the value', () => {
