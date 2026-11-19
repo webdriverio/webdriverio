@@ -2,10 +2,24 @@ import React from 'react'
 import clsx from 'clsx'
 import Link from '@docusaurus/Link'
 import CodeBlock from '@theme/CodeBlock'
-import { translate } from '@docusaurus/Translate'
+import Translate, { translate } from '@docusaurus/Translate'
+import useBaseUrl from '@docusaurus/useBaseUrl'
 
 import styles from './home.module.css'
 import { panelId, tabId, useRovingTabs } from './useRovingTabs'
+
+function BrowserFrameworks () {
+    const angularLogo = useBaseUrl('/img/icons/angular.svg')
+    return (
+        <Translate id="homepage.platforms.browser.frameworks" values={{
+            angular: (
+                <Link to="/docs/component-testing/angular" className={styles.frameworkLink}>
+                    <img src={angularLogo} width="16" height="16" alt="" /> Angular
+                </Link>
+            )
+        }}>{'Component tests for React, {angular}, Vue, Svelte, Solid, Preact, Lit and Stencil'}</Translate>
+    )
+}
 
 const PLATFORMS = [{
     id: 'browser',
@@ -13,7 +27,7 @@ const PLATFORMS = [{
     title: translate({ id: 'homepage.platforms.browser.title', message: 'End-to-end and component tests in real browsers' }),
     points: [
         translate({ id: 'homepage.platforms.browser.p1', message: 'Chrome, Firefox, Safari and Edge through WebDriver and WebDriver BiDi' }),
-        translate({ id: 'homepage.platforms.browser.p2', message: 'Component tests for React, Vue, Svelte, Solid, Preact, Lit and Stencil' }),
+        <BrowserFrameworks key="frameworks" />,
         translate({ id: 'homepage.platforms.browser.p3', message: 'Network mocking, emulation and auto-waiting built in' }),
     ],
     link: '/docs/platforms/web',
@@ -146,7 +160,7 @@ export default function Platforms () {
                 <div className={styles.platformText}>
                     <h3>{platform.title}</h3>
                     <ul>
-                        {platform.points.map((point) => <li key={point}>{point}</li>)}
+                        {platform.points.map((point) => <li key={typeof point === 'string' ? point : point.key}>{point}</li>)}
                     </ul>
                     <Link to={platform.link} className={styles.textLink}>
                         {translate({ id: 'homepage.platforms.learnMore', message: 'Read the guide' })} →

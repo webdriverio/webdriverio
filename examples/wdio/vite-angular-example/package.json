@@ -1,0 +1,25 @@
+{
+  "name": "vite-angular-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "wdio": "wdio run ./wdio.conf.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@wdio/browser-runner": "workspace:*",
+    "@wdio/cli": "workspace:*",
+    "@wdio/globals": "workspace:*",
+    "@wdio/mocha-framework": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "typescript": "~5.9.0"
+  }
+}
