@@ -150,11 +150,11 @@ describe('inflight request tracking', () => {
         before({ context: 'other-tab', request: { request: 'r3', method: 'GET', url: 'https://other.example/poll' } })
 
         expect(inflightCount(session)).toBe(3)
-        expect(inflightCount(session, new Set(['frame-1']), true)).toBe(1)
-        expect(inflightCount(session, new Set(['other-frame']), true)).toBe(0)
+        expect(inflightCount(session, new Set(['frame-1']))).toBe(1)
+        expect(inflightCount(session, new Set(['other-frame']))).toBe(0)
 
         completed({ context: 'frame-1', request: { request: 'r2', method: 'GET', url: 'https://frame.example/api' }, response: { status: 200 } })
-        expect(inflightCount(session, new Set(['frame-1']), true)).toBe(0)
+        expect(inflightCount(session, new Set(['frame-1']))).toBe(0)
         expect(inflightCount(session)).toBe(2)
 
         failed({ context: 'parent-tab', request: { request: 'r1', method: 'GET', url: 'https://parent.example/poll' }, errorText: 'aborted' })

@@ -123,19 +123,18 @@ function noteRequest (session: Session, params: CapturedRequest, open: boolean) 
 
 export function inflightCount (
     session: Session,
-    scopeContexts?: ReadonlySet<string>,
-    excludeUntagged = false
+    scopeContexts?: ReadonlySet<string>
 ): number {
-    const inflight = session.get?.<InflightRequests | Set<string>>('networkInflight')
+    const inflight = session.get?.<InflightRequests>('networkInflight')
     if (!inflight) {
         return 0
     }
-    if (inflight instanceof Set || !scopeContexts) {
+    if (!scopeContexts) {
         return inflight.size
     }
     let count = 0
     for (const context of inflight.values()) {
-        if (context ? scopeContexts.has(context) : !excludeUntagged) {
+        if (context && scopeContexts.has(context)) {
             count++
         }
     }

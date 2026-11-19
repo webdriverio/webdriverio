@@ -137,9 +137,9 @@ async function scopeContextIds (session: Session, rootId: string | undefined) {
         return undefined
     }
     const ids = new Set<string>([rootId])
-    const inflight = session.get?.<Map<string, string | undefined> | Set<string>>('networkInflight')
+    const inflight = session.get?.<Map<string, string | undefined>>('networkInflight')
     if (
-        inflight instanceof Map
+        inflight
         && inflight.size > 0
         && typeof session.browser.browsingContextGetTree === 'function'
         && [...inflight.values()].some((ctx) => ctx && ctx !== rootId)
@@ -205,7 +205,7 @@ export const wait: ActionFn = async (session, args) => {
     if (args.url !== undefined) {
         const pattern = String(args.url)
         await session.browser.waitUntil(
-            async () => matchUrl(pattern, (held ? await held.getUrl().catch(() => '') : await session.currentUrl({ throwOnError: true })) ?? ''),
+            async () => matchUrl(pattern, (held ? await held.getUrl() : await session.currentUrl({ throwOnError: true })) ?? ''),
             options(`URL did not match ${pattern}`)
         )
         const check = pattern.includes('*')
@@ -220,15 +220,12 @@ export const wait: ActionFn = async (session, args) => {
         }
         if (load === 'networkidle') {
             const rootId = held?.contextId
-                ?? (session.isBidi && typeof session.browser.getWindowHandle === 'function'
-                    ? await session.browser.getWindowHandle().catch(() => undefined)
-                    : undefined)
             let last = ''
             let since = 0
             await session.browser.waitUntil(async () => {
                 const state = await scope.execute(pageNetworkState) as PageNetwork
                 const scopeIds = await scopeContextIds(session, rootId)
-                const bidi = inflightCount(session, scopeIds, Boolean(held))
+                const bidi = inflightCount(session, scopeIds)
                 const now = Date.now()
                 if (state.ready !== 'complete' || state.inflight > 0 || bidi > 0) {
                     last = ''

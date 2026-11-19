@@ -284,7 +284,7 @@ describe('wait', () => {
         expect(inflight.size).toBe(2)
     })
 
-    it('ignores background tab requests during top-level BiDi networkidle waits', async () => {
+    it('keeps counting all BiDi inflight requests when no frame is held', async () => {
         vi.useFakeTimers()
         vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
         const inflight = new Map<string, string | undefined>([
@@ -293,13 +293,15 @@ describe('wait', () => {
         const store = new Map<string, unknown>([
             ['networkInflight', inflight]
         ])
+        const browsingContextGetTree = vi.fn()
         const session = {
             isBidi: true,
             browser: {
-                getWindowHandle: async () => 'tab-1',
-                browsingContextGetTree: async () => ({ contexts: [{ context: 'tab-1', children: [] }] }),
+                browsingContextGetTree,
                 execute: async () => ({ ready: 'complete', completed: 1, inflight: 0 }),
                 waitUntil: async (cond: () => Promise<boolean>) => {
+                    expect(await cond()).toBe(false)
+                    inflight.delete('req-other-tab')
                     expect(await cond()).toBe(false)
                     vi.setSystemTime(Date.now() + 500)
                     expect(await cond()).toBe(true)
@@ -310,5 +312,25 @@ describe('wait', () => {
 
         const result = await wait(session, { load: 'networkidle', $cwd: '/' })
         expect(result.text).toBe('Page is network-idle')
+        expect(browsingContextGetTree).not.toHaveBeenCalled()
+    })
+
+    it('propagates held frame getUrl errors in wait --url', async () => {
+        const frame = {
+            contextId: 'frame-1',
+            isFrame: true,
+            getUrl: async () => {
+                throw new Error('browsing context has been discarded')
+            }
+        }
+        const store = new Map<string, unknown>([['activeContext', frame]])
+        const session = {
+            browser: {
+                waitUntil: async (cond: () => Promise<boolean>) => cond()
+            },
+            get: (key: string) => store.get(key)
+        } as unknown as Session
+
+        await expect(wait(session, { url: '**/frame.html', $cwd: '/' })).rejects.toThrow('browsing context has been discarded')
     })
 })
