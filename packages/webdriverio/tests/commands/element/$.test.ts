@@ -8,6 +8,64 @@ vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('element', () => {
+    it('retains a missing parent instead of querying a child in the browser', async () => {
+        const browser = await remote({
+            capabilities: { browserName: 'foobar' },
+            waitforTimeout: 20,
+            waitforInterval: 5
+        })
+        const parent = await browser.$('#nonexisting')
+        const wait = vi.spyOn(parent, 'waitForExist')
+        const child = await parent.$('#subfoo')
+
+        expect(child.elementId).toBeUndefined()
+        expect(child.parent).toBe(parent)
+        expect(child.selector).toBe('#subfoo')
+        expect(child.strict).toBe(false)
+        expect(wait).not.toHaveBeenCalled()
+    })
+
+    it('does not send a missing parent as an undefined browser-runner scope', async () => {
+        const browser = await remote({
+            capabilities: { browserName: 'foobar' },
+            waitforTimeout: 20,
+            waitforInterval: 5
+        })
+        const parent = await browser.$('#nonexisting')
+        const execute = vi.fn().mockResolvedValue({})
+        const executeWithScope = vi.fn()
+        const original = globalThis.wdio
+        globalThis.wdio = { execute, executeWithScope } as unknown as typeof globalThis.wdio
+        try {
+            const child = await parent.$('#subfoo')
+            expect(child.elementId).toBeUndefined()
+            expect(child.parent).toBe(parent)
+            expect(execute).toHaveBeenCalledTimes(1)
+            expect(execute).toHaveBeenCalledWith('$', '#nonexisting', { strict: false })
+            expect(executeWithScope).not.toHaveBeenCalled()
+        } finally {
+            globalThis.wdio = original
+        }
+    })
+
+    it('finds a missing parent again before querying the child in its scope', async () => {
+        const browser = await remote({ capabilities: { browserName: 'foobar' } })
+        const parent = await browser.$('#nonexisting', { strict: false })
+        expect((await parent.$('#subfoo')).elementId).toBeUndefined()
+
+        const findParent = vi.spyOn(browser, 'findElement')
+            .mockResolvedValue({ [ELEMENT_KEY]: 'some-elem-123' })
+        const child = await parent.$('#subfoo')
+
+        expect(findParent).toHaveBeenCalledWith('css selector', '#nonexisting')
+        expect(parent.elementId).toBe('some-elem-123')
+        expect(parent[ELEMENT_KEY]).toBe('some-elem-123')
+        expect(parent.strict).toBe(false)
+        expect(parent.error).toBeUndefined()
+        expect(child.elementId).toBe('some-sub-elem-321')
+        expect(child.parent).toBe(parent)
+    })
+
     it('should fetch an element', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
