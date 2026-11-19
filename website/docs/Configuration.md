@@ -609,13 +609,13 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 
 ### updateSnapshots
 
-<Option type="'new' | 'all' | 'none'" default="none if not provided and tests run in CI, new if not provided, otherwise what's been provided">
+<Option type="'new' | 'all' | 'none'" default="'none' when the CI environment variable is nonempty, otherwise 'new'">
 
-Controls whether snapshot assertions can write snapshot files or inline snapshots in your test source:
+This option controls how assertions handle missing or changed snapshots, including inline snapshots.
 
-- `'new'`: add missing snapshots; existing mismatches fail.
-- `'all'`: add missing snapshots and update existing snapshots.
-- `'none'`: compare existing snapshots without writing; missing snapshots fail.
+- `'new'` adds missing snapshots. A mismatch with an existing snapshot fails the assertion.
+- `'all'` adds missing snapshots and updates mismatches.
+- `'none'` leaves snapshots unchanged. A missing or mismatched snapshot fails the assertion.
 
 ```ts title="wdio.conf.ts"
 export const config: WebdriverIO.Config = {

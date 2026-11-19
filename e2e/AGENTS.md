@@ -21,6 +21,10 @@ pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 ```
 
+`test:e2e:testrunner` first runs a temporary spec with a missing inline
+snapshot and `CI` unset. It checks that the run fails and leaves the spec
+unchanged before running the headless suite.
+
 `pnpm run test:e2e` runs every `test:e2e:*` script, including cloud. Do not
 use it in routine agent work. `pnpm run test:changed --e2e` runs component,
 session, display-server, or Chromedriver only when those CI lanes are in the

@@ -28,10 +28,6 @@ test('internal e2e config rejects missing inline snapshots without writing the s
             export const config = {
                 ...base,
                 specs: [${JSON.stringify(spec)}],
-                capabilities: [{
-                    browserName: 'chrome',
-                    'goog:chromeOptions': { args: ['--headless', '--disable-gpu'] }
-                }],
                 maxInstances: 1,
                 logLevel: 'error',
                 outputDir: ${JSON.stringify(directory)}
