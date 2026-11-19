@@ -24,6 +24,7 @@ export * from './utils/actions/index.js'
  * re-export command types
  */
 export { InitScript } from './commands/browser/addInitScript.js'
+export type { DebugOptions } from './commands/browser/debug.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands

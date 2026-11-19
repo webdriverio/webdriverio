@@ -282,4 +282,12 @@ describe('start', () => {
         exitStartedRepl()
         await pending
     })
+
+    it('should accept partial config without mutating default config', () => {
+        const customRepl = new WDIORepl({ commandTimeout: 12000 })
+        const defaultRepl = new WDIORepl()
+
+        expect(customRepl['_config'].commandTimeout).toBe(12000)
+        expect(defaultRepl['_config'].commandTimeout).toBe(5000)
+    })
 })

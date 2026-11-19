@@ -11,7 +11,7 @@ export default class WDIORepl {
     private _evalFn: (...args: [any]) => any
     private _startFn: (...args: [any]) => any
 
-    constructor(config: ReplConfig) {
+    constructor(config?: Partial<ReplConfig>) {
         this._config = Object.assign({
             commandTimeout: 5000,
             eval: this.eval.bind(this),
