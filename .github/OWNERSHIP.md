@@ -39,6 +39,7 @@ published as user docs — do not add developer footers there.
 | Persistent `wdio session` | `@wdio/session` | CI `session` lane |
 | Page and native snapshot trees | `@wdio/snapshot` | CI `session` lane |
 | Display server (Wayland / Xvfb) | `@wdio/display-server` | CI `display_server` lane |
+| mobilecli automation protocol driver | `@wdio/mobilecli-driver` | Loaded through `automationProtocol`. Work in progress, see its `PLAN.md` |
 | Type generation / esbuild | `@wdio/compiler` | `infra/compiler` |
 | Docs index / scoped tests / CI lanes | `@wdio/repo-tools` | `infra/repo-tools` |
 | Mock driver for smoke tests | `@wdio/webdriver-mock-service` | Not `@wdio/smoke-test-service` |

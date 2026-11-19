@@ -1,6 +1,6 @@
 # Create Package
 
-Internal package that scaffolds a new WebdriverIO sub-package (reporter, service, runner, framework, or tool) with the boilerplate files the monorepo expects. It is not published to NPM. Tools omit the type suffix, so a tool named `session` becomes `@wdio/session`.
+Internal package that scaffolds a new WebdriverIO sub-package (reporter, service, runner, framework, driver, or tool) with the boilerplate files the monorepo expects. It is not published to NPM. A driver is a package that the `automationProtocol` option loads in place of `webdriver`. Tools omit the type suffix, so a tool named `session` becomes `@wdio/session`.
 
 ## Workflow
 
