@@ -55,6 +55,7 @@ export const config: WebdriverIO.Config = {
     logLevel: 'info',
     //maskingPatterns: '/--port=([^ ]*)/', // Uncomment to test masking in logs
     framework: 'mocha',
+    updateSnapshots: 'none',
     outputDir: __dirname,
 
     reporters: ['spec'],
