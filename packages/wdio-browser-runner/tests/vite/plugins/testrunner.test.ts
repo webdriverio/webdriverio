@@ -1,8 +1,11 @@
 import os from 'node:os'
 import path from 'node:path'
+import url from 'node:url'
+import { createRequire } from 'node:module'
 import { test, vi, expect } from 'vitest'
 
 import { testrunner } from '../../../src/vite/plugins/testrunner.js'
+import { DEFAULT_VITE_CONFIG } from '../../../src/vite/constants.js'
 import { getTemplate, getErrorTemplate } from '../../../src/vite/utils.js'
 import { SESSIONS } from '../../../src/constants.js'
 
@@ -64,7 +67,30 @@ test('transform', () => {
         var expect_default = require_build11();
         process.stdout.isTTY
     `
-    expect((plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')).toMatchSnapshot()
+    const transformedExpect = (plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')
+    expect(transformedExpect).toMatchSnapshot()
+    expect((plugin[0].transform as Function)(expectJS, '.vite/deps/@wdio_browser-runner___expect.js')).toEqual(transformedExpect)
+})
+
+test('DEFAULT_VITE_CONFIG optimizeDeps chains resolve from their declaring packages', () => {
+    const pkgRoot = url.fileURLToPath(new URL('../../../package.json', import.meta.url))
+    const includes = DEFAULT_VITE_CONFIG.optimizeDeps?.include ?? []
+    expect(includes.length).toBeGreaterThan(0)
+    for (const entry of includes) {
+        const parts = entry.split(' > ')
+        expect(parts[0]).toBe('@wdio/browser-runner')
+        let reqFrom = createRequire(pkgRoot)
+        for (const dep of parts.slice(1)) {
+            let resolved: string
+            try {
+                resolved = reqFrom.resolve(`${dep}/package.json`)
+            } catch {
+                resolved = reqFrom.resolve(dep)
+            }
+            expect(resolved).toBeTruthy()
+            reqFrom = createRequire(resolved)
+        }
+    }
 })
 
 const req = { headers: { cookie: '' } }
