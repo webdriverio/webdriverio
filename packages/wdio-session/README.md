@@ -88,3 +88,43 @@ exported from `@wdio/session/agent`.
 `tsx` and `expect-webdriverio` are optional peer dependencies. `expect` inside
 `exec` needs `expect-webdriverio` installed in your project. TypeScript configs
 load without `tsx` through Node type stripping or jiti.
+
+## In-process launch
+
+`@wdio/session/launch` starts the same browser the CLI would (display server,
+driver, capabilities) inside your process. It is experimental.
+
+```ts
+import { buildPlan, launch } from '@wdio/session/launch'
+import { createAgentSession } from '@wdio/session/agent'
+
+const plan = await buildPlan({ target: 'chrome' }, {
+  name: 'default',
+  cwd: process.cwd(),
+  runtimeDir: '/tmp/wdio-session',
+  artifactsDir: '/tmp/wdio-session/artifacts',
+  argv: process.argv.slice(2)
+})
+const launched = await launch(plan, { remoteOptions: { connectionRetryTimeout: 120_000 } })
+const agent = await createAgentSession(launched.browser)
+
+try {
+  await launched.browser.url('http://localhost:3000')
+  const { text } = await agent.snapshot({ interactive: true })
+  console.log(text)
+  await launched.markResult({ passed: true })
+} finally {
+  await agent.dispose()
+  await launched.cleanup()
+}
+```
+
+`markResult` reports pass/fail to BrowserStack, Sauce Labs, TestMu or TestingBot before `cleanup()`; it does nothing for other plans.
+
+`launch` does not navigate; the CLI's `--url` handling and other session setup
+(viewport, event capture) run in the daemon, not here.
+
+For an attach plan (`--attach`), `launch` waits up to 10 s for the debugger endpoint `/json/version` before it connects.
+
+`dispose()` on the agent leaves the browser open. `launched.cleanup()` ends it
+and stops whatever `launch` started.

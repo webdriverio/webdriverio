@@ -1,8 +1,10 @@
 import { startDisplayDaemonFromConfig } from '@wdio/display-server'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import { startAppium } from './appium.js'
-import { startCloudTunnel } from './cloud.js'
+import { DEBUGGER_WAIT_TIMEOUT_MS, waitForDebugger } from './browser.js'
+import { markCloudResult, startCloudTunnel } from './cloud.js'
 import { launchElectron } from './electron.js'
 import { launchWebview, startDriver } from './webview.js'
 import type { OpenPlan } from '../types.js'
@@ -13,22 +15,42 @@ const log = logger('@wdio/session:launch')
 
 export const SESSION_LOG_LEVELS = { '@wdio/session': 'info' } as const
 
+export interface SessionResult {
+    passed: boolean
+    reason?: string
+}
+
 export interface Launched {
     browser: WebdriverIO.Browser
     /**
      * PIDs of child processes that must stay alive (driver, Appium, …)
      */
     pids: () => number[]
+    /**
+     * Call before `cleanup()`; no-op unless the plan is a cloud plan; rejects with SessionError on API failure.
+     */
+    markResult: (result: SessionResult) => Promise<void>
     cleanup: (died?: boolean) => Promise<void>
+}
+
+export interface LaunchOptions {
+    /**
+     * extra webdriverio `remote()` options, e.g. hooks (`beforeCommand`, `afterCommand`) or timeouts; capabilities stay owned by the plan.
+     * Connection fields (hostname, port, protocol, path, user, key) override the plan's, so leave them out for cloud, grid and Appium plans.
+     * `remote()` rejects a hook given as a single function although its type allows one; pass hooks as arrays.
+     * Electron ignores it (the electron service creates the session), as do Tauri/Dioxus when the service provides `startWdioSession`.
+     */
+    remoteOptions?: Partial<Omit<Capabilities.WebdriverIOConfig, 'capabilities'>>
 }
 
 type Cleanup = () => Promise<unknown> | unknown
 
 /**
  * Start everything the plan needs (display server, Appium, drivers) and
- * create the WebdriverIO browser object.
+ * create the WebdriverIO browser object. The caller owns the returned
+ * `cleanup()`: disposing an `AgentSession` does not end the browser.
  */
-export async function launch (plan: OpenPlan): Promise<Launched> {
+export async function launch (plan: OpenPlan, opts: LaunchOptions = {}): Promise<Launched> {
     const cleanups: Cleanup[] = []
     const pids: number[] = []
     const runCleanups = async () => {
@@ -66,7 +88,7 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
         if (plan.mode === 'electron') {
             ;({ browser, end } = await launchElectron(plan))
         } else if (plan.platform === 'tauri' || plan.platform === 'dioxus') {
-            const launched = await launchWebview(plan)
+            const launched = await launchWebview(plan, opts.remoteOptions)
             browser = launched.browser
             end = launched.end
             if (typeof launched.pid === 'number') {
@@ -78,10 +100,16 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
                 pids.push(driver.pid)
                 cleanups.push(() => driver.stop())
             }
+            const caps = plan.capabilities as Record<string, { debuggerAddress?: string } | undefined>
+            const debuggerAddress = caps['goog:chromeOptions']?.debuggerAddress ?? caps['ms:edgeOptions']?.debuggerAddress
+            if (debuggerAddress) {
+                await waitForDebugger(debuggerAddress, DEBUGGER_WAIT_TIMEOUT_MS)
+            }
             browser = await (await import('webdriverio')).remote({
                 ...plan.remote,
                 logLevel: plan.remote.logLevel as 'warn',
                 logLevels: SESSION_LOG_LEVELS,
+                ...opts.remoteOptions,
                 capabilities: plan.capabilities
             } as Parameters<typeof remote>[0])
             end = async (died) => {
@@ -125,6 +153,7 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
         return {
             browser,
             pids: () => pids,
+            markResult: (result) => plan.provider ? markCloudResult(plan, browser, result) : Promise.resolve(),
             cleanup: async (died) => {
                 try {
                     await end(died)
