@@ -174,14 +174,14 @@ test('requireExternalModules', () => {
 })
 
 describe('setupEnv', () => {
-    test('setupEnv - TDD', () => {
+    test.each(['tdd', '@example/custom-tdd', '/project/custom-tdd.js', '/project/custom-tdd.cjs'])('wraps TDD tests and hooks for %s', (ui) => {
         const hooks = {
             beforeHook: 'beforeHook123' as any,
             afterHook: 'afterHook123' as any,
             beforeTest: 'beforeTest234' as any,
             afterTest: 'afterTest234' as any
         }
-        const mochaOpts = { foo: 'bar', ui: 'tdd' as const }
+        const mochaOpts = { ui: ui as Mocha.Interface }
         setupEnv('0-2', mochaOpts, hooks.beforeTest, hooks.beforeHook, hooks.afterTest, hooks.afterHook)
         expect(wrapGlobalTestMethod).toBeCalledWith(
             false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')

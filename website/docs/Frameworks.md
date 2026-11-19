@@ -48,6 +48,20 @@ suite('my awesome website', () => {
 })
 ```
 
+The Node.js testrunner also accepts a third-party Mocha interface in `mochaOpts.ui`. Use the installed module name or an absolute path to a local interface file. For example, set `ui: '@example/custom-tdd'` for an interface that exposes `suite`, `test`, and the TDD hooks. WebdriverIO uses the suffix `-bdd`, `-tdd`, or `-qunit` to wrap the matching test and hook functions. For a file such as `custom-tdd.cjs`, it reads the suffix before the file extension.
+
+In a TypeScript config, a third-party module can register its name through Mocha’s `InterfaceContributions` declaration. If the module does not ship that declaration, add it in a declaration file included by your project:
+
+```ts
+import 'mocha'
+
+declare module 'mocha' {
+    interface InterfaceContributions {
+        '@example/custom-tdd': never
+    }
+}
+```
+
 If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
 __Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:

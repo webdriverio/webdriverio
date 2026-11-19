@@ -3,17 +3,9 @@ import { wrapGlobalTestMethod } from '@wdio/utils'
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types.js'
 
-/**
-* Extracts the mocha UI type following this convention:
-*  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
-*      is taken as ui type (i.e. 'bdd','tdd','qunit')
-*  - If it contains a '-' then it asumes we are providing a custom ui for
-*      mocha. Then it extracts the text after the last '-' (ignoring .js if
-*      provided) as the interface type. (i.e. strong-bdd in
-*      https://github.com/strongloop/strong-mocha-interfaces)
-*/
-const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
-const DEFAULT_INTERFACE_TYPE = 'bdd'
+// A custom interface can expose BDD, TDD, or QUnit globals under a module
+// name such as "custom-tdd" or a local file such as "custom-tdd.cjs".
+const MOCHA_UI_TYPE_EXTRACTOR = /(?:^|[-/\\])(bdd|tdd|qunit)(?:\.[cm]?js)?$/
 
 interface Payload {
     title: string
@@ -149,8 +141,8 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
 
 type Hook = Function | Function[]
 export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
-    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as unknown as [string, keyof typeof INTERFACES]
-    const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
+    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui ?? '')
+    const type = (match?.[1] ?? 'bdd') as keyof typeof INTERFACES
 
     const hookArgsFn = (context: Mocha.Context) => {
         return [{ ...context.test, parent: context.test?.parent?.title }, context]
