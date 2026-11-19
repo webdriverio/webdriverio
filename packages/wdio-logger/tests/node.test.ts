@@ -166,6 +166,41 @@ describe('wdio-logger node', () => {
             expect(written).toContain('test-logFile3: bar')
         })
 
+        it('keeps only the newest lines when no log file comes, so the process does not keep all its output (#16414)', () => {
+            const log = nodeLogger('test-logFile-cache-limit')
+            // 300 lines of 10 kB: 3 MB of log output without a log file
+            const payload = 'x'.repeat(10_000)
+            for (let i = 0; i < 300; i++) {
+                log.info(`line-${i}- ${payload}`)
+            }
+
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            log.info('with log file')
+
+            const written = write.mock.results.map((result) => result.value).join('')
+            // the oldest lines were dropped, the newest ones and the new line are in the file
+            expect(written).not.toContain('line-0- ')
+            expect(written).toContain('line-299- ')
+            expect(written).toContain('test-logFile-cache-limit: with log file')
+            // about 1 MB is kept, not the 3 MB that were logged
+            expect(written.length).toBeLessThan(1_100_000)
+            expect(written.length).toBeGreaterThan(900_000)
+        })
+
+        it('keeps the newest line when it alone is longer than the cache limit', () => {
+            const log = nodeLogger('test-logFile-cache-long-line')
+            log.info('short line')
+            log.info(`long-line ${'x'.repeat(1_500_000)}`)
+
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            log.info('with log file')
+
+            const written = write.mock.results.map((result) => result.value).join('')
+            expect(written).not.toContain('short line')
+            expect(written).toContain('test-logFile-cache-long-line: long-line x')
+            expect(written).toContain('test-logFile-cache-long-line: with log file')
+        })
+
         it('should be possible to create and write to logFile, no cache', () => {
             process.env.WDIO_LOG_PATH = 'wdio.test.log'
 
