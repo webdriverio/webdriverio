@@ -3,6 +3,7 @@ import type { Capabilities } from '@wdio/types'
 export interface StateCount {
     passed: number
     failed: number
+    failedHooks: number
     skipped: number
     pending: number
     retried: number
@@ -39,6 +40,13 @@ export interface SpecReporterOptions {
      * @default: false
      */
     onlyFailures?: boolean
+    /**
+     * Report failed hooks separately from failed tests. Disabled by default to
+     * preserve the existing combined `failing` summary.
+     *
+     * @default: false
+     */
+    separateHookFailures?: boolean
     /**
      * Ability to show console logs from steps in report
      *
