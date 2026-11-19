@@ -334,6 +334,34 @@ describe('BaseReporter', () => {
         expect(onSynced).toHaveBeenCalledWith(true)
     })
 
+    it('should not wait for an interval in waitForSync when all reporters are in sync (#16421)', async () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [CustomReporter, CustomReporter] as any,
+            reporterSyncInterval: 10,
+            reporterSyncTimeout: 1000,
+            capabilities: [capability]
+        } as WebdriverIO.Config, '0-0', capability)
+        await reporter.initReporters()
+        // @ts-ignore test reporter param
+        reporter['_reporters'].forEach((r) => (r.inSync = true))
+
+        vi.useFakeTimers()
+        onTestFinished(() => {
+            vi.clearAllTimers()
+            vi.useRealTimers()
+        })
+
+        const onSynced = vi.fn()
+        const syncing = reporter.waitForSync().then(onSynced)
+
+        // no timer runs: a wait for the first check of the interval would not resolve here
+        await vi.advanceTimersByTimeAsync(0)
+        expect(onSynced).toHaveBeenCalledWith(true)
+        expect(vi.getTimerCount()).toBe(0)
+        await syncing
+    })
+
     it('it should fail if waitForSync times out', async () => {
         expect.hasAssertions()
 

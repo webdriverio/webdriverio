@@ -71,6 +71,45 @@ test('should fork a new process', async () => {
     })
 })
 
+test('should shut down without a wait when no worker is busy (#16421)', async () => {
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            outputDir: '/foo/bar',
+            runnerEnv: { FORCE_COLOR: 1 },
+            displayServerEnabled: true
+        } as any
+    )
+    const worker = await runner.run({
+        cid: '0-3',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+    worker['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
+    // the worker finished its spec file
+    worker.isBusy = false
+
+    vi.useFakeTimers()
+    try {
+        const onShutdown = vi.fn()
+        const shutdown = runner.shutdown().then(onShutdown)
+
+        // no timer runs: a wait for the first check of the interval would not resolve here
+        await vi.advanceTimersByTimeAsync(0)
+        expect(onShutdown).toHaveBeenCalledWith(true)
+        expect(vi.getTimerCount()).toBe(0)
+        await shutdown
+    } finally {
+        vi.useRealTimers()
+    }
+})
+
 test('should shut down worker processes', async () => {
     const runner = new LocalRunner(
         {} as never,
