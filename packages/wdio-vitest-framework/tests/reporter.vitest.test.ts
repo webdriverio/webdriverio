@@ -172,4 +172,40 @@ beforeAll(() => { throw new Error('session boom') })
 afterAll(() => {})
 `)).toEqual([['"before all" hook in "{root}"', 'session boom']])
     })
+
+    it('reports each concurrent test once when bail stops a describe.concurrent block', async () => {
+        recorded.length = 0
+        const bailDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-bail-'))
+        try {
+            await fs.writeFile(path.join(bailDir, 'bail.spec.js'), `
+describe.concurrent('bail group', () => {
+    test('fails fast', () => { throw new Error('bail boom') })
+    test('slow 1', async () => { await new Promise((resolve) => setTimeout(resolve, 200)) })
+    test('slow 2', async () => { await new Promise((resolve) => setTimeout(resolve, 200)) })
+})
+`)
+            const config = { reporters: [[RecorderReporter, {}]] } as unknown as WebdriverIO.Config
+            const bridge = new WdioBridgeReporter(config, () => {})
+            const vitest = await startVitest([], { run: true, watch: false, config: false }, {
+                root: bailDir,
+                test: {
+                    include: ['bail.spec.js'],
+                    bail: 1,
+                    reporters: [bridge],
+                    pool: 'forks',
+                    globals: true,
+                    provide: { wdioCapabilities: { browserName: 'chrome' } }
+                }
+            } as never)
+            await vitest.close()
+        } finally {
+            await fs.rm(bailDir, { recursive: true, force: true })
+        }
+
+        expect(recorded.filter(([name]) => name === 'test:start')).toHaveLength(3)
+        expect(recorded.filter(([name]) => name === 'test:fail')).toHaveLength(1)
+        expect(recorded.filter(([name]) => name === 'test:end')).toHaveLength(3)
+        expect(recorded.filter(([name]) => name === 'context:end')).toHaveLength(3)
+        expect(recorded.find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+    })
 })

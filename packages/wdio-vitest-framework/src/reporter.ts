@@ -34,6 +34,7 @@ type ModuleRun = {
     hookCount: number
     testCount: number
     entities: Map<string, Open>
+    completedTests: Set<string>
     // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
     runningHooks: Map<string, Set<AllHookName>>
     wrapper?: Titled
@@ -130,12 +131,19 @@ export class WdioBridgeReporter implements Reporter {
 
     onTestCaseReady(testCase: TestCase) {
         const run = this.#tryRun(testCase.module)
-        return run && this.#enqueue(run, () => this.#inContext(testCase, () => this.#openTest(run, testCase)))
+        if (!run || run.completedTests.has(testCase.id)) {
+            return
+        }
+        return this.#enqueue(run, () => this.#inContext(testCase, () => this.#openTest(run, testCase)))
     }
 
     onTestCaseResult(testCase: TestCase) {
         const run = this.#tryRun(testCase.module)
-        return run && this.#enqueue(run, () => this.#inContext(testCase, () => {
+        if (!run || run.completedTests.has(testCase.id)) {
+            return
+        }
+        run.completedTests.add(testCase.id)
+        return this.#enqueue(run, () => this.#inContext(testCase, () => {
             const base = this.#openTest(run, testCase)
             run.entities.delete(testCase.id)
             const result = testCase.result()
@@ -223,7 +231,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
+            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), completedTests: new Set(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
