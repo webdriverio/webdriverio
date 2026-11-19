@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, test, expect, vi, afterAll } from 'vitest'
+import { describe, test, expect, vi, afterAll, beforeEach } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
@@ -174,6 +174,10 @@ test('requireExternalModules', () => {
 })
 
 describe('setupEnv', () => {
+    beforeEach(() => {
+        vi.mocked(wrapGlobalTestMethod).mockClear()
+    })
+
     test.each(['tdd', '@example/custom-tdd', '/project/custom-tdd.js', '/project/custom-tdd.cjs'])('wraps TDD tests and hooks for %s', (ui) => {
         const hooks = {
             beforeHook: 'beforeHook123' as any,
