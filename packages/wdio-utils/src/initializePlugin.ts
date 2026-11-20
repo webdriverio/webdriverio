@@ -4,7 +4,7 @@ import type { Services } from '@wdio/types'
 
 import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH } from './utils.js'
 
-const FILE_PROTOCOL = 'file://'
+const FILE_PROTOCOL = 'file:'
 
 /**
  * initialize WebdriverIO compliant plugins like reporter or services in the following way:
@@ -13,15 +13,21 @@ const FILE_PROTOCOL = 'file://'
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
 export default async function initializePlugin (name: string, type?: string): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
+    const fileUrl = parseFileURL(name)
+
     /**
-     * directly import packages that are scoped or start with an absolute path
+     * directly import packages that are scoped, file URLs, or absolute paths
      */
-    if (name[0] === '@' || name.startsWith(FILE_PROTOCOL) || isAbsolute(name)) {
-        const fileUrl = name[0] === '@' ? name : ensureFileURL(name)
-        const service = await safeImport(fileUrl)
+    if (name[0] === '@' || fileUrl || isAbsolute(name)) {
+        const importPath = name[0] === '@' ? name : (fileUrl ?? ensureFileURL(name))
+        const service = await safeImport(importPath)
 
         if (service) {
             return service
+        }
+
+        if (fileUrl) {
+            throw new Error(`Couldn't initialize "${fileUrl}".`)
         }
     }
 
@@ -52,18 +58,23 @@ export default async function initializePlugin (name: string, type?: string): Pr
     )
 }
 
-function ensureFileURL(path: string) {
-    if (path.startsWith(FILE_PROTOCOL)) {
-        return path
+function parseFileURL(value: string) {
+    try {
+        const parsed = new URL(value)
+        return parsed.protocol === FILE_PROTOCOL ? parsed.href : null
+    } catch {
+        return null
     }
+}
 
+function ensureFileURL(path: string) {
     /**
      * `pathToFileURL` follows the host operating system's path rules. Handle
      * Windows drive paths explicitly so they keep working on POSIX hosts too.
      */
     if (REG_EXP_WINDOWS_ABS_PATH.test(path)) {
         const [drive, ...segments] = path.replace(/\\/g, '/').split('/')
-        return `${FILE_PROTOCOL}/${drive}/${segments.map(encodeURIComponent).join('/')}`
+        return `${FILE_PROTOCOL}///${drive}/${segments.map(encodeURIComponent).join('/')}`
     }
 
     return pathToFileURL(path).href
