@@ -5,7 +5,7 @@ import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { Cache, canDownload, resolveBuildId, detectBrowserPlatform, install, computeExecutablePath } from '@puppeteer/browsers'
+import { BrowserPlatform, Cache, canDownload, resolveBuildId, detectBrowserPlatform, install, computeExecutablePath } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 import { download as downloadGeckodriver } from 'geckodriver'
 
@@ -114,6 +114,45 @@ vi.mock('@puppeteer/browsers', async () => ({
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     install: vi.fn().mockResolvedValue({})
 }))
+
+describe('relative Chrome milestones', () => {
+    const builds: Record<string, string> = {
+        stable: '130.0.6723.93',
+        '129': '129.0.6668.100',
+        '128': '128.0.6613.137'
+    }
+
+    beforeEach(() => {
+        vi.mocked(detectBrowserPlatform).mockReturnValue(BrowserPlatform.LINUX)
+        // Puppeteer returns the input tag when there is no matching milestone.
+        vi.mocked(resolveBuildId).mockImplementation(async (_browser, _platform, tag) => builds[tag] ?? tag)
+    })
+
+    afterEach(() => {
+        vi.mocked(detectBrowserPlatform).mockReset()
+        vi.mocked(resolveBuildId).mockReset().mockResolvedValue('116.0.5845.110')
+    })
+
+    it.each([
+        ['stable-1', builds['129']],
+        ['stable-2', builds['128']]
+    ])('uses the same build for the Chrome browser and independent driver prefetch for %s', async (tag, buildId) => {
+        const cacheDir = '/chrome-milestone/cache'
+        const browser = await setupPuppeteerBrowser(cacheDir, { browserName: 'chrome', browserVersion: tag })
+        expect(browser.browserVersion).toBe(buildId)
+        expect(canDownload).toHaveBeenCalledWith(expect.objectContaining({ browser: 'chrome', buildId, cacheDir }))
+
+        await setupChromedriver(cacheDir, tag)
+        expect(computeExecutablePath).toHaveBeenCalledWith(expect.objectContaining({ browser: 'chromedriver', buildId, cacheDir }))
+    })
+
+    it('identifies the requested offset and the missing milestone for both downloads', async () => {
+        const missingMilestone = /(?=.*stable-3)(?=.*127)/
+        await expect(setupPuppeteerBrowser('/cache', { browserName: 'chrome', browserVersion: 'stable-3' }))
+            .rejects.toThrow(missingMilestone)
+        await expect(setupChromedriver('/cache', 'stable-3')).rejects.toThrow(missingMilestone)
+    })
+})
 
 describe('setupChromedriver', () => {
     /**

@@ -13,7 +13,7 @@ import { start as startEdgedriver, download as downloadEdgedriver } from 'edgedr
 import { install, canDownload, resolveBuildId } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
-import { DEFAULT_EDGEDRIVER_CDN_URL, setupChromedriver, setupEdgedriver } from '../../src/node/utils.js'
+import { DEFAULT_EDGEDRIVER_CDN_URL, setupChromedriver, setupEdgedriver, setupPuppeteerBrowser } from '../../src/node/utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../../src/constants.js'
 
 vi.mock('split2', () => ({ default: vi.fn() }))
@@ -341,6 +341,25 @@ describe('startWebDriver', () => {
                 })
             })
         )
+    })
+
+    it('uses the selected Chrome version for matching W3C capabilities and preserves other choices', async () => {
+        const selectedVersion = '129.0.6668.100'
+        vi.mocked(setupPuppeteerBrowser).mockResolvedValueOnce({
+            executablePath: '/path/to/browser',
+            browserVersion: selectedVersion
+        })
+        const options = {
+            capabilities: {
+                alwaysMatch: { browserName: 'chrome', browserVersion: 'stable-1' },
+                firstMatch: [{ browserVersion: 'stable-1' }, { browserVersion: 'beta' }]
+            }
+        }
+
+        await startWebDriver(options)
+
+        expect(options.capabilities.alwaysMatch.browserVersion).toBe(selectedVersion)
+        expect(options.capabilities.firstMatch).toEqual([{ browserVersion: selectedVersion }, { browserVersion: 'beta' }])
     })
 
     it('should retry Chromedriver spawn on EBUSY', async () => {
