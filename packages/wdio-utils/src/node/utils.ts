@@ -402,6 +402,26 @@ function getPuppeteerBrowser (browserName?: string) {
     return Browser.CHROME
 }
 
+const stableOffsetPattern = /^stable-([1-9]\d*)$/
+
+async function resolveBrowserBuildId(browser: Browser, platform: BrowserPlatform, tag: string) {
+    const offset = (browser === Browser.CHROME || browser === Browser.CHROMEDRIVER) && stableOffsetPattern.exec(tag)
+    if (!offset) {
+        return resolveBuildId(browser, platform, tag)
+    }
+
+    const stable = await resolveBuildId(browser, platform, ChromeReleaseChannel.STABLE)
+    const milestone = Number(stable.split('.')[0]) - Number(offset[1])
+    if (milestone > 0) {
+        const buildId = await resolveBuildId(browser, platform, String(milestone))
+        // Puppeteer returns the requested milestone unchanged if it has no matching build.
+        if (buildId !== String(milestone)) {
+            return buildId
+        }
+    }
+    throw new Error(`No Chrome for Testing build for "${tag}" (milestone ${milestone}, stable ${stable})`)
+}
+
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
@@ -477,7 +497,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
      * the version lookup is the first request that can ignore a configured proxy
      */
     warnIfDownloadProxyIgnored()
-    const buildId = await resolveBuildId(browserName, platform, tag)
+    const buildId = await resolveBrowserBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
         cacheDir,
@@ -611,7 +631,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
     warnIfDownloadProxyIgnored()
-    const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+    const buildId = await resolveBrowserBuildId(Browser.CHROMEDRIVER, platform, version)
     if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
         const matchingElectronVersion = getElectronVersionForChromium(buildId)
         if (!matchingElectronVersion) {

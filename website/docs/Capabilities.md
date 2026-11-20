@@ -413,6 +413,8 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 }
 ```
 
+With a locally managed `browserName: 'chrome'`, use `browserVersion: 'stable-1'` for the major release immediately before the current Chrome for Testing stable release, or `'stable-2'` for two releases back. WebdriverIO downloads the latest available build for that milestone and its matching ChromeDriver. The version installed on your machine does not affect which release is selected.
+
 If you like to test a manually downloaded browser, you can provide a binary path to the browser via:
 
 ```ts
