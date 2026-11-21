@@ -1481,17 +1481,21 @@ const runSpecsWithFlagNoArg = async () => {
  * `process.exit` with the launcher status. The config puts that variable
  * back on the worker via `runnerEnv`.
  */
-function runWdio (configPath, cliArgs) {
+function runWdio (configPath, cliArgs, cwd = __dirname) {
     const wdio = path.resolve(__dirname, '..', 'packages', 'wdio-cli', 'bin', 'wdio.js')
     const env = { ...process.env }
     delete env.WDIO_UNIT_TESTS
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, [wdio, 'run', configPath, ...cliArgs], {
-            cwd: __dirname,
+            cwd,
             env,
             stdio: ['ignore', 'pipe', 'pipe']
         })
-        child.stdout.on('data', (chunk) => process.stdout.write(chunk))
+        const output = []
+        child.stdout.on('data', (chunk) => {
+            output.push(chunk)
+            process.stdout.write(chunk)
+        })
         child.stderr.on('data', (chunk) => process.stderr.write(chunk))
         let settled = false
         const finish = (err) => {
@@ -1504,19 +1508,39 @@ function runWdio (configPath, cliArgs) {
                 reject(err)
                 return
             }
-            resolve()
+            resolve(Buffer.concat(output).toString('utf8'))
         }
         const timer = setTimeout(() => {
             child.kill()
             finish(new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} timed out`))
         }, 30000)
         child.on('error', finish)
-        child.on('exit', (code) => {
+        child.on('close', (code) => {
             finish(code === 0
                 ? undefined
                 : new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} exited with ${code}`))
         })
     })
+}
+
+const cliSpecGlobFromWorkingDirectory = async () => {
+    const cwd = await fs.mkdtemp(path.join(__dirname, 'wdio-[spec]-'))
+    try {
+        const specs = path.join(cwd, 'specs')
+        await fs.mkdir(specs)
+        const fixture = path.join(__dirname, 'tests-cli-spec-arg', 'mocha.test01.js')
+        for (const name of ['cwd-first.test.js', 'cwd-second.test.js']) {
+            await fs.copyFile(fixture, path.join(specs, name))
+        }
+
+        const spec = `.${path.sep}${path.join('specs', 'cwd-*.test.js')}`
+        const output = await runWdio(allPassedWildCardConfig, ['--spec', spec], cwd)
+        assert.match(output.replace(ansiColorRegex, ''), /Spec Files:\s+2 passed, 2 total/)
+        assert.match(output, /cwd-first\.test\.js/)
+        assert.match(output, /cwd-second\.test\.js/)
+    } finally {
+        await fs.rm(cwd, { recursive: true, force: true })
+    }
 }
 
 /**
@@ -1892,6 +1916,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cliExcludeParamValidationExcludeFromConfigByKeyword,
         cliExcludeParamValidationExcludeMultipleSpecsByPath,
         cliSpecsWithWildCard,
+        cliSpecGlobFromWorkingDirectory,
         cliSpecsTheSameWithWildCard,
         cliSpecsWithWildCardAndGroup,
         cliExcludeCertainWithWildCard,

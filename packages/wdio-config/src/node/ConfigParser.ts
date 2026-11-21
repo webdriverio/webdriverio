@@ -48,6 +48,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
+    private _literalCliSpecPaths = new Map<string, string>()
     private _config: TestrunnerOptionsWithParameters
     private _capabilities?: Capabilities.TestrunnerCapabilities = []
 
@@ -65,14 +66,6 @@ export default class ConfigParser {
             { rootDir: path.dirname(configFilePath) },
             DEFAULT_CONFIGS()
         )
-
-        /**
-         * specs applied as CLI arguments should be relative from CWD
-         * rather than relative to the config file
-         */
-        if (_initialConfig.spec) {
-            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
-        }
 
         this.merge(_initialConfig, false)
     }
@@ -197,6 +190,21 @@ export default class ConfigParser {
      * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
      */
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
+        /**
+         * CLI specs are relative to CWD, not the config file. Keep the caller's
+         * arguments raw since the launcher passes them to workers. Resolving
+         * an escaped glob again corrupts Windows paths.
+         */
+        if (Array.isArray(object.spec)) {
+            const raw = object.spec
+            const globs = makeRelativeToCWD(raw) as string[]
+            const literalPaths = makeRelativeToCWD(raw, false) as string[]
+            globs.forEach((glob, index) => {
+                this._literalCliSpecPaths.set(glob, literalPaths[index])
+            })
+            object = { ...object, spec: globs }
+        }
+
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         // the exclude list of the config, before the one of the command line replaces it
@@ -250,7 +258,12 @@ export default class ConfigParser {
             /**
              * `this._config.spec` is string instead of Array in watch mode
              */
-            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...new Set(this._config.spec)] : [this._config.spec]
+            // Cucumber compares these paths to filesystem paths after selecting
+            // feature line numbers. Glob escapes are only for the lookup stage.
+            const specs = Array.isArray(this._config.spec) ? this._config.spec : [this._config.spec]
+            this._config.cucumberFeaturesWithLineNumbers = [
+                ...new Set(specs.map(spec => this._literalCliSpecPaths.get(spec) ?? spec))
+            ]
         }
 
         /**
@@ -428,22 +441,35 @@ export default class ConfigParser {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
+            const literalFile = removeLineNumbers(this._literalCliSpecPaths.get(filteredFile) ?? filteredFile)
+            if (this._pathService.isFile(literalFile)) {
+                /**
+                 * Prefer an existing literal file to a glob with the same spelling.
+                 * Resolve relative files from CWD, not the config directory (#14447).
+                 */
+                filesToFilter.add(
+                    this._pathService.ensureAbsolutePath(
+                        literalFile,
+                        process.cwd()
+                    )
+                )
+                return
+            }
+
+            // Resolved CLI paths already use forward slashes and
+            // may contain escape backslashes for literal CWD characters.
+            const normalizeSeparators = !this._literalCliSpecPaths.has(filteredFile) || !path.isAbsolute(filteredFile)
             filteredFile = removeLineNumbers(filteredFile)
             // Send wildcard or single file glob to getFilePaths
             // Return value will always be string[] or string [][]
             const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
                 group ? [[filteredFile]] : [filteredFile],
                 this._config.rootDir,
-                this._pathService
+                this._pathService,
+                undefined,
+                normalizeSeparators
             )
-            if (this._pathService.isFile(filteredFile)) {
-                filesToFilter.add(
-                    this._pathService.ensureAbsolutePath(
-                        filteredFile,
-                        path.dirname(this.#configFilePath)
-                    )
-                )
-            } else if (globMatchedFiles.length) {
+            if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
                 // fileList can be a string[] or a string[][]
@@ -506,7 +532,7 @@ export default class ConfigParser {
      * @param  {number} hierarchyDepth depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
-    static getFilePaths(patterns: Spec[], rootDir: string, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
+    static getFilePaths(patterns: Spec[], rootDir: string, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number, normalizeSeparators = true) {
         let files: Spec[] = []
         let groupedFiles: string[] = []
 
@@ -531,7 +557,7 @@ export default class ConfigParser {
             // But only call one level deep, can't have multiple levels of hierarchy
             if (Array.isArray(pattern) && !hierarchyDepth) {
                 // Will always only get a string array back
-                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, rootDir, findAndGlob, 1)
+                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, rootDir, findAndGlob, 1, normalizeSeparators)
                 files.push(groupedFiles)
             } else if (Array.isArray(pattern) && hierarchyDepth) {
                 log.error('Unexpected depth of hierarchical arrays')
@@ -539,7 +565,7 @@ export default class ConfigParser {
                 // files are already absolute, no need to glob them
                 files.push(pattern)
             } else {
-                pattern = pattern.toString().replace(/\\/g, '/')
+                pattern = normalizeSeparators ? pattern.toString().replace(/\\/g, '/') : pattern.toString()
                 let filenames = findAndGlob.glob(<string>pattern, rootDir)
                 filenames = filenames.filter(
                     (filename) => SUPPORTED_FILE_EXTENSIONS.find(
