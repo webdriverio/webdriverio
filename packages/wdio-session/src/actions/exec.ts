@@ -69,8 +69,8 @@ const TIMEOUT_MARGIN_MS = 1000
  * includes what the code printed so far: a loop that set five sliders and
  * ran out of time on the sixth still says what it did.
  */
-async function withinTimeout<T> (running: Promise<T>, timeout: number | undefined, lines: string[], onTimeout: () => void): Promise<T> {
-    if (!timeout || timeout <= TIMEOUT_MARGIN_MS * 2) {
+async function withinTimeout<T> (running: Promise<T>, timeout: number, margin: number, lines: string[], onTimeout: () => void): Promise<T> {
+    if (!Number.isFinite(timeout) || timeout <= margin * 2) {
         return running
     }
     let timer: NodeJS.Timeout | undefined
@@ -85,7 +85,7 @@ async function withinTimeout<T> (running: Promise<T>, timeout: number | undefine
                         hint: 'Split the work into smaller steps, or pass --timeout.',
                         details: output.length ? ['Output so far:', ...output].join('\n') : undefined
                     }))
-                }, timeout - TIMEOUT_MARGIN_MS)
+                }, timeout - margin)
             })
         ])
     } finally {
@@ -94,7 +94,7 @@ async function withinTimeout<T> (running: Promise<T>, timeout: number | undefine
 }
 
 export const exec: ActionFn = async (session, args) => {
-    const source = String(args.code ?? '')
+    const source = String(args.code ?? args.e ?? '')
     const filename = typeof args.filename === 'string' ? args.filename : undefined
     const { code, warnings, readOnly } = transform(source)
     const ctx = await getExecContext(session)
@@ -103,15 +103,24 @@ export const exec: ActionFn = async (session, args) => {
     ctx.setBaseDir(filename ? path.dirname(filename) : args.$cwd)
     ctx.usedRefs.clear()
 
-    const script = new vm.Script(`(async () => {${code}\n})()`, { filename: filename || 'exec.js' })
+    let input: string | undefined
     let value: unknown
     try {
+        if (args.args !== undefined) {
+            if (!Array.isArray(args.args)) {
+                throw new TypeError('Exec args must be an array of JSON values.')
+            }
+            input = `JSON.parse(${JSON.stringify(JSON.stringify(args.args))})`
+        }
+        const script = new vm.Script(`(async (${input ? 'args' : ''}) => {${code}\n})(${input ?? ''})`, { filename: filename || 'exec.js' })
         const running = script.runInContext(ctx.context) as Promise<unknown>
         session.trackPending(`exec-${Date.now()}`, running.then(
             () => undefined,
             (err) => log.debug(`exec failed: ${err?.message}`)
         ))
-        value = await withinTimeout(running, typeof args.$timeout === 'number' ? args.$timeout : undefined, lines, () => {
+        const timeout = typeof args.$timeout === 'number' ? args.$timeout : 0
+        const margin = args.$agent ? 0 : TIMEOUT_MARGIN_MS
+        value = await withinTimeout(running, timeout, margin, lines, () => {
             /**
              * The code can't be stopped. Given up on, it no longer changes the
              * session (see `Session.abandon`), and what it prints later is
@@ -147,10 +156,12 @@ export const exec: ActionFn = async (session, args) => {
     }
 
     const record = args.history !== false && !readOnly
+    const rewritten = record ? await rewriteRefs(session, source.trim(), ctx.usedRefs) : undefined
     return {
         text,
         data: { value: rendered.value, logs: lines },
         files,
-        history: record ? await rewriteRefs(session, source.trim(), ctx.usedRefs) : undefined
+        // Export can put several exec steps in one function, so redeclare with var.
+        history: rewritten && input ? `var args = ${input};\n${rewritten}` : rewritten
     }
 }

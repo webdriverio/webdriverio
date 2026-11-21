@@ -111,7 +111,9 @@ describe('wdio session exec', () => {
         await project.run(['exec', '-e', 'await browser.getTitle()'])
         await project.run(['exec', '-e', "throw new Error('no')"])
         await project.run(['exec', '-e', "await browser.execute(() => document.title = 'Changed')", '--no-history'])
-        await project.run(['exec', '-e', "await browser.execute(() => { document.title = 'Session Fixture' })"])
+        const recorded = await project.run(['exec', '-e', "await browser.execute(() => { document.title = 'Session Fixture' })", '--json'])
+        expect(recorded.json).toMatchObject({ ok: true, result: { data: { logs: [] } } })
+        expect(recorded.json.result).not.toHaveProperty('code')
         const entries = JSON.parse(fs.readFileSync(historyFile, 'utf-8'))
         expect(entries.slice(before).map((e: { kind: string, code: string }) => [e.kind, e.code])).toEqual([
             ['exec', "await browser.execute(() => { document.title = 'Session Fixture' })"]
