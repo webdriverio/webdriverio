@@ -19,9 +19,9 @@ export const config: WebdriverIO.Config = {
         /**
          * Chrome 156 and 157 hang every BiDi command in a tab that `window.open`
          * opened (frames.e2e.ts): https://issues.chromium.org/issues/571161446
-         * Fixed in Chrome 158 (https://chromium-review.googlesource.com/c/chromium/src/+/8574800): remove the pin then.
+         * Fixed in Chrome 158. The runner images still have Chrome 157: download stable.
          */
-        browserVersion: '155',
+        browserVersion: 'stable',
         webSocketUrl: true,
         // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
         'goog:chromeOptions': { args: ['headless', 'disable-gpu', ...(isLinux ? ['no-sandbox'] : [])] }
