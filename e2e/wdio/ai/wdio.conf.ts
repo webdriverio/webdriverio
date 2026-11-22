@@ -17,9 +17,9 @@ export const config: WebdriverIO.Config = {
     capabilities: [{
         browserName: 'chrome',
         /**
-         * 2026-11-22: the runner images still have Chrome 157, which hangs BiDi in a
+         * The runner images still have Chrome 157, which hangs BiDi in a
          * `window.open` tab (https://issues.chromium.org/issues/571161446).
-         * Remove `browserVersion` and `no-sandbox` when the runner Chrome is 158+.
+         * On 2026-12-01, if the runner Chrome is 158+, remove `browserVersion` and `no-sandbox`.
          */
         browserVersion: 'stable',
         webSocketUrl: true,
