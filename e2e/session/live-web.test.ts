@@ -21,6 +21,8 @@ describe('wdio session on live-web pages', () => {
     beforeAll(async () => {
         server = await startServer()
         project = createProject('live-web')
+        // 2026-11-22: the runner images still have Chrome 157, which hangs BiDi in a `window.open` tab
+        // (https://issues.chromium.org/issues/571161446). Remove `stable` and `no-sandbox` when the runner Chrome is 158+.
         // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
         const sandbox = process.platform === 'linux' ? ['--arg=--no-sandbox'] : []
         await run('open', 'chrome', `${server.url}/live.html`, '--browser-version', 'stable', ...sandbox)

@@ -16,6 +16,11 @@ export const config: WebdriverIO.Config = {
     maxInstances: 4,
     capabilities: [{
         browserName: 'chrome',
+        /**
+         * 2026-11-22: the runner images still have Chrome 157, which hangs BiDi in a
+         * `window.open` tab (https://issues.chromium.org/issues/571161446).
+         * Remove `browserVersion` and `no-sandbox` when the runner Chrome is 158+.
+         */
         browserVersion: 'stable',
         webSocketUrl: true,
         // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
