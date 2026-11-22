@@ -1111,7 +1111,8 @@ export default class WebDriverInterception {
                 /**
                  * The response completed, but the browser did not return its body in time.
                  * Firefox can leave `network.getData` unanswered for a response that it
-                 * revalidated with 304 Not Modified (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785).
+                 * revalidated with 304 Not Modified (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785,
+                 * fixed in Firefox 160; kept for older Firefox).
                  * Continue without the body: it is still added to `calls` if it arrives later.
                  * A response that started but did not complete (e.g. it failed) still times out.
                  */
