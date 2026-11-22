@@ -21,8 +21,6 @@ describe('wdio session on live-web pages', () => {
     beforeAll(async () => {
         server = await startServer()
         project = createProject('live-web')
-        // Chrome 156 and 157 hang every BiDi command in a tab that `window.open` opened: https://issues.chromium.org/issues/571161446
-        // Fixed in Chrome 158. The runner images still have Chrome 157: download stable.
         // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
         const sandbox = process.platform === 'linux' ? ['--arg=--no-sandbox'] : []
         await run('open', 'chrome', `${server.url}/live.html`, '--browser-version', 'stable', ...sandbox)

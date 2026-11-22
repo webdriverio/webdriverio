@@ -16,11 +16,6 @@ export const config: WebdriverIO.Config = {
     maxInstances: 4,
     capabilities: [{
         browserName: 'chrome',
-        /**
-         * Chrome 156 and 157 hang every BiDi command in a tab that `window.open`
-         * opened (frames.e2e.ts): https://issues.chromium.org/issues/571161446
-         * Fixed in Chrome 158. The runner images still have Chrome 157: download stable.
-         */
         browserVersion: 'stable',
         webSocketUrl: true,
         // a downloaded Chrome has no AppArmor profile for its sandbox on Ubuntu
