@@ -3,6 +3,7 @@ import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
 import * as observe from './observe.js'
 import { get, is } from './query.js'
+import { pick } from './pick.js'
 import { wait } from './wait.js'
 import * as interact from './interact.js'
 import * as contexts from './contexts.js'
@@ -29,6 +30,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     helpers,
     snapshot: observe.snapshot,
     find: observe.find,
+    pick,
     read: observe.read,
     diff: observe.diff,
     screenshot: observe.screenshot,

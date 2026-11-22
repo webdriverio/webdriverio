@@ -82,6 +82,21 @@ const agent = await createAgentSession(browser, {
 })
 ```
 
+`pick` asks a decision model which element an intent means. The agent session
+can bring its own: anything with `decide(question)` that returns the chosen
+label and, if it has them, the probabilities of all labels. `openAIDecider`
+reads them from an OpenAI-compatible server with token probabilities:
+
+```ts
+import { createAgentSession, openAIDecider } from '@wdio/session/agent'
+
+const agent = await createAgentSession(browser, {
+    decider: openAIDecider({ url: 'http://localhost:8080/v1', model: 'qwen3.5-4b' })
+})
+const { data } = await agent.run('pick', { intent: 'add the hoodie to the cart', action: 'click' })
+await agent.run('click', { target: data!.picked })
+```
+
 Failures throw `SessionError`, with a `code` of type `ErrorCode`. Both are
 exported from `@wdio/session/agent`.
 

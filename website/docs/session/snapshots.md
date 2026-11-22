@@ -31,6 +31,7 @@ The text layout of a snapshot, and the shape `--json` prints for it, are experim
 | --- | --- |
 | `snapshot --interactive` | The elements you can act on, each with a ref |
 | `find "Add to cart"` | Each match with the node around it, e.g. a whole list item, so a value next to the match comes along. `-A`, `-B` and `-C` print plain line context like grep |
+| `pick add the hoodie to the cart` | The element an intent means, chosen by a decision model, with the probability of each candidate. See [Pick by intent](#pick-by-intent) |
 | `diff`, `snapshot --diff` | What changed since the previous snapshot. With `snapshot --diff`, `--offset` above 1 and a web `--viewport` are usage errors, and a diff longer than `--max-chars` is cut at a line and names the snapshot file |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `source` | The page HTML or the native XML |
@@ -82,6 +83,27 @@ When several controls share a role and a name, such as the "Add to cart" button 
 ```
 
 The text is cut at 80 characters. A control whose item is a page landmark (a "Sign in" link in both the header and the footer) gets none. The label of a visible form control is not listed: the control carries the name.
+
+## Pick by intent
+
+`find` needs text that is on the page. When the element you want shares no text with how you would describe it (an icon button, "the add to cart of the hoodie", "the email field of the newsletter form"), `pick` asks a decision model instead:
+
+```sh
+WDIO_PICK_URL=http://localhost:8080/v1 WDIO_PICK_MODEL=qwen3.5-4b npx wdio session open chrome http://localhost:3000/cart
+npx wdio session pick add the hoodie to the cart --action click
+```
+
+```text
+Picked e31 for "add the hoodie to the cart" (92%, next 4%, qwen3.5-4b):
+e31    92%  button "Add to cart" ∈ "Red Hoodie" (under heading "Products" [level=1])
+e30     4%  button "Add to cart" ∈ "Blue T-Shirt" (under heading "Products" [level=1])
+e32     2%  button "Checkout" [disabled]
+`wdio session click e31` acts on it.
+```
+
+`pick` never acts. The model reads up to 26 elements of a fresh snapshot, each with the text around it, and answers with one letter. `pick` reads the probability of every letter from the model's token probabilities. When the best candidate is below `--min-confidence` (default 0.6) or closer than `--min-margin` (default 0.2) to the next one, `pick` fails with exit code 1 and lists the candidates, so check them before you act.
+
+The model server must speak the OpenAI chat completions API and return token probabilities (`logprobs`), for example [llama.cpp](https://github.com/ggml-org/llama.cpp) `llama-server` or vLLM. A small local model is enough because it only chooses a letter. Set `WDIO_PICK_URL` and `WDIO_PICK_MODEL` (and `WDIO_PICK_API_KEY` for a hosted server) before `open`, because the session reads them when it starts, or pass `--url` and `--model` to `pick`. `pick` switches a Qwen model's thinking off. A model that starts its answer with a thinking token has no probabilities for the letters.
 
 ## Native taps
 

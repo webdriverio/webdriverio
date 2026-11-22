@@ -33,6 +33,15 @@ export interface ActionDataMap {
         tooBig?: boolean
     }
     find: { matches: { line: number; text: string }[]; total: number; hidden: boolean }
+    pick: {
+        /** the ref of the pick; a pick that is not confident fails instead */
+        picked: string
+        candidates: { ref: string; label: string; context: string; probability?: number }[]
+        /** elements the model was asked about, of `total` in the snapshot */
+        asked: number
+        total: number
+        model: string
+    }
     diff: { changed: boolean; baseline?: boolean; diff?: string }
     read: { chars: number; truncated?: boolean; from?: string }
     screenshot: { file: string; width?: number; height?: number; selector?: string }

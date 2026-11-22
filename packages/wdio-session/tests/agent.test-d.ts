@@ -25,6 +25,18 @@ describe('action args types', () => {
         expectTypeOf<ActionArgsOf<'snapshot'>['fileOnly']>().toEqualTypeOf<boolean | undefined>()
     })
 
+    it('pick takes an intent and narrows the action', () => {
+        expectTypeOf<ActionArgsOf<'pick'>['intent']>().toEqualTypeOf<string>()
+        expectTypeOf<ActionArgsOf<'pick'>['action']>().toEqualTypeOf<'click' | 'fill' | 'select' | 'check' | 'hover' | undefined>()
+        expectTypeOf<ActionArgsOf<'pick'>['minConfidence']>().toEqualTypeOf<number | undefined>()
+    })
+
+    it('pick data names the picked ref', async () => {
+        const { data } = await agent.run('pick', { intent: 'add to cart' })
+        expectTypeOf(data!.picked).toEqualTypeOf<string>()
+        expectTypeOf(data!.candidates[0].probability).toEqualTypeOf<number | undefined>()
+    })
+
     it('choices narrow the value', () => {
         expectTypeOf<ActionArgsOf<'rotate'>['orientation']>().toEqualTypeOf<'portrait' | 'landscape'>()
     })

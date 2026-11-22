@@ -20,9 +20,12 @@ import { installPageRecorder } from './snapshot/recorder.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
 import type { HistoryEntry } from './types.js'
 import { resolveElement, scopeOf } from './snapshot/target.js'
+import { openAIDecider, type Decider, type Decision, type DecisionQuestion, type OpenAIDeciderOptions } from './decider.js'
+import { DECIDER_KEY } from './actions/pick.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
-export { formatSnapshot, onlyInteractive, SessionError }
+export { formatSnapshot, onlyInteractive, openAIDecider, SessionError }
+export type { Decider, Decision, DecisionQuestion, OpenAIDeciderOptions }
 export type { ErrorCode, HintFormatter, ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
 
 export interface AgentSessionOptions {
@@ -61,6 +64,11 @@ export interface AgentSessionOptions {
      * the caller's own interface
      */
     hint?: HintFormatter
+    /**
+     * the decision model `pick` asks, instead of an OpenAI-compatible
+     * server from `WDIO_PICK_URL` and `WDIO_PICK_MODEL`
+     */
+    decider?: Decider
 }
 
 /**
@@ -262,6 +270,9 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
         persistHistory: false,
         hint: opts.hint
     })
+    if (opts.decider) {
+        session.set(DECIDER_KEY, opts.decider)
+    }
     if (opts.captureEvents) {
         await startEventCapture(session)
     } else if (opts.captureNetwork !== false) {

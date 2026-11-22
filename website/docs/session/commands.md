@@ -426,6 +426,53 @@ npx wdio session find "^\s*link" --regex --context 0
 
 See also: [`snapshot`](#snapshot), [`wait`](#wait).
 
+## `pick`
+
+Ask a decision model which element an intent means. Applies to web, native mobile, native desktop.
+
+Takes a new snapshot and asks a decision model which of its elements the intent means, then prints the best candidates with their probability. It never acts: run the printed command to act on the pick. Use it when `find` cannot help because the element shares no text with what you want (an icon button, "the add to cart of the second product").
+
+The model is a local or hosted OpenAI-compatible server that returns token probabilities, e.g. llama.cpp or vLLM with a small model such as Qwen. Set WDIO_PICK_URL and WDIO_PICK_MODEL (and WDIO_PICK_API_KEY if it needs one) before `wdio session open`, or pass --url and --model. Up to 26 elements are asked about: with --action only the ones it applies to, on a big page the ones that share most words with the intent.
+
+A pick below --min-confidence, or closer than --min-margin to the next candidate, fails and lists the candidates instead: check them before you act.
+
+```sh
+npx wdio session pick <intent..>
+```
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `intent` | yes | What the element is for (words are joined with spaces) |
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--action <click\|fill\|select\|check\|hover>` | Only ask about elements this action applies to |
+| `--scope <value>` | Only pick below this ref or selector |
+| `--top <n>` | Candidates to print (default 3) |
+| `--min-confidence <n>` | Probability the pick needs (default 0.6) |
+| `--min-margin <n>` | Lead the pick needs over the next candidate (default 0.2) |
+| `--url <value>` | Base URL of the OpenAI-compatible model server (default WDIO_PICK_URL) |
+| `--model <value>` | Model name on that server (default WDIO_PICK_MODEL) |
+
+**Examples**
+
+```sh
+# Find the button an intent means
+npx wdio session pick add the blue shirt to the cart
+
+# Only ask about fields
+npx wdio session pick "the email field of the newsletter form" --action fill
+
+# Name the model server
+npx wdio session pick close the dialog --url http://localhost:8080/v1 --model qwen3.5-4b
+```
+
+See also: [`find`](#find), [`snapshot`](#snapshot).
+
 ## `diff`
 
 Diff a fresh snapshot against the previous one. Applies to web, native mobile, native desktop.

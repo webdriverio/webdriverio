@@ -283,6 +283,27 @@ export const ACTIONS = [
         seeAlso: ['snapshot', 'wait']
     },
     {
+        name: 'pick', group: 'Observation', applies: ['W', 'M', 'D'],
+        desc: 'Ask a decision model which element an intent means',
+        details: 'Takes a new snapshot and asks a decision model which of its elements the intent means, then prints the best candidates with their probability. It never acts: run the printed command to act on the pick. Use it when `find` cannot help because the element shares no text with what you want (an icon button, "the add to cart of the second product").\nThe model is a local or hosted OpenAI-compatible server that returns token probabilities, e.g. llama.cpp or vLLM with a small model such as Qwen. Set WDIO_PICK_URL and WDIO_PICK_MODEL (and WDIO_PICK_API_KEY if it needs one) before `wdio session open`, or pass --url and --model. Up to 26 elements are asked about: with --action only the ones it applies to, on a big page the ones that share most words with the intent.\nA pick below --min-confidence, or closer than --min-margin to the next candidate, fails and lists the candidates instead: check them before you act.',
+        positionals: [{ name: 'intent', desc: 'What the element is for (words are joined with spaces)', required: true, variadic: true }],
+        options: {
+            action: { type: 'string', choices: ['click', 'fill', 'select', 'check', 'hover'], desc: 'Only ask about elements this action applies to' },
+            scope: { type: 'string', desc: 'Only pick below this ref or selector' },
+            top: { type: 'number', desc: 'Candidates to print (default 3)' },
+            'min-confidence': { type: 'number', desc: 'Probability the pick needs (default 0.6)' },
+            'min-margin': { type: 'number', desc: 'Lead the pick needs over the next candidate (default 0.2)' },
+            url: { type: 'string', desc: 'Base URL of the OpenAI-compatible model server (default WDIO_PICK_URL)' },
+            model: { type: 'string', desc: 'Model name on that server (default WDIO_PICK_MODEL)' }
+        },
+        examples: [
+            ['wdio session pick add the blue shirt to the cart', 'Find the button an intent means'],
+            ['wdio session pick "the email field of the newsletter form" --action fill', 'Only ask about fields'],
+            ['wdio session pick close the dialog --url http://localhost:8080/v1 --model qwen3.5-4b', 'Name the model server']
+        ],
+        seeAlso: ['find', 'snapshot']
+    },
+    {
         name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Diff a fresh snapshot against the previous one',
         details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again. On the web the baseline is the last snapshot taken without `--viewport`.',
