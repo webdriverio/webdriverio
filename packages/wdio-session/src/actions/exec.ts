@@ -92,8 +92,38 @@ export async function rewriteRefs (session: Session, code: string, used: Map<str
             selectors.set(id, selector)
         }
     }
+    const ast = parseCode(stripTypes(code))
     const edits: { start: number, end: number, text: string }[] = []
-    walkCode(parseCode(stripTypes(code)), (node) => {
+    let hasArgumentMutation = false
+    let hasArgumentRef = false
+    const referencesArgs = (node: CodeNode | undefined): boolean => {
+        if (!node) {
+            return false
+        }
+        if (node.type === 'Identifier') {
+            return node.name === 'args'
+        }
+        if (node.type === 'MemberExpression') {
+            return referencesArgs(node.object as CodeNode)
+        }
+        return false
+    }
+    walkCode(ast, (node) => {
+        if ((node.type === 'AssignmentExpression' && referencesArgs(node.left as CodeNode)) ||
+            (node.type === 'UpdateExpression' && referencesArgs(node.argument as CodeNode)) ||
+            (node.type === 'UnaryExpression' && node.operator === 'delete' && referencesArgs(node.argument as CodeNode))) {
+            hasArgumentMutation = true
+        }
+        if (node.type === 'CallExpression') {
+            const callee = node.callee as CodeNode
+            if (callee?.type === 'MemberExpression' && referencesArgs(callee.object as CodeNode) &&
+                ['copyWithin', 'fill', 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'].includes(
+                    String((callee.property as CodeNode)?.name))) {
+                hasArgumentMutation = true
+            }
+        }
+    })
+    walkCode(ast, (node) => {
         if (node.type !== 'CallExpression') {
             return
         }
@@ -105,7 +135,10 @@ export async function rewriteRefs (session: Session, code: string, used: Map<str
         let id: string | undefined
         if (argument.type === 'Literal' && typeof argument.value === 'string') {
             id = argument.value
+        } else if (argument.type === 'TemplateLiteral' && (argument.expressions as unknown[]).length === 0) {
+            id = ((argument.quasis as CodeNode[])[0].value as { cooked?: string }).cooked
         } else if (argument.type === 'MemberExpression' && argument.computed === true) {
+            hasArgumentRef = true
             const object = argument.object as CodeNode
             const property = argument.property as CodeNode
             if (object.type === 'Identifier' && object.name === 'args' && property.type === 'Literal' &&
@@ -119,6 +152,12 @@ export async function rewriteRefs (session: Session, code: string, used: Map<str
             edits.push({ start: node.start, end: node.end, text: '$(' + quote(selector) + ')' })
         }
     })
+    // If the script changed an argument, static source indices no longer
+    // identify which ref was actually clicked. Prefer an absent replay step
+    // to one that silently clicks the wrong element.
+    if (hasArgumentRef && hasArgumentMutation) {
+        return undefined
+    }
     return applyCodeEdits(code, edits)
 }
 
@@ -135,7 +174,8 @@ function bindRecordedArgs (code: string, binding: string): string {
         if (parent?.type === 'MemberExpression' && key === 'property' && parent.computed !== true) {
             return
         }
-        if (parent?.type === 'Property' && key === 'key' && parent.computed !== true) {
+        if ((parent?.type === 'Property' || parent?.type === 'PropertyDefinition') &&
+            key === 'key' && parent.computed !== true) {
             return
         }
         if ((parent?.type === 'MethodDefinition' && key === 'key') ||
@@ -246,6 +286,12 @@ export const exec: ActionFn = async (session, args) => {
 
     const record = args.history !== false && !readOnly
     const rewritten = record ? await rewriteRefs(session, source.trim(), ctx.usedRefs, Array.isArray(args.args) ? args.args : undefined) : undefined
+    if (record && rewritten === undefined) {
+        // Execution has already succeeded; explicitly decline to record an
+        // unsafe replay instead of returning a misleading code snippet.
+        lines.push('warn: mutable ref arguments cannot be safely recorded for replay')
+        text = [...lines, rendered.text].filter((l) => l !== '').join('\n')
+    }
     return {
         text,
         data: { value: rendered.value, logs: lines },
