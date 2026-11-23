@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SnapshotNode } from '@wdio/snapshot'
 
 import { createAgentSession } from '../src/agent.js'
+import { rewriteRefs } from '../src/actions/exec.js'
 import { IMPLEMENTATIONS } from '../src/actions/index.js'
 
 const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
@@ -112,6 +113,31 @@ describe('createAgentSession', () => {
             options: {},
             ...overrides
         }), { artifactsDir: tmp(), captureNetwork: false })
+
+        it('keeps earlier args captured by a recorded function across replayed calls', async () => {
+            const agent = await execAgent()
+            const first = await agent.run('exec', { code: 'const readArg = () => args[0]', args: ['first'] })
+            const second = await agent.run('exec', { code: 'console.log(readArg(), args[0])', args: ['second'] })
+            expect(second.text).toBe('first second')
+            expect(first.code).toContain('__wdioExecArgs_0')
+            expect(second.code).toContain('__wdioExecArgs_1')
+
+            const fresh = await execAgent()
+            const replay = await fresh.run('exec', { code: first.code + '\n' + second.code, history: false })
+            expect(replay.text).toBe('first second')
+        })
+
+        it('replaces refs supplied through args with stable selectors for replay', async () => {
+            const agent = await execAgent()
+            const selector = '#save'
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue(selector)
+            const source = 'const example = "ref(args[0])"; await ref(args[0]).click()'
+            const resolved = new Map([['e3', {} as WebdriverIO.Element]])
+            const rewritten = await rewriteRefs(agent.session, source, resolved, ['e3'])
+            expect(rewritten).toContain('"ref(args[0])"')
+            expect(rewritten).toContain("await $('#save').click()")
+            expect(rewritten).not.toContain('await ref(args[0])')
+        })
 
         it('executes the typed inline source', async () => {
             const agent = await execAgent()
