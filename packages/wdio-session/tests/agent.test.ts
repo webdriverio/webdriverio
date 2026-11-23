@@ -99,6 +99,12 @@ describe('createAgentSession', () => {
         expect(dispatch).toHaveBeenCalledWith({ action: 'click', args: { target: 'e3' }, cwd: agent.session.cwd }, { detail: true })
     })
 
+    it('rejects unsupported timeouts on non-exec actions', async () => {
+        const agent = await createAgentSession(mockBrowser(), { artifactsDir: tmp() })
+        await expect(agent.runAction('wait', { target: '30000' }, { timeout: 500 }))
+            .rejects.toThrow('only supported for exec')
+    })
+
     describe('exec', () => {
         const execAgent = (overrides: Record<string, unknown> = {}) => createAgentSession(mockBrowser({
             capabilities: { platformName: 'Android' },
