@@ -128,8 +128,8 @@ export class AgentSession {
      * or `run('exec', { code: 'console.log(args[0])', args: ['hello'] }, { timeout: 5000 })`
      */
     run<A extends AgentActionName> (action: A, ...[args, opts]: {} extends ActionArgsOf<A>
-        ? [args?: ActionArgsOf<A>, opts?: AgentActionOptions]
-        : [args: ActionArgsOf<A>, opts?: AgentActionOptions]): Promise<AgentActionResult<A>> {
+        ? [args?: ActionArgsOf<A>, opts?: A extends 'exec' ? AgentActionOptions : never]
+        : [args: ActionArgsOf<A>, opts?: A extends 'exec' ? AgentActionOptions : never]): Promise<AgentActionResult<A>> {
         return this.runAction(action, args, opts) as Promise<AgentActionResult<A>>
     }
 
@@ -137,6 +137,11 @@ export class AgentSession {
      * run an action by a name only known at runtime, e.g. from a recorded step
      */
     runAction (action: string, args: Record<string, unknown> = {}, opts: AgentActionOptions = {}): Promise<AgentActionResult> {
+        // Other actions cannot be safely interrupted; do not silently ignore
+        // an agent-supplied timeout for them.
+        if (action !== 'exec' && opts.timeout !== undefined) {
+            return Promise.reject(new TypeError('The timeout option is only supported for exec actions.'))
+        }
         const timeout = opts.timeout ?? (typeof args.$timeout === 'number' ? args.$timeout : ACTION_MAP.get(action)?.timeout)
         return this.session.dispatch({
             action,
