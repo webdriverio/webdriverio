@@ -139,6 +139,38 @@ describe('createAgentSession', () => {
             expect(rewritten).not.toContain('await ref(args[0])')
         })
 
+        it('preserves backtick refs when recording stable selectors', async () => {
+            const agent = await execAgent()
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue('#save')
+            const code = 'await ref(' + String.fromCharCode(96) + 'e3' + String.fromCharCode(96) + ').click()'
+            const used = new Map([['e3', {} as WebdriverIO.Element]])
+            expect(await rewriteRefs(agent.session, code, used)).toBe("await $('#save').click()")
+        })
+
+        it('does not rename class field names when replaying exec arguments', async () => {
+            const agent = await execAgent()
+            const result = await agent.run('exec', {
+                code: 'class Payload { args = 1 }; console.log(new Payload().args, args[0])',
+                args: ['x']
+            })
+            expect(result.text).toBe('1 x')
+            expect(result.code).toContain('args = 1')
+            const fresh = await execAgent()
+            const replay = await fresh.run('exec', { code: result.code!, history: false })
+            expect(replay.text).toBe('1 x')
+        })
+
+        it('does not record refs when the input arguments mutate', async () => {
+            const agent = await execAgent()
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue('#save')
+            const code = 'await ref(args[0]).click(); args[0] = args[1]; await ref(args[0]).click()'
+            const used = new Map([
+                ['e3', {} as WebdriverIO.Element],
+                ['e4', {} as WebdriverIO.Element]
+            ])
+            expect(await rewriteRefs(agent.session, code, used, ['e3', 'e4'])).toBeUndefined()
+        })
+
         it('executes the typed inline source', async () => {
             const agent = await execAgent()
             await expect(agent.run('exec', { e: 'console.log("typed")' })).resolves.toMatchObject({ text: 'typed' })
