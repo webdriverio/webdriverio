@@ -9,7 +9,7 @@ import { SessionError } from '../errors.js'
 import { getExecContext } from '../exec/context.js'
 import { hintFor } from '../exec/hints.js'
 import { isError, serialize, type ElementInfo } from '../exec/serialize.js'
-import { transform } from '../exec/transform.js'
+import { parseCode, stripTypes, transform } from '../exec/transform.js'
 import { quote } from '../quote.js'
 import type { ActionFn, Session } from '../session.js'
 import { scopeOf } from '../snapshot/target.js'
@@ -47,18 +47,107 @@ async function describeElement (session: Session, el: WebdriverIO.Element): Prom
     return { tag, name: name?.slice(0, 80) }
 }
 
+/** AST traversal ensures rewrites never change string literals or comments. */
+type CodeNode = { type: string, start: number, end: number, [key: string]: unknown }
+
+function walkCode (value: unknown, visit: (node: CodeNode, parent?: CodeNode, key?: string) => void, parent?: CodeNode, key?: string): void {
+    if (!value || typeof value !== 'object') {
+        return
+    }
+    if (Array.isArray(value)) {
+        for (const child of value) {
+            walkCode(child, visit, parent, key)
+        }
+        return
+    }
+    const node = value as CodeNode
+    if (typeof node.type !== 'string') {
+        return
+    }
+    visit(node, parent, key)
+    for (const [name, child] of Object.entries(node)) {
+        if (name !== 'loc') {
+            walkCode(child, visit, node, name)
+        }
+    }
+}
+
+function applyCodeEdits (code: string, edits: { start: number, end: number, text: string }[]): string {
+    let result = code
+    for (const edit of edits.sort((a, b) => b.start - a.start)) {
+        result = result.slice(0, edit.start) + edit.text + result.slice(edit.end)
+    }
+    return result
+}
+
 /**
- * Replace `ref('eN')` with the stable selector of the element it resolved to.
+ * Replace literal and input-argument element refs with stable selectors.
+ * Only refs resolved during the call are eligible for substitution.
  */
-export async function rewriteRefs (session: Session, code: string, used: Map<string, WebdriverIO.Element>) {
-    let out = code
+export async function rewriteRefs (session: Session, code: string, used: Map<string, WebdriverIO.Element>, inputArgs?: readonly unknown[]) {
+    const selectors = new Map<string, string>()
     for (const [id, el] of used) {
         const selector = await session.refs.stableSelector(scopeOf(session), id, el).catch(() => undefined)
         if (selector) {
-            out = out.replace(new RegExp(`\\bref\\((['"\`])${id}\\1\\)`, 'g'), `$(${quote(selector)})`)
+            selectors.set(id, selector)
         }
     }
-    return out
+    const edits: { start: number, end: number, text: string }[] = []
+    walkCode(parseCode(stripTypes(code)), (node) => {
+        if (node.type !== 'CallExpression') {
+            return
+        }
+        const callee = node.callee as CodeNode
+        const argument = (node.arguments as CodeNode[] | undefined)?.[0]
+        if (callee?.type !== 'Identifier' || callee.name !== 'ref' || !argument) {
+            return
+        }
+        let id: string | undefined
+        if (argument.type === 'Literal' && typeof argument.value === 'string') {
+            id = argument.value
+        } else if (argument.type === 'MemberExpression' && argument.computed === true) {
+            const object = argument.object as CodeNode
+            const property = argument.property as CodeNode
+            if (object.type === 'Identifier' && object.name === 'args' && property.type === 'Literal' &&
+                typeof property.value === 'number' && Number.isInteger(property.value) && property.value >= 0) {
+                const value = inputArgs?.[property.value]
+                id = typeof value === 'string' ? value : undefined
+            }
+        }
+        const selector = id === undefined ? undefined : selectors.get(id)
+        if (selector) {
+            edits.push({ start: node.start, end: node.end, text: '$(' + quote(selector) + ')' })
+        }
+    })
+    return applyCodeEdits(code, edits)
+}
+
+/**
+ * Give each recorded exec call a distinct args binding, preserving closures
+ * that may be invoked by subsequent recorded calls in a single test.
+ */
+function bindRecordedArgs (code: string, binding: string): string {
+    const edits: { start: number, end: number, text: string }[] = []
+    walkCode(parseCode(stripTypes(code)), (node, parent, key) => {
+        if (node.type !== 'Identifier' || node.name !== 'args') {
+            return
+        }
+        if (parent?.type === 'MemberExpression' && key === 'property' && parent.computed !== true) {
+            return
+        }
+        if (parent?.type === 'Property' && key === 'key' && parent.computed !== true) {
+            return
+        }
+        if ((parent?.type === 'MethodDefinition' && key === 'key') ||
+            (parent?.type === 'LabeledStatement' && key === 'label')) {
+            return
+        }
+        const text = parent?.type === 'Property' && key === 'value' && parent.shorthand === true
+            ? 'args: ' + binding
+            : binding
+        edits.push({ start: node.start, end: node.end, text })
+    })
+    return applyCodeEdits(code, edits)
 }
 
 /** time left for the reply when the code runs out of time */
@@ -156,12 +245,17 @@ export const exec: ActionFn = async (session, args) => {
     }
 
     const record = args.history !== false && !readOnly
-    const rewritten = record ? await rewriteRefs(session, source.trim(), ctx.usedRefs) : undefined
+    const rewritten = record ? await rewriteRefs(session, source.trim(), ctx.usedRefs, Array.isArray(args.args) ? args.args : undefined) : undefined
     return {
         text,
         data: { value: rendered.value, logs: lines },
         files,
-        // Export can put several exec steps in one function, so redeclare with var.
-        history: rewritten && input ? `var args = ${input};\n${rewritten}` : rewritten
+        // Each recorded call captures independent arguments, including in closures.
+        history: rewritten && input
+            ? (() => {
+                const binding = `__wdioExecArgs_${session.history.entries.length}`
+                return `const ${binding} = ${input};\n${bindRecordedArgs(rewritten, binding)}`
+            })()
+            : rewritten
     }
 }
