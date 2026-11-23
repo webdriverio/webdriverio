@@ -43,7 +43,8 @@ describe('action args types', () => {
         void agent.run('click', { target: 'e3' })
         void agent.run('snapshot')
         void agent.run('snapshot', { interactive: true })
-        void agent.run('snapshot', undefined, { timeout: 500 })
+        // @ts-expect-error only exec supports an explicit action timeout
+        void agent.run('snapshot', undefined, { timeout: 500 }).catch(() => {})
     })
 
     it('exec takes source text and JSON arguments', () => {
