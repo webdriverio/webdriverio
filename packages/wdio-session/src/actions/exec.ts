@@ -289,8 +289,9 @@ export const exec: ActionFn = async (session, args) => {
     if (record && rewritten === undefined) {
         // Execution has already succeeded; explicitly decline to record an
         // unsafe replay instead of returning a misleading code snippet.
-        lines.push('warn: mutable ref arguments cannot be safely recorded for replay')
-        text = [...lines, rendered.text].filter((l) => l !== '').join('\n')
+        const notice = 'warn: mutable ref arguments cannot be safely recorded for replay'
+        lines.push(notice)
+        text += `\n${notice}`
     }
     return {
         text,
