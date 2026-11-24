@@ -196,7 +196,9 @@ describe('network mocking', () => {
                     return response.end('<!doctype html><title>Page</title>')
                 }
                 const status = request.url === '/unknown-status' ? 299 : 201
-                response.writeHead(status, 'Custom Text', { 'Content-Type': 'application/json', 'X-Real': 'yes' })
+                // HTTP/2 has no status text: an empty one is the same for the browser
+                const statusText = request.url === '/no-status-text' ? '' : 'Custom Text'
+                response.writeHead(status, statusText, { 'Content-Type': 'application/json', 'X-Real': 'yes' })
                 response.end('{"real":true}')
             })
             server.listen(0, '127.0.0.1')
@@ -222,14 +224,18 @@ describe('network mocking', () => {
             }
         }, url)
 
-        for (const [path, status] of [['/created', 201], ['/unknown-status', 299]] as const) {
-            it(`from a mock without respond() (status ${status})`, async () => {
+        for (const [path, status, statusText] of [
+            ['/created', 201, 'Custom Text'],
+            ['/unknown-status', 299, 'Custom Text'],
+            ['/no-status-text', 201, '']
+        ] as const) {
+            it(`from a mock without respond() (${path})`, async () => {
                 await browser.url(origin)
                 const mock = await browser.mock(`${origin}${path}`)
 
                 expect(await fetchInPage(`${origin}${path}`)).toEqual({
                     status,
-                    statusText: 'Custom Text',
+                    statusText,
                     contentType: 'application/json',
                     real: 'yes',
                     body: '{"real":true}'
@@ -245,18 +251,6 @@ describe('network mocking', () => {
 
             expect(await fetchInPage(`${origin}/created`)).toMatchObject({ status: 401, body: '{"mocked":true}' })
             expect(await fetchInPage(`${origin}/created`)).toMatchObject({ status: 201, real: 'yes', body: '{"real":true}' })
-        })
-
-        it('without a status text, as over HTTP/2, from another origin', async () => {
-            const url = 'https://cdn.jsdelivr.net/npm/jquery@3.6.0/package.json'
-            await browser.url(origin)
-
-            const plain = await fetchInPage(url)
-            expect(plain).toMatchObject({ status: 200, statusText: '' })
-
-            const mock = await browser.mock(url)
-            expect(await fetchInPage(url)).toEqual(plain)
-            expect(mock.calls).toHaveLength(1)
         })
     })
 })
