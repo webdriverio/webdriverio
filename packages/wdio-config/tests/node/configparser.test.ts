@@ -343,6 +343,14 @@ describe('ConfigParser', () => {
 
             expect(fromInit.getSpecs()).toContain(__filename)
             expect(fromInit.getSpecs()).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+
+            const extglob = `${path.relative(process.cwd(), __dirname).replace(/\\/g, '/')}/@(configparser|FileSystemPathService).test.ts`
+            const plusExtglob = `${path.relative(process.cwd(), __dirname).replace(/\\/g, '/')}/+(configparser).test.ts`
+            const fromExtglob = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await fromExtglob.initialize({ spec: [extglob, plusExtglob] })
+
+            expect(fromExtglob.getSpecs()).toContain(__filename)
+            expect(fromExtglob.getSpecs()).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
         it('should resolve CWD-relative exact specs, Windows backslashes, and fallback to rootDir or keywords', async () => {

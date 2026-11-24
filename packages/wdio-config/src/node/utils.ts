@@ -6,7 +6,7 @@ import { SUPPORTED_FILE_EXTENSIONS } from '../constants.js'
 import { removeLineNumbers } from '../utils.js'
 import type { PathService } from '../types.js'
 
-const GLOB_CHARACTERS = /[*?{}[\]]/
+const GLOB_CHARACTERS = /[*?{}[\]]|[@+!]\(/
 
 /**
  * Resolve a CLI `--spec` or `--exclude` entry relative to the current working directory
