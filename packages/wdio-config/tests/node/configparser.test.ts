@@ -329,6 +329,68 @@ describe('ConfigParser', () => {
             expect(hasError).toBe(true)
         })
 
+        it('should resolve CWD-relative spec globs and paths via constructor and initialize', async () => {
+            const relGlob = `${path.relative(process.cwd(), __dirname).replace(/\\/g, '/')}/*.test.ts`
+            const argsFromCtor = { spec: [relGlob] }
+            const fromCtor = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, argsFromCtor)
+            await fromCtor.initialize(argsFromCtor)
+
+            expect(fromCtor.getSpecs()).toContain(__filename)
+            expect(fromCtor.getSpecs()).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+
+            const fromInit = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await fromInit.initialize({ spec: [relGlob] })
+
+            expect(fromInit.getSpecs()).toContain(__filename)
+            expect(fromInit.getSpecs()).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
+        it('should resolve CWD-relative exact specs, Windows backslashes, and fallback to rootDir or keywords', async () => {
+            const relFile = path.relative(process.cwd(), __filename)
+            const realCp = new ConfigParser(FIXTURES_CONF)
+            await realCp.initialize({ spec: [relFile] })
+
+            expect(realCp.getSpecs()).toEqual([url.pathToFileURL(__filename).href])
+
+            const realGlobCp = new ConfigParser(FIXTURES_CONF)
+            const globArg = isWindows
+                ? `${path.relative(process.cwd(), __dirname)}\\*.test.ts`
+                : `${path.relative(process.cwd(), __dirname)}/*.test.ts`
+            await realGlobCp.initialize({ spec: [globArg] })
+
+            expect(realGlobCp.getSpecs()).toContain(url.pathToFileURL(__filename).href)
+            expect(realGlobCp.getSpecs()).toContain(url.pathToFileURL(path.join(__dirname, 'FileSystemPathService.test.ts')).href)
+
+            const fallbackCp = new ConfigParser(FIXTURES_CONF)
+            await fallbackCp.initialize({ spec: ['./test.cjs', 'FileSystemPathService'] })
+            expect(fallbackCp.getSpecs()).toEqual([
+                url.pathToFileURL(path.join(FIXTURES_PATH, 'test.cjs')).href,
+                url.pathToFileURL(path.join(__dirname, 'FileSystemPathService.test.ts')).href
+            ])
+        })
+
+        it('should resolve CWD-relative spec globs as a single group when group is enabled', async () => {
+            const relGlob = `${path.relative(process.cwd(), __dirname).replace(/\\/g, '/')}/*.test.ts`
+            const configParser = new ConfigParser(FIXTURES_CONF)
+            await configParser.initialize({ spec: [relGlob], group: true })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            expect(Array.isArray(specs[0])).toBe(true)
+            expect(specs[0]).toContain(url.pathToFileURL(__filename).href)
+            expect(specs[0]).toContain(url.pathToFileURL(path.join(__dirname, 'FileSystemPathService.test.ts')).href)
+        })
+
+        it('should preserve Cucumber line numbers when resolving a CWD-relative feature spec', async () => {
+            const featurePath = path.join(FIXTURES_PATH, 'test-a.feature')
+            const relFeatureWithLine = `${path.relative(process.cwd(), featurePath)}:2`
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ spec: [relFeatureWithLine] })
+
+            expect(configParser.getSpecs()).toEqual([featurePath])
+            expect(configParser.getConfig().cucumberFeaturesWithLineNumbers).toEqual([`${featurePath}:2`])
+        })
+
         it('should allow to specify multiple suites', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['unit', 'functional', 'mobile'] })

@@ -5,7 +5,7 @@ import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
 import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import FileSystemPathService from './FileSystemPathService.js'
-import { makeRelativeToCWD } from './utils.js'
+import { makeRelativeToCWD, resolveFromCwd } from './utils.js'
 import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray, applyHeadlessFlag } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
@@ -71,7 +71,7 @@ export default class ConfigParser {
          * rather than relative to the config file
          */
         if (_initialConfig.spec) {
-            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
+            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec, this._pathService) as string[]
         }
 
         this.merge(_initialConfig, false)
@@ -197,8 +197,12 @@ export default class ConfigParser {
      * @param {boolean} [addPathToSpecs=true] this flag determines whether it is necessary to find paths to specs if the --spec parameter was passed in CLI
      */
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
-        const spec = Array.isArray(object.spec) ? object.spec : []
-        const exclude = Array.isArray(object.exclude) ? object.exclude : []
+        const resolvedSpec = Array.isArray(object.spec)
+            ? makeRelativeToCWD(object.spec, this._pathService) as string[]
+            : undefined
+        const mergeObject = resolvedSpec !== undefined ? { ...object, spec: resolvedSpec } : object
+        const spec = resolvedSpec ?? []
+        const exclude = Array.isArray(mergeObject.exclude) ? mergeObject.exclude : []
         // the exclude list of the config, before the one of the command line replaces it
         const ownExclude = this._config.exclude ?? []
 
@@ -215,26 +219,29 @@ export default class ConfigParser {
                 return utils.actions.defaultMerge
             }
         })
-        this._config = customDeepMerge(this._config, object) as TestrunnerOptionsWithParameters
+        this._config = customDeepMerge(this._config, mergeObject) as TestrunnerOptionsWithParameters
         /**
          * overwrite config specs that got piped into the wdio command,
          * also adhering to the wdio-prefixes from a capability
          */
-        if (object['wdio:specs'] && object['wdio:specs'].length > 0) {
-            this._config.specs = object['wdio:specs'] as Spec[]
-        } else if (object.specs && object.specs.length > 0) {
-            this._config.specs = object.specs as string[]
+        if (mergeObject['wdio:specs'] && mergeObject['wdio:specs'].length > 0) {
+            this._config.specs = mergeObject['wdio:specs'] as Spec[]
+        } else if (mergeObject.specs && mergeObject.specs.length > 0) {
+            this._config.specs = mergeObject.specs as string[]
         }
-        if (object['wdio:exclude'] && object['wdio:exclude'].length > 0) {
-            this._config.exclude = object['wdio:exclude'] as string[]
-        } else if (object.exclude && object.exclude.length > 0) {
-            this._config.exclude = object.exclude as string[]
+        if (mergeObject['wdio:exclude'] && mergeObject['wdio:exclude'].length > 0) {
+            this._config.exclude = mergeObject['wdio:exclude'] as string[]
+        } else if (mergeObject.exclude && mergeObject.exclude.length > 0) {
+            this._config.exclude = mergeObject.exclude as string[]
         }
 
         /**
-         * cleanup duplicated "suite" if the same value was provided
+         * cleanup duplicated "spec" and "suite" if the same value was provided
          */
-        if (object.suite && object.suite.length > 0) {
+        if (Array.isArray(this._config.spec) && this._config.spec.length > 0) {
+            this._config.spec = [...new Set(this._config.spec)]
+        }
+        if (mergeObject.suite && mergeObject.suite.length > 0) {
             this._config.suite = this._config.suite?.filter((suite, idx, suites) => suites.indexOf(suite) === idx)
         }
 
@@ -440,7 +447,7 @@ export default class ConfigParser {
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
                         filteredFile,
-                        path.dirname(this.#configFilePath)
+                        process.cwd()
                     )
                 )
             } else if (globMatchedFiles.length) {
@@ -607,26 +614,6 @@ export default class ConfigParser {
  */
 function isPathEntry(entry: string) {
     return entry.includes('/') || entry.includes('\\') || entry.includes('*')
-}
-
-/**
- * a relative path of the command line is relative to the current working directory
- */
-function resolveFromCwd(entry: string, pathService: PathService) {
-    if (entry.startsWith('file://') || path.isAbsolute(entry)) {
-        return entry
-    }
-    /**
-     * keep a path that matches nothing from the working directory as it is: it stays
-     * relative to the config file, as before. A Cucumber line number (`:12`) is no part
-     * of the file name, so it is left out of the check and kept on the resolved path.
-     */
-    const file = removeLineNumbers(entry)
-    const fromCwd = path.resolve(process.cwd(), file)
-    const matches = file.includes('*')
-        ? pathService.glob(fromCwd.replace(/\\/g, '/'), process.cwd()).length > 0
-        : pathService.isFile(fromCwd)
-    return matches ? fromCwd + entry.slice(file.length) : entry
 }
 
 /**
