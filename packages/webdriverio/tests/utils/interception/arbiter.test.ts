@@ -23,6 +23,7 @@ vi.mock('@wdio/logger', () => {
 
 type FakeBrowser = EventEmitter & {
     networkContinueRequest: ReturnType<typeof vi.fn>
+    networkContinueResponse: ReturnType<typeof vi.fn>
     networkProvideResponse: ReturnType<typeof vi.fn>
     networkFailRequest: ReturnType<typeof vi.fn>
 }
@@ -30,6 +31,7 @@ type FakeBrowser = EventEmitter & {
 function fakeBrowser () {
     return Object.assign(new EventEmitter(), {
         networkContinueRequest: vi.fn().mockResolvedValue({}),
+        networkContinueResponse: vi.fn().mockResolvedValue({}),
         networkProvideResponse: vi.fn().mockResolvedValue({}),
         networkFailRequest: vi.fn().mockResolvedValue({})
     }) as FakeBrowser
@@ -115,6 +117,7 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 const bidiCalls = (browser: FakeBrowser) => (
     browser.networkContinueRequest.mock.calls.length +
+    browser.networkContinueResponse.mock.calls.length +
     browser.networkProvideResponse.mock.calls.length +
     browser.networkFailRequest.mock.calls.length
 )
@@ -240,7 +243,7 @@ describe('RequestArbiter', () => {
 
     it.each([
         ['beforeRequestSent', 'networkContinueRequest'],
-        ['responseStarted', 'networkProvideResponse']
+        ['responseStarted', 'networkContinueResponse']
     ] as const)('continues the request when no candidate decides (%s)', async (phase, command) => {
         browser[command].mockRejectedValue(new Error('WebDriver Bidi command failed: no such request'))
         const arbiter = arbiterOf(asBrowser(browser))
@@ -361,7 +364,7 @@ describe('RequestArbiter', () => {
 
     it.each([
         ['beforeRequestSent', 'networkContinueRequest'],
-        ['responseStarted', 'networkProvideResponse']
+        ['responseStarted', 'networkContinueResponse']
     ] as const)('releases a request blocked only by a removed candidate\'s intercept (%s)', async (phase, command) => {
         const removed = candidate(1, 'int-a', () => decision('answer'))
         const live = candidate(2, 'int-b', () => decision('answer'))
@@ -757,7 +760,7 @@ describe('RequestArbiter', () => {
 
             expect(early.lose).toHaveBeenCalledTimes(1)
             expect(a.decide).toHaveBeenCalledTimes(2)
-            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 'req-1' })
         })
     })
 })

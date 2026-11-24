@@ -1,5 +1,5 @@
 import { it, expect, vi, describe } from 'vitest'
-import { parseOverwrite, getPatternParam } from '../../../src/utils/interception/utils.js'
+import { continueResponse, parseOverwrite, getPatternParam } from '../../../src/utils/interception/utils.js'
 
 describe('parseOverwrite', () => {
     it('should parse request overwrite', () => {
@@ -88,6 +88,46 @@ describe('parseOverwrite', () => {
         const result = parseOverwrite({ body: json }, {} as any)
         expect(result.body?.type).toBe('base64')
         expect(Buffer.from(result.body!.value, 'base64').toString('utf8')).toBe(JSON.stringify(json))
+    })
+})
+
+describe('continueResponse', () => {
+    const NO_STATUS_TEXT = 'WebDriver Bidi command "network.continueResponse" failed with error: unknown error - Invalid http status code or phrase'
+    const getBrowser = () => ({
+        networkContinueResponse: vi.fn().mockResolvedValue({}),
+        networkProvideResponse: vi.fn().mockResolvedValue({})
+    })
+    const run = (browser: ReturnType<typeof getBrowser>) => continueResponse(browser as unknown as WebdriverIO.Browser, 'req-1')
+
+    it('lets the response through without providing a new one', async () => {
+        const browser = getBrowser()
+        await run(browser)
+        expect(browser.networkContinueResponse.mock.calls).toEqual([[{ request: 'req-1' }]])
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('sends a blank reason phrase when the browser rejects the empty status text of the response', async () => {
+        const browser = getBrowser()
+        browser.networkContinueResponse.mockRejectedValueOnce(new Error(NO_STATUS_TEXT))
+        await run(browser)
+        expect(browser.networkContinueResponse.mock.calls).toEqual([
+            [{ request: 'req-1' }],
+            [{ request: 'req-1', reasonPhrase: ' ' }]
+        ])
+    })
+
+    it('throws when the browser rejects the blank reason phrase too', async () => {
+        const browser = getBrowser()
+        browser.networkContinueResponse.mockRejectedValue(new Error(NO_STATUS_TEXT))
+        await expect(run(browser)).rejects.toThrow(NO_STATUS_TEXT)
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(2)
+    })
+
+    it('throws any other error without a second command', async () => {
+        const browser = getBrowser()
+        browser.networkContinueResponse.mockRejectedValue(new Error('no such request'))
+        await expect(run(browser)).rejects.toThrow('no such request')
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
     })
 })
 

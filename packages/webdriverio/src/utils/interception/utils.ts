@@ -79,6 +79,27 @@ export function parseOverwrite<
     return result
 }
 
+/**
+ * Let a response that is paused in `responseStarted` through unchanged. Not with
+ * `network.provideResponse`, which provides a new response: since Chrome 158 one
+ * without `headers` drops the headers of the real response.
+ *
+ * Chrome rejects `network.continueResponse` when the response has no status text, as
+ * over HTTP/2. The request stays paused, and a blank reason phrase lets the response
+ * through with its empty status text. It is not sent upfront: Chrome 130 takes no
+ * reason phrase on its own, and Firefox changes the status of an HTTP/2 response.
+ */
+export async function continueResponse(browser: WebdriverIO.Browser, requestId: string) {
+    try {
+        await browser.networkContinueResponse({ request: requestId })
+    } catch (err) {
+        if (!(err instanceof Error) || !err.message.includes('Invalid http status code or phrase')) {
+            throw err
+        }
+        await browser.networkContinueResponse({ request: requestId, reasonPhrase: ' ' })
+    }
+}
+
 const URL_PATTERN_SYNTAX = /[*:(){}?+\\]/
 
 export function getPatternParam(pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {

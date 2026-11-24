@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { local } from 'webdriver'
 
 import { logBackgroundError } from '../sessionEnded.js'
+import { continueResponse } from './utils.js'
 
 const log = logger('WebDriverInterception')
 
@@ -227,7 +228,7 @@ export class RequestArbiter {
     #release (phase: Phase, requestId: string) {
         const release = phase === 'beforeRequestSent'
             ? this.#browser.networkContinueRequest({ request: requestId })
-            : this.#browser.networkProvideResponse({ request: requestId })
+            : continueResponse(this.#browser, requestId)
         void release.catch(this.#onReleaseError)
     }
 
