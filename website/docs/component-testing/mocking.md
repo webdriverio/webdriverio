@@ -106,7 +106,7 @@ Mock local modules or observe third-party-libraries, that are invoked in some ot
 
 There are two ways to mock functions: Either by creating a mock function to use in test code, or writing a manual mock to override a module dependency.
 
-Module mocks apply to code that runs in the test page. Code running in a web worker loads the actual modules, even when the spec mocks them.
+Mocks created with a factory apply only to code that runs in the test page. Code running in a web worker loads the actual modules instead. Manual mocks, including those selected by `automock`, can still apply in web workers.
 
 ### Mocking File Imports
 
