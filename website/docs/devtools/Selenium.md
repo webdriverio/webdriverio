@@ -415,7 +415,8 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_TRACE_POLICY=<policy>` | Trace mode: which archives are worth keeping. Ambient, so it never selects trace mode by itself - pair it with `DEVTOOLS_TRACE=1`. |
 | `DEVTOOLS_FILMSTRIP=0` | Trace mode: leave the dense filmstrip out of the archive. |
 | `DEVTOOLS_A11Y=0` | Trace mode: skip the per-action A11y tree and element rects. |
-| `DEVTOOLS_MASK_INPUTS=0` | Record password fields as typed in the replayed page instead of masking them. |
+| `DEVTOOLS_MASK_INPUTS=0` | Record password fields as typed in the replayed page, and stop redacting typed passwords and credential headers from what the adapter sends. |
+| `DEVTOOLS_SECRET_ENVS=NAME1,NAME2` | Redact the values of these environment variables, read at start, from everything the adapter sends. |
 | `DEVTOOLS_MASK_SELECTORS=.a,.b` | Comma-separated CSS selectors whose matches are also masked in the replayed page. |
 | `DEVTOOLS_OPEN=0` | Do not open the dashboard window (CI). |
 | `DEVTOOLS_BIDI=0` | Disable BiDi, and with it console and network capture. |
