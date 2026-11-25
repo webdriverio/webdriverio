@@ -147,6 +147,25 @@ describe('element', () => {
         expect(await browser.$('#foo').$$('#subfoo')[1].elementId).toBe('some-elem-456')
     })
 
+    it.each([false, true])('keeps chosen membership through an unresolved parent (await first: %s)', async (awaitFirst) => {
+        const browser = await remote({
+            capabilities: { browserName: 'foobar' }
+        })
+        const [chosen] = await browser.$('#foo').$$('.foo')
+        vi.mocked(fetch).mockClear()
+
+        const pending = browser.$('#foo').$$([chosen])
+        const list = awaitFirst ? await pending : pending
+        const refreshed = await list.refetch()
+        expect(await refreshed.map((element) => element.elementId)).toEqual([chosen.elementId])
+        expect(refreshed[1]).toBeUndefined()
+        expect((await pending)[1]).toBeUndefined()
+        expect(await (await refreshed.slice(0, 1).refetch()).map((element) => element.elementId))
+            .toEqual([chosen.elementId])
+        // Only the parent query runs; the chosen child never becomes a selector query.
+        expect(fetch).toHaveBeenCalledOnce()
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
