@@ -540,6 +540,13 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 
     /**
+     * the generated component imports its UI framework: pnpm does not link a peer dependency to the project
+     */
+    if (presetPackage.short === 'vue' || presetPackage.short === 'preact') {
+        parsedAnswers.packagesToInstall.push(presetPackage.short)
+    }
+
+    /**
      * add visual service if user selected support for it
      */
     if (parsedAnswers.includeVisualTesting) {
@@ -579,7 +586,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 
     /**
-     * add TypeScript dependencies
+     * add TypeScript dependencies; the generated tests import @wdio/globals in JavaScript too
      */
     if (parsedAnswers.isUsingTypeScript) {
         parsedAnswers.packagesToInstall.push(
@@ -587,6 +594,8 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
             '@wdio/globals',
             'expect-webdriverio'
         )
+    } else {
+        parsedAnswers.packagesToInstall.push('@wdio/globals')
     }
 
     /**

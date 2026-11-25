@@ -10,6 +10,7 @@ import { SUPPORTED_NODE_VERSIONS } from '../src/constants.js'
 import { runProgram } from '../src/utils.js'
 import type { ProgramOpts } from '../src/types.js'
 import { getInstallCommand, installPackages } from '../src/install.js'
+import { preparePnpmInstall } from '../src/pnpm.js'
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -25,6 +26,11 @@ vi.mock('import-meta-resolve', () => ({
     resolve: vi.fn()
 }))
 vi.mock('commander')
+vi.mock('../src/pnpm.js', async (importActual) => ({
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    ...await importActual<typeof import('../src/pnpm.js')>(),
+    preparePnpmInstall: vi.fn().mockResolvedValue([])
+}))
 vi.mock('semver', () => ({
     default: {
         satisfies: vi.fn().mockReturnValue(true)
@@ -109,7 +115,9 @@ test('createWebdriverIO with Yarn', async () => {
 
 test('createWebdriverIO with NPM', async () => {
     vi.stubEnv('npm_config_user_agent', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false')
+    vi.mocked(preparePnpmInstall).mockClear()
     await createWebdriverIO({ npmTag: 'latest' } as ProgramOpts)
+    expect(preparePnpmInstall).toBeCalledWith('npm', expect.stringMatching(/someProjectName$/))
     expect(runProgram).toBeCalledWith(
         'npm',
         ['install', '@wdio/cli@latest'],
@@ -165,11 +173,16 @@ test('createWebdriverIO with no npm user agent should run npm commands', async (
 })
 
 test('createWebdriverIO with pnpm', async () => {
-    vi.stubEnv('npm_config_user_agent', 'pnpm/9.10.0 npm/? node/v20.11.0 darwin arm64')
+    vi.stubEnv('npm_config_user_agent', 'pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64')
+    vi.mocked(preparePnpmInstall).mockClear().mockResolvedValueOnce(['--config.strict-dep-builds=false'])
     await createWebdriverIO({ npmTag: 'latest' } as ProgramOpts)
+    // the starter explains the setting too: the wizard may not install
+    expect(preparePnpmInstall).toBeCalledWith('pnpm', expect.stringMatching(/someProjectName$/))
+    expect(vi.mocked(preparePnpmInstall).mock.invocationCallOrder[0])
+        .toBeLessThan(vi.mocked(runProgram).mock.invocationCallOrder[0])
     expect(runProgram).toBeCalledWith(
         'pnpm',
-        ['add', '@wdio/cli@latest'],
+        ['add', '--config.strict-dep-builds=false', '@wdio/cli@latest'],
         expect.any(Object)
     )
     expect(runProgram).toBeCalledWith(
@@ -392,6 +405,31 @@ describe('install', () => {
         }
     })
 
+    it('installPackages shows the Yarn errors from stdout', async () => {
+        vi.stubEnv('npm_config_user_agent', 'yarn/4.18.1 npm/? node/v24.22.1 darwin arm64')
+        // real Yarn 4 output: it writes its errors to stdout
+        vi.mocked(execa).mockResolvedValueOnce({ exitCode: 1, stderr: '', stdout: [
+            '➤ YN0000: · Yarn 4.18.1',
+            '➤ YN0000: ┌ Resolution step',
+            '➤ YN0002: │ ycodes@workspace:. doesn\'t provide webdriverio (p8c1d2), requested by @wdio/globals.',
+            '➤ YN0027: @wdio/cli@does-not-exist can\'t be resolved to a satisfying range',
+            '➤ YN0016: Registry failed to return tag "does-not-exist"',
+            '➤ YN0000: └ Completed in 0s 512ms',
+            '➤ YN0000: · Failed with errors in 0s 516ms'
+        ].join('\n') } as any)
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            expect(await installPackages('/foo/bar', ['@wdio/cli@does-not-exist'], true)).toBe(false)
+            const message = consoleError.mock.calls.flat().join('\n')
+            expect(message).toContain('YN0027: @wdio/cli@does-not-exist can\'t be resolved to a satisfying range')
+            expect(message).toContain('YN0016: Registry failed to return tag "does-not-exist"')
+            expect(message).not.toContain('YN0000')
+            expect(message).not.toContain('YN0002')
+        } finally {
+            consoleError.mockRestore()
+        }
+    })
+
     it('installPackages shows the output while it runs and keeps it for the error', async () => {
         vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
         await installPackages('/foo/bar', ['foo'], true)
@@ -402,8 +440,28 @@ describe('install', () => {
         })
     })
 
+    it('installPackages prepares the pnpm install and passes its flags', async () => {
+        vi.stubEnv('npm_config_user_agent', 'pnpm/12.18.0 npm/? node/v24.22.1 darwin arm64')
+        vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
+        vi.mocked(preparePnpmInstall).mockClear().mockResolvedValueOnce(['--config.strict-dep-builds=false'])
+        await installPackages('/foo/bar', ['foo'], true)
+        expect(preparePnpmInstall).toBeCalledWith('pnpm', '/foo/bar')
+        expect(execa).toHaveBeenNthCalledWith(1, 'pnpm', ['add', 'foo', '--save-dev', '--config.strict-dep-builds=false'], expect.any(Object))
+    })
+
+    it('installPackages does not change the npm install', async () => {
+        vi.stubEnv('npm_config_user_agent', 'npm/11.19.1 node/v24.22.1 darwin arm64 workspaces/false')
+        vi.mocked(execa).mockClear().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as any)
+        vi.mocked(preparePnpmInstall).mockClear()
+        await installPackages('/foo/bar', ['foo'], true)
+        expect(preparePnpmInstall).toBeCalledWith('npm', '/foo/bar')
+        expect(execa).toHaveBeenNthCalledWith(1, 'npm', ['install', 'foo', '--save-dev'], expect.any(Object))
+    })
+
     it('getInstallCommand', () => {
         expect(getInstallCommand('pnpm', ['foo', 'bar'], true))
             .toBe('pnpm add foo bar --save-dev')
+        expect(getInstallCommand('pnpm', ['foo'], false, ['--config.strict-dep-builds=false']))
+            .toBe('pnpm add foo --config.strict-dep-builds=false')
     })
 })
