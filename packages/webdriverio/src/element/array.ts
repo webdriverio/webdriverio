@@ -263,9 +263,14 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
     })
 }
 
+async function refetchList (array: ElementList) {
+    const items = await refetchItems(array)
+    return fromResolved(items, cloneMetadata(stateOf(array).metadata))
+}
+
 const methods: Record<string, Function> = {
     async refetch (this: ElementList) {
-        return fromResolved(await refetchItems(this), cloneMetadata(stateOf(this).metadata))
+        return refetchList(this)
     },
     async map (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const items = await load(this)
@@ -280,7 +285,7 @@ const methods: Record<string, Function> = {
         const items = await load(this)
         const matched = await asyncIterators.filter(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
         return fromResolved(matched, derivedMetadata(state.metadata, async () =>
-            asyncIterators.filter(await refetchItems(this), callback as Function, thisArg) as Promise<ElementList>
+            asyncIterators.filter(await refetchList(this) as unknown as ElementList, callback as Function, thisArg) as Promise<ElementList>
         ))
     },
     async filterSeries (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
@@ -288,7 +293,7 @@ const methods: Record<string, Function> = {
         const items = await load(this)
         const matched = await asyncIterators.filterSeries(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
         return fromResolved(matched, derivedMetadata(state.metadata, async () =>
-            asyncIterators.filterSeries(await refetchItems(this), callback as Function, thisArg) as Promise<ElementList>
+            asyncIterators.filterSeries(await refetchList(this) as unknown as ElementList, callback as Function, thisArg) as Promise<ElementList>
         ))
     },
     async forEach (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {

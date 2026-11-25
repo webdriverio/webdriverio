@@ -267,6 +267,29 @@ describe('ElementArray', () => {
         await expect((await filtered.refetch()).map((el) => el.elementId)).resolves.toEqual(['b', 'd'])
     })
 
+    it.each(['filter', 'filterSeries'] as const)('preserves the callback list when refetching %s', async (method) => {
+        const selector = '.item'
+        const foundWith = '$$'
+        const parent = {
+            $$: vi.fn(async () => ElementArray.fromResolved([
+                element('new'), element('newer'), element('match-after')
+            ], { selector, foundWith, props: [] }))
+        }
+        const original = ElementArray.fromResolved([element('old'), element('match-before')], {
+            selector,
+            foundWith,
+            parent: parent as unknown as WebdriverIO.Browser,
+            props: []
+        })
+        const filtered = await original[method](async (_el, index, items) => {
+            const match = await items.findIndex(async (item) => item.elementId.startsWith('match-'))
+            return index === match
+        })
+
+        expect(await filtered.map((el) => el.elementId)).toEqual(['match-before'])
+        expect(await (await filtered.refetch()).map((el) => el.elementId)).toEqual(['match-after'])
+    })
+
     it('normalizes at() the same way a plain array does', () => {
         const parent = {
             options: { waitforTimeout: 50 },
