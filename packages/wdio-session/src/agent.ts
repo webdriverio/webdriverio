@@ -19,11 +19,12 @@ import { formatSnapshot } from './snapshot/render.js'
 import { installPageRecorder } from './snapshot/recorder.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
 import type { HistoryEntry } from './types.js'
+import type { ExecOptions } from './exec/context.js'
 import { resolveElement, scopeOf } from './snapshot/target.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
 export { formatSnapshot, onlyInteractive, SessionError }
-export type { ErrorCode, HintFormatter, ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
+export type { ErrorCode, ExecOptions, HintFormatter, ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
 
 export interface AgentSessionOptions {
     /**
@@ -61,6 +62,10 @@ export interface AgentSessionOptions {
      * the caller's own interface
      */
     hint?: HintFormatter
+    /**
+     * options for the `exec` action context
+     */
+    exec?: ExecOptions
 }
 
 /**
@@ -260,7 +265,8 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
         browser,
         plan: attachedPlan(browser, { name, cwd, artifactsDir, runtimeDir: artifactsDir, target: 'agent' }),
         persistHistory: false,
-        hint: opts.hint
+        hint: opts.hint,
+        exec: opts.exec
     })
     if (opts.captureEvents) {
         await startEventCapture(session)

@@ -85,6 +85,8 @@ const agent = await createAgentSession(browser, {
 Failures throw `SessionError`, with a `code` of type `ErrorCode`. Both are
 exported from `@wdio/session/agent`.
 
+Pass `exec: { restricted: true }` to `createAgentSession(browser, { exec: { restricted: true } })` to omit `process`, `fetch` (and `Headers`, `Request`, `Response`, `FormData`), `Buffer`, and `import()` from the `exec` context. This is an accident guard so agent code does not write to host stdout or read `process.env`, not a security sandbox.
+
 `tsx` and `expect-webdriverio` are optional peer dependencies. `expect` inside
 `exec` needs `expect-webdriverio` installed in your project. TypeScript configs
 load without `tsx` through Node type stripping or jiti.

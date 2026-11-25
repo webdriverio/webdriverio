@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 
 import type { ActionArgsOf, AgentActionName } from '../src/actions/args.js'
-import type { AgentSession } from '../src/agent.js'
+import type { AgentSession, AgentSessionOptions } from '../src/agent.js'
 
 declare const agent: AgentSession
 
@@ -43,5 +43,13 @@ describe('action args types', () => {
         void agent.run('click', { target: 'e3' })
         void agent.run('snapshot')
         void agent.run('snapshot', { interactive: true })
+    })
+
+    it('accepts exec options on AgentSessionOptions', () => {
+        const opts: AgentSessionOptions = { exec: { restricted: true } }
+        void opts
+        // @ts-expect-error restricted must be boolean
+        const invalid: AgentSessionOptions = { exec: { restricted: 'yes' } }
+        void invalid
     })
 })
