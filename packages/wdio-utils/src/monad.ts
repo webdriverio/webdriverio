@@ -330,7 +330,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
         /**
          * register capabilities only to browser scope
          */
-        if (scopeType.name === 'Browser' && 'capabilities' in options) {
+        if (scopeType === SCOPE_TYPES.browser && 'capabilities' in options) {
             client.capabilities = options.capabilities
         }
 
