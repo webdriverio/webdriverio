@@ -270,6 +270,27 @@ describe('WdioBridgeReporter', () => {
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
     })
 
+    it('finishes a module whose worker died when the run ends, with runner:end and job:end', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const s = makeSuite(module, module, 'killed')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'dies', { state: 'pending' }))
+        await reporter.onTestRunEnd()
+        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:pending', 'test:end', 'suite:end', 'runner:end']))
+        expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('does not finish a module twice when its module end and the run end both come', async () => {
+        const module = makeModule()
+        await runTests(module, makeTest(module, makeSuite(module, module, 's'), 'ok', passed))
+        await reporter.onTestModuleEnd(module)
+        await reporter.onTestRunEnd()
+        expect(names(emittedOf()).filter((name) => name === 'runner:end')).toHaveLength(1)
+        expect(events.filter((event) => event.type === 'job:end')).toHaveLength(1)
+    })
+
     it('emits job:end passed false when a test result is still pending', async () => {
         const module = makeModule({ state: () => 'skipped' })
         const s = makeSuite(module, module, 's')

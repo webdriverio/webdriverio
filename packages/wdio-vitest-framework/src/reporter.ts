@@ -19,6 +19,7 @@ type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> 
 
 type ModuleRun = {
     cid: string
+    module: TestModule
     caps: WebdriverIO.Capabilities
     specs: string[]
     // Undefined when only console reporters were configured: BaseReporter would add the dot reporter by default
@@ -201,6 +202,7 @@ export class WdioBridgeReporter implements Reporter {
 
     async onTestRunEnd() {
         await Promise.all(this.#pending)
+        await Promise.all([...this.#runs.values()].map((run) => this.#finish(run, run.module).catch((err) => this.#fail(run, err))))
     }
 
     #tryRun(testModule: TestModule) {
@@ -223,7 +225,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
+            cid, module: testModule, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
