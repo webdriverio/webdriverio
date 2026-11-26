@@ -129,6 +129,7 @@ export interface FormattedMessage {
     uid?: string
     title?: string
     parent?: string
+    parentUid?: string | null
     fullTitle?: string
     pending?: boolean
     passed?: boolean

@@ -231,13 +231,96 @@ test('inside named suite', () => {})
 
     test('reports failing root-level afterEach and after hooks under the wrapper suite', async () => {
         const dir = makeTempDir()
-        const specFile = path.join(dir, 'hooks-qunit.spec.cjs')
-        fs.writeFileSync(specFile, `
+        const afterEachSpec = path.join(dir, 'after-each-qunit.spec.cjs')
+        fs.writeFileSync(afterEachSpec, `
 afterEach(() => {
     throw new Error('afterEach boom')
 })
 
 test('top-level test with failing afterEach', () => {})
+`)
+
+        const afterEachRun = await runWithReporters({
+            rootDir: dir,
+            specs: [afterEachSpec],
+            mochaOpts: { ui: 'qunit' }
+        })
+
+        expect(afterEachRun.failures).toBe(1)
+        expect(afterEachRun.out.spec).toContain('top-level test with failing afterEach')
+        expect(afterEachRun.out.spec).toContain('afterEach boom')
+        expect(afterEachRun.out.junit).toContain('afterEach boom')
+        expect(afterEachRun.out.concise).toContain('afterEach boom')
+
+        const afterSpec = path.join(dir, 'after-qunit.spec.cjs')
+        fs.writeFileSync(afterSpec, `
+after(() => {
+    throw new Error('after all boom')
+})
+
+test('top-level test with failing after', () => {})
+`)
+
+        const afterRun = await runWithReporters({
+            rootDir: dir,
+            specs: [afterSpec],
+            mochaOpts: { ui: 'qunit' }
+        })
+
+        expect(afterRun.failures).toBe(1)
+        expect(afterRun.out.spec).toContain('top-level test with failing after')
+        expect(afterRun.out.spec).toContain('after all boom')
+        expect(afterRun.out.junit).toContain('after all boom')
+        expect(afterRun.out.junit).toMatch(/failures="1"/)
+        expect(afterRun.out.concise).toContain('after all boom')
+    })
+
+    test.each([true, false])('reports failing root-level before() hook when failHookAffectedTests is %s', async (failHookAffectedTests) => {
+        const dir = makeTempDir()
+        const specFile = path.join(dir, 'before-fail-qunit.spec.cjs')
+        fs.writeFileSync(specFile, `
+before(() => {
+    throw new Error('before boom')
+})
+
+test('top test 1', () => {})
+test('top test 2', () => {})
+`)
+
+        const { failures, out } = await runWithReporters({
+            rootDir: dir,
+            specs: [specFile],
+            mochaOpts: { ui: 'qunit', failHookAffectedTests }
+        })
+
+        expect(failures).toBeGreaterThanOrEqual(1)
+        expect(out.spec).toContain('before-fail-qunit.spec.cjs')
+        expect(out.spec).toContain('before boom')
+        expect(out.junit).toContain('<testsuite ')
+        expect(out.junit).toContain('before boom')
+        expect(out.concise).toContain('before boom')
+        if (failHookAffectedTests) {
+            expect(out.spec).toContain('top test 1')
+            expect(out.spec).toContain('top test 2')
+            expect(out.junit).toMatch(/failures="3"/)
+        } else {
+            expect(out.junit).toMatch(/tests="1"/)
+            expect(out.junit).toMatch(/failures="1"/)
+        }
+    })
+
+    test('reports failing root after() hook in mixed top-level test() and suite() specs', async () => {
+        const dir = makeTempDir()
+        const specFile = path.join(dir, 'mixed-after-fail.spec.cjs')
+        fs.writeFileSync(specFile, `
+after(() => {
+    throw new Error('root after boom')
+})
+
+test('top test', () => {})
+
+suite('Named Suite')
+test('named test', () => {})
 `)
 
         const { failures, out } = await runWithReporters({
@@ -247,10 +330,42 @@ test('top-level test with failing afterEach', () => {})
         })
 
         expect(failures).toBe(1)
-        expect(out.spec).toContain('top-level test with failing afterEach')
-        expect(out.spec).toContain('afterEach boom')
-        expect(out.junit).toContain('afterEach boom')
-        expect(out.concise).toContain('afterEach boom')
+        expect(out.spec).toContain('top test')
+        expect(out.spec).toContain('Named Suite')
+        expect(out.spec).toContain('named test')
+        expect(out.spec).toContain('root after boom')
+        expect(out.junit).toContain('root after boom')
+        expect(out.junit).toMatch(/failures="1"/)
+        expect(out.concise).toContain('root after boom')
+    })
+
+    test('does not emit extra suite or hook lines for passing root after() in mixed specs', async () => {
+        const dir = makeTempDir()
+        const specFile = path.join(dir, 'mixed-after-pass.spec.cjs')
+        fs.writeFileSync(specFile, `
+after(() => {})
+
+test('top test', () => {})
+
+suite('Named Suite')
+test('named test', () => {})
+`)
+
+        const { failures, events, out } = await runWithReporters({
+            rootDir: dir,
+            specs: [specFile],
+            mochaOpts: { ui: 'qunit' }
+        })
+
+        expect(failures).toBe(0)
+        expect(events.filter((e) => e.event === 'suite:start').map((e) => e.payload.title)).toEqual([
+            'mixed-after-pass.spec.cjs',
+            'Named Suite'
+        ])
+        expect(out.spec).toContain('2 passing')
+        expect(out.spec).not.toContain('after all')
+        expect(out.junit).toMatch(/tests="2"/)
+        expect(out.junit).toMatch(/failures="0"/)
     })
 
     test('does not emit a synthetic wrapper suite for normal BDD specs with describe and root hooks', async () => {
@@ -453,5 +568,41 @@ Mocha.interfaces['${uiName}'] = function (suite) {
         expect(requiredPkgRun.failures).toBe(0)
         expect(requiredPkgRun.out.spec).toContain('third-party package ui test')
         expect(requiredPkgRun.out.junit).toContain('third party package ui test')
+    })
+
+    test('ignores Object.prototype keys when checking Mocha.interfaces', async () => {
+        const dir = makeTempDir()
+        const pkgDir = path.join(dir, 'node_modules', 'toString')
+        fs.mkdirSync(pkgDir, { recursive: true })
+        fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({
+            name: 'toString',
+            version: '1.0.0',
+            main: 'index.cjs'
+        }))
+        fs.writeFileSync(path.join(pkgDir, 'index.cjs'), `
+const Mocha = require('mocha')
+module.exports = function protoNamedUi(suite) {
+    suite.on('pre-require', function (context, file) {
+        context.protoCase = function (title, fn) {
+            const t = new Mocha.Test(title, fn)
+            t.file = file
+            suite.addTest(t)
+            return t
+        }
+    })
+}
+`)
+        const specFile = path.join(dir, 'proto.spec.cjs')
+        fs.writeFileSync(specFile, 'protoCase(\'proto named ui test\', () => {})\n')
+
+        const { failures, out } = await runWithReporters({
+            rootDir: dir,
+            specs: [specFile],
+            mochaOpts: { ui: 'toString' }
+        })
+
+        expect(failures).toBe(0)
+        expect(out.spec).toContain('proto named ui test')
+        expect(out.junit).toContain('proto named ui test')
     })
 })

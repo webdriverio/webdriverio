@@ -63,6 +63,8 @@ class MochaAdapter {
     private _suiteUids = new WeakMap<object, string>()
     /** Synthetic wrapper suite emitted around root-level tests (e.g. QUnit without suite()) */
     private _rootTestSuite?: { uid: string, title: string, file?: string }
+    /** Last synthetic wrapper suite opened in this run, used to anchor trailing root afterAll hooks */
+    private _lastRootTestSuite?: { uid: string, title: string, file?: string }
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -277,7 +279,7 @@ class MochaAdapter {
         }
 
         const interfaces = (Mocha as unknown as { interfaces?: Record<string, unknown> }).interfaces
-        if (interfaces && ui in interfaces) {
+        if (interfaces && Object.hasOwn(interfaces, ui)) {
             return ui
         }
 
@@ -294,7 +296,7 @@ class MochaAdapter {
             if (typeof loaded === 'function') {
                 return loaded as (suite: Mocha.Suite) => void
             }
-            if (interfaces && ui in interfaces) {
+            if (interfaces && Object.hasOwn(interfaces, ui)) {
                 return ui
             }
         } catch {
@@ -316,6 +318,22 @@ class MochaAdapter {
             }
         }
         return path.basename(normalizedFile)
+    }
+
+    private _firstMatchedRootTest (parent: unknown) {
+        const tests = (parent as { tests?: { file?: string, fullTitle?: () => string, title?: string }[] } | undefined)?.tests
+        if (!tests?.length) {
+            return undefined
+        }
+        const grep = this._mocha?.options?.grep as RegExp | undefined
+        if (!grep) {
+            return tests[0]
+        }
+        const invert = Boolean(this._mocha?.options?.invert)
+        return tests.find((test) => {
+            const fullTitle = typeof test.fullTitle === 'function' ? test.fullTitle() : (test.title ?? '')
+            return grep.test(fullTitle) !== invert
+        })
     }
 
     private _openRootTestSuite (file?: string) {
@@ -344,6 +362,7 @@ class MochaAdapter {
             uid
         }
         this._rootTestSuite = suite
+        this._lastRootTestSuite = suite
         this._reporter.emit('suite:start', message)
         return suite
     }
@@ -482,6 +501,7 @@ class MochaAdapter {
 
         const message = formatMessage({ type: event, payload, err })
         const isRootParent = Boolean((payload.parent as { root?: boolean } | undefined)?.root)
+        let hookRootSuite: { uid: string, title: string, file?: string } | undefined
         const rootSuite = isRootParent && message.type.startsWith('test:')
             ? this._openRootTestSuite(payload.file as string | undefined)
             : undefined
@@ -490,8 +510,21 @@ class MochaAdapter {
             if (message.title) {
                 message.fullTitle = `${rootSuite.title}.${message.title}`
             }
-        } else if (isRootParent && message.type.startsWith('hook:') && this._rootTestSuite) {
-            message.parent = this._rootTestSuite.title
+        } else if (isRootParent && message.type.startsWith('hook:')) {
+            if (message.hookKind === 'beforeAll' && !this._rootTestSuite && this._level === 0) {
+                const firstRootTest = this._firstMatchedRootTest(payload.parent)
+                if (firstRootTest) {
+                    this._openRootTestSuite(firstRootTest.file ?? (payload.file as string | undefined))
+                }
+            }
+            if (this._rootTestSuite) {
+                hookRootSuite = this._rootTestSuite
+                message.parent = this._rootTestSuite.title
+            } else if (message.hookKind === 'afterAll' && this._lastRootTestSuite) {
+                hookRootSuite = this._lastRootTestSuite
+                message.parent = this._lastRootTestSuite.title
+                message.parentUid = this._lastRootTestSuite.uid
+            }
         }
 
         message.cid = this._cid
@@ -506,9 +539,9 @@ class MochaAdapter {
         if (event === 'suite:start') {
             this._suiteUids.set(payload, message.uid)
         }
-        // the root suite has no suite:start unless a wrapper suite is open for root-level tests
+        // the root suite has no suite:start unless a wrapper suite is associated with root-level tests
         const hookSuiteUid = (message.hookKind === 'beforeAll' || message.hookKind === 'afterAll')
-            && (this._suiteUids.get(payload.parent as object) ?? (isRootParent ? this._rootTestSuite?.uid : undefined))
+            && (this._suiteUids.get(payload.parent as object) ?? hookRootSuite?.uid)
         if (hookSuiteUid) {
             message.hookSuiteUid = hookSuiteUid
         }

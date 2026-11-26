@@ -193,7 +193,7 @@ export function setupEnv (
     const match = typeof options.ui === 'string'
         ? MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui) as unknown as [string, keyof typeof INTERFACES]
         : null
-    const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
+    const type: keyof typeof INTERFACES = (match && Object.hasOwn(INTERFACES, match[1]) && match[1]) || DEFAULT_INTERFACE_TYPE
 
     const hookArgsFn = (ctx: Mocha.Context) => {
         return [{ ...ctx.test, parent: ctx.test?.parent?.title }, ctx]

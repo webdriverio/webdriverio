@@ -227,6 +227,7 @@ describe('setupEnv', () => {
         ['C:\\path\\to\\custom-qunit.ts', ['test', 'before', 'beforeEach', 'after', 'afterEach']],
         ['@scope/mocha-qunit', ['test', 'before', 'beforeEach', 'after', 'afterEach']],
         ['./my-custom-interface.cjs', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['toString', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
         [(() => {}) as any, ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
     ])('setupEnv - custom UI %s resolves expected globals', (ui, expectedFns) => {
         vi.mocked(wrapGlobalTestMethod).mockClear()
