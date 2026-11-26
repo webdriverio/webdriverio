@@ -3,12 +3,14 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { EventEmitter } from 'node:events'
 import { describe, test, expect, afterEach, vi } from 'vitest'
 import Mocha from 'mocha'
 
 const require = createRequire(import.meta.url)
-const mochaModuleUrl = pathToFileURL(require.resolve('mocha')).href
+const mochaModulePath = require.resolve('mocha')
+const mochaModuleUrl = pathToFileURL(mochaModulePath).href
 
 import { MochaAdapter } from '../src/index.js'
 import SpecReporter from '../../wdio-spec-reporter/src/index.js'
@@ -41,9 +43,10 @@ interface RunOptions {
     mochaOpts: Record<string, unknown>
     beforeTest?: Function[]
     afterTest?: Function[]
+    browser?: WebdriverIO.Browser
 }
 
-async function runWithReporters({ rootDir, specs, mochaOpts, beforeTest = [], afterTest = [] }: RunOptions) {
+async function runWithReporters({ rootDir, specs, mochaOpts, beforeTest = [], afterTest = [], browser }: RunOptions) {
     const out = { spec: '', junit: '', concise: '' }
     const events: { event: string, payload: Record<string, any> }[] = []
 
@@ -88,6 +91,9 @@ async function runWithReporters({ rootDir, specs, mochaOpts, beforeTest = [], af
     bus.emit('runner:start', runnerPayload)
 
     const adapter = new MochaAdapter('0-0', config as never, specs, { browserName: 'chrome' }, bus)
+    if (browser) {
+        adapter.setBrowser(browser)
+    }
     await adapter.init()
     const failures = await adapter.run()
 
@@ -389,6 +395,74 @@ describe('Regular Suite', () => {
         expect(failures).toBe(0)
         expect(events.filter((e) => e.event === 'suite:start').map((e) => e.payload.title)).toEqual(['Regular Suite'])
     })
+
+    test('reports QUnit top-level tests in parallelMode across Spec, JUnit and Concise reporters', async () => {
+        const dir = makeTempDir()
+        const specFile = path.join(dir, 'qunit-parallel.spec.cjs')
+        fs.writeFileSync(specFile, `
+before(() => {})
+test('parallel root pass', () => {})
+test('parallel root fail', () => {
+    throw new Error('parallel boom')
+})
+
+suite('Parallel Named Suite')
+test('parallel named pass', () => {})
+`)
+
+        let ctxIdx = 0
+        const mockParallelBrowser = {
+            isBidi: true,
+            __bidiCommandsEnabled: true,
+            __parallelContextStore: new AsyncLocalStorage<string>(),
+            __parallelContexts: new Set<string>(),
+            browsingContextCreate: vi.fn().mockImplementation(async () => ({ context: `ctx-${ctxIdx++}` })),
+            browsingContextClose: vi.fn().mockResolvedValue(undefined),
+        } as unknown as WebdriverIO.Browser
+
+        const { failures, events, out } = await runWithReporters({
+            rootDir: dir,
+            specs: [specFile],
+            mochaOpts: { ui: 'qunit', parallelMode: 'contexts' },
+            browser: mockParallelBrowser
+        })
+
+        expect(failures).toBe(1)
+
+        const suiteStarts = events.filter((e) => e.event === 'suite:start').map((e) => e.payload)
+        const suiteEnds = events.filter((e) => e.event === 'suite:end').map((e) => e.payload)
+        expect(suiteStarts.map((s) => [s.title, s.parentUid])).toEqual([
+            ['qunit-parallel.spec.cjs', null],
+            ['Parallel Named Suite', null]
+        ])
+        expect(suiteEnds.map((s) => s.uid)).toEqual(suiteStarts.map((s) => s.uid).reverse())
+
+        const rootWrapperUid = suiteStarts[0].uid
+        const namedSuiteUid = suiteStarts[1].uid
+        const testStartOf = (title: string) => events.find((e) => e.event === 'test:start' && e.payload.title === title)!.payload
+        expect(testStartOf('parallel root pass').parentUid).toBe(rootWrapperUid)
+        expect(testStartOf('parallel root pass').parent).toBe('qunit-parallel.spec.cjs')
+        expect(testStartOf('parallel root pass').fullTitle).toBe('qunit-parallel.spec.cjs.parallel root pass')
+        expect(testStartOf('parallel named pass').parentUid).toBe(namedSuiteUid)
+
+        const rootBeforeHooks = events.filter((e) => e.event === 'hook:start' && e.payload.hookKind === 'beforeAll' && e.payload.parentUid === rootWrapperUid)
+        expect(rootBeforeHooks.length).toBeGreaterThan(0)
+        expect(rootBeforeHooks.every((e) => e.payload.hookSuiteUid === rootWrapperUid)).toBe(true)
+
+        expect(out.spec).toContain('parallel root pass')
+        expect(out.spec).toContain('parallel root fail')
+        expect(out.spec).toContain('parallel named pass')
+        expect(out.spec).toContain('2 passing')
+        expect(out.spec).toContain('1 failing')
+
+        expect(out.junit).toContain('parallel root pass')
+        expect(out.junit).toContain('parallel root fail')
+        expect(out.junit).toContain('parallel named pass')
+        expect(out.junit).toMatch(/tests="2"[^>]*failures="1"/)
+        expect(out.junit).toMatch(/tests="1"[^>]*failures="0"/)
+
+        expect(out.concise).toContain('parallel root fail')
+    })
 })
 
 describe('Mocha third-party and custom UIs', () => {
@@ -396,7 +470,7 @@ describe('Mocha third-party and custom UIs', () => {
         const dir = makeTempDir()
         const uiFile = path.join(dir, 'my-custom-qunit.cjs')
         fs.writeFileSync(uiFile, `
-const Mocha = require('mocha')
+const Mocha = require(${JSON.stringify(mochaModulePath)})
 module.exports = function myCustomQunit(suite) {
     suite.on('pre-require', function (context, file) {
         context.test = function (title, fn) {
@@ -509,7 +583,7 @@ suite('ESM Custom Suite', () => {
             main: 'index.cjs'
         }))
         fs.writeFileSync(path.join(pkgDir, 'index.cjs'), `
-const Mocha = require('mocha')
+const Mocha = require(${JSON.stringify(mochaModulePath)})
 module.exports = function demoQunit(suite) {
     suite.on('pre-require', function (context, file) {
         context.test = function (title, fn) {
@@ -532,7 +606,7 @@ module.exports = function demoQunit(suite) {
         const uiName = 'registered-demo-qunit'
         registeredInterfaces.push(uiName)
         fs.writeFileSync(path.join(regPkgDir, 'index.cjs'), `
-const Mocha = require('mocha')
+const Mocha = require(${JSON.stringify(mochaModulePath)})
 Mocha.interfaces['${uiName}'] = function (suite) {
     suite.on('pre-require', function (context, file) {
         context.test = function (title, fn) {
@@ -580,7 +654,7 @@ Mocha.interfaces['${uiName}'] = function (suite) {
             main: 'index.cjs'
         }))
         fs.writeFileSync(path.join(pkgDir, 'index.cjs'), `
-const Mocha = require('mocha')
+const Mocha = require(${JSON.stringify(mochaModulePath)})
 module.exports = function protoNamedUi(suite) {
     suite.on('pre-require', function (context, file) {
         context.protoCase = function (title, fn) {

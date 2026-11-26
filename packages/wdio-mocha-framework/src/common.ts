@@ -1,5 +1,6 @@
+import path from 'node:path'
 import logger from '@wdio/logger'
-import { wrapGlobalTestMethod } from '@wdio/utils'
+import { specFilePath, wrapGlobalTestMethod } from '@wdio/utils'
 
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, FrameworkMessage, MochaError, MochaOpts } from './types.js'
@@ -67,6 +68,20 @@ export function dottedFullTitle(title: string, parent?: TitledNode | null) {
         parent = parent.parent
     }
     return fullTitle
+}
+
+export function rootSuiteTitle(file?: string, rootDir?: string) {
+    if (!file) {
+        return '(root)'
+    }
+    const normalizedFile = specFilePath(file)
+    if (rootDir) {
+        const relative = path.relative(rootDir, normalizedFile)
+        if (relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
+            return relative
+        }
+    }
+    return path.basename(normalizedFile)
 }
 
 /**

@@ -19,8 +19,8 @@ import type { AsyncLocalStorage } from 'node:async_hooks'
 import Mocha from 'mocha'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
-import { TITLE_KINDS, checkHookKind, dottedFullTitle, formatError, type TitledNode } from './common.js'
-import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation, type ParallelContextBrowser, type ParallelMode } from '@wdio/utils'
+import { TITLE_KINDS, checkHookKind, dottedFullTitle, formatError, rootSuiteTitle, type TitledNode } from './common.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, specFilePath, type ParallelContextAllocation, type ParallelContextBrowser, type ParallelMode } from '@wdio/utils'
 import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
@@ -91,6 +91,8 @@ interface CollectedTest {
     reportFullTitle: string
     fn: Function
     parentTitle: string
+    /** suite title reported to reporters (wrapper suite title for root-level tests) */
+    reportParentTitle: string
     _beforeEach: Function[]
     _afterEach: Function[]
     /** ancestry-merged suite before() hooks, outermost-first */
@@ -100,8 +102,10 @@ interface CollectedTest {
     /** static skip (it.skip / it without fn) */
     pending?: boolean
     file: string | undefined
-    /** {@link CollectedSuite.depth} of the owning suite; undefined for root-level tests */
+    /** {@link CollectedSuite.depth} of the owning suite (or synthetic root wrapper suite) */
     suiteIndex?: number
+    /** true when declared directly on Mocha's root suite without a describe()/suite() */
+    isRootTest?: boolean
     /** Mocha's resolved timeout for this test (`_timeout`) */
     timeout?: number
     /** Mocha's resolved retries for this test (`_retries`): `mochaOpts.retries`, `this.retries(n)` in a describe, `it().retries(n)` */
@@ -140,12 +144,37 @@ interface SuiteCollection {
  * including ancestry-merged suite before()/after() chains) and nested suite
  * metadata for reporter events.
  */
-function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): SuiteCollection {
+function collectAll(
+    suite: Suite,
+    match?: (test: CollectedTest) => boolean,
+    specs?: string[],
+    rootDir?: string
+): SuiteCollection {
     const tests: CollectedTest[] = []
+    const rootWrapperSuites = new Map<string, CollectedSuite>()
     const suiteStubs = new Map<Suite, CollectedSuite>()
     const suiteIndexOf = new Map<object, number>()
     const matchedSuites = new Set<Suite>()
     let nextDepth = 0
+
+    const getRootWrapperSuite = (file?: string) => {
+        const rawFile = file || specs?.[0]
+        const normalizedFile = rawFile ? specFilePath(rawFile) : undefined
+        const key = normalizedFile ?? ''
+        let wrapper = rootWrapperSuites.get(key)
+        if (!wrapper) {
+            const title = rootSuiteTitle(normalizedFile, rootDir)
+            wrapper = {
+                title,
+                fullTitle: title,
+                file: normalizedFile,
+                depth: nextDepth++,
+                parentIndex: undefined
+            }
+            rootWrapperSuites.set(key, wrapper)
+        }
+        return wrapper
+    }
 
     const walk = (
         s: Suite,
@@ -178,12 +207,14 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         // Tests at this level
         for (const test of s.tests) {
             const fn = (test as unknown as { fn?: Function }).fn
-            const collected = {
+            const isRootTest = depth === 0
+            const collected: CollectedTest = {
                 title: test.title,
                 fullTitle: test.fullTitle(),
                 reportFullTitle: dottedFullTitle(test.title, test.parent),
                 fn: fn || (() => {}),
                 parentTitle: s.title,
+                reportParentTitle: s.title,
                 _beforeEach: mergedBeforeEach,
                 _afterEach: mergedAfterEach,
                 _beforeAll: mergedBeforeAll,
@@ -191,11 +222,18 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 pending: !!test.pending || !fn,
                 file: test.file || undefined,
                 suiteIndex,
+                isRootTest,
                 timeout: (test as unknown as { _timeout?: number })._timeout,
                 retries: (test as unknown as { _retries?: number })._retries,
                 suiteIndexOf
             }
             if (!match || match(collected)) {
+                if (isRootTest) {
+                    const wrapper = getRootWrapperSuite(collected.file)
+                    collected.suiteIndex = wrapper.depth
+                    collected.reportParentTitle = wrapper.title
+                    collected.reportFullTitle = `${wrapper.title}.${collected.title}`
+                }
                 tests.push(collected)
                 for (const ancestor of ancestors) {
                     matchedSuites.add(ancestor)
@@ -226,9 +264,12 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
 
     return {
         tests,
-        suites: [...suiteStubs.entries()]
-            .filter(([s]) => matchedSuites.has(s))
-            .map(([, stub]) => stub)
+        suites: [
+            ...rootWrapperSuites.values(),
+            ...[...suiteStubs.entries()]
+                .filter(([s]) => matchedSuites.has(s))
+                .map(([, stub]) => stub)
+        ]
     }
 }
 
@@ -288,7 +329,7 @@ function baseMessage(type: string, test: CollectedTest, cid: string, specs: stri
         type, cid, specs, uid,
         title: test.title,
         fullTitle: test.reportFullTitle,
-        parent: test.parentTitle,
+        parent: test.reportParentTitle,
         file: test.file || specs[0],
         ...parentUidField(cid, test.suiteIndex),
         ...(contextId ? { contextId } : {})
@@ -361,17 +402,20 @@ function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test
     // an all-hook belongs to its declaring suite, an each-hook and a root hook (no suite event) to the suite of its test
     const declaringIndex = hook.parent && test.suiteIndexOf.get(hook.parent)
     const ownSuite = (kind === 'before all' || kind === 'after all') && declaringIndex !== undefined
+    const hookSuiteIndex = (kind === 'before all' || kind === 'after all')
+        ? (declaringIndex ?? (test.isRootTest ? test.suiteIndex : undefined))
+        : undefined
     return {
         type, cid, specs, uid,
         title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
         fullTitle: dottedFullTitle(native, hook.parent),
-        parent: ownSuite ? declaringSuite ?? '' : test.parentTitle,
+        parent: ownSuite ? declaringSuite ?? '' : test.reportParentTitle,
         file: test.file || specs[0],
         ...parentUidField(cid, ownSuite ? declaringIndex : test.suiteIndex),
         contextId,
         ...(currentTest !== undefined && { currentTest }),
         hookKind: checkHookKind(hook, TITLE_KINDS[kind]),
-        ...(ownSuite && { hookSuiteUid: suiteUid(cid, declaringIndex) })
+        ...(hookSuiteIndex !== undefined && { hookSuiteUid: suiteUid(cid, hookSuiteIndex) })
     } satisfies TestMessage
 }
 
@@ -719,6 +763,8 @@ export interface ParallelMochaOptions {
     failHookAffectedTests?: boolean
     /** `true`: an uncaught error is not caught, as with Mocha's `allowUncaught` */
     allowUncaught?: boolean
+    /** WDIO config rootDir used to build relative titles for synthetic root-test wrapper suites */
+    rootDir?: string
 }
 
 export async function runParallelTests(
@@ -749,7 +795,9 @@ export async function runParallelTests(
     const invert = !!mochaOptions?.invert
     const { tests, suites } = collectAll(
         mochaSuite,
-        grep ? (test: CollectedTest) => grep.test(test.fullTitle) !== invert : undefined
+        grep ? (test: CollectedTest) => grep.test(test.fullTitle) !== invert : undefined,
+        specs,
+        mochaOptions?.rootDir
     )
     if (tests.length === 0) { log.info('No tests found for parallel execution.'); return 0 }
 

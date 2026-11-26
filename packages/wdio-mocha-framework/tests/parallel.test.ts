@@ -1461,10 +1461,11 @@ describe('runParallelTests — shared context and suite ownership', () => {
         expect(parentOf('c1')).toBe(uidOf('C'))
     })
 
-    test('root-level tests and hooks carry parentUid null, describes keep their own', async () => {
+    test('root-level tests and hooks get a synthetic file wrapper suite, describes keep their own', async () => {
         const suite = mockSuite('', {
             tests: [mockTest('r1')],
-            _beforeEach: [() => {}],
+            _beforeAll: [mockHook('"before all" hook', { title: '' })],
+            _beforeEach: [mockHook('"before each" hook', { title: '' })],
             suites: [mockSuite('A', { tests: [mockTest('a1')] })]
         })
         const reporter = new EventEmitter()
@@ -1472,15 +1473,29 @@ describe('runParallelTests — shared context and suite ownership', () => {
         for (const e of ['suite:start', 'suite:end', 'test:start', 'hook:start']) {
             reporter.on(e, (p) => events.push({ e, ...p }))
         }
-        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { rootDir: '/foo' })
 
         const starts = events.filter((x) => x.e === 'suite:start')
-        expect(starts.map((s) => s.title)).toEqual(['A'])
+        expect(starts.map((s) => [s.title, s.parentUid])).toEqual([['bar.test.js', null], ['A', null]])
+        const wrapperUid = starts[0].uid
+        const suiteAUid = starts[1].uid
         const ofTitle = (e: string, title: string) => events.find((x) => x.e === e && x.title === title)
-        expect(ofTitle('test:start', 'r1').parentUid).toBeNull()
-        expect(ofTitle('test:start', 'a1').parentUid).toBe(starts[0].uid)
-        expect(events.find((x) => x.e === 'hook:start' && x.parent === '').parentUid).toBeNull()
-        expect(events.filter((x) => x.e === 'suite:end').map((s) => s.uid)).toEqual([starts[0].uid])
+        expect(ofTitle('test:start', 'r1').parentUid).toBe(wrapperUid)
+        expect(ofTitle('test:start', 'r1').parent).toBe('bar.test.js')
+        expect(ofTitle('test:start', 'r1').fullTitle).toBe('bar.test.js.r1')
+        expect(ofTitle('test:start', 'a1').parentUid).toBe(suiteAUid)
+
+        const rootBeforeAll = events.find((x) => x.e === 'hook:start' && x.hookKind === 'beforeAll' && x.parentUid === wrapperUid)
+        expect(rootBeforeAll).toBeDefined()
+        expect(rootBeforeAll.parent).toBe('bar.test.js')
+        expect(rootBeforeAll.hookSuiteUid).toBe(wrapperUid)
+
+        const rootBeforeEach = events.find((x) => x.e === 'hook:start' && x.hookKind === 'beforeEach' && x.parentUid === wrapperUid)
+        expect(rootBeforeEach).toBeDefined()
+        expect(rootBeforeEach.parent).toBe('bar.test.js')
+        expect(rootBeforeEach.hookSuiteUid).toBeUndefined()
+
+        expect(events.filter((x) => x.e === 'suite:end').map((s) => s.uid)).toEqual([suiteAUid, wrapperUid])
     })
 
     test('afterEach sees this.currentTest.state after the test ran', async () => {

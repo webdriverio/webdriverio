@@ -13,7 +13,7 @@ import logger from '@wdio/logger'
 import { executeHooksWithArgs, specFilePath, type ParallelMode } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
-import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
+import { applyMochaDefaults, formatMessage, rootSuiteTitle, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types.js'
 import { runParallelTests } from './parallel.js'
@@ -222,7 +222,8 @@ class MochaAdapter {
                     timeout: this._config.mochaOpts.timeout,
                     mode,
                     failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
-                    allowUncaught: this._config.mochaOpts.allowUncaught
+                    allowUncaught: this._config.mochaOpts.allowUncaught,
+                    ...(this._config.rootDir ? { rootDir: this._config.rootDir } : {})
                 }
             )
         } catch (err) {
@@ -307,17 +308,7 @@ class MochaAdapter {
     }
 
     private _rootSuiteTitle (file?: string) {
-        if (!file) {
-            return '(root)'
-        }
-        const normalizedFile = specFilePath(file)
-        if (this._config.rootDir) {
-            const relative = path.relative(this._config.rootDir, normalizedFile)
-            if (relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
-                return relative
-            }
-        }
-        return path.basename(normalizedFile)
+        return rootSuiteTitle(file, this._config.rootDir)
     }
 
     private _firstMatchedRootTest (parent: unknown) {
