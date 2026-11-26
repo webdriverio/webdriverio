@@ -74,7 +74,7 @@ For example, if you are using a Cloud provider and use the info level, then most
 INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=myCloudSecretExposedKey --spec myTest.test.ts
 ```
 
-To counter that we can pass the the regular expression `'--key=([^ ]*)'` and now in the logs you will see
+To counter that we can pass the regular expression `'--key=([^ ]*)'` and now in the logs you will see
 
 ```text
 INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=**MASKED** --spec myTest.test.ts

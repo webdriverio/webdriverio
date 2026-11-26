@@ -59,7 +59,7 @@ describe('LoginForm', () => {
 </TabItem>
 <TabItem value="spies">
 
-The full example can be found in the [examples](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio/browser-runner/lit.test.js) directory.
+The full example can be found in the [e2e](https://github.com/webdriverio/webdriverio/blob/main/e2e/browser-runner/lit.test.js) directory.
 
 ```js
 import { expect, $ } from '@wdio/globals'
