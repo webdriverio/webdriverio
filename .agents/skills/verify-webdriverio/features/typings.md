@@ -4,7 +4,7 @@ A user imports `webdriverio` or `webdriver` from TypeScript and calls a command.
 
 ## Sub-features
 
-- `typings-webdriverio` typechecks browser, element, and config usage.
+- `typings-webdriverio` typechecks browser, element, and config usage, including overwrites of declared custom commands and rejection of invalid command names or scopes.
 - `typings-webdriver` typechecks the raw client.
 - `typings-mocha` typechecks Mocha testrunner types.
 - `typings-jasmine` typechecks Jasmine testrunner types.
