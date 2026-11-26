@@ -106,6 +106,97 @@ describe('initializePlugin', () => {
         expect(specifiers).toEqual([serviceUrl])
     })
 
+    it.each([
+        ['single-slash file:/ URL', (canonical: string) => canonical.replace('file:///', 'file:/')],
+        ['uppercase FILE:/// URL', (canonical: string) => canonical.replace('file:', 'FILE:')],
+        ['uppercase single-slash FILE:/ URL', (canonical: string) => canonical.replace('file:///', 'FILE:/')],
+        ['localhost file://localhost/ URL', (canonical: string) => canonical.replace('file:///', 'file://localhost/')],
+    ])('should load a plugin specified as %s without package fallback', async (_label, toVariant) => {
+        const canonicalUrl = pathToFileURL(path.resolve(fixtureDir, 'foo-service.js')).href
+        const variantUrl = toVariant(canonicalUrl)
+        const specifiers: string[] = []
+
+        vi.mocked(resolve).mockImplementation((specifier: string) => {
+            specifiers.push(specifier)
+            if (specifier === canonicalUrl) {
+                return canonicalUrl
+            }
+            throw new Error(`Unexpected specifier: ${specifier}`)
+        })
+
+        const { default: Service } = await initializePlugin(variantUrl, 'service')
+        const service = new Service({} as any, {}, {}) as TestService
+        expect(service.foo).toBe('foo')
+        expect(specifiers).toEqual([canonicalUrl])
+    })
+
+    it('should load a file:/ URL plugin without requiring a plugin type', async () => {
+        const canonicalUrl = pathToFileURL(path.resolve(fixtureDir, 'bar-service.js')).href
+        const singleSlashUrl = canonicalUrl.replace('file:///', 'file:/')
+
+        vi.mocked(resolve).mockImplementation(
+            createMockResolver(canonicalUrl, 'bar-service.js')
+        )
+
+        const { default: Service } = await initializePlugin(singleSlashUrl)
+        const service = new Service({} as any, {}, {}) as TestService
+        expect(service.foo).toBe('bar')
+    })
+
+    it('should canonicalize Windows file:/ and FILE:/// URLs without double-encoding', async () => {
+        const expectedUrl = 'file:///C:/plugins/plugin%25fixture.mjs'
+
+        for (const variantUrl of [
+            'file:/C:/plugins/plugin%25fixture.mjs',
+            'FILE:///C:/plugins/plugin%25fixture.mjs',
+        ]) {
+            vi.mocked(resolve).mockImplementation(
+                createMockResolver(expectedUrl, 'plugin%fixture.mjs')
+            )
+
+            const { default: Service } = await initializePlugin(variantUrl, 'service')
+            const service = new Service({} as any, {}, {}) as TestService
+            expect(service.foo).toBe('percent')
+        }
+    })
+
+    it('should preserve query strings on non-canonical file URLs', async () => {
+        const canonicalUrl = pathToFileURL(path.resolve(fixtureDir, 'foo-service.js')).href
+        const expectedUrl = `${canonicalUrl}?v=1`
+        const variantUrl = `${canonicalUrl.replace('file:///', 'file:/')}?v=1`
+
+        vi.mocked(resolve).mockImplementation(
+            createMockResolver(expectedUrl, 'foo-service.js')
+        )
+
+        const { default: Service } = await initializePlugin(variantUrl, 'service')
+        const service = new Service({} as any, {}, {}) as TestService
+        expect(service.foo).toBe('foo')
+    })
+
+    it('should not fall back to package resolution when a file URL fails to resolve', async () => {
+        const unresolvableUrl = 'file://remote-host/share/plugin.mjs'
+        const specifiers: string[] = []
+
+        vi.mocked(resolve).mockImplementation((specifier: string) => {
+            specifiers.push(specifier)
+            throw new Error('ERR_INVALID_FILE_URL_HOST')
+        })
+
+        await expect(() => initializePlugin(unresolvableUrl, 'service')).rejects
+            .toThrow(`Couldn't initialize "${unresolvableUrl}".`)
+        expect(specifiers).toEqual([unresolvableUrl, unresolvableUrl])
+    })
+
+    it('should report a missing scoped plugin without treating it as a file URL', async () => {
+        vi.mocked(resolve).mockImplementation(() => {
+            throw new Error('ERR_MODULE_NOT_FOUND')
+        })
+
+        await expect(() => initializePlugin('@custom/missing-service', 'service')).rejects
+            .toThrow(/Couldn't find plugin "@custom\/missing-service" service/)
+    })
+
     it('should allow to load a scoped service plugin', async ()=>{
         const name = 'foo'
         const type = 'service'
