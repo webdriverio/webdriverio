@@ -8,7 +8,7 @@ import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { inspect } from 'node:util'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
 import { ATTACHMENT_DIR_KEY, ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptError, type AttemptMarker, type RelayedEntry, type RelayedReporterEvent, type SessionMeta } from './types.js'
@@ -265,10 +265,21 @@ beforeAll(async ({}, suite) => {
     signalHandlers.forEach(([signal, handler]) => process.on(signal, handler))
     Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
     setGlobals(browser, config.injectGlobals)
-    setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
+    setDefaultOptions({
+        wait: config.waitforTimeout,
+        interval: config.waitforInterval,
+        beforeAssertion: async (params) => { await executeHooksWithArgs('beforeAssertion', config.beforeAssertion, [params]) },
+        afterAssertion: async (params) => { await executeHooksWithArgs('afterAssertion', config.afterAssertion, [params]) }
+    })
 
     await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])
+    await executeHooksWithArgs('beforeSuite', config.beforeSuite, [specSuite()])
 })
+
+// the spec file is the suite of a Vitest run, titled with its path like the tests outside a describe
+function specSuite(): Frameworks.Suite {
+    return { type: 'suite', title: specFile, fullTitle: specFile, parent: '', pending: false, file: specFile }
+}
 
 // Same meaning as the count a regular WDIO worker passes to `after`: failed tests, with a failed
 // suite or hook counting as one. Vitest has settled every test of the file by the time afterAll runs,
@@ -281,6 +292,7 @@ function countFailures(suite: RunnerTestSuite): number {
 // eslint-disable-next-line no-empty-pattern
 afterAll(async ({}, suite) => {
     try {
+        await executeHooksWithArgs('afterSuite', config?.afterSuite, [specSuite()])
         await executeHooksWithArgs('after', config?.after, [countFailures(suite), capabilities, [specFile]])
     } finally {
         await closeSession()

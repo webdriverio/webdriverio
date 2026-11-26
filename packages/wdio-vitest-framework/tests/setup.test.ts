@@ -547,7 +547,7 @@ describe('setup', () => {
             await callbacks.beforeAll({}, { file: fileTask })
             await hooks.aroundEach(vi.fn(async () => { calls.push('test') }), task(false))
             await callbacks.afterAll({}, file())
-            expect(calls).toEqual(['beforeSession', 'remote', 'before', 'beforeTest', 'test', 'afterTest', 'after', 'deleteSession', 'afterSession'])
+            expect(calls).toEqual(['beforeSession', 'remote', 'before', 'beforeSuite', 'beforeTest', 'test', 'afterTest', 'afterSuite', 'after', 'deleteSession', 'afterSession'])
             const [, , beforeSessionArgs] = utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'beforeSession')!
             expect(beforeSessionArgs).toEqual([mockConfig.value, expect.objectContaining({ browserName: 'chrome' }), ['/repo/a.spec.ts'], `2-${process.env.VITEST_POOL_ID ?? 0}`])
             const [, , afterSessionArgs] = utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterSession')!
@@ -607,6 +607,39 @@ describe('setup', () => {
             expect(options).toHaveProperty('beforeCommand')
             expect(options).not.toHaveProperty('before')
             expect(options).not.toHaveProperty('afterTest')
+        })
+    })
+
+    describe('suite and assertion hooks', () => {
+        const suite = { type: 'suite', title: '/repo/a.spec.ts', fullTitle: '/repo/a.spec.ts', parent: '', pending: false, file: '/repo/a.spec.ts' }
+
+        it('runs beforeSuite last in beforeAll, with the spec file as the suite', async () => {
+            mockConfig.value = { ...mockConfig.value, beforeSuite: [vi.fn()] }
+            await callbacks.beforeAll({}, { file: fileTask })
+            expect(utils.executeHooksWithArgs).toHaveBeenLastCalledWith('beforeSuite', mockConfig.value.beforeSuite, [suite])
+        })
+
+        it('runs afterSuite before the after hook', async () => {
+            mockConfig.value = { ...mockConfig.value, afterSuite: [vi.fn()], after: [vi.fn()] }
+            await callbacks.beforeAll({}, { file: fileTask })
+            utils.executeHooksWithArgs.mockClear()
+            await callbacks.afterAll({}, file())
+            expect(utils.executeHooksWithArgs.mock.calls.map(([name]) => name)).toEqual(['afterSuite', 'after', 'afterSession'])
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('afterSuite', mockConfig.value.afterSuite, [suite])
+        })
+
+        it('passes beforeAssertion and afterAssertion to expect-webdriverio and runs their hooks', async () => {
+            const beforeAssertion = [vi.fn()]
+            const afterAssertion = [vi.fn()]
+            mockConfig.value = { ...mockConfig.value, beforeAssertion, afterAssertion }
+            await callbacks.beforeAll({}, { file: fileTask })
+            const { setDefaultOptions } = await import('expect-webdriverio')
+            const options = vi.mocked(setDefaultOptions).mock.calls.at(-1)![0] as unknown as Record<'beforeAssertion' | 'afterAssertion', (params: unknown) => Promise<void>>
+            const params = { matcherName: 'toBeDisplayed' }
+            await options.beforeAssertion(params)
+            await options.afterAssertion(params)
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('beforeAssertion', beforeAssertion, [params])
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('afterAssertion', afterAssertion, [params])
         })
     })
 
