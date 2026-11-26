@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Todo example</title>
+</head>
+<body>
+    <form id="todo-form">
+        <input id="todo-input" type="text" placeholder="What needs to be done?">
+        <button id="add-button" type="submit">Add</button>
+    </form>
+    <ul id="todo-list">
+        <li>Buy milk</li>
+        <li>Write tests</li>
+    </ul>
+    <script>
+        document.querySelector('#todo-form').addEventListener('submit', (event) => {
+            event.preventDefault()
+            const input = document.querySelector('#todo-input')
+            const text = input.value.trim()
+            if (!text) {
+                return
+            }
+            const item = document.createElement('li')
+            item.textContent = text
+            document.querySelector('#todo-list').append(item)
+            input.value = ''
+        })
+    </script>
+</body>
+</html>

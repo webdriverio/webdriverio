@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ES2024",
+        "lib": ["es2024"],
+        "strict": false,
+        "noEmit": true,
+        "types": ["node", "@wdio/globals/types", "@wdio/vitest-framework", "expect-webdriverio"]
+    },
+    "include": ["./**/*.ts"]
+}
