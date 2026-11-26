@@ -154,6 +154,23 @@ async function bar() {
     // // @ts-expect-error
     // expectType<ChainablePromiseArray>(multipleElemsChain)
 
+    // array of ChainablePromiseElement and mixed element arrays (#12706)
+    const chainableArrayTexts = await $$([
+        remoteBrowser.$('.item'),
+        remoteBrowser.$('button'),
+        remoteBrowser.$('[data-value="hello"]')
+    ]).map((e) => e.getText())
+    expectType<string[]>(chainableArrayTexts)
+
+    const mixedElems = await remoteBrowser.$$([
+        remoteBrowser.$('.item'),
+        elemA,
+        elemB,
+        remoteBrowser.$('#foo').getElement()
+    ])
+    expectType<WebdriverIO.ElementArray>(mixedElems)
+    expectType<string[]>(await elemA.$$([elemA.$('.child'), remoteBrowser.$('.other')]).map((e) => e.getText()))
+
     ////////////////////////////////////////////////////////////////////////////////
 
     // addCommand

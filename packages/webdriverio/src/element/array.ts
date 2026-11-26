@@ -23,7 +23,7 @@ interface ElementArrayMetadata {
      * A list of elements (`$$([elemA, elemB])`) is normalized to one selector
      * when every element shares it, otherwise the list has no selector.
      */
-    selector?: Selector | WebdriverIO.Element[] | ElementReference[] | HTMLElement[]
+    selector?: Selector | (ElementReference | WebdriverIO.Element | PromiseLike<WebdriverIO.Element> | HTMLElement)[]
     foundWith: string
     parent?: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
     props: unknown[]
@@ -71,7 +71,7 @@ function stateOf (array: object): ElementArrayState {
     return state
 }
 
-function normalizeSelector (selector: ElementArrayMetadata['selector']): Selector | undefined {
+export function normalizeSelector (selector: ElementArrayMetadata['selector']): Selector | undefined {
     if (typeof selector === 'undefined') {
         return undefined
     }
@@ -81,14 +81,33 @@ function normalizeSelector (selector: ElementArrayMetadata['selector']): Selecto
 
     /**
      * `$$([elemA, elemB])` has no single selector unless every element was
-     * found with the same one.
+     * found with the same one. Skip a pending `ElementArray` (which is both
+     * `Array.isArray` and thenable) and any array containing thenables so we
+     * do not read `.selector` on an unresolved `ChainablePromiseElement`.
+     * Use `Array.prototype` helpers because an `ElementArray`'s own `some`
+     * and `every` methods are async and always return a truthy Promise.
      */
-    const elements = selector as WebdriverIO.Element[]
     if (
-        elements.length > 0 &&
-        elements.every((element) => element && element.selector && element.selector === elements[0].selector)
+        typeof (selector as { then?: unknown }).then === 'function' ||
+        selector.length === 0 ||
+        Array.prototype.some.call(
+            selector,
+            (element: unknown) => typeof (element as { then?: unknown } | null | undefined)?.then === 'function'
+        )
     ) {
-        return elements[0].selector
+        return undefined
+    }
+
+    const elements = selector as WebdriverIO.Element[]
+    const firstSelector = elements[0]?.selector
+    if (
+        firstSelector &&
+        Array.prototype.every.call(
+            elements,
+            (element: WebdriverIO.Element | undefined) => Boolean(element && element.selector === firstSelector)
+        )
+    ) {
+        return firstSelector
     }
     return undefined
 }
@@ -602,7 +621,13 @@ registerElementArrayFactory((loader, metadata) => {
          * parent, that list knows how to build a multi-remote element for an index
          * past the end.
          */
-        chainedMetadata.wrapMultiRemote ??= proxyStates.get(items)?.metadata.wrapMultiRemote
+        const innerMetadata = proxyStates.get(items)?.metadata
+        if (innerMetadata) {
+            chainedMetadata.wrapMultiRemote ??= innerMetadata.wrapMultiRemote
+            if (chainedMetadata.selector === undefined && innerMetadata.selector !== undefined) {
+                chainedMetadata.selector = innerMetadata.selector
+            }
+        }
         return items
     }, chainedMetadata)
 })

@@ -3,9 +3,16 @@ import type { ElementReference } from '@wdio/protocols'
 import { findElements, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
-import { ElementArray } from '../../element/array.js'
+import { ElementArray, normalizeSelector } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
-import type { Selector } from '../../types.js'
+import type { ChainablePromiseElement, Selector } from '../../types.js'
+
+type ElementArraySelectorItem =
+    | ElementReference
+    | WebdriverIO.Element
+    | ChainablePromiseElement
+    | PromiseLike<WebdriverIO.Element>
+    | HTMLElement
 
 /**
  * `$$` fetches every element that matches a selector. It returns a `WebdriverIO.ElementArray`
@@ -94,7 +101,7 @@ import type { Selector } from '../../types.js'
  * :::
  *
  * @alias $$
- * @param {String|Function} selector  selector or JS Function to fetch multiple elements
+ * @param {String|Function|Array} selector  selector, JS Function, or array of elements to fetch multiple elements
  * @return {WebdriverIO.ElementArray}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7
@@ -105,15 +112,15 @@ import type { Selector } from '../../types.js'
  */
 export function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
+    selector: Selector | ElementArraySelectorItem[]
 ): WebdriverIO.ElementArray {
     const metadata: {
-        selector: Selector | ElementReference[] | WebdriverIO.Element[]
+        selector: Selector | ElementArraySelectorItem[] | undefined
         foundWith: string
         parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
         props: unknown[]
     } = {
-        selector: selector as Selector,
+        selector,
         foundWith: '$$',
         parent: this,
         props: []
@@ -146,30 +153,42 @@ export function $$ (
             return elements
         }
 
-        let res: (ElementReference | Error)[] = Array.isArray(selector)
-            ? selector as ElementReference[]
-            : await findElements.call(this, selector)
-
-        /**
-         * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
-         */
-        if (Array.isArray(selector) && isElement(selector[0])) {
-            res = []
-            for (const el of selector) {
-                const $el = await findElement.call(this, el)
-                if ($el) {
-                    res.push($el)
-                }
-            }
+        let res: (ElementReference | Error)[]
+        if (Array.isArray(selector)) {
+            /**
+             * A pending `ElementArray` is both `Array.isArray` and thenable; await it
+             * before iterating. Use `Array.prototype.map` because an `ElementArray`'s
+             * own `.map()` is async and returns a Promise instead of an array of
+             * promises. Resolve all items concurrently and transform any DOM
+             * `HTMLElement` items into WebdriverIO element references.
+             */
+            const list = typeof (selector as { then?: unknown }).then === 'function'
+                ? await (selector as unknown as PromiseLike<ElementArraySelectorItem[]>)
+                : selector
+            const resolved = await Promise.all(
+                Array.prototype.map.call(list, async (item: ElementArraySelectorItem) => {
+                    const el = await item
+                    if (!el) {
+                        return undefined
+                    }
+                    return isElement(el as Selector) ? await findElement.call(this, el as Selector) : el
+                })
+            )
+            res = resolved.filter((el): el is ElementReference | Error => Boolean(el))
+        } else {
+            res = await findElements.call(this, selector)
         }
 
-        const elements = await getElements.call(this, selector as Selector, res)
+        const elements = await getElements.call(this, Array.isArray(selector) ? res : selector, res)
         metadata.parent = getParent.call(this, res)
+        if (Array.isArray(selector)) {
+            metadata.selector = normalizeSelector(elements)
+        }
         return elements
     }, metadata)
 }
 
-function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
+function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: (ElementReference | Error)[]) {
     /**
      * Define scope of element. In most cases it is `this` but if we pass through
      * an element object from the browser runner we have to look into the parent
