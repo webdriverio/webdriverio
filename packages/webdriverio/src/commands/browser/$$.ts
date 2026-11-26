@@ -1,5 +1,5 @@
 import type { ElementReference } from '@wdio/protocols'
-import { isArrayOfElements } from '@wdio/utils'
+import { WDIO_KIND } from '@wdio/utils'
 
 import { findElements, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'
@@ -24,12 +24,16 @@ const NOOP = () => {}
  * rejection in Node.js. Skip pending `ElementArray` instances so lazy queries
  * are not triggered eagerly.
  */
+function isElementArrayLike (value: unknown): boolean {
+    return Boolean(value && (value as Record<symbol, unknown>)[WDIO_KIND] === 'element-array')
+}
+
 function observePendingRejections (selector: Selector | ElementArraySelectorItem[]) {
     if (!Array.isArray(selector)) {
         return
     }
     if (typeof (selector as { then?: unknown }).then === 'function') {
-        if (!isArrayOfElements(selector)) {
+        if (!isElementArrayLike(selector)) {
             ;(selector as unknown as PromiseLike<unknown>).then(NOOP, NOOP)
         }
         return
@@ -38,7 +42,7 @@ function observePendingRejections (selector: Selector | ElementArraySelectorItem
         if (
             item &&
             typeof (item as { then?: unknown }).then === 'function' &&
-            !isArrayOfElements(item)
+            !isElementArrayLike(item)
         ) {
             ;(item as PromiseLike<unknown>).then(NOOP, NOOP)
         }

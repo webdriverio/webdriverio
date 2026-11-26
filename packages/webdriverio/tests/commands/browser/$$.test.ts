@@ -285,9 +285,12 @@ describe('elements', () => {
         vi.mocked(fetch).mockClear()
         const lazyPending = browser.$$('.foo')
         const wrappedPending = browser.$$(lazyPending as unknown as WebdriverIO.Element[])
+        // Wait longer than the 25ms beforeCommand hook to prove neither inner nor outer $$ started eagerly
+        await new Promise((resolve) => setTimeout(resolve, 60))
         expect(fetch).not.toHaveBeenCalled()
         const resolved = await wrappedPending
         expect(resolved).toHaveLength(3)
+        expect(fetch).toHaveBeenCalled()
     })
 
     it('supports element-scoped and chained $$ with ChainablePromiseElement arrays and mixed HTMLElements', async () => {
