@@ -488,6 +488,40 @@ describe('utils', () => {
                 .toBe(undefined)
         })
 
+        describe('unhandledPromptBehavior', () => {
+            const sendCapabilities = async (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
+                await startWebDriverSession({ hostname: 'localhost', port: 4444, path: '/', protocol: 'http', capabilities })
+                return JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities
+            }
+
+            it('replaces a value set in alwaysMatch', async () => {
+                const { alwaysMatch } = await sendCapabilities({ browserName: 'chrome', unhandledPromptBehavior: 'dismiss and notify' })
+                expect(alwaysMatch.unhandledPromptBehavior).toEqual({ default: 'ignore' })
+            })
+
+            it.each([
+                ['"ignore"', 'ignore'],
+                ['{ default: "ignore" }', { default: 'ignore' }],
+                ['"dismiss and notify"', 'dismiss and notify']
+            ] as const)('replaces %s set in firstMatch', async (_, unhandledPromptBehavior) => {
+                const { alwaysMatch, firstMatch } = await sendCapabilities({
+                    alwaysMatch: { browserName: 'chrome' },
+                    firstMatch: [{ unhandledPromptBehavior }, {}]
+                })
+                expect(alwaysMatch.unhandledPromptBehavior).toEqual({ default: 'ignore' })
+                expect(firstMatch).toEqual([{}, {}])
+            })
+
+            it('keeps the value when WebDriver Classic is enforced', async () => {
+                const { alwaysMatch } = await sendCapabilities({
+                    browserName: 'chrome',
+                    unhandledPromptBehavior: 'dismiss and notify',
+                    'wdio:enforceWebDriverClassic': true
+                })
+                expect(alwaysMatch.unhandledPromptBehavior).toBe('dismiss and notify')
+            })
+        })
+
         it('should handle sessionRequest error', async () => {
             const error = await startWebDriverSession({
                 logLevel: 'warn',
