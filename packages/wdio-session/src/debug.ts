@@ -1,10 +1,12 @@
+import fs from 'node:fs'
 import path from 'node:path'
 
-import { getCurrentRunnable, setDebugAgentPause } from '@wdio/utils'
+import { DEBUG_AGENT_CLOSED, getCurrentRunnable, setDebugAgentPause } from '@wdio/utils'
 
+import { SessionError } from './errors.js'
 import { Session } from './session.js'
 import { SessionServer } from './daemon/server.js'
-import { createState, ensureRuntimeDir, getArtifactsDir, getRuntimeDir, getSocketPath, removeState } from './daemon/state.js'
+import { createState, ensureRuntimeDir, getArtifactsDir, getRuntimeDir, getSocketPath, getStatePath, isPidAlive, readState, removeStaleState, removeState } from './daemon/state.js'
 import type { Applies, OpenPlan, PlatformKind } from './types.js'
 
 /**
@@ -12,7 +14,7 @@ import type { Applies, OpenPlan, PlatformKind } from './types.js'
  */
 export const DEBUG_AGENT_TIMEOUT = 24 * 60 * 60 * 1000
 
-export const DEBUG_AGENT_CLOSED = 'Session closed from wdio session'
+export { DEBUG_AGENT_CLOSED }
 
 export function applyDebugAgentTimeouts <T extends {
     mochaOpts?: { timeout?: number }
@@ -119,6 +121,17 @@ export async function pauseDebugSession (opts: PauseDebugOptions): Promise<void>
      */
     session.onResume = () => {
         setTimeout(settle, 20)
+    }
+
+    const existing = readState(runtimeDir, name)
+    if (existing) {
+        if (existing.status === 'failed' || !isPidAlive(existing.pid)) {
+            removeStaleState(runtimeDir, existing)
+        } else {
+            throw new SessionError('SESSION_EXISTS', `Debug session "${name}" is already running (pid ${existing.pid}).`)
+        }
+    } else if (fs.existsSync(getStatePath(runtimeDir, name))) {
+        removeState(runtimeDir, name)
     }
 
     await server.listen()

@@ -48,6 +48,9 @@ export interface CliIO {
 export function hasAction (args: string[]) {
     for (let i = 0; i < args.length; i++) {
         const arg = args[i]
+        if (arg === '--') {
+            return i + 1 < args.length
+        }
         if (GLOBAL_VALUE_FLAGS.has(arg)) {
             i++
             continue
@@ -62,7 +65,103 @@ export function hasAction (args: string[]) {
     return false
 }
 
+let literalTokenSeq = 0
+
+function beforeDoubleDash (args: string[]) {
+    const idx = args.indexOf('--')
+    return idx === -1 ? args : args.slice(0, idx)
+}
+
+/**
+ * yargs drops a bare `-` positional to `""`/`[]` when post-processing
+ * positionals, and excludes arguments after `--` from command positional
+ * matching. Protect literal `-` tokens and `-`-prefixed values after `--`
+ * with unique placeholders during parsing, then restore them in the parsed
+ * argv and error messages.
+ */
+function createLiteralProtector () {
+    const literals = new Map<string, string>()
+
+    const restoreString = (value: string) => {
+        if (!literals.size) {
+            return value
+        }
+        let out = value
+        for (const [token, raw] of literals) {
+            if (out.includes(token)) {
+                out = out.replaceAll(token, raw)
+            }
+        }
+        return out
+    }
+
+    const restoreValue = (value: unknown): unknown => {
+        if (typeof value === 'string') {
+            return literals.get(value) ?? restoreString(value)
+        }
+        if (Array.isArray(value)) {
+            return value.map(restoreValue)
+        }
+        return value
+    }
+
+    const restoreArgv = <T>(argv: T): T => {
+        if (!literals.size || !argv || typeof argv !== 'object') {
+            return argv
+        }
+        const record = argv as Record<string, unknown>
+        for (const key of Object.keys(record)) {
+            record[key] = restoreValue(record[key])
+        }
+        return argv
+    }
+
+    const restoreError = <T>(err: T): T => {
+        if (literals.size && err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string') {
+            (err as { message: string }).message = restoreString((err as { message: string }).message)
+        }
+        return err
+    }
+
+    const escape = (args: readonly string[]) => {
+        const keys: string[] = []
+        const escaped: string[] = []
+        let after = false
+        const register = (raw: string) => {
+            let token: string
+            do {
+                token = `__wdio_lit_${++literalTokenSeq}__`
+            } while (literals.has(token) || args.some((a) => a.includes(token)))
+            literals.set(token, raw)
+            keys.push(token)
+            return token
+        }
+        for (const arg of args) {
+            if (!after && arg === '--') {
+                after = true
+                continue
+            }
+            if (after ? arg.startsWith('-') : arg === '-') {
+                escaped.push(register(arg))
+            } else {
+                escaped.push(arg)
+            }
+        }
+        return {
+            escaped,
+            cleanup: () => {
+                for (const key of keys) {
+                    literals.delete(key)
+                }
+            }
+        }
+    }
+
+    return { escape, restoreArgv, restoreError, restoreString }
+}
+
 export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, unknown>) => void) {
+    const protector = createLiteralProtector()
     let parser: Argv = yargs()
         .scriptName('wdio session')
         .usage('$0 <action> [args] [flags]\n\nDrive a browser, mobile app or desktop app from the shell. Pipe WebdriverIO code on stdin to run it.')
@@ -89,9 +188,70 @@ export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, u
                 }
                 return y
             },
-            (argv: Record<string, unknown>) => onAction(spec, argv)
+            (argv: Record<string, unknown>) => onAction(spec, protector.restoreArgv(argv))
         )
     }
+
+    const originalParseAsync = parser.parseAsync.bind(parser)
+    parser.parseAsync = (async (...callArgs: unknown[]) => {
+        const [raw, context, parseCallback] = callArgs
+        if (!Array.isArray(raw)) {
+            return (originalParseAsync as (...a: unknown[]) => unknown)(...callArgs)
+        }
+        const callback = typeof context === 'function' ? context : parseCallback
+        const ctx = typeof context === 'function' ? undefined : context
+        const { escaped, cleanup } = protector.escape(raw)
+        const wrappedCallback = typeof callback === 'function'
+            ? (err: Error | undefined, argv: Record<string, unknown>, output: string) => (callback as Function)(
+                protector.restoreError(err),
+                protector.restoreArgv(argv),
+                typeof output === 'string' ? protector.restoreString(output) : output
+            )
+            : undefined
+        try {
+            const result = wrappedCallback
+                ? await originalParseAsync(escaped, (ctx ?? {}) as object, wrappedCallback as never)
+                : ctx !== undefined
+                    ? await originalParseAsync(escaped, ctx as object)
+                    : await originalParseAsync(escaped)
+            return protector.restoreArgv(result)
+        } catch (err) {
+            throw protector.restoreError(err)
+        } finally {
+            cleanup()
+        }
+    }) as typeof parser.parseAsync
+
+    const originalParse = parser.parse.bind(parser)
+    parser.parse = ((...callArgs: unknown[]) => {
+        const [raw, context, parseCallback] = callArgs
+        if (!Array.isArray(raw)) {
+            return (originalParse as (...a: unknown[]) => unknown)(...callArgs)
+        }
+        const callback = typeof context === 'function' ? context : parseCallback
+        const ctx = typeof context === 'function' ? undefined : context
+        const { escaped, cleanup } = protector.escape(raw)
+        const wrappedCallback = typeof callback === 'function'
+            ? (err: Error | undefined, argv: Record<string, unknown>, output: string) => (callback as Function)(
+                protector.restoreError(err),
+                protector.restoreArgv(argv),
+                typeof output === 'string' ? protector.restoreString(output) : output
+            )
+            : undefined
+        try {
+            const result = wrappedCallback
+                ? originalParse(escaped, (ctx ?? {}) as object, wrappedCallback as never)
+                : ctx !== undefined
+                    ? originalParse(escaped, ctx as object)
+                    : originalParse(escaped)
+            return protector.restoreArgv(result)
+        } catch (err) {
+            throw protector.restoreError(err)
+        } finally {
+            cleanup()
+        }
+    }) as typeof parser.parse
+
     return parser
 }
 
@@ -152,7 +312,7 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
         const text = renderHelp(help, helpWidth(stdout.columns))
         if (text === undefined) {
             return printError(usage(`Unknown action "${help.action}".`, 'Run `wdio session --help` for the list of actions.'), {
-                json: args.includes('--json'), session: DEFAULT_SESSION, action: help.action || '', stdout, stderr
+                json: beforeDoubleDash(args).includes('--json'), session: DEFAULT_SESSION, action: help.action || '', stdout, stderr
             })
         }
         stdout.write(text + '\n')
@@ -175,7 +335,7 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
         parseError = err as Error
     }
 
-    const json = args.includes('--json') || env.WDIO_SESSION_JSON === '1'
+    const json = beforeDoubleDash(args).includes('--json') || env.WDIO_SESSION_JSON === '1'
     if (parseError || !selected) {
         const message = parseError?.message || 'Specify an action.'
         return printError(usage(message, 'Run `wdio session --help` for the list of actions.'), {
