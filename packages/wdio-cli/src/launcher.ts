@@ -75,6 +75,13 @@ class Launcher {
     private _resolve?: Function
     #frameworkAbort = new AbortController()
     #frameworkLaunch?: Promise<number>
+    #runConfig?: Required<WebdriverIO.Config>
+    #runCaps?: Capabilities.TestrunnerCapabilities
+    #hasStartedOnPrepare = false
+    #wasInterrupted = false
+    #cleanupPromise?: Promise<void>
+    #onCompletePromise?: Promise<number>
+    #disposePromise?: Promise<void>
 
     constructor(
         private _configFilePath: string,
@@ -122,6 +129,14 @@ class Launcher {
         }
 
         try {
+            this.#runConfig = config
+            this.#runCaps = caps
+            this.#hasStartedOnPrepare = false
+            this.#wasInterrupted = false
+            this.#cleanupPromise = undefined
+            this.#onCompletePromise = undefined
+            this.#disposePromise = undefined
+
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -136,6 +151,7 @@ class Launcher {
              * run onPrepare hook
              */
             log.info('Run onPrepare hook')
+            this.#hasStartedOnPrepare = true
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
@@ -205,22 +221,34 @@ class Launcher {
         } catch (err) {
             error = err as HookError
         } finally {
+            let resolveCleanup!: () => void
+            const cleanupPromise = new Promise<void>((resolve) => {
+                resolveCleanup = resolve
+            })
+            if (!this.#cleanupPromise) {
+                this.#cleanupPromise = cleanupPromise
+            }
             try {
-                if (!this._hasTriggeredExitRoutine) {
-                    this._hasTriggeredExitRoutine = true
-                    const passesCodeCoverage = await this.runner.shutdown()
-                    if (!passesCodeCoverage) {
-                        exitCode = exitCode || 1
-                    }
-                }
-
-                exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
-            } finally {
-                // A failing dispose must not replace the run's own error or exit code.
                 try {
-                    await this.runner.dispose?.()
-                } catch (err) {
-                    log.warn('Failed to dispose the runner:', err)
+                    if (!this._hasTriggeredExitRoutine) {
+                        this._hasTriggeredExitRoutine = true
+                        const passesCodeCoverage = await this.runner.shutdown()
+                        if (!passesCodeCoverage) {
+                            exitCode = exitCode || 1
+                        }
+                    }
+
+                    const hookExitCode = this.#wasInterrupted && !this._isWatchMode
+                        ? (exitCode || 1)
+                        : exitCode
+                    exitCode = await this.#runOnCompleteHook(config, caps, hookExitCode)
+                } finally {
+                    await this.#disposeRunner()
+                }
+            } finally {
+                resolveCleanup()
+                if (this.#cleanupPromise === cleanupPromise) {
+                    this.#cleanupPromise = undefined
                 }
             }
         }
@@ -334,19 +362,44 @@ class Launcher {
      * a user can use plugin service, e.g. shared store service is still
      * available running hooks in this order
      */
-    async #runOnCompleteHook(
+    #runOnCompleteHook(
         config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
         exitCode: number
     ): Promise<number> {
-        log.info('Run onComplete hook')
-        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface?.result || { finished: 0, passed: 0, retries: 0, failed: 0 })
-        if (this._launcher) {
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+        if (this.#onCompletePromise) {
+            return this.#onCompletePromise
         }
 
-        // if any of the onComplete hooks failed, update the exit code
-        return onCompleteResults.includes(1) ? 1 : exitCode
+        this.#onCompletePromise = (async () => {
+            log.info('Run onComplete hook')
+            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface?.result || { finished: 0, passed: 0, retries: 0, failed: 0 })
+            if (this._launcher) {
+                await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+            }
+
+            // if any of the onComplete hooks failed, update the exit code
+            return onCompleteResults.includes(1) ? 1 : exitCode
+        })()
+
+        return this.#onCompletePromise
+    }
+
+    #disposeRunner(): Promise<void> {
+        if (this.#disposePromise) {
+            return this.#disposePromise
+        }
+
+        this.#disposePromise = (async () => {
+            // A failing dispose must not replace the run's own error or exit code.
+            try {
+                await this.runner?.dispose?.()
+            } catch (err) {
+                log.warn('Failed to dispose the runner:', err)
+            }
+        })()
+
+        return this.#disposePromise
     }
 
     /**
@@ -807,28 +860,62 @@ class Launcher {
     }
 
     /**
-     * We need exitHandler to catch SIGINT / SIGTERM events.
-     * Make sure all started selenium sessions get closed properly and prevent
-     * having dead driver processes. To do so let the runner end its Selenium
-     * session first before killing
+     * We need exitHandler to catch SIGINT / SIGTERM / SIGBREAK events.
+     * Make sure all started selenium sessions get closed properly and launcher
+     * `onComplete` hooks finish before exiting so services (such as local
+     * tunnels or daemons started in `onPrepare`) do not leave orphan processes.
      */
     private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
         this.#frameworkAbort.abort()
-        if (!callback || !this.runner || !this.interface) {
+        if (!callback || !this.runner) {
             return
         }
 
         if (this._hasTriggeredExitRoutine) {
+            if (this.#cleanupPromise) {
+                return this.#cleanupPromise.then(() => callback(true))
+            }
             return callback(true)
         }
 
         this._hasTriggeredExitRoutine = true
-        this.interface.sigintTrigger()
-        if (this.#frameworkLaunch) {
-            const runner = this.runner
-            return this.#frameworkLaunch.then(() => undefined, () => undefined).then(() => runner.shutdown()).then(callback)
+        this.#wasInterrupted = true
+        this.interface?.sigintTrigger()
+
+        const runner = this.runner
+        const shutdown = async (): Promise<boolean> => {
+            let shutdownResult = true
+            try {
+                if (this.#frameworkLaunch) {
+                    await this.#frameworkLaunch.then(() => undefined, () => undefined)
+                }
+                shutdownResult = await runner.shutdown()
+            } catch (err) {
+                log.error('Failed to shut down runner during exit:', err)
+                shutdownResult = false
+            }
+
+            if (this.#hasStartedOnPrepare && this.#runConfig && this.#runCaps) {
+                const hookExitCode = this._isWatchMode ? this._exitCode : (this._exitCode || 1)
+                try {
+                    await this.#runOnCompleteHook(this.#runConfig, this.#runCaps, hookExitCode)
+                } catch (err) {
+                    log.error('Error in onComplete hook during exit:', err)
+                }
+            }
+
+            await this.#disposeRunner()
+            return shutdownResult
         }
-        return this.runner.shutdown().then(callback) // no dispose(): the process exits next, and that kills the display server
+
+        const cleanupPromise = shutdown().then((result) => {
+            if (this.#cleanupPromise === cleanupPromise) {
+                this.#cleanupPromise = undefined
+            }
+            callback(result)
+        })
+        this.#cleanupPromise = cleanupPromise
+        return cleanupPromise
     }
 
     /**
