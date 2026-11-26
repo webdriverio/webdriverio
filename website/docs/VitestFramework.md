@@ -107,15 +107,15 @@ For code that must run around every test of every spec, use a setup file. `vites
 import { mkdirSync } from 'node:fs'
 import { beforeEach, onTestFailed } from 'vitest'
 
-beforeEach((context) => {
+beforeEach(({ task }) => {
     onTestFailed(async () => {
         mkdirSync('./results', { recursive: true })
-        await browser.saveScreenshot(`./results/${context.task.name.replace(/\W+/g, '_')}.png`)
+        await browser.saveScreenshot(`./results/${task.name.replace(/\W+/g, '_')}.png`)
     })
 })
 ```
 
-`onTestFailed` registers the handler for the current test only, so it stays correct when tests run concurrently.
+`onTestFailed` registers the handler for the current test only, so it stays correct when tests run concurrently. Destructure the hook's context argument (`({ task })`), not a plain parameter: once a spec uses `test.extend`, Vitest rejects hooks whose first argument is not an object pattern with `FixtureParseError`.
 
 ## Fixtures
 

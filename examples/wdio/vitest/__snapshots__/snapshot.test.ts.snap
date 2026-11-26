@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`matches the default todo list 1`] = `
+[
+  "Buy milk",
+  "Write tests",
+]
+`;
