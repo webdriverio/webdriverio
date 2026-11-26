@@ -107,6 +107,27 @@ describe('WebDriver', () => {
             )
         })
 
+        it('keeps negotiated capabilities when the browser constructor is renamed', async () => {
+            const browserScope = WebDriver.attachToSession({ ...sessionOptions }).constructor
+            const originalName = browserScope.name
+
+            // Simulate a minifier renaming the shared scope constructor.
+            Object.defineProperty(browserScope, 'name', { value: 'a' })
+            try {
+                const client = await WebDriver.newSession({
+                    path: '/',
+                    capabilities: { browserName: 'chrome' }
+                })
+
+                expect(client.capabilities).toMatchObject({
+                    browserName: 'mockBrowser',
+                    browserVersion: '1234'
+                })
+            } finally {
+                Object.defineProperty(browserScope, 'name', { value: originalName })
+            }
+        })
+
         it('should allow to create a new session using w3c compliant caps', async () => {
             await WebDriver.newSession({
                 path: '/',
