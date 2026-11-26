@@ -346,6 +346,7 @@
         "capabilities",
         "runner",
         "frameworks",
+        "vitest-framework",
         "typescript",
         "headless-and-display-servers",
         "parallel-tests",
