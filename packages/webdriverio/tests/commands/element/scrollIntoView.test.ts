@@ -891,5 +891,40 @@ describe('scrollIntoView test', () => {
             expect(getActionCalls()).toHaveLength(0)
             expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
         })
+
+        it('keeps using the wheel action when desktop Chrome can match alongside an unused touch mobileEmulation firstMatch entry', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: { browserName: 'chrome' },
+                    firstMatch: [
+                        {},
+                        { 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'chrome' }
+            )
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('uses the Web API directly when the only firstMatch entry matching the negotiated browser enables touch mobileEmulation', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: {},
+                    firstMatch: [
+                        { browserName: 'firefox' },
+                        { browserName: 'chrome', 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'chrome' }
+            )
+
+            await emulatedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
+        })
     })
 })

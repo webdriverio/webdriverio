@@ -28,28 +28,46 @@ function isTouchMobileEmulation (browser: WebdriverIO.Browser): boolean {
         return false
     }
 
-    const isEdgeSession = Boolean(sessionBrowser && (sessionBrowser.includes('edge') || sessionBrowser === 'msedge'))
-    const isChromeSession = Boolean(
-        sessionBrowser &&
-        (sessionBrowser === 'chrome' || sessionBrowser === 'chrome-headless-shell' || sessionBrowser === 'chromium')
+    const isEdgeBrowserName = (name?: string) => Boolean(name && (name.includes('edge') || name === 'msedge'))
+    const isChromeBrowserName = (name?: string) => Boolean(
+        name && (name === 'chrome' || name === 'chrome-headless-shell' || name === 'chromium')
     )
+    const isEdgeSession = isEdgeBrowserName(sessionBrowser)
+    const isChromeSession = isChromeBrowserName(sessionBrowser)
+
+    const matchesSessionBrowser = (caps: WebdriverIO.Capabilities): boolean => {
+        const candidateBrowser = caps.browserName?.toLowerCase()
+        if (!candidateBrowser) {
+            return true
+        }
+        if (isChromeSession) {
+            return isChromeBrowserName(candidateBrowser)
+        }
+        if (isEdgeSession) {
+            return isEdgeBrowserName(candidateBrowser)
+        }
+        return true
+    }
 
     const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
     const candidates: WebdriverIO.Capabilities[] = []
     if (requested && typeof requested === 'object') {
         if ('alwaysMatch' in requested || 'firstMatch' in requested) {
             const w3c = requested as Capabilities.W3CCapabilities
-            if (w3c.alwaysMatch) {
-                candidates.push(w3c.alwaysMatch)
-            }
-            if (Array.isArray(w3c.firstMatch)) {
+            const alwaysMatch = w3c.alwaysMatch && typeof w3c.alwaysMatch === 'object' ? w3c.alwaysMatch : {}
+            if (Array.isArray(w3c.firstMatch) && w3c.firstMatch.length > 0) {
                 for (const match of w3c.firstMatch) {
-                    if (match) {
-                        candidates.push(match)
+                    if (match && typeof match === 'object') {
+                        const merged: WebdriverIO.Capabilities = { ...alwaysMatch, ...match }
+                        if (matchesSessionBrowser(merged)) {
+                            candidates.push(merged)
+                        }
                     }
                 }
+            } else if (w3c.alwaysMatch && matchesSessionBrowser(w3c.alwaysMatch)) {
+                candidates.push(w3c.alwaysMatch)
             }
-        } else {
+        } else if (matchesSessionBrowser(requested as WebdriverIO.Capabilities)) {
             candidates.push(requested as WebdriverIO.Capabilities)
         }
     }
@@ -74,19 +92,14 @@ function isTouchMobileEmulation (browser: WebdriverIO.Browser): boolean {
         return 'non-touch'
     }
 
-    let sawMobileEmulation = false
-    for (const caps of candidates) {
-        const status = checkMobileEmulation(caps)
-        if (status === 'touch') {
+    if (candidates.length > 0) {
+        const statuses = candidates.map(checkMobileEmulation)
+        if (statuses.every((status) => status === 'touch')) {
             return true
         }
-        if (status === 'non-touch') {
-            sawMobileEmulation = true
+        if (statuses.every((status) => status === 'non-touch')) {
+            return false
         }
-    }
-
-    if (sawMobileEmulation) {
-        return false
     }
 
     if (sessionCaps && typeof sessionCaps === 'object') {
