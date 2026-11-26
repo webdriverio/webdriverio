@@ -150,4 +150,25 @@ In the REPL, each line runs as `wdio session exec`. `.exit` prints `Detached fro
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
-Another way to use the REPL is in inside your tests via the [`debug`](/docs/api/browser/debug) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
+Another way to use the REPL is inside your tests via the [`debug`](/docs/api/browser/debug) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
+
+### Accessing your local environment and reloading code
+
+The REPL runs with access to the local Node.js runtime environment (including `process`, `console`, `Buffer`, `require`, and dynamic `import()` resolved relative to `process.cwd()`). You can load and reload local page objects or helpers during a paused session:
+
+```js
+// CommonJS module: load and reload after editing the file
+var LoginPage = require('./test/pageobjects/login.page.cjs')
+delete require.cache[require.resolve('./test/pageobjects/login.page.cjs')]
+LoginPage = require('./test/pageobjects/login.page.cjs')
+
+// ES module: dynamic import with cache-busting query parameter
+import('./test/pageobjects/login.page.js?t=' + Date.now()).then((m) => m.default.open())
+```
+
+When calling `browser.debug()` inside a test, you can also pass local variables or page object instances directly into the REPL context:
+
+```ts
+const loginPage = new LoginPage()
+await browser.debug({ context: { loginPage } })
+```

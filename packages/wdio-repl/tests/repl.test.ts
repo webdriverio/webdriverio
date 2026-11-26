@@ -1,19 +1,24 @@
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReplConfig } from '../src/index.js'
 import WDIORepl from '../src/index.js'
+import { DEFAULT_CONFIG } from '../src/constants.js'
 
-const { createContext, replServer, runInContext, start } = vi.hoisted(() => {
+const { createContext, isContext, replServer, runInContext, start, vmConstants } = vi.hoisted(() => {
     const replServer = { on: vi.fn() }
+    const vmConstants: { USE_MAIN_CONTEXT_DEFAULT_LOADER?: symbol } = {}
     return {
         replServer,
         createContext: vi.fn(),
-        runInContext: vi.fn<(command: string, context: unknown) => unknown>(() => 'someResult'),
-        start: vi.fn((_options?: object) => replServer)
+        isContext: vi.fn(() => false),
+        runInContext: vi.fn<(command: string, context: unknown, options?: unknown) => unknown>(() => 'someResult'),
+        start: vi.fn((_options?: object) => replServer),
+        vmConstants
     }
 })
 
 vi.mock('vm', () => ({
-    default: { createContext, runInContext }
+    default: { createContext, isContext, runInContext, constants: vmConstants }
 }))
 
 vi.mock('repl', () => ({
@@ -41,6 +46,9 @@ describe('eval', () => {
         runInContext.mockReset()
         runInContext.mockReturnValue('someResult')
         createContext.mockClear()
+        isContext.mockReset()
+        isContext.mockReturnValue(false)
+        delete vmConstants.USE_MAIN_CONTEXT_DEFAULT_LOADER
         replServer.on.mockClear()
         start.mockClear()
     })
@@ -117,6 +125,45 @@ describe('eval', () => {
         repl.eval('2+2', {}, '/some/filename', callback)
         expect(runInContext).toHaveBeenCalledTimes(2)
         expect(callback).toHaveBeenCalledWith(null, 'recovered')
+    })
+
+    it('should not re-contextify an already contextified object', () => {
+        isContext.mockReturnValueOnce(true)
+        const repl = new WDIORepl(defaultArgs)
+        const callback = vi.fn()
+        const context = { marker: 'already-ctx' }
+
+        repl.eval('1+1', context, '/some/filename', callback)
+        expect(createContext).not.toHaveBeenCalled()
+        expect(runInContext).toHaveBeenCalledWith('1+1', context)
+        expect(callback).toHaveBeenCalledWith(null, 'someResult')
+    })
+
+    it('should pass dynamic import loader with baseDir filename for synthetic REPL filenames', () => {
+        const loader = Symbol('USE_MAIN_CONTEXT_DEFAULT_LOADER')
+        vmConstants.USE_MAIN_CONTEXT_DEFAULT_LOADER = loader
+        const baseDir = path.resolve('/project/root')
+        const repl = new WDIORepl({ ...defaultArgs, baseDir })
+        const context = { marker: 'ctx' }
+
+        repl.eval('import("./page.mjs")', context, 'REPL1', vi.fn())
+        expect(runInContext).toHaveBeenCalledWith('import("./page.mjs")', context, {
+            filename: path.join(baseDir, 'repl.js'),
+            importModuleDynamically: loader
+        })
+
+        const absoluteFilename = path.resolve('/project/root/spec.js')
+        repl.eval('import("./page.mjs")', context, absoluteFilename, vi.fn())
+        expect(runInContext).toHaveBeenLastCalledWith('import("./page.mjs")', context, {
+            filename: absoluteFilename,
+            importModuleDynamically: loader
+        })
+    })
+
+    it('should not mutate shared DEFAULT_CONFIG across instances', () => {
+        const originalTimeout = DEFAULT_CONFIG.commandTimeout
+        new WDIORepl({ commandTimeout: 123 })
+        expect(DEFAULT_CONFIG.commandTimeout).toBe(originalTimeout)
     })
 })
 
@@ -216,6 +263,9 @@ describe('start', () => {
         runInContext.mockReset()
         runInContext.mockReturnValue('someResult')
         createContext.mockClear()
+        isContext.mockReset()
+        isContext.mockReturnValue(false)
+        delete vmConstants.USE_MAIN_CONTEXT_DEFAULT_LOADER
         replServer.on.mockClear()
         start.mockClear()
     })

@@ -1057,6 +1057,8 @@ export interface InputOptions {
     mask?: boolean
 }
 
+export type { DebugOptions } from './commands/browser/debug.js'
+
 declare global {
     namespace WebdriverIO {
         /**

@@ -58,4 +58,11 @@ describe('WebdriverIO commands', async () => {
     it('getValue', async () => {
         expectTypeOf(await el.getValue()).toEqualTypeOf<string>()
     })
+
+    it('debug', async () => {
+        expectTypeOf(await browser.debug()).toEqualTypeOf<void | unknown>()
+        expectTypeOf(await browser.debug(10000)).toEqualTypeOf<void | unknown>()
+        expectTypeOf(await browser.debug(10000, { page: { open: () => {} } })).toEqualTypeOf<void | unknown>()
+        expectTypeOf(await browser.debug({ commandTimeout: 10000, context: { page: { open: () => {} } } })).toEqualTypeOf<void | unknown>()
+    })
 })
