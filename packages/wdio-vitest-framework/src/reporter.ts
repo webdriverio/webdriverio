@@ -34,6 +34,8 @@ type ModuleRun = {
     hookCount: number
     testCount: number
     entities: Map<string, Open>
+    // test ids whose relayed runtime entries were already consumed in onTestCaseResult
+    replayed: Set<string>
     // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
     runningHooks: Map<string, Set<AllHookName>>
     wrapper?: Titled
@@ -141,6 +143,7 @@ export class WdioBridgeReporter implements Reporter {
             const result = testCase.result()
             const diagnostic = testCase.diagnostic()
             const attempts = this.#attempts(testCase)
+            run.replayed.add(testCase.id)
             const finalAttempt = attempts.length - 1
             attempts.slice(0, finalAttempt).forEach(({ calls, marker }, attempt) => {
                 const retryBase = this.#attemptBase(base, attempt)
@@ -223,7 +226,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
+            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), replayed: new Set(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
@@ -270,12 +273,18 @@ export class WdioBridgeReporter implements Reporter {
         return lanes
     }
 
-    #relayedEntries(testCase: TestCase) {
-        return ((testCase.meta() as Record<string, unknown>)[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
+    // Vitest's json and blob reporters serialize task.meta at onTestRunEnd, so relayed entries are removed once consumed
+    #takeRelayedEntries(testCase: TestCase) {
+        const meta = testCase.meta() as Record<string, unknown> | undefined
+        const entries = (meta?.[RUNTIME_META_KEY] ?? []) as RelayedEntry[]
+        if (meta && RUNTIME_META_KEY in meta) {
+            delete meta[RUNTIME_META_KEY]
+        }
+        return entries
     }
     // The worker closes every attempt with a marker; an attempt that died before it (a failing beforeTest) has none
     #attempts(testCase: TestCase) {
-        const entries = this.#relayedEntries(testCase)
+        const entries = this.#takeRelayedEntries(testCase)
         const finalRetry = testCase.diagnostic()?.retryCount ?? 0
         return Array.from({ length: finalRetry + 1 }, (_, attempt) => {
             const own = entries.filter(({ retry }) => retry === attempt)
@@ -444,10 +453,12 @@ export class WdioBridgeReporter implements Reporter {
      */
     #closeUnfinished(run: ModuleRun, testModule: TestModule, failed: boolean) {
         const open = [...run.entities.values()]
-        const unfinishedIds = new Set([...run.entities].filter(([, { kind }]) => kind === 'test').map(([id]) => id))
         for (const testCase of testModule.children.allTests()) {
-            if (unfinishedIds.has(testCase.id)) {
-                this.#discardFiles(this.#relayedEntries(testCase))
+            if (!run.replayed.has(testCase.id)) {
+                const entries = this.#takeRelayedEntries(testCase)
+                if (entries.length > 0) {
+                    this.#discardFiles(entries)
+                }
             }
         }
         for (const { kind, payload } of open) {

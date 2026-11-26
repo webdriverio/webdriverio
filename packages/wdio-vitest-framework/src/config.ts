@@ -25,6 +25,7 @@ declare module 'vitest' {
 
 const log = logger('@wdio/vitest-framework')
 const ALLURE_REPORTER_NAMES = ['allure', '@wdio/allure-reporter']
+const ALLURE_REPORTER_SYMBOL = Symbol.for('@wdio/allure-reporter')
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
 const DEFAULT_TEST_TIMEOUT_MS = 60_000
@@ -52,6 +53,13 @@ function isMultiRemote(capabilities: unknown) {
     })
 }
 
+function isAllureReporter(reporter: unknown) {
+    if (typeof reporter === 'string') {
+        return ALLURE_REPORTER_NAMES.includes(reporter.toLowerCase())
+    }
+    return typeof reporter === 'function' && (reporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL] === true
+}
+
 /**
  * Where Allure attachments are written: the results folder of the only Allure reporter, or null
  * when they must travel through the launcher. Mirrors how the launcher-side BaseReporter hands options
@@ -60,16 +68,18 @@ function isMultiRemote(capabilities: unknown) {
  */
 export async function resolveAttachmentDir(reporters: unknown[] = []): Promise<string | null> {
     const entries = reporters.map((entry) => Array.isArray(entry) ? entry : [entry, {}])
-    if (entries.some(([reporter]) => typeof reporter !== 'string')) {
-        return null
-    }
-    const allureEntries = entries.filter(([reporter]) => ALLURE_REPORTER_NAMES.includes(reporter.toLowerCase()))
+    const allureEntries = entries.filter(([reporter]) => isAllureReporter(reporter))
     if (allureEntries.length === 0) {
         return null
     }
     // every Allure reporter receives the same attachment_path, so a second one could not move the file
     if (allureEntries.length > 1) {
         log.warn('Several Allure reporters are configured, sending Allure attachments through the launcher instead')
+        return null
+    }
+    // a custom reporter class could still wrap Allure or expect inline attachment content
+    if (entries.some(([reporter]) => typeof reporter !== 'string' && !isAllureReporter(reporter))) {
+        log.warn('A custom reporter class is configured alongside Allure, sending Allure attachments through the launcher instead')
         return null
     }
     try {

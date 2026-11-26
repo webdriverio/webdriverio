@@ -33,7 +33,7 @@ import { getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPl
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { LinkingFileSystemWriter } from './writer.js'
-import { resolveResultsDir } from './worker.js'
+import { ALLURE_REPORTER_SYMBOL, resolveResultsDir } from './worker.js'
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState, isOpen } from './state.js'
 import {
@@ -1749,3 +1749,5 @@ export default class AllureReporter extends WDIOReporter {
     static addAllureId = AllureApi.addAllureId
     static step = AllureApi.step
 }
+
+Object.defineProperty(AllureReporter, ALLURE_REPORTER_SYMBOL, { value: true })

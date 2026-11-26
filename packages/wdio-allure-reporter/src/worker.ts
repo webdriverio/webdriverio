@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import type { RuntimeAttachmentContentMessage, RuntimeAttachmentPathMessage, RuntimeGlobalAttachmentContentMessage, RuntimeGlobalAttachmentPathMessage } from 'allure-js-commons/sdk'
 
+export const ALLURE_REPORTER_SYMBOL = Symbol.for('@wdio/allure-reporter')
 export const PENDING_ATTACHMENT_PREFIX = '.wdio-attachment-'
 export const PENDING_ATTACHMENT_SUFFIX = '.tmp'
 

@@ -3,6 +3,7 @@ import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
+import logger from '@wdio/logger'
 
 import { resolveAttachmentDir, toVitestConfig } from '../src/config.js'
 import { WdioBridgeReporter } from '../src/reporter.js'
@@ -190,10 +191,46 @@ describe('toVitestConfig', () => {
         it.each([
             ['no reporter', undefined],
             ['no Allure entry', ['junit', ['json', {}]]],
+            ['a custom class without Allure', [CustomReporter]],
             ['several Allure entries', [['allure', { outputDir: 'a' }], ['@wdio/allure-reporter', { outputDir: 'b' }]]],
             ['a class entry', [CustomReporter, ['allure', { outputDir: 'a' }]]]
         ])('provides null for %s', async (_, reporters) => {
             expect(await provided(reporters as never)).toEqual([null, null])
+        })
+
+        it('provides the absolute folder when AllureReporter is passed as a class or subclass', async () => {
+            const { default: AllureReporter } = await import('../../wdio-allure-reporter/build/index.js')
+            class CustomAllureReporter extends AllureReporter {}
+
+            expect(await resolveAttachmentDir([AllureReporter])).toBe(path.resolve('allure-results'))
+            expect(await provided([[AllureReporter, { outputDir: 'out/cls' }]])).toEqual([path.resolve('out/cls'), path.resolve('out/cls')])
+            expect(await resolveAttachmentDir(['junit', [AllureReporter, { resultsDir: 'out/r' }]])).toBe(path.resolve('out/r'))
+            expect(await resolveAttachmentDir([[CustomAllureReporter, { outputDir: 'out/sub' }]])).toBe(path.resolve('out/sub'))
+        })
+
+        it('warns and returns null when AllureReporter class is paired with another Allure entry', async () => {
+            const { default: AllureReporter } = await import('../../wdio-allure-reporter/build/index.js')
+            const warn = vi.spyOn(logger('@wdio/vitest-framework'), 'warn')
+            warn.mockClear()
+
+            expect(await resolveAttachmentDir([AllureReporter, ['allure', { outputDir: 'b' }]])).toBeNull()
+            expect(await resolveAttachmentDir([[AllureReporter, { outputDir: 'a' }], [AllureReporter, { outputDir: 'b' }]])).toBeNull()
+            expect(warn).toHaveBeenCalledTimes(2)
+            expect(warn.mock.calls[0][0]).toContain('Several Allure reporters')
+        })
+
+        it('warns when a custom class is configured alongside Allure, and stays quiet without Allure', async () => {
+            const { default: AllureReporter } = await import('../../wdio-allure-reporter/build/index.js')
+            const warn = vi.spyOn(logger('@wdio/vitest-framework'), 'warn')
+            warn.mockClear()
+
+            expect(await resolveAttachmentDir([CustomReporter])).toBeNull()
+            expect(warn).not.toHaveBeenCalled()
+
+            expect(await resolveAttachmentDir([CustomReporter, ['allure', { outputDir: 'a' }]])).toBeNull()
+            expect(await resolveAttachmentDir([CustomReporter, [AllureReporter, { outputDir: 'a' }]])).toBeNull()
+            expect(warn).toHaveBeenCalledTimes(2)
+            expect(warn.mock.calls[0][0]).toContain('sending Allure attachments through the launcher instead')
         })
 
         it('respects a reporter list that onPrepare changed', async () => {
