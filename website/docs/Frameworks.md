@@ -49,6 +49,28 @@ suite('my awesome website', () => {
 })
 ```
 
+For QUnit style, set `ui: 'qunit'` in `mochaOpts`. You can group tests with `suite('...')` or define top-level `test()` cases directly:
+
+```js
+test('should do some assertions', async () => {
+    await browser.url('https://webdriver.io')
+    await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
+})
+```
+
+You can also use third-party or custom Mocha interfaces by passing a package name, a file path (resolved relative to your config `rootDir`), or a custom interface function to `mochaOpts.ui`, or by registering a custom interface via `mochaOpts.require`. When using a custom interface that exposes `tdd` or `qunit` globals, end its name or filename with `-tdd` or `-qunit` (e.g. `custom-qunit` or `./my-custom-tdd.cjs`) so WebdriverIO wraps the matching test and hook methods; otherwise it defaults to `bdd` globals:
+
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    framework: 'mocha',
+    mochaOpts: {
+        ui: './path/to/my-custom-qunit.cjs'
+    }
+}
+```
+
 If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
 __Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
@@ -212,6 +234,14 @@ Number of times to retry failed tests.
 <Option type="number" default="30000">
 
 Timeout threshold value (in ms).
+
+</Option>
+
+#### ui
+
+<Option type="string | Function" default="'bdd'">
+
+Set the Mocha interface to one of the built-in UIs (`'bdd'`, `'tdd'`, `'qunit'`, `'exports'`), a third-party UI package name or module path (resolved relative to `rootDir`), or a custom interface function `(suite) => void`. If a third-party UI name or filename ends with `-bdd`, `-tdd`, or `-qunit`, WebdriverIO wraps the corresponding test and hook globals automatically (defaults to `bdd`).
 
 </Option>
 

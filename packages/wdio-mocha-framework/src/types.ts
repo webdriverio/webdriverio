@@ -101,9 +101,10 @@ export interface MochaOpts {
      */
     timeout?: number | string;
     /**
-     * Set test UI to one of the built-in test interfaces.
+     * Set test UI to one of the built-in test interfaces (`'bdd'`, `'tdd'`, `'qunit'`, `'exports'`),
+     * a third-party interface name or module path, or a custom interface function.
      */
-    ui?: 'bdd' | 'tdd' | 'qunit' | 'exports';
+    ui?: 'bdd' | 'tdd' | 'qunit' | 'exports' | (string & {}) | ((suite: Mocha.Suite) => void);
 }
 
 export interface MochaError {

@@ -10,13 +10,14 @@ type HookKind = NonNullable<FormattedMessage['hookKind']>
 /**
 * Extracts the mocha UI type following this convention:
 *  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
-*      is taken as ui type (i.e. 'bdd','tdd','qunit')
-*  - If it contains a '-' then it asumes we are providing a custom ui for
-*      mocha. Then it extracts the text after the last '-' (ignoring .js if
-*      provided) as the interface type. (i.e. strong-bdd in
+*      (minus any directory prefix or JS/TS file extension) is taken as ui type
+*      (i.e. 'bdd','tdd','qunit')
+*  - If it contains a '-' then it assumes we are providing a custom ui for
+*      mocha. Then it extracts the text after the last '-' (ignoring any JS/TS
+*      file extension if provided) as the interface type. (i.e. strong-bdd in
 *      https://github.com/strongloop/strong-mocha-interfaces)
 */
-const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
+const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*[-/\\])?([^-/\\.]+)(?:\.[cm]?[jt]s)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
 
 interface Payload {
@@ -180,15 +181,29 @@ export function applyMochaDefaults (mochaOpts: MochaOpts) {
 }
 
 type Hook = Function | Function[]
-export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
-    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as unknown as [string, keyof typeof INTERFACES]
+export function setupEnv (
+    cid: string,
+    options: MochaOpts,
+    beforeTest: Hook,
+    beforeHook: Hook,
+    afterTest: Hook,
+    afterHook: Hook,
+    context?: object
+) {
+    const match = typeof options.ui === 'string'
+        ? MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui) as unknown as [string, keyof typeof INTERFACES]
+        : null
     const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
-    const hookArgsFn = (context: Mocha.Context) => {
-        return [{ ...context.test, parent: context.test?.parent?.title }, context]
+    const hookArgsFn = (ctx: Mocha.Context) => {
+        return [{ ...ctx.test, parent: ctx.test?.parent?.title }, ctx]
     }
 
     INTERFACES[type].forEach((fnName: string) => {
+        if (context && typeof (context as Record<string, unknown>)[fnName] !== 'function') {
+            return
+        }
+
         const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
 
         wrapGlobalTestMethod(
