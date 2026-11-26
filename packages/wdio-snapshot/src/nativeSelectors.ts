@@ -36,11 +36,17 @@ export function nativeCandidates (node: SelectorNode): SnapshotCandidate[] {
     }
     if ((node.platform === 'ios' || node.platform === 'mac') && node.name) {
         out.push({ kind: 'predicate', selector: `-ios predicate string:name == ${JSON.stringify(node.name)}` })
-        out.push({ kind: 'class-chain', selector: `-ios class chain:**/${node.tag}[\`name == ${JSON.stringify(node.name)}\`]` })
+        // a backtick ends the class chain predicate and cannot be escaped, so
+        // only emit one when the name does not contain it
+        if (!node.name.includes('`')) {
+            out.push({ kind: 'class-chain', selector: `-ios class chain:**/${node.tag}[\`name == ${JSON.stringify(node.name)}\`]` })
+        }
     }
     if (node.platform === 'android' && node.text) {
         const klass = node.className || node.tag
-        out.push({ kind: 'uiautomator', selector: `android=new UiSelector().text(${JSON.stringify(node.text)})` })
+        // uiSelectorLiteral, not JSON.stringify: a backslash in the text must
+        // stay single or the selector never matches at runtime
+        out.push({ kind: 'uiautomator', selector: `android=new UiSelector().text(${uiSelectorLiteral(node.text)})` })
         out.push({ kind: 'xpath', selector: `//${klass}[@text=${toXPathStringLiteral(node.text)}]` })
     }
     if (node.platform === 'windows' && node.name) {
