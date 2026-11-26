@@ -62,7 +62,7 @@ The **device itself** needs no adapter support: it is derived from the session's
 
 A phone capture is framed as the device: a full-height device column with the action list and dock beside it, in **both** live mode and the [trace player](/docs/devtools/trace-player). The trace's `context-options` records the platform, model and OS version, read back on open so the player labels frames without guessing.
 
-On a native session the A11y tab and element data come from the platform's XML tree rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML.
+On a native session the A11y tab and element data come from the platform's XML tree (its page source, read once per action in trace mode by the WebdriverIO, Selenium and Nightwatch adapters; the Python adapter captures a screenshot alone) rather than the DOM, so locators read as `android=new UiSelector()…` or `-ios predicate string:…` rather than CSS or XPath over HTML. Reading the page source is the costly part of a native capture (most of it on iOS); `DEVTOOLS_CAPTURE_TIMING=1` reports it as the `pageSource` probe (see [Measuring capture cost](/docs/devtools/wdio/trace-mode#measuring-capture-cost)).
 
 ## Native app network
 
