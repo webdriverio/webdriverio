@@ -90,6 +90,23 @@ Print only failed specs results.
 ]
 ```
 
+### separateHookFailures
+
+<Option type="boolean" default="false">
+
+Show failed hooks in a separate `failing hooks` summary instead of including them in the existing `failing` count.
+
+</Option>
+
+```js
+[
+  "spec",
+  {
+    separateHookFailures: true,
+  },
+]
+```
+
 ### addConsoleLogs
 
 <Option type="boolean" default="false">
