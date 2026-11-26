@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
+import { setupDriver } from '@wdio/utils/node'
 import { SevereServiceError } from 'webdriverio'
 import type { Frameworks } from '@wdio/types'
 import Launcher from '../src/launcher.js'
@@ -1183,17 +1184,25 @@ describe('launcher', () => {
                 }
             })
 
-            it('runs onComplete on SIGINT even when triggered during onPrepare before CLInterface is initialized', async () => {
+            it('waits for in-flight onPrepare to finish before running onComplete on SIGINT and does not start workers afterward', async () => {
                 let resolveOnPrepare!: () => void
+                let tunnelHandle: string | undefined
+                let closedHandle: string | undefined
                 const dispose = vi.fn()
                 mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
 
                 const serviceOnComplete = vi.fn(async () => {
+                    closedHandle = tunnelHandle
                     await new Promise((resolve) => setTimeout(resolve, 20))
                 })
                 vi.mocked(initializeLauncherService).mockReturnValueOnce({
                     launcherServices: [{
-                        onPrepare: () => new Promise<void>((resolve) => { resolveOnPrepare = resolve }),
+                        onPrepare: () => new Promise<void>((resolve) => {
+                            resolveOnPrepare = () => {
+                                tunnelHandle = 'tunnel-pid-42'
+                                resolve()
+                            }
+                        }),
                         onComplete: serviceOnComplete
                     }],
                     ignoredWorkerServices: [],
@@ -1205,15 +1214,59 @@ describe('launcher', () => {
 
                 const callback = vi.fn()
                 const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
-                await exiting
-                expect(serviceOnComplete).toBeCalledTimes(1)
-                expect(dispose).toBeCalledTimes(1)
-                expect(callback).toBeCalledTimes(1)
+                await Promise.resolve()
+                await new Promise((resolve) => setTimeout(resolve, 15))
+                // onComplete must wait for onPrepare so handles created in onPrepare are initialized
+                expect(serviceOnComplete).not.toBeCalled()
+                expect(callback).not.toBeCalled()
 
                 resolveOnPrepare()
-                await running
+                await exiting
+                const exitCode = await running
+
+                expect(exitCode).toBe(1)
+                expect(closedHandle).toBe('tunnel-pid-42')
                 expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(serviceOnComplete).toHaveBeenCalledWith(1, expect.anything(), expect.anything())
+                expect(launcher['_runMode']).not.toBeCalled()
                 expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('still runs onComplete and disposes runner if in-flight onPrepare rejects after SIGINT', async () => {
+                let rejectOnPrepare!: (err: Error) => void
+                const dispose = vi.fn()
+                mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
+
+                const serviceOnComplete = vi.fn()
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{
+                        onPrepare: () => new Promise<void>((_resolve, reject) => {
+                            rejectOnPrepare = reject
+                        }),
+                        onComplete: serviceOnComplete
+                    }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                const runningHandled = running.catch((err) => err)
+                await vi.waitFor(() => expect(rejectOnPrepare).toBeTypeOf('function'))
+
+                const callback = vi.fn()
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                await Promise.resolve()
+                expect(serviceOnComplete).not.toBeCalled()
+
+                rejectOnPrepare(new SevereServiceError('tunnel failed to start'))
+                await exiting
+                const err = await runningHandled
+
+                expect(err).toBeInstanceOf(Error)
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
             })
 
             it('waits for an already running finally cleanup if SIGINT arrives during normal onComplete', async () => {
@@ -1472,7 +1525,7 @@ describe('launcher', () => {
             it('passes a signal that is already aborted when exit was triggered before launch', async () => {
                 mockFramework(async () => ({ launch }))
                 launch.mockResolvedValue(0)
-                vi.mocked(config.onPrepare![0]).mockImplementationOnce(() => { launcher['_exitHandler'](vi.fn() as any) })
+                vi.mocked(setupDriver).mockImplementationOnce(() => { launcher['_exitHandler'](vi.fn() as any) })
 
                 await launcher.run()
                 expect(launch.mock.calls[0][0].signal.aborted).toBe(true)
