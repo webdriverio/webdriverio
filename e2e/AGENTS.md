@@ -32,6 +32,10 @@ pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only
 pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
 ```
 
+`test:e2e:testrunner` first runs a temporary spec with a missing inline
+snapshot and `CI` unset. It checks that the run fails and leaves the spec
+unchanged before running the headless suite.
+
 `pnpm run test:e2e` runs every `test:e2e:*` script, including cloud. Do not
 use it in routine agent work. `pnpm run test:changed --e2e` runs component,
 session, display-server, Chromedriver, or create-wdio only when those CI lanes are in the

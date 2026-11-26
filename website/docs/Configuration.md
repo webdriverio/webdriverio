@@ -608,9 +608,21 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 
 ### updateSnapshots
 
-<Option type="'new' | 'all' | 'none'" default="none if not provided and tests run in CI, new if not provided, otherwise what's been provided">
+<Option type="'new' | 'all' | 'none'" default="'none' when the CI environment variable is nonempty, otherwise 'new'">
 
-Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+This option controls how assertions handle missing or changed snapshots, including inline snapshots.
+
+- `'new'` adds missing snapshots. A mismatch with an existing snapshot fails the assertion.
+- `'all'` adds missing snapshots and updates mismatches.
+- `'none'` leaves snapshots unchanged. A missing or mismatched snapshot fails the assertion.
+
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    updateSnapshots: 'none'
+}
+```
+
+To update snapshots intentionally, run `wdio run wdio.conf.ts --updateSnapshots all` (or `-s all`). Passing `-s` without a value selects `'all'`.
 
 </Option>
 
