@@ -144,7 +144,11 @@ describe('checkout', () => {
 })
 ```
 
-Each test opens its own window, and every command in the test targets it. The window is closed when the test ends, also when it fails.
+Each test opens its own window, and every command in the test targets it. The window is closed when the test ends, also when it fails. With `retry`, every attempt opens its own window, and only one `context:end` is sent, after the last attempt.
+
+## Programmatic runs
+
+`Launcher.run()` resolves the exit code and does not set `process.exitCode`, as with the other frameworks. Call `process.exit(code)` yourself.
 
 ## Limitations
 
@@ -153,8 +157,8 @@ Each test opens its own window, and every command in the test targets it. The wi
 - `expect.poll` is not available, because the global `expect` is the one from `expect-webdriverio`.
 - WebDriver Classic commands (such as `switchToWindow` or `switchToFrame`) throw inside concurrent tests, except `status`, `getTimeouts` and `getWindowHandles`, because they act on the session's focused window, which concurrent tests share.
 - Every capability project gets `maxWorkers` from `wdio:maxInstances` or `maxInstancesPerCapability`, capped by `maxInstances`. Capabilities with different limits run one after another, in groups ordered by the first capability with each limit. Capabilities with the same limit run together and share that limit: two capabilities with `wdio:maxInstances: 2` run at most two spec files at a time, not four.
-- Worker services are initialized like in the WDIO runner, so their `beforeSession`, `before`, `beforeTest`, `afterTest`, `beforeCommand`, `afterCommand`, `after` and `afterSession` hooks run, next to the launcher service hooks (`onPrepare`, `onComplete`).
-- The hooks `beforeSuite`, `afterSuite`, `beforeHook`, `afterHook`, `beforeAssertion`, `afterAssertion`, `onWorkerStart` and `onWorkerEnd` are not run.
+- Worker services are initialized like in the WDIO runner, so their `beforeSession`, `before`, `beforeTest`, `afterTest`, `beforeCommand`, `afterCommand`, `after` and `afterSession` hooks run, next to the launcher service hooks (`onPrepare`, `onComplete`). The config hooks `beforeSuite`, `afterSuite`, `beforeAssertion` and `afterAssertion` run too. `beforeSuite` runs after `before` and `afterSuite` before `after`, once per spec file, with the spec path as the suite title.
+- The hooks `beforeHook`, `afterHook`, `onWorkerStart` and `onWorkerEnd` are not run.
 - The `cid` passed to `beforeSession` is `<capability index>-<Vitest pool id>`; `WDIO_WORKER_ID` is not set, because the Vitest worker has an IPC channel to Vitest.
 - When `vitestOpts` sets no `reporters`, Vitest's `default` reporter is used instead of Vitest's environment-dependent default. Add others, such as `github-actions` annotations, explicitly.
 - Config changes made in `onPrepare` do not reach the workers, because each worker parses the config file again. Changes to `capabilities` are the exception.
@@ -164,6 +168,6 @@ Each test opens its own window, and every command in the test targets it. The wi
 - Hook results of `beforeAll` and `afterAll` are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook in "<suite>"`) so that the JUnit reporter adds a failing testcase for it.
 - Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
 - Soft assertions outside a test (in `beforeAll` or `afterAll`) are not asserted: their failures are dropped.
-- `hook:start` / `hook:end` are sent per hook kind and attempt, not per hook: one pair for all `beforeEach` hooks and one for all `afterEach` hooks (titles `"before each" hook for "<test>"` and `"after each" hook for "<test>"`), with no duration. A failed hook ends with `state: 'fail'` and its error. A failing `beforeAll` / `afterAll` is reported separately, see above. Reporter runtime API calls made inside a `beforeEach` / `afterEach` hook are attributed to the test, not to the hook.
+- `hook:start` / `hook:end` are sent per hook kind and attempt, not per hook: one pair for all `beforeEach` hooks and one for all `afterEach` hooks (titles `"before each" hook for <suite title>` and `"after each" hook for <suite title>`, the WDIO Mocha form, which names the suite where the earlier titles named the test), with no duration. A failed hook ends with `state: 'fail'` and its error. A failing `beforeAll` / `afterAll` is reported separately, see above. Reporter runtime API calls made inside a `beforeEach` / `afterEach` hook are attributed to the test, not to the hook.
 - Reporter runtime APIs such as `addStep` and `addAttachment` from `@wdio/allure-reporter` or `addProperty` from `@wdio/junit-reporter` work from tests and `beforeEach` / `afterEach` hooks. Calls in `beforeAll` / `afterAll` are dropped. With exactly one Allure reporter in the final reporter list (after `onPrepare` ran), the launcher tells the Vitest workers its results folder, they write Allure attachments there and only the path travels to the launcher. Otherwise attachments are sent through the launcher.
 - `browser.options.vitestOpts` is not set inside specs.
