@@ -163,8 +163,8 @@ export class WdioBridgeReporter implements Reporter {
             }
             this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker, false, result.state === 'failed')
             this.#replay(run, attempts[finalAttempt].calls)
-            // diagnostic() spans every attempt, so a retried test is timed by its final attempt's marker; a lone attempt keeps diagnostic()
-            const finalMarker = finalAttempt > 0 ? attempts[finalAttempt].marker : undefined
+            // diagnostic() spans every attempt, so the final attempt's marker times the test whenever the worker wrote one
+            const finalMarker = attempts[finalAttempt].marker
             const duration = finalMarker ? finalMarker.end - finalMarker.start : diagnostic?.duration ?? 0
             // Events reach the launcher batched, so the receipt time is not the time the test ran; startTime is the worker's Date.now()
             const times = finalMarker ? { start: finalMarker.start, end: finalMarker.end }

@@ -174,6 +174,14 @@ describe('WdioBridgeReporter', () => {
         expect(emitted.find(([name]) => name === 'test:fail')![1]).toMatchObject({ start: 2_000, end: 2_003 })
     })
 
+    it('times a lone attempt by its attempt marker, which starts with the test body', async () => {
+        const marker = { start: 1000, end: 1200, state: 'passed' }
+        const module = makeModule()
+        const timed = makeTest(module, makeSuite(module, module, 's'), 'timed', passed, 500, { meta: () => ({ 'wdio:runtime': [{ event: 'wdio:attempt', payload: marker, retry: 0 }] }) })
+        await runTests(module, timed)
+        expect(emittedOf().find(([name]) => name === 'test:pass')![1]).toMatchObject({ start: 1000, end: 1200, duration: 200 })
+    })
+
     it('emits test:start when the test becomes ready, before its result exists', async () => {
         const module = makeModule()
         const test = makeTest(module, module, 'alone', passed, 3)
