@@ -311,7 +311,7 @@ aroundEach(async (...args) => {
     const [runTest, context] = args
     const { task } = context
     const test = { title: task.name, fullTitle: task.fullName, parent: task.suite?.name ?? '', file: specFile }
-    const startedAt = Date.now()
+    let startedAt = 0
 
     const errorsBefore = task.result?.errors?.length ?? 0
     let error: unknown
@@ -357,6 +357,7 @@ aroundEach(async (...args) => {
         }
     }
     const runWithHooks = async () => {
+        startedAt = Date.now()
         try {
             await runAttempt()
         } finally {

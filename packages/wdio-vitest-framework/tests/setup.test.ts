@@ -610,6 +610,23 @@ describe('setup', () => {
         })
     })
 
+    describe('concurrent attempts', () => {
+        const attemptMarker = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, payload: { start: number, end: number, state: string, error?: { message: string } } }[]).find(({ event }) => event === 'wdio:attempt')!.payload
+
+        it('starts the attempt clock once the window is open', async () => {
+            let now = 1_000
+            const clock = vi.spyOn(Date, 'now').mockImplementation(() => now)
+            try {
+                utils.allocateContext.mockImplementationOnce(async () => { now += 420; return { context: 'ctx-1' } })
+                const context = task(true)
+                await hooks.aroundEach(vi.fn(async () => { now += 50 }), context)
+                expect(attemptMarker(context)).toMatchObject({ start: 1_420, end: 1_470, state: 'passed' })
+            } finally {
+                clock.mockRestore()
+            }
+        })
+    })
+
     describe('soft assertions', () => {
         const softError = new Error('1 soft assertion failure')
         const mutateReport = (error?: unknown) => utils.executeHooksWithArgs.mockImplementation(async (name: string, _hooks: unknown, hookArgs: unknown[]) => {
