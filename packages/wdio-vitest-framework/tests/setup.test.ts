@@ -625,6 +625,29 @@ describe('setup', () => {
                 clock.mockRestore()
             }
         })
+
+        it('runs afterTest and records the attempt when the window cannot be allocated', async () => {
+            utils.allocateContext.mockRejectedValueOnce(new Error('no window'))
+            const runTest = vi.fn()
+            const context = task(true)
+            await expect(hooks.aroundEach(runTest, context)).rejects.toThrow('no window')
+            expect(runTest).not.toHaveBeenCalled()
+            expect(store.run).not.toHaveBeenCalled()
+            expect(afterTestResult()).toMatchObject({ passed: false, status: 'failed', exception: 'no window' })
+            expect(attemptMarker(context)).toMatchObject({ state: 'failed', error: { message: 'no window' } })
+        })
+
+        it('runs afterTest without a window when the browser cannot run concurrent tests', async () => {
+            browser.__bidiCommandsEnabled = false
+            utils.executeHooksWithArgs.mockClear()
+            const runTest = vi.fn()
+            const context = task(true)
+            await expect(hooks.aroundEach(runTest, context)).rejects.toThrow("'wdio:experimentalBiDiCommands': true capability")
+            const hookNames = utils.executeHooksWithArgs.mock.calls.map(([name]) => name)
+            expect(hookNames).toEqual(['afterTest'])
+            expect(runTest).not.toHaveBeenCalled()
+            expect(attemptMarker(context)).toMatchObject({ state: 'failed' })
+        })
     })
 
     describe('soft assertions', () => {

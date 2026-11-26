@@ -303,20 +303,36 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
-/**
- * Vitest parses the source of a hook's second parameter for fixture names and rejects
- * anything but object destructuring without rest, so the context is read from `args`
- */
 aroundEach(async (...args) => {
     const [runTest, context] = args
     const { task } = context
     const test = { title: task.name, fullTitle: task.fullName, parent: task.suite?.name ?? '', file: specFile }
-    let startedAt = 0
 
     const errorsBefore = task.result?.errors?.length ?? 0
+    let startedAt = 0
     let error: unknown
     let serviceError: unknown
     let testRan = false
+    const runAfterTest = async () => {
+        const report = {
+            error,
+            result: undefined,
+            passed: error === undefined,
+            duration: Date.now() - startedAt,
+            retries: { limit: typeof task.retry === 'number' ? task.retry : 0, attempts: task.result?.retryCount ?? 0 },
+            skipped: task.mode === 'skip' || task.result?.state === 'skip',
+            exception: error instanceof Error ? error.message : '',
+            status: error === undefined ? 'passed' : 'failed'
+        }
+        await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
+        // afterTest services such as the soft assertion service report a failure by mutating the report
+        if (error === undefined) {
+            serviceError = report.error
+        } else if (softAssertions) {
+            // the service skips asserting a test that already failed and leaves its failures for the retry to throw
+            SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+        }
+    }
     const runAttempt = async () => {
         try {
             await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
@@ -333,45 +349,37 @@ aroundEach(async (...args) => {
             error = err
             throw err
         } finally {
-            const report = {
-                error,
-                result: undefined,
-                passed: error === undefined,
-                duration: Date.now() - startedAt,
-                retries: { limit: typeof task.retry === 'number' ? task.retry : 0, attempts: task.result?.retryCount ?? 0 },
-                skipped: task.mode === 'skip' || task.result?.state === 'skip',
-                exception: error instanceof Error ? error.message : '',
-                status: error === undefined ? 'passed' : 'failed'
-            }
-            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
-            // afterTest services such as the soft assertion service report a failure by mutating the report
-            if (error === undefined) {
-                serviceError = report.error
-            } else if (softAssertions) {
-                // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
-            }
+            await runAfterTest()
         }
         if (serviceError !== undefined) {
             throw serviceError
         }
     }
-    const runWithHooks = async () => {
+    const runWithHooks = async (attempt: () => Promise<void>) => {
         startedAt = Date.now()
         try {
-            await runAttempt()
+            await attempt()
         } finally {
             // before runTest the hook states are still the previous attempt's
             recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore, error ?? serviceError) : undefined)
         }
     }
 
-    const runInTask = () => activeTask.run(task, runWithHooks)
+    const runInTask = () => activeTask.run(task, () => runWithHooks(runAttempt))
     if (!task.concurrent) {
         return runInTask()
     }
-    assertCanRunConcurrently(browser)
-    const allocation = await allocateContext(browser, config.vitestOpts!.parallelMode!)
+    let allocation: Awaited<ReturnType<typeof allocateContext>>
+    try {
+        assertCanRunConcurrently(browser)
+        allocation = await allocateContext(browser, config.vitestOpts!.parallelMode!)
+    } catch (err) {
+        error = err
+        return activeTask.run(task, () => runWithHooks(async () => {
+            await runAfterTest()
+            throw err
+        }))
+    }
     try {
         await browser[PARALLEL_CONTEXT_STORE_KEY]!.run(allocation.context, runInTask)
     } finally {
