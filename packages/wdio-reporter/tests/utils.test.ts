@@ -3,7 +3,7 @@ import url from 'node:url'
 import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook, specFilePath, relativeSpecFile } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color, knownFramework, hookCountsAsFailure, isContextlessAllHook, specFilePath, relativeSpecFile, transformCommandScript } from '../src/utils.js'
 import * as reporterExports from '../src/index.js'
 
 vi.mock('../src/supportsColor.js', () => {
@@ -64,6 +64,14 @@ describe('utils', () => {
 
     it('pad', () => {
         expect(pad('foobar', 10)).toBe('    foobar')
+    })
+
+    it('transformCommandScript', () => {
+        expect(transformCommandScript()).toBe(undefined)
+        expect(transformCommandScript('return (function isElementDisplayed(element) { return true }).apply(null, arguments)'))
+            .toBe('<script fn isElementDisplayed(...)> [84 bytes]')
+        expect(transformCommandScript('function first () { return 1 }')).toBe('<script fn first(...)> [30 bytes]')
+        expect(transformCommandScript('return document.title')).toBe('<script> [21 bytes]')
     })
 
     it('color', () => {
