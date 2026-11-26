@@ -110,17 +110,36 @@ describe('create-wdio SIGINT scoping', () => {
             expect(sigintCount()).toBe(before)
         })
 
-        it('maps Inquirer ExitPromptError to goodbye exit and removes listener', async () => {
+        it('maps Inquirer ExitPromptError to goodbye exit, rethrows it, and removes listener', async () => {
             const { withSigintExit } = await import('../src/utils.js')
             const before = sigintCount()
             const err = new Error('User force closed the prompt with SIGINT')
             err.name = 'ExitPromptError'
 
-            await withSigintExit(async () => {
+            await expect(withSigintExit(async () => {
                 throw err
-            })
+            })).rejects.toBe(err)
 
+            expect(consoleLogSpy).toHaveBeenCalledTimes(1)
             expect(consoleLogSpy).toHaveBeenCalledWith('\n\nGoodbye 👋')
+            expect(processExitSpy).toHaveBeenCalledTimes(1)
+            expect(processExitSpy).toHaveBeenCalledWith(1)
+            expect(sigintCount()).toBe(before)
+        })
+
+        it('prints goodbye and exits only once when ExitPromptError unwinds nested scopes', async () => {
+            const { withSigintExit } = await import('../src/utils.js')
+            const before = sigintCount()
+            const err = new Error('User force closed the prompt with SIGINT')
+            err.name = 'ExitPromptError'
+
+            await expect(withSigintExit(async () => withSigintExit(async () => {
+                throw err
+            }))).rejects.toBe(err)
+
+            expect(consoleLogSpy).toHaveBeenCalledTimes(1)
+            expect(consoleLogSpy).toHaveBeenCalledWith('\n\nGoodbye 👋')
+            expect(processExitSpy).toHaveBeenCalledTimes(1)
             expect(processExitSpy).toHaveBeenCalledWith(1)
             expect(sigintCount()).toBe(before)
         })

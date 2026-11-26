@@ -1063,6 +1063,61 @@ describe('launcher', () => {
                 expect(callback).toBeCalledTimes(1)
             })
 
+            it('waits for runner.shutdown() to finish before running onComplete or dispose when _runMode resolves early', async () => {
+                const order: string[] = []
+                let resolveRunMode!: (code: number) => void
+
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                const shutdown = vi.fn(async () => {
+                    order.push('shutdownStart')
+                    // Unblock _runMode while runner.shutdown() still has async teardown work
+                    resolveRunMode(0)
+                    await new Promise((resolve) => setTimeout(resolve, 25))
+                    order.push('shutdownEnd')
+                    return true
+                })
+                const dispose = vi.fn(async () => {
+                    order.push('dispose')
+                })
+                mockRunner({ shutdown, dispose })
+
+                const userOnComplete = vi.fn(async () => {
+                    order.push('userOnComplete')
+                })
+                config.onComplete = [userOnComplete]
+
+                const serviceOnComplete = vi.fn(async () => {
+                    order.push('serviceOnComplete')
+                })
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+
+                const callback = vi.fn(() => order.push('callback'))
+                await launcher['_exitHandler'](callback as any)
+                await running
+
+                expect(order).toEqual([
+                    'shutdownStart',
+                    'shutdownEnd',
+                    'userOnComplete',
+                    'serviceOnComplete',
+                    'dispose',
+                    'callback'
+                ])
+                expect(shutdown).toBeCalledTimes(1)
+                expect(userOnComplete).toBeCalledTimes(1)
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
             it('stops a detached daemon process started in onPrepare before exit callback fires (cloud-free repro)', async () => {
                 let daemonPid: number | undefined
                 let resolveRunMode!: (code: number) => void

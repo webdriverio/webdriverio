@@ -28,6 +28,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 let activeSigintScopes = 0
 const handleSigint = () => printAndExit(undefined, 'SIGINT')
+const handledExitPromptErrors = new WeakSet<Error>()
 
 /**
  * Register the wizard's SIGINT exit handler only while an interactive prompt
@@ -43,9 +44,9 @@ export async function withSigintExit<T>(fn: () => Promise<T>): Promise<T> {
     try {
         return await fn()
     } catch (err) {
-        if (err instanceof Error && err.name === 'ExitPromptError') {
+        if (err instanceof Error && err.name === 'ExitPromptError' && !handledExitPromptErrors.has(err)) {
+            handledExitPromptErrors.add(err)
             printAndExit(undefined, 'SIGINT')
-            return undefined as T
         }
         throw err
     } finally {

@@ -80,6 +80,7 @@ class Launcher {
     #hasStartedOnPrepare = false
     #wasInterrupted = false
     #cleanupPromise?: Promise<void>
+    #shutdownPromise?: Promise<boolean>
     #onCompletePromise?: Promise<number>
     #disposePromise?: Promise<void>
 
@@ -134,6 +135,7 @@ class Launcher {
             this.#hasStartedOnPrepare = false
             this.#wasInterrupted = false
             this.#cleanupPromise = undefined
+            this.#shutdownPromise = undefined
             this.#onCompletePromise = undefined
             this.#disposePromise = undefined
 
@@ -232,9 +234,15 @@ class Launcher {
                 try {
                     if (!this._hasTriggeredExitRoutine) {
                         this._hasTriggeredExitRoutine = true
-                        const passesCodeCoverage = await this.runner.shutdown()
+                        const passesCodeCoverage = await this.#shutdownRunner()
                         if (!passesCodeCoverage) {
                             exitCode = exitCode || 1
+                        }
+                    } else if (this.#shutdownPromise) {
+                        try {
+                            await this.#shutdownPromise
+                        } catch {
+                            // Logged by _exitHandler; still run onComplete and dispose
                         }
                     }
 
@@ -362,6 +370,23 @@ class Launcher {
      * a user can use plugin service, e.g. shared store service is still
      * available running hooks in this order
      */
+    #shutdownRunner(waitForFramework = false): Promise<boolean> {
+        if (this.#shutdownPromise) {
+            return this.#shutdownPromise
+        }
+
+        const runner = this.runner!
+        const shutdown = async (): Promise<boolean> => {
+            if (waitForFramework && this.#frameworkLaunch) {
+                await this.#frameworkLaunch.then(() => undefined, () => undefined)
+            }
+            return runner.shutdown()
+        }
+
+        this.#shutdownPromise = shutdown()
+        return this.#shutdownPromise
+    }
+
     #runOnCompleteHook(
         config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
@@ -882,14 +907,10 @@ class Launcher {
         this.#wasInterrupted = true
         this.interface?.sigintTrigger()
 
-        const runner = this.runner
         const shutdown = async (): Promise<boolean> => {
             let shutdownResult = true
             try {
-                if (this.#frameworkLaunch) {
-                    await this.#frameworkLaunch.then(() => undefined, () => undefined)
-                }
-                shutdownResult = await runner.shutdown()
+                shutdownResult = await this.#shutdownRunner(true)
             } catch (err) {
                 log.error('Failed to shut down runner during exit:', err)
                 shutdownResult = false
