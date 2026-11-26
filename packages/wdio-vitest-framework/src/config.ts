@@ -25,6 +25,7 @@ declare module 'vitest' {
 
 const log = logger('@wdio/vitest-framework')
 const ALLURE_REPORTER_NAMES = ['allure', '@wdio/allure-reporter']
+// Must match ALLURE_REPORTER_SYMBOL in packages/wdio-allure-reporter/src/worker.ts
 const ALLURE_REPORTER_SYMBOL = Symbol.for('@wdio/allure-reporter')
 // not a literal import: @wdio/allure-reporter is optional and must stay out of this package's bundle
 const ALLURE_WORKER_MODULE = '@wdio/allure-reporter/worker'
@@ -69,7 +70,12 @@ function isAllureReporter(reporter: unknown) {
 export async function resolveAttachmentDir(reporters: unknown[] = []): Promise<string | null> {
     const entries = reporters.map((entry) => Array.isArray(entry) ? entry : [entry, {}])
     const allureEntries = entries.filter(([reporter]) => isAllureReporter(reporter))
+    const hasCustomClass = entries.some(([reporter]) => typeof reporter !== 'string' && !isAllureReporter(reporter))
     if (allureEntries.length === 0) {
+        // a custom reporter class could wrap Allure without extending AllureReporter, so attachment offloading is skipped
+        if (hasCustomClass) {
+            log.warn('A custom reporter class is configured, so Allure attachment offloading is disabled and any Allure attachments will be sent through the launcher instead')
+        }
         return null
     }
     // every Allure reporter receives the same attachment_path, so a second one could not move the file
@@ -78,7 +84,7 @@ export async function resolveAttachmentDir(reporters: unknown[] = []): Promise<s
         return null
     }
     // a custom reporter class could still wrap Allure or expect inline attachment content
-    if (entries.some(([reporter]) => typeof reporter !== 'string' && !isAllureReporter(reporter))) {
+    if (hasCustomClass) {
         log.warn('A custom reporter class is configured alongside Allure, sending Allure attachments through the launcher instead')
         return null
     }

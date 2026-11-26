@@ -114,6 +114,6 @@ describe('ALLURE_REPORTER_SYMBOL', () => {
         expect((AllureReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBe(true)
         expect((CustomAllureReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBe(true)
         expect((OtherReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBeUndefined()
-        expect(Object.keys(AllureReporter)).not.toContain(ALLURE_REPORTER_SYMBOL)
+        expect(Object.getOwnPropertyDescriptor(AllureReporter, ALLURE_REPORTER_SYMBOL)?.enumerable).toBe(false)
     })
 })
