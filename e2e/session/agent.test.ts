@@ -35,6 +35,29 @@ describe('@wdio/session/agent', () => {
         await server?.close()
     })
 
+    it('returns self-contained exec code with stable selectors and arguments', async () => {
+        const { text } = await agent.snapshot({ interactive: true })
+        const ref = text.match(/button "Add to cart" \[ref=(e\d+)\]/)?.[1]
+        expect(ref).toBeDefined()
+        const result = await agent.run('exec', {
+            code: `console.log(args[0], await ref('${ref}').getText())`,
+            args: ['Button:']
+        })
+        expect(result.text).toBe('Button: Add to cart')
+        expect(result.code).toContain('await $(\'[data-testid="add-blue"]\').getText()')
+        expect(result.code).not.toContain('ref(')
+        expect(result.code).toBe(agent.history.at(-1)?.code)
+
+        const fresh = await createAgentSession(browser, { captureNetwork: false })
+        try {
+            const replay = await fresh.run('exec', { code: result.code!, history: false })
+            expect(replay.text).toBe(result.text)
+            expect(replay).not.toHaveProperty('code')
+        } finally {
+            await fresh.dispose()
+        }
+    })
+
     it('takes a snapshot with refs and clicks a ref with a stable selector', async () => {
         const { text } = await agent.snapshot({ interactive: true })
         expect(text).toContain('button "Add to cart"')

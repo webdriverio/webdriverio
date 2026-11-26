@@ -43,5 +43,18 @@ describe('action args types', () => {
         void agent.run('click', { target: 'e3' })
         void agent.run('snapshot')
         void agent.run('snapshot', { interactive: true })
+        // @ts-expect-error only exec supports an explicit action timeout
+        void agent.run('snapshot', undefined, { timeout: 500 }).catch(() => {})
+    })
+
+    it('exec takes source text and JSON arguments', () => {
+        const args = ['label', { count: 2, options: [true, null] }] as const
+        void agent.run('exec', { code: 'console.log(args[0])', args }, { timeout: 500 })
+        void agent.run('exec', { e: 'console.log("legacy")', history: false })
+        void agent.runAction('exec', { code: 'console.log(args[0])', args }, { timeout: 500 })
+        // @ts-expect-error exec requires source text
+        void agent.run('exec', { args })
+        // @ts-expect-error exec arguments must be JSON values
+        void agent.run('exec', { code: 'args[0]', args: [() => 'label'] })
     })
 })

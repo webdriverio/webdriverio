@@ -10,7 +10,7 @@ import { Session } from './session.js'
 import { SessionError } from './errors.js'
 import type { ErrorCode } from './constants.js'
 import type { HintFormatter } from './hints.js'
-import { ACTIONS, type ActionSpec } from './actions/specs.js'
+import { ACTION_MAP, ACTIONS, type ActionSpec } from './actions/specs.js'
 import type { SnapshotOptions, TakenSnapshot } from './actions/observe.js'
 import type { ActionArgsOf, AgentActionName } from './actions/args.js'
 import type { ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo } from './agent/types.js'
@@ -61,6 +61,11 @@ export interface AgentSessionOptions {
      * the caller's own interface
      */
     hint?: HintFormatter
+}
+
+export interface AgentActionOptions {
+    /** timeout in milliseconds, defaults to the action's own timeout when defined */
+    timeout?: number
 }
 
 /**
@@ -120,16 +125,29 @@ export class AgentSession {
 
     /**
      * run a `wdio session` action, e.g. `run('click', { target: 'e3' })`
+     * or `run('exec', { code: 'console.log(args[0])', args: ['hello'] }, { timeout: 5000 })`
      */
-    run<A extends AgentActionName> (action: A, ...[args]: {} extends ActionArgsOf<A> ? [args?: ActionArgsOf<A>] : [args: ActionArgsOf<A>]): Promise<AgentActionResult<A>> {
-        return this.runAction(action, args ?? {}) as Promise<AgentActionResult<A>>
+    run<A extends AgentActionName> (action: A, ...[args, opts]: {} extends ActionArgsOf<A>
+        ? [args?: ActionArgsOf<A>, opts?: A extends 'exec' ? AgentActionOptions : never]
+        : [args: ActionArgsOf<A>, opts?: A extends 'exec' ? AgentActionOptions : never]): Promise<AgentActionResult<A>> {
+        return this.runAction(action, args, opts) as Promise<AgentActionResult<A>>
     }
 
     /**
      * run an action by a name only known at runtime, e.g. from a recorded step
      */
-    runAction (action: string, args: Record<string, unknown> = {}): Promise<AgentActionResult> {
-        return this.session.dispatch({ action, args, cwd: this.session.cwd }, { detail: true })
+    runAction (action: string, args: Record<string, unknown> = {}, opts: AgentActionOptions = {}): Promise<AgentActionResult> {
+        // Other actions cannot be safely interrupted; do not silently ignore
+        // an agent-supplied timeout for them.
+        if (action !== 'exec' && opts.timeout !== undefined) {
+            return Promise.reject(new TypeError('The timeout option is only supported for exec actions.'))
+        }
+        const timeout = opts.timeout ?? (typeof args.$timeout === 'number' ? args.$timeout : ACTION_MAP.get(action)?.timeout)
+        return this.session.dispatch({
+            action,
+            args: action === 'exec' ? { ...args, $agent: true } : args,
+            cwd: this.session.cwd
+        }, { detail: true, ...(timeout !== undefined ? { timeout } : {}) })
     }
 
     /**

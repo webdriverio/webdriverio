@@ -321,7 +321,7 @@ export class Session {
         if (dialog && !DIALOG_SAFE_ACTIONS.has(req.action)) {
             throw dialogOpenError(dialog, this.cmd)
         }
-        const args: ActionArgs = { ...req.args, $cwd: req.cwd || this.cwd, ...(opts.timeout ? { $timeout: opts.timeout } : {}) }
+        const args: ActionArgs = { ...req.args, $cwd: req.cwd || this.cwd, ...(opts.timeout !== undefined ? { $timeout: opts.timeout } : {}) }
         const trace = this.get<{ before: (a: string, args: ActionArgs) => Promise<void>, after: (a: string, args: ActionArgs, r?: ActionOutcome, e?: SessionError) => Promise<void> }>('trace')
         const pagePath = spec.mutation || req.action === 'exec' ? await this.currentPath() : undefined
         await trace?.before(req.action, args)
@@ -412,9 +412,9 @@ export class Session {
                 })
             }
             await trace?.after(req.action, args, outcome)
-            const { history: _history, ...result } = outcome
+            const { history, ...result } = outcome
             return opts.detail
-                ? { ...result, ...(changes ? { changes } : {}), ...(noVisibleChange ? { noVisibleChange } : {}), ...(page ? { page } : {}), ...(notes.length ? { notes } : {}) }
+                ? { ...result, ...(req.action === 'exec' && history ? { code: history } : {}), ...(changes ? { changes } : {}), ...(noVisibleChange ? { noVisibleChange } : {}), ...(page ? { page } : {}), ...(notes.length ? { notes } : {}) }
                 : result
         } catch (err) {
             if (epoch !== this.#epoch) {

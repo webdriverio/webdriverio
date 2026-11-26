@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SnapshotNode } from '@wdio/snapshot'
 
 import { createAgentSession } from '../src/agent.js'
+import { rewriteRefs } from '../src/actions/exec.js'
 import { IMPLEMENTATIONS } from '../src/actions/index.js'
 
 const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
@@ -97,6 +98,156 @@ describe('createAgentSession', () => {
         const dispatch = vi.spyOn(agent.session, 'dispatch').mockResolvedValue({ text: 'Clicked e3', code: 'await $(\'#buy\').click()' })
         await expect(agent.run('click', { target: 'e3' })).resolves.toEqual({ text: 'Clicked e3', code: 'await $(\'#buy\').click()' })
         expect(dispatch).toHaveBeenCalledWith({ action: 'click', args: { target: 'e3' }, cwd: agent.session.cwd }, { detail: true })
+    })
+
+    it('rejects unsupported timeouts on non-exec actions', async () => {
+        const agent = await createAgentSession(mockBrowser(), { artifactsDir: tmp() })
+        await expect(agent.runAction('wait', { target: '30000' }, { timeout: 500 }))
+            .rejects.toThrow('only supported for exec')
+    })
+
+    describe('exec', () => {
+        const execAgent = (overrides: Record<string, unknown> = {}) => createAgentSession(mockBrowser({
+            capabilities: { platformName: 'Android' },
+            isBidi: false,
+            options: {},
+            ...overrides
+        }), { artifactsDir: tmp(), captureNetwork: false })
+
+        it('keeps earlier args captured by a recorded function across replayed calls', async () => {
+            const agent = await execAgent()
+            const first = await agent.run('exec', { code: 'const readArg = () => args[0]', args: ['first'] })
+            const second = await agent.run('exec', { code: 'console.log(readArg(), args[0])', args: ['second'] })
+            expect(second.text).toBe('first second')
+            expect(first.code).toContain('__wdioExecArgs_0')
+            expect(second.code).toContain('__wdioExecArgs_1')
+
+            const fresh = await execAgent()
+            const replay = await fresh.run('exec', { code: first.code + '\n' + second.code, history: false })
+            expect(replay.text).toBe('first second')
+        })
+
+        it('replaces refs supplied through args with stable selectors for replay', async () => {
+            const agent = await execAgent()
+            const selector = '#save'
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue(selector)
+            const source = 'const example = "ref(args[0])"; await ref(args[0]).click()'
+            const resolved = new Map([['e3', {} as WebdriverIO.Element]])
+            const rewritten = await rewriteRefs(agent.session, source, resolved, ['e3'])
+            expect(rewritten).toContain('"ref(args[0])"')
+            expect(rewritten).toContain("await $('#save').click()")
+            expect(rewritten).not.toContain('await ref(args[0])')
+        })
+
+        it('preserves backtick refs when recording stable selectors', async () => {
+            const agent = await execAgent()
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue('#save')
+            const code = 'await ref(' + String.fromCharCode(96) + 'e3' + String.fromCharCode(96) + ').click()'
+            const used = new Map([['e3', {} as WebdriverIO.Element]])
+            expect(await rewriteRefs(agent.session, code, used)).toBe("await $('#save').click()")
+        })
+
+        it('does not rename class field names when replaying exec arguments', async () => {
+            const agent = await execAgent()
+            const result = await agent.run('exec', {
+                code: 'class Payload { args = 1 }; console.log(new Payload().args, args[0])',
+                args: ['x']
+            })
+            expect(result.text).toBe('1 x')
+            expect(result.code).toContain('args = 1')
+            const fresh = await execAgent()
+            const replay = await fresh.run('exec', { code: result.code!, history: false })
+            expect(replay.text).toBe('1 x')
+        })
+
+        it('does not record refs when the input arguments mutate', async () => {
+            const agent = await execAgent()
+            vi.spyOn(agent.session.refs, 'stableSelector').mockResolvedValue('#save')
+            const code = 'await ref(args[0]).click(); args[0] = args[1]; await ref(args[0]).click()'
+            const used = new Map([
+                ['e3', {} as WebdriverIO.Element],
+                ['e4', {} as WebdriverIO.Element]
+            ])
+            expect(await rewriteRefs(agent.session, code, used, ['e3', 'e4'])).toBeUndefined()
+        })
+
+        it('executes the typed inline source', async () => {
+            const agent = await execAgent()
+            await expect(agent.run('exec', { e: 'console.log("typed")' })).resolves.toMatchObject({ text: 'typed' })
+            await expect(agent.run('exec', { code: '42', e: '0' })).resolves.toMatchObject({ text: '42' })
+        })
+
+        it('returns exactly the recorded code and omits it for unrecorded runs', async () => {
+            const agent = await execAgent()
+            const code = 'const n = 41; console.log("n is", n + 1)'
+            const recorded = await agent.runAction('exec', { code: `  ${code}  ` })
+            expect(recorded).toMatchObject({ text: 'n is 42', code })
+            expect(agent.history).toMatchObject([{ kind: 'exec', code }])
+
+            const read = await agent.run('exec', { code: 'n' })
+            expect(read.text).toBe('41')
+            expect(read).not.toHaveProperty('code')
+            const skipped = await agent.run('exec', { code: 'console.log(n)', history: false })
+            expect(skipped.text).toBe('41')
+            expect(skipped).not.toHaveProperty('code')
+            expect(agent.history).toHaveLength(1)
+        })
+
+        it('passes JSON arguments and returns code that replays without them', async () => {
+            const agent = await execAgent()
+            const input = [41, { label: "a quote: '\"\n", items: [true, null] }] as const
+            const code = 'console.log(args[1].label, args[0] + 1, JSON.stringify(args[1].items)); args.pop()'
+            const result = await agent.runAction('exec', { code, args: input })
+            expect(result.text).toBe(`${input[1].label} 42 [true,null]\n${JSON.stringify(input[1], null, 2)}`)
+            expect(input).toHaveLength(2)
+            expect(typeof result.code).toBe('string')
+            expect(result.code).toBe(agent.history.at(-1)?.code)
+
+            const fresh = await execAgent()
+            const replay = await fresh.run('exec', { code: result.code! })
+            expect(replay.text).toBe(result.text)
+            const read = await agent.run('exec', { code: 'args.length', args: [] })
+            expect(read.text).toBe('0')
+            expect(read).not.toHaveProperty('code')
+            expect((await agent.run('exec', { code: 'typeof args', history: false })).text).toBe('undefined')
+            expect(agent.history).toHaveLength(1)
+        })
+
+        it.each([
+            ['run', 25],
+            ['runAction', 25],
+            ['default', 60_000]
+        ] as const)('enforces the %s exec timeout and reports partial output', async (method, timeout) => {
+            vi.useFakeTimers()
+            try {
+                const started = Promise.withResolvers<void>()
+                const agent = await execAgent({
+                    pause: () => {
+                        started.resolve()
+                        return new Promise((resolve) => setTimeout(resolve, 61_000))
+                    }
+                })
+                const code = 'console.log("before"); await browser.pause(); console.log("after")'
+                const outcomes: unknown[] = []
+                const pending = (method === 'runAction'
+                    ? agent.runAction('exec', { code }, { timeout })
+                    : method === 'run'
+                        ? agent.run('exec', { code, e: code }, { timeout })
+                        : agent.runAction('exec', { code })
+                ).then((value) => outcomes.push(value), (error) => outcomes.push(error))
+                await Promise.race([started.promise, pending])
+                await vi.advanceTimersByTimeAsync(timeout - 1)
+                expect(outcomes).toEqual([])
+                await vi.advanceTimersByTimeAsync(1)
+                expect(outcomes).toMatchObject([{ code: 'TIMEOUT', details: 'Output so far:\nbefore' }])
+                await vi.runAllTimersAsync()
+                await pending
+                expect(agent.history).toEqual([])
+                expect((await agent.run('exec', { code: '1 + 1' })).text).toBe('2')
+            } finally {
+                vi.useRealTimers()
+            }
+        })
     })
 
     it('looks up refs with or without the @ prefix', async () => {

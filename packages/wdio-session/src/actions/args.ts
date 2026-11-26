@@ -32,8 +32,17 @@ type ArgsOfSpec<S> = Simplify<
     { [K in keyof OptionsOf<S> & string as CamelCase<K>]?: OptionValue<Extract<OptionsOf<S>[K], OptionSpec>> }
 >
 
+type JsonValue = string | number | boolean | null | readonly JsonValue[] | { [key: string]: JsonValue }
+
+type ExecArgs = ({ code: string, e?: string } | { code?: string, e: string }) & {
+    /** JSON values available to the script as `args` and included in recorded code */
+    args?: readonly JsonValue[]
+    history?: boolean
+}
+
 /**
  * arguments of an action, shaped like the CLI's `pickArgs` output: variadic
- * positionals are one string, kebab-case flags are camelCased
+ * positionals are one string, kebab-case flags are camelCased. Exec takes
+ * source text directly, with `e` as an alias for `code`.
  */
-export type ActionArgsOf<A extends ActionName> = ArgsOfSpec<Extract<Spec, { name: A }>>
+export type ActionArgsOf<A extends ActionName> = A extends 'exec' ? ExecArgs : ArgsOfSpec<Extract<Spec, { name: A }>>
