@@ -37,6 +37,7 @@ let softAssertions: SoftAssertionService | undefined
 let specFile = ''
 let sessionHookArgs: [WebdriverIO.Config, WebdriverIO.Capabilities, string[]] | undefined
 let sessionClosing: Promise<void> | undefined
+let beforeSuiteRan = false
 
 type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
 
@@ -274,6 +275,7 @@ beforeAll(async ({}, suite) => {
 
     await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])
     await executeHooksWithArgs('beforeSuite', config.beforeSuite, [specSuite()])
+    beforeSuiteRan = true
 })
 
 // the spec file is the suite of a Vitest run, titled with its path like the tests outside a describe
@@ -292,7 +294,9 @@ function countFailures(suite: RunnerTestSuite): number {
 // eslint-disable-next-line no-empty-pattern
 afterAll(async ({}, suite) => {
     try {
-        await executeHooksWithArgs('afterSuite', config?.afterSuite, [specSuite()])
+        if (beforeSuiteRan) {
+            await executeHooksWithArgs('afterSuite', config?.afterSuite, [specSuite()])
+        }
         await executeHooksWithArgs('after', config?.after, [countFailures(suite), capabilities, [specFile]])
     } finally {
         await closeSession()
@@ -388,7 +392,11 @@ aroundEach(async (...args) => {
     } catch (err) {
         error = err
         return activeTask.run(task, () => runWithHooks(async () => {
-            await runAfterTest()
+            try {
+                await runAfterTest()
+            } catch (afterErr) {
+                log.error('afterTest failed after the concurrent test could not start:', afterErr)
+            }
             throw err
         }))
     }

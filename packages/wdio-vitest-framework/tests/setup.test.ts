@@ -22,9 +22,9 @@ const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
 const attachmentDir = vi.hoisted(() => ({ value: null as string | null }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
-const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn() }))
+const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn(), error: vi.fn() }))
 
-vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: vi.fn() }) }))
+vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: logs.error }) }))
 
 vi.mock('vitest', () => ({
     aroundEach: vi.fn((fn) => { hooks.aroundEach = fn }),
@@ -619,6 +619,17 @@ describe('setup', () => {
             expect(utils.executeHooksWithArgs).toHaveBeenLastCalledWith('beforeSuite', mockConfig.value.beforeSuite, [suite])
         })
 
+        it('skips afterSuite when beforeSuite did not run', async () => {
+            mockConfig.value = { ...mockConfig.value, afterSuite: [vi.fn()], after: [vi.fn()] }
+            vi.resetModules()
+            await import('../src/setup.js')
+            utils.executeHooksWithArgs.mockRejectedValueOnce(new Error('beforeSession failed'))
+            await expect(callbacks.beforeAll({}, { file: fileTask })).rejects.toThrow('beforeSession failed')
+            utils.executeHooksWithArgs.mockClear()
+            await callbacks.afterAll({}, file())
+            expect(utils.executeHooksWithArgs.mock.calls.map(([name]) => name)).not.toContain('afterSuite')
+        })
+
         it('runs afterSuite before the after hook', async () => {
             mockConfig.value = { ...mockConfig.value, afterSuite: [vi.fn()], after: [vi.fn()] }
             await callbacks.beforeAll({}, { file: fileTask })
@@ -668,6 +679,13 @@ describe('setup', () => {
             expect(store.run).not.toHaveBeenCalled()
             expect(afterTestResult()).toMatchObject({ passed: false, status: 'failed', exception: 'no window' })
             expect(attemptMarker(context)).toMatchObject({ state: 'failed', error: { message: 'no window' } })
+        })
+
+        it('rethrows the window error and logs the afterTest error when afterTest also throws', async () => {
+            utils.allocateContext.mockRejectedValueOnce(new Error('no window'))
+            utils.executeHooksWithArgs.mockImplementationOnce(async () => { throw new Error('afterTest exploded') })
+            await expect(hooks.aroundEach(vi.fn(), task(true))).rejects.toThrow('no window')
+            expect(logs.error).toHaveBeenCalledWith('afterTest failed after the concurrent test could not start:', expect.objectContaining({ message: 'afterTest exploded' }))
         })
 
         it('runs afterTest without a window when the browser cannot run concurrent tests', async () => {
