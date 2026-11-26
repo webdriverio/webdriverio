@@ -5,6 +5,7 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 ## Sub-features
 
 - `example-standalone` starts Chrome headless through `remote()` and prints the loaded URL.
+- `example-css-custom-properties` reads CSS custom properties unchanged in Classic, BiDi and experimental BiDi sessions, including pseudo-elements and held frames.
 - `example-mocha` runs the Mocha testrunner against Chrome and asserts the WebdriverIO docs title.
 - `example-pageobject` runs a page-object suite against a real login form in Chrome.
 - `example-frameworks` runs the Jasmine, Cucumber, multi-remote, custom reporter, and custom service testrunner examples.
@@ -13,6 +14,7 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 ## How to get to it (user POV)
 
 - Standalone script: `examples/standalone/sample.js`
+- CSS custom properties: `node examples/standalone/cssCustomProperties.js`
 - Testrunner examples, from `examples/wdio`: `pnpm run test:mocha`, `test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`
 - Page objects: `examples/pageobject` then `pnpm run test`
 - BiDi scripts: `examples/bidi/logging.js`, `examples/bidi/scripting.js`, `examples/bidi/multiremote-mock.js`, and `examples/bidi/history.js` (Chrome with `webSocketUrl: true`)
@@ -27,6 +29,7 @@ Preconditions:
 - The machine can reach the URL the script opens.
 
 - **Standalone Chrome.** Run `cd examples/standalone && node sample.js`. Exit 0 and stdout contains `https://webdriver.io/`. The script deletes the session. A thrown error prints `Something went wrong:` and still deletes the session; that is a failure.
+- **CSS custom properties.** Run `node examples/standalone/cssCustomProperties.js`. Exit 0 and stdout contains `PASS classic:`, `PASS bidi:`, `PASS bidi-experimental:`, `PASS bidi held frame:` and `PASS bidi-experimental held frame:`. The script compares custom values to the DOM, including case-sensitive names, numeric and color strings, unset properties, `::before` and `::after`, with regular CSS controls. It opens a local `data:` page and deletes each session. Optional `CHROME_BINARY` and `CHROMEDRIVER_BINARY` select local binaries; `CHROME_NO_SANDBOX=1` disables the browser sandbox when the local environment requires it.
 - **Mocha testrunner.** Run `cd examples/wdio && pnpm run test:mocha`. Exit 0. The spec reporter shows the title assertion passing. `onPrepare` prints `let's go` and `onComplete` prints `that's it`.
 - **Page objects.** Run `cd examples/pageobject && pnpm run test`. Exit 0. Specs assert `Your username is invalid!` and `You logged into a secure area!` on `http://the-internet.herokuapp.com`.
 - **Other testrunner examples.** Run the matching script from `examples/wdio/package.json` (`test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`). Exit 0 and the spec reporter shows passing tests.
