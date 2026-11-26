@@ -9,6 +9,8 @@ $ npm run test:mocha
 $ npm run test:jasmine
 # cucumber tests
 $ npm run test:cucumber
+# vitest tests
+$ npm run test:vitest
 # testsuite with multi-remote
 $ npm run test:multi-remote
 # test suite with custom reporter

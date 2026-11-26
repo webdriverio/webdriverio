@@ -126,7 +126,7 @@ From the structural side, it makes sense to separate spec files and page objects
 
 ## Page Objects As Fixtures
 
-With the [Vitest framework](frameworks#using-vitest) you can hand page objects to your tests as [Vitest fixtures](https://vitest.dev/guide/test-context.html#test-extend) instead of importing a shared instance. Each test then gets a fresh page object, declares in its signature which pages it needs, and can rely on setup and teardown (open the page, log in, log out) that the fixture runs around it. Mocha, Jasmine and Cucumber have no fixtures, so keep using exported instances there.
+With the [Vitest framework](vitest-framework) you can hand page objects to your tests as [Vitest fixtures](https://vitest.dev/guide/test-context.html#test-extend) instead of importing a shared instance. Each test then gets a fresh page object, declares in its signature which pages it needs, and can rely on setup and teardown (open the page, log in, log out) that the fixture runs around it. Mocha, Jasmine and Cucumber have no fixtures, so keep using exported instances there.
 
 Export the class next to the instance, so a fixture can create its own object:
 
@@ -225,7 +225,7 @@ describe('login form', () => {
 })
 ```
 
-`expect` is the global WebdriverIO assertion library. Don't import it from `vitest` (see [Using Vitest](frameworks#using-vitest)).
+`expect` is the global WebdriverIO assertion library. Don't import it from `vitest` (see [Globals and TypeScript](vitest-framework#globals-and-typescript)).
 
 Fixtures also work with `test.concurrent`. Fixture setup and teardown run inside the test, so their commands target the test's own window. Use `parallelMode: 'userContexts'` for fixtures that log in, because with `'contexts'` all concurrent tests share cookies, and one test's logout would end the others' sessions:
 

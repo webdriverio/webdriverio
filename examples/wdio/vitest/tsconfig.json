@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ES2024",
+        "lib": ["es2024", "dom"],
+        "strict": false,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "types": ["node", "@wdio/globals/types", "@wdio/vitest-framework"]
+    },
+    "include": ["./**/*.ts"]
+}
