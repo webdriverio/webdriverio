@@ -275,6 +275,9 @@ describe('elements', () => {
             const scopedRejected = Promise.reject(new Error('scoped early boom'))
             await expect(parent.$$([scopedRejected])).rejects.toThrow('scoped early boom')
 
+            const chainedRejected = Promise.reject(new Error('chained early boom'))
+            await expect(browser.$('#foo').$$([chainedRejected])).rejects.toThrow('chained early boom')
+
             await new Promise((resolve) => setTimeout(resolve, 40))
             expect(unhandled).toEqual([])
             expect(beforeCommand).toHaveBeenCalled()
@@ -291,6 +294,17 @@ describe('elements', () => {
         const resolved = await wrappedPending
         expect(resolved).toHaveLength(3)
         expect(fetch).toHaveBeenCalled()
+
+        vi.mocked(fetch).mockClear()
+        const chainedLazyInner = browser.$$('.foo')
+        const chainedLazyOuter = browser.$('#foo').$$(chainedLazyInner as unknown as WebdriverIO.Element[])
+        await new Promise((resolve) => setTimeout(resolve, 60))
+        const elementsCallsBeforeAwait = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/elements'))
+        expect(elementsCallsBeforeAwait).toHaveLength(0)
+        const resolvedChainedLazy = await chainedLazyOuter
+        expect(resolvedChainedLazy).toHaveLength(3)
+        const elementsCallsAfterAwait = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/elements'))
+        expect(elementsCallsAfterAwait.length).toBeGreaterThan(0)
     })
 
     it('supports element-scoped and chained $$ with ChainablePromiseElement arrays and mixed HTMLElements', async () => {

@@ -1,10 +1,9 @@
 import type { ElementReference } from '@wdio/protocols'
-import { WDIO_KIND } from '@wdio/utils'
 
 import { findElements, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
-import { ElementArray, normalizeSelector } from '../../element/array.js'
+import { ElementArray, normalizeSelector, observePendingSelectorRejections } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { ChainablePromiseElement, Selector } from '../../types.js'
 
@@ -14,40 +13,6 @@ type ElementArraySelectorItem =
     | ChainablePromiseElement
     | PromiseLike<WebdriverIO.Element>
     | HTMLElement
-
-const NOOP = () => {}
-
-/**
- * Attach no-op rejection observers synchronously to already-in-flight thenables
- * passed to `$$([...])` so a fast rejection during an async `beforeCommand` hook
- * (before `ElementArray`'s lazy loader starts) cannot trigger an unhandled
- * rejection in Node.js. Skip pending `ElementArray` instances so lazy queries
- * are not triggered eagerly.
- */
-function isElementArrayLike (value: unknown): boolean {
-    return Boolean(value && (value as Record<symbol, unknown>)[WDIO_KIND] === 'element-array')
-}
-
-function observePendingRejections (selector: Selector | ElementArraySelectorItem[]) {
-    if (!Array.isArray(selector)) {
-        return
-    }
-    if (typeof (selector as { then?: unknown }).then === 'function') {
-        if (!isElementArrayLike(selector)) {
-            ;(selector as unknown as PromiseLike<unknown>).then(NOOP, NOOP)
-        }
-        return
-    }
-    Array.prototype.forEach.call(selector, (item: unknown) => {
-        if (
-            item &&
-            typeof (item as { then?: unknown }).then === 'function' &&
-            !isElementArrayLike(item)
-        ) {
-            ;(item as PromiseLike<unknown>).then(NOOP, NOOP)
-        }
-    })
-}
 
 /**
  * `$$` fetches every element that matches a selector. It returns a `WebdriverIO.ElementArray`
@@ -161,7 +126,7 @@ export function $$ (
         props: []
     }
 
-    observePendingRejections(selector)
+    observePendingSelectorRejections(selector)
 
     return ElementArray.fromAsyncCallback(async () => {
         /**
