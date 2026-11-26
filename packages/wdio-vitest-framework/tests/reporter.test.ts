@@ -293,15 +293,70 @@ describe('WdioBridgeReporter', () => {
     })
 
     it('finishes a module whose worker died when the run ends, with runner:end and job:end', async () => {
-        const module = makeModule({ state: () => 'pending' })
+        const module = makeModule({ state: () => 'failed' })
         const s = makeSuite(module, module, 'killed')
         reporter.onTestModuleStart(module)
         await reporter.onTestSuiteReady(s)
         await reporter.onTestCaseReady(makeTest(module, s, 'dies', { state: 'pending' }))
-        await reporter.onTestRunEnd()
-        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:pending', 'test:end', 'suite:end', 'runner:end']))
+        await reporter.onTestRunEnd([module], [], 'failed')
+        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:fail', 'test:end', 'suite:end', 'runner:end']))
+        expect(names(emittedOf())).not.toContain('test:pending')
         expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('reports a test that never became ready as failed with the worker error when the run ends', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        const s = makeSuite(module, module, 'killed')
+        makeTest(module, s, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [{ name: 'Error', message: '[vitest-pool]: Worker forks emitted error.' }] as any, 'failed')
+
+        expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:fail', 'test:end', 'suite:end', 'runner:end'])
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('names the worker exit when the run ends without an error message', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        makeTest(module, module, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [], 'failed')
+
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: 'The worker exited before the test finished' })
+    })
+
+    it('reports a ready test of a crashed worker with the worker error, not the module error', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'module error' }] })
+        const s = makeSuite(module, module, 'killed')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'dies', passed))
+        await reporter.onTestRunEnd([module], [{ name: 'Error', message: '[vitest-pool]: Worker forks emitted error.' }] as any, 'failed')
+
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
+    })
+
+    it('leaves a test that never became ready unreported when the run is interrupted', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        makeTest(module, module, 'never ran', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [], 'interrupted')
+
+        expect(names(emittedOf()).filter((name) => name.startsWith('test:'))).toEqual([])
+        expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+    })
+
+    it('keeps a ready test pending when the run is interrupted', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const s = makeSuite(module, module, 's')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'cut short', passed))
+        await reporter.onTestRunEnd([module], [], 'interrupted')
+
+        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:pending']))
+        expect(names(emittedOf())).not.toContain('test:fail')
     })
 
     it('does not finish a module twice when its module end and the run end both come', async () => {
@@ -344,6 +399,42 @@ describe('WdioBridgeReporter', () => {
         expect(nestedEnd).toBeGreaterThan(-1)
         expect(nestedEnd).toBeLessThan(afterStart)
         expect(emitted[afterStart][1]).toMatchObject({ parent: 'outer', fullTitle: 'outer after' })
+    })
+
+    it('keeps a describe.concurrent suite open while a sibling suite still has a test in flight', async () => {
+        const module = makeModule()
+        const top = makeSuite(module, module, 'Top')
+        const a = makeSuite(module, top, 'A')
+        const b = makeSuite(module, top, 'B')
+        const a1 = makeTest(module, a, 'a1', passed)
+        const a2 = makeTest(module, a, 'a2', passed)
+        const b1 = makeTest(module, b, 'b1', passed)
+        const b2 = makeTest(module, b, 'b2', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(top)
+        await reporter.onTestSuiteReady(a)
+        await reporter.onTestCaseReady(a1)
+        await reporter.onTestSuiteReady(b)
+        await reporter.onTestCaseReady(b1)
+        await reporter.onTestCaseResult(a1)
+        await reporter.onTestCaseReady(a2)
+        await reporter.onTestCaseResult(b1)
+        await reporter.onTestCaseReady(b2)
+        await reporter.onTestCaseResult(a2)
+        await reporter.onTestSuiteResult(a)
+        await reporter.onTestCaseResult(b2)
+        await reporter.onTestSuiteResult(b)
+        await reporter.onTestSuiteResult(top)
+
+        const emitted = emittedOf()
+        const topUid = emitted.find(([name, payload]) => name === 'suite:start' && payload.title === 'Top')![1].uid
+        for (const title of ['A', 'B']) {
+            expect(emitted.filter(([name, payload]) => name === 'suite:start' && payload.title === title)).toHaveLength(1)
+            const end = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === title)
+            const lastTestEnd = emitted.findLastIndex(([name, payload]) => name === 'test:end' && payload.parent === title)
+            expect(end).toBeGreaterThan(lastTestEnd)
+        }
+        expect(emitted.filter(([name, payload]) => name === 'suite:start' && payload.title !== 'Top').map(([, payload]) => payload.parentUid)).toEqual([topUid, topUid])
     })
 
     it('joins the describe chain of a failing hook with dots, as the Mocha fullTitle does', async () => {

@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs'
 import logger from '@wdio/logger'
 import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
-import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
+import type { Reporter, ReportedHookContext, TestCase, TestModule, TestRunEndReason, TestSuite } from 'vitest/node'
 
 import { ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
 
@@ -15,7 +15,7 @@ const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporte
 type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
 type AllHookName = Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
-type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
+type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown>, enclosing: Set<string> }
 
 type ModuleRun = {
     cid: string
@@ -35,6 +35,7 @@ type ModuleRun = {
     hookCount: number
     testCount: number
     entities: Map<string, Open>
+    reported: Set<string>
     // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
     runningHooks: Map<string, Set<AllHookName>>
     wrapper?: Titled
@@ -140,6 +141,7 @@ export class WdioBridgeReporter implements Reporter {
         return run && this.#enqueue(run, () => this.#inContext(testCase, () => {
             const base = this.#openTest(run, testCase)
             run.entities.delete(testCase.id)
+            run.reported.add(testCase.id)
             const result = testCase.result()
             const diagnostic = testCase.diagnostic()
             const attempts = this.#attempts(testCase)
@@ -202,9 +204,11 @@ export class WdioBridgeReporter implements Reporter {
         return done.finally(() => this.#pending.delete(done))
     }
 
-    async onTestRunEnd() {
+    async onTestRunEnd(_testModules: ReadonlyArray<TestModule>, unhandledErrors: ReadonlyArray<TestError>, reason: TestRunEndReason) {
         await Promise.all(this.#pending)
-        await Promise.all([...this.#runs.values()].map((run) => this.#finish(run, run.module).catch((err) => this.#fail(run, err))))
+        await Promise.all([...this.#runs.values()].map((run) => this.#enqueue(run, () => this.#failUnfinished(run, unhandledErrors, reason))
+            .then(() => this.#finish(run, run.module))
+            .catch((err) => this.#fail(run, err))))
     }
 
     #tryRun(testModule: TestModule) {
@@ -227,7 +231,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, module: testModule, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
+            cid, module: testModule, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), reported: new Set(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
@@ -403,9 +407,11 @@ export class WdioBridgeReporter implements Reporter {
         return ids
     }
 
-    // Vitest sends no ready or result event for a describe under a failed beforeAll, so the suites of the previous test stay open
+    // Vitest sends no ready or result event for a describe under a failed beforeAll, so the suites of the previous test stay open.
+    // A describe.concurrent sibling can still have a test in flight under a suite that is no ancestor of the new entity.
     #closeSuitesOutside(run: ModuleRun, keep: Set<string>) {
-        const stale = [...run.entities].filter(([id, { kind }]) => kind === 'suite' && !keep.has(id)).reverse()
+        const busy = new Set([...run.entities.values()].flatMap(({ kind, enclosing }) => kind === 'test' ? [...enclosing] : []))
+        const stale = [...run.entities].filter(([id, { kind }]) => kind === 'suite' && !keep.has(id) && !busy.has(id)).reverse()
         for (const [id, { payload }] of stale) {
             this.#emit(run, 'suite:end', payload)
             run.entities.delete(id)
@@ -418,14 +424,15 @@ export class WdioBridgeReporter implements Reporter {
         if (known) {
             return known
         }
-        this.#closeSuitesOutside(run, this.#suiteAncestors(testSuite.parent))
+        const enclosing = this.#suiteAncestors(testSuite.parent)
+        this.#closeSuitesOutside(run, enclosing)
         if (testSuite.parent.type !== 'suite') {
             this.#closeWrapper(run)
         }
         const parent = testSuite.parent.type === 'suite' ? this.#parent(run, testSuite.parent) : undefined
         const titled = { uid: `suite-${run.cid}-${run.suiteCount++}`, title: testSuite.name, fullTitle: join(parent?.fullTitle ?? '', testSuite.name) }
         const payload = this.#suitePayload(run, testSuite, titled)
-        const suite: Open = { ...titled, kind: 'suite', payload }
+        const suite: Open = { ...titled, kind: 'suite', payload, enclosing }
         run.entities.set(testSuite.id, suite)
         this.#emit(run, 'suite:start', payload)
         return suite
@@ -434,14 +441,15 @@ export class WdioBridgeReporter implements Reporter {
     #openTest(run: ModuleRun, testCase: TestCase) {
         this.#ensureStarted(run, testCase.module)
         const known = run.entities.get(testCase.id)
+        const enclosing = this.#suiteAncestors(testCase.parent)
         if (!known) {
-            this.#closeSuitesOutside(run, this.#suiteAncestors(testCase.parent))
+            this.#closeSuitesOutside(run, enclosing)
         }
         const parent = this.#parent(run, testCase.parent)
         const test = known ?? { uid: `test-${run.cid}-${run.testCount++}`, title: testCase.name, fullTitle: join(parent.fullTitle, testCase.name) }
         const base = { uid: test.uid, title: test.title, fullTitle: test.fullTitle, parent: parent.title, parentUid: parent.uid, ...(this.#hasLanes(testCase.module) && { contextId: testCase.id }) }
         if (!known) {
-            run.entities.set(testCase.id, { ...test, kind: 'test', payload: base })
+            run.entities.set(testCase.id, { ...test, kind: 'test', payload: base, enclosing })
             this.#emit(run, 'test:start', base)
         }
         return base
@@ -507,6 +515,29 @@ export class WdioBridgeReporter implements Reporter {
             }
         }
         run.entities.clear()
+    }
+
+    // Vitest reports 'failed' when a worker crashed. Other reasons keep #closeUnfinished's output, which skips tests that never became ready.
+    #failUnfinished(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>, reason: TestRunEndReason) {
+        if (reason !== 'failed') {
+            return
+        }
+        const message = unhandledErrors[0]?.message ?? 'The worker exited before the test finished'
+        for (const testCase of run.module.children.allTests()) {
+            if (run.reported.has(testCase.id)) {
+                continue
+            }
+            this.#inContext(testCase, () => {
+                const base = this.#openTest(run, testCase)
+                this.#discardFiles(this.#relayedEntries(testCase))
+                run.entities.delete(testCase.id)
+                run.reported.add(testCase.id)
+                run.failedTests++
+                const error = toErrorPayload({ message })
+                this.#emit(run, 'test:fail', { ...base, duration: 0, error })
+                this.#emit(run, 'test:end', { ...base, duration: 0, passed: false, error })
+            })
+        }
     }
 
     async #finish(run: ModuleRun, testModule: TestModule) {
