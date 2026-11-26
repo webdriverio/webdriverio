@@ -252,6 +252,44 @@ describe('elements', () => {
         }
     })
 
+    it('prevents unhandled rejections while async beforeCommand hooks run and preserves lazy ElementArray inputs', async () => {
+        const beforeCommand = vi.fn(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 25))
+        })
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            },
+            beforeCommand: [beforeCommand]
+        })
+
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+        process.on('unhandledRejection', onUnhandled)
+        try {
+            const rejectedItem = Promise.reject(new Error('early boom'))
+            await expect(browser.$$([rejectedItem])).rejects.toThrow('early boom')
+
+            const parent = await browser.$('#foo')
+            const scopedRejected = Promise.reject(new Error('scoped early boom'))
+            await expect(parent.$$([scopedRejected])).rejects.toThrow('scoped early boom')
+
+            await new Promise((resolve) => setTimeout(resolve, 40))
+            expect(unhandled).toEqual([])
+            expect(beforeCommand).toHaveBeenCalled()
+        } finally {
+            process.off('unhandledRejection', onUnhandled)
+        }
+
+        vi.mocked(fetch).mockClear()
+        const lazyPending = browser.$$('.foo')
+        const wrappedPending = browser.$$(lazyPending as unknown as WebdriverIO.Element[])
+        expect(fetch).not.toHaveBeenCalled()
+        const resolved = await wrappedPending
+        expect(resolved).toHaveLength(3)
+    })
+
     it('supports element-scoped and chained $$ with ChainablePromiseElement arrays and mixed HTMLElements', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
