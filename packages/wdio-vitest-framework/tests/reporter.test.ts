@@ -182,6 +182,20 @@ describe('WdioBridgeReporter', () => {
         expect(emittedOf().find(([name]) => name === 'test:pass')![1]).toMatchObject({ start: 1000, end: 1200, duration: 200 })
     })
 
+    it('reports the afterEach of a test.fails that passed as passed, without an error', async () => {
+        const marker = { start: 1, end: 2, state: 'passed', hooks: { afterEach: { state: 'fail', error: { message: 'after boom' } } } }
+        const module = makeModule()
+        const expected = makeTest(module, makeSuite(module, module, 's'), 'fails', passed, 10, { options: { concurrent: false, fails: true }, meta: () => ({ 'wdio:runtime': [{ event: 'wdio:attempt', payload: marker, retry: 0 }] }) })
+        await runTests(module, expected)
+        await reporter.onTestModuleEnd(module)
+
+        const hookEnd = emittedOf().find(([name, payload]) => name === 'hook:end' && payload.hookKind === 'afterEach')![1]
+        expect(hookEnd).toMatchObject({ state: 'pass' })
+        expect(hookEnd.error).toBeUndefined()
+        expect(names(emittedOf())).not.toContain('test:fail')
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: true })
+    })
+
     it('emits test:start when the test becomes ready, before its result exists', async () => {
         const module = makeModule()
         const test = makeTest(module, module, 'alone', passed, 3)

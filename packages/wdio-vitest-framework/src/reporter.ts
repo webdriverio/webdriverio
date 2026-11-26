@@ -54,6 +54,7 @@ const withHookErrors = (error: ReturnType<typeof toErrorPayload>, marker?: Attem
     }
     return errors.length > 1 ? { error, errors } : { error }
 }
+type HookFlags = { retried?: boolean, testFailed?: boolean, expectedFailure?: boolean }
 const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
 const HOOK_TITLES: Record<AttemptHookKind, string> = { beforeEach: 'before each', afterEach: 'after each' }
@@ -148,20 +149,20 @@ export class WdioBridgeReporter implements Reporter {
                 if (attempt > 0) {
                     this.#emit(run, 'test:start', { ...retryBase, retries: attempt })
                 }
-                this.#emitHook(run, retryBase, 'beforeEach', marker, true, true)
+                this.#emitHook(run, retryBase, 'beforeEach', marker, { retried: true, testFailed: true })
                 this.#replay(run, calls)
                 const times = marker ? { start: marker.start, end: marker.end } : {}
                 this.#emit(run, 'test:retry', {
                     ...retryBase, ...times, duration: marker ? marker.end - marker.start : 0, pending: false,
                     ...withHookErrors(toErrorPayload(marker?.error ?? { message: 'test failed' }), marker)
                 })
-                this.#emitHook(run, retryBase, 'afterEach', marker, true, true)
+                this.#emitHook(run, retryBase, 'afterEach', marker, { retried: true, testFailed: true })
             })
             const last = this.#attemptBase(base, finalAttempt)
             if (finalAttempt > 0) {
                 this.#emit(run, 'test:start', { ...last, retries: finalAttempt })
             }
-            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker, false, result.state === 'failed')
+            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker, { testFailed: result.state === 'failed' })
             this.#replay(run, attempts[finalAttempt].calls)
             // diagnostic() spans every attempt, so the final attempt's marker times the test whenever the worker wrote one
             const finalMarker = attempts[finalAttempt].marker
@@ -183,7 +184,7 @@ export class WdioBridgeReporter implements Reporter {
                 this.#emit(run, 'test:pending', { ...last, ...times, duration, pending: true })
                 this.#emit(run, 'test:end', { ...last, duration, passed: false, pending: true })
             }
-            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker, false, result.state === 'failed')
+            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker, { testFailed: result.state === 'failed', expectedFailure: testCase.options.fails && result.state === 'passed' })
             if (typeof last.contextId === 'string') {
                 this.#emit(run, 'context:end', { type: 'context:end', cid: run.cid, uid: last.uid, contextId: last.contextId })
             }
@@ -292,11 +293,13 @@ export class WdioBridgeReporter implements Reporter {
     }
 
     // The worker reports one outcome per hook kind and attempt, not one per registered hook
-    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker?: AttemptMarker, retried = false, testFailed = false) {
+    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker: AttemptMarker | undefined, { retried = false, testFailed = false, expectedFailure = false }: HookFlags) {
         const outcome = marker?.hooks?.[kind]
         if (!outcome) {
             return
         }
+        // A test.fails that passed is an expected failure, so a hook that threw in it did not fail the test
+        const failed = outcome.state === 'fail' && !expectedFailure
         const title = `"${HOOK_TITLES[kind]}" hook for "${test.title}"`
         const testParent = test.fullTitle === test.title ? '' : test.fullTitle.slice(0, -(test.title.length + 1))
         const base = {
@@ -307,12 +310,12 @@ export class WdioBridgeReporter implements Reporter {
             hookKind: kind,
             ...(retried && { retried }),
             // the test (attempt) failed with this error: reporters show the hook, but do not count it again
-            ...(outcome.state === 'fail' && testFailed && { failedTestUid: test.uid })
+            ...(failed && testFailed && { failedTestUid: test.uid })
         }
-        const error = outcome.state === 'fail' ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
+        const error = failed ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
         this.#emit(run, 'hook:start', { ...base, type: 'hook:start', cid: run.cid })
         this.#emit(run, 'hook:end', {
-            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: outcome.state,
+            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: failed ? 'fail' : 'pass',
             ...(error && { error: toErrorPayload(error) })
         })
     }
