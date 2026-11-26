@@ -27,7 +27,9 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('node:fs', () => ({
     default: {
-        createWriteStream: vi.fn()
+        createWriteStream: vi.fn(),
+        openSync: vi.fn().mockReturnValue(42),
+        closeSync: vi.fn()
     }
 }))
 
@@ -965,6 +967,102 @@ describe('startWebDriver', () => {
             const options: any = { capabilities: { browserName: 'chrome' } }
             await startWebDriver(options)
             expect(userDataDirArgs(options.capabilities)).toEqual([])
+        })
+    })
+
+    describe('watch mode driver lifecycle', () => {
+        beforeEach(() => {
+            vi.stubEnv('WDIO_WATCH_MODE', '1')
+            vi.mocked(split2).mockClear()
+            vi.mocked(fs.openSync).mockClear()
+            vi.mocked(fs.closeSync).mockClear()
+            vi.mocked(startSafaridriver).mockClear()
+        })
+
+        it('spawns chromedriver detached with ignored stdio and unrefs it in watch mode', async () => {
+            const unref = vi.fn()
+            const kill = vi.fn()
+            vi.mocked(cp.spawn).mockReturnValueOnce({ stdout: null, stderr: null, unref, kill } as any)
+
+            const options: any = { capabilities: { browserName: 'chrome' } }
+            await startWebDriver(options)
+
+            expect(cp.spawn).toHaveBeenCalledWith(
+                '/foo/bar/executable',
+                expect.any(Array),
+                expect.objectContaining({
+                    detached: true,
+                    windowsHide: true,
+                    stdio: 'ignore',
+                    env: expect.objectContaining({ NODE_OPTIONS: '' })
+                })
+            )
+            expect(split2).not.toHaveBeenCalled()
+            expect(fs.createWriteStream).not.toHaveBeenCalled()
+            expect(unref).toHaveBeenCalledTimes(1)
+        })
+
+        it('redirects detached driver stdio directly to a log file descriptor when outputDir is set', async () => {
+            const unref = vi.fn()
+            vi.mocked(cp.spawn).mockReturnValueOnce({ stdout: null, stderr: null, unref } as any)
+
+            const options: any = {
+                outputDir: '/foo/bar',
+                capabilities: { browserName: 'chrome' }
+            }
+            await startWebDriver(options)
+
+            expect(fs.openSync).toHaveBeenCalledWith(expect.stringContaining('wdio-chromedriver-1234.log'), 'w')
+            expect(cp.spawn).toHaveBeenCalledWith(
+                '/foo/bar/executable',
+                expect.any(Array),
+                expect.objectContaining({
+                    detached: true,
+                    windowsHide: true,
+                    stdio: ['ignore', 42, 42]
+                })
+            )
+            expect(fs.closeSync).toHaveBeenCalledWith(42)
+            expect(fs.createWriteStream).not.toHaveBeenCalled()
+            expect(unref).toHaveBeenCalledTimes(1)
+        })
+
+        it('passes detached spawnOpts to geckodriver, edgedriver, and safaridriver in watch mode', async () => {
+            const geckoUnref = vi.fn()
+            vi.mocked(startGeckodriver).mockResolvedValueOnce({ stdout: null, stderr: null, unref: geckoUnref } as any)
+            await startWebDriver({ capabilities: { browserName: 'firefox' } } as any)
+            expect(startGeckodriver).toHaveBeenCalledWith(expect.objectContaining({
+                spawnOpts: { detached: true, windowsHide: true, stdio: 'ignore' }
+            }))
+            expect(geckoUnref).toHaveBeenCalledTimes(1)
+
+            const edgeUnref = vi.fn()
+            vi.mocked(startEdgedriver).mockResolvedValueOnce({ stdout: null, stderr: null, unref: edgeUnref } as any)
+            await startWebDriver({ capabilities: { browserName: 'edge' } } as any)
+            expect(startEdgedriver).toHaveBeenCalledWith(expect.objectContaining({
+                spawnOpts: { detached: true, windowsHide: true, stdio: 'ignore' }
+            }))
+            expect(edgeUnref).toHaveBeenCalledTimes(1)
+
+            const safariUnref = vi.fn()
+            vi.mocked(startSafaridriver).mockReturnValueOnce({ stdout: null, stderr: null, unref: safariUnref } as any)
+            await startWebDriver({ capabilities: { browserName: 'safari' } } as any)
+            expect(startSafaridriver).toHaveBeenCalledWith(expect.objectContaining({
+                spawnOpts: { detached: true, windowsHide: true, stdio: 'ignore' }
+            }))
+            expect(safariUnref).toHaveBeenCalledTimes(1)
+        })
+
+        it('kills the detached driver process if waitPort times out', async () => {
+            const kill = vi.fn()
+            const unref = vi.fn()
+            vi.mocked(cp.spawn).mockReturnValueOnce({ stdout: null, stderr: null, unref, kill } as any)
+            vi.mocked(waitPort).mockRejectedValueOnce(new Error('timeout'))
+
+            await expect(startWebDriver({ capabilities: { browserName: 'chrome' } } as any))
+                .rejects.toThrow('Timed out to connect to Chromedriver')
+            expect(kill).toHaveBeenCalledWith('SIGKILL')
+            expect(unref).not.toHaveBeenCalled()
         })
     })
 })

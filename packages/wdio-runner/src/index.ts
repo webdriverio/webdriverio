@@ -197,6 +197,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
+        this._sessionInitError = undefined
         this._lateErrors = 0
         this._shutdownStarted = false
         this._endWorkerRun = undefined
@@ -621,6 +622,7 @@ export default class Runner extends EventEmitter {
             return
         }
 
+        this._sessionInitError = undefined
         return this._browser
     }
 
@@ -741,8 +743,9 @@ export default class Runner extends EventEmitter {
 
         await this.#closeSessions()
 
-        const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]
-        await executeHooksWithArgs('afterSession', this._config!.afterSession!, afterSessionArgs)
+        const config = this._config ?? payload?.args?.config
+        const afterSessionArgs: AfterSessionArgs = [config!, capabilities, (this._specs ?? payload?.specs) as string[]]
+        await executeHooksWithArgs('afterSession', config?.afterSession ?? [], afterSessionArgs)
     }
 
     /**

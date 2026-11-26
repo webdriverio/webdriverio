@@ -246,7 +246,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
-            NODE_ENV: process.env.NODE_ENV || 'test'
+            NODE_ENV: process.env.NODE_ENV || 'test',
+            ...(this.config.watch ? { WDIO_WATCH_MODE: '1' } : {})
         })
 
         if (this.config.outputDir) {

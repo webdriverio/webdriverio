@@ -153,6 +153,18 @@ describe('WebDriver', () => {
             expect(logger.setLevel).toBeCalled()
         })
 
+        it('kills a spawned driver process if startWebDriverSession fails', async () => {
+            const kill = vi.fn()
+            vi.mocked(startWebDriver).mockResolvedValueOnce({ pid: 4321, kill } as any)
+            vi.spyOn(utils, 'startWebDriverSession').mockRejectedValueOnce(new Error('session start failed'))
+
+            await expect(WebDriver.newSession({
+                capabilities: { browserName: 'chrome' }
+            })).rejects.toThrow('session start failed')
+
+            expect(kill).toHaveBeenCalledWith('SIGKILL')
+        })
+
         it('propagates capabilities and requestedCapabilities', async () => {
             const browser = await WebDriver.newSession({
                 path: '/',
