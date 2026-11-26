@@ -12,10 +12,10 @@ const log = logger('@wdio/vitest-framework')
 // Vitest's console reporter always prints, so a WDIO console reporter would duplicate the output
 const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporter', '@wdio/dot-reporter', '@wdio/concise-reporter'])
 
-type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
+type TestError = { name?: string, message: string, stack?: string, cause?: unknown, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
 type AllHookName = Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
-type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown>, enclosing: Set<string> }
+type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown>, enclosing: Set<string>, implicit?: boolean }
 
 type ModuleRun = {
     cid: string
@@ -97,13 +97,13 @@ export class WdioBridgeReporter implements Reporter {
 
     onTestSuiteReady(testSuite: TestSuite) {
         const run = this.#tryRun(testSuite.module)
-        return run && this.#enqueue(run, () => this.#openSuite(run, testSuite))
+        return run && this.#enqueue(run, () => this.#openSuite(run, testSuite, false))
     }
 
     onTestSuiteResult(testSuite: TestSuite) {
         const run = this.#tryRun(testSuite.module)
         return run && this.#enqueue(run, () => {
-            const suite = this.#openSuite(run, testSuite)
+            const suite = this.#openSuite(run, testSuite, false)
             this.#emitFailedHook(run, testSuite, suite, testSuite.name)
             run.entities.delete(testSuite.id)
             this.#emit(run, 'suite:end', this.#suitePayload(run, testSuite, suite))
@@ -204,9 +204,9 @@ export class WdioBridgeReporter implements Reporter {
         return done.finally(() => this.#pending.delete(done))
     }
 
-    async onTestRunEnd(_testModules: ReadonlyArray<TestModule>, unhandledErrors: ReadonlyArray<TestError>, reason: TestRunEndReason) {
+    async onTestRunEnd(_testModules: ReadonlyArray<TestModule>, unhandledErrors: ReadonlyArray<TestError>, _reason: TestRunEndReason) {
         await Promise.all(this.#pending)
-        await Promise.all([...this.#runs.values()].map((run) => this.#enqueue(run, () => this.#failUnfinished(run, unhandledErrors, reason))
+        await Promise.all([...this.#runs.values()].map((run) => this.#enqueue(run, () => this.#failUnfinished(run, unhandledErrors))
             .then(() => this.#finish(run, run.module))
             .catch((err) => this.#fail(run, err))))
     }
@@ -377,7 +377,7 @@ export class WdioBridgeReporter implements Reporter {
 
     #parent(run: ModuleRun, parent: TestSuite | TestModule): Titled {
         if (parent.type === 'suite') {
-            return this.#openSuite(run, parent)
+            return this.#openSuite(run, parent, true)
         }
         if (!run.wrapper) {
             const title = parent.relativeModuleId
@@ -409,16 +409,17 @@ export class WdioBridgeReporter implements Reporter {
 
     // Vitest sends no ready or result event for a describe under a failed beforeAll, so the suites of the previous test stay open.
     // A describe.concurrent sibling can still have a test in flight under a suite that is no ancestor of the new entity.
+    // Only suites that were never announced are closed here; an announced suite closes on its result.
     #closeSuitesOutside(run: ModuleRun, keep: Set<string>) {
         const busy = new Set([...run.entities.values()].flatMap(({ kind, enclosing }) => kind === 'test' ? [...enclosing] : []))
-        const stale = [...run.entities].filter(([id, { kind }]) => kind === 'suite' && !keep.has(id) && !busy.has(id)).reverse()
+        const stale = [...run.entities].filter(([id, { kind, implicit }]) => kind === 'suite' && implicit && !keep.has(id) && !busy.has(id)).reverse()
         for (const [id, { payload }] of stale) {
             this.#emit(run, 'suite:end', payload)
             run.entities.delete(id)
         }
     }
 
-    #openSuite(run: ModuleRun, testSuite: TestSuite): Titled {
+    #openSuite(run: ModuleRun, testSuite: TestSuite, implicit: boolean): Titled {
         this.#ensureStarted(run, testSuite.module)
         const known = run.entities.get(testSuite.id)
         if (known) {
@@ -426,13 +427,14 @@ export class WdioBridgeReporter implements Reporter {
         }
         const enclosing = this.#suiteAncestors(testSuite.parent)
         this.#closeSuitesOutside(run, enclosing)
-        if (testSuite.parent.type !== 'suite') {
+        // A top-level test still in flight belongs to the wrapper
+        if (testSuite.parent.type !== 'suite' && ![...run.entities.values()].some(({ kind, enclosing }) => kind === 'test' && enclosing.size === 0)) {
             this.#closeWrapper(run)
         }
         const parent = testSuite.parent.type === 'suite' ? this.#parent(run, testSuite.parent) : undefined
         const titled = { uid: `suite-${run.cid}-${run.suiteCount++}`, title: testSuite.name, fullTitle: join(parent?.fullTitle ?? '', testSuite.name) }
         const payload = this.#suitePayload(run, testSuite, titled)
-        const suite: Open = { ...titled, kind: 'suite', payload, enclosing }
+        const suite: Open = { ...titled, kind: 'suite', payload, enclosing, implicit }
         run.entities.set(testSuite.id, suite)
         this.#emit(run, 'suite:start', payload)
         return suite
@@ -517,25 +519,31 @@ export class WdioBridgeReporter implements Reporter {
         run.entities.clear()
     }
 
-    // Vitest reports 'failed' when a worker crashed. Other reasons keep #closeUnfinished's output, which skips tests that never became ready.
-    #failUnfinished(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>, reason: TestRunEndReason) {
-        if (reason !== 'failed') {
+    // A worker exit names the crashed spec file in the cause; without a match the run end keeps #closeUnfinished's output
+    #workerExit(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>) {
+        return unhandledErrors.find((error) => [error.message, (error.cause as TestError | undefined)?.message]
+            .some((text) => text?.includes('Worker exited unexpectedly') && text.includes(run.module.moduleId)))
+    }
+
+    #failUnfinished(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>) {
+        const exit = this.#workerExit(run, unhandledErrors)
+        if (!exit) {
             return
         }
-        const message = unhandledErrors[0]?.message ?? 'The worker exited before the test finished'
+        const message = exit.message || 'The worker exited before the test finished'
         for (const testCase of run.module.children.allTests()) {
-            if (run.reported.has(testCase.id)) {
+            if (run.reported.has(testCase.id) || testCase.result().state === 'skipped') {
                 continue
             }
             this.#inContext(testCase, () => {
                 const base = this.#openTest(run, testCase)
                 this.#discardFiles(this.#relayedEntries(testCase))
                 run.entities.delete(testCase.id)
-                run.reported.add(testCase.id)
                 run.failedTests++
                 const error = toErrorPayload({ message })
                 this.#emit(run, 'test:fail', { ...base, duration: 0, error })
                 this.#emit(run, 'test:end', { ...base, duration: 0, passed: false, error })
+                run.reported.add(testCase.id)
             })
         }
     }

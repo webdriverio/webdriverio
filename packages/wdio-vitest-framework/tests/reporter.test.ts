@@ -83,6 +83,10 @@ const makeTest = (module: any, parent: any, name: string, result: Result, durati
 })
 
 const config = { reporters: ['junit'] } as WebdriverIO.Config
+const workerExit = (moduleId: string) => ({
+    name: 'Error', message: '[vitest-pool]: Worker forks emitted error.',
+    cause: { name: 'Error', message: `Worker exited unexpectedly with signal SIGKILL during started state while running test file ${moduleId}` }
+})
 
 describe('WdioBridgeReporter', () => {
     let events: any[]
@@ -310,7 +314,7 @@ describe('WdioBridgeReporter', () => {
         const s = makeSuite(module, module, 'killed')
         makeTest(module, s, 'lost', passed)
         reporter.onTestModuleStart(module)
-        await reporter.onTestRunEnd([module], [{ name: 'Error', message: '[vitest-pool]: Worker forks emitted error.' }] as any, 'failed')
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
 
         expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:fail', 'test:end', 'suite:end', 'runner:end'])
         expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
@@ -321,7 +325,7 @@ describe('WdioBridgeReporter', () => {
         const module = makeModule({ state: () => 'failed', errors: () => [] })
         makeTest(module, module, 'lost', passed)
         reporter.onTestModuleStart(module)
-        await reporter.onTestRunEnd([module], [], 'failed')
+        await reporter.onTestRunEnd([module], [{ ...workerExit(module.moduleId), message: '' }] as any, 'failed')
 
         expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: 'The worker exited before the test finished' })
     })
@@ -332,9 +336,30 @@ describe('WdioBridgeReporter', () => {
         reporter.onTestModuleStart(module)
         await reporter.onTestSuiteReady(s)
         await reporter.onTestCaseReady(makeTest(module, s, 'dies', passed))
-        await reporter.onTestRunEnd([module], [{ name: 'Error', message: '[vitest-pool]: Worker forks emitted error.' }] as any, 'failed')
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
 
         expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
+    })
+
+    it('does not fail the tests of a module when the worker exit belongs to another module', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const untouched = makeTest(module, module, 'untouched', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestCaseReady(untouched)
+        await reporter.onTestRunEnd([module], [workerExit('/repo/other.spec.ts')] as any, 'failed')
+
+        expect(names(emittedOf()).filter((name) => name.startsWith('test:'))).toEqual(['test:start', 'test:pending', 'test:end'])
+    })
+
+    it('does not report skipped tests as failed when the worker exits', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        const s = makeSuite(module, module, 'killed')
+        makeTest(module, s, 'skipped by the test', { state: 'skipped' })
+        makeTest(module, s, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
+
+        expect(emittedOf().filter(([name]) => name === 'test:fail').map(([, payload]) => payload.title)).toEqual(['lost'])
     })
 
     it('leaves a test that never became ready unreported when the run is interrupted', async () => {
@@ -410,21 +435,23 @@ describe('WdioBridgeReporter', () => {
         const a2 = makeTest(module, a, 'a2', passed)
         const b1 = makeTest(module, b, 'b1', passed)
         const b2 = makeTest(module, b, 'b2', passed)
+        // The order Vitest sends for describe.concurrent: every suite is ready before any test starts
         reporter.onTestModuleStart(module)
         await reporter.onTestSuiteReady(top)
         await reporter.onTestSuiteReady(a)
-        await reporter.onTestCaseReady(a1)
         await reporter.onTestSuiteReady(b)
-        await reporter.onTestCaseReady(b1)
-        await reporter.onTestCaseResult(a1)
+        await reporter.onTestCaseReady(a1)
         await reporter.onTestCaseReady(a2)
-        await reporter.onTestCaseResult(b1)
+        await reporter.onTestCaseReady(b1)
         await reporter.onTestCaseReady(b2)
-        await reporter.onTestCaseResult(a2)
-        await reporter.onTestSuiteResult(a)
+        await reporter.onTestCaseResult(b1)
+        await reporter.onTestCaseResult(a1)
         await reporter.onTestCaseResult(b2)
         await reporter.onTestSuiteResult(b)
+        await reporter.onTestCaseResult(a2)
+        await reporter.onTestSuiteResult(a)
         await reporter.onTestSuiteResult(top)
+        await reporter.onTestModuleEnd(module)
 
         const emitted = emittedOf()
         const topUid = emitted.find(([name, payload]) => name === 'suite:start' && payload.title === 'Top')![1].uid
@@ -719,6 +746,26 @@ describe('WdioBridgeReporter', () => {
         expect(emitted.filter(([name]) => name === 'suite:start').map(([, payload]) => payload.parentUid)).toEqual([null, null, null])
         expect(emitted.filter(([name]) => name === 'suite:end').map(([, payload]) => payload.uid)).toEqual(uids)
         expect(emitted.filter(([name]) => name === 'test:start').map(([, payload]) => payload.parentUid)).toEqual(uids)
+    })
+
+    it('keeps the wrapper suite open while a top-level test is in flight when a describe starts', async () => {
+        const module = makeModule()
+        const s = makeSuite(module, module, 'block')
+        const loose = makeTest(module, module, 'loose', passed, 1)
+        const inner = makeTest(module, s, 'inner', passed, 1)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestCaseReady(loose)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(inner)
+        await reporter.onTestCaseResult(inner)
+        await reporter.onTestSuiteResult(s)
+        await reporter.onTestCaseResult(loose)
+        await reporter.onTestModuleEnd(module)
+
+        const emitted = emittedOf()
+        const looseEnd = emitted.findIndex(([name, payload]) => name === 'test:end' && payload.title === 'loose')
+        const wrapperEnd = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === 'a.spec.ts')
+        expect(wrapperEnd).toBeGreaterThan(looseEnd)
     })
 
     it('fails tests and closes suites that never got a result when the module failed', async () => {
