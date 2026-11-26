@@ -79,13 +79,17 @@ describe('dragAndDrop', () => {
         vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
+        /**
+         * the mock response above makes the first lookup of `#foo` miss: `dragAndDrop` and the
+         * `$` of `subElem` each wait for it, with one lookup after the poll that found it (#16415)
+         */
         // move to
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[9][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[7][0].pathname).toContain('/foobar-123/actions')
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[10][0].pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(fetch).mock.calls[10][1]?.method).toContain('DELETE')
+        expect(vi.mocked(fetch).mock.calls[8][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[8][1]?.method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop for mobile', async () => {

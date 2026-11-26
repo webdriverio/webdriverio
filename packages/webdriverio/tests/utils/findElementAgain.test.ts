@@ -1488,8 +1488,10 @@ describe('finding an element again', () => {
                 driver.light.set('.item', [])
                 /**
                  * the page shows the item when the wait of the refetch starts, and removes it when
-                 * `waitForExist` has found it (its two lookups): the lookup of the item after it
-                 * waits for its index (#16077 review)
+                 * `waitForExist` has found it (its two lookups): the command on the item that
+                 * `waitForExist` found gets a stale element error, and the item is not waited for
+                 * a second time (#16077 review). The implicit wait uses the item that
+                 * `waitForExist` found, without a lookup of its own (#16415)
                  */
                 let shown = false
                 let seen = 0
@@ -1505,6 +1507,7 @@ describe('finding an element again', () => {
                     const response = await handler(uri, params)
                     if (String(uri).endsWith('/elements') && driver.light.get('.item')?.length === 3 && ++seen === 2) {
                         driver.light.set('.item', [])
+                        driver.stale.add('elem-c2')
                     }
                     return response
                 }) as typeof fetch)

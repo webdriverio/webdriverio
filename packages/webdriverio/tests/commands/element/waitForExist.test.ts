@@ -102,6 +102,65 @@ describe('waitForExists', () => {
         expect($Spy).not.toHaveBeenCalled()
     })
 
+    /**
+     * a command on an element that appears later: the implicit wait polls until it exists,
+     * then the element is looked up once to get its id, and the command runs (#16415)
+     */
+    describe('in the implicit wait of an element command', () => {
+        const fetchImpl = vi.mocked(fetch).getMockImplementation()!
+
+        afterEach(() => {
+            vi.mocked(fetch).mockImplementation(fetchImpl)
+        })
+
+        it.each([
+            { strictSelectors: true, lookup: 'elements' },
+            { strictSelectors: false, lookup: 'element' }
+        ])('looks the element up once after the poll that found it (strictSelectors: $strictSelectors)', async ({ strictSelectors, lookup }) => {
+            const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+            let lookups = 0
+            vi.mocked(fetch).mockImplementation((async (uri: URL, params: RequestInit) => {
+                const body = params?.body ? JSON.parse(params.body as string) : undefined
+                if (/\/elements?$/.test(uri.pathname) && body?.value === '#late') {
+                    /**
+                     * the third lookup is the first one that finds the element
+                     */
+                    const found = ++lookups >= 3
+                    if (uri.pathname.endsWith('/elements')) {
+                        return Response.json({ value: found ? [{ [ELEMENT_KEY]: 'late-elem-1' }] : [] })
+                    }
+                    return found
+                        ? Response.json({ value: { [ELEMENT_KEY]: 'late-elem-1' } })
+                        : Response.json({ value: { error: 'no such element', message: 'no such element', stacktrace: '' } }, { status: 404 })
+                }
+                return fetchImpl(uri, params)
+            }) as typeof fetch)
+
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                strictSelectors,
+                waitforInterval: 1,
+                waitforTimeout: timeout,
+                capabilities: { browserName: 'foobar' }
+            })
+            const elem = await browser.$('#late')
+            expect(elem.elementId).toBeUndefined()
+            vi.mocked(fetch).mockClear()
+
+            await elem.click()
+
+            const paths = vi.mocked(fetch).mock.calls
+                .map(([uri]) => (uri as URL).pathname.split('/').slice(3).join('/'))
+            /**
+             * a poll without the element, the poll that finds it, and the `$` lookup of
+             * `waitForExist` that gives the element its id. The implicit wait does not look
+             * the element up again
+             */
+            expect(paths).toEqual(['elements', 'elements', lookup, 'element/late-elem-1/click'])
+            expect(elem.elementId).toBe('late-elem-1')
+        })
+    })
+
     describe('with BiDi commands enabled', () => {
         afterEach(() => {
             vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)

@@ -47,16 +47,22 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
         try {
             await currentElement.waitForExist()
             /**
-             * if waitForExist was successful requery element and assign elementId to the scope,
-             * with the command, index and strictness it was originally queried with. Falling
-             * back from a missing index to the first `$` match would silently hand back a
-             * different element.
+             * `waitForExist` already found the element again after its wait, with the command,
+             * index and strictness it was originally queried with (`findElementAgain` with
+             * `wait`), and gave this element the id: use it instead of a second lookup (#16415).
+             *
+             * Otherwise (an element that can't be found again by its selector, a `waitForExist`
+             * that was overwritten, or a lookup that did not find the element because it was
+             * replaced again) requery the element the same way. Falling back from a missing
+             * index to the first `$` match would silently hand back a different element.
              *
              * This is awaited explicitly (rather than returned directly) so a
              * `StrictSelectorError` raised by the re-fetch itself is routed through the
              * `catch` below instead of bypassing it.
              */
-            const nextElement = await findElementAgain(currentElement, { wait: true })
+            const nextElement = currentElement.elementId
+                ? currentElement
+                : await findElementAgain(currentElement, { wait: true })
 
             /**
              * the element can be replaced again between the wait and the lookup. The lookup then
