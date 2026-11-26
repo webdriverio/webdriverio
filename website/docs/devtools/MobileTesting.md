@@ -38,18 +38,21 @@ All four adapters detect a native session and skip page-side capture on one. The
 | Mobile browser sessions (Chrome on Android, Safari on iOS) | ✓ | ✓ | ✓ | ✓ |
 | iOS (XCUITest): native apps and Safari | ✓ | ✓ | ✓ | ✓ |
 | Native session detected, page-side capture skipped | ✓ | ✓ | ✓ | ✓ |
-| Follows a hybrid app into its webview | ◐ ² | ◐ ³ | ◐ ³ | ◐ ³ |
-| Native app network through appium-interceptor (`appium:intercept`) | ✓ ⁴ | ✓ ⁴ | ✓ ⁴ | ✓ ⁴ |
+| Native app element list and accessibility tree per action (trace mode) | ✓ | ✓ | ✓ | ✕ ² |
+| Follows a hybrid app into its webview | ◐ ³ | ◐ ⁴ | ◐ ⁴ | ◐ ⁴ |
+| Native app network through appium-interceptor (`appium:intercept`) | ✓ ⁵ | ✓ ⁵ | ✓ ⁵ | ✓ ⁵ |
 
 ✓ supported. ◐ partial. ✕ not supported. A number points to its note below the table. Each supported cell is backed by the cross-adapter conformance suite, a named test or a manual check, listed in [the feature list](https://github.com/webdriverio/devtools/blob/main/packages/conformance/src/features.ts).
 
 ¹ Fetch and XHR calls carry headers and bodies; every other load comes from the page's Resource Timing buffer, with timing and size but no headers or body, and no status on Safari.
 
-² Follows `switchContext('WEBVIEW_...')`; the object form (`{ title }` / `{ url }`) and `switchAppiumContext` leave capture on the native side.
+² On a native app the Python adapter takes only a screenshot per action; it reads no page source, so the trace has no element list or accessibility tree.
 
-³ Decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native.
+³ Follows `switchContext('WEBVIEW_...')`; the object form (`{ title }` / `{ url }`) and `switchAppiumContext` leave capture on the native side.
 
-⁴ Android only; appium-interceptor is an Android plugin.
+⁴ Decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native.
+
+⁵ Android only; appium-interceptor is an Android plugin.
 
 <!-- capability-matrix:mobile:end -->
 

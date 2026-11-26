@@ -62,8 +62,9 @@ services: [['devtools', options]]
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Per-test screencast video, retained per the given policy and attached inline to Allure (`video/webm`). Requires `mode: 'trace'` + `traceGranularity: 'test'` |
 | `emitArtifactsManifest` | `boolean` | `false` | Writes `devtools-artifacts-<sessionId>.json` — a generic index of every produced artifact plus each test's state, for reporters/CI. Auto-enabled when `@wdio/allure-reporter` is in the config. Only applies when `mode: 'trace'` |
 | `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus passing/failing `expect(...)` matchers. Set `false` to opt out |
-| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text ([see Password masking](/docs/devtools/dashboard#password-masking)) |
+| `maskInputs` | `boolean` | `true` | Replace the value of password fields with `••••` in the replayed page, and redact what was typed into them and the values of `Authorization`, `Proxy-Authorization`, `Cookie` and `Set-Cookie` headers from command rows, network, console and the trace, live and trace mode alike. `false` turns both off ([see Password masking](/docs/devtools/dashboard#password-masking) and [Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 | `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page |
+| `secrets` | `Array<string \| { env: string }>` | `[]` | Values replaced by `••••` in everything the dashboard and the trace receive, on top of the typed passwords `maskInputs` redacts: command rows, console, network, DOM, sources. `{ env: 'NAME' }` reads the value from that variable at start; a value under 4 characters is ignored with a warning ([see Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 
 ## Test tree
 
