@@ -337,6 +337,7 @@ const SCOPE_BOUNDARY_TYPES = new Set([
 interface ScopeDeclaration {
     node: ProgramNode
     parentFor?: ProgramNode
+    insertTarget?: ProgramNode
     nested?: boolean
     inSingleStatement?: boolean
 }
@@ -344,14 +345,20 @@ interface ScopeDeclaration {
 function collectNestedVarDeclarations (
     node: ProgramNode | undefined | null,
     out: ScopeDeclaration[],
-    opts: { parentFor?: ProgramNode, inSingleStatement?: boolean } = {}
+    opts: { parentFor?: ProgramNode, insertTarget?: ProgramNode, labelRoot?: ProgramNode, inSingleStatement?: boolean } = {}
 ) {
     if (!node || typeof node !== 'object' || typeof node.type !== 'string' || SCOPE_BOUNDARY_TYPES.has(node.type)) {
         return
     }
     if (node.type === 'VariableDeclaration') {
         if (node.kind === 'var') {
-            out.push({ node, nested: true, parentFor: opts.parentFor, inSingleStatement: opts.inSingleStatement })
+            out.push({
+                node,
+                nested: true,
+                parentFor: opts.parentFor,
+                insertTarget: opts.insertTarget,
+                inSingleStatement: opts.inSingleStatement
+            })
         }
         return
     }
@@ -362,20 +369,41 @@ function collectNestedVarDeclarations (
         collectNestedVarDeclarations(alternate, out, { inSingleStatement: alternate?.type !== 'BlockStatement' })
         return
     }
-    if (node.type === 'WhileStatement' || node.type === 'DoWhileStatement' || node.type === 'WithStatement' || node.type === 'LabeledStatement') {
+    if (node.type === 'WhileStatement' || node.type === 'DoWhileStatement' || node.type === 'WithStatement') {
         const body = node.body as ProgramNode | undefined
         collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
         return
     }
+    if (node.type === 'LabeledStatement') {
+        const body = node.body as ProgramNode | undefined
+        const labelRoot = opts.labelRoot ?? node
+        if (body?.type === 'VariableDeclaration') {
+            collectNestedVarDeclarations(body, out, { inSingleStatement: true })
+        } else {
+            collectNestedVarDeclarations(body, out, {
+                inSingleStatement: opts.inSingleStatement,
+                labelRoot
+            })
+        }
+        return
+    }
     if (node.type === 'ForStatement') {
         const body = node.body as ProgramNode | undefined
-        collectNestedVarDeclarations(node.init as ProgramNode | undefined, out, { parentFor: node, inSingleStatement: opts.inSingleStatement })
+        collectNestedVarDeclarations(node.init as ProgramNode | undefined, out, {
+            parentFor: node,
+            insertTarget: opts.labelRoot ?? node,
+            inSingleStatement: opts.inSingleStatement
+        })
         collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
         return
     }
     if (node.type === 'ForInStatement' || node.type === 'ForOfStatement') {
         const body = node.body as ProgramNode | undefined
-        collectNestedVarDeclarations(node.left as ProgramNode | undefined, out, { parentFor: node, inSingleStatement: opts.inSingleStatement })
+        collectNestedVarDeclarations(node.left as ProgramNode | undefined, out, {
+            parentFor: node,
+            insertTarget: opts.labelRoot ?? node,
+            inSingleStatement: opts.inSingleStatement
+        })
         collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
         return
     }
@@ -465,8 +493,32 @@ function dedupeDeclarations (steps: string[]): string[] {
             return code
         }
         const edits: TextEdit[] = []
-        for (const { node, parentFor, nested, inSingleStatement } of decls) {
-            if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration') {
+        const hoistedFunctions: string[] = []
+        for (const { node, parentFor, insertTarget, nested, inSingleStatement } of decls) {
+            if (node.type === 'FunctionDeclaration') {
+                const name = (node.id as ProgramNode).name!
+                if (seen.has(name)) {
+                    hoistedFunctions.push(`${name} = ${code.slice(node.start, node.end)};`)
+                    const tail = code.slice(node.end).trimStart()
+                    const hasLeadingStmt = code.slice(0, node.start).trim().length > 0
+                    const riskyFollow = Boolean(tail) && /^[([`/+\\-]/.test(tail)
+                    const keepSemi = hasLeadingStmt && riskyFollow && needsLeadingSemicolon(code, node.start)
+                    let removeEnd = node.end
+                    if (!keepSemi) {
+                        if (code[removeEnd] === '\r' && code[removeEnd + 1] === '\n') {
+                            removeEnd += 2
+                        } else if (code[removeEnd] === '\n') {
+                            removeEnd += 1
+                        }
+                    }
+                    edits.push({ start: node.start, end: removeEnd, text: keepSemi ? ';' : '' })
+                } else {
+                    seen.add(name)
+                }
+                continue
+            }
+
+            if (node.type === 'ClassDeclaration') {
                 const name = (node.id as ProgramNode).name!
                 if (seen.has(name)) {
                     const tail = code.slice(node.end).trimStart()
@@ -497,11 +549,12 @@ function dedupeDeclarations (steps: string[]): string[] {
                 const fresh = allNames.filter((name) => !seen.has(name))
                 fresh.forEach((name) => seen.add(name))
                 if (fresh.length) {
+                    const target = insertTarget ?? parentFor
                     if (inSingleStatement) {
-                        edits.push({ start: parentFor.start, end: parentFor.start, text: `{ ${freshKind} ${fresh.join(', ')}; ` })
-                        edits.push({ start: parentFor.end, end: parentFor.end, text: ' }' })
+                        edits.push({ start: target.start, end: target.start, text: `{ ${freshKind} ${fresh.join(', ')}; ` })
+                        edits.push({ start: target.end, end: target.end, text: ' }' })
                     } else {
-                        edits.push({ start: parentFor.start, end: parentFor.start, text: `${freshKind} ${fresh.join(', ')}; ` })
+                        edits.push({ start: target.start, end: target.start, text: `${freshKind} ${fresh.join(', ')}; ` })
                     }
                 }
                 if (parentFor.type === 'ForStatement') {
@@ -574,14 +627,19 @@ function dedupeDeclarations (steps: string[]): string[] {
             edits.push({ start: node.start, end: node.end, text: wrapInBlock ? `{ ${formatted} }` : `${formatted}${trailingSemi}` })
         }
 
-        if (!edits.length) {
+        if (!edits.length && !hoistedFunctions.length) {
             return code
         }
         let out = code
         for (const edit of edits.sort((a, b) => b.start - a.start || b.end - a.end)) {
             out = `${out.slice(0, edit.start)}${edit.text}${out.slice(edit.end)}`
         }
-        return out.trim()
+        const trimmed = out.trim()
+        if (!hoistedFunctions.length) {
+            return trimmed
+        }
+        const prefix = hoistedFunctions.join('\n')
+        return trimmed ? `${prefix}\n${trimmed}` : prefix
     })
 }
 

@@ -80,6 +80,50 @@ describe('buildParser and pickArgs dash handling', () => {
         expect(res.args).toEqual({ target: 'e3', text: '-x --session other --json' })
     })
 
+    it('preserves the -- boundary so array flags like --arg and --app-arg do not swallow positional arguments', async () => {
+        const withEq = await parse(['open', 'chrome', '--arg=--disable-gpu', '--', 'https://example.com'])
+        expect(withEq.error).toBeUndefined()
+        expect(withEq.spec?.name).toBe('open')
+        expect(withEq.args).toEqual({
+            target: 'chrome',
+            url: 'https://example.com',
+            bidi: true,
+            snapshot: true,
+            arg: ['--disable-gpu']
+        })
+        expect(Object.keys(withEq.argv || {}).some((k) => k.startsWith('wdio_eoo_'))).toBe(false)
+
+        const multiArg = await parse(['open', 'chrome', '--arg', 'foo', 'bar', '--', 'https://example.com'])
+        expect(multiArg.error).toBeUndefined()
+        expect(multiArg.args).toEqual({
+            target: 'chrome',
+            url: 'https://example.com',
+            bidi: true,
+            snapshot: true,
+            arg: ['foo', 'bar']
+        })
+
+        const appArg = await parse(['open', 'electron', '--app-arg=--no-sandbox', '--', 'https://example.com'])
+        expect(appArg.error).toBeUndefined()
+        expect(appArg.args).toEqual({
+            target: 'electron',
+            url: 'https://example.com',
+            bidi: true,
+            snapshot: true,
+            appArg: ['--no-sandbox']
+        })
+
+        const dashPositional = await parse(['open', 'chrome', '--arg=--disable-gpu', '--', '--literal-url'])
+        expect(dashPositional.error).toBeUndefined()
+        expect(dashPositional.args).toEqual({
+            target: 'chrome',
+            url: '--literal-url',
+            bidi: true,
+            snapshot: true,
+            arg: ['--disable-gpu']
+        })
+    })
+
     it('works when parseAsync is called without a callback', async () => {
         const collected: Record<string, unknown>[] = []
         for (const cliArgs of [['fill', 'e3', '-'], ['fill', 'e3', '--', '-x'], ['type', '-']]) {

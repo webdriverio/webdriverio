@@ -366,4 +366,39 @@ describe('generateSpec', () => {
         const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
         expect(results).toEqual(['else-empty', 1, undefined, 1, undefined, undefined, 9, 10, 11, 12])
     })
+
+    it('preserves intra-step hoisting when FunctionDeclaration is redeclared across steps', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'results.push(helper())\nfunction helper () { return "v1" }' }),
+            step({ n: 2, kind: 'exec', code: 'results.push(helper())\nfunction helper () { return "v2" }' }),
+            step({ n: 3, kind: 'exec', code: 'const fn = () => "const-v1"\nresults.push(fn())' }),
+            step({ n: 4, kind: 'exec', code: 'results.push(fn())\nfunction fn () { return "fn-v2" }' }),
+            step({ n: 5, kind: 'exec', code: 'const x = 1\nfunction helper () { return "v3" }\n(results.push(helper(), x))' })
+        ], { title: 'hoisted-fn' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['v1', 'v2', 'const-v1', 'fn-v2', 'v3', 1])
+    })
+
+    it('keeps loop labels attached to loops so continue label remains valid after var deduping', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'const a = 0' }),
+            step({
+                n: 2,
+                kind: 'exec',
+                code: 'outer: for (var { a, b } of [{ a: 1, b: 10 }, { a: 2, b: 20 }]) {\n    if (a === 1) continue outer\n    results.push(a, b)\n}'
+            }),
+            step({
+                n: 3,
+                kind: 'exec',
+                code: 'if (true) l1: l2: for (var { a, c } of [{ a: 3, c: 30 }, { a: 4, c: 40 }]) {\n    if (a === 3) continue l1\n    results.push(a, c)\n}'
+            }),
+            step({
+                n: 4,
+                kind: 'exec',
+                code: 'loop: for (var a = 0, d = 100; a < 2; a++) {\n    if (a === 0) continue loop\n    results.push(a, d)\n}'
+            })
+        ], { title: 'labeled-loops' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual([2, 20, 4, 40, 1, 100])
+    })
 })

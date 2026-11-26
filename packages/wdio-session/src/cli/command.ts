@@ -79,7 +79,7 @@ function beforeDoubleDash (args: string[]) {
  * with unique placeholders during parsing, then restore them in the parsed
  * argv and error messages.
  */
-function createLiteralProtector () {
+function createLiteralProtector (endOfOptionsFlag: string) {
     const literals = new Map<string, string>()
 
     const restoreString = (value: string) => {
@@ -106,10 +106,14 @@ function createLiteralProtector () {
     }
 
     const restoreArgv = <T>(argv: T): T => {
-        if (!literals.size || !argv || typeof argv !== 'object') {
+        if (!argv || typeof argv !== 'object') {
             return argv
         }
         const record = argv as Record<string, unknown>
+        delete record[endOfOptionsFlag]
+        if (!literals.size) {
+            return argv
+        }
         for (const key of Object.keys(record)) {
             record[key] = restoreValue(record[key])
         }
@@ -139,6 +143,9 @@ function createLiteralProtector () {
         for (const arg of args) {
             if (!after && arg === '--') {
                 after = true
+                // Keep an explicit option boundary so greedy array flags like `--arg`
+                // before `--` cannot consume positional arguments after `--`.
+                escaped.push(`--${endOfOptionsFlag}`)
                 continue
             }
             if (after ? arg.startsWith('-') : arg === '-') {
@@ -161,11 +168,13 @@ function createLiteralProtector () {
 }
 
 export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, unknown>) => void) {
-    const protector = createLiteralProtector()
+    const endOfOptionsFlag = `wdio_eoo_${++literalTokenSeq}`
+    const protector = createLiteralProtector(endOfOptionsFlag)
     let parser: Argv = yargs()
         .scriptName('wdio session')
         .usage('$0 <action> [args] [flags]\n\nDrive a browser, mobile app or desktop app from the shell. Pipe WebdriverIO code on stdin to run it.')
         .options(GLOBAL_OPTIONS)
+        .option(endOfOptionsFlag, { type: 'boolean', nargs: 0, hidden: true })
         .updateStrings({ 'Commands:': 'Actions:' })
         .strict()
         // `setvalue e2 x` → "Did you mean fill?" instead of a bare unknown-argument error
