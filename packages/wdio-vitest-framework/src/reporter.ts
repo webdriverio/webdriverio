@@ -388,12 +388,30 @@ export class WdioBridgeReporter implements Reporter {
         return { ...suite, parent: '', parentUid: testSuite.parent.type === 'suite' ? this.#parent(run, testSuite.parent).uid : null }
     }
 
+    #suiteAncestors(node: TestSuite | TestModule) {
+        const ids = new Set<string>()
+        for (let current: TestSuite | TestModule = node; current.type === 'suite'; current = current.parent) {
+            ids.add(current.id)
+        }
+        return ids
+    }
+
+    // Vitest sends no ready or result event for a describe under a failed beforeAll, so the suites of the previous test stay open
+    #closeSuitesOutside(run: ModuleRun, keep: Set<string>) {
+        const stale = [...run.entities].filter(([id, { kind }]) => kind === 'suite' && !keep.has(id)).reverse()
+        for (const [id, { payload }] of stale) {
+            this.#emit(run, 'suite:end', payload)
+            run.entities.delete(id)
+        }
+    }
+
     #openSuite(run: ModuleRun, testSuite: TestSuite): Titled {
         this.#ensureStarted(run, testSuite.module)
         const known = run.entities.get(testSuite.id)
         if (known) {
             return known
         }
+        this.#closeSuitesOutside(run, this.#suiteAncestors(testSuite.parent))
         if (testSuite.parent.type !== 'suite') {
             this.#closeWrapper(run)
         }
@@ -409,6 +427,9 @@ export class WdioBridgeReporter implements Reporter {
     #openTest(run: ModuleRun, testCase: TestCase) {
         this.#ensureStarted(run, testCase.module)
         const known = run.entities.get(testCase.id)
+        if (!known) {
+            this.#closeSuitesOutside(run, this.#suiteAncestors(testCase.parent))
+        }
         const parent = this.#parent(run, testCase.parent)
         const test = known ?? { uid: `test-${run.cid}-${run.testCount++}`, title: testCase.name, fullTitle: join(parent.fullTitle, testCase.name) }
         const base = { uid: test.uid, title: test.title, fullTitle: test.fullTitle, parent: parent.title, parentUid: parent.uid, ...(this.#hasLanes(testCase.module) && { contextId: testCase.id }) }

@@ -307,6 +307,23 @@ describe('WdioBridgeReporter', () => {
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: true })
     })
 
+    it('closes a nested describe that got no ready event before the next test of the outer describe', async () => {
+        const module = makeModule()
+        const outer = makeSuite(module, module, 'outer')
+        const nested = makeSuite(module, outer, 'nested')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(outer)
+        await runTests(module, makeTest(module, nested, 'inner', passed), makeTest(module, outer, 'after', passed))
+        await reporter.onTestSuiteResult(outer)
+
+        const emitted = emittedOf()
+        const nestedEnd = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === 'nested')
+        const afterStart = emitted.findIndex(([name, payload]) => name === 'test:start' && payload.title === 'after')
+        expect(nestedEnd).toBeGreaterThan(-1)
+        expect(nestedEnd).toBeLessThan(afterStart)
+        expect(emitted[afterStart][1]).toMatchObject({ parent: 'outer', fullTitle: 'outer after' })
+    })
+
     it('nests describes through parentUid', async () => {
         const module = makeModule()
         const outer = makeSuite(module, module, 'outer')
