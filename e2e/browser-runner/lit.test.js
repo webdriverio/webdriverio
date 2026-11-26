@@ -1,6 +1,6 @@
 import { browser, expect, $ } from '@wdio/globals'
 import { spyOn, mock, fn, unmock } from '@wdio/browser-runner'
-import { html, render } from 'lit'
+import { LitElement, html, render, nothing } from 'lit'
 import isUrl from 'is-url'
 
 import defaultExport, { namedExportValue } from 'someModule'
@@ -960,5 +960,78 @@ describe('Lit Component testing', () => {
         customElements.define('z-foo', Foo)
         const a = new Foo()
         a.disconnectedCallback()
+    })
+
+    describe('Lit template cleanup between tests', () => {
+        class RenderCounter extends LitElement {
+            static properties = { count: { type: Number } }
+
+            constructor () {
+                super()
+                this.count = 0
+            }
+
+            render () {
+                return html`<button @click=${() => this.count++}>${this.count}</button>`
+            }
+        }
+
+        before(() => {
+            customElements.define('render-counter', RenderCounter)
+        })
+
+        const renderCounter = (container) => render(html`<render-counter></render-counter>`, container)
+
+        for (const reuseContainer of [true, false]) {
+            describe(reuseContainer ? 'reused container' : 'fresh container', () => {
+                let container
+                let previous
+
+                const createContainer = () => {
+                    container = document.createElement('div')
+                    container.id = 'lit-render-cleanup'
+                    document.body.appendChild(container)
+                }
+
+                before(() => {
+                    if (reuseContainer) {
+                        createContainer()
+                    }
+                })
+
+                beforeEach(() => {
+                    if (!reuseContainer) {
+                        createContainer()
+                    }
+                    renderCounter(container)
+                })
+
+                afterEach(() => {
+                    render(nothing, container)
+                    if (!reuseContainer) {
+                        container.remove()
+                    }
+                })
+
+                after(() => {
+                    if (reuseContainer) {
+                        container.remove()
+                    }
+                })
+
+                for (const testCase of ['first render', 'repeat render']) {
+                    it(testCase, async () => {
+                        const rendered = container.querySelector('render-counter')
+                        expect(rendered).not.toBeNull()
+                        expect(rendered).not.toBe(previous)
+                        const counter = await $('#lit-render-cleanup').$('render-counter')
+                        expect(await counter.getProperty('count')).toBe(0)
+                        await counter.$('button').click()
+                        expect(await counter.getProperty('count')).toBe(1)
+                        previous = rendered
+                    })
+                }
+            })
+        }
     })
 })
