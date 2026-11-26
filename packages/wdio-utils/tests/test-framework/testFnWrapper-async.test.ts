@@ -253,6 +253,78 @@ describe('testFnWrapper', () => {
         })
     })
 
+    it('does not rethrow a framework failure whose matcherName is empty or absent', async () => {
+        for (const failure of [
+            {
+                matcherName: '',
+                message: 'Failed: first',
+                passed: false,
+                expected: '',
+                actual: '',
+                stack: 'Error: Failed: first\n    at spec (/foo/bar/spec.js:3:9)'
+            },
+            {
+                message: 'expectationResultHandlerError: custom check failed',
+                passed: false,
+                stack: 'Error: custom check failed\n    at handler (/foo/bar/wdio.conf.js:12:11)'
+            }
+        ]) {
+            executeHooksWithArgs.mockClear()
+            const specResult = { id: 'spec-1', failedExpectations: [failure] }
+            const args = [
+                'Test',
+                {
+                    specFn: () => 'body',
+                    specFnArgs: [],
+                    frameworkResult: () => ({ result: specResult, errors: specResult.failedExpectations })
+                },
+                { beforeFn: 'beforeFn', beforeFnArgs: () => [] },
+                { afterFn: 'afterFn', afterFnArgs: () => [] },
+                '0-9',
+                0
+            ] as any[]
+
+            // @ts-expect-error test args
+            const result = await testFnWrapper(...args)
+
+            expect(result).toBe(specResult)
+            const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+            expect(afterCall![2][0]).toMatchObject({
+                result: specResult,
+                error: failure,
+                passed: false
+            })
+        }
+    })
+
+    it('still throws if debug agent pause fails on a framework expectation error', async () => {
+        setDebugAgentPause(async () => {
+            throw new Error('Session closed from wdio session')
+        })
+        const failure = {
+            matcherName: '',
+            message: 'Failed: first',
+            passed: false,
+            stack: 'Error: Failed: first'
+        }
+        const specResult = { id: 'spec-1', failedExpectations: [failure] }
+        const args = [
+            'Test',
+            {
+                specFn: () => 'body',
+                specFnArgs: [],
+                frameworkResult: () => ({ result: specResult, errors: specResult.failedExpectations })
+            },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'fails via fail()', file: '/tmp/spec.ts' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'fails via fail()', file: '/tmp/spec.ts' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toThrow('Session closed from wdio session')
+    })
+
     it('pauses a failed test before afterTest and close fails the test', async () => {
         const order: string[] = []
         executeHooksWithArgs.mockImplementation(async (name: string) => {

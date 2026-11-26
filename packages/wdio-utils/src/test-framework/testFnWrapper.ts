@@ -132,6 +132,7 @@ export const testFrameworkFnWrapper = async function (
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
+    let isFrameworkError = false
     let skip = false
     let autoSkipError: unknown
 
@@ -149,6 +150,7 @@ export const testFrameworkFnWrapper = async function (
                     frameworkError.stack = filterStackTrace(frameworkError.stack)
                 }
                 error = frameworkError
+                isFrameworkError = true
             }
         }
     } catch (_err: unknown) {
@@ -224,6 +226,7 @@ export const testFrameworkFnWrapper = async function (
             } catch (closeErr) {
                 const closed = closeErr instanceof Error ? closeErr : new Error(String(closeErr))
                 error = closed
+                isFrameworkError = false
                 const report = afterArgs[afterArgs.length - 1] as { error?: unknown, passed?: boolean }
                 if (report && typeof report === 'object') {
                     report.error = closed
@@ -235,7 +238,13 @@ export const testFrameworkFnWrapper = async function (
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
-    if (error && !error.matcherName) {
+    /**
+     * Framework-recorded failures (e.g. Jasmine `expect()`, `fail()`, or a
+     * throwing `expectationResultHandler`) were already recorded by the
+     * framework itself. Rethrowing them here would cause the framework to
+     * record the first failure a second time as an uncaught exception.
+     */
+    if (error && !isFrameworkError && !error.matcherName) {
         throw error
     }
     if (skip && autoSkipError) {
