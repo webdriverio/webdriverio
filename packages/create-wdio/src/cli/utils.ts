@@ -6,12 +6,19 @@ import type { ParsedAnswers, Questionnair } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 import { writeAgentSupport } from './agent.js'
 
+/**
+ * @returns false when the packages could not be installed, so no config was created
+ */
 export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string, yes = false) {
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
     await setupTypeScript(parsedAnswers)
-    await npmInstall(parsedAnswers, npmTag)
+    // installPackages printed the error of the package manager and the command to retry
+    if (await npmInstall(parsedAnswers, npmTag) === false) {
+        process.exitCode = 1
+        return false
+    }
     await createWDIOConfig(parsedAnswers)
     await createWDIOScript(parsedAnswers)
 
@@ -48,6 +55,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     if (parsedAnswers.rawAnswers?.agentSupport) {
         writeAgentSupport(parsedAnswers.projectRootDir)
     }
+    return true
 }
 
 /**
@@ -76,7 +84,10 @@ export async function missingConfigurationPrompt(command: string, configPath: st
     }
 
     const parsedAnswers = await parseAnswers(false)
-    await runConfigCmd(parsedAnswers, 'latest')
+    // the callers exit with code 1 on an error; returning would prompt again
+    if (await runConfigCmd(parsedAnswers, 'latest') === false) {
+        throw new Error('The WebdriverIO configuration was not created')
+    }
     return configPath
 }
 

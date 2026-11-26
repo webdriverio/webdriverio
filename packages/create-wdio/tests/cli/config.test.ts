@@ -106,6 +106,18 @@ test('handler passes flag answers to the wizard', async () => {
     expect(runConfigCmd).toBeCalledWith(expect.any(Object), 'latest', true)
 })
 
+test('handler does not report success when the packages could not be installed', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        reporters: [],
+        plugins: [],
+        services: []
+    } as any)
+    const runConfigCmd = vi.fn().mockResolvedValue(false)
+    expect(await handler({ yes: true } as any, runConfigCmd)).toMatchObject({ success: false })
+})
+
 test('handler exits with code 2 on an invalid flag', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     const exit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)

@@ -131,13 +131,15 @@ options.set_capability("appium:intercept", True)
 
 The adapter starts a listener for each session, including one that replaces it mid-run, in both live and trace mode. It reads what the proxy recorded at most every 2 seconds between commands, because each read returns the whole history, and always at the end of each test (before that test's trace slice is written) and at the end of the session. Each request shows its method, URL, status, headers and bodies. The plugin records no timing, so a request is placed at the moment it was first read and shows no duration, and requests the app makes before the listener starts (its launch traffic) are not listed. Without the plugin the adapter logs a warning and the session runs as usual.
 
+Appium 3 only: appium-interceptor 1.0.x declares a peer of `appium@^3.0.1`, so on an Appium 4 server the listener does not start and that warning is logged. Stay on Appium 3.x with UiAutomator2 8.x for native network until the plugin supports Appium 4 (see [Appium 3 or Appium 4](#appium-3-or-appium-4)).
+
 This applies to native sessions only; a mobile browser session already captures its network through the page. The plugin supports Android. For HTTPS traffic the app has to trust the certificate the plugin installs on the device, which a release build usually does not (see Android's network security configuration).
 
 ## What a mobile trace does not contain
 
 Per-action snapshots are issued from inside the command hook, and Appium serialises a probe behind the command it is observing. Where a session has a document to probe, that snapshot is therefore skipped.
 
-In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture unless it opts into the appium-interceptor plugin (see [Native app network](#native-app-network)), because the driver exposes none.
+In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture unless it opts into the appium-interceptor plugin on Appium 3 (see [Native app network](#native-app-network)), because the driver exposes none.
 
 These absences are by design. They are not a capture failure, and they are the main thing to know before debugging a hybrid trace.
 
@@ -244,8 +246,10 @@ through, since naming one is how such a service selects it.
 Beyond the Android prerequisites, none of which iOS uses, you need Xcode (the
 Command Line Tools ship no simulators), a simulator runtime
 (`xcodebuild -downloadPlatform iOS`, a separate ~8 GB download), a booted
-simulator, and `appium driver install xcuitest` — whose first run also builds
-WebDriverAgent. Appium loads drivers at **startup**, so a server that was
+simulator, and the XCUITest driver, whose first run also builds
+WebDriverAgent: `appium driver install xcuitest` on Appium 4, or
+`appium driver install --source=npm appium-xcuitest-driver@12` on Appium 3,
+since 13.x requires Appium 4 (see [Appium 3 or Appium 4](#appium-3-or-appium-4)). Appium loads drivers at **startup**, so a server that was
 already running when you installed the driver will report that it cannot find
 XCUITest until you restart it.
 
@@ -255,6 +259,36 @@ Running against a local Android emulator needs, beyond [Getting Started](/docs/d
 
 1. **Java JDK** and the **Android SDK** — with `ANDROID_HOME` pointing at the SDK the `sdkmanager` on your `PATH` actually installs into, which is not always `~/Library/Android/sdk`.
 2. **An AVD and a running emulator**, or a physical device with USB debugging.
-3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`), or the XCUITest driver for iOS — see [iOS](#ios) above.
-4. **A matching Chromedriver**, for a mobile browser or a hybrid app. A webview is driven by Chromedriver, and Appium's autodownload frequently has no build matching the Chrome on the system image — in either direction. It surfaces as `No Chromedriver found that can automate Chrome '<version>'` when entering a webview, which reads as a capture failure but is an environment gap. Start Appium with `--default-capabilities '{"appium:chromedriverExecutableDir": "<path>"}'` plus `--allow-insecure=uiautomator2:chromedriver_autodownload`. **A native-app run needs none of this.**
+3. **Appium 3.x or 4.x with the UiAutomator2 driver** (`appium driver install uiautomator2`), or the XCUITest driver for iOS (see [iOS](#ios) above), in a pair that matches: UiAutomator2 9.x and later and XCUITest 13.x and later need Appium 4, so an Appium 3 server needs UiAutomator2 8.x and XCUITest 12.x. See [Appium 3 or Appium 4](#appium-3-or-appium-4) below.
+4. **A matching Chromedriver**, for a mobile browser or a hybrid app. A webview is driven by Chromedriver, and Appium's autodownload frequently has no build matching the Chrome on the system image, in either direction. It surfaces as `No Chromedriver found that can automate Chrome '<version>'` when entering a webview, which reads as a capture failure but is an environment gap. Start Appium with `--default-capabilities '{"appium:chromedriverExecutableDir": "<path>"}'` plus `--allow-insecure=uiautomator2:chromedriver_autodownload`. UiAutomator2 10.x and later also check the chromedriver binary against a SHA-256 allowlist; add `uiautomator2:chromedriver_allow_any_executable` to the same flag when it refuses yours. **A native-app run needs none of this.**
 5. **Classic WebDriver protocol** for WebdriverIO — Appium's BiDi shim for UiAutomator2 does not implement every BiDi command, so set `'wdio:enforceWebDriverClassic': true` in the capability block.
+
+### Appium 3 or Appium 4
+
+Appium 4 needs Node `^22.22.2 || ^24.15.0 || >=26`, and each driver major supports one Appium major. `appium driver install uiautomator2` picks the newest driver, which on an Appium 3 server is one that server cannot load, so on Appium 3 name the major:
+
+| Appium | UiAutomator2 driver | XCUITest driver | appium-interceptor (native network) |
+|---|---|---|---|
+| 3.x | 5.x to 8.x | 12.x | 1.0.x |
+| 4.x | 9.x and later | 13.x and later | not supported yet |
+
+```sh
+# Appium 3
+appium driver install --source=npm appium-uiautomator2-driver@8
+appium driver install --source=npm appium-xcuitest-driver@12
+
+# Appium 4
+appium driver install uiautomator2
+appium driver install xcuitest
+```
+
+Two differences affect capture:
+
+- **UiAutomator2 10.x checks chromedriver against a SHA-256 allowlist** before running it, so a mobile browser or hybrid session on Appium 4 can be refused the chromedriver it resolves, a binary named by `appium:chromedriverExecutable` included. Allowing any binary is a server feature of its own, beside autodownload:
+
+  ```sh
+  appium --address 127.0.0.1 --port 4723 \
+    --allow-insecure=uiautomator2:chromedriver_autodownload,uiautomator2:chromedriver_allow_any_executable
+  ```
+
+- **Native app network capture needs Appium 3.** appium-interceptor 1.0.x declares a peer of `appium@^3.0.1`, so on an Appium 4 server `appium:intercept: true` captures nothing and each adapter logs that the interceptor listener did not start. Stay on Appium 3.x with UiAutomator2 8.x for native network until the plugin supports Appium 4 (see [Native app network](#native-app-network)).

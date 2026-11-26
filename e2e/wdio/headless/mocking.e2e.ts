@@ -143,7 +143,8 @@ describe('network mocking', () => {
          * Bypass the HTTP cache: earlier tests load this page, so the browser
          * can revalidate it and get 304 Not Modified. Firefox can then leave
          * `network.getData` for the body unanswered
-         * (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785).
+         * (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785, fixed in
+         * Firefox 160; kept for older Firefox).
          */
         await browser.networkSetCacheBehavior({ cacheBehavior: 'bypass' })
         try {

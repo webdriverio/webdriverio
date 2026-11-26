@@ -28,8 +28,9 @@ Apply in live and trace mode alike. See [Password masking](/docs/devtools/dashbo
 
 | Option | Type / values | Default | Notes |
 |---|---|---|---|
-| `maskInputs` | `boolean` | `true` | Replace the value of every password field with `••••` in the replayed page (the recorded DOM, field state and value mutations). `false` records them as typed. Command rows always keep the typed text. |
+| `maskInputs` | `boolean` | `true` | Replace the value of password fields with `••••` in the replayed page, and redact what was typed into them and the values of `Authorization`, `Proxy-Authorization`, `Cookie` and `Set-Cookie` headers from command rows, network, console and the trace, live and trace mode alike. `false` turns both off ([see Password masking](/docs/devtools/dashboard#password-masking) and [Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 | `maskSelectors` | `string[]` | `[]` | Also mask the text, value and text-bearing attributes of every element these CSS selectors match, and everything inside it, in the replayed page. |
+| `secrets` | `Array<string \| { env: string }>` | `[]` | Values replaced by `••••` in everything the dashboard and the trace receive, on top of the typed passwords `maskInputs` redacts: command rows, console, network, DOM, sources. `{ env: 'NAME' }` reads the value from that variable at start; a value under 4 characters is ignored with a warning ([see Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 
 ## Trace-mode options
 

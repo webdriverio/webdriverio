@@ -368,8 +368,9 @@ A failed row carries a second button beside Rerun. It snapshots the attempt, rer
 | `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
 | `emitArtifactsManifest` | `boolean` | auto | Write the `devtools-artifacts-<sessionId>.json` manifest — the generic index reporters/CI consume to discover produced artifacts — next to the trace. Off by default; **auto-enables** when an `allure-js-commons` runtime is active. Trace mode only. |
 | `captureAssertions` | `boolean` | `true` | Capture `node:assert` assertions (both passing and failing) as trace action rows. Set `false` to opt out. |
-| `maskInputs` | `boolean` | `true` | Mask password fields in the replayed page, live and trace mode alike; `false` records them as typed. Command rows always keep the typed text. See [Password masking](/docs/devtools/dashboard#password-masking). |
+| `maskInputs` | `boolean` | `true` | Replace the value of password fields with `••••` in the replayed page, and redact what was typed into them and the values of `Authorization`, `Proxy-Authorization`, `Cookie` and `Set-Cookie` headers from command rows, network, console and the trace, live and trace mode alike. `false` turns both off ([see Password masking](/docs/devtools/dashboard#password-masking) and [Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 | `maskSelectors` | `string[]` | `[]` | Also mask the text and value of every element these CSS selectors match, and everything inside it, in the replayed page. |
+| `secrets` | `Array<string \| { env: string }>` | `[]` | Values replaced by `••••` in everything the dashboard and the trace receive, on top of the typed passwords `maskInputs` redacts: command rows, console, network, DOM, sources. `{ env: 'NAME' }` reads the value from that variable at start; a value under 4 characters is ignored with a warning ([see Secret redaction](/docs/devtools/dashboard#secret-redaction)) |
 
 ```js
 DevTools.configure({
@@ -396,8 +397,10 @@ There is no options object - nothing devtools-specific has to appear in your tes
 | `--devtools-trace-resources <styles\|none>` | `devtools_trace_resources = none` | Trace mode: store the stylesheets and fonts the pages used (`styles`, the default) or nothing (`none`). See [Stylesheets and fonts](/docs/devtools/wdio/trace-mode#stylesheets-and-fonts-traceresources). |
 | `--devtools-trace-granularity <session\|test>` | `devtools_trace_granularity = test` | One archive for the whole run (`session`, the default) or one per test. Implies `--devtools-trace`, unless an explicit `devtools_trace` value outranks it (see [the precedence table](#how-many-archives-and-which-ones-to-keep)). |
 | `--devtools-trace-policy <policy>` | `devtools_trace_policy = "retain-on-failure"` | Which archives are worth keeping. Implies `--devtools-trace` in the same way. See [How many archives, and which ones to keep](#how-many-archives-and-which-ones-to-keep). |
-| `--devtools-no-mask-inputs` | `devtools_mask_inputs = false` | Record password fields as typed in the replayed page instead of masking them. See [Password masking](/docs/devtools/dashboard#password-masking). |
+| `--devtools-no-mask-inputs` | `devtools_mask_inputs = false` | Record password fields as typed in the replayed page, and stop redacting typed passwords and credential headers from what the adapter sends. See [Password masking](/docs/devtools/dashboard#password-masking). |
 | `--devtools-mask-selector <css>` (repeatable) | `devtools_mask_selectors` (one per line) | Also mask the text and value of every element the selector matches in the replayed page. |
+| `--devtools-secret <value>` (repeatable) | | Redact this value from everything the adapter sends, from the start of the run. It is dropped from the Run-all and rerun commands the dashboard holds, so a dashboard rerun does not redact it; prefer `--devtools-secret-env`. See [Secret redaction](/docs/devtools/dashboard#secret-redaction). |
+| `--devtools-secret-env <NAME>` (repeatable) | `devtools_secret_envs` (variable names, one per line) | Redact the value of this environment variable, read at start; a rerun inherits it. `DEVTOOLS_SECRET_ENVS=NAME1,NAME2` does the same. |
 
 Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=false` turns a project default off for one run, and `pytest -o devtools_trace_policy=on` does the same for any of the others.
 
@@ -412,7 +415,8 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_TRACE_POLICY=<policy>` | Trace mode: which archives are worth keeping. Ambient, so it never selects trace mode by itself - pair it with `DEVTOOLS_TRACE=1`. |
 | `DEVTOOLS_FILMSTRIP=0` | Trace mode: leave the dense filmstrip out of the archive. |
 | `DEVTOOLS_A11Y=0` | Trace mode: skip the per-action A11y tree and element rects. |
-| `DEVTOOLS_MASK_INPUTS=0` | Record password fields as typed in the replayed page instead of masking them. |
+| `DEVTOOLS_MASK_INPUTS=0` | Record password fields as typed in the replayed page, and stop redacting typed passwords and credential headers from what the adapter sends. |
+| `DEVTOOLS_SECRET_ENVS=NAME1,NAME2` | Redact the values of these environment variables, read at start, from everything the adapter sends. |
 | `DEVTOOLS_MASK_SELECTORS=.a,.b` | Comma-separated CSS selectors whose matches are also masked in the replayed page. |
 | `DEVTOOLS_OPEN=0` | Do not open the dashboard window (CI). |
 | `DEVTOOLS_BIDI=0` | Disable BiDi, and with it console and network capture. |

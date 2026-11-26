@@ -8,7 +8,7 @@ The WebdriverIO MCP server has native support for running browser and mobile aut
 
 - **BrowserStack** — [Automate](https://www.browserstack.com/automate) (browsers) and [App Automate](https://www.browserstack.com/app-automate) (mobile apps)
 - **Sauce Labs** — [Sauce Labs](https://saucelabs.com) real device cloud and virtual browsers
-- **TestMu (formerly LambdaTest)** — [TestMu](https://www.lambdatest.com) real device and browser cloud
+- **TestMu AI (formerly LambdaTest)** — [TestMu AI](https://www.testmuai.com) real device and browser cloud
 - **TestingBot** — [TestingBot](https://testingbot.com) real device cloud and browser grid
 - **Digital.ai Testing** — browser and mobile sessions on your own Digital.ai cloud host
 

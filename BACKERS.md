@@ -24,7 +24,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
+    <a href="https://www.testmuai.com/"><img src="https://webdriver.io/img/sponsors/testmu_ai_black.svg" width="300" alt="TestMu AI (Formerly LambdaTest)" /></a>
 </p>
 
 [Become a Gold Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303973&preview=false)

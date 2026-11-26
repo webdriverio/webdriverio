@@ -1,0 +1,331 @@
+name: Block Compromised Commits
+
+# Guard against the 2026-11-11 wdio-bot compromise and similar supply-chain changes.
+#
+# pull_request_target runs the copy of this file from the base branch, so a pull
+# request cannot edit the guard to make it pass. The job never runs code from the
+# pull request: it only reads git objects (git log, git diff) with read-only access.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: block-compromised-commits-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      # git only, no action: the guard has no dependency on a third-party action and still
+      # runs when the org allows only its own actions. Every label event runs the full check
+      # on purpose: a skipped job counts as passing for a required check and could hide an
+      # earlier failure. A blob-less partial clone of the base branch keeps it cheap; no
+      # credentials are written to disk.
+      - name: Clone the base branch
+        env:
+          REPO: ${{ github.repository }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git clone --quiet --filter=blob:none --no-checkout --no-tags --single-branch \
+            --branch "${BASE_REF}" "https://github.com/${REPO}.git" .
+
+      - name: Check commits and changes of the pull request
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          ACTION: ${{ github.event.action }}
+          EVENT_LABEL: ${{ github.event.label.name }}
+          OVERRIDE_LABEL: allow-sensitive-changes
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --quiet origin "refs/pull/${PR_NUMBER}/head"
+          # Check the commit this event is for, not whatever the PR ref points to now.
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --quiet origin "${HEAD_SHA}" || true
+          fi
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::Commit ${HEAD_SHA} is no longer available (force-pushed). The run for the new head checks it."
+            exit 1
+          fi
+          head="${HEAD_SHA}"
+          base="origin/${BASE_REF}"
+          fail=0
+          # The label only counts in the run started by adding it: that run checks the head SHA
+          # the maintainer reviewed. Any later push or label event ignores it, so a push after
+          # the approval fails again until the label is removed and added again.
+          override=0
+          if [ "$ACTION" = labeled ] && [ "$EVENT_LABEL" = "$OVERRIDE_LABEL" ]; then
+            case ",${LABELS}," in *",${OVERRIDE_LABEL},"*) override=1 ;; esac
+          fi
+          # Escape values for workflow commands, so file names cannot break an annotation.
+          esc_data() { local s=$1; s=${s//'%'/'%25'}; s=${s//$'\r'/'%0D'}; s=${s//$'\n'/'%0A'}; printf '%s' "$s"; }
+          esc_prop() { local s; s=$(esc_data "$1"); s=${s//:/'%3A'}; s=${s//,/'%2C'}; printf '%s' "$s"; }
+
+          # Build every list first. A failed git command stops the run here (set -e); inside
+          # "< <(...)" or "for x in $(...)" it would only leave a loop empty and pass.
+          t=$(mktemp -d)
+          # One git log for the metadata of all commits (merges included; -z puts NUL between
+          # commits and fields), and one pipeline for the patch-ids of all non-merge commits.
+          { git log -z --format='%H%x00%ae%x00%ce%x00%an%x00%cn%x00%at%x00%ct%x00%s' "${base}..${head}"; printf '\0'; } > "$t/meta"
+          git log -p --no-merges --format='commit %H' "${base}..${head}" | git patch-id --stable > "$t/pids"
+          git -c core.quotePath=false diff -z --name-only "${base}...${head}" > "$t/changed-all"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" > "$t/changed"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*package.json' > "$t/pkg"
+          git -c core.quotePath=false diff -z --name-only --diff-filter=AMR "${base}...${head}" -- '*pnpm-workspace.yaml' > "$t/ws"
+          # GitHub login of each commit: the API links every email of an account to its login, so a
+          # commit by the wdio-bot account fails even with an email we do not know. bot@webdriver.io
+          # (the release identity, also linked to wdio-bot) is left to rule 3.
+          if ! gh api "repos/${REPO}/compare/$(git rev-parse "$base")...${head}" --paginate -q '.commits[]
+                | select((.author.login == "wdio-bot" and (.commit.author.email | ascii_downcase) != "bot@webdriver.io")
+                         or (.committer.login == "wdio-bot" and (.commit.committer.email | ascii_downcase) != "bot@webdriver.io"))
+                | .sha' > "$t/bot-logins"; then
+            echo "::error::Could not read the commit authors from the GitHub API."; exit 1
+          fi
+          bot_logins=" $(tr '\n' ' ' < "$t/bot-logins")"
+
+          # 1. Commits from the 2026-11-11 incident, also when rebased or cherry-picked.
+          #    Match: any commit authored or committed by wdio-bot since the day of the attack
+          #    (GitHub login, either noreply email format, or the name, ignoring case, spaces,
+          #    "-" and "_"), an attack commit message, or the patch-id of a known attack commit.
+          since=1794355200 # 2026-11-11T00:00:00Z
+          # Whole subject only (optional " (#123)" from a squash merge), so "ci: cleanup old jobs" is fine.
+          attack_msg='^(chore: add ci helper|ci: restore|ci: cleanup|docs: add dependency audit notes)( \(#[0-9]+\))?$'
+          bad_patch_ids="0b60584cde25231f7392af8ea098842bf321e3e3 806080b03b76e63597621d5bb87163f4d41b5bdd 2f339da03c48504aad5915f93193fa767a0acb9a fbf079d559c652afc379a5c9288ed50030b3f0f2"
+          incident=""
+          newest_bad=""
+          release_hits=""
+          pid_map=" "
+          while read -r p sha; do pid_map+="${sha}=${p} "; done < "$t/pids"
+          n=0
+          # All commits, merges included: a merge made by wdio-bot must fail too.
+          # NUL-separated fields, so a "|" or other character in a name cannot shift them.
+          shopt -s nocasematch # emails, names and messages are compared ignoring case
+          while IFS= read -r -d '' c && IFS= read -r -d '' ae && IFS= read -r -d '' ce \
+             && IFS= read -r -d '' an && IFS= read -r -d '' cn && IFS= read -r -d '' at \
+             && IFS= read -r -d '' ct && IFS= read -r -d '' subject; do
+            [ -n "$c" ] || continue
+            n=$((n + 1))
+            [[ "$at" =~ ^[0-9]+$ ]] || at=$since # fail closed
+            [[ "$ct" =~ ^[0-9]+$ ]] || ct=$since
+            pid="" # merges have no single patch, so no patch-id
+            case "$pid_map" in *" ${c}="*) pid=${pid_map#*" ${c}="}; pid=${pid%% *} ;; esac
+            # The attack identity is never allowed. The release identity (publish.yml still uses it)
+            # can be allowed with the label, for example in a backport that holds a release commit.
+            attack_id=0; release_id=0
+            for id in "$ae" "$ce"; do
+              if [[ "$id" =~ ^([0-9]+\+)?wdio-bot@users\.noreply\.github\.com$ ]]; then attack_id=1
+              elif [[ "$id" == "bot@webdriver.io" ]]; then release_id=1; fi
+            done
+            for name in "$an" "$cn"; do
+              nm=${name//[ _-]/}
+              if [[ "$nm" =~ ^(webdriverio|wdio)bot$ ]]; then attack_id=1
+              elif [[ "$nm" == "webdriverioreleasebot" ]]; then release_id=1; fi
+            done
+            [[ "$bot_logins" == *" ${c} "* ]] && attack_id=1
+            after=0; { [ "$at" -ge "$since" ] || [ "$ct" -ge "$since" ]; } && after=1
+            reason=""
+            if [ "$attack_id" = 1 ] && [ "$after" = 1 ]; then reason+="wdio-bot since 2026-11-11, "; fi
+            if [ "$release_id" = 1 ] && [ "$attack_id" = 0 ] && [ "$after" = 1 ]; then
+              release_hits+="${c:0:10} ${subject}; "
+            fi
+            if [[ "$subject" =~ $attack_msg ]]; then reason+="attack message, "; fi
+            if [[ " ${bad_patch_ids} " == *" ${pid} "* ]]; then reason+="attack patch-id, "; fi
+            if [ -n "$reason" ]; then
+              incident+="  ${c:0:10} ${subject} [${reason%, }]"$'\n'
+              newest_bad=${newest_bad:-$c} # rev-list lists the newest commit first
+            fi
+          done < "$t/meta"
+          shopt -u nocasematch
+          if [ "$n" != "$(git rev-list --count "${base}..${head}")" ]; then
+            echo "::error::Could not read the metadata of every commit (${n} read)."; exit 1
+          fi
+          if [ -n "$incident" ]; then
+            echo "::error::This branch contains commits by wdio-bot since 2026-11-11 or from the wdio-bot compromise. Drop them; a plain 'git rebase' copies them. If they are below your own commits: git fetch upstream && git rebase --onto upstream/${BASE_REF} ${newest_bad}. Otherwise use 'git rebase -i upstream/${BASE_REF}' and delete the listed commits."
+            printf '%s' "$incident"
+            fail=1
+          fi
+
+          # The full diff, computed once into a file (a git failure stops the run). Added lines are
+          # read inside hunks only: a code line that starts with "+" is not a "+++ b/file" header.
+          git -c core.quotePath=false diff --no-color --unified=0 "${base}...${head}" > "$t/diff"
+          added=$(awk '/^diff --git /{h=0} /^@@ /{h=1; next} h && /^\+/{print substr($0, 2)}' "$t/diff")
+
+          # 2. Hidden shell scripts (for example .ci-abc123.sh). No such file exists in the repo.
+          #    -z and core.quotePath=false keep non-ASCII names unquoted; the match ignores case.
+          shopt -s nocasematch # case-insensitive [[ =~ ]] without a process per file
+          while IFS= read -r -d '' f; do
+            if [[ "$f" =~ (^|/)\.[^/]+\.(sh|bash|zsh|ksh)$ ]]; then
+              echo "::error file=$(esc_prop "$f")::Hidden shell script added or changed: $(esc_data "$f")"; fail=1
+            elif [[ "$f" =~ \.(sh|bash|zsh|ksh)$ ]]; then
+              echo "::warning file=$(esc_prop "$f")::Shell script added or changed. Review it with care."
+            fi
+          done < "$t/changed"
+          shopt -u nocasematch
+
+          mb=$(git merge-base "$base" "$head")
+          sensitive() { # $1 = message; an error unless the override label is set
+            local msg; msg=$(esc_data "$1")
+            if [ "$override" = 1 ]; then echo "::warning::${msg} (allowed by label ${OVERRIDE_LABEL})"
+            else echo "::error::${msg}. A maintainer must review it and add the label '${OVERRIDE_LABEL}' as the last label: add the 'PR: ...' release label first, because any later push or label change cancels the approval (then remove and add '${OVERRIDE_LABEL}' again)."; fail=1; fi
+          }
+
+          if [ -n "$release_hits" ]; then
+            sensitive "Commits by the wdio release bot (bot@webdriver.io) since 2026-11-11: ${release_hits%; }"
+          fi
+
+          # 3. npm lifecycle scripts that run on install or pack (the root postinstall runs every "postinstall:*").
+          #    Both versions are parsed with jq, so escaped keys and line breaks cannot hide a hook.
+          lifecycle='^(pre|post)?(install|prepare|pack|publish|publishOnly)(:.*)?$|^dependencies$|^pnpm:devPreinstall$'
+          hooks_of() { jq -cS --arg re "$lifecycle" '(.scripts // {}) | with_entries(select(.key | test($re)))'; }
+          # Dependency specs that do not come from the npm registry (git, GitHub shorthand, URLs,
+          # paths, tarballs; also nested in overrides), and the pnpm build permissions.
+          # Allowlist, same rules as registry_spec below.
+          deps_of() {
+            jq -cS '
+              def ok: (test("[/:\\\\]") | not) and (startswith(".") | not) and (test("\\.(tgz|tar|tar\\.gz)$"; "i") | not);
+              def registry_spec:
+                if test("^(workspace|catalog):") then true
+                elif startswith("npm:") then (.[4:] | test("^(@[a-z0-9._~-]+/)?[a-z0-9._~-]+@[^/:\\s]*$")) and (.[4:] | sub("^.*@"; "") | ok)
+                else ok end;
+              {dependencies, devDependencies, optionalDependencies, peerDependencies, overrides, resolutions,
+               pnpmOverrides: (.pnpm // {}).overrides, pnpmPackageExtensions: (.pnpm // {}).packageExtensions} as $d
+              | {
+                  nonregistry: ([$d | paths(type == "string") as $p | ($d | getpath($p)) as $v
+                                 | select($v | registry_spec | not)
+                                 | "\($p | map(tostring) | join("."))=\($v)"] | unique),
+                  build: ((.pnpm // {}) | {onlyBuiltDependencies, neverBuiltDependencies, ignoredBuiltDependencies,
+                                           allowBuilds, dangerouslyAllowAllBuilds})
+                }'
+          }
+          while IFS= read -r -d '' f; do
+            new=$(git show "${head}:${f}" | hooks_of) || { sensitive "Cannot parse ${f}"; continue; }
+            old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | hooks_of) || old='{}'
+            if [ "$old" != "$new" ]; then sensitive "Install lifecycle script added or changed in ${f}: ${new}"; fi
+            new=$(git show "${head}:${f}" | deps_of)
+            old=$( { git show "${mb}:${f}" 2>/dev/null || echo '{}'; } | deps_of) || old=''
+            if [ "$old" != "$new" ]; then sensitive "Dependency spec that is not from the npm registry, or pnpm build settings, changed in ${f}: ${new}"; fi
+          done < "$t/pkg"
+
+          # 4. Other files that run code on install: npm/yarn config, pnpm hooks and git hooks, and
+          #    package manifests that pnpm reads but this check cannot parse (package.yaml/json5;
+          #    the repo has none).
+          while IFS= read -r -d '' f; do
+            if [[ "$f" =~ (^|/)(\.?pnpmfile\.[cm]?js|\.npmrc|\.yarnrc(\.yml)?)$ || "$f" =~ ^\.husky/ ]]; then
+              sensitive "Install configuration changed: ${f}"
+            elif [[ "$f" =~ (^|/)package\.(yaml|yml|json5)$ ]]; then
+              sensitive "Package manifest in a format this check cannot read: ${f}"
+            fi
+          done < "$t/changed-all"
+
+          # A dependency spec that can only resolve from the npm registry (no git, URL, path or tarball).
+          registry_spec() {
+            local v=$1
+            case "$v" in workspace:*|catalog:*) return 0 ;; esac
+            if [[ "$v" == npm:* ]]; then
+              v=${v#npm:}
+              [[ "$v" =~ ^(@[a-z0-9._~-]+/)?[a-z0-9._~-]+@[^/:[:space:]]*$ ]] || return 1
+              v=${v##*@}
+            fi
+            # npm and pnpm treat a name ending in .tgz/.tar/.tar.gz (any case) as a local tarball.
+            [[ "$v" != */* && "$v" != *:* && "$v" != *\\* && "$v" != .* && ! "$v" =~ \.([tT][gG][zZ]|[tT][aA][rR](\.[gG][zZ])?)$ ]]
+          }
+
+          # 5. pnpm-workspace.yaml (pnpm reads its settings here, and some run code: pnpmfile,
+          #    scriptShell, nodeOptions, allowBuilds, ...). Allowlist: only "packages", and
+          #    registry-only "catalog(s)"/"overrides"/"packageExtensions" may change without the
+          #    label. Quoted keys are normalized; a line that is not "key:" fails closed.
+          keyed_lines() { # print "<top-level key><TAB><line>" for every line
+            awk '
+              # A comment at column 0 or a blank line belongs to no key (it would count as a
+              # change to the key above it).
+              /^#/ || /^[[:space:]]*$/ { next }
+              /^[^[:space:]#]/ && !/^- / {
+                k = $0
+                if (k ~ /^"[^"]*"[[:space:]]*:/) { sub(/^"/, "", k); sub(/"[[:space:]]*:.*/, "", k) }
+                else if (k ~ /^'"'"'[^'"'"']*'"'"'[[:space:]]*:/) { sub(/^'"'"'/, "", k); sub(/'"'"'[[:space:]]*:.*/, "", k) }
+                else if (k ~ /^[A-Za-z0-9_.-]+[[:space:]]*:/) { sub(/[[:space:]]*:.*/, "", k) }
+                else { k = "<unparsed>" }
+              }
+              { print k "\t" $0 }'
+          }
+          # A YAML key, plain or quoted; a plain key must not start with a YAML indicator.
+          key_re='("[^"]+"|'"'"'[^'"'"']+'"'"'|[^][{}&*!|>#:"'"'"'[:space:]%@`][^:#{}]*)'
+          bare_re="^${key_re}[[:space:]]*:[[:space:]]*(#.*)?\$"
+          pair_re="^${key_re}[[:space:]]*:[[:space:]]+([^][{}&*!|>#%@\`[:space:]][^#]*)\$"
+          while IFS= read -r -d '' f; do
+            if git cat-file -e "${mb}:${f}" 2>/dev/null; then git show "${mb}:${f}" > "$t/ws-old"; else : > "$t/ws-old"; fi
+            git show "${head}:${f}" > "$t/ws-new"
+            # The git output is already in files, so a failed git command has stopped the run above.
+            diff <(keyed_lines < "$t/ws-old") <(keyed_lines < "$t/ws-new") > "$t/ws-diff" || true
+            sed -n 's/^> //p' "$t/ws-diff" > "$t/ws-added"
+            sed -n 's/^[<>] //p' "$t/ws-diff" | cut -f1 | sort -u > "$t/ws-keys"
+            while IFS= read -r k; do
+              case "$k" in
+                packages) ;;
+                catalog|catalogs|overrides|packageExtensions)
+                  # Each added line must be a bare "key:" (a nested map), a comment, or a plain
+                  # "key: <registry spec>", with an optional trailing " # comment". Flow style, a
+                  # value on the next line, anchors and block scalars fail closed.
+                  while IFS= read -r line; do
+                    l=${line#"${line%%[![:space:]]*}"}
+                    if [ -z "$l" ] || [[ "$l" == \#* ]] || [[ "$l" =~ $bare_re ]]; then continue; fi
+                    l=${l%%[[:space:]]#*} # trailing comment
+                    if [[ "$l" =~ $pair_re ]]; then
+                      v=${BASH_REMATCH[2]}; v=${v%"${v##*[![:space:]]}"}
+                      q=${v:0:1}
+                      if [[ "$q" == [\"\'] ]]; then
+                        # A quoted value must still be closed after the comment is removed.
+                        if [ "${#v}" -lt 2 ] || [ "${v: -1}" != "$q" ]; then
+                          sensitive "Line in ${f} (${k}) is not a simple 'key: value': ${line#"${line%%[![:space:]]*}"}"; continue
+                        fi
+                        v=${v:1:${#v}-2}
+                      fi
+                      registry_spec "$v" || sensitive "Dependency spec that is not from the npm registry in ${f} (${k}): ${v}"
+                    else
+                      sensitive "Line in ${f} (${k}) is not a simple 'key: value': ${l}"
+                    fi
+                  done < <(awk -F'\t' -v k="$k" '$1 == k { sub(/^[^\t]*\t/, ""); print }' "$t/ws-added")
+                  ;;
+                *) sensitive "pnpm setting '${k}' changed in ${f}" ;;
+              esac
+            done < "$t/ws-keys"
+          done < "$t/ws"
+
+          # 6. Lockfiles: a resolution from a tarball URL, git or a host that is not the registry.
+          #    An edited tarball URL installs other code with no package.json change. Keys may be
+          #    quoted ('tarball': ...), which YAML reads as the same key. The diff is made with
+          #    core.quotePath=false, and a header that git still quotes ends in '"'. Only a whole
+          #    line that is a registry "resolved" URL is allowed, so a comment cannot hide a line.
+          lock_added=$(awk '/^diff --git /{h=0; lock = ($0 ~ /(pnpm-lock\.yaml|package-lock\.json|npm-shrinkwrap\.json|yarn\.lock)"?$/)}
+                             /^@@ /{h=1; next} h && lock && /^\+/{print substr($0, 2)}' "$t/diff" \
+            | grep -E '(^|[{,[:space:]])["'"'"']?(tarball|repo|commit)["'"'"']?[[:space:]]*:|(^|[{,[:space:]])["'"'"']?type["'"'"']?[[:space:]]*:[[:space:]]*["'"'"']?(git|directory)|"resolved"[[:space:]]*:|^[[:space:]]+resolved ' \
+            | grep -vE '^[[:space:]]*"resolved": "https://registry\.(npmjs\.org|yarnpkg\.com)/[^"[:space:]]*",?[[:space:]]*$|^[[:space:]]+resolved "https://registry\.(npmjs\.org|yarnpkg\.com)/[^"[:space:]]*"[[:space:]]*$' || true)
+          if [ -n "$lock_added" ]; then
+            sensitive "Lockfile resolution from a tarball URL, git or a non-registry host: $(printf '%s' "$lock_added" | head -3 | tr '\n' ' ')"
+          fi
+
+          # 7. Public IPv4 addresses in URLs (any scheme, any case, "//IP", "//user@IP") or after
+          #    network tools. Exfiltration endpoints often use them. A bare a.b.c.d is not matched,
+          #    because version numbers look the same. An octet with a leading zero is always
+          #    flagged: curl and inet_aton read 010 as octal 8, so the private-range test is unsafe.
+          ip='([0-9]{1,3}\.){3}[0-9]{1,3}'
+          ips=$(printf '%s\n' "$added" \
+            | grep -oiE "([a-z][a-z0-9+.-]*:)?//([^/@[:space:]]*@)?${ip}|(^|[^a-z0-9_])(curl|wget|nc|ncat|socat|telnet|ssh|scp|sftp)[[:space:]][^;|&]*${ip}" \
+            | grep -oE "$ip" \
+            | awk -F. '{ octal = ($1 ~ /^0[0-9]/ || $2 ~ /^0[0-9]/ || $3 ~ /^0[0-9]/ || $4 ~ /^0[0-9]/) }
+                       octal || ($1<=255 && $2<=255 && $3<=255 && $4<=255 && !($1==0 || $1==10 || $1==127 || ($1==169 && $2==254) || ($1==192 && $2==168) || ($1==172 && $2>=16 && $2<=31)))' \
+            | sort -u || true)
+          if [ -n "$ips" ]; then
+            sensitive "Public IP address added: $(printf '%s' "$ips" | tr '\n' ' ')"
+          fi
+
+          if [ "$fail" = 0 ]; then echo "No compromised commits and no sensitive changes found."; fi
+          exit "$fail"

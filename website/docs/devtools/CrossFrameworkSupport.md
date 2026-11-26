@@ -30,7 +30,7 @@ The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/sel
 | BiDi console / network capture | ✓ ¹⁸ | ✓ ¹⁸ | ◐ ¹⁹ | ✓ ¹⁸ |
 | A11y tab + pick-locator overlay (trace player) | ✓ | ✓ | ✓ | ✓ |
 | Transcript + Copy-for-LLM (trace player) | ✓ | ✓ | ✓ | ✓ |
-| Password fields masked in the replayed page (`maskInputs`, `maskSelectors`) | ✓ | ✓ | ✓ | ✓ |
+| Typed passwords and credential headers masked and redacted (`maskInputs`, `maskSelectors`, `secrets`) | ✓ | ✓ | ✓ | ✓ |
 | One row per command in the Actions list | ✓ | ✓ | ✓ | ✓ |
 | Waits show as one row with what they issued nested under it | ✓ | ✓ | ◐ ²⁰ | ✓ |
 | Screenshot on every command row | ✓ | ✓ | ✓ | ✓ |
