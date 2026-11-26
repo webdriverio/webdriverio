@@ -63,6 +63,26 @@ Run it like any other WDIO project:
 npx wdio run wdio.conf.ts
 ```
 
+## Globals and TypeScript
+
+Vitest globals are enabled at runtime. `browser`, `driver`, `$`, `$$` and `expect` are globals as well, so specs do not import them. `waitforTimeout` and `waitforInterval` from the config set the defaults of `expect`'s waits.
+
+Import `describe`, `test` and the hooks from `vitest` so TypeScript knows their types.
+
+The global `expect` is the WebdriverIO [assertion library](assertion) (`expect-webdriverio`), which replaces Vitest's own `expect`. Never `import { expect } from 'vitest'`: that `expect` has no WebdriverIO matchers such as `toBeDisplayed`. For Vitest matchers such as snapshots, use the `expect` from the test context, see [Snapshots](#snapshots).
+
+Each capability becomes one Vitest project, named `<browserName>-<index>`, for example `chrome-0`. Every spec file opens its own browser session in `beforeAll` and closes it in `afterAll`.
+
+For TypeScript, add `@wdio/globals/types` and `@wdio/vitest-framework` to `types` so the globals and `vitestOpts` are typed:
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": ["@wdio/globals/types", "@wdio/vitest-framework"]
+    }
+}
+```
+
 ## Global setup
 
 `vitestOpts.globalSetup` runs once per `wdio run` in the Vitest main process, not once per capability. No browser session exists there, so `browser` is undefined. Use it for API or data setup.
@@ -214,13 +234,23 @@ Every attempt is reported to the WDIO reporters: failed attempts as retries, the
 
 ## Sharding and filtering
 
-`vitestOpts.shard` takes Vitest's shard string, for example `'1/2'` to run the first of two parts. As tested, the CLI `--shard` option passes through to Vitest:
+`wdio run --shard=1/2` is handled by the WDIO launcher. It splits the spec files between the shards, and a shard with no spec files exits without starting Vitest:
 
 ```sh
 npx wdio run wdio.conf.ts --shard=1/2
 ```
 
-`--spec` and `exclude` select the spec files, as in the other frameworks. `wdio run --grep` is not applied. To run only tests whose names match, use `vitestOpts.testNamePattern`:
+`vitestOpts.shard` takes Vitest's shard string, for example `'1/2'`, and is passed to Vitest, which shards the tests on its own:
+
+```ts title="wdio.conf.ts"
+vitestOpts: {
+    shard: '1/2'
+}
+```
+
+Don't combine both. The launcher splits the spec files first, then Vitest splits them again inside each shard, so the combination shards twice and each shard runs only part of its specs.
+
+`--spec` and `exclude` select the spec files, as in the other frameworks. `wdio run` has no `--grep` option, so to run only tests whose names match, use `vitestOpts.testNamePattern`:
 
 ```ts title="wdio.conf.ts"
 vitestOpts: {
