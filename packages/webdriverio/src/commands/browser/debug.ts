@@ -90,13 +90,15 @@ export function debug(
         params: { commandTimeout, introMessage }
     })
 
+    let isStopped = false
     let commandResolve = /* istanbul ignore next */ () => { }
     const onMessage = (m: { name: string, origin: string, content: { cmd: string } }) => {
-        if (m.origin !== 'debugger') {
+        if (m.origin !== 'debugger' || isStopped) {
             return
         }
 
         if (m.name === 'stop') {
+            isStopped = true
             if (typeof process.off === 'function') {
                 process.off('message', onMessage)
             }
@@ -107,7 +109,7 @@ export function debug(
         /* istanbul ignore if */
         if (m.name === 'eval') {
             repl.eval(m.content.cmd, replContext, undefined, (err: Error | null, result: unknown) => {
-                if (typeof process.send !== 'function') {
+                if (isStopped || typeof process.send !== 'function') {
                     return
                 }
 

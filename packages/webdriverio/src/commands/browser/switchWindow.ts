@@ -47,7 +47,11 @@ export async function switchWindow (
     /**
      * parameter check
      */
-    if (typeof matcher !== 'string' && !(matcher instanceof RegExp)) {
+    const isRegExp = matcher instanceof RegExp || (
+        Object.prototype.toString.call(matcher) === '[object RegExp]' &&
+        typeof (matcher as unknown as RegExp).test === 'function'
+    )
+    if (typeof matcher !== 'string' && !isRegExp) {
         throw new Error('Unsupported parameter for switchWindow, required is "string" or a RegExp')
     }
 

@@ -1,4 +1,5 @@
 import path from 'node:path'
+import vm from 'node:vm'
 import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { getContextManager } from '../../../src/session/context.js'
@@ -72,6 +73,15 @@ describe('switchWindow', () => {
         vi.mocked(fetch).setMockResponse([...webdriverResponses])
         const andAnotherTabId = await browser.switchWindow('loo')
         expect(andAnotherTabId).toBe('window-handle-1')
+    })
+
+    it('should support cross-realm RegExp matchers from a VM context', async () => {
+        // @ts-expect-error mock feature
+        vi.mocked(fetch).setMockResponse([...webdriverResponses])
+        const crossRealmRegex = vm.runInNewContext('/h(e|a)llo/')
+        expect(crossRealmRegex instanceof RegExp).toBe(false)
+        const tabId = await browser.switchWindow(crossRealmRegex)
+        expect(tabId).toBe('window-handle-2')
     })
 
     it('should fail if no window was found', async () => {

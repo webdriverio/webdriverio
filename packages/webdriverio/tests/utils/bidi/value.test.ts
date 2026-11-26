@@ -1,3 +1,4 @@
+import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 import { ELEMENT_KEY, SHADOW_ELEMENT_KEY } from 'webdriver'
 import stringify from 'safe-stable-stringify'
@@ -264,6 +265,48 @@ describe('LocalValue', () => {
     it('should pass a shadow root reference as a shared id', () => {
         expect(LocalValue.getArgument({ [SHADOW_ELEMENT_KEY]: 'f.1.d.1.e.6' }).asMap())
             .toEqual({ sharedId: 'f.1.d.1.e.6' })
+    })
+
+    it('should serialize cross-realm Array, Date, Map, Set and RegExp values from a VM context', () => {
+        const crossRealmValues = vm.runInNewContext(`({
+            arr: [1, 'two'],
+            date: new Date('2026-01-02T03:04:05.000Z'),
+            map: new Map([['k', 42]]),
+            set: new Set(['a', 2]),
+            regex: /hello/gi
+        })`)
+
+        expect(LocalValue.getArgument(crossRealmValues.arr).asMap()).toEqual({
+            type: 'array',
+            value: [
+                { type: 'number', value: 1 },
+                { type: 'string', value: 'two' }
+            ]
+        })
+        const serializedDate = LocalValue.getArgument(crossRealmValues.date).asMap()
+        expect(serializedDate.type).toBe('date')
+        expect(JSON.parse(JSON.stringify(serializedDate))).toEqual({
+            type: 'date',
+            value: '2026-01-02T03:04:05.000Z'
+        })
+        expect(LocalValue.getArgument(crossRealmValues.map).asMap()).toEqual({
+            type: 'map',
+            value: [['k', { type: 'number', value: 42 }]]
+        })
+        expect(LocalValue.getArgument(crossRealmValues.set).asMap()).toEqual({
+            type: 'set',
+            value: [
+                { type: 'string', value: 'a' },
+                { type: 'number', value: 2 }
+            ]
+        })
+        expect(LocalValue.getArgument(crossRealmValues.regex).asMap()).toEqual({
+            type: 'regexp',
+            value: {
+                pattern: 'hello',
+                flags: 'gi'
+            }
+        })
     })
 
     it('should resolve references', () => {

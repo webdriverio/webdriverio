@@ -259,6 +259,23 @@ describe('debug command', () => {
                 await second
                 expect(listeners.size).toBe(0)
             })
+
+            it('should ignore late eval and timeout callbacks after stop has been received', () => {
+                vi.mocked(global.process.send!).mockClear()
+                messageHandlerCallback({
+                    origin: 'debugger',
+                    name: 'eval',
+                    content: { cmd: 'slowCommand()' }
+                })
+
+                messageHandlerCallback({ origin: 'debugger', name: 'stop' })
+
+                // Late resolution and late timeout error after stop must not emit IPC results
+                evalCallback(null, 'stale result')
+                evalCallback(new Error('Command execution timed out'), undefined)
+
+                expect(global.process.send).not.toHaveBeenCalled()
+            })
         })
 
         afterEach(() => {
