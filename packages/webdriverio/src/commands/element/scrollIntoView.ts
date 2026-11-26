@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
@@ -9,6 +10,107 @@ import { withKnownElement } from '../../utils/foreignContext.js'
 import { findChainAgain } from '../../utils/findChainAgain.js'
 
 const log = logger('webdriverio')
+
+/**
+ * ChromeDriver and EdgeDriver fail WebDriver `wheel` actions (e.g. `invalid argument`
+ * or `move target out of bounds`) when `mobileEmulation` enables touch emulation
+ * (via `deviceName`, or `deviceMetrics` without `touch: false`).
+ *
+ * Drivers do not echo `mobileEmulation` back in session capabilities, so inspect
+ * `requestedCapabilities` first and fall back to the legacy `mobileEmulationEnabled`
+ * session capability when no requested `mobileEmulation` block is available
+ * (for example, on an attached session).
+ */
+function isTouchMobileEmulation (browser: WebdriverIO.Browser): boolean {
+    const sessionCaps = browser.capabilities as (WebdriverIO.Capabilities & { mobileEmulationEnabled?: boolean }) | undefined
+    const sessionBrowser = sessionCaps?.browserName?.toLowerCase()
+    if (browser.isFirefox || sessionBrowser?.includes('firefox') || sessionBrowser?.includes('safari')) {
+        return false
+    }
+
+    const isEdgeBrowserName = (name?: string) => Boolean(name && (name.includes('edge') || name === 'msedge'))
+    const isChromeBrowserName = (name?: string) => Boolean(
+        name && (name === 'chrome' || name === 'chrome-headless-shell' || name === 'chromium')
+    )
+    const isEdgeSession = isEdgeBrowserName(sessionBrowser)
+    const isChromeSession = isChromeBrowserName(sessionBrowser)
+
+    const matchesSessionBrowser = (caps: WebdriverIO.Capabilities): boolean => {
+        const candidateBrowser = caps.browserName?.toLowerCase()
+        if (!candidateBrowser) {
+            return true
+        }
+        if (isChromeSession) {
+            return isChromeBrowserName(candidateBrowser)
+        }
+        if (isEdgeSession) {
+            return isEdgeBrowserName(candidateBrowser)
+        }
+        return true
+    }
+
+    const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
+    const candidates: WebdriverIO.Capabilities[] = []
+    if (requested && typeof requested === 'object') {
+        if ('alwaysMatch' in requested || 'firstMatch' in requested) {
+            const w3c = requested as Capabilities.W3CCapabilities
+            const alwaysMatch = w3c.alwaysMatch && typeof w3c.alwaysMatch === 'object' ? w3c.alwaysMatch : {}
+            if (Array.isArray(w3c.firstMatch) && w3c.firstMatch.length > 0) {
+                for (const match of w3c.firstMatch) {
+                    if (match && typeof match === 'object') {
+                        const merged: WebdriverIO.Capabilities = { ...alwaysMatch, ...match }
+                        if (matchesSessionBrowser(merged)) {
+                            candidates.push(merged)
+                        }
+                    }
+                }
+            } else if (w3c.alwaysMatch && matchesSessionBrowser(w3c.alwaysMatch)) {
+                candidates.push(w3c.alwaysMatch)
+            }
+        } else if (matchesSessionBrowser(requested as WebdriverIO.Capabilities)) {
+            candidates.push(requested as WebdriverIO.Capabilities)
+        }
+    }
+
+    const checkMobileEmulation = (caps: WebdriverIO.Capabilities): 'touch' | 'non-touch' | 'none' => {
+        const chromeMobileEmulation = !isEdgeSession ? caps['goog:chromeOptions']?.mobileEmulation : undefined
+        const edgeMobileEmulation = !isChromeSession ? caps['ms:edgeOptions']?.mobileEmulation : undefined
+        const mobileEmulation = chromeMobileEmulation ?? edgeMobileEmulation
+        if (!mobileEmulation || typeof mobileEmulation !== 'object') {
+            return 'none'
+        }
+        if (typeof mobileEmulation.deviceName === 'string' && mobileEmulation.deviceName.trim().length > 0) {
+            return 'touch'
+        }
+        if (
+            mobileEmulation.deviceMetrics &&
+            typeof mobileEmulation.deviceMetrics === 'object' &&
+            mobileEmulation.deviceMetrics.touch !== false
+        ) {
+            return 'touch'
+        }
+        return 'non-touch'
+    }
+
+    if (candidates.length > 0) {
+        const statuses = candidates.map(checkMobileEmulation)
+        if (statuses.every((status) => status === 'touch')) {
+            return true
+        }
+        if (statuses.every((status) => status === 'non-touch')) {
+            return false
+        }
+    }
+
+    if (sessionCaps && typeof sessionCaps === 'object') {
+        const sessionStatus = checkMobileEmulation(sessionCaps)
+        if (sessionStatus !== 'none') {
+            return sessionStatus === 'touch'
+        }
+    }
+
+    return sessionCaps?.mobileEmulationEnabled === true
+}
 
 /**
  *
@@ -90,6 +192,14 @@ export async function scrollIntoView (
             })
         }
 
+        return scrollIntoViewWeb.call(this, options)
+    }
+
+    /**
+     * Chrome/Edge mobile emulation with touch enabled fails WebDriver "wheel" actions
+     * and would otherwise log failed request warnings/errors before falling back
+     */
+    if (isTouchMobileEmulation(browser)) {
         return scrollIntoViewWeb.call(this, options)
     }
 

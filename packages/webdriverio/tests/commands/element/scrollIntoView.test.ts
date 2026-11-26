@@ -1,8 +1,9 @@
 import path from 'node:path'
 import type { Mock } from 'vitest'
 import { expect, describe, it, vi, beforeAll, beforeEach, afterEach } from 'vitest'
+import logger from '@wdio/logger'
 
-import { remote } from '../../../src/index.js'
+import { remote, attach } from '../../../src/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 import { findChainAgain } from '../../../src/utils/findChainAgain.js'
 
@@ -643,6 +644,287 @@ describe('scrollIntoView test', () => {
             expect(swipeSpy).not.toBeCalled()
             swipeSpy.mockRestore()
             isDisplayedSpy.mockRestore()
+        })
+    })
+
+    describe('mobile emulation (Chrome/Edge)', () => {
+        const createEmulatedElement = async (
+            capabilities: Record<string, unknown>,
+            sessionCapabilities?: Record<string, unknown>
+        ) => {
+            const emulatedBrowser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: capabilities as any
+            })
+            if (sessionCapabilities) {
+                Object.assign(emulatedBrowser.capabilities, sessionCapabilities)
+            }
+            const emulatedElem = await emulatedBrowser.$('#foo')
+            // @ts-expect-error mock feature
+            emulatedElem.elementId = { scrollIntoView: 'mockFunction' }
+            vi.mocked(fetch).mockClear()
+            return { emulatedBrowser, emulatedElem }
+        }
+
+        const getActionCalls = () => vi.mocked(fetch).mock.calls.filter(([url]) => (
+            (url as URL).pathname?.endsWith('/actions')
+        ))
+
+        it('uses the Web API directly for Chrome mobileEmulation with deviceName', async () => {
+            const log = logger('webdriverio')
+            vi.mocked(log.warn).mockClear()
+            vi.mocked(log.error).mockClear()
+            const { emulatedElem } = await createEmulatedElement({
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    mobileEmulation: { deviceName: 'iPhone 8 Plus' }
+                }
+            })
+
+            await emulatedElem.scrollIntoView({ block: 'center', inline: 'nearest' })
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(log.warn).not.toHaveBeenCalled()
+            expect(log.error).not.toHaveBeenCalled()
+            const { calls } = vi.mocked(fetch).mock
+            expect(calls).toHaveLength(1)
+            const [[executeCallUrl, executeCallOptions]] = calls as any
+            expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
+            expect(JSON.parse(executeCallOptions.body).script).toEqual(
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, (\w+)\) => elem\.scrollIntoView\(\1\)\)\.apply/))
+            expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'center', inline: 'nearest' })
+        })
+
+        it('uses the Web API directly for Chrome mobileEmulation with deviceMetrics (default touch)', async () => {
+            const { emulatedElem } = await createEmulatedElement({
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    mobileEmulation: {
+                        deviceMetrics: { width: 360, height: 800, pixelRatio: 3.0 }
+                    }
+                }
+            })
+
+            await emulatedElem.scrollIntoView(false)
+
+            expect(getActionCalls()).toHaveLength(0)
+            const { calls } = vi.mocked(fetch).mock
+            expect(calls).toHaveLength(1)
+            const [[executeCallUrl, executeCallOptions]] = calls as any
+            expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
+            expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(false)
+        })
+
+        it('uses the Web API directly for Edge mobileEmulation', async () => {
+            const { emulatedElem } = await createEmulatedElement({
+                browserName: 'msedge',
+                'ms:edgeOptions': {
+                    mobileEmulation: { deviceName: 'Pixel 7' }
+                }
+            })
+
+            await emulatedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            const { calls } = vi.mocked(fetch).mock
+            expect(calls).toHaveLength(1)
+            const [[executeCallUrl, executeCallOptions]] = calls as any
+            expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
+            expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'start', inline: 'nearest' })
+        })
+
+        it('uses the Web API directly for W3C alwaysMatch/firstMatch mobileEmulation', async () => {
+            const { emulatedElem } = await createEmulatedElement({
+                alwaysMatch: { browserName: 'chrome', keepBrowserName: true },
+                firstMatch: [
+                    { 'goog:chromeOptions': { mobileEmulation: { deviceMetrics: { width: 390, height: 844, touch: true } } } }
+                ]
+            })
+
+            await emulatedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
+        })
+
+        it('keeps using the wheel action when deviceMetrics explicitly disables touch', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        mobileEmulation: {
+                            deviceMetrics: { width: 360, height: 800, pixelRatio: 3.0, touch: false }
+                        }
+                    }
+                },
+                { mobileEmulationEnabled: true }
+            )
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('keeps using the wheel action when mobileEmulation only overrides userAgent', async () => {
+            const { emulatedElem } = await createEmulatedElement({
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    mobileEmulation: {
+                        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)'
+                    }
+                }
+            })
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('keeps using the wheel action for non-Chromium sessions even if firstMatch includes Chrome mobileEmulation', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: {},
+                    firstMatch: [
+                        { browserName: 'firefox' },
+                        { browserName: 'chrome', 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'firefox' }
+            )
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('falls back to the session mobileEmulationEnabled capability when requestedCapabilities are unavailable', async () => {
+            const attachedBrowser = await attach({
+                sessionId: 'foobar-123',
+                options: {
+                    protocol: 'http',
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/'
+                },
+                capabilities: {
+                    browserName: 'chrome',
+                    mobileEmulationEnabled: true
+                } as any
+            })
+            const attachedElem = await attachedBrowser.$('#foo', { strict: false })
+            // @ts-expect-error mock feature
+            attachedElem.elementId = { scrollIntoView: 'mockFunction' }
+            vi.mocked(fetch).mockClear()
+
+            await attachedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
+        })
+
+        it('does not treat Edge mobileEmulation in firstMatch as active for a Chrome session', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: {},
+                    firstMatch: [
+                        { browserName: 'chrome' },
+                        { browserName: 'msedge', 'ms:edgeOptions': { mobileEmulation: { deviceName: 'Pixel 7' } } }
+                    ]
+                },
+                { browserName: 'chrome' }
+            )
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('keeps using the wheel action for Safari Technology Preview', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: {},
+                    firstMatch: [
+                        { browserName: 'Safari Technology Preview' },
+                        { browserName: 'chrome', 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'Safari Technology Preview' }
+            )
+            await emulatedElem.scrollIntoView({ block: 'center' })
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('keeps using the wheel action when mobileEmulation deviceName is blank', async () => {
+            const { emulatedElem } = await createEmulatedElement({
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    mobileEmulation: { deviceName: '   ' }
+                }
+            })
+            await emulatedElem.scrollIntoView({ block: 'center' })
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('respects mobileEmulation in session capabilities on attach when requestedCapabilities are unavailable', async () => {
+            const attachedBrowser = await attach({
+                sessionId: 'foobar-123',
+                options: {
+                    protocol: 'http',
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/'
+                },
+                capabilities: {
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        mobileEmulation: { deviceName: 'iPhone SE' }
+                    }
+                } as any
+            })
+            const attachedElem = await attachedBrowser.$('#foo', { strict: false })
+            // @ts-expect-error mock feature
+            attachedElem.elementId = { scrollIntoView: 'mockFunction' }
+            vi.mocked(fetch).mockClear()
+
+            await attachedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
+        })
+
+        it('keeps using the wheel action when desktop Chrome can match alongside an unused touch mobileEmulation firstMatch entry', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: { browserName: 'chrome' },
+                    firstMatch: [
+                        {},
+                        { 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'chrome' }
+            )
+
+            await emulatedElem.scrollIntoView({ block: 'center' })
+
+            expect(getActionCalls().length).toBeGreaterThanOrEqual(1)
+        })
+
+        it('uses the Web API directly when the only firstMatch entry matching the negotiated browser enables touch mobileEmulation', async () => {
+            const { emulatedElem } = await createEmulatedElement(
+                {
+                    alwaysMatch: {},
+                    firstMatch: [
+                        { browserName: 'firefox' },
+                        { browserName: 'chrome', 'goog:chromeOptions': { mobileEmulation: { deviceName: 'iPhone SE' } } }
+                    ]
+                },
+                { browserName: 'chrome' }
+            )
+
+            await emulatedElem.scrollIntoView()
+
+            expect(getActionCalls()).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
         })
     })
 })
