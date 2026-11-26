@@ -1,5 +1,5 @@
 import { vi, describe, it, afterEach, expect } from 'vitest'
-import { logHookError } from '../../src/test-framework/errorHandler.js'
+import { logHookError, findSevereServiceError } from '../../src/test-framework/errorHandler.js'
 
 process.send = vi.fn()
 
@@ -17,6 +17,18 @@ describe('logHookError', () => {
                 type: 'hook',
                 error: expect.objectContaining({ message: 'foobar' }),
             },
+        })
+    })
+
+    describe('findSevereServiceError', () => {
+        it('should find an error by its name', () => {
+            const severe = Object.assign(new Error('foobar'), { name: 'SevereServiceError' })
+            expect(findSevereServiceError([undefined, new Error('other'), severe])).toBe(severe)
+        })
+
+        it('should ignore other results', () => {
+            expect(findSevereServiceError([undefined, 'SevereServiceError', new Error('other')])).toBeUndefined()
+            expect(findSevereServiceError()).toBeUndefined()
         })
     })
 

@@ -146,7 +146,7 @@ If either check throws or rejects, service initialization fails with an error id
 
 ## Service Error Handling
 
-An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
+An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner. In the `beforeTest` and `afterTest` hooks (Mocha and Jasmine), it fails the current test instead, as the runner can continue with the next one.
 
 ```js
 import { SevereServiceError } from 'webdriverio'
