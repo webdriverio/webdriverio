@@ -181,8 +181,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
              */
             driverProcess = await spawnDriver(chromedriverExcecuteablePath, driverParams, {
                 env: { ...process.env, NODE_OPTIONS: '' },
-                ...(watchSpawnOpts || {}),
-                ...(chromedriverOptions.spawnOpts || {})
+                ...(chromedriverOptions.spawnOpts || {}),
+                ...(watchSpawnOpts || {})
             })
             driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
         } else if (isSafari(caps.browserName)) {
@@ -194,7 +194,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             driverProcess = startSafaridriver({
                 useTechnologyPreview: /preview/i.test(caps.browserName),
                 ...safaridriverOptions,
-                ...(watchSpawnOpts ? { spawnOpts: { ...watchSpawnOpts, ...safaridriverOptions.spawnOpts } } : {}),
+                ...(watchSpawnOpts ? { spawnOpts: { ...safaridriverOptions.spawnOpts, ...watchSpawnOpts } } : {}),
                 port
             })
         } else if (isFirefox(caps.browserName)) {
@@ -237,7 +237,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             driver = 'GeckoDriver'
             driverProcess = await startGeckodriver({
                 ...geckodriverOptions,
-                ...(watchSpawnOpts ? { spawnOpts: { ...watchSpawnOpts, ...geckodriverOptions.spawnOpts } } : {}),
+                ...(watchSpawnOpts ? { spawnOpts: { ...geckodriverOptions.spawnOpts, ...watchSpawnOpts } } : {}),
                 cacheDir,
                 port,
                 allowHosts: ['localhost']
@@ -255,7 +255,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
             driver = 'EdgeDriver'
             const edgeSpawnOpts = watchSpawnOpts
-                ? { spawnOpts: { ...watchSpawnOpts, ...edgedriverOptions.spawnOpts } }
+                ? { spawnOpts: { ...edgedriverOptions.spawnOpts, ...watchSpawnOpts } }
                 : {}
             driverProcess = await startEdgedriver({ ...edgedriverOptions, ...edgeSpawnOpts, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
                 log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
@@ -289,8 +289,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         }
     }
 
+    const logIdentifier = driver.split(' ').shift()?.toLowerCase() || 'driver'
     if (!detachDriver) {
-        const logIdentifier = driver.split(' ').shift()?.toLowerCase() || 'driver'
         if (options.outputDir) {
             const logFileName = process.env.WDIO_WORKER_ID
                 ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
@@ -304,6 +304,10 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             driverProcess.stdout?.pipe(split2()).on('data', driverLog.info.bind(driverLog))
             driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
         }
+    } else if (driverProcess.stdout || driverProcess.stderr) {
+        const driverLog = logger(logIdentifier)
+        driverProcess.stdout?.pipe(split2()).on('data', driverLog.info.bind(driverLog))
+        driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
     }
 
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT, interval: DRIVER_RETRY_INTERVAL })

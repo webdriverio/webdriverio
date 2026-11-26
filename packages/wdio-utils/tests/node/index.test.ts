@@ -1064,5 +1064,60 @@ describe('startWebDriver', () => {
             expect(kill).toHaveBeenCalledWith('SIGKILL')
             expect(unref).not.toHaveBeenCalled()
         })
+
+        it('enforces detached stdio over user spawnOpts while keeping other user options in watch mode', async () => {
+            const unref = vi.fn()
+            vi.mocked(cp.spawn).mockReturnValueOnce({ stdout: null, stderr: null, unref } as any)
+
+            await startWebDriver({
+                capabilities: {
+                    browserName: 'chrome',
+                    'wdio:chromedriverOptions': {
+                        spawnOpts: { stdio: 'pipe', cwd: '/custom/dir' }
+                    }
+                }
+            } as any)
+
+            expect(cp.spawn).toHaveBeenCalledWith(
+                '/foo/bar/executable',
+                expect.any(Array),
+                expect.objectContaining({
+                    cwd: '/custom/dir',
+                    detached: true,
+                    windowsHide: true,
+                    stdio: 'ignore'
+                })
+            )
+            expect(split2).not.toHaveBeenCalled()
+            expect(unref).toHaveBeenCalledTimes(1)
+        })
+
+        it('drains driver output streams in watch mode if a launcher still returns piped stdio', async () => {
+            const stdoutPipe = vi.fn().mockReturnValue({ on: vi.fn() })
+            const stderrPipe = vi.fn().mockReturnValue({ on: vi.fn() })
+            const unref = vi.fn()
+            vi.mocked(startGeckodriver).mockResolvedValueOnce({
+                stdout: { pipe: stdoutPipe },
+                stderr: { pipe: stderrPipe },
+                unref
+            } as any)
+
+            await startWebDriver({
+                capabilities: {
+                    browserName: 'firefox',
+                    'wdio:geckodriverOptions': {
+                        spawnOpts: { stdio: 'pipe', cwd: '/gecko/dir' }
+                    }
+                }
+            } as any)
+
+            expect(startGeckodriver).toHaveBeenCalledWith(expect.objectContaining({
+                spawnOpts: { cwd: '/gecko/dir', detached: true, windowsHide: true, stdio: 'ignore' }
+            }))
+            expect(stdoutPipe).toHaveBeenCalledTimes(1)
+            expect(stderrPipe).toHaveBeenCalledTimes(1)
+            expect(split2).toHaveBeenCalledTimes(2)
+            expect(unref).toHaveBeenCalledTimes(1)
+        })
     })
 })
