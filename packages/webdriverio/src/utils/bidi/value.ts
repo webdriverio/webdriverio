@@ -217,13 +217,17 @@ export class LocalValue {
             if (argument === null) {
                 return LocalValue.createNullValue()
             }
-            if (argument instanceof Date) {
-                return LocalValue.createDateValue(argument)
+            const objectTag = Object.prototype.toString.call(argument)
+            if (argument instanceof Date || objectTag === '[object Date]') {
+                return LocalValue.createDateValue(argument as Date)
             }
-            if (argument instanceof Map) {
+            if (
+                argument instanceof Map ||
+                (objectTag === '[object Map]' && typeof (argument as Map<unknown, unknown>).forEach === 'function')
+            ) {
                 const map: ([unknown, unknown] | LocalValue)[] = []
 
-                argument.forEach((value, key) => {
+                ;(argument as Map<unknown, unknown>).forEach((value, key) => {
                     const objectKey = typeof key === 'string'
                         ? key
                         : LocalValue.getArgument(key)
@@ -232,14 +236,17 @@ export class LocalValue {
                 })
                 return new LocalValue(NonPrimitiveType.Map, map)
             }
-            if (argument instanceof Set) {
+            if (
+                argument instanceof Set ||
+                (objectTag === '[object Set]' && typeof (argument as Set<unknown>).forEach === 'function')
+            ) {
                 const set: (ReferenceValue | LocalValue)[] = []
-                argument.forEach((value) => {
+                ;(argument as Set<unknown>).forEach((value) => {
                     set.push(LocalValue.getArgument(value))
                 })
                 return LocalValue.createSetValue(set)
             }
-            if (argument instanceof Array) {
+            if (Array.isArray(argument)) {
                 const arr: (ReferenceValue | LocalValue)[] = []
                 /**
                  * the `forEach` of an element list (`$$()`) is async: it would push the items
@@ -250,10 +257,18 @@ export class LocalValue {
                 })
                 return LocalValue.createArrayValue(arr)
             }
-            if (argument instanceof RegExp) {
+            if (
+                argument instanceof RegExp ||
+                (
+                    objectTag === '[object RegExp]' &&
+                    typeof (argument as RegExp).source === 'string' &&
+                    typeof (argument as RegExp).flags === 'string'
+                )
+            ) {
+                const regex = argument as RegExp
                 return LocalValue.createRegularExpressionValue({
-                    pattern: argument.source,
-                    flags: argument.flags,
+                    pattern: regex.source,
+                    flags: regex.flags,
                 })
             }
             if (argument && ELEMENT_KEY in (argument as ElementReference)) {
