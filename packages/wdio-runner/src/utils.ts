@@ -63,9 +63,11 @@ export async function initializeInstance (
     await enableFileLogging(config.outputDir, { keepLogPath: true })
 
     /**
-     * check if config has sessionId and attach it to a running session if so
+     * check if config has sessionId and attach it to a running session if so.
+     * Skip attaching for the pre-session protocol stub pass (e.g. watch-mode
+     * reruns) so the stub is created normally via `remote()` / `multiRemote()`.
      */
-    if ('sessionId' in config) {
+    if ('sessionId' in config && config.sessionId && config.automationProtocol !== './protocol-stub.js') {
         log.debug(`attach to session with id ${config.sessionId}`)
         config.capabilities = sanitizeCaps(capabilities as WebdriverIO.Capabilities)
 

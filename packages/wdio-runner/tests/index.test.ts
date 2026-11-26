@@ -71,6 +71,44 @@ describe('wdio-runner', () => {
             expect(attach).not.toBeCalled()
         })
 
+        it('should attach and clean up in a fresh watch-mode shutdown worker when _config is unset', async () => {
+            const runner = new WDIORunner()
+            const deleteSession = vi.fn().mockResolvedValue(undefined)
+            vi.mocked(attach).mockResolvedValueOnce({
+                sessionId: 'watch-sid',
+                capabilities: { browserName: 'chrome', 'wdio:driverPID': 9999 },
+                deleteSession
+            } as any)
+
+            await runner.endSession({
+                specs: ['/path/to/spec.js'],
+                args: {
+                    config: {
+                        sessionId: 'watch-sid',
+                        hostname: 'localhost',
+                        port: 9515,
+                        watch: true
+                    },
+                    capabilities: { browserName: 'chrome', 'wdio:driverPID': 9999 }
+                }
+            })
+
+            expect(attach).toBeCalledWith(expect.objectContaining({
+                sessionId: 'watch-sid',
+                capabilities: { browserName: 'chrome', 'wdio:driverPID': 9999 }
+            }))
+            expect(deleteSession).toBeCalledTimes(1)
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [],
+                [
+                    expect.objectContaining({ sessionId: 'watch-sid' }),
+                    { browserName: 'chrome', 'wdio:driverPID': 9999 },
+                    ['/path/to/spec.js']
+                ]
+            )
+        })
+
         it('should work normally when called after framework run in multi-remote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
@@ -1314,6 +1352,15 @@ describe('wdio-runner', () => {
             const browser = await runner['_startSession']({} as any, {} as any)
 
             expect(browser?.overwriteCommand).toBeCalledWith(3, 2, 1)
+        })
+
+        it('clears a stale _sessionInitError after a subsequent session succeeds', async () => {
+            const runner = new WDIORunner()
+            runner['_sessionInitError'] = new Error('stale init error')
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser).toBeDefined()
+            expect(runner['_sessionInitError']).toBeUndefined()
         })
     })
 

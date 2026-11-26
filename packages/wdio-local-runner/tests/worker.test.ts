@@ -447,4 +447,36 @@ describe('startProcess NODE_OPTIONS', () => {
         const nodeOptions = await runStartProcess('--import tsx', {}, '1')
         expect(nodeOptions).toBe('--import tsx --enable-source-maps')
     })
+
+    it('sets WDIO_WATCH_MODE in worker env only when watch mode is enabled', async () => {
+        const originalWatchMode = process.env.WDIO_WATCH_MODE
+        delete process.env.WDIO_WATCH_MODE
+        try {
+            forkMock.mockClear()
+            const nonWatchWorker = new Worker(
+                { watch: false } as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer()
+            )
+            await nonWatchWorker.startProcess()
+            expect(forkMock.mock.calls[0][2]?.env?.WDIO_WATCH_MODE).toBeUndefined()
+
+            forkMock.mockClear()
+            const watchWorker = new Worker(
+                { watch: true } as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer()
+            )
+            await watchWorker.startProcess()
+            expect(forkMock.mock.calls[0][2]?.env?.WDIO_WATCH_MODE).toBe('1')
+        } finally {
+            if (originalWatchMode === undefined) {
+                delete process.env.WDIO_WATCH_MODE
+            } else {
+                process.env.WDIO_WATCH_MODE = originalWatchMode
+            }
+        }
+    })
 })

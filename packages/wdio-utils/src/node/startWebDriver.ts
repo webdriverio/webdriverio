@@ -66,6 +66,22 @@ function addWaylandFlag(browserOptions: { args?: string[] }) {
     browserOptions.args = [...args, '--ozone-platform=wayland']
 }
 
+function getDriverLogIdentifier (browserName: string) {
+    if (isChrome(browserName)) {
+        return 'chromedriver'
+    }
+    if (isSafari(browserName)) {
+        return 'safaridriver'
+    }
+    if (isFirefox(browserName)) {
+        return 'geckodriver'
+    }
+    if (isEdge(browserName)) {
+        return 'edgedriver'
+    }
+    return undefined
+}
+
 export async function startWebDriver(options: Capabilities.RemoteConfig) {
     /**
      * in case we are running unit tests, just return
@@ -98,157 +114,213 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
 
     const port = await getPort()
     const cacheDir = getCacheDir(options, caps)
-    if (isChrome(caps.browserName)) {
-        /**
-         * Chrome
-         *
-         * When goog:chromeOptions.androidPackage is set, chromedriver will launch
-         * Chrome on the Android device over ADB — downloading a desktop Chrome
-         * binary is unnecessary and injecting its path as `binary` conflicts with
-         * `androidPackage` (they are mutually exclusive in chromedriver).
-         */
-        const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
-        /**
-         * support for custom chromedriver path via environment variable like
-         * other drivers do as well
-         */
-        const chromedriverBinary = chromedriverOptions.binary || process.env.CHROMEDRIVER_PATH
-        let browserVersion: string | undefined
-        if (!caps['goog:chromeOptions']?.androidPackage) {
-            const puppeteerResult = await setupPuppeteerBrowser(cacheDir, caps)
-            browserVersion = puppeteerResult.browserVersion
-
-            const prefs = generateDefaultPrefs(caps)
-            caps['goog:chromeOptions'] = deepmerge(
-                { binary: puppeteerResult.executablePath },
-                prefs,
-                caps['goog:chromeOptions'] || {}
-            )
-
-            addWaylandFlag(caps['goog:chromeOptions'])
+    /**
+     * In watch mode, the worker process exits after each run while the browser
+     * session stays alive for subsequent reruns. Spawn the driver detached with
+     * stdio decoupled from the worker so closing the worker's pipes does not
+     * terminate the driver (SIGPIPE / broken pipe) or block worker exit.
+     * Watch-mode shutdown still terminates the driver via `wdio:driverPID`.
+     */
+    const detachDriver = Boolean((options as { watch?: boolean }).watch || process.env.WDIO_WATCH_MODE)
+    let logFd: number | undefined
+    let watchSpawnOpts: cp.SpawnOptions | undefined
+    if (detachDriver) {
+        const logIdentifier = getDriverLogIdentifier(caps.browserName)
+        if (options.outputDir && logIdentifier) {
+            const logFileName = process.env.WDIO_WORKER_ID
+                ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
+                : `wdio-${logIdentifier}-${port}.log`
+            const logFile = path.resolve(options.outputDir, logFileName)
+            logFd = fs.openSync(logFile, 'w')
+            watchSpawnOpts = { detached: true, windowsHide: true, stdio: ['ignore', logFd, logFd] }
+        } else {
+            watchSpawnOpts = { detached: true, windowsHide: true, stdio: 'ignore' }
         }
+    }
 
-        const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
-            ? { executablePath: chromedriverBinary }
-            : await setupChromedriver(cacheDir, browserVersion, caps['wdio:electronVersion'])
+    try {
+        if (isChrome(caps.browserName)) {
+            /**
+             * Chrome
+             *
+             * When goog:chromeOptions.androidPackage is set, chromedriver will launch
+             * Chrome on the Android device over ADB — downloading a desktop Chrome
+             * binary is unnecessary and injecting its path as `binary` conflicts with
+             * `androidPackage` (they are mutually exclusive in chromedriver).
+             */
+            const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
+            /**
+             * support for custom chromedriver path via environment variable like
+             * other drivers do as well
+             */
+            const chromedriverBinary = chromedriverOptions.binary || process.env.CHROMEDRIVER_PATH
+            let browserVersion: string | undefined
+            if (!caps['goog:chromeOptions']?.androidPackage) {
+                const puppeteerResult = await setupPuppeteerBrowser(cacheDir, caps)
+                browserVersion = puppeteerResult.browserVersion
 
-        chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
-        chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
-        const driverParams = parseParams({ port, ...chromedriverOptions })
-        /**
-         * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
-         */
-        driverProcess = await spawnDriver(chromedriverExcecuteablePath, driverParams, {
-            env: { ...process.env, NODE_OPTIONS: '' },
-            ...(chromedriverOptions.spawnOpts || {})
-        })
-        driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
-    } else if (isSafari(caps.browserName)) {
-        const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as WebdriverIO.SafaridriverOptions)
-        /**
-         * Safari
-         */
-        driver = 'SafariDriver'
-        driverProcess = startSafaridriver({
-            useTechnologyPreview: /preview/i.test(caps.browserName),
-            ...safaridriverOptions,
-            port
-        })
-    } else if (isFirefox(caps.browserName)) {
-        /**
-         * Firefox
-         *
-         * When moz:firefoxOptions.androidPackage is set, geckodriver will launch
-         * Firefox on the Android device over ADB — downloading a desktop Firefox
-         * binary is unnecessary and injecting its path as `binary` conflicts with
-         * `androidPackage` (they are mutually exclusive in geckodriver).
-         */
-        if (!caps['moz:firefoxOptions']?.androidPackage) {
-            const { executablePath } = await setupPuppeteerBrowser(cacheDir, caps)
-            caps['moz:firefoxOptions'] = deepmerge(
-                { binary: executablePath },
-                caps['moz:firefoxOptions'] || {}
-            )
-        }
+                const prefs = generateDefaultPrefs(caps)
+                caps['goog:chromeOptions'] = deepmerge(
+                    { binary: puppeteerResult.executablePath },
+                    prefs,
+                    caps['goog:chromeOptions'] || {}
+                )
 
-        /**
-         * the "binary" parameter refers to the driver binary in the WebdriverIO.GeckodriverOptions and
-         * to the Firefox binary in the driver option
-         */
-        delete caps.browserVersion
-        const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
-        if (binary) {
-            geckodriverOptions.customGeckoDriverPath = binary
-        }
-
-        // on a Windows runner of GitHub Actions, profiles in %TEMP% fill the system disk queue and Firefox stalls
-        const runnerTemp = process.env.RUNNER_TEMP
-        if (os.platform() === 'win32' && runnerTemp && !geckodriverOptions.profileRoot && !caps['moz:firefoxOptions']?.androidPackage) {
-            geckodriverOptions.profileRoot = runnerTemp
-            if (!profileRootLogged) {
-                profileRootLogged = true
-                log.info(`Create the Firefox profiles in RUNNER_TEMP (${runnerTemp}). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }`)
+                addWaylandFlag(caps['goog:chromeOptions'])
             }
+
+            const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
+                ? { executablePath: chromedriverBinary }
+                : await setupChromedriver(cacheDir, browserVersion, caps['wdio:electronVersion'])
+
+            chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
+            chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
+            const driverParams = parseParams({ port, ...chromedriverOptions })
+            /**
+             * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
+             */
+            driverProcess = await spawnDriver(chromedriverExcecuteablePath, driverParams, {
+                env: { ...process.env, NODE_OPTIONS: '' },
+                ...(chromedriverOptions.spawnOpts || {}),
+                ...(watchSpawnOpts || {})
+            })
+            driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
+        } else if (isSafari(caps.browserName)) {
+            const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as WebdriverIO.SafaridriverOptions)
+            /**
+             * Safari
+             */
+            driver = 'SafariDriver'
+            driverProcess = startSafaridriver({
+                useTechnologyPreview: /preview/i.test(caps.browserName),
+                ...safaridriverOptions,
+                ...(watchSpawnOpts ? { spawnOpts: { ...safaridriverOptions.spawnOpts, ...watchSpawnOpts } } : {}),
+                port
+            })
+        } else if (isFirefox(caps.browserName)) {
+            /**
+             * Firefox
+             *
+             * When moz:firefoxOptions.androidPackage is set, geckodriver will launch
+             * Firefox on the Android device over ADB — downloading a desktop Firefox
+             * binary is unnecessary and injecting its path as `binary` conflicts with
+             * `androidPackage` (they are mutually exclusive in geckodriver).
+             */
+            if (!caps['moz:firefoxOptions']?.androidPackage) {
+                const { executablePath } = await setupPuppeteerBrowser(cacheDir, caps)
+                caps['moz:firefoxOptions'] = deepmerge(
+                    { binary: executablePath },
+                    caps['moz:firefoxOptions'] || {}
+                )
+            }
+
+            /**
+             * the "binary" parameter refers to the driver binary in the WebdriverIO.GeckodriverOptions and
+             * to the Firefox binary in the driver option
+             */
+            delete caps.browserVersion
+            const { binary, ...geckodriverOptions } = caps['wdio:geckodriverOptions'] || ({} as WebdriverIO.GeckodriverOptions)
+            if (binary) {
+                geckodriverOptions.customGeckoDriverPath = binary
+            }
+
+            // on a Windows runner of GitHub Actions, profiles in %TEMP% fill the system disk queue and Firefox stalls
+            const runnerTemp = process.env.RUNNER_TEMP
+            if (os.platform() === 'win32' && runnerTemp && !geckodriverOptions.profileRoot && !caps['moz:firefoxOptions']?.androidPackage) {
+                geckodriverOptions.profileRoot = runnerTemp
+                if (!profileRootLogged) {
+                    profileRootLogged = true
+                    log.info(`Create the Firefox profiles in RUNNER_TEMP (${runnerTemp}). To keep the default folder, set 'wdio:geckodriverOptions': { profileRoot: os.tmpdir() }`)
+                }
+            }
+
+            driver = 'GeckoDriver'
+            driverProcess = await startGeckodriver({
+                ...geckodriverOptions,
+                ...(watchSpawnOpts ? { spawnOpts: { ...geckodriverOptions.spawnOpts, ...watchSpawnOpts } } : {}),
+                cacheDir,
+                port,
+                allowHosts: ['localhost']
+            })
+        } else if (isEdge(caps.browserName)) {
+            /**
+             * Microsoft Edge
+             */
+            const { binary, ...edgedriverOptions } = caps['wdio:edgedriverOptions'] || ({} as WebdriverIO.EdgedriverOptions)
+            if (binary) {
+                edgedriverOptions.customEdgeDriverPath = binary
+            }
+
+            setDefaultEdgedriverCdnUrl()
+            const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
+            driver = 'EdgeDriver'
+            const edgeSpawnOpts = watchSpawnOpts
+                ? { spawnOpts: { ...edgedriverOptions.spawnOpts, ...watchSpawnOpts } }
+                : {}
+            driverProcess = await startEdgedriver({ ...edgedriverOptions, ...edgeSpawnOpts, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
+                log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
+                return startEdgedriver({ ...edgedriverOptions, ...edgeSpawnOpts, cacheDir, port })
+            })
+
+            /**
+             * Microsoft Edge is very particular when it comes to browser names
+             */
+            caps.browserName = 'MicrosoftEdge'
+
+            /**
+             * on Linux set the path to the Edge binary if not already set
+             */
+            if (!caps['ms:edgeOptions']?.binary) {
+                caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
+                caps['ms:edgeOptions'].binary = findEdgePath()
+                log.info(`Found Edge binary at ${caps['ms:edgeOptions'].binary}`)
+            }
+
+            addWaylandFlag(caps['ms:edgeOptions'])
+        } else {
+            throw new Error(
+                `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +
+                Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)
+            )
         }
-
-        driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['localhost'] })
-    } else if (isEdge(caps.browserName)) {
-        /**
-         * Microsoft Edge
-         */
-        const { binary, ...edgedriverOptions } = caps['wdio:edgedriverOptions'] || ({} as WebdriverIO.EdgedriverOptions)
-        if (binary) {
-            edgedriverOptions.customEdgeDriverPath = binary
+    } finally {
+        if (logFd !== undefined) {
+            fs.closeSync(logFd)
         }
-
-        setDefaultEdgedriverCdnUrl()
-        const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
-        driver = 'EdgeDriver'
-        driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
-            log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)
-            return startEdgedriver({ ...edgedriverOptions, cacheDir, port })
-        })
-
-        /**
-         * Microsoft Edge is very particular when it comes to browser names
-         */
-        caps.browserName = 'MicrosoftEdge'
-
-        /**
-         * on Linux set the path to the Edge binary if not already set
-         */
-        if (!caps['ms:edgeOptions']?.binary) {
-            caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
-            caps['ms:edgeOptions'].binary = findEdgePath()
-            log.info(`Found Edge binary at ${caps['ms:edgeOptions'].binary}`)
-        }
-
-        addWaylandFlag(caps['ms:edgeOptions'])
-    } else {
-        throw new Error(
-            `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +
-            Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)
-        )
     }
 
     const logIdentifier = driver.split(' ').shift()?.toLowerCase() || 'driver'
-    if (options.outputDir) {
-        const logFileName = process.env.WDIO_WORKER_ID
-            ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
-            : `wdio-${logIdentifier}-${port}.log`
-        const logFile = path.resolve(options.outputDir, logFileName)
-        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
-        driverProcess.stdout?.pipe(logStream)
-        driverProcess.stderr?.pipe(logStream)
-    } else {
+    if (!detachDriver) {
+        if (options.outputDir) {
+            const logFileName = process.env.WDIO_WORKER_ID
+                ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
+                : `wdio-${logIdentifier}-${port}.log`
+            const logFile = path.resolve(options.outputDir, logFileName)
+            const logStream = fs.createWriteStream(logFile, { flags: 'w' })
+            driverProcess.stdout?.pipe(logStream)
+            driverProcess.stderr?.pipe(logStream)
+        } else {
+            const driverLog = logger(logIdentifier)
+            driverProcess.stdout?.pipe(split2()).on('data', driverLog.info.bind(driverLog))
+            driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
+        }
+    } else if (driverProcess.stdout || driverProcess.stderr) {
         const driverLog = logger(logIdentifier)
         driverProcess.stdout?.pipe(split2()).on('data', driverLog.info.bind(driverLog))
         driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
     }
 
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT, interval: DRIVER_RETRY_INTERVAL })
-        .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
+        .catch((e) => {
+            if (detachDriver) {
+                driverProcess.kill?.('SIGKILL')
+            }
+            throw new Error(`Timed out to connect to ${driver}: ${e.message}`)
+        })
+
+    if (detachDriver) {
+        driverProcess.unref?.()
+    }
 
     options.hostname = 'localhost'
     options.port = port

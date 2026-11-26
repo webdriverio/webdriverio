@@ -59,7 +59,14 @@ export default class WebDriver {
         log.info('Initiate new session using the WebDriver protocol')
         const driverProcess = await startWebDriver(params)
         const requestedCapabilities = { ...params.capabilities }
-        const { sessionId, capabilities } = await startWebDriverSession(params)
+        let sessionId: string
+        let capabilities: WebdriverIO.Capabilities
+        try {
+            ({ sessionId, capabilities } = await startWebDriverSession(params))
+        } catch (err) {
+            driverProcess?.kill?.('SIGKILL')
+            throw err
+        }
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
@@ -222,7 +229,14 @@ export default class WebDriver {
             driverProcess = await startWebDriver(params)
         }
 
-        const { sessionId, capabilities: newSessionCapabilities } = await startWebDriverSession(params)
+        let sessionId: string
+        let newSessionCapabilities: WebdriverIO.Capabilities
+        try {
+            ({ sessionId, capabilities: newSessionCapabilities } = await startWebDriverSession(params))
+        } catch (err) {
+            driverProcess?.kill?.('SIGKILL')
+            throw err
+        }
 
         /**
          * attach driver process to instance capabilities so we can kill the driver process

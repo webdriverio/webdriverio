@@ -66,6 +66,60 @@ describe('utils', () => {
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
+        it('should not attach when initializing protocol-stub even if sessionId is present (watch mode rerun)', async () => {
+            const config: ConfigWithSessionId = {
+                sessionId: '123',
+                automationProtocol: './protocol-stub.js',
+                // @ts-ignore test invalid params
+                foo: 'bar'
+            }
+            await initializeInstance(config, {
+                browserName: 'chrome'
+            })
+
+            expect(attach).toHaveBeenCalledTimes(0)
+            expect(multiRemote).toHaveBeenCalledTimes(0)
+            expect(remote).toBeCalledWith({
+                sessionId: '123',
+                automationProtocol: './protocol-stub.js',
+                foo: 'bar',
+                capabilities: { browserName: 'chrome' }
+            })
+        })
+
+        it('should use multiRemote for protocol-stub even if sessionId is present', async () => {
+            const capabilities = { someBrowser: { browserName: 'chrome' } }
+            await initializeInstance(
+                {
+                    sessionId: '123',
+                    automationProtocol: './protocol-stub.js'
+                } as any,
+                capabilities,
+                true
+            )
+
+            expect(attach).toHaveBeenCalledTimes(0)
+            expect(remote).toHaveBeenCalledTimes(0)
+            expect(multiRemote).toBeCalledTimes(1)
+        })
+
+        it('should not attach when sessionId property is undefined', async () => {
+            await initializeInstance(
+                {
+                    sessionId: undefined,
+                    hostname: 'localhost'
+                } as any,
+                { browserName: 'chrome' }
+            )
+
+            expect(attach).toHaveBeenCalledTimes(0)
+            expect(remote).toBeCalledWith({
+                sessionId: undefined,
+                hostname: 'localhost',
+                capabilities: { browserName: 'chrome' }
+            })
+        })
+
         it('should run multi-remote tests if flag is given', async () => {
             const capabilities = { someBrowser: { browserName: 'chrome' } }
             await initializeInstance(
