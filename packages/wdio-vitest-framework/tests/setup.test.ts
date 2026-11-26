@@ -790,6 +790,30 @@ describe('setup', () => {
             await hooks.aroundEach(vi.fn(async () => {}), { task: { ...task(false, { state: 'skip' }).task, mode: 'skip', fails: true } })
             expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', skipped: true, error: undefined })
         })
+
+        it('pins test.fails with a throwing afterEach: reports passed: true to afterTest while keeping the failed afterEach hook', async () => {
+            const context = { task: { ...task(false, { state: 'run', errors: [] }).task, fails: true } }
+            const bodyError = new Error('expected body error')
+            const afterEachError = new Error('after each failed')
+            await hooks.aroundEach(vi.fn(async () => {
+                Object.assign(context.task.result, {
+                    state: 'fail',
+                    hooks: { beforeEach: 'pass', afterEach: 'run' },
+                    errors: [bodyError, afterEachError]
+                })
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({
+                state: 'passed',
+                hooks: {
+                    beforeEach: { state: 'pass' },
+                    afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
+                }
+            })
+            expect(attempt?.payload).not.toHaveProperty('error')
+            expect(attempt?.payload.hooks.afterEach).not.toHaveProperty('isAttemptError')
+        })
     })
 
     it('stores the session id and capabilities on the file meta for the reporter', () => {

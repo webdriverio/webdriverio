@@ -309,12 +309,24 @@ function isTaskSkipped(task: RunnerTestCase) {
         || Boolean((task.result as { pending?: boolean } | undefined)?.pending)
 }
 
+function getSoftTestId(test: { file: string, parent: string, title: string }) {
+    return softAssertions?.['getTestId'](test)
+}
+
+function clearSoftFailures(test: { file: string, parent: string, title: string }) {
+    const testId = getSoftTestId(test)
+    if (testId !== undefined) {
+        SoftAssertService.getInstance().clearFailures(testId)
+    }
+}
+
 function consumeSoftFailure(test: { file: string, parent: string, title: string }): unknown {
-    if (!softAssertions || config.autoAssertOnTestEnd === false) {
+    const testId = getSoftTestId(test)
+    if (!testId || config.autoAssertOnTestEnd === false) {
         return undefined
     }
     try {
-        SoftAssertService.getInstance().assertNoFailures(softAssertions['getTestId'](test))
+        SoftAssertService.getInstance().assertNoFailures(testId)
         return undefined
     } catch (err) {
         return err
@@ -385,8 +397,8 @@ aroundEach(async (...args) => {
             error = err
             throw err
         } finally {
-            if (expectedFailure && softAssertions) {
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+            if (expectedFailure) {
+                clearSoftFailures(test)
             }
             const report = {
                 error,
@@ -402,9 +414,9 @@ aroundEach(async (...args) => {
             // afterTest services such as the soft assertion service report a failure by mutating the report
             if (error === undefined) {
                 serviceError = report.error
-            } else if (softAssertions) {
+            } else {
                 // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+                clearSoftFailures(test)
             }
         }
         if (serviceError !== undefined) {
