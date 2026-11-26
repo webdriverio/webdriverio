@@ -41,7 +41,7 @@ describe('login', () => {
 })
 ```
 
-The WDIO hooks `before`, `after`, `beforeTest` and `afterTest` run in the Vitest worker, once per spec file or test. Every capability becomes one Vitest project, named `<browserName>-<index>`, and every spec file gets its own browser session.
+The WDIO hooks `before`, `beforeSuite`, `afterSuite`, `after`, `beforeTest` and `afterTest` run in the Vitest worker, once per spec file or test. Every capability becomes one Vitest project, named `<browserName>-<index>`, and every spec file gets its own browser session.
 
 ## Fixtures
 
@@ -165,7 +165,7 @@ Each test opens its own window, and every command in the test targets it. The wi
 - `--watch`, `--repeat` and per-capability `wdio:specs` / `wdio:exclude` are not supported yet. The testrunner stops with an error instead of ignoring them.
 - WebDriver commands are not sent to the WDIO reporters, because the reporters run in the launcher and the commands run in the Vitest workers. Allure therefore shows no WebDriver steps and no automatic screenshots (`disableWebdriverStepsReporting` and `disableWebdriverScreenshotsReporting` have no effect), the video reporter records nothing, and the HTML reporter shows no automatic screenshots. Attach screenshots explicitly, for example `allure.addAttachment('screenshot', Buffer.from(await browser.takeScreenshot(), 'base64'), 'image/png')` in `afterTest` or `afterEach`. The `beforeCommand` / `afterCommand` hooks of `wdio.conf.ts` and of worker services still run. Calls of the HTML reporter (`ReportEvents.logMessage`, `logScreenshot` and `videoCapture`) are relayed, so their logs, screenshots and videos reach the report; WebDriver commands still do not.
 - The WDIO CLI banner ("Execution of N workers") is wrong for Vitest runs, because no WDIO workers are started.
-- Hook results of `beforeAll` and `afterAll` are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook in "<suite>"`) so that the JUnit reporter adds a failing testcase for it.
+- Hook results of `beforeAll` and `afterAll` are not reported to WDIO reporters, except for a failing `beforeAll` or `afterAll`, which is reported as a failed hook (`"before all" hook for <suite title>`, or `"before all" hook in "{root}"` for a hook outside any `describe`) so that the JUnit reporter adds a failing testcase for it.
 - Soft assertions (`expect.soft` from `expect-webdriverio`) fail the test at its end unless `autoAssertOnTestEnd` is `false`. `expect-webdriverio` tracks one current test per worker, so in `test.concurrent` tests the failures can be attributed to the wrong test. Use Vitest's own `expect.soft` from the test context there.
 - Soft assertions outside a test (in `beforeAll` or `afterAll`) are not asserted: their failures are dropped.
 - `hook:start` / `hook:end` are sent per hook kind and attempt, not per hook: one pair for all `beforeEach` hooks and one for all `afterEach` hooks (titles `"before each" hook for <suite title>` and `"after each" hook for <suite title>`, the WDIO Mocha form, which names the suite where the earlier titles named the test), with no duration. A failed hook ends with `state: 'fail'` and its error. A failing `beforeAll` / `afterAll` is reported separately, see above. Reporter runtime API calls made inside a `beforeEach` / `afterEach` hook are attributed to the test, not to the hook.
