@@ -128,8 +128,8 @@ describe('fine', () => { beforeAll(() => {}); afterAll(() => {}); test('t3', () 
 
         const hookEnds = recorded.filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
         expect(hookEnds.map(({ title, state, parent, error }) => ({ title, state, parent, message: error.message }))).toEqual([
-            { title: '"after all" hook in "after"', state: 'fail', parent: 'after', message: 'after boom' },
-            { title: '"before all" hook in "before"', state: 'fail', parent: 'before', message: 'before boom' }
+            { title: '"after all" hook for after', state: 'fail', parent: 'after', message: 'after boom' },
+            { title: '"before all" hook for before', state: 'fail', parent: 'before', message: 'before boom' }
         ])
         expect(recorded.filter(([name]) => name === 'hook:start').map(([, payload]) => payload.uid)).toEqual(hookEnds.map(({ uid }) => uid))
     })
@@ -159,9 +159,9 @@ describe('fine', () => { beforeAll(() => {}); afterAll(() => {}); test('t3', () 
 describe('passing after', () => { beforeAll(() => { throw new Error('b1') }); afterAll(() => {}); test('t1', () => {}) })
 describe('failing both', () => { beforeAll(() => { throw new Error('b2') }); afterAll(() => { throw new Error('a2') }); test('t2', () => {}) })
 `)).toEqual([
-            ['"before all" hook in "passing after"', 'b1'],
-            ['"before all" hook in "failing both"', 'b2'],
-            ['"after all" hook in "failing both"', 'a2']
+            ['"before all" hook for passing after', 'b1'],
+            ['"before all" hook for failing both', 'b2'],
+            ['"after all" hook for failing both', 'a2']
         ])
     })
 

@@ -346,6 +346,21 @@ describe('WdioBridgeReporter', () => {
         expect(emitted[afterStart][1]).toMatchObject({ parent: 'outer', fullTitle: 'outer after' })
     })
 
+    it('joins the describe chain of a failing hook with dots, as the Mocha fullTitle does', async () => {
+        const module = makeModule()
+        const outer = makeSuite(module, module, 'outer')
+        const inner = makeSuite(module, outer, 'inner')
+        inner.errors = () => [{ message: 'inner boom' }]
+        reporter.onTestModuleStart(module)
+        reporter.onHookStart({ name: 'afterAll', entity: inner })
+        await reporter.onTestSuiteReady(outer)
+        await describeBlock(inner, [])
+        await reporter.onTestSuiteResult(outer)
+
+        const [[, start]] = emittedOf().filter(([name]) => name === 'hook:start')
+        expect(start).toMatchObject({ title: '"after all" hook for inner', fullTitle: 'outer.inner."after all" hook for inner' })
+    })
+
     it('nests describes through parentUid', async () => {
         const module = makeModule()
         const outer = makeSuite(module, module, 'outer')
@@ -653,7 +668,7 @@ describe('WdioBridgeReporter', () => {
             const emitted = emittedOf()
             expect(names(emitted)).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end', 'hook:start', 'hook:end', 'suite:end', 'runner:end'])
             const [[, start], [, end]] = hookEvents(emitted)
-            expect(start).toMatchObject({ title: '"after all" hook in "cleanup"', parent: 'cleanup', parentUid: 'suite-0-0-0', file: '/repo/a.spec.ts' })
+            expect(start).toMatchObject({ title: '"after all" hook for cleanup', fullTitle: 'cleanup."after all" hook for cleanup', parent: 'cleanup', parentUid: 'suite-0-0-0', file: '/repo/a.spec.ts' })
             expect(end).toMatchObject({ uid: start.uid, title: start.title, state: 'fail', error: { name: 'Error', message: 'after boom', stack: 'at hook' } })
             expect([start.hookKind, start.hookSuiteUid, end.hookKind, end.hookSuiteUid]).toEqual(['afterAll', 'suite-0-0-0', 'afterAll', 'suite-0-0-0'])
         })
@@ -668,7 +683,7 @@ describe('WdioBridgeReporter', () => {
             await reporter.onTestModuleEnd(module)
 
             const [[, start], [, end]] = hookEvents(emittedOf())
-            expect(start.title).toBe('"before all" hook in "setup"')
+            expect(start.title).toBe('"before all" hook for setup')
             expect(end).toMatchObject({ uid: start.uid, state: 'fail', error: { name: 'Error', message: 'before boom' } })
             expect(start).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: start.parentUid })
             expect(end).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: start.parentUid })
@@ -686,7 +701,7 @@ describe('WdioBridgeReporter', () => {
             await reporter.onTestModuleEnd(module)
 
             const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
-            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook in "setup"', 'before boom']])
+            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook for setup', 'before boom']])
         })
 
         it('reports both hooks with their own errors when beforeAll and afterAll fail', async () => {
@@ -701,7 +716,7 @@ describe('WdioBridgeReporter', () => {
 
             const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
             expect(ends.map(({ title, error }) => [title, error.message])).toEqual([
-                ['"before all" hook in "both"', 'before boom'], ['"after all" hook in "both"', 'after boom']
+                ['"before all" hook for both', 'before boom'], ['"after all" hook for both', 'after boom']
             ])
             expect(new Set(ends.map(({ uid }) => uid)).size).toBe(2)
         })
@@ -1086,14 +1101,14 @@ describe('WdioBridgeReporter', () => {
                     const [start, end] = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
                     expect(start).toEqual({
                         type: 'hook:start', cid: '0-0', specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', uid: 'test-0-0-0-beforeEach',
-                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true,
+                        title: '"before each" hook for a.spec.ts', fullTitle: '"before each" hook for a.spec.ts', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true,
                         hookKind: 'beforeEach'
                     })
                     expect(end).toEqual({ ...start, type: 'hook:end', duration: 0, state: 'pass' })
                     const after = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([name, payload]) => [name, payload.title, payload.hookKind, 'hookSuiteUid' in payload])
                     expect(after).toEqual([
-                        ['hook:start', '"before each" hook for "t"', 'beforeEach', false], ['hook:end', '"before each" hook for "t"', 'beforeEach', false],
-                        ['hook:start', '"after each" hook for "t"', 'afterEach', false], ['hook:end', '"after each" hook for "t"', 'afterEach', false]
+                        ['hook:start', '"before each" hook for a.spec.ts', 'beforeEach', false], ['hook:end', '"before each" hook for a.spec.ts', 'beforeEach', false],
+                        ['hook:start', '"after each" hook for a.spec.ts', 'afterEach', false], ['hook:end', '"after each" hook for a.spec.ts', 'afterEach', false]
                     ])
                 })
 
