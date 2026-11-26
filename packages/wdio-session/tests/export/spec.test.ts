@@ -347,4 +347,23 @@ describe('generateSpec', () => {
         const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
         expect(results).toEqual(['inner', 'outer', 'v1', 'v2', 1, 2, 'fn1', 'fn2', 7, undefined, 1, 2])
     })
+
+    it('preserves control flow and function-level hoisting for nested single-statement var redeclarations', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'const a = 1' }),
+            step({ n: 2, kind: 'exec', code: 'if (false) var a' }),
+            step({ n: 3, kind: 'exec', code: "if (false) var a; else results.push('else-empty')" }),
+            step({ n: 4, kind: 'exec', code: 'if (false) var { a } = { a: 2 }' }),
+            step({ n: 5, kind: 'exec', code: 'if (false) var a = 3, b = 4; else results.push(a, b)' }),
+            step({ n: 6, kind: 'exec', code: 'if (false) var { a, c } = { a: 5, c: 6 }' }),
+            step({ n: 7, kind: 'exec', code: 'if (false) for (var { a, d } of [{ a: 7, d: 8 }]) { results.push("never") }' }),
+            step({ n: 8, kind: 'exec', code: 'results.push(a, c, d)' }),
+            step({ n: 9, kind: 'exec', code: 'if (true) { var { a, e } = { a: 9, e: 10 } }' }),
+            step({ n: 10, kind: 'exec', code: 'results.push(a, e)' }),
+            step({ n: 11, kind: 'exec', code: 'if (true) for (var { a, f } of [{ a: 11, f: 12 }]) {}' }),
+            step({ n: 12, kind: 'exec', code: 'results.push(a, f)' })
+        ], { title: 'nested-var' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['else-empty', 1, undefined, 1, undefined, undefined, 9, 10, 11, 12])
+    })
 })
