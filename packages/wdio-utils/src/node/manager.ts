@@ -5,7 +5,7 @@ import {
     getCacheDir, getDriverOptions, setupChromedriver, setupEdgedriver,
     setupGeckodriver, setupPuppeteerBrowser
 } from './utils.js'
-import { definesRemoteDriver, isSafari, isEdge, isFirefox, isChrome } from '../utils.js'
+import { definesRemoteDriver, isAppiumCapability, isSafari, isEdge, isFirefox, isChrome } from '../utils.js'
 
 const log = logger('@wdio/utils')
 const UNDEFINED_BROWSER_VERSION = null
@@ -59,6 +59,12 @@ function mapCapabilities (
         cap.browserName &&
         // - we are not about to run a cloud session
         !definesRemoteDriver(options) &&
+        // - the capability does not connect to its own driver, e.g. a grid or the Appium
+        //   server that `@wdio/appium-service` sets: the worker uses that connection
+        !definesRemoteDriver(cap as Options.Connection) &&
+        // - it is not a mobile session: Appium has its own drivers and the worker
+        //   starts none for it (see `startWebDriver`)
+        !isAppiumCapability(cap) &&
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
