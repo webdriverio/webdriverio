@@ -47,7 +47,7 @@
  * :::
  *
  * @alias $$
- * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch multiple elements
+ * @param {String|Function|Matcher|Array} selector  selector, JS Function, Matcher object, or array of elements to fetch multiple elements
  * @return {WebdriverIO.ElementArray}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7

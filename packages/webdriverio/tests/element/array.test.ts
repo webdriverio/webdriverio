@@ -492,4 +492,24 @@ describe('ElementArray', () => {
         expect(elements.isMultiRemote).toBe(true)
         expect(elements.then).toBeUndefined()
     })
+
+    it('does not touch .selector on thenable elements during metadata initialization', async () => {
+        const selectorGetter = vi.fn(() => '.should-not-read')
+        const thenable = Object.defineProperty(
+            Promise.resolve(element('a')),
+            'selector',
+            { get: selectorGetter }
+        ) as unknown as PromiseLike<WebdriverIO.Element>
+
+        const elements = ElementArray.fromAsyncCallback(async () => [await thenable], {
+            selector: [thenable],
+            foundWith: '$$',
+            props: []
+        })
+
+        expect(selectorGetter).not.toHaveBeenCalled()
+        expect(elements.selector).toBeUndefined()
+        expect(await elements).toHaveLength(1)
+        expect(selectorGetter).not.toHaveBeenCalled()
+    })
 })

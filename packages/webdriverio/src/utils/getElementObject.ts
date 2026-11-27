@@ -1,7 +1,6 @@
-import { shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { getBrowserObject, isLoadedElement, shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
-import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
@@ -149,7 +148,7 @@ export function getElement(
  */
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[],
+    selector: Selector | (ElementReference | WebdriverIO.Element | Error)[],
     elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element[] {
@@ -170,7 +169,7 @@ export const getElements = function getElements(
         /**
          * if we already deal with an element, just return it
          */
-        if ((res as WebdriverIO.Element).selector && '$$' in res) {
+        if (isLoadedElement(res) || (res && typeof res === 'object' && (res as WebdriverIO.Element).selector && '$$' in res)) {
             return res as WebdriverIO.Element
         }
 
@@ -200,9 +199,12 @@ export const getElements = function getElements(
                 client.error = res instanceof Error ? res : new WebDriverError(res)
             }
 
-            client.selector = Array.isArray(selector)
-                ? (selector[i] as WebdriverIO.Element).selector
+            const resolvedSelector = Array.isArray(selector)
+                ? (selector[i] as WebdriverIO.Element | undefined)?.selector
                 : selector
+            if (resolvedSelector !== undefined) {
+                client.selector = resolvedSelector
+            }
             client.parent = this
             client.index = i
             client.isReactElement = props.isReactElement

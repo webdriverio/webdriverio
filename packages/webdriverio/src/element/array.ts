@@ -23,7 +23,7 @@ interface ElementArrayMetadata {
      * A list of elements (`$$([elemA, elemB])`) is normalized to one selector
      * when every element shares it, otherwise the list has no selector.
      */
-    selector?: Selector | WebdriverIO.Element[] | ElementReference[] | HTMLElement[]
+    selector?: Selector | (ElementReference | WebdriverIO.Element | PromiseLike<WebdriverIO.Element> | HTMLElement)[]
     foundWith: string
     parent?: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
     props: unknown[]
@@ -71,7 +71,7 @@ function stateOf (array: object): ElementArrayState {
     return state
 }
 
-function normalizeSelector (selector: ElementArrayMetadata['selector']): Selector | undefined {
+export function normalizeSelector (selector: ElementArrayMetadata['selector']): Selector | undefined {
     if (typeof selector === 'undefined') {
         return undefined
     }
@@ -81,14 +81,33 @@ function normalizeSelector (selector: ElementArrayMetadata['selector']): Selecto
 
     /**
      * `$$([elemA, elemB])` has no single selector unless every element was
-     * found with the same one.
+     * found with the same one. Skip a pending `ElementArray` (which is both
+     * `Array.isArray` and thenable) and any array containing thenables so we
+     * do not read `.selector` on an unresolved `ChainablePromiseElement`.
+     * Use `Array.prototype` helpers because an `ElementArray`'s own `some`
+     * and `every` methods are async and always return a truthy Promise.
      */
-    const elements = selector as WebdriverIO.Element[]
     if (
-        elements.length > 0 &&
-        elements.every((element) => element && element.selector && element.selector === elements[0].selector)
+        typeof (selector as { then?: unknown }).then === 'function' ||
+        selector.length === 0 ||
+        Array.prototype.some.call(
+            selector,
+            (element: unknown) => typeof (element as { then?: unknown } | null | undefined)?.then === 'function'
+        )
     ) {
-        return elements[0].selector
+        return undefined
+    }
+
+    const elements = selector as WebdriverIO.Element[]
+    const firstSelector = elements[0]?.selector
+    if (
+        firstSelector &&
+        Array.prototype.every.call(
+            elements,
+            (element: WebdriverIO.Element | undefined) => Boolean(element && element.selector === firstSelector)
+        )
+    ) {
+        return firstSelector
     }
     return undefined
 }
@@ -588,6 +607,40 @@ function fromResolved (
     return ElementArray.fromResolved(elements, metadata)
 }
 
+const NOOP = () => {}
+
+function isElementArrayLike (value: unknown): boolean {
+    return Boolean(value && (value as Record<symbol, unknown>)[WDIO_KIND] === 'element-array')
+}
+
+/**
+ * Attach no-op rejection observers synchronously to already-in-flight thenables
+ * passed to `$$([...])` (including chained calls on an unresolved parent like
+ * `$('parent').$$([...])`) so a fast rejection during parent resolution or an
+ * async `beforeCommand` hook cannot trigger an unhandled rejection in Node.js.
+ * Skip pending `ElementArray` instances so lazy queries are not triggered eagerly.
+ */
+export function observePendingSelectorRejections (selector: unknown) {
+    if (!Array.isArray(selector)) {
+        return
+    }
+    if (typeof (selector as { then?: unknown }).then === 'function') {
+        if (!isElementArrayLike(selector)) {
+            ;(selector as unknown as PromiseLike<unknown>).then(NOOP, NOOP)
+        }
+        return
+    }
+    Array.prototype.forEach.call(selector, (item: unknown) => {
+        if (
+            item &&
+            typeof (item as { then?: unknown }).then === 'function' &&
+            !isElementArrayLike(item)
+        ) {
+            ;(item as PromiseLike<unknown>).then(NOOP, NOOP)
+        }
+    })
+}
+
 /**
  * Chained element queries (`$('parent').$$('child')`) are assembled in
  * `@wdio/utils`, which cannot import this package. Register the constructor
@@ -595,6 +648,9 @@ function fromResolved (
  */
 registerElementArrayFactory((loader, metadata) => {
     const chainedMetadata = metadata as ElementArrayMetadata
+    if (chainedMetadata.foundWith === '$$') {
+        observePendingSelectorRejections(chainedMetadata.selector)
+    }
     return ElementArray.fromAsyncCallback(async () => {
         const items = await (loader as () => Promise<ElementList>)()
         /**
@@ -602,7 +658,13 @@ registerElementArrayFactory((loader, metadata) => {
          * parent, that list knows how to build a multi-remote element for an index
          * past the end.
          */
-        chainedMetadata.wrapMultiRemote ??= proxyStates.get(items)?.metadata.wrapMultiRemote
+        const innerMetadata = proxyStates.get(items)?.metadata
+        if (innerMetadata) {
+            chainedMetadata.wrapMultiRemote ??= innerMetadata.wrapMultiRemote
+            if (chainedMetadata.selector === undefined && innerMetadata.selector !== undefined) {
+                chainedMetadata.selector = innerMetadata.selector
+            }
+        }
         return items
     }, chainedMetadata)
 })
