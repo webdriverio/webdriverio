@@ -2,6 +2,8 @@
  * Hook the test runner installs while `wdio run --debug=agent` is on.
  * The framework wrapper calls it after a failed test, before user hooks.
  */
+export const DEBUG_AGENT_CLOSED = 'Session closed from wdio session'
+
 export interface DebugAgentPauseInfo {
     cid: string
     spec?: string

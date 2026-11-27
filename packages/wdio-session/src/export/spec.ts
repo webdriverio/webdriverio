@@ -212,27 +212,46 @@ interface SelectorEdit {
 }
 
 /**
+ * Names bound by a pattern or assignment target: `name`, `[name]`,
+ * `{ key: name }`, `name = fallback`, `...name`.
+ * A member such as `el.$$` writes a property, not a binding.
+ */
+function collectBoundNames (node: ProgramNode | undefined | null, names: string[] = []): string[] {
+    if (!node) {
+        return names
+    }
+    switch (node.type) {
+    case 'Identifier':
+        if (node.name) {
+            names.push(node.name)
+        }
+        break
+    case 'ArrayPattern':
+        for (const element of node.elements as (ProgramNode | null)[]) {
+            collectBoundNames(element, names)
+        }
+        break
+    case 'ObjectPattern':
+        for (const property of node.properties as ProgramNode[]) {
+            collectBoundNames((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, names)
+        }
+        break
+    case 'AssignmentPattern':
+        collectBoundNames(node.left as ProgramNode, names)
+        break
+    case 'RestElement':
+        collectBoundNames(node.argument as ProgramNode, names)
+        break
+    }
+    return names
+}
+
+/**
  * Whether an assignment target writes `name`: `name`, `[name]`, `{ key: name }`, `name = fallback`, `...name`.
  * A member such as `el.$$` writes a property, not a binding.
  */
 function writes (node: ProgramNode | undefined | null, name: string): boolean {
-    if (!node) {
-        return false
-    }
-    switch (node.type) {
-    case 'Identifier':
-        return node.name === name
-    case 'ArrayPattern':
-        return (node.elements as (ProgramNode | null)[]).some((element) => writes(element, name))
-    case 'ObjectPattern':
-        return (node.properties as ProgramNode[]).some((property) => writes((property.type === 'RestElement' ? property.argument : property.value) as ProgramNode, name))
-    case 'AssignmentPattern':
-        return writes(node.left as ProgramNode, name)
-    case 'RestElement':
-        return writes(node.argument as ProgramNode, name)
-    default:
-        return false
-    }
+    return collectBoundNames(node).includes(name)
 }
 
 /**
@@ -306,6 +325,324 @@ function selectorEdits (code: string) {
     return { edits, needsDollar, needsDollarDollar, assignsDollarDollar, declaresDollarDollar }
 }
 
+const SCOPE_BOUNDARY_TYPES = new Set([
+    'FunctionDeclaration',
+    'FunctionExpression',
+    'ArrowFunctionExpression',
+    'ClassDeclaration',
+    'ClassExpression',
+    'StaticBlock'
+])
+
+interface ScopeDeclaration {
+    node: ProgramNode
+    parentFor?: ProgramNode
+    insertTarget?: ProgramNode
+    nested?: boolean
+    inSingleStatement?: boolean
+}
+
+function collectNestedVarDeclarations (
+    node: ProgramNode | undefined | null,
+    out: ScopeDeclaration[],
+    opts: { parentFor?: ProgramNode, insertTarget?: ProgramNode, labelRoot?: ProgramNode, inSingleStatement?: boolean } = {}
+) {
+    if (!node || typeof node !== 'object' || typeof node.type !== 'string' || SCOPE_BOUNDARY_TYPES.has(node.type)) {
+        return
+    }
+    if (node.type === 'VariableDeclaration') {
+        if (node.kind === 'var') {
+            out.push({
+                node,
+                nested: true,
+                parentFor: opts.parentFor,
+                insertTarget: opts.insertTarget,
+                inSingleStatement: opts.inSingleStatement
+            })
+        }
+        return
+    }
+    if (node.type === 'IfStatement') {
+        const consequent = node.consequent as ProgramNode | undefined
+        const alternate = node.alternate as ProgramNode | undefined
+        collectNestedVarDeclarations(consequent, out, { inSingleStatement: consequent?.type !== 'BlockStatement' })
+        collectNestedVarDeclarations(alternate, out, { inSingleStatement: alternate?.type !== 'BlockStatement' })
+        return
+    }
+    if (node.type === 'WhileStatement' || node.type === 'DoWhileStatement' || node.type === 'WithStatement') {
+        const body = node.body as ProgramNode | undefined
+        collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
+        return
+    }
+    if (node.type === 'LabeledStatement') {
+        const body = node.body as ProgramNode | undefined
+        const labelRoot = opts.labelRoot ?? node
+        if (body?.type === 'VariableDeclaration') {
+            collectNestedVarDeclarations(body, out, { inSingleStatement: true })
+        } else {
+            collectNestedVarDeclarations(body, out, {
+                inSingleStatement: opts.inSingleStatement,
+                labelRoot
+            })
+        }
+        return
+    }
+    if (node.type === 'ForStatement') {
+        const body = node.body as ProgramNode | undefined
+        collectNestedVarDeclarations(node.init as ProgramNode | undefined, out, {
+            parentFor: node,
+            insertTarget: opts.labelRoot ?? node,
+            inSingleStatement: opts.inSingleStatement
+        })
+        collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
+        return
+    }
+    if (node.type === 'ForInStatement' || node.type === 'ForOfStatement') {
+        const body = node.body as ProgramNode | undefined
+        collectNestedVarDeclarations(node.left as ProgramNode | undefined, out, {
+            parentFor: node,
+            insertTarget: opts.labelRoot ?? node,
+            inSingleStatement: opts.inSingleStatement
+        })
+        collectNestedVarDeclarations(body, out, { inSingleStatement: body?.type !== 'BlockStatement' })
+        return
+    }
+    for (const [key, value] of Object.entries(node)) {
+        if (key === 'type' || key === 'start' || key === 'end') {
+            continue
+        }
+        if (Array.isArray(value)) {
+            for (const child of value) {
+                collectNestedVarDeclarations(child as ProgramNode | undefined, out)
+            }
+        } else if (value && typeof value === 'object') {
+            collectNestedVarDeclarations(value as ProgramNode, out)
+        }
+    }
+}
+
+function collectScopeDeclarations (ast: ProgramNode): ScopeDeclaration[] {
+    const out: ScopeDeclaration[] = []
+    for (const stmt of ast.body || []) {
+        if (stmt.type === 'VariableDeclaration') {
+            out.push({ node: stmt })
+        } else if ((stmt.type === 'FunctionDeclaration' || stmt.type === 'ClassDeclaration') && (stmt.id as ProgramNode | undefined)?.name) {
+            out.push({ node: stmt })
+        } else {
+            collectNestedVarDeclarations(stmt, out)
+        }
+    }
+    return out
+}
+
+function declarationNames (node: ProgramNode): string[] {
+    if (node.type === 'VariableDeclaration') {
+        return (node.declarations as ProgramNode[]).flatMap((d) => collectBoundNames(d.id as ProgramNode))
+    }
+    const id = node.id as ProgramNode | undefined
+    return id?.name ? [id.name] : []
+}
+
+function needsLeadingSemicolon (code: string, pos: number) {
+    let i = pos - 1
+    while (i >= 0 && /\s/.test(code[i])) {
+        i--
+    }
+    return i < 0 || (code[i] !== ';' && code[i] !== '{')
+}
+
+interface TextEdit {
+    start: number
+    end: number
+    text: string
+}
+
+/**
+ * Each recorded `exec` step runs in its own wrapper and promotes top-level
+ * declarations to globals, so two steps can both declare `const heading = …`.
+ * When pasted into one `it()` body, downgrade the first `const` to `let` and
+ * turn later declarations of the same binding into assignments.
+ */
+function dedupeDeclarations (steps: string[]): string[] {
+    const parsed = steps.map((code) => {
+        const ast = parseProgram(stripTypes(code))
+        return { code, decls: ast ? collectScopeDeclarations(ast) : [] }
+    })
+
+    const declared = new Set<string>()
+    const redeclared = new Set<string>()
+    for (const { decls } of parsed) {
+        for (const { node } of decls) {
+            for (const name of declarationNames(node)) {
+                if (declared.has(name)) {
+                    redeclared.add(name)
+                } else {
+                    declared.add(name)
+                }
+            }
+        }
+    }
+
+    if (!redeclared.size) {
+        return steps
+    }
+
+    const seen = new Set<string>()
+    return parsed.map(({ code, decls }) => {
+        if (!decls.length) {
+            return code
+        }
+        const edits: TextEdit[] = []
+        const hoistedFunctions: string[] = []
+        for (const { node, parentFor, insertTarget, nested, inSingleStatement } of decls) {
+            if (node.type === 'FunctionDeclaration') {
+                const name = (node.id as ProgramNode).name!
+                if (seen.has(name)) {
+                    hoistedFunctions.push(`${name} = ${code.slice(node.start, node.end)};`)
+                    const tail = code.slice(node.end).trimStart()
+                    const hasLeadingStmt = code.slice(0, node.start).trim().length > 0
+                    const riskyFollow = Boolean(tail) && /^[([`/+\\-]/.test(tail)
+                    const keepSemi = hasLeadingStmt && riskyFollow && needsLeadingSemicolon(code, node.start)
+                    let removeEnd = node.end
+                    if (!keepSemi) {
+                        if (code[removeEnd] === '\r' && code[removeEnd + 1] === '\n') {
+                            removeEnd += 2
+                        } else if (code[removeEnd] === '\n') {
+                            removeEnd += 1
+                        }
+                    }
+                    edits.push({ start: node.start, end: removeEnd, text: keepSemi ? ';' : '' })
+                } else {
+                    seen.add(name)
+                }
+                continue
+            }
+
+            if (node.type === 'ClassDeclaration') {
+                const name = (node.id as ProgramNode).name!
+                if (seen.has(name)) {
+                    const tail = code.slice(node.end).trimStart()
+                    const semi = tail.startsWith(';') ? '' : ';'
+                    edits.push({ start: node.start, end: node.end, text: `${name} = ${code.slice(node.start, node.end)}${semi}` })
+                } else {
+                    seen.add(name)
+                }
+                continue
+            }
+
+            if (node.type !== 'VariableDeclaration') {
+                continue
+            }
+            const declarators = node.declarations as ProgramNode[]
+            const allNames = declarators.flatMap((d) => collectBoundNames(d.id as ProgramNode))
+            if (allNames.every((name) => !seen.has(name))) {
+                allNames.forEach((name) => seen.add(name))
+                if (node.kind === 'const' && allNames.some((name) => redeclared.has(name))) {
+                    edits.push({ start: node.start, end: node.start + 'const'.length, text: 'let' })
+                }
+                continue
+            }
+
+            const freshKind = nested && node.kind === 'var' ? 'var' : 'let'
+
+            if (parentFor) {
+                const fresh = allNames.filter((name) => !seen.has(name))
+                fresh.forEach((name) => seen.add(name))
+                if (fresh.length) {
+                    const target = insertTarget ?? parentFor
+                    if (inSingleStatement) {
+                        edits.push({ start: target.start, end: target.start, text: `{ ${freshKind} ${fresh.join(', ')}; ` })
+                        edits.push({ start: target.end, end: target.end, text: ' }' })
+                    } else {
+                        edits.push({ start: target.start, end: target.start, text: `${freshKind} ${fresh.join(', ')}; ` })
+                    }
+                }
+                if (parentFor.type === 'ForStatement') {
+                    const exprs = declarators
+                        .filter((d) => d.init)
+                        .map((d) => {
+                            const id = d.id as ProgramNode
+                            const init = d.init as ProgramNode
+                            const assign = `${code.slice(id.start, id.end)} = ${code.slice(init.start, init.end)}`
+                            return id.type === 'ObjectPattern' ? `(${assign})` : assign
+                        })
+                    edits.push({ start: node.start, end: node.end, text: exprs.join(', ') })
+                } else {
+                    edits.push({ start: node.start, end: declarators[0].start, text: '' })
+                }
+                continue
+            }
+
+            const lastDecl = declarators[declarators.length - 1]
+            const trailingSemi = code.slice(lastDecl.end, node.end)
+            const parts: string[] = []
+            for (const declarator of declarators) {
+                const id = declarator.id as ProgramNode
+                const init = declarator.init as ProgramNode | null | undefined
+                const names = collectBoundNames(id)
+                const reused = names.some((name) => seen.has(name))
+                if (!reused) {
+                    names.forEach((name) => seen.add(name))
+                    const kind = node.kind === 'const' && names.some((name) => redeclared.has(name)) ? 'let' : String(node.kind)
+                    parts.push(`${kind} ${code.slice(declarator.start, declarator.end)}`)
+                    continue
+                }
+                const fresh = names.filter((name) => !seen.has(name))
+                fresh.forEach((name) => seen.add(name))
+                if (id.type === 'Identifier') {
+                    if (init) {
+                        parts.push(`${id.name} = ${code.slice(init.start, init.end)}`)
+                    } else if (node.kind !== 'var') {
+                        parts.push(`${id.name} = undefined`)
+                    }
+                    continue
+                }
+                const pattern = code.slice(id.start, id.end)
+                const rhs = init ? code.slice(init.start, init.end) : 'undefined'
+                const assign = id.type === 'ObjectPattern' ? `(${pattern} = ${rhs})` : `${pattern} = ${rhs}`
+                if (fresh.length) {
+                    parts.push(`${freshKind} ${fresh.join(', ')}`)
+                }
+                parts.push(assign)
+            }
+
+            if (!parts.length) {
+                edits.push({ start: node.start, end: node.end, text: inSingleStatement ? ';' : '' })
+                continue
+            }
+
+            const multiline = code.slice(node.start, node.end).includes('\n')
+            const separator = multiline ? '\n' : '; '
+            const wrapInBlock = Boolean(inSingleStatement && parts.length > 1)
+            const formatted = parts.map((part, index) => {
+                const startsRisky = part.startsWith('(') || part.startsWith('[')
+                if (!startsRisky) {
+                    return part
+                }
+                if (index === 0) {
+                    return !inSingleStatement && needsLeadingSemicolon(code, node.start) ? `;${part}` : part
+                }
+                return multiline ? `;${part}` : part
+            }).join(separator)
+            edits.push({ start: node.start, end: node.end, text: wrapInBlock ? `{ ${formatted} }` : `${formatted}${trailingSemi}` })
+        }
+
+        if (!edits.length && !hoistedFunctions.length) {
+            return code
+        }
+        let out = code
+        for (const edit of edits.sort((a, b) => b.start - a.start || b.end - a.end)) {
+            out = `${out.slice(0, edit.start)}${edit.text}${out.slice(edit.end)}`
+        }
+        const trimmed = out.trim()
+        if (!hoistedFunctions.length) {
+            return trimmed
+        }
+        const prefix = hoistedFunctions.join('\n')
+        return trimmed ? `${prefix}\n${trimmed}` : prefix
+    })
+}
+
 export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): GeneratedFile[] {
     const steps = entries.filter((entry) => entry.code.trim())
     for (const entry of steps) {
@@ -374,6 +711,8 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         return code
     })
 
+    const renderedSteps = dedupeDeclarations(rendered).filter((step) => step.trim())
+
     const pages = [...new Set([...uses.values()].map((use) => use.page))]
     const importDollarDollar = needsDollarDollar && !imported.has('$$')
     // an ES import is read-only, so a step that assigns `$$` gets a `var` copy of the import
@@ -400,7 +739,7 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         ...instances,
         // the semicolon stops a first step that starts with `(` or `[` from continuing this line
         ...(mutableDollarDollar ? [`var $$ = ${dollarDollarAlias};`] : []),
-        ...(mutableDollarDollar && declaresDollarDollar ? [`{\n${indent(rendered.join('\n\n'), 4)}\n}`] : rendered)
+        ...(mutableDollarDollar && declaresDollarDollar ? [`{\n${indent(renderedSteps.join('\n\n'), 4)}\n}`] : renderedSteps)
     ].filter(Boolean)
     const title = opts.title.replace(/'/g, "\\'")
     const spec = [

@@ -1,6 +1,10 @@
+import logger from '@wdio/logger'
+
 import { logHookError } from './errorHandler.js'
 import { executeHooksWithArgs, executeAsync, followFrameworkTimer } from '../shim.js'
-import { fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
+import { DEBUG_AGENT_CLOSED, fullTestNameFrom, getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
+
+const log = logger('@wdio/utils:testFnWrapper')
 
 import type {
     WrapperMethods,
@@ -223,11 +227,15 @@ export const testFrameworkFnWrapper = async function (
                 await pause({ cid, spec: identity.spec, test: identity.test })
             } catch (closeErr) {
                 const closed = closeErr instanceof Error ? closeErr : new Error(String(closeErr))
-                error = closed
-                const report = afterArgs[afterArgs.length - 1] as { error?: unknown, passed?: boolean }
-                if (report && typeof report === 'object') {
-                    report.error = closed
-                    report.passed = false
+                if (closed.message === DEBUG_AGENT_CLOSED) {
+                    error = closed
+                    const report = afterArgs[afterArgs.length - 1] as { error?: unknown, passed?: boolean }
+                    if (report && typeof report === 'object') {
+                        report.error = closed
+                        report.passed = false
+                    }
+                } else {
+                    log.warn(`Failed to pause test for --debug=agent: ${closed.message}`)
                 }
             }
         }

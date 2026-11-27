@@ -5,7 +5,9 @@ import { describe, expect, it, afterEach } from 'vitest'
 
 import { applyDebugAgentTimeouts, classifyCapabilities, DEBUG_AGENT_CLOSED, DEBUG_AGENT_TIMEOUT, pauseDebugSession } from '../src/debug.js'
 import { send } from '../src/cli/client.js'
-import { readState } from '../src/daemon/state.js'
+import { getSocketPath, getStatePath, readState } from '../src/daemon/state.js'
+
+const DEAD_PID = 2 ** 22 + 4321
 
 describe('classifyCapabilities', () => {
     it('classifies a desktop browser as a browser even though it reports its OS', () => {
@@ -96,6 +98,84 @@ describe('pauseDebugSession', () => {
         expect(resumed.text).toContain('Resumed "debug-0-0"')
         await expect(pending).resolves.toBeUndefined()
         expect(readState(runtimeDir, 'debug-0-0')).toBeUndefined()
+    })
+
+    it('removes stale state left by a killed debug session before pausing', async () => {
+        const { dir, runtimeDir, browser } = setup()
+        fs.mkdirSync(runtimeDir, { recursive: true })
+        fs.writeFileSync(getStatePath(runtimeDir, 'debug-0-0'), JSON.stringify({
+            version: 1,
+            name: 'debug-0-0',
+            pid: DEAD_PID,
+            status: 'ready',
+            cwd: dir,
+            artifactsDir: dir,
+            target: 'wdio run',
+            startedAt: new Date().toISOString()
+        }))
+        const staleSock = getSocketPath(runtimeDir, 'debug-0-0')
+        if (!staleSock.startsWith('\\\\.\\pipe\\')) {
+            fs.writeFileSync(staleSock, '')
+        }
+
+        const pending = pauseDebugSession({
+            browser,
+            cid: '0-0',
+            spec: 'a.spec.ts',
+            test: 'recovers from killed run',
+            cwd: dir,
+            runtimeDir
+        })
+        const state = await waitForState(runtimeDir, 'debug-0-0')
+        expect(state.pid).toBe(process.pid)
+        expect(state.debug).toEqual({ spec: 'a.spec.ts', test: 'recovers from killed run' })
+
+        const resumed = await send('debug-0-0', 'resume', {}, { runtimeDir })
+        expect(resumed.text).toContain('Resumed "debug-0-0"')
+        await expect(pending).resolves.toBeUndefined()
+        expect(readState(runtimeDir, 'debug-0-0')).toBeUndefined()
+    })
+
+    it('removes corrupt state files before pausing', async () => {
+        const { dir, runtimeDir, browser } = setup()
+        fs.mkdirSync(runtimeDir, { recursive: true })
+        fs.writeFileSync(getStatePath(runtimeDir, 'debug-0-0'), '{corrupt')
+
+        const pending = pauseDebugSession({
+            browser,
+            cid: '0-0',
+            cwd: dir,
+            runtimeDir
+        })
+        const state = await waitForState(runtimeDir, 'debug-0-0')
+        expect(state.pid).toBe(process.pid)
+
+        await send('debug-0-0', 'resume', {}, { runtimeDir })
+        await expect(pending).resolves.toBeUndefined()
+    })
+
+    it('refuses to overwrite a live debug session state file', async () => {
+        const { dir, runtimeDir, browser } = setup()
+        fs.mkdirSync(runtimeDir, { recursive: true })
+        const liveState = {
+            version: 1,
+            name: 'debug-0-0',
+            pid: process.pid,
+            status: 'ready',
+            cwd: dir,
+            artifactsDir: dir,
+            target: 'wdio run',
+            startedAt: new Date().toISOString()
+        }
+        fs.writeFileSync(getStatePath(runtimeDir, 'debug-0-0'), JSON.stringify(liveState))
+
+        await expect(pauseDebugSession({
+            browser,
+            cid: '0-0',
+            cwd: dir,
+            runtimeDir
+        })).rejects.toMatchObject({ code: 'SESSION_EXISTS' })
+        expect(readState(runtimeDir, 'debug-0-0')).toEqual(liveState)
     })
 })
 

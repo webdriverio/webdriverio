@@ -1,10 +1,13 @@
+import path from 'node:path'
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, afterEach } from 'vitest'
+import logger from '@wdio/logger'
 
 import * as shim from '../../src/shim.js'
 import { testFnWrapper, testFrameworkFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'
-import { setDebugAgentPause } from '../../src/test-framework/debugAgent.js'
+import { DEBUG_AGENT_CLOSED, setDebugAgentPause } from '../../src/test-framework/debugAgent.js'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/shim', () => ({
     executeHooksWithArgs: vi.fn(),
     followFrameworkTimer: vi.fn(),
@@ -283,8 +286,51 @@ describe('testFnWrapper', () => {
     })
 
     it('pauses a failed cucumber step', async () => {
+        const pause = vi.fn(async () => {})
+        setDebugAgentPause(pause)
+        const stepFailure = new Error('step failed')
+        const args = [
+            'Step',
+            { specFn: () => { throw stepFailure }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'a step', file: '/tmp/spec.ts' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'a step', file: '/tmp/spec.ts' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toThrow('step failed')
+        expect(pause).toHaveBeenCalledWith({ cid: '0-0', spec: '/tmp/spec.ts', test: 'a step' })
+    })
+
+    it('keeps the original test error and warns when debug-agent pause fails internally', async () => {
+        const log = logger('@wdio/utils:testFnWrapper')
+        vi.mocked(log.warn).mockClear()
         setDebugAgentPause(async () => {
-            throw new Error('paused on step')
+            throw new Error('EEXIST: file already exists')
+        })
+        const original = new Error('assertion failed')
+        const args = [
+            'Test',
+            { specFn: () => { throw original }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'reads the title', file: '/tmp/spec.ts' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'reads the title', file: '/tmp/spec.ts' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toBe(original)
+        const afterCall = executeHooksWithArgs.mock.calls.find((call) => call[0] === 'afterTest')
+        const report = (afterCall?.[2] as { error?: Error, passed?: boolean }[])[1]
+        expect(report.error).toBe(original)
+        expect(report.passed).toBe(false)
+        expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('EEXIST: file already exists'))
+    })
+
+    it('replaces the test error only when the debug-agent session is explicitly closed', async () => {
+        setDebugAgentPause(async () => {
+            throw new Error(DEBUG_AGENT_CLOSED)
         })
         const args = [
             'Step',
@@ -296,7 +342,7 @@ describe('testFnWrapper', () => {
         ] as any[]
 
         // @ts-expect-error test args
-        await expect(testFnWrapper(...args)).rejects.toThrow('paused on step')
+        await expect(testFnWrapper(...args)).rejects.toThrow(DEBUG_AGENT_CLOSED)
     })
 
     afterEach(() => {

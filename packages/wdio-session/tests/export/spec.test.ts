@@ -283,4 +283,122 @@ describe('generateSpec', () => {
         expect(spec.contents).toContain("import('../../helpers/extra.ts')")
         expect(spec.contents).not.toContain("from './helpers/login.ts'")
     })
+
+    it('turns repeated top-level const declarations across steps into valid reassignments', async () => {
+        const entries: HistoryEntry[] = [
+            step({ n: 1, kind: 'open', code: "await browser.url('https://example.com')" }),
+            step({ n: 2, kind: 'exec', code: "const heading = await $('h1').getText(); results.push(heading)" }),
+            step({ n: 3, kind: 'exec', code: "const heading = await $('h2').getText(); results.push(heading)" }),
+            step({ n: 4, kind: 'exec', code: 'const heading = heading.toUpperCase(); results.push(heading)' }),
+            step({ n: 5, kind: 'exec', code: 'const untouched = 1; results.push(untouched)' })
+        ]
+        for (const pageObjects of [false, true]) {
+            const [spec] = generateSpec(entries, { title: 'recorded', pageObjects })
+            expect(spec.contents).toContain('let heading = ')
+            expect(spec.contents).not.toContain('const heading = ')
+            expect(spec.contents).toContain('const untouched = 1;')
+            if (!pageObjects) {
+                const results = await runSpec(spec.contents, {
+                    browser: { url: async () => {} },
+                    $: (sel: string) => ({ getText: async () => sel === 'h1' ? 'First' : 'Second' }),
+                    expect: () => {}
+                })
+                expect(results).toEqual(['First', 'Second', 'SECOND', 1])
+            }
+        }
+    })
+
+    it('handles repeated TypeScript annotations, destructuring and multi-declarators', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: "const heading: string = 'one'; results.push(heading)" }),
+            step({ n: 2, kind: 'exec', code: "const heading: string = 'two'; results.push(heading)" }),
+            step({ n: 3, kind: 'exec', code: 'const a = 1, b = 2' }),
+            step({ n: 4, kind: 'exec', code: 'const { b, c }: { b: number; c: number } = { b: 20, c: 30 }' }),
+            step({ n: 5, kind: 'exec', code: 'results.push(a, b, c)' }),
+            step({ n: 6, kind: 'exec', code: 'const [a, c] = [10, 300]' }),
+            step({ n: 7, kind: 'exec', code: 'results.push(a, c)' }),
+            step({ n: 8, kind: 'exec', code: 'const { a: aVal, d } = { a: 99, d: 40 }' }),
+            step({ n: 9, kind: 'exec', code: 'const d = d + 1, e = 50; results.push(aVal, d, e)' })
+        ], { title: 'destructuring' })
+        expect(spec.contents).toContain("let heading: string = 'one';")
+        expect(spec.contents).toContain("heading = 'two';")
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['one', 'two', 1, 20, 30, 10, 300, 99, 41, 50])
+    })
+
+    it('handles repeated let, var, function and class declarations and keeps block-scoped bindings untouched', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: "if (true) { const scoped = 'inner'; results.push(scoped) }" }),
+            step({ n: 2, kind: 'exec', code: "const scoped = 'outer'; results.push(scoped)" }),
+            step({ n: 3, kind: 'exec', code: 'function label () { return "v1" }\nresults.push(label())' }),
+            step({ n: 4, kind: 'exec', code: 'function label () { return "v2" }\n(results.push(label()))' }),
+            step({ n: 5, kind: 'exec', code: 'class Box { value = 1 }\nresults.push(new Box().value)' }),
+            step({ n: 6, kind: 'exec', code: 'class Box { value = 2 }\n(results.push(new Box().value))' }),
+            step({ n: 7, kind: 'exec', code: 'const mixed = () => "fn1"; results.push(mixed())' }),
+            step({ n: 8, kind: 'exec', code: 'function mixed () { return "fn2" }\nresults.push(mixed())' }),
+            step({ n: 9, kind: 'exec', code: 'var keep = 7' }),
+            step({ n: 10, kind: 'exec', code: 'var keep\nresults.push(keep)' }),
+            step({ n: 11, kind: 'exec', code: 'let reset = 9' }),
+            step({ n: 12, kind: 'exec', code: 'let reset\nresults.push(reset)' }),
+            step({ n: 13, kind: 'exec', code: 'const idx = 0' }),
+            step({ n: 14, kind: 'exec', code: 'for (var idx = 1; idx < 3; idx++) { results.push(idx) }' })
+        ], { title: 'mixed' })
+        expect(spec.contents).toContain("const scoped = 'outer';")
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['inner', 'outer', 'v1', 'v2', 1, 2, 'fn1', 'fn2', 7, undefined, 1, 2])
+    })
+
+    it('preserves control flow and function-level hoisting for nested single-statement var redeclarations', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'const a = 1' }),
+            step({ n: 2, kind: 'exec', code: 'if (false) var a' }),
+            step({ n: 3, kind: 'exec', code: "if (false) var a; else results.push('else-empty')" }),
+            step({ n: 4, kind: 'exec', code: 'if (false) var { a } = { a: 2 }' }),
+            step({ n: 5, kind: 'exec', code: 'if (false) var a = 3, b = 4; else results.push(a, b)' }),
+            step({ n: 6, kind: 'exec', code: 'if (false) var { a, c } = { a: 5, c: 6 }' }),
+            step({ n: 7, kind: 'exec', code: 'if (false) for (var { a, d } of [{ a: 7, d: 8 }]) { results.push("never") }' }),
+            step({ n: 8, kind: 'exec', code: 'results.push(a, c, d)' }),
+            step({ n: 9, kind: 'exec', code: 'if (true) { var { a, e } = { a: 9, e: 10 } }' }),
+            step({ n: 10, kind: 'exec', code: 'results.push(a, e)' }),
+            step({ n: 11, kind: 'exec', code: 'if (true) for (var { a, f } of [{ a: 11, f: 12 }]) {}' }),
+            step({ n: 12, kind: 'exec', code: 'results.push(a, f)' })
+        ], { title: 'nested-var' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['else-empty', 1, undefined, 1, undefined, undefined, 9, 10, 11, 12])
+    })
+
+    it('preserves intra-step hoisting when FunctionDeclaration is redeclared across steps', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'results.push(helper())\nfunction helper () { return "v1" }' }),
+            step({ n: 2, kind: 'exec', code: 'results.push(helper())\nfunction helper () { return "v2" }' }),
+            step({ n: 3, kind: 'exec', code: 'const fn = () => "const-v1"\nresults.push(fn())' }),
+            step({ n: 4, kind: 'exec', code: 'results.push(fn())\nfunction fn () { return "fn-v2" }' }),
+            step({ n: 5, kind: 'exec', code: 'const x = 1\nfunction helper () { return "v3" }\n(results.push(helper(), x))' })
+        ], { title: 'hoisted-fn' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual(['v1', 'v2', 'const-v1', 'fn-v2', 'v3', 1])
+    })
+
+    it('keeps loop labels attached to loops so continue label remains valid after var deduping', async () => {
+        const [spec] = generateSpec([
+            step({ n: 1, kind: 'exec', code: 'const a = 0' }),
+            step({
+                n: 2,
+                kind: 'exec',
+                code: 'outer: for (var { a, b } of [{ a: 1, b: 10 }, { a: 2, b: 20 }]) {\n    if (a === 1) continue outer\n    results.push(a, b)\n}'
+            }),
+            step({
+                n: 3,
+                kind: 'exec',
+                code: 'if (true) l1: l2: for (var { a, c } of [{ a: 3, c: 30 }, { a: 4, c: 40 }]) {\n    if (a === 3) continue l1\n    results.push(a, c)\n}'
+            }),
+            step({
+                n: 4,
+                kind: 'exec',
+                code: 'loop: for (var a = 0, d = 100; a < 2; a++) {\n    if (a === 0) continue loop\n    results.push(a, d)\n}'
+            })
+        ], { title: 'labeled-loops' })
+        const results = await runSpec(spec.contents, { browser: {}, $: () => {}, expect: () => {} })
+        expect(results).toEqual([2, 20, 4, 40, 1, 100])
+    })
 })
