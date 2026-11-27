@@ -1,8 +1,11 @@
 import path from 'node:path'
+import { spawn } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
+import { setupDriver } from '@wdio/utils/node'
+import { SevereServiceError } from 'webdriverio'
 import type { Frameworks } from '@wdio/types'
 import Launcher from '../src/launcher.js'
 
@@ -983,6 +986,386 @@ describe('launcher', () => {
             expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(serviceOnComplete.mock.invocationCallOrder[0])
         })
 
+        describe('SIGINT / exitHandler onComplete cleanup', () => {
+            const isProcessAlive = (pid: number) => {
+                try {
+                    process.kill(pid, 0)
+                    return true
+                } catch {
+                    return false
+                }
+            }
+
+            it('runs and awaits async onComplete hooks before invoking the exit callback without duplicating them', async () => {
+                const order: string[] = []
+                let resolveRunMode!: (code: number) => void
+                let resolveServiceOnComplete!: () => void
+
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                const shutdown = vi.fn(async () => {
+                    order.push('shutdown')
+                    // Simulate worker exiting as part of shutdown, which unblocks _runMode()
+                    resolveRunMode(0)
+                    return true
+                })
+                const dispose = vi.fn(async () => {
+                    order.push('dispose')
+                })
+                mockRunner({ shutdown, dispose })
+
+                const userOnComplete = vi.fn(async () => {
+                    order.push('userOnCompleteStart')
+                    await new Promise((resolve) => setTimeout(resolve, 20))
+                    order.push('userOnCompleteEnd')
+                })
+                config.onComplete = [userOnComplete]
+
+                const serviceOnComplete = vi.fn(() => new Promise<void>((resolve) => {
+                    order.push('serviceOnCompleteStart')
+                    resolveServiceOnComplete = () => {
+                        order.push('serviceOnCompleteEnd')
+                        resolve()
+                    }
+                }))
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+
+                const callback = vi.fn(() => order.push('callback'))
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+
+                await vi.waitFor(() => expect(serviceOnComplete).toBeCalledTimes(1))
+                expect(callback).not.toBeCalled()
+
+                resolveServiceOnComplete()
+                await exiting
+                await running
+
+                expect(order).toEqual([
+                    'shutdown',
+                    'userOnCompleteStart',
+                    'userOnCompleteEnd',
+                    'serviceOnCompleteStart',
+                    'serviceOnCompleteEnd',
+                    'dispose',
+                    'callback'
+                ])
+                expect(userOnComplete).toBeCalledTimes(1)
+                expect(userOnComplete).toHaveBeenCalledWith(1, expect.anything(), expect.anything(), expect.anything())
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(serviceOnComplete).toHaveBeenCalledWith(1, expect.anything(), expect.anything())
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('waits for runner.shutdown() to finish before running onComplete or dispose when _runMode resolves early', async () => {
+                const order: string[] = []
+                let resolveRunMode!: (code: number) => void
+
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                const shutdown = vi.fn(async () => {
+                    order.push('shutdownStart')
+                    // Unblock _runMode while runner.shutdown() still has async teardown work
+                    resolveRunMode(0)
+                    await new Promise((resolve) => setTimeout(resolve, 25))
+                    order.push('shutdownEnd')
+                    return true
+                })
+                const dispose = vi.fn(async () => {
+                    order.push('dispose')
+                })
+                mockRunner({ shutdown, dispose })
+
+                const userOnComplete = vi.fn(async () => {
+                    order.push('userOnComplete')
+                })
+                config.onComplete = [userOnComplete]
+
+                const serviceOnComplete = vi.fn(async () => {
+                    order.push('serviceOnComplete')
+                })
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+
+                const callback = vi.fn(() => order.push('callback'))
+                await launcher['_exitHandler'](callback as any)
+                await running
+
+                expect(order).toEqual([
+                    'shutdownStart',
+                    'shutdownEnd',
+                    'userOnComplete',
+                    'serviceOnComplete',
+                    'dispose',
+                    'callback'
+                ])
+                expect(shutdown).toBeCalledTimes(1)
+                expect(userOnComplete).toBeCalledTimes(1)
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('stops a detached daemon process started in onPrepare before exit callback fires (cloud-free repro)', async () => {
+                let daemonPid: number | undefined
+                let resolveRunMode!: (code: number) => void
+                let aliveAtExitCallback: boolean | undefined
+
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                mockRunner({
+                    shutdown: vi.fn(async () => {
+                        resolveRunMode(0)
+                        return true
+                    }),
+                    dispose: vi.fn()
+                })
+
+                const fakeTunnelService = {
+                    onPrepare: vi.fn(() => {
+                        const daemon = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {
+                            detached: true,
+                            stdio: 'ignore'
+                        })
+                        daemon.unref()
+                        daemonPid = daemon.pid
+                    }),
+                    onComplete: vi.fn(async () => {
+                        // Simulate asynchronous tunnel teardown (e.g. BrowserStackLocal.stop())
+                        await new Promise((resolve) => setTimeout(resolve, 40))
+                        if (daemonPid && isProcessAlive(daemonPid)) {
+                            process.kill(daemonPid)
+                            await vi.waitFor(() => expect(isProcessAlive(daemonPid!)).toBe(false))
+                        }
+                    })
+                }
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [fakeTunnelService],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                try {
+                    const running = launcher.run()
+                    await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+                    expect(daemonPid).toBeTypeOf('number')
+                    expect(isProcessAlive(daemonPid!)).toBe(true)
+
+                    const callback = vi.fn(() => {
+                        aliveAtExitCallback = isProcessAlive(daemonPid!)
+                    })
+                    await launcher['_exitHandler'](callback as any)
+                    await running
+
+                    expect(fakeTunnelService.onComplete).toBeCalledTimes(1)
+                    expect(callback).toBeCalledTimes(1)
+                    expect(aliveAtExitCallback).toBe(false)
+                } finally {
+                    if (daemonPid && isProcessAlive(daemonPid)) {
+                        try {
+                            process.kill(daemonPid, 'SIGKILL')
+                        } catch {
+                            /* ignore */
+                        }
+                    }
+                }
+            })
+
+            it('waits for in-flight onPrepare to finish before running onComplete on SIGINT and does not start workers afterward', async () => {
+                let resolveOnPrepare!: () => void
+                let tunnelHandle: string | undefined
+                let closedHandle: string | undefined
+                const dispose = vi.fn()
+                mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
+
+                const serviceOnComplete = vi.fn(async () => {
+                    closedHandle = tunnelHandle
+                    await new Promise((resolve) => setTimeout(resolve, 20))
+                })
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{
+                        onPrepare: () => new Promise<void>((resolve) => {
+                            resolveOnPrepare = () => {
+                                tunnelHandle = 'tunnel-pid-42'
+                                resolve()
+                            }
+                        }),
+                        onComplete: serviceOnComplete
+                    }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                launcher.interface = undefined
+                const running = launcher.run()
+                await vi.waitFor(() => expect(resolveOnPrepare).toBeTypeOf('function'))
+
+                const callback = vi.fn()
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                await Promise.resolve()
+                await new Promise((resolve) => setTimeout(resolve, 15))
+                // onComplete must wait for onPrepare so handles created in onPrepare are initialized
+                expect(serviceOnComplete).not.toBeCalled()
+                expect(callback).not.toBeCalled()
+
+                resolveOnPrepare()
+                await exiting
+                const exitCode = await running
+
+                expect(exitCode).toBe(1)
+                expect(closedHandle).toBe('tunnel-pid-42')
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(serviceOnComplete).toHaveBeenCalledWith(1, expect.anything(), expect.anything())
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('still runs onComplete and disposes runner if in-flight onPrepare rejects after SIGINT', async () => {
+                let rejectOnPrepare!: (err: Error) => void
+                const dispose = vi.fn()
+                mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
+
+                const serviceOnComplete = vi.fn()
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{
+                        onPrepare: () => new Promise<void>((_resolve, reject) => {
+                            rejectOnPrepare = reject
+                        }),
+                        onComplete: serviceOnComplete
+                    }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                const runningHandled = running.catch((err) => err)
+                await vi.waitFor(() => expect(rejectOnPrepare).toBeTypeOf('function'))
+
+                const callback = vi.fn()
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                await Promise.resolve()
+                expect(serviceOnComplete).not.toBeCalled()
+
+                rejectOnPrepare(new SevereServiceError('tunnel failed to start'))
+                await exiting
+                const err = await runningHandled
+
+                expect(err).toBeInstanceOf(Error)
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('waits for an already running finally cleanup if SIGINT arrives during normal onComplete', async () => {
+                let resolveServiceOnComplete!: () => void
+                const dispose = vi.fn()
+                mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
+
+                const serviceOnComplete = vi.fn(() => new Promise<void>((resolve) => {
+                    resolveServiceOnComplete = resolve
+                }))
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(serviceOnComplete).toBeCalledTimes(1))
+
+                const callback = vi.fn()
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                await Promise.resolve()
+                expect(callback).not.toBeCalled()
+
+                resolveServiceOnComplete()
+                await exiting
+                await running
+
+                expect(callback).toBeCalledTimes(1)
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(dispose).toBeCalledTimes(1)
+            })
+
+            it('passes exitCode 0 to onComplete when watch mode is halted via SIGINT', async () => {
+                let resolveRunMode!: (code: number) => void
+                launcher['_isWatchMode'] = true
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                mockRunner({
+                    shutdown: vi.fn(async () => {
+                        resolveRunMode(0)
+                        return true
+                    }),
+                    dispose: vi.fn()
+                })
+
+                const serviceOnComplete = vi.fn()
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+
+                const callback = vi.fn()
+                await launcher['_exitHandler'](callback as any)
+                await running
+
+                expect(config.onComplete![0]).toHaveBeenCalledWith(0, expect.anything(), expect.anything(), expect.anything())
+                expect(serviceOnComplete).toHaveBeenCalledWith(0, expect.anything(), expect.anything())
+                expect(callback).toBeCalledTimes(1)
+            })
+
+            it('still runs onComplete, disposes runner, and calls callback when shutdown or onComplete rejects', async () => {
+                let resolveRunMode!: (code: number) => void
+                launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => {
+                    resolveRunMode = resolve
+                }))
+                const dispose = vi.fn()
+                mockRunner({
+                    shutdown: vi.fn(async () => {
+                        resolveRunMode(1)
+                        throw new Error('shutdown boom')
+                    }),
+                    dispose
+                })
+
+                const serviceOnComplete = vi.fn(() => {
+                    throw new SevereServiceError('severe teardown failure')
+                })
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run().catch(() => undefined)
+                await vi.waitFor(() => expect(launcher['_runMode']).toBeCalled())
+
+                const callback = vi.fn()
+                await launcher['_exitHandler'](callback as any)
+                await running
+
+                expect(serviceOnComplete).toBeCalledTimes(1)
+                expect(dispose).toBeCalledTimes(1)
+                expect(callback).toBeCalledTimes(1)
+            })
+        })
+
         describe('framework with launch export', () => {
             const launch = vi.fn()
             const defaultPlugin = vi.mocked(initializePlugin).getMockImplementation()!
@@ -1100,6 +1483,36 @@ describe('launcher', () => {
                 expect(order).toEqual(['aborted', 'settled', 'callback'])
             })
 
+            it('awaits async service onComplete hooks before calling callback when aborted', async () => {
+                mockFramework(async () => ({ launch }))
+                const order: string[] = []
+                let finish!: () => void
+                launch.mockImplementation(({ signal }: Frameworks.FrameworkLaunchParams) => new Promise<number>((resolve) => {
+                    finish = () => { order.push('settled'); resolve(0) }
+                    signal!.addEventListener('abort', () => order.push('aborted'))
+                }))
+                const serviceOnComplete = vi.fn(async () => {
+                    await new Promise((resolve) => setTimeout(resolve, 20))
+                    order.push('serviceOnComplete')
+                })
+                vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                    launcherServices: [{ onComplete: serviceOnComplete }],
+                    ignoredWorkerServices: [],
+                } as never)
+
+                const running = launcher.run()
+                await vi.waitFor(() => expect(launch).toBeCalled())
+                const callback = vi.fn(() => order.push('callback'))
+
+                const exiting = launcher['_exitHandler'](callback as any) as Promise<void>
+                finish()
+                await exiting
+                await running
+
+                expect(order).toEqual(['aborted', 'settled', 'serviceOnComplete', 'callback'])
+                expect(serviceOnComplete).toBeCalledTimes(1)
+            })
+
             it('drops args that cannot be structured-cloned', async () => {
                 mockFramework(async () => ({ launch }))
                 launch.mockResolvedValue(0)
@@ -1112,7 +1525,7 @@ describe('launcher', () => {
             it('passes a signal that is already aborted when exit was triggered before launch', async () => {
                 mockFramework(async () => ({ launch }))
                 launch.mockResolvedValue(0)
-                vi.mocked(config.onPrepare![0]).mockImplementationOnce(() => { launcher['_exitHandler'](vi.fn() as any) })
+                vi.mocked(setupDriver).mockImplementationOnce(() => { launcher['_exitHandler'](vi.fn() as any) })
 
                 await launcher.run()
                 expect(launch.mock.calls[0][0].signal.aborted).toBe(true)

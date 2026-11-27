@@ -75,6 +75,15 @@ class Launcher {
     private _resolve?: Function
     #frameworkAbort = new AbortController()
     #frameworkLaunch?: Promise<number>
+    #runConfig?: Required<WebdriverIO.Config>
+    #runCaps?: Capabilities.TestrunnerCapabilities
+    #hasStartedOnPrepare = false
+    #onPreparePromise?: Promise<void>
+    #wasInterrupted = false
+    #cleanupPromise?: Promise<void>
+    #shutdownPromise?: Promise<boolean>
+    #onCompletePromise?: Promise<number>
+    #disposePromise?: Promise<void>
 
     constructor(
         private _configFilePath: string,
@@ -122,6 +131,16 @@ class Launcher {
         }
 
         try {
+            this.#runConfig = config
+            this.#runCaps = caps
+            this.#hasStartedOnPrepare = false
+            this.#onPreparePromise = undefined
+            this.#wasInterrupted = false
+            this.#cleanupPromise = undefined
+            this.#shutdownPromise = undefined
+            this.#onCompletePromise = undefined
+            this.#disposePromise = undefined
+
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -136,91 +155,122 @@ class Launcher {
              * run onPrepare hook
              */
             log.info('Run onPrepare hook')
-            await runLauncherHook(config.onPrepare, config, caps)
-            await runServiceHook(this._launcher, 'onPrepare', config, caps)
+            this.#hasStartedOnPrepare = true
+            const onPreparePromise = (async () => {
+                await runLauncherHook(config.onPrepare, config, caps)
+                await runServiceHook(launcherServices, 'onPrepare', config, caps)
+            })()
+            this.#onPreparePromise = onPreparePromise
+            try {
+                await onPreparePromise
+            } finally {
+                if (this.#onPreparePromise === onPreparePromise) {
+                    this.#onPreparePromise = undefined
+                }
+            }
 
-            /**
-             * For parallel multi-remote, only get the specs and excludes from the first object
-             */
-            const totalWorkerCnt = Array.isArray(capabilities)
-                ? capabilities
-                    .map((c) => {
-                        if (this.isParallelMultiRemote) {
-                            const keys = Object.keys(c as Capabilities.RequestedMultiRemoteCapabilities)
-                            const caps = (c as Capabilities.RequestedMultiRemoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
-                            return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
+            if (!this._hasTriggeredExitRoutine) {
+                /**
+                 * For parallel multi-remote, only get the specs and excludes from the first object
+                 */
+                const totalWorkerCnt = Array.isArray(capabilities)
+                    ? capabilities
+                        .map((c) => {
+                            if (this.isParallelMultiRemote) {
+                                const keys = Object.keys(c as Capabilities.RequestedMultiRemoteCapabilities)
+                                const caps = (c as Capabilities.RequestedMultiRemoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
+                                return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
+                            }
+                            const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
+                            const cap = 'alwaysMatch' in standaloneCaps ? standaloneCaps.alwaysMatch : standaloneCaps
+                            return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude']).length
+                        })
+                        .reduce((a, b) => a + b, 0)
+                    : 1
+
+                if (framework && config.specFileRetries > 0) {
+                    log.warn('specFileRetries is not supported with this framework and is ignored')
+                }
+                // The framework schedules specs itself, so no spec file is ever retried
+                this.interface = new CLInterface(framework ? { ...config, specFileRetries: 0 } : config, totalWorkerCnt, this._isWatchMode)
+                config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
+
+                /**
+                 * pre-configure necessary driver for worker threads
+                 */
+                await Promise.all([
+                    setupDriver(config, caps),
+                    setupBrowser(config, caps)
+                ])
+
+                const cliInterface = this.interface
+                if (framework) {
+                    this.#frameworkLaunch = framework.launch({
+                        // ConfigParser keeps capabilities outside of getConfig()
+                        config: { ...config, capabilities: caps } as WebdriverIO.Config,
+                        specs: this.configParser.getSpecs().flat().map(specFilePath),
+                        configFile: this._configFilePath,
+                        args: cloneableEntries(this._args),
+                        signal: this.#frameworkAbort.signal,
+                        onEvent: (event) => {
+                            if (event.type === 'job:start') {
+                                const { cid, caps, specs } = event
+                                cliInterface.emit('job:start', { cid, caps, specs, hasTests: true })
+                            } else if (event.type === 'job:end') {
+                                cliInterface.emit('job:end', { cid: event.cid, passed: event.passed, retries: 0 })
+                            } else {
+                                cliInterface.onMessage(event.message as Parameters<CLInterface['onMessage']>[0])
+                            }
                         }
-                        const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
-                        const cap = 'alwaysMatch' in standaloneCaps ? standaloneCaps.alwaysMatch : standaloneCaps
-                        return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude']).length
                     })
-                    .reduce((a, b) => a + b, 0)
-                : 1
-
-            if (framework && config.specFileRetries > 0) {
-                log.warn('specFileRetries is not supported with this framework and is ignored')
+                }
+                exitCode = this.#frameworkLaunch
+                    ? Number(await this.#frameworkLaunch.catch((err) => {
+                        // onComplete hooks must not see a green exit code for a crashed run
+                        exitCode = 1
+                        throw err
+                    }) > 0)
+                    : await this._runMode(config, caps)
+                await logger.waitForBuffer()
+                this.interface.finalise()
             }
-            // The framework schedules specs itself, so no spec file is ever retried
-            this.interface = new CLInterface(framework ? { ...config, specFileRetries: 0 } : config, totalWorkerCnt, this._isWatchMode)
-            config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
-
-            /**
-             * pre-configure necessary driver for worker threads
-             */
-            await Promise.all([
-                setupDriver(config, caps),
-                setupBrowser(config, caps)
-            ])
-
-            const cliInterface = this.interface
-            if (framework) {
-                this.#frameworkLaunch = framework.launch({
-                    // ConfigParser keeps capabilities outside of getConfig()
-                    config: { ...config, capabilities: caps } as WebdriverIO.Config,
-                    specs: this.configParser.getSpecs().flat().map(specFilePath),
-                    configFile: this._configFilePath,
-                    args: cloneableEntries(this._args),
-                    signal: this.#frameworkAbort.signal,
-                    onEvent: (event) => {
-                        if (event.type === 'job:start') {
-                            const { cid, caps, specs } = event
-                            cliInterface.emit('job:start', { cid, caps, specs, hasTests: true })
-                        } else if (event.type === 'job:end') {
-                            cliInterface.emit('job:end', { cid: event.cid, passed: event.passed, retries: 0 })
-                        } else {
-                            cliInterface.onMessage(event.message as Parameters<CLInterface['onMessage']>[0])
-                        }
-                    }
-                })
-            }
-            exitCode = this.#frameworkLaunch
-                ? Number(await this.#frameworkLaunch.catch((err) => {
-                    // onComplete hooks must not see a green exit code for a crashed run
-                    exitCode = 1
-                    throw err
-                }) > 0)
-                : await this._runMode(config, caps)
-            await logger.waitForBuffer()
-            this.interface.finalise()
         } catch (err) {
             error = err as HookError
         } finally {
+            let resolveCleanup!: () => void
+            const cleanupPromise = new Promise<void>((resolve) => {
+                resolveCleanup = resolve
+            })
+            if (!this.#cleanupPromise) {
+                this.#cleanupPromise = cleanupPromise
+            }
             try {
-                if (!this._hasTriggeredExitRoutine) {
-                    this._hasTriggeredExitRoutine = true
-                    const passesCodeCoverage = await this.runner.shutdown()
-                    if (!passesCodeCoverage) {
-                        exitCode = exitCode || 1
-                    }
-                }
-
-                exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
-            } finally {
-                // A failing dispose must not replace the run's own error or exit code.
                 try {
-                    await this.runner.dispose?.()
-                } catch (err) {
-                    log.warn('Failed to dispose the runner:', err)
+                    if (!this._hasTriggeredExitRoutine) {
+                        this._hasTriggeredExitRoutine = true
+                        const passesCodeCoverage = await this.#shutdownRunner()
+                        if (!passesCodeCoverage) {
+                            exitCode = exitCode || 1
+                        }
+                    } else if (this.#shutdownPromise) {
+                        try {
+                            await this.#shutdownPromise
+                        } catch {
+                            // Logged by _exitHandler; still run onComplete and dispose
+                        }
+                    }
+
+                    const hookExitCode = this.#wasInterrupted && !this._isWatchMode
+                        ? (exitCode || 1)
+                        : exitCode
+                    exitCode = await this.#runOnCompleteHook(config, caps, hookExitCode)
+                } finally {
+                    await this.#disposeRunner()
+                }
+            } finally {
+                resolveCleanup()
+                if (this.#cleanupPromise === cleanupPromise) {
+                    this.#cleanupPromise = undefined
                 }
             }
         }
@@ -334,19 +384,64 @@ class Launcher {
      * a user can use plugin service, e.g. shared store service is still
      * available running hooks in this order
      */
-    async #runOnCompleteHook(
+    #shutdownRunner(waitForFramework = false): Promise<boolean> {
+        if (this.#shutdownPromise) {
+            return this.#shutdownPromise
+        }
+
+        const runner = this.runner!
+        const shutdown = async (): Promise<boolean> => {
+            if (waitForFramework && this.#frameworkLaunch) {
+                await this.#frameworkLaunch.then(() => undefined, () => undefined)
+            }
+            return runner.shutdown()
+        }
+
+        this.#shutdownPromise = shutdown()
+        return this.#shutdownPromise
+    }
+
+    #runOnCompleteHook(
         config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
         exitCode: number
     ): Promise<number> {
-        log.info('Run onComplete hook')
-        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface?.result || { finished: 0, passed: 0, retries: 0, failed: 0 })
-        if (this._launcher) {
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+        if (this.#onCompletePromise) {
+            return this.#onCompletePromise
         }
 
-        // if any of the onComplete hooks failed, update the exit code
-        return onCompleteResults.includes(1) ? 1 : exitCode
+        this.#onCompletePromise = (async () => {
+            if (this.#onPreparePromise) {
+                await this.#onPreparePromise.then(() => undefined, () => undefined)
+            }
+            log.info('Run onComplete hook')
+            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface?.result || { finished: 0, passed: 0, retries: 0, failed: 0 })
+            if (this._launcher) {
+                await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+            }
+
+            // if any of the onComplete hooks failed, update the exit code
+            return onCompleteResults.includes(1) ? 1 : exitCode
+        })()
+
+        return this.#onCompletePromise
+    }
+
+    #disposeRunner(): Promise<void> {
+        if (this.#disposePromise) {
+            return this.#disposePromise
+        }
+
+        this.#disposePromise = (async () => {
+            // A failing dispose must not replace the run's own error or exit code.
+            try {
+                await this.runner?.dispose?.()
+            } catch (err) {
+                log.warn('Failed to dispose the runner:', err)
+            }
+        })()
+
+        return this.#disposePromise
     }
 
     /**
@@ -807,28 +902,62 @@ class Launcher {
     }
 
     /**
-     * We need exitHandler to catch SIGINT / SIGTERM events.
-     * Make sure all started selenium sessions get closed properly and prevent
-     * having dead driver processes. To do so let the runner end its Selenium
-     * session first before killing
+     * We need exitHandler to catch SIGINT / SIGTERM / SIGBREAK events.
+     * Make sure all started selenium sessions get closed properly and launcher
+     * `onComplete` hooks finish before exiting so services (such as local
+     * tunnels or daemons started in `onPrepare`) do not leave orphan processes.
      */
     private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
         this.#frameworkAbort.abort()
-        if (!callback || !this.runner || !this.interface) {
+        if (!callback || !this.runner) {
             return
         }
 
         if (this._hasTriggeredExitRoutine) {
+            if (this.#cleanupPromise) {
+                return this.#cleanupPromise.then(() => callback(true))
+            }
             return callback(true)
         }
 
         this._hasTriggeredExitRoutine = true
-        this.interface.sigintTrigger()
-        if (this.#frameworkLaunch) {
-            const runner = this.runner
-            return this.#frameworkLaunch.then(() => undefined, () => undefined).then(() => runner.shutdown()).then(callback)
+        this.#wasInterrupted = true
+        this.interface?.sigintTrigger()
+
+        const shutdown = async (): Promise<boolean> => {
+            let shutdownResult = true
+            try {
+                shutdownResult = await this.#shutdownRunner(true)
+            } catch (err) {
+                log.error('Failed to shut down runner during exit:', err)
+                shutdownResult = false
+            }
+
+            if (this.#onPreparePromise) {
+                await this.#onPreparePromise.then(() => undefined, () => undefined)
+            }
+
+            if (this.#hasStartedOnPrepare && this.#runConfig && this.#runCaps) {
+                const hookExitCode = this._isWatchMode ? this._exitCode : (this._exitCode || 1)
+                try {
+                    await this.#runOnCompleteHook(this.#runConfig, this.#runCaps, hookExitCode)
+                } catch (err) {
+                    log.error('Error in onComplete hook during exit:', err)
+                }
+            }
+
+            await this.#disposeRunner()
+            return shutdownResult
         }
-        return this.runner.shutdown().then(callback) // no dispose(): the process exits next, and that kills the display server
+
+        const cleanupPromise = shutdown().then((result) => {
+            if (this.#cleanupPromise === cleanupPromise) {
+                this.#cleanupPromise = undefined
+            }
+            callback(result)
+        })
+        this.#cleanupPromise = cleanupPromise
+        return cleanupPromise
     }
 
     /**

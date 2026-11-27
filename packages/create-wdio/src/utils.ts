@@ -26,7 +26,36 @@ const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
+let activeSigintScopes = 0
+const handleSigint = () => printAndExit(undefined, 'SIGINT')
+const handledExitPromptErrors = new WeakSet<Error>()
+
+/**
+ * Register the wizard's SIGINT exit handler only while an interactive prompt
+ * or setup flow is active. `@wdio/cli` imports `create-wdio` at load time, so
+ * a module-level listener would terminate `wdio run` on Ctrl+C before the
+ * launcher can shut down workers and execute `onComplete` hooks.
+ */
+export async function withSigintExit<T>(fn: () => Promise<T>): Promise<T> {
+    if (activeSigintScopes === 0) {
+        process.on('SIGINT', handleSigint)
+    }
+    activeSigintScopes++
+    try {
+        return await fn()
+    } catch (err) {
+        if (err instanceof Error && err.name === 'ExitPromptError' && !handledExitPromptErrors.has(err)) {
+            handledExitPromptErrors.add(err)
+            printAndExit(undefined, 'SIGINT')
+        }
+        throw err
+    } finally {
+        activeSigintScopes--
+        if (activeSigintScopes === 0) {
+            process.off('SIGINT', handleSigint)
+        }
+    }
+}
 
 /**
  * to resolve properly during WDIO unit tests we need resolve the template root dir
@@ -199,14 +228,16 @@ async function promptAnswers(flagAnswers: Partial<Questionnair>): Promise<Questi
         }
     ]
 
-    // @ts-ignore
-    const answers = await inquirer.prompt(projectRootQuestions)
-    if (answers.createPackageJSON) {
-        answers.projectRoot = process.cwd()
-    }
+    return withSigintExit<Questionnair>(async () => {
+        // @ts-ignore
+        const answers = await inquirer.prompt(projectRootQuestions)
+        if (answers.createPackageJSON) {
+            answers.projectRoot = process.cwd()
+        }
 
-    // @ts-ignore
-    return inquirer.prompt(QUESTIONNAIRE, { ...answers, ...flagAnswers })
+        // @ts-ignore
+        return inquirer.prompt(QUESTIONNAIRE, { ...answers, ...flagAnswers }) as unknown as Questionnair
+    })
 }
 
 /**
@@ -740,21 +771,23 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers, yes = fal
         )
     }
 
-    const answer = await inquirer.prompt({
-        name: 'continueWithAppiumSetup',
-        message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
-        type: 'confirm',
-        default: true
+    return withSigintExit(async () => {
+        const answer = await inquirer.prompt({
+            name: 'continueWithAppiumSetup',
+            message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
+            type: 'confirm',
+            default: true
+        })
+
+        if (!answer.continueWithAppiumSetup) {
+            return console.log(
+                'Ok! You can learn more about setting up mobile environments in the ' +
+                'Appium docs at https://appium.io/docs/en/latest/quickstart/'
+            )
+        }
+
+        return $({ stdio: 'inherit' })`npx appium-installer`
     })
-
-    if (!answer.continueWithAppiumSetup) {
-        return console.log(
-            'Ok! You can learn more about setting up mobile environments in the ' +
-            'Appium docs at https://appium.io/docs/en/latest/quickstart/'
-        )
-    }
-
-    return $({ stdio: 'inherit' })`npx appium-installer`
 }
 export function getSerenityPackages(answers: Questionnair): string[] {
     const framework = convertPackageHashToObject(answers.framework)
