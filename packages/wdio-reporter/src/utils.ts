@@ -207,7 +207,7 @@ export function transformCommandScript (script?: string|Function) {
     }
     let name = undefined
     if (typeof script === 'string') {
-        name = FIRST_FUNCTION_REGEX.exec(script)
+        name = FIRST_FUNCTION_REGEX.exec(script)?.[1]
         // reset the static RegExp globals to avoid leaking `script`
         FIRST_FUNCTION_REGEX.exec('')
     } else if (typeof script === 'function') {
