@@ -1,9 +1,21 @@
 import { describe, expectTypeOf, it } from 'vitest'
 
 import type { ActionArgsOf, AgentActionName } from '../src/actions/args.js'
-import type { AgentSession } from '../src/agent.js'
+import { createAgentSession, type AgentActionEvent, type AgentSession } from '../src/agent.js'
 
 declare const agent: AgentSession
+declare const browser: WebdriverIO.Browser
+
+describe('onAction', () => {
+    it('receives typed action events', () => {
+        void createAgentSession(browser, {
+            onAction: (event) => {
+                expectTypeOf(event).toEqualTypeOf<AgentActionEvent>()
+                expectTypeOf(event.phase).toEqualTypeOf<'before' | 'after'>()
+            }
+        })
+    })
+})
 
 describe('action args types', () => {
     it('click requires target', () => {

@@ -13,7 +13,7 @@ import type { HintFormatter } from './hints.js'
 import { ACTIONS, type ActionSpec } from './actions/specs.js'
 import type { SnapshotOptions, TakenSnapshot } from './actions/observe.js'
 import type { ActionArgsOf, AgentActionName } from './actions/args.js'
-import type { ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo } from './agent/types.js'
+import type { ActionData, ActionDataMap, AgentActionEvent, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo } from './agent/types.js'
 import { startEventCapture } from './daemon/capture.js'
 import { formatSnapshot } from './snapshot/render.js'
 import { installPageRecorder } from './snapshot/recorder.js'
@@ -23,7 +23,7 @@ import { resolveElement, scopeOf } from './snapshot/target.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
 export { formatSnapshot, onlyInteractive, SessionError }
-export type { ErrorCode, HintFormatter, ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
+export type { ErrorCode, HintFormatter, ActionData, ActionDataMap, AgentActionEvent, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
 
 export interface AgentSessionOptions {
     /**
@@ -61,6 +61,14 @@ export interface AgentSessionOptions {
      * the caller's own interface
      */
     hint?: HintFormatter
+    /**
+     * called before and after every action the agent runs (`run`, `runAction`,
+     * `snapshot`), failed ones included; a throwing or rejecting handler does
+     * not affect the action
+     *
+     * @experimental the event fields may change
+     */
+    onAction?: (event: AgentActionEvent) => void
 }
 
 /**
@@ -260,7 +268,8 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
         browser,
         plan: attachedPlan(browser, { name, cwd, artifactsDir, runtimeDir: artifactsDir, target: 'agent' }),
         persistHistory: false,
-        hint: opts.hint
+        hint: opts.hint,
+        onAction: opts.onAction
     })
     if (opts.captureEvents) {
         await startEventCapture(session)

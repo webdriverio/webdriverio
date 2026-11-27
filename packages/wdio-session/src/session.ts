@@ -16,7 +16,7 @@ import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdF
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import { failedRequestNote, networkMark } from './network-notes.js'
 import { botCheckNote, detectBotCheck, detectLoadError } from './actions/botcheck.js'
-import type { AgentActionResult, PageChange, PageInfo } from './agent/types.js'
+import type { AgentActionEvent, AgentActionResult, PageChange, PageInfo } from './agent/types.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
 
 const log = logger('@wdio/session')
@@ -87,6 +87,7 @@ export interface SessionInit {
      */
     persistHistory?: boolean
     hint?: HintFormatter
+    onAction?: (event: AgentActionEvent) => void
 }
 
 export interface ActionOutcome extends ActionResult {
@@ -153,6 +154,8 @@ export class Session {
     #restoreHeldFrame?: () => void
     // network entries up to here were reported with an action's result
     #networkReported = 0
+    #onAction?: (event: AgentActionEvent) => void
+    #actionSeq = 0
 
     constructor (init: SessionInit) {
         this.name = init.name
@@ -162,6 +165,7 @@ export class Session {
         this.browser = init.browser
         this.plan = init.plan
         this.cmd = cmdWith(init.hint)
+        this.#onAction = init.onAction
         fs.mkdirSync(this.artifactsDir, { recursive: true })
         this.history = new History(this.artifactsDir, { keep: init.keepHistory, persist: init.persistHistory })
     }
@@ -303,6 +307,42 @@ export class Session {
     }
 
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>, opts: { timeout?: number, detail?: boolean } = {}): Promise<AgentActionResult> {
+        if (!this.#onAction || req.args?.$internal) {
+            return this.#dispatch(req, opts)
+        }
+        const id = ++this.#actionSeq
+        const startedAt = Date.now()
+        const args = Object.fromEntries(Object.entries(req.args ?? {}).filter(([key]) => !key.startsWith('$')))
+        const event = { id, action: req.action, args, startedAt }
+        this.#emitAction({ ...event, phase: 'before' })
+        let result: AgentActionResult
+        try {
+            result = await this.#dispatch(req, opts)
+        } catch (err) {
+            const e = SessionError.from(err, 'INTERNAL')
+            this.#emitAction({ ...event, phase: 'after', durationMs: Date.now() - startedAt, error: { code: e.code, message: e.message } })
+            throw err
+        }
+        this.#emitAction({
+            ...event,
+            phase: 'after',
+            durationMs: Date.now() - startedAt,
+            ...(result.code ? { code: result.code } : {}),
+            ...(result.changes ? { changes: result.changes } : {}),
+            ...(result.page ? { page: result.page } : {})
+        })
+        return result
+    }
+
+    #emitAction (event: AgentActionEvent) {
+        try {
+            Promise.resolve(this.#onAction?.(event)).catch((err) => log.debug(`onAction handler failed: ${(err as Error)?.message || err}`))
+        } catch (err) {
+            log.debug(`onAction handler failed: ${(err as Error)?.message || err}`)
+        }
+    }
+
+    async #dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>, opts: { timeout?: number, detail?: boolean } = {}): Promise<AgentActionResult> {
         const epoch = this.#epoch
         const abandoned = () => new SessionError('TIMEOUT', `"${req.action}" finished after it was given up; its result is dropped.`)
         await this.limitPageLoad()
