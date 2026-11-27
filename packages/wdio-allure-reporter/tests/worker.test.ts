@@ -23,7 +23,7 @@ vi.mock(
 )
 
 import AllureReporter from '../src/reporter.js'
-import { offloadAttachment, PENDING_ATTACHMENT_PREFIX, PENDING_ATTACHMENT_SUFFIX, resolveResultsDir } from '../src/worker.js'
+import { ALLURE_REPORTER_SYMBOL, offloadAttachment, PENDING_ATTACHMENT_PREFIX, PENDING_ATTACHMENT_SUFFIX, resolveResultsDir } from '../src/worker.js'
 
 const bytes = Buffer.from([0, 1, 2, 250, 251, 252])
 const attachmentMessage = (overrides: Record<string, unknown> = {}) => ({
@@ -103,5 +103,17 @@ describe('offloadAttachment', () => {
     it('leaves other messages alone', () => {
         expect(offloadAttachment({ type: 'step_start', data: { name: 's', start: 1 } }, resultsDir)).toBeUndefined()
         expect(offloadAttachment({ type: 'attachment_path', data: { name: 's', path: '/x', contentType: 'text/plain' } }, resultsDir)).toBeUndefined()
+    })
+})
+
+describe('ALLURE_REPORTER_SYMBOL', () => {
+    it('marks AllureReporter and its subclasses non-enumerably without matching unrelated classes', () => {
+        class CustomAllureReporter extends AllureReporter {}
+        class OtherReporter {}
+
+        expect((AllureReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBe(true)
+        expect((CustomAllureReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBe(true)
+        expect((OtherReporter as unknown as Record<symbol, unknown>)[ALLURE_REPORTER_SYMBOL]).toBeUndefined()
+        expect(Object.getOwnPropertyDescriptor(AllureReporter, ALLURE_REPORTER_SYMBOL)?.enumerable).toBe(false)
     })
 })

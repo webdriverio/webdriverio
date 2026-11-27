@@ -836,6 +836,55 @@ describe('WdioBridgeReporter', () => {
             expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end'])
         })
 
+        it('removes wdio:runtime from test meta after replaying while preserving user meta keys', async () => {
+            const module = makeModule()
+            const meta: Record<string, unknown> = {
+                owner: 'checkout',
+                'wdio:runtime': [
+                    { event: 'allure:runtimeMessage', payload: { type: 'step_start', data: { name: 's', start: 1 } }, retry: 0 },
+                    { event: 'wdio:attempt', payload: { start: 1, end: 2, state: 'passed' }, retry: 0 }
+                ]
+            }
+            const test = makeTest(module, module, 'cleaned', passed, 1, { meta: () => meta })
+            await runTests(module, test)
+
+            expect(names(emittedOf())).toContain('allure:runtimeMessage')
+            expect('wdio:runtime' in meta).toBe(false)
+            expect(meta).toEqual({ owner: 'checkout' })
+        })
+
+        it('removes wdio:runtime from test meta even when only console reporters are configured', async () => {
+            const bridge = new WdioBridgeReporter({ reporters: ['spec'] } as WebdriverIO.Config, (event) => events.push(event))
+            const module = makeModule()
+            const meta: Record<string, unknown> = {
+                keep: true,
+                'wdio:runtime': [{ event: 'wdio:attempt', payload: { start: 1, end: 2, state: 'passed' }, retry: 0 }]
+            }
+            const test = makeTest(module, module, 'console-only', passed, 1, { meta: () => meta })
+            bridge.onTestModuleStart(module)
+            await bridge.onTestCaseReady(test)
+            await bridge.onTestCaseResult(test)
+            await bridge.onTestModuleEnd(module)
+
+            expect('wdio:runtime' in meta).toBe(false)
+            expect(meta).toEqual({ keep: true })
+        })
+
+        it('removes wdio:runtime from unfinished tests when closing a module', async () => {
+            const module = makeModule({ state: () => 'failed', errors: () => [] })
+            const meta: Record<string, unknown> = {
+                owner: 'checkout',
+                'wdio:runtime': [{ event: 'junit:addProperty', payload: { name: 'k', value: 'v' }, retry: 0 }]
+            }
+            const test = makeTest(module, module, 'aborted', passed, 1, { meta: () => meta })
+            reporter.onTestModuleStart(module)
+            await reporter.onTestCaseReady(test)
+            await reporter.onTestModuleEnd(module)
+
+            expect('wdio:runtime' in meta).toBe(false)
+            expect(meta).toEqual({ owner: 'checkout' })
+        })
+
         describe('retries', () => {
             const call = (name: string, retry: number) => ({ event: 'junit:addProperty', payload: { name, value: name }, retry })
             const attempt = (retry: number, state: 'passed' | 'failed', error?: object) => ({
@@ -867,6 +916,27 @@ describe('WdioBridgeReporter', () => {
                     'test:start(test-0-0-0-retry-2)', 'junit:addProperty', 'test:pass(test-0-0-0-retry-2)', 'test:end(test-0-0-0-retry-2)'
                 ])
                 expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload.name)).toEqual(['a0', 'a1', 'a2'])
+            })
+
+            it('removes wdio:runtime across all attempts after replaying a retried test', async () => {
+                const meta: Record<string, unknown> = {
+                    owner: 'payments',
+                    'wdio:runtime': [
+                        call('a0', 0), attempt(0, 'failed', { message: 'fail 1' }),
+                        call('a1', 1), attempt(1, 'passed')
+                    ]
+                }
+                const module = makeModule()
+                const test = makeTest(module, module, 't', passed, 5, {
+                    diagnostic: () => ({ duration: 5, retryCount: 1 }),
+                    meta: () => meta
+                })
+                await runTests(module, test)
+                await reporter.onTestModuleEnd(module)
+
+                expect(emittedOf().filter(([name]) => name === 'junit:addProperty').map(([, payload]) => payload.name)).toEqual(['a0', 'a1'])
+                expect('wdio:runtime' in meta).toBe(false)
+                expect(meta).toEqual({ owner: 'payments' })
             })
 
             it('gives the retry the worker timing, error and attempt index', async () => {

@@ -3,6 +3,7 @@ import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
+import logger from '@wdio/logger'
 
 import { resolveAttachmentDir, toVitestConfig } from '../src/config.js'
 import { WdioBridgeReporter } from '../src/reporter.js'
@@ -177,6 +178,9 @@ describe('toVitestConfig', () => {
             return projects!.map((project) => (project as { test: { provide: { wdioAllureAttachmentDir: unknown } } }).test.provide.wdioAllureAttachmentDir)
         }
         class CustomReporter {}
+        class MockAllureReporter {}
+        Object.defineProperty(MockAllureReporter, Symbol.for('@wdio/allure-reporter'), { value: true })
+        class CustomAllureReporter extends MockAllureReporter {}
 
         it('provides the absolute folder of the only Allure entry to every project', async () => {
             expect(await provided([['allure', { outputDir: 'out/a' }]])).toEqual([path.resolve('out/a'), path.resolve('out/a')])
@@ -190,10 +194,49 @@ describe('toVitestConfig', () => {
         it.each([
             ['no reporter', undefined],
             ['no Allure entry', ['junit', ['json', {}]]],
+            ['a custom class without Allure', [CustomReporter]],
             ['several Allure entries', [['allure', { outputDir: 'a' }], ['@wdio/allure-reporter', { outputDir: 'b' }]]],
             ['a class entry', [CustomReporter, ['allure', { outputDir: 'a' }]]]
         ])('provides null for %s', async (_, reporters) => {
             expect(await provided(reporters as never)).toEqual([null, null])
+        })
+
+        it('provides the absolute folder when AllureReporter is passed as a class or subclass', async () => {
+            expect(await resolveAttachmentDir([MockAllureReporter])).toBe(path.resolve('allure-results'))
+            expect(await provided([[MockAllureReporter, { outputDir: 'out/cls' }]])).toEqual([path.resolve('out/cls'), path.resolve('out/cls')])
+            expect(await resolveAttachmentDir(['junit', [MockAllureReporter, { resultsDir: 'out/r' }]])).toBe(path.resolve('out/r'))
+            expect(await resolveAttachmentDir([[CustomAllureReporter, { outputDir: 'out/sub' }]])).toBe(path.resolve('out/sub'))
+        })
+
+        it('warns and returns null when AllureReporter class is paired with another Allure entry', async () => {
+            const warn = vi.spyOn(logger('@wdio/vitest-framework'), 'warn')
+            warn.mockClear()
+
+            expect(await resolveAttachmentDir([MockAllureReporter, ['allure', { outputDir: 'b' }]])).toBeNull()
+            expect(await resolveAttachmentDir([[MockAllureReporter, { outputDir: 'a' }], [MockAllureReporter, { outputDir: 'b' }]])).toBeNull()
+            expect(warn).toHaveBeenCalledTimes(2)
+            expect(warn.mock.calls[0][0]).toContain('Several Allure reporters')
+        })
+
+        it('warns when a custom class is configured alone or alongside Allure, and stays quiet for built-in non-Allure reporters', async () => {
+            const warn = vi.spyOn(logger('@wdio/vitest-framework'), 'warn')
+            warn.mockClear()
+
+            expect(await resolveAttachmentDir(undefined)).toBeNull()
+            expect(await resolveAttachmentDir(['junit', ['json', {}]])).toBeNull()
+            expect(warn).not.toHaveBeenCalled()
+
+            expect(await resolveAttachmentDir([CustomReporter])).toBeNull()
+            expect(await resolveAttachmentDir([[CustomReporter, {}]])).toBeNull()
+            expect(warn).toHaveBeenCalledTimes(2)
+            expect(warn.mock.calls[0][0]).toContain('A custom reporter class is configured')
+            expect(warn.mock.calls[0][0]).toContain('sent through the launcher instead')
+
+            warn.mockClear()
+            expect(await resolveAttachmentDir([CustomReporter, ['allure', { outputDir: 'a' }]])).toBeNull()
+            expect(await resolveAttachmentDir([CustomReporter, [MockAllureReporter, { outputDir: 'a' }]])).toBeNull()
+            expect(warn).toHaveBeenCalledTimes(2)
+            expect(warn.mock.calls[0][0]).toContain('sending Allure attachments through the launcher instead')
         })
 
         it('respects a reporter list that onPrepare changed', async () => {
