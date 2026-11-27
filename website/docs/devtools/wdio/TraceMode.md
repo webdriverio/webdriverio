@@ -68,7 +68,7 @@ Locator resolution (`$`, `$$`, `findElement(s)`), Selenium's `executeScript` pol
 
 A trace-mode action row carries a capture of the page: a screenshot, the accessibility tree and element list, plus the page source on a native app. Each capture costs page reads through the driver, so every adapter takes one only for commands that can change the page. Reads and waits (`getText`, `isDisplayed`, `waitForDisplayed`, …) and assertions take none: their rows still appear in the trace and show the capture of the last command that took one. The first traced command of each test is captured even when it is a read, so a test that starts by reading has a frame to show (on Nightwatch's `describe`/`it` interface, the first command of each module).
 
-Selenium, Nightwatch and Python capture every other command, including ones that can navigate without being in the allow-list (`executeScript`, `actions`, Nightwatch `submitForm`), and take one more capture at a test's end when reads follow its last capture, so reads after a click that navigates show the page the click led to. On a native app the Python capture is the screenshot alone.
+Selenium, Nightwatch and Python capture every other command, including ones that can navigate without being in the allow-list (`executeScript`, `actions`, Nightwatch `submitForm`), and take one more capture at a test's end when reads follow its last capture, so reads after a click that navigates show the page the click led to.
 
 ### Waits
 
@@ -256,7 +256,7 @@ When the trace is written, the run prints a table to stderr with each read's cou
 
 - The JavaScript adapters issue every read of a capture at once and the driver serves them in order, so a read's time from issue to settle includes waiting behind the reads before it. The `svc` columns subtract that wait and give the read's own cost; `process` is the in-process step that turns the reads into a snapshot, and `capture` the whole capture.
 - With no CDP screencast (Safari, Appium), the [`filmstrip`](#dense-filmstrip--filmstrip) recorder polls a screenshot every 200 ms, sharing the driver with the captures. A last `filmstrip recorder:` line counts the screenshots it took and their time from issue to settle, the ticks it let pass and why (`driver busy`: a command or a capture held the driver; `fresh frame`: a capture's screenshot taken less than one interval earlier is already the frame; `shot in flight`: its previous screenshot had not answered yet), and how many per-action capture screenshots it kept as frames. CDP push mode takes no screenshots and prints no line.
-- The Python adapter reads one thing at a time and times the screenshot and the two page reads, in the same record format. It times only the commands that take a capture; on a native app it reads the screenshot alone, and a filmstrip-only frame is not timed.
+- The Python adapter reads one thing at a time and times the screenshot and the two page reads, in the same record format. It times only the commands that take a capture; on a native app it reads the screenshot and the page source, and a filmstrip-only frame is not timed.
 
 The variable only measures: nothing is captured differently, and with it unset nothing is timed or written. It works the same on every adapter.
 
