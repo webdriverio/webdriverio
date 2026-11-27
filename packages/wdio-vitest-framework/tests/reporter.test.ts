@@ -83,6 +83,10 @@ const makeTest = (module: any, parent: any, name: string, result: Result, durati
 })
 
 const config = { reporters: ['junit'] } as WebdriverIO.Config
+const workerExit = (moduleId: string) => ({
+    name: 'Error', message: '[vitest-pool]: Worker forks emitted error.',
+    cause: { name: 'Error', message: `Worker exited unexpectedly with signal SIGKILL during started state while running test file ${moduleId}` }
+})
 
 describe('WdioBridgeReporter', () => {
     let events: any[]
@@ -172,6 +176,28 @@ describe('WdioBridgeReporter', () => {
         const emitted = emittedOf()
         expect(emitted.find(([name]) => name === 'test:pass')![1]).toMatchObject({ start: 1_000, end: 1_040, duration: 40 })
         expect(emitted.find(([name]) => name === 'test:fail')![1]).toMatchObject({ start: 2_000, end: 2_003 })
+    })
+
+    it('times a lone attempt by its attempt marker, which starts with the test body', async () => {
+        const marker = { start: 1000, end: 1200, state: 'passed' }
+        const module = makeModule()
+        const timed = makeTest(module, makeSuite(module, module, 's'), 'timed', passed, 500, { meta: () => ({ 'wdio:runtime': [{ event: 'wdio:attempt', payload: marker, retry: 0 }] }) })
+        await runTests(module, timed)
+        expect(emittedOf().find(([name]) => name === 'test:pass')![1]).toMatchObject({ start: 1000, end: 1200, duration: 200 })
+    })
+
+    it('reports the afterEach of a test.fails that passed as passed, without an error', async () => {
+        const marker = { start: 1, end: 2, state: 'passed', hooks: { afterEach: { state: 'fail', error: { message: 'after boom' } } } }
+        const module = makeModule()
+        const expected = makeTest(module, makeSuite(module, module, 's'), 'fails', passed, 10, { options: { concurrent: false, fails: true }, meta: () => ({ 'wdio:runtime': [{ event: 'wdio:attempt', payload: marker, retry: 0 }] }) })
+        await runTests(module, expected)
+        await reporter.onTestModuleEnd(module)
+
+        const hookEnd = emittedOf().find(([name, payload]) => name === 'hook:end' && payload.hookKind === 'afterEach')![1]
+        expect(hookEnd).toMatchObject({ state: 'pass' })
+        expect(hookEnd.error).toBeUndefined()
+        expect(names(emittedOf())).not.toContain('test:fail')
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: true })
     })
 
     it('emits test:start when the test becomes ready, before its result exists', async () => {
@@ -270,6 +296,103 @@ describe('WdioBridgeReporter', () => {
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
     })
 
+    it('finishes a module whose worker died when the run ends, with runner:end and job:end', async () => {
+        const module = makeModule({ state: () => 'failed' })
+        const s = makeSuite(module, module, 'killed')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'dies', { state: 'pending' }))
+        await reporter.onTestRunEnd([module], [], 'failed')
+        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:fail', 'test:end', 'suite:end', 'runner:end']))
+        expect(names(emittedOf())).not.toContain('test:pending')
+        expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('reports a test that never became ready as failed with the worker error when the run ends', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        const s = makeSuite(module, module, 'killed')
+        makeTest(module, s, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
+
+        expect(names(emittedOf())).toEqual(['runner:start', 'suite:start', 'test:start', 'test:fail', 'test:end', 'suite:end', 'runner:end'])
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
+        expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: false })
+    })
+
+    it('names the worker exit when the run ends without an error message', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        makeTest(module, module, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [{ ...workerExit(module.moduleId), message: '' }] as any, 'failed')
+
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: 'The worker exited before the test finished' })
+    })
+
+    it('reports a ready test of a crashed worker with the worker error, not the module error', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'module error' }] })
+        const s = makeSuite(module, module, 'killed')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'dies', passed))
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
+
+        expect(emittedOf().find(([name]) => name === 'test:fail')![1].error).toMatchObject({ message: '[vitest-pool]: Worker forks emitted error.' })
+    })
+
+    it('does not fail the tests of a module when the worker exit belongs to another module', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const untouched = makeTest(module, module, 'untouched', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestCaseReady(untouched)
+        await reporter.onTestRunEnd([module], [workerExit('/repo/other.spec.ts')] as any, 'failed')
+
+        expect(names(emittedOf()).filter((name) => name.startsWith('test:'))).toEqual(['test:start', 'test:pending', 'test:end'])
+    })
+
+    it('does not report skipped tests as failed when the worker exits', async () => {
+        const module = makeModule({ state: () => 'failed', errors: () => [] })
+        const s = makeSuite(module, module, 'killed')
+        makeTest(module, s, 'skipped by the test', { state: 'skipped' })
+        makeTest(module, s, 'lost', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [workerExit(module.moduleId)] as any, 'failed')
+
+        expect(emittedOf().filter(([name]) => name === 'test:fail').map(([, payload]) => payload.title)).toEqual(['lost'])
+    })
+
+    it('leaves a test that never became ready unreported when the run is interrupted', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        makeTest(module, module, 'never ran', passed)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestRunEnd([module], [], 'interrupted')
+
+        expect(names(emittedOf()).filter((name) => name.startsWith('test:'))).toEqual([])
+        expect(emittedOf().find(([name]) => name === 'runner:end')![1]).toMatchObject({ failures: 1 })
+    })
+
+    it('keeps a ready test pending when the run is interrupted', async () => {
+        const module = makeModule({ state: () => 'pending' })
+        const s = makeSuite(module, module, 's')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(makeTest(module, s, 'cut short', passed))
+        await reporter.onTestRunEnd([module], [], 'interrupted')
+
+        expect(names(emittedOf())).toEqual(expect.arrayContaining(['test:pending']))
+        expect(names(emittedOf())).not.toContain('test:fail')
+    })
+
+    it('does not finish a module twice when its module end and the run end both come', async () => {
+        const module = makeModule()
+        await runTests(module, makeTest(module, makeSuite(module, module, 's'), 'ok', passed))
+        await reporter.onTestModuleEnd(module)
+        await reporter.onTestRunEnd()
+        expect(names(emittedOf()).filter((name) => name === 'runner:end')).toHaveLength(1)
+        expect(events.filter((event) => event.type === 'job:end')).toHaveLength(1)
+    })
+
     it('emits job:end passed false when a test result is still pending', async () => {
         const module = makeModule({ state: () => 'skipped' })
         const s = makeSuite(module, module, 's')
@@ -284,6 +407,76 @@ describe('WdioBridgeReporter', () => {
         await runTests(module, makeTest(module, s, 'skipped', { state: 'skipped' }))
         await reporter.onTestModuleEnd(module)
         expect(events.at(-1)).toEqual({ type: 'job:end', cid: '0-0', passed: true })
+    })
+
+    it('closes a nested describe that got no ready event before the next test of the outer describe', async () => {
+        const module = makeModule()
+        const outer = makeSuite(module, module, 'outer')
+        const nested = makeSuite(module, outer, 'nested')
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(outer)
+        await runTests(module, makeTest(module, nested, 'inner', passed), makeTest(module, outer, 'after', passed))
+        await reporter.onTestSuiteResult(outer)
+
+        const emitted = emittedOf()
+        const nestedEnd = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === 'nested')
+        const afterStart = emitted.findIndex(([name, payload]) => name === 'test:start' && payload.title === 'after')
+        expect(nestedEnd).toBeGreaterThan(-1)
+        expect(nestedEnd).toBeLessThan(afterStart)
+        expect(emitted[afterStart][1]).toMatchObject({ parent: 'outer', fullTitle: 'outer after' })
+    })
+
+    it('keeps a describe.concurrent suite open while a sibling suite still has a test in flight', async () => {
+        const module = makeModule()
+        const top = makeSuite(module, module, 'Top')
+        const a = makeSuite(module, top, 'A')
+        const b = makeSuite(module, top, 'B')
+        const a1 = makeTest(module, a, 'a1', passed)
+        const a2 = makeTest(module, a, 'a2', passed)
+        const b1 = makeTest(module, b, 'b1', passed)
+        const b2 = makeTest(module, b, 'b2', passed)
+        // The order Vitest sends for describe.concurrent: every suite is ready before any test starts
+        reporter.onTestModuleStart(module)
+        await reporter.onTestSuiteReady(top)
+        await reporter.onTestSuiteReady(a)
+        await reporter.onTestSuiteReady(b)
+        await reporter.onTestCaseReady(a1)
+        await reporter.onTestCaseReady(a2)
+        await reporter.onTestCaseReady(b1)
+        await reporter.onTestCaseReady(b2)
+        await reporter.onTestCaseResult(b1)
+        await reporter.onTestCaseResult(a1)
+        await reporter.onTestCaseResult(b2)
+        await reporter.onTestSuiteResult(b)
+        await reporter.onTestCaseResult(a2)
+        await reporter.onTestSuiteResult(a)
+        await reporter.onTestSuiteResult(top)
+        await reporter.onTestModuleEnd(module)
+
+        const emitted = emittedOf()
+        const topUid = emitted.find(([name, payload]) => name === 'suite:start' && payload.title === 'Top')![1].uid
+        for (const title of ['A', 'B']) {
+            expect(emitted.filter(([name, payload]) => name === 'suite:start' && payload.title === title)).toHaveLength(1)
+            const end = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === title)
+            const lastTestEnd = emitted.findLastIndex(([name, payload]) => name === 'test:end' && payload.parent === title)
+            expect(end).toBeGreaterThan(lastTestEnd)
+        }
+        expect(emitted.filter(([name, payload]) => name === 'suite:start' && payload.title !== 'Top').map(([, payload]) => payload.parentUid)).toEqual([topUid, topUid])
+    })
+
+    it('joins the describe chain of a failing hook with dots, as the Mocha fullTitle does', async () => {
+        const module = makeModule()
+        const outer = makeSuite(module, module, 'outer')
+        const inner = makeSuite(module, outer, 'inner')
+        inner.errors = () => [{ message: 'inner boom' }]
+        reporter.onTestModuleStart(module)
+        reporter.onHookStart({ name: 'afterAll', entity: inner })
+        await reporter.onTestSuiteReady(outer)
+        await describeBlock(inner, [])
+        await reporter.onTestSuiteResult(outer)
+
+        const [[, start]] = emittedOf().filter(([name]) => name === 'hook:start')
+        expect(start).toMatchObject({ title: '"after all" hook for inner', fullTitle: 'outer.inner."after all" hook for inner' })
     })
 
     it('nests describes through parentUid', async () => {
@@ -555,6 +748,26 @@ describe('WdioBridgeReporter', () => {
         expect(emitted.filter(([name]) => name === 'test:start').map(([, payload]) => payload.parentUid)).toEqual(uids)
     })
 
+    it('keeps the wrapper suite open while a top-level test is in flight when a describe starts', async () => {
+        const module = makeModule()
+        const s = makeSuite(module, module, 'block')
+        const loose = makeTest(module, module, 'loose', passed, 1)
+        const inner = makeTest(module, s, 'inner', passed, 1)
+        reporter.onTestModuleStart(module)
+        await reporter.onTestCaseReady(loose)
+        await reporter.onTestSuiteReady(s)
+        await reporter.onTestCaseReady(inner)
+        await reporter.onTestCaseResult(inner)
+        await reporter.onTestSuiteResult(s)
+        await reporter.onTestCaseResult(loose)
+        await reporter.onTestModuleEnd(module)
+
+        const emitted = emittedOf()
+        const looseEnd = emitted.findIndex(([name, payload]) => name === 'test:end' && payload.title === 'loose')
+        const wrapperEnd = emitted.findIndex(([name, payload]) => name === 'suite:end' && payload.title === 'a.spec.ts')
+        expect(wrapperEnd).toBeGreaterThan(looseEnd)
+    })
+
     it('fails tests and closes suites that never got a result when the module failed', async () => {
         const module = makeModule({ state: () => 'failed', errors: () => [{ name: 'Error', message: 'beforeAll exploded' }] })
         const outer = makeSuite(module, module, 'outer')
@@ -593,7 +806,7 @@ describe('WdioBridgeReporter', () => {
             const emitted = emittedOf()
             expect(names(emitted)).toEqual(['runner:start', 'suite:start', 'test:start', 'test:pass', 'test:end', 'hook:start', 'hook:end', 'suite:end', 'runner:end'])
             const [[, start], [, end]] = hookEvents(emitted)
-            expect(start).toMatchObject({ title: '"after all" hook in "cleanup"', parent: 'cleanup', parentUid: 'suite-0-0-0', file: '/repo/a.spec.ts' })
+            expect(start).toMatchObject({ title: '"after all" hook for cleanup', fullTitle: 'cleanup."after all" hook for cleanup', parent: 'cleanup', parentUid: 'suite-0-0-0', file: '/repo/a.spec.ts' })
             expect(end).toMatchObject({ uid: start.uid, title: start.title, state: 'fail', error: { name: 'Error', message: 'after boom', stack: 'at hook' } })
             expect([start.hookKind, start.hookSuiteUid, end.hookKind, end.hookSuiteUid]).toEqual(['afterAll', 'suite-0-0-0', 'afterAll', 'suite-0-0-0'])
         })
@@ -608,7 +821,7 @@ describe('WdioBridgeReporter', () => {
             await reporter.onTestModuleEnd(module)
 
             const [[, start], [, end]] = hookEvents(emittedOf())
-            expect(start.title).toBe('"before all" hook in "setup"')
+            expect(start.title).toBe('"before all" hook for setup')
             expect(end).toMatchObject({ uid: start.uid, state: 'fail', error: { name: 'Error', message: 'before boom' } })
             expect(start).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: start.parentUid })
             expect(end).toMatchObject({ hookKind: 'beforeAll', hookSuiteUid: start.parentUid })
@@ -626,7 +839,7 @@ describe('WdioBridgeReporter', () => {
             await reporter.onTestModuleEnd(module)
 
             const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
-            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook in "setup"', 'before boom']])
+            expect(ends.map(({ title, error }) => [title, error.message])).toEqual([['"before all" hook for setup', 'before boom']])
         })
 
         it('reports both hooks with their own errors when beforeAll and afterAll fail', async () => {
@@ -641,7 +854,7 @@ describe('WdioBridgeReporter', () => {
 
             const ends = hookEvents(emittedOf()).filter(([name]) => name === 'hook:end').map(([, payload]) => payload)
             expect(ends.map(({ title, error }) => [title, error.message])).toEqual([
-                ['"before all" hook in "both"', 'before boom'], ['"after all" hook in "both"', 'after boom']
+                ['"before all" hook for both', 'before boom'], ['"after all" hook for both', 'after boom']
             ])
             expect(new Set(ends.map(({ uid }) => uid)).size).toBe(2)
         })
@@ -1026,14 +1239,14 @@ describe('WdioBridgeReporter', () => {
                     const [start, end] = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([, payload]) => payload)
                     expect(start).toEqual({
                         type: 'hook:start', cid: '0-0', specs: ['/repo/a.spec.ts'], file: '/repo/a.spec.ts', uid: 'test-0-0-0-beforeEach',
-                        title: '"before each" hook for "t"', fullTitle: 'a.spec.ts "before each" hook for "t"', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true,
+                        title: '"before each" hook for a.spec.ts', fullTitle: '"before each" hook for a.spec.ts', parent: 'a.spec.ts', parentUid: expect.any(String), currentTest: 't', retried: true,
                         hookKind: 'beforeEach'
                     })
                     expect(end).toEqual({ ...start, type: 'hook:end', duration: 0, state: 'pass' })
                     const after = emittedOf().filter(([name]) => name.startsWith('hook:')).map(([name, payload]) => [name, payload.title, payload.hookKind, 'hookSuiteUid' in payload])
                     expect(after).toEqual([
-                        ['hook:start', '"before each" hook for "t"', 'beforeEach', false], ['hook:end', '"before each" hook for "t"', 'beforeEach', false],
-                        ['hook:start', '"after each" hook for "t"', 'afterEach', false], ['hook:end', '"after each" hook for "t"', 'afterEach', false]
+                        ['hook:start', '"before each" hook for a.spec.ts', 'beforeEach', false], ['hook:end', '"before each" hook for a.spec.ts', 'beforeEach', false],
+                        ['hook:start', '"after each" hook for a.spec.ts', 'afterEach', false], ['hook:end', '"after each" hook for a.spec.ts', 'afterEach', false]
                     ])
                 })
 

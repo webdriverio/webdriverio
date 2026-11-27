@@ -22,9 +22,9 @@ const configFile = '/repo/wdio.conf.ts'
 const injected = vi.hoisted(() => ({ caps: { browserName: 'chrome', hostname: 'grid' } as Record<string, unknown> }))
 const attachmentDir = vi.hoisted(() => ({ value: null as string | null }))
 const mockConfig = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
-const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn() }))
+const logs = vi.hoisted(() => ({ warn: vi.fn(), debug: vi.fn(), error: vi.fn() }))
 
-vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: vi.fn() }) }))
+vi.mock('@wdio/logger', () => ({ default: () => ({ warn: logs.warn, debug: logs.debug, info: vi.fn(), error: logs.error }) }))
 
 vi.mock('vitest', () => ({
     aroundEach: vi.fn((fn) => { hooks.aroundEach = fn }),
@@ -547,7 +547,7 @@ describe('setup', () => {
             await callbacks.beforeAll({}, { file: fileTask })
             await hooks.aroundEach(vi.fn(async () => { calls.push('test') }), task(false))
             await callbacks.afterAll({}, file())
-            expect(calls).toEqual(['beforeSession', 'remote', 'before', 'beforeTest', 'test', 'afterTest', 'after', 'deleteSession', 'afterSession'])
+            expect(calls).toEqual(['beforeSession', 'remote', 'before', 'beforeSuite', 'beforeTest', 'test', 'afterTest', 'afterSuite', 'after', 'deleteSession', 'afterSession'])
             const [, , beforeSessionArgs] = utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'beforeSession')!
             expect(beforeSessionArgs).toEqual([mockConfig.value, expect.objectContaining({ browserName: 'chrome' }), ['/repo/a.spec.ts'], `2-${process.env.VITEST_POOL_ID ?? 0}`])
             const [, , afterSessionArgs] = utils.executeHooksWithArgs.mock.calls.find(([name]) => name === 'afterSession')!
@@ -607,6 +607,97 @@ describe('setup', () => {
             expect(options).toHaveProperty('beforeCommand')
             expect(options).not.toHaveProperty('before')
             expect(options).not.toHaveProperty('afterTest')
+        })
+    })
+
+    describe('suite and assertion hooks', () => {
+        const suite = { type: 'suite', title: '/repo/a.spec.ts', fullTitle: '/repo/a.spec.ts', parent: '', pending: false, file: '/repo/a.spec.ts' }
+
+        it('runs beforeSuite last in beforeAll, with the spec file as the suite', async () => {
+            mockConfig.value = { ...mockConfig.value, beforeSuite: [vi.fn()] }
+            await callbacks.beforeAll({}, { file: fileTask })
+            expect(utils.executeHooksWithArgs).toHaveBeenLastCalledWith('beforeSuite', mockConfig.value.beforeSuite, [suite])
+        })
+
+        it('skips afterSuite when beforeSuite did not run', async () => {
+            mockConfig.value = { ...mockConfig.value, afterSuite: [vi.fn()], after: [vi.fn()] }
+            vi.resetModules()
+            await import('../src/setup.js')
+            utils.executeHooksWithArgs.mockRejectedValueOnce(new Error('beforeSession failed'))
+            await expect(callbacks.beforeAll({}, { file: fileTask })).rejects.toThrow('beforeSession failed')
+            utils.executeHooksWithArgs.mockClear()
+            await callbacks.afterAll({}, file())
+            expect(utils.executeHooksWithArgs.mock.calls.map(([name]) => name)).not.toContain('afterSuite')
+        })
+
+        it('runs afterSuite before the after hook', async () => {
+            mockConfig.value = { ...mockConfig.value, afterSuite: [vi.fn()], after: [vi.fn()] }
+            await callbacks.beforeAll({}, { file: fileTask })
+            utils.executeHooksWithArgs.mockClear()
+            await callbacks.afterAll({}, file())
+            expect(utils.executeHooksWithArgs.mock.calls.map(([name]) => name)).toEqual(['afterSuite', 'after', 'afterSession'])
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('afterSuite', mockConfig.value.afterSuite, [suite])
+        })
+
+        it('passes beforeAssertion and afterAssertion to expect-webdriverio and runs their hooks', async () => {
+            const beforeAssertion = [vi.fn()]
+            const afterAssertion = [vi.fn()]
+            mockConfig.value = { ...mockConfig.value, beforeAssertion, afterAssertion }
+            await callbacks.beforeAll({}, { file: fileTask })
+            const { setDefaultOptions } = await import('expect-webdriverio')
+            const options = vi.mocked(setDefaultOptions).mock.calls.at(-1)![0] as unknown as Record<'beforeAssertion' | 'afterAssertion', (params: unknown) => Promise<void>>
+            const params = { matcherName: 'toBeDisplayed' }
+            await options.beforeAssertion(params)
+            await options.afterAssertion(params)
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('beforeAssertion', beforeAssertion, [params])
+            expect(utils.executeHooksWithArgs).toHaveBeenCalledWith('afterAssertion', afterAssertion, [params])
+        })
+    })
+
+    describe('concurrent attempts', () => {
+        const attemptMarker = (context: ReturnType<typeof task>) => (context.task.meta['wdio:runtime'] as { event: string, payload: { start: number, end: number, state: string, error?: { message: string } } }[]).find(({ event }) => event === 'wdio:attempt')!.payload
+
+        it('starts the attempt clock once the window is open', async () => {
+            let now = 1_000
+            const clock = vi.spyOn(Date, 'now').mockImplementation(() => now)
+            try {
+                utils.allocateContext.mockImplementationOnce(async () => { now += 420; return { context: 'ctx-1' } })
+                const context = task(true)
+                await hooks.aroundEach(vi.fn(async () => { now += 50 }), context)
+                expect(attemptMarker(context)).toMatchObject({ start: 1_420, end: 1_470, state: 'passed' })
+            } finally {
+                clock.mockRestore()
+            }
+        })
+
+        it('runs afterTest and records the attempt when the window cannot be allocated', async () => {
+            utils.allocateContext.mockRejectedValueOnce(new Error('no window'))
+            const runTest = vi.fn()
+            const context = task(true)
+            await expect(hooks.aroundEach(runTest, context)).rejects.toThrow('no window')
+            expect(runTest).not.toHaveBeenCalled()
+            expect(store.run).not.toHaveBeenCalled()
+            expect(afterTestResult()).toMatchObject({ passed: false, status: 'failed', exception: 'no window' })
+            expect(attemptMarker(context)).toMatchObject({ state: 'failed', error: { message: 'no window' } })
+        })
+
+        it('rethrows the window error and logs the afterTest error when afterTest also throws', async () => {
+            utils.allocateContext.mockRejectedValueOnce(new Error('no window'))
+            utils.executeHooksWithArgs.mockImplementationOnce(async () => { throw new Error('afterTest exploded') })
+            await expect(hooks.aroundEach(vi.fn(), task(true))).rejects.toThrow('no window')
+            expect(logs.error).toHaveBeenCalledWith('afterTest failed after the concurrent test could not start:', expect.objectContaining({ message: 'afterTest exploded' }))
+        })
+
+        it('runs afterTest without a window when the browser cannot run concurrent tests', async () => {
+            browser.__bidiCommandsEnabled = false
+            utils.executeHooksWithArgs.mockClear()
+            const runTest = vi.fn()
+            const context = task(true)
+            await expect(hooks.aroundEach(runTest, context)).rejects.toThrow("'wdio:experimentalBiDiCommands': true capability")
+            const hookNames = utils.executeHooksWithArgs.mock.calls.map(([name]) => name)
+            expect(hookNames).toEqual(['afterTest'])
+            expect(runTest).not.toHaveBeenCalled()
+            expect(attemptMarker(context)).toMatchObject({ state: 'failed' })
         })
     })
 

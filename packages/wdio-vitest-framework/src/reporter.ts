@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs'
 import logger from '@wdio/logger'
 import { BaseReporter } from '@wdio/runner'
 import type { Frameworks, Options } from '@wdio/types'
-import type { Reporter, ReportedHookContext, TestCase, TestModule, TestSuite } from 'vitest/node'
+import type { Reporter, ReportedHookContext, TestCase, TestModule, TestRunEndReason, TestSuite } from 'vitest/node'
 
 import { ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptHookKind, type AttemptMarker, type RelayedEntry, type SessionMeta } from './types.js'
 
@@ -12,13 +12,14 @@ const log = logger('@wdio/vitest-framework')
 // Vitest's console reporter always prints, so a WDIO console reporter would duplicate the output
 const CONSOLE_REPORTERS = new Set(['spec', 'dot', 'concise', '@wdio/spec-reporter', '@wdio/dot-reporter', '@wdio/concise-reporter'])
 
-type TestError = { name?: string, message: string, stack?: string, expected?: unknown, actual?: unknown }
+type TestError = { name?: string, message: string, stack?: string, cause?: unknown, expected?: unknown, actual?: unknown }
 type Titled = { uid: string, title: string, fullTitle: string }
 type AllHookName = Extract<Frameworks.HookKind, 'beforeAll' | 'afterAll'>
-type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown> }
+type Open = Titled & { kind: 'suite' | 'test', payload: Record<string, unknown>, enclosing: Set<string>, implicit?: boolean }
 
 type ModuleRun = {
     cid: string
+    module: TestModule
     caps: WebdriverIO.Capabilities
     specs: string[]
     // Undefined when only console reporters were configured: BaseReporter would add the dot reporter by default
@@ -34,6 +35,7 @@ type ModuleRun = {
     hookCount: number
     testCount: number
     entities: Map<string, Open>
+    reported: Set<string>
     // beforeAll / afterAll hooks that started but never ended: Vitest only calls onHookEnd for hooks that did not throw
     runningHooks: Map<string, Set<AllHookName>>
     wrapper?: Titled
@@ -53,6 +55,7 @@ const withHookErrors = (error: ReturnType<typeof toErrorPayload>, marker?: Attem
     }
     return errors.length > 1 ? { error, errors } : { error }
 }
+type HookOptions = { suitePath: string[], retried?: boolean, testFailed?: boolean, expectedFailure?: boolean }
 const ALL_HOOK_NAMES: AllHookName[] = ['beforeAll', 'afterAll']
 const HOOK_KIND: Record<AllHookName, string> = { beforeAll: 'before all', afterAll: 'after all' }
 const HOOK_TITLES: Record<AttemptHookKind, string> = { beforeEach: 'before each', afterEach: 'after each' }
@@ -94,13 +97,13 @@ export class WdioBridgeReporter implements Reporter {
 
     onTestSuiteReady(testSuite: TestSuite) {
         const run = this.#tryRun(testSuite.module)
-        return run && this.#enqueue(run, () => this.#openSuite(run, testSuite))
+        return run && this.#enqueue(run, () => this.#openSuite(run, testSuite, false))
     }
 
     onTestSuiteResult(testSuite: TestSuite) {
         const run = this.#tryRun(testSuite.module)
         return run && this.#enqueue(run, () => {
-            const suite = this.#openSuite(run, testSuite)
+            const suite = this.#openSuite(run, testSuite, false)
             this.#emitFailedHook(run, testSuite, suite, testSuite.name)
             run.entities.delete(testSuite.id)
             this.#emit(run, 'suite:end', this.#suitePayload(run, testSuite, suite))
@@ -138,32 +141,34 @@ export class WdioBridgeReporter implements Reporter {
         return run && this.#enqueue(run, () => this.#inContext(testCase, () => {
             const base = this.#openTest(run, testCase)
             run.entities.delete(testCase.id)
+            run.reported.add(testCase.id)
             const result = testCase.result()
             const diagnostic = testCase.diagnostic()
             const attempts = this.#attempts(testCase)
             const finalAttempt = attempts.length - 1
+            const suitePath = this.#suitePath(testCase.parent)
             attempts.slice(0, finalAttempt).forEach(({ calls, marker }, attempt) => {
                 const retryBase = this.#attemptBase(base, attempt)
                 if (attempt > 0) {
                     this.#emit(run, 'test:start', { ...retryBase, retries: attempt })
                 }
-                this.#emitHook(run, retryBase, 'beforeEach', marker, true, true)
+                this.#emitHook(run, retryBase, 'beforeEach', marker, { suitePath, retried: true, testFailed: true })
                 this.#replay(run, calls)
                 const times = marker ? { start: marker.start, end: marker.end } : {}
                 this.#emit(run, 'test:retry', {
                     ...retryBase, ...times, duration: marker ? marker.end - marker.start : 0, pending: false,
                     ...withHookErrors(toErrorPayload(marker?.error ?? { message: 'test failed' }), marker)
                 })
-                this.#emitHook(run, retryBase, 'afterEach', marker, true, true)
+                this.#emitHook(run, retryBase, 'afterEach', marker, { suitePath, retried: true, testFailed: true })
             })
             const last = this.#attemptBase(base, finalAttempt)
             if (finalAttempt > 0) {
                 this.#emit(run, 'test:start', { ...last, retries: finalAttempt })
             }
-            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker, false, result.state === 'failed')
+            this.#emitHook(run, last, 'beforeEach', attempts[finalAttempt].marker, { suitePath, testFailed: result.state === 'failed' })
             this.#replay(run, attempts[finalAttempt].calls)
-            // diagnostic() spans every attempt, so a retried test is timed by its final attempt's marker; a lone attempt keeps diagnostic()
-            const finalMarker = finalAttempt > 0 ? attempts[finalAttempt].marker : undefined
+            // diagnostic() spans every attempt, so the final attempt's marker times the test whenever the worker wrote one
+            const finalMarker = attempts[finalAttempt].marker
             const duration = finalMarker ? finalMarker.end - finalMarker.start : diagnostic?.duration ?? 0
             // Events reach the launcher batched, so the receipt time is not the time the test ran; startTime is the worker's Date.now()
             const times = finalMarker ? { start: finalMarker.start, end: finalMarker.end }
@@ -182,7 +187,7 @@ export class WdioBridgeReporter implements Reporter {
                 this.#emit(run, 'test:pending', { ...last, ...times, duration, pending: true })
                 this.#emit(run, 'test:end', { ...last, duration, passed: false, pending: true })
             }
-            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker, false, result.state === 'failed')
+            this.#emitHook(run, last, 'afterEach', attempts[finalAttempt].marker, { suitePath, testFailed: result.state === 'failed', expectedFailure: testCase.options.fails && result.state === 'passed' })
             if (typeof last.contextId === 'string') {
                 this.#emit(run, 'context:end', { type: 'context:end', cid: run.cid, uid: last.uid, contextId: last.contextId })
             }
@@ -199,8 +204,11 @@ export class WdioBridgeReporter implements Reporter {
         return done.finally(() => this.#pending.delete(done))
     }
 
-    async onTestRunEnd() {
+    async onTestRunEnd(_testModules: ReadonlyArray<TestModule>, unhandledErrors: ReadonlyArray<TestError>, _reason: TestRunEndReason) {
         await Promise.all(this.#pending)
+        await Promise.all([...this.#runs.values()].map((run) => this.#enqueue(run, () => this.#failUnfinished(run, unhandledErrors))
+            .then(() => this.#finish(run, run.module))
+            .catch((err) => this.#fail(run, err))))
     }
 
     #tryRun(testModule: TestModule) {
@@ -223,7 +231,7 @@ export class WdioBridgeReporter implements Reporter {
         const reporter = this.#config.reporters!.length > 0 ? new BaseReporter(this.#config, cid, caps) : undefined
         reporter?.onMessage((message) => this.#notify(run, { type: 'message', message }))
         const run: ModuleRun = {
-            cid, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), runningHooks: new Map(),
+            cid, module: testModule, caps, specs, reporter, started: false, failed: false, incomplete: false, failedTests: 0, suiteCount: 0, hookCount: 0, testCount: 0, entities: new Map(), reported: new Set(), runningHooks: new Map(),
             queue: Promise.resolve()
         }
         this.#runs.set(testModule.id, run)
@@ -289,28 +297,33 @@ export class WdioBridgeReporter implements Reporter {
         return attempt === 0 ? base : { ...base, uid: `${base.uid}-retry-${attempt}` }
     }
 
+    #suitePath(node: TestSuite | TestModule): string[] {
+        return node.type === 'suite' ? [...this.#suitePath(node.parent), node.name] : []
+    }
+
     // The worker reports one outcome per hook kind and attempt, not one per registered hook
-    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker?: AttemptMarker, retried = false, testFailed = false) {
+    #emitHook(run: ModuleRun, test: Titled & { parent: string, parentUid: string, contextId?: string }, kind: AttemptHookKind, marker: AttemptMarker | undefined, { suitePath, retried = false, testFailed = false, expectedFailure = false }: HookOptions) {
         const outcome = marker?.hooks?.[kind]
         if (!outcome) {
             return
         }
-        const title = `"${HOOK_TITLES[kind]}" hook for "${test.title}"`
-        const testParent = test.fullTitle === test.title ? '' : test.fullTitle.slice(0, -(test.title.length + 1))
+        // A test.fails that passed is an expected failure, so a hook that threw in it did not fail the test
+        const failed = outcome.state === 'fail' && !expectedFailure
+        const title = `"${HOOK_TITLES[kind]}" hook for ${test.parent}`
         const base = {
-            uid: `${test.uid}-${kind}`, title, fullTitle: join(testParent, title), parent: test.parent, parentUid: test.parentUid,
+            uid: `${test.uid}-${kind}`, title, fullTitle: [...suitePath, title].join('.'), parent: test.parent, parentUid: test.parentUid,
             // HookStats links a hook to its test by title, e.g. for the JSON reporter's associatedTest
             currentTest: test.title,
             ...(test.contextId !== undefined && { contextId: test.contextId }),
             hookKind: kind,
             ...(retried && { retried }),
             // the test (attempt) failed with this error: reporters show the hook, but do not count it again
-            ...(outcome.state === 'fail' && testFailed && { failedTestUid: test.uid })
+            ...(failed && testFailed && { failedTestUid: test.uid })
         }
-        const error = outcome.state === 'fail' ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
+        const error = failed ? outcome.error ?? marker!.error ?? { message: 'hook failed' } : undefined
         this.#emit(run, 'hook:start', { ...base, type: 'hook:start', cid: run.cid })
         this.#emit(run, 'hook:end', {
-            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: outcome.state,
+            ...base, type: 'hook:end', cid: run.cid, duration: 0, state: failed ? 'fail' : 'pass',
             ...(error && { error: toErrorPayload(error) })
         })
     }
@@ -364,7 +377,7 @@ export class WdioBridgeReporter implements Reporter {
 
     #parent(run: ModuleRun, parent: TestSuite | TestModule): Titled {
         if (parent.type === 'suite') {
-            return this.#openSuite(run, parent)
+            return this.#openSuite(run, parent, true)
         }
         if (!run.wrapper) {
             const title = parent.relativeModuleId
@@ -386,19 +399,42 @@ export class WdioBridgeReporter implements Reporter {
         return { ...suite, parent: '', parentUid: testSuite.parent.type === 'suite' ? this.#parent(run, testSuite.parent).uid : null }
     }
 
-    #openSuite(run: ModuleRun, testSuite: TestSuite): Titled {
+    #suiteAncestors(node: TestSuite | TestModule) {
+        const ids = new Set<string>()
+        for (let current: TestSuite | TestModule = node; current.type === 'suite'; current = current.parent) {
+            ids.add(current.id)
+        }
+        return ids
+    }
+
+    // Vitest sends no ready or result event for a describe under a failed beforeAll, so the suites of the previous test stay open.
+    // A describe.concurrent sibling can still have a test in flight under a suite that is no ancestor of the new entity.
+    // Only suites that were never announced are closed here; an announced suite closes on its result.
+    #closeSuitesOutside(run: ModuleRun, keep: Set<string>) {
+        const busy = new Set([...run.entities.values()].flatMap(({ kind, enclosing }) => kind === 'test' ? [...enclosing] : []))
+        const stale = [...run.entities].filter(([id, { kind, implicit }]) => kind === 'suite' && implicit && !keep.has(id) && !busy.has(id)).reverse()
+        for (const [id, { payload }] of stale) {
+            this.#emit(run, 'suite:end', payload)
+            run.entities.delete(id)
+        }
+    }
+
+    #openSuite(run: ModuleRun, testSuite: TestSuite, implicit: boolean): Titled {
         this.#ensureStarted(run, testSuite.module)
         const known = run.entities.get(testSuite.id)
         if (known) {
             return known
         }
-        if (testSuite.parent.type !== 'suite') {
+        const enclosing = this.#suiteAncestors(testSuite.parent)
+        this.#closeSuitesOutside(run, enclosing)
+        // A top-level test still in flight belongs to the wrapper
+        if (testSuite.parent.type !== 'suite' && ![...run.entities.values()].some(({ kind, enclosing }) => kind === 'test' && enclosing.size === 0)) {
             this.#closeWrapper(run)
         }
         const parent = testSuite.parent.type === 'suite' ? this.#parent(run, testSuite.parent) : undefined
         const titled = { uid: `suite-${run.cid}-${run.suiteCount++}`, title: testSuite.name, fullTitle: join(parent?.fullTitle ?? '', testSuite.name) }
         const payload = this.#suitePayload(run, testSuite, titled)
-        const suite: Open = { ...titled, kind: 'suite', payload }
+        const suite: Open = { ...titled, kind: 'suite', payload, enclosing, implicit }
         run.entities.set(testSuite.id, suite)
         this.#emit(run, 'suite:start', payload)
         return suite
@@ -407,11 +443,15 @@ export class WdioBridgeReporter implements Reporter {
     #openTest(run: ModuleRun, testCase: TestCase) {
         this.#ensureStarted(run, testCase.module)
         const known = run.entities.get(testCase.id)
+        const enclosing = this.#suiteAncestors(testCase.parent)
+        if (!known) {
+            this.#closeSuitesOutside(run, enclosing)
+        }
         const parent = this.#parent(run, testCase.parent)
         const test = known ?? { uid: `test-${run.cid}-${run.testCount++}`, title: testCase.name, fullTitle: join(parent.fullTitle, testCase.name) }
         const base = { uid: test.uid, title: test.title, fullTitle: test.fullTitle, parent: parent.title, parentUid: parent.uid, ...(this.#hasLanes(testCase.module) && { contextId: testCase.id }) }
         if (!known) {
-            run.entities.set(testCase.id, { ...test, kind: 'test', payload: base })
+            run.entities.set(testCase.id, { ...test, kind: 'test', payload: base, enclosing })
             this.#emit(run, 'test:start', base)
         }
         return base
@@ -427,9 +467,9 @@ export class WdioBridgeReporter implements Reporter {
         const errors = hookNames.length > 0 ? entity.errors() : []
         hookNames.forEach((hookName, index) => {
             const kind = HOOK_KIND[hookName]
-            const hookTitle = `"${kind}" hook in "${title}"`
+            const hookTitle = entity.type === 'suite' ? `"${kind}" hook for ${title}` : `"${kind}" hook in "${title}"`
             const hook = {
-                title: hookTitle, fullTitle: hookTitle, parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}`,
+                title: hookTitle, fullTitle: [...this.#suitePath(entity), hookTitle].join('.'), parent: parent.title, parentUid: parent.uid, uid: `hook-${run.cid}-${run.hookCount++}`,
                 hookKind: hookName, hookSuiteUid: parent.uid
             }
             const own = hookNames.length > 1 && errors.length > 1 ? errors[index === 0 ? 0 : errors.length - 1] : errors[0]
@@ -477,6 +517,35 @@ export class WdioBridgeReporter implements Reporter {
             }
         }
         run.entities.clear()
+    }
+
+    // A worker exit names the crashed spec file in the cause; without a match the run end keeps #closeUnfinished's output
+    #workerExit(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>) {
+        return unhandledErrors.find((error) => [error.message, (error.cause as TestError | undefined)?.message]
+            .some((text) => text?.includes('Worker exited unexpectedly') && text.includes(run.module.moduleId)))
+    }
+
+    #failUnfinished(run: ModuleRun, unhandledErrors: ReadonlyArray<TestError>) {
+        const exit = this.#workerExit(run, unhandledErrors)
+        if (!exit) {
+            return
+        }
+        const message = exit.message || 'The worker exited before the test finished'
+        for (const testCase of run.module.children.allTests()) {
+            if (run.reported.has(testCase.id) || testCase.result().state === 'skipped') {
+                continue
+            }
+            this.#inContext(testCase, () => {
+                const base = this.#openTest(run, testCase)
+                this.#discardFiles(this.#relayedEntries(testCase))
+                run.entities.delete(testCase.id)
+                run.failedTests++
+                const error = toErrorPayload({ message })
+                this.#emit(run, 'test:fail', { ...base, duration: 0, error })
+                this.#emit(run, 'test:end', { ...base, duration: 0, passed: false, error })
+                run.reported.add(testCase.id)
+            })
+        }
     }
 
     async #finish(run: ModuleRun, testModule: TestModule) {

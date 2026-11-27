@@ -8,7 +8,7 @@ import { remote, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { inspect } from 'node:util'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 import type * as AllureWorker from '@wdio/allure-reporter/worker'
 
 import { ATTACHMENT_DIR_KEY, ATTEMPT_EVENT, ATTEMPT_HOOK_KINDS, RELAYED_REPORTER_EVENTS, RUNTIME_META_KEY, SESSION_META_KEY, type AttemptError, type AttemptMarker, type RelayedEntry, type RelayedReporterEvent, type SessionMeta } from './types.js'
@@ -37,6 +37,7 @@ let softAssertions: SoftAssertionService | undefined
 let specFile = ''
 let sessionHookArgs: [WebdriverIO.Config, WebdriverIO.Capabilities, string[]] | undefined
 let sessionClosing: Promise<void> | undefined
+let beforeSuiteRan = false
 
 type TestTask = Pick<RunnerTestCase, 'meta' | 'result'>
 
@@ -265,10 +266,22 @@ beforeAll(async ({}, suite) => {
     signalHandlers.forEach(([signal, handler]) => process.on(signal, handler))
     Object.assign(suite.file.meta, { [SESSION_META_KEY]: { sessionId: browser.sessionId, capabilities: browser.capabilities } satisfies SessionMeta })
     setGlobals(browser, config.injectGlobals)
-    setDefaultOptions({ wait: config.waitforTimeout, interval: config.waitforInterval })
+    setDefaultOptions({
+        wait: config.waitforTimeout,
+        interval: config.waitforInterval,
+        beforeAssertion: async (params) => { await executeHooksWithArgs('beforeAssertion', config.beforeAssertion, [params]) },
+        afterAssertion: async (params) => { await executeHooksWithArgs('afterAssertion', config.afterAssertion, [params]) }
+    })
 
     await executeHooksWithArgs('before', config.before, [capabilities, [specFile], browser])
+    await executeHooksWithArgs('beforeSuite', config.beforeSuite, [specSuite()])
+    beforeSuiteRan = true
 })
+
+// the spec file is the suite of a Vitest run, titled with its path like the tests outside a describe
+function specSuite(): Frameworks.Suite {
+    return { type: 'suite', title: specFile, fullTitle: specFile, parent: '', pending: false, file: specFile }
+}
 
 // Same meaning as the count a regular WDIO worker passes to `after`: failed tests, with a failed
 // suite or hook counting as one. Vitest has settled every test of the file by the time afterAll runs,
@@ -281,6 +294,9 @@ function countFailures(suite: RunnerTestSuite): number {
 // eslint-disable-next-line no-empty-pattern
 afterAll(async ({}, suite) => {
     try {
+        if (beforeSuiteRan) {
+            await executeHooksWithArgs('afterSuite', config?.afterSuite, [specSuite()])
+        }
         await executeHooksWithArgs('after', config?.after, [countFailures(suite), capabilities, [specFile]])
     } finally {
         await closeSession()
@@ -303,20 +319,36 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
-/**
- * Vitest parses the source of a hook's second parameter for fixture names and rejects
- * anything but object destructuring without rest, so the context is read from `args`
- */
 aroundEach(async (...args) => {
     const [runTest, context] = args
     const { task } = context
     const test = { title: task.name, fullTitle: task.fullName, parent: task.suite?.name ?? '', file: specFile }
-    const startedAt = Date.now()
 
     const errorsBefore = task.result?.errors?.length ?? 0
+    let startedAt = 0
     let error: unknown
     let serviceError: unknown
     let testRan = false
+    const runAfterTest = async () => {
+        const report = {
+            error,
+            result: undefined,
+            passed: error === undefined,
+            duration: Date.now() - startedAt,
+            retries: { limit: typeof task.retry === 'number' ? task.retry : 0, attempts: task.result?.retryCount ?? 0 },
+            skipped: task.mode === 'skip' || task.result?.state === 'skip',
+            exception: error instanceof Error ? error.message : '',
+            status: error === undefined ? 'passed' : 'failed'
+        }
+        await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
+        // afterTest services such as the soft assertion service report a failure by mutating the report
+        if (error === undefined) {
+            serviceError = report.error
+        } else if (softAssertions) {
+            // the service skips asserting a test that already failed and leaves its failures for the retry to throw
+            SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+        }
+    }
     const runAttempt = async () => {
         try {
             await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
@@ -333,44 +365,41 @@ aroundEach(async (...args) => {
             error = err
             throw err
         } finally {
-            const report = {
-                error,
-                result: undefined,
-                passed: error === undefined,
-                duration: Date.now() - startedAt,
-                retries: { limit: typeof task.retry === 'number' ? task.retry : 0, attempts: task.result?.retryCount ?? 0 },
-                skipped: task.mode === 'skip' || task.result?.state === 'skip',
-                exception: error instanceof Error ? error.message : '',
-                status: error === undefined ? 'passed' : 'failed'
-            }
-            await executeHooksWithArgs('afterTest', config.afterTest, [test, context, report])
-            // afterTest services such as the soft assertion service report a failure by mutating the report
-            if (error === undefined) {
-                serviceError = report.error
-            } else if (softAssertions) {
-                // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
-            }
+            await runAfterTest()
         }
         if (serviceError !== undefined) {
             throw serviceError
         }
     }
-    const runWithHooks = async () => {
+    const runWithHooks = async (attempt: () => Promise<void>) => {
+        startedAt = Date.now()
         try {
-            await runAttempt()
+            await attempt()
         } finally {
             // before runTest the hook states are still the previous attempt's
             recordAttempt(task, startedAt, error ?? serviceError, testRan ? readAttemptHooks(task, errorsBefore, error ?? serviceError) : undefined)
         }
     }
 
-    const runInTask = () => activeTask.run(task, runWithHooks)
+    const runInTask = () => activeTask.run(task, () => runWithHooks(runAttempt))
     if (!task.concurrent) {
         return runInTask()
     }
-    assertCanRunConcurrently(browser)
-    const allocation = await allocateContext(browser, config.vitestOpts!.parallelMode!)
+    let allocation: Awaited<ReturnType<typeof allocateContext>>
+    try {
+        assertCanRunConcurrently(browser)
+        allocation = await allocateContext(browser, config.vitestOpts!.parallelMode!)
+    } catch (err) {
+        error = err
+        return activeTask.run(task, () => runWithHooks(async () => {
+            try {
+                await runAfterTest()
+            } catch (afterErr) {
+                log.error('afterTest failed after the concurrent test could not start:', afterErr)
+            }
+            throw err
+        }))
+    }
     try {
         await browser[PARALLEL_CONTEXT_STORE_KEY]!.run(allocation.context, runInTask)
     } finally {
