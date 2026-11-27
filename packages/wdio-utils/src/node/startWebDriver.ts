@@ -117,6 +117,17 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         if (!caps['goog:chromeOptions']?.androidPackage) {
             const puppeteerResult = await setupPuppeteerBrowser(cacheDir, caps)
             browserVersion = puppeteerResult.browserVersion
+            const requestedVersion = caps.browserVersion
+            if (requestedVersion?.startsWith('stable-') && browserVersion && browserVersion !== requestedVersion) {
+                // ChromeDriver needs the concrete version in the local session request.
+                caps.browserVersion = browserVersion
+                const w3cCaps = options.capabilities as Capabilities.W3CCapabilities
+                for (const match of w3cCaps.firstMatch || []) {
+                    if (match.browserVersion === requestedVersion) {
+                        match.browserVersion = browserVersion
+                    }
+                }
+            }
 
             const prefs = generateDefaultPrefs(caps)
             caps['goog:chromeOptions'] = deepmerge(
