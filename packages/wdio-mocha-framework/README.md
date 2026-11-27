@@ -30,7 +30,7 @@ module.exports = {
 };
 ```
 
-Note that interfaces supported are `bdd`, `tdd` and `qunit`. If you want to provide a custom interface, it should expose methods compatible with them and be named ending with `-bdd`, `-tdd` or `-qunit` accordingly.
+Note that built-in interfaces supported are `bdd`, `tdd` and `qunit` (including top-level `test()` calls without an explicit `suite()`). You can also pass a third-party interface name, a path to a local interface module, or a custom interface function to `mochaOpts.ui`, or register one via `mochaOpts.require`. To ensure WebdriverIO wraps your custom interface's test and hook functions properly, name it ending with `-bdd`, `-tdd` or `-qunit` accordingly (defaults to `bdd`).
 
 ## `mochaOpts` Options
 

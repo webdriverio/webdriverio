@@ -200,6 +200,47 @@ describe('setupEnv', () => {
         expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
             .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
     })
+
+    test('setupEnv - QUnit', () => {
+        vi.mocked(wrapGlobalTestMethod).mockClear()
+        const hooks = {
+            beforeHook: 'beforeHook123' as any,
+            afterHook: 'afterHook123' as any,
+            beforeTest: 'beforeTest234' as any,
+            afterTest: 'afterTest234' as any
+        }
+        setupEnv('0-2', { ui: 'qunit' }, hooks.beforeTest, hooks.beforeHook, hooks.afterTest, hooks.afterHook)
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls.map((c) => [c[0], c[5]])).toEqual([
+            [true, 'test'],
+            [false, 'before'],
+            [false, 'beforeEach'],
+            [false, 'after'],
+            [false, 'afterEach']
+        ])
+    })
+
+    test.each([
+        ['strong-bdd', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['strong-bdd.js', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['./custom-qunit.cjs', ['test', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['./dir-with-dash/my-tdd.mjs', ['test', 'suiteSetup', 'setup', 'suiteTeardown', 'teardown']],
+        ['C:\\path\\to\\custom-qunit.ts', ['test', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['@scope/mocha-qunit', ['test', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['./my-custom-interface.cjs', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+        ['toString', ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+        [(() => {}) as any, ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach']],
+    ])('setupEnv - custom UI %s resolves expected globals', (ui, expectedFns) => {
+        vi.mocked(wrapGlobalTestMethod).mockClear()
+        setupEnv('0-2', { ui }, vi.fn(), vi.fn(), vi.fn(), vi.fn())
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls.map((c) => c[5])).toEqual(expectedFns)
+    })
+
+    test('setupEnv - skips globals not defined on context by custom UIs', () => {
+        vi.mocked(wrapGlobalTestMethod).mockClear()
+        const context = { test: vi.fn(), beforeEach: vi.fn() }
+        setupEnv('0-2', { ui: './custom-qunit.cjs' }, vi.fn(), vi.fn(), vi.fn(), vi.fn(), context)
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls.map((c) => c[5])).toEqual(['test', 'beforeEach'])
+    })
 })
 
 describe('applyMochaDefaults', () => {

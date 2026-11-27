@@ -10,6 +10,22 @@ const config: WebdriverIO.Config = {
     capabilities: [{}]
 }
 
+const customUiStringConfig: WebdriverIO.Config = {
+    mochaOpts: {
+        ui: './custom-qunit.cjs'
+    },
+    capabilities: [{}]
+}
+
+const customUiFnConfig: WebdriverIO.Config = {
+    mochaOpts: {
+        ui: (_suite) => {}
+    },
+    capabilities: [{}]
+}
+void customUiStringConfig
+void customUiFnConfig
+
 const mrconfig: WebdriverIO.MultiRemoteConfig = {
     mochaOpts: {
         ui: 'qunit',

@@ -1,4 +1,7 @@
+import fs from 'node:fs'
 import path from 'node:path'
+import { createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
 import type { Runner } from 'mocha'
 import Mocha from 'mocha'
 // Mocha 12 ships this helper as CJS and does not expose it from the package root yet
@@ -10,13 +13,14 @@ import logger from '@wdio/logger'
 import { executeHooksWithArgs, specFilePath, type ParallelMode } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
-import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
+import { applyMochaDefaults, formatMessage, rootSuiteTitle, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
-import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import type { MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types.js'
 import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
+const BUILTIN_INTERFACES = new Set(['bdd', 'tdd', 'qunit', 'exports'])
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
@@ -57,6 +61,10 @@ class MochaAdapter {
     private _openTest?: { payload: Record<string, unknown>, uid: string }
     /** Mocha suite → the uid of its suite:start */
     private _suiteUids = new WeakMap<object, string>()
+    /** Synthetic wrapper suite emitted around root-level tests (e.g. QUnit without suite()) */
+    private _rootTestSuite?: { uid: string, title: string, file?: string }
+    /** Last synthetic wrapper suite opened in this run, used to anchor trailing root afterAll hooks */
+    private _lastRootTestSuite?: { uid: string, title: string, file?: string }
     private _suiteStartDate: number = Date.now()
 
     constructor(
@@ -77,14 +85,18 @@ class MochaAdapter {
             const plugins = await handleRequires(
                 mochaOpts.require
                     .filter((p) => typeof p === 'string')
-                    .map((p) => path.resolve(this._config.rootDir, p))
+                    .map((p) => this._resolveModule(p))
             )
             Object.assign(mochaOpts, plugins)
         }
 
         applyMochaDefaults(mochaOpts)
 
-        const mocha = this._mocha = new Mocha(mochaOpts)
+        const resolvedUi = await this._resolveUi(mochaOpts.ui)
+        const mochaOptions = resolvedUi === mochaOpts.ui
+            ? mochaOpts
+            : { ...mochaOpts, ui: resolvedUi }
+        const mocha = this._mocha = new Mocha(mochaOptions as Mocha.MochaOptions)
         mocha.reporter(NOOP as unknown as Mocha.Reporter)
         mocha.fullTrace()
 
@@ -95,8 +107,8 @@ class MochaAdapter {
         this._specs.forEach((spec) => mocha.addFile(specFilePath(spec)))
 
         const { beforeTest, beforeHook, afterTest, afterHook } = this._config
-        mocha.suite.on('pre-require', () =>
-            setupEnv(this._cid, this._config.mochaOpts, beforeTest, beforeHook, afterTest, afterHook))
+        mocha.suite.on('pre-require', (context) =>
+            setupEnv(this._cid, this._config.mochaOpts, beforeTest, beforeHook, afterTest, afterHook, context))
         mocha.suite.on('require', () => mocha.unloadFiles())
         await this._loadFiles(mochaOpts)
         return this
@@ -210,7 +222,8 @@ class MochaAdapter {
                     timeout: this._config.mochaOpts.timeout,
                     mode,
                     failHookAffectedTests: this._config.mochaOpts.failHookAffectedTests,
-                    allowUncaught: this._config.mochaOpts.allowUncaught
+                    allowUncaught: this._config.mochaOpts.allowUncaught,
+                    ...(this._config.rootDir ? { rootDir: this._config.rootDir } : {})
                 }
             )
         } catch (err) {
@@ -246,11 +259,133 @@ class MochaAdapter {
         }
     }
 
+    private _resolveModule (specifier: string) {
+        const rootDir = this._config.rootDir || process.cwd()
+        const candidatePath = path.resolve(rootDir, specifier)
+        if (path.isAbsolute(specifier) || specifier.startsWith('.') || fs.existsSync(candidatePath)) {
+            return candidatePath
+        }
+
+        try {
+            const req = createRequire(path.join(rootDir, 'package.json'))
+            return req.resolve(specifier)
+        } catch {
+            return specifier
+        }
+    }
+
+    private async _resolveUi (ui: MochaOptsImport['ui']) {
+        if (typeof ui !== 'string' || !ui || BUILTIN_INTERFACES.has(ui)) {
+            return ui
+        }
+
+        const interfaces = (Mocha as unknown as { interfaces?: Record<string, unknown> }).interfaces
+        if (interfaces && Object.hasOwn(interfaces, ui)) {
+            return ui
+        }
+
+        const resolved = this._resolveModule(ui)
+        if (!path.isAbsolute(resolved) || !fs.existsSync(resolved)) {
+            return resolved
+        }
+
+        try {
+            const loaded = await import(pathToFileURL(resolved).href)
+            if (typeof loaded.default === 'function') {
+                return loaded.default as (suite: Mocha.Suite) => void
+            }
+            if (typeof loaded === 'function') {
+                return loaded as (suite: Mocha.Suite) => void
+            }
+            if (interfaces && Object.hasOwn(interfaces, ui)) {
+                return ui
+            }
+        } catch {
+            // Fall back to Mocha's own require() loader and error reporting.
+        }
+
+        return resolved
+    }
+
+    private _rootSuiteTitle (file?: string) {
+        return rootSuiteTitle(file, this._config.rootDir)
+    }
+
+    private _firstMatchedRootTest (parent: unknown) {
+        const tests = (parent as { tests?: { file?: string, fullTitle?: () => string, title?: string }[] } | undefined)?.tests
+        if (!tests?.length) {
+            return undefined
+        }
+        const grep = this._mocha?.options?.grep as RegExp | undefined
+        if (!grep) {
+            return tests[0]
+        }
+        const invert = Boolean(this._mocha?.options?.invert)
+        return tests.find((test) => {
+            const fullTitle = typeof test.fullTitle === 'function' ? test.fullTitle() : (test.title ?? '')
+            return grep.test(fullTitle) !== invert
+        })
+    }
+
+    private _openRootTestSuite (file?: string) {
+        const normalizedFile = file
+            ? specFilePath(file)
+            : (this._specs[0] ? specFilePath(this._specs[0]) : undefined)
+        if (this._rootTestSuite) {
+            if (this._rootTestSuite.file === normalizedFile) {
+                return this._rootTestSuite
+            }
+            this._closeRootTestSuite()
+        }
+
+        const title = this._rootSuiteTitle(normalizedFile)
+        const uid = this.getUID({ type: 'suite:start' })
+        const suite = { uid, title, file: normalizedFile }
+        const message: FormattedMessage = {
+            type: 'suite:start',
+            title,
+            fullTitle: title,
+            parent: '',
+            pending: false,
+            file: normalizedFile,
+            cid: this._cid,
+            specs: this._specs,
+            uid
+        }
+        this._rootTestSuite = suite
+        this._lastRootTestSuite = suite
+        this._reporter.emit('suite:start', message)
+        return suite
+    }
+
+    private _closeRootTestSuite () {
+        if (!this._rootTestSuite) {
+            return
+        }
+        const { title, file } = this._rootTestSuite
+        this._rootTestSuite = undefined
+        const message: FormattedMessage = {
+            type: 'suite:end',
+            title,
+            fullTitle: title,
+            parent: '',
+            pending: false,
+            file,
+            cid: this._cid,
+            specs: this._specs,
+            uid: this.getUID({ type: 'suite:end' })
+        }
+        this._reporter.emit('suite:end', message)
+    }
+
     private async _runSequential(mocha: Mocha) {
         let runtimeError: Error | undefined
         const result = await new Promise<number>((resolve) => {
             try {
-                this._runner = mocha.run(resolve as (failures: number) => void)
+                this._runner = mocha.run((failures: number) => {
+                    this._closeRootTestSuite()
+                    resolve(failures)
+                })
             } catch (err) {
                 runtimeError = err as Error
                 return resolve(1)
@@ -327,9 +462,21 @@ class MochaAdapter {
         /**
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
+         * Close any synthetic wrapper suite opened for root-level tests first.
          */
         if (payload.root) {
+            if (event === 'suite:end') {
+                this._closeRootTestSuite()
+            }
             return
+        }
+
+        /**
+         * Close any open wrapper suite before a real suite starts so reporters
+         * do not nest top-level suites inside the synthetic wrapper.
+         */
+        if (event === 'suite:start') {
+            this._closeRootTestSuite()
         }
 
         /**
@@ -344,6 +491,32 @@ class MochaAdapter {
         }
 
         const message = formatMessage({ type: event, payload, err })
+        const isRootParent = Boolean((payload.parent as { root?: boolean } | undefined)?.root)
+        let hookRootSuite: { uid: string, title: string, file?: string } | undefined
+        const rootSuite = isRootParent && message.type.startsWith('test:')
+            ? this._openRootTestSuite(payload.file as string | undefined)
+            : undefined
+        if (rootSuite) {
+            message.parent = rootSuite.title
+            if (message.title) {
+                message.fullTitle = `${rootSuite.title}.${message.title}`
+            }
+        } else if (isRootParent && message.type.startsWith('hook:')) {
+            if (message.hookKind === 'beforeAll' && !this._rootTestSuite && this._level === 0) {
+                const firstRootTest = this._firstMatchedRootTest(payload.parent)
+                if (firstRootTest) {
+                    this._openRootTestSuite(firstRootTest.file ?? (payload.file as string | undefined))
+                }
+            }
+            if (this._rootTestSuite) {
+                hookRootSuite = this._rootTestSuite
+                message.parent = this._rootTestSuite.title
+            } else if (message.hookKind === 'afterAll' && this._lastRootTestSuite) {
+                hookRootSuite = this._lastRootTestSuite
+                message.parent = this._lastRootTestSuite.title
+                message.parentUid = this._lastRootTestSuite.uid
+            }
+        }
 
         message.cid = this._cid
         message.specs = this._specs
@@ -357,8 +530,9 @@ class MochaAdapter {
         if (event === 'suite:start') {
             this._suiteUids.set(payload, message.uid)
         }
-        // the root suite has no suite:start, so its all-hooks have no hookSuiteUid
-        const hookSuiteUid = (message.hookKind === 'beforeAll' || message.hookKind === 'afterAll') && this._suiteUids.get(payload.parent as object)
+        // the root suite has no suite:start unless a wrapper suite is associated with root-level tests
+        const hookSuiteUid = (message.hookKind === 'beforeAll' || message.hookKind === 'afterAll')
+            && (this._suiteUids.get(payload.parent as object) ?? hookRootSuite?.uid)
         if (hookSuiteUid) {
             message.hookSuiteUid = hookSuiteUid
         }
