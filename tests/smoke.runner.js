@@ -353,6 +353,41 @@ const jasmineFailingAfterAll = async () => {
 }
 
 /**
+ * Jasmine: multiple fail() calls in one spec are reported once each, without
+ * rethrowing the first framework-recorded failure as an uncaught exception.
+ * Refs https://github.com/webdriverio/webdriverio/issues/16168 (K25)
+ */
+const jasmineMultipleFail = async () => {
+    const logFile = path.resolve(__dirname, 'jasmineMultipleFail.spec.log')
+    await fs.rm(logFile, { force: true })
+    const error = await launch('jasmineMultipleFail', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'multiple-fail.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine'
+    }).then(() => undefined, (err) => err)
+
+    assert.ok(error, 'run passed although the spec called fail()')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    await fs.rm(logFile, { force: true })
+    const firstMatches = specLogs.match(/Failed: first failure/g) ?? []
+    assert.strictEqual(
+        firstMatches.length,
+        1,
+        `expected "Failed: first failure" once, got ${firstMatches.length}:\n${specLogs}`
+    )
+    assert.ok(specLogs.includes('Failed: second failure'), `missing second failure:\n${specLogs}`)
+    assert.ok(specLogs.includes('Failed: third failure'), `missing third failure:\n${specLogs}`)
+    assert.ok(!specLogs.includes('error properties:'), `unexpected rethrown error properties:\n${specLogs}`)
+    assert.ok(!specLogs.includes('recordExpectation'), `unexpected recordExpectation frame:\n${specLogs}`)
+}
+
+/**
  * A promise without await in the last hook or step fails the run, and the worker still writes the reports
  */
 const lateRejection = async (name, framework, specs, configPath = baseConfig) => {
@@ -1862,6 +1897,7 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaTimeout,
         jasmineAfterAll,
         jasmineFailingAfterAll,
+        jasmineMultipleFail,
         jasmineLateRejection,
         cucumberLateRejection,
         jasmineFailSpecWithNoExpectations,
