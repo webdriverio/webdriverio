@@ -113,6 +113,60 @@ describe('shared store server', () => {
             expect(leftover.status).toBe(500)
         })
 
+        it('should return a value as soon as it is added, not when the timeout ends (#16420)', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const start = Date.now()
+            const promise = fetch(`${baseUrl}/pool/foo?timeout=2000`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            await post('/pool/foo', { value: 'bar' })
+            expect(await (await promise).json()).toEqual({ value: 'bar' })
+            expect(Date.now() - start).toBeLessThan(1000)
+        })
+
+        it('should give added values to the waiting requests in the order they asked', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const first = fetch(`${baseUrl}/pool/foo?timeout=2000`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            const second = fetch(`${baseUrl}/pool/foo?timeout=2000`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            await post('/pool/foo', { value: 'one' })
+            await post('/pool/foo', { value: 'two' })
+            expect(await (await first).json()).toEqual({ value: 'one' })
+            expect(await (await second).json()).toEqual({ value: 'two' })
+            // both values went to the waiting requests, none is left in the pool
+            const leftover = await fetch(`${baseUrl}/pool/foo?timeout=50`, { method: 'get', headers })
+            expect(leftover.status).toBe(500)
+        })
+
+        it('should give the values of a new resource pool to the waiting requests', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const start = Date.now()
+            const waiting = fetch(`${baseUrl}/pool/foo?timeout=2000`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            await post('/pool', { key: 'foo', value: ['one', 'two'] })
+            expect(await (await waiting).json()).toEqual({ value: 'one' })
+            expect(Date.now() - start).toBeLessThan(1000)
+            const next = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(await next.json()).toEqual({ value: 'two' })
+        })
+
+        it('should keep a value in the pool when the request that waited for it went away', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const controller = new AbortController()
+            const aborted = fetch(`${baseUrl}/pool/foo?timeout=2000`, { method: 'get', headers, signal: controller.signal })
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            controller.abort()
+            await expect(aborted).rejects.toThrow()
+            await new Promise((resolve) => setTimeout(resolve, 20))
+            await post('/pool/foo', { value: 'bar' })
+            const got = await fetch(`${baseUrl}/pool/foo?timeout=50`, { method: 'get', headers })
+            expect(await got.json()).toEqual({ value: 'bar' })
+        })
+
         it('should return a value within the default timeout', async () => {
             await listen()
             await post('/pool', { key: 'foo', value: [] })

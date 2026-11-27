@@ -19,6 +19,7 @@ type PolkaRequest = {
 
 type PolkaResponse = {
     end: Function;
+    on: (event: 'close', listener: () => void) => unknown;
 };
 
 interface PolkaInstance {
