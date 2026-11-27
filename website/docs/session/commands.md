@@ -61,6 +61,7 @@ npx wdio session open <target> [url]
 | `--headed` | Show the browser window |
 | `--headless` | Run without a window (the default for browsers; overrides --headed) |
 | `--snapshot` | Print the interactive snapshot of the opened page (use --no-snapshot to skip) |
+| `--selector-provider <value>` | Module exporting a snapshot selector provider (repeatable) |
 | `--viewport <value>` | Initial viewport, e.g. 1280x720 |
 | `--browser-version <value>` | Browser version |
 | `--binary <value>` | Browser binary |

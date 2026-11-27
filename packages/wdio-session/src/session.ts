@@ -12,6 +12,7 @@ import { SessionError, usage } from './errors.js'
 import { cmdWith, type Cmd, type HintFormatter } from './hints.js'
 import { History } from './history.js'
 import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js'
+import { providerNames } from './snapshot/target.js'
 import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdFrame, openDialog } from './actions/contexts.js'
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import { failedRequestNote, networkMark } from './network-notes.js'
@@ -111,9 +112,7 @@ export class Session {
     readonly cmd: Cmd
     browser: WebdriverIO.Browser
     history: History
-    refs = new RefRegistry({
-        createError: (code, message, { resnapshot }) => new SessionError(code, message, { hint: resnapshot ? this.#refHint(code) : undefined })
-    })
+    refs: RefRegistry
     logs = new RingBuffer<LogEntry>()
     network = new RingBuffer<NetworkEntry>()
     lastSnapshot?: string
@@ -161,6 +160,10 @@ export class Session {
         this.runtimeDir = init.runtimeDir
         this.browser = init.browser
         this.plan = init.plan
+        this.refs = new RefRegistry({
+            createError: (code, message, { resnapshot }) => new SessionError(code, message, { hint: resnapshot ? this.#refHint(code) : undefined }),
+            providerNames: providerNames(init.plan)
+        })
         this.cmd = cmdWith(init.hint)
         fs.mkdirSync(this.artifactsDir, { recursive: true })
         this.history = new History(this.artifactsDir, { keep: init.keepHistory, persist: init.persistHistory })

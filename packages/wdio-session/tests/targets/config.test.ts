@@ -2,12 +2,19 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type * as UtilsNode from '@wdio/utils/node'
+import type * as Providers from '@wdio/snapshot/providers'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
 const resolveOptionalDependency = vi.hoisted(() => vi.fn())
 vi.mock('@wdio/utils/node', async (importActual) => ({
     ...await importActual<typeof UtilsNode>(),
     resolveOptionalDependency
+}))
+
+const loadSelectorProviders = vi.hoisted(() => vi.fn(async (): Promise<unknown[]> => []))
+vi.mock('@wdio/snapshot/providers', async (importActual) => ({
+    ...await importActual<typeof Providers>(),
+    loadSelectorProviders
 }))
 
 import { buildPlan } from '../../src/targets/index.js'
@@ -95,6 +102,48 @@ describe('config targets', () => {
             'Ignoring service "shared-store"; wdio session only applies visual, electron, tauri, dioxus and appium service options.'
         ])
         expect(plan.url).toBeUndefined()
+    })
+
+    it('loads the snapshots entries with every service name into the plan', async () => {
+        const dir = writeConfig('wdio.conf.ts', `
+            export const config = {
+                services: ['e2e-tools', ['visual', {}]],
+                snapshots: ['./providers/e2e.mjs'],
+                capabilities: [${chrome}]
+            }
+        `)
+        loadSelectorProviders.mockResolvedValueOnce([{ name: 'e2e', attributes: ['data-e2e'] }])
+        const plan = await buildPlan({ target: './wdio.conf.ts', url: '0' }, ctx(dir))
+        expect(loadSelectorProviders).toHaveBeenCalledWith(['./providers/e2e.mjs'], { cwd: dir, services: ['e2e-tools', 'visual'] })
+        expect(plan.selectorProviders).toEqual([{ name: 'e2e', attributes: ['data-e2e'] }])
+        expect(plan.notes).toContain('Loaded selector provider "e2e"')
+    })
+
+    it('adds the --selector-provider entries after the config providers', async () => {
+        const dir = writeConfig('wdio.conf.ts', `export const config = { snapshots: ['./cfg.mjs'], capabilities: [${chrome}] }`)
+        loadSelectorProviders
+            .mockResolvedValueOnce([{ name: 'cfg' }])
+            .mockResolvedValueOnce([{ name: 'flag', attributes: ['data-flag'] }])
+        const plan = await buildPlan({ target: './wdio.conf.ts', url: '0', selectorProvider: ['./flag.mjs'] }, ctx(dir))
+        expect(loadSelectorProviders).toHaveBeenLastCalledWith(['./flag.mjs'], { cwd: dir })
+        expect(plan.selectorProviders).toEqual([{ name: 'cfg' }, { name: 'flag', attributes: ['data-flag'] }])
+    })
+
+    it('rejects a provider name that the config and a flag both load', async () => {
+        const dir = writeConfig('wdio.conf.ts', `export const config = { snapshots: ['./cfg.mjs'], capabilities: [${chrome}] }`)
+        loadSelectorProviders
+            .mockResolvedValueOnce([{ name: 'cfg' }])
+            .mockResolvedValueOnce([{ name: 'cfg' }])
+        await expect(buildPlan({ target: './wdio.conf.ts', url: '0', selectorProvider: ['./flag.mjs'] }, ctx(dir)))
+            .rejects.toThrow('Selector provider "cfg" is loaded more than once.')
+    })
+
+    it('loads --selector-provider for a browser target too', async () => {
+        const dir = writeConfig('unused.txt', '')
+        loadSelectorProviders.mockResolvedValueOnce([{ name: 'flag' }])
+        const plan = await buildPlan({ target: 'chrome', selectorProvider: ['./flag.mjs'] }, ctx(dir))
+        expect(loadSelectorProviders).toHaveBeenCalledWith(['./flag.mjs'], { cwd: dir })
+        expect(plan.selectorProviders).toEqual([{ name: 'flag' }])
     })
 
     it('selects a named multi-remote capability', async () => {

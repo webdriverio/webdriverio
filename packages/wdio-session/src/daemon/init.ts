@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { functionExpression } from '@wdio/snapshot'
 
 import { trackDialogs } from '../actions/contexts.js'
 import { installNetworkProbe } from '../actions/wait.js'
@@ -11,6 +12,14 @@ import { untilLoaded, waitForLoad } from '../actions/interact.js'
 import { matchHeadedUserAgent } from './userAgent.js'
 
 const log = logger('@wdio/session:init')
+
+/**
+ * The delegating function keeps the page-side source an expression too, which
+ * `addLocatorStrategy` serializes with `toString()`.
+ */
+function locatorStrategy (src: string) {
+    return new Function(`return function () { return ${functionExpression(src)}.apply(this, arguments) }`)()
+}
 
 export async function applyViewport (session: Session, viewport = session.plan.viewport) {
     if (!viewport || !session.isWeb || session.platform !== 'browser') {
@@ -31,6 +40,17 @@ export async function initSession (session: Session) {
         await applyViewport(session)
     } catch (err) {
         log.warn(`Could not set viewport: ${(err as Error).message}`)
+    }
+
+    for (const provider of plan.selectorProviders ?? []) {
+        if (!provider.locator) {
+            continue
+        }
+        try {
+            session.browser.addLocatorStrategy(provider.name, locatorStrategy(provider.locator))
+        } catch (err) {
+            log.warn(`Registering the locator of selector provider "${provider.name}" failed: ${(err as Error).message}`)
+        }
     }
 
     await startEventCapture(session).catch((err) => log.warn(`Event capture unavailable: ${err.message}`))

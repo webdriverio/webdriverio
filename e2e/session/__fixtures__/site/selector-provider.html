@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Selector Provider Fixture</title>
+</head>
+<body>
+  <main>
+    <button type="button" data-e2e="save">Save</button>
+    <button type="button" data-e2e="cancel">Cancel</button>
+  </main>
+  <script>
+    document.querySelectorAll('[data-e2e]').forEach((el) => el.addEventListener('click', () => el.setAttribute('data-clicked', '')))
+  </script>
+</body>
+</html>

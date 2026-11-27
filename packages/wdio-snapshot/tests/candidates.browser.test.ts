@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 /**
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
 import { knownRoles, roleTable } from '../../wdio-utils/src/roles.js'
+
+import { collectScript } from '../src/collect.js'
 import { attachSelectors } from '../src/selectors.js'
-import { collectInPage, type CollectOptions } from '../src/web.js'
+import { collectInPage, type CollectOptions, type CollectResult } from '../src/web.js'
+
+// collect.ts imports the Node-only @wdio/utils root, and the browser bundle needs only the role tables
+vi.mock('@wdio/utils', async () => import('../../wdio-utils/src/roles.js'))
 
 /**
  * Runs the collector in a real browser the way a session does: from its
@@ -289,5 +294,83 @@ describe('snapshot selector candidates', () => {
         for (const ref of refs) {
             expect(ref.candidates.some((c) => c.kind === 'css-path')).toBe(false)
         }
+    })
+})
+
+describe('selector providers', () => {
+    const OPTS: CollectOptions = { roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true }
+    const collect = () => new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+
+    async function refsWith (html: string, providers?: { name: string, fn?: (el: Element) => unknown, locator?: boolean }[], providerAttributes?: { name: string, attr: string }[]) {
+        document.body.innerHTML = html
+        return (await collect()({ ...OPTS, providerAttributes }, undefined, providers)).refs
+    }
+
+    it('ranks a data-e2e attribute provider first', async () => {
+        const refs = await refsWith('<button data-e2e="save" data-testid="save-test">Save</button>', [], [{ name: 'e2e', attr: 'data-e2e' }])
+        expect(refs.find((ref) => ref.name === 'Save')?.candidates[0]).toEqual({ kind: 'provider', selector: '[data-e2e="save"]', provider: 'e2e' })
+    })
+
+    it('drops a provider attribute that is not unique', async () => {
+        const refs = await refsWith('<button data-e2e="dup">A</button><button data-e2e="dup">B</button>', [], [{ name: 'e2e', attr: 'data-e2e' }])
+        for (const ref of refs) {
+            expect(ref.candidates.some((c) => c.kind === 'provider')).toBe(false)
+        }
+    })
+
+    it('keeps the candidates of a sync function provider first', async () => {
+        const refs = await refsWith('<button id="go">Go</button>', [{ name: 'ui5', fn: (el) => `ui5:{"id":"${el.id}"}`, locator: true }])
+        expect(refs.find((ref) => ref.name === 'Go')?.candidates[0]).toEqual({ kind: 'provider', selector: 'ui5:{"id":"go"}', provider: 'ui5' })
+    })
+
+    it('drops a name:arg candidate from a provider without a locator', async () => {
+        const refs = await refsWith('<button id="go">Go</button>', [{ name: 'ui5', fn: (el) => `ui5:{"id":"${el.id}"}` }])
+        expect(refs.find((ref) => ref.name === 'Go')?.candidates.some((c) => c.kind === 'provider')).toBe(false)
+    })
+
+    it('ranks the candidate of an async provider first', async () => {
+        const win = window as unknown as { bridge?: (el: Element) => Promise<string> }
+        win.bridge = (el) => Promise.resolve(`ui5:{"id":"${el.id}"}`)
+        try {
+            const refs = await refsWith('<button id="x">Go</button>', [{ name: 'ui5', fn: (el) => win.bridge!(el), locator: true }])
+            expect(refs.find((ref) => ref.name === 'Go')?.candidates[0]).toEqual({ kind: 'provider', selector: 'ui5:{"id":"x"}', provider: 'ui5' })
+        } finally {
+            delete win.bridge
+        }
+    })
+
+    it('keeps provider order when a sync provider follows an async one', async () => {
+        const refs = await refsWith('<button id="x">Go</button>', [
+            { name: 'slow', fn: async (el) => `slow:{"id":"${el.id}"}`, locator: true },
+            { name: 'fast', fn: (el) => `fast:{"id":"${el.id}"}`, locator: true }
+        ])
+        expect(refs.find((ref) => ref.name === 'Go')?.candidates.slice(0, 2).map((c) => c.provider)).toEqual(['slow', 'fast'])
+    })
+
+    it('drops the candidates of a provider that never resolves, and keeps the snapshot', async () => {
+        const refs = await refsWith('<button id="x">Go</button>', [
+            { name: 'hung', fn: () => new Promise(() => {}) },
+            { name: 'ui5', fn: (el) => `ui5:{"id":"${el.id}"}`, locator: true }
+        ])
+        const go = refs.find((ref) => ref.name === 'Go')
+        expect(go?.candidates.filter((c) => c.kind === 'provider').map((c) => c.provider)).toEqual(['ui5'])
+        expect(go?.candidates.some((c) => c.kind === 'role')).toBe(true)
+    })
+
+    it('evaluates the classic script of collectScript with an async provider, provider candidate first', async () => {
+        document.body.innerHTML = '<button id="x">Go</button>'
+        const providers = [{ name: 'ui5', candidates: 'async (el) => `ui5:{"id":"${el.id}"}`', locator: 'async () => null' }]
+        const script = collectScript({ counter: 0, all: false, boxes: false, assignRefs: true }, providers)
+        const result = await new Function(`return ${script}`)() as CollectResult
+        expect(result.tree).toBeDefined()
+        expect(result.refs.find((ref) => ref.name === 'Go')?.candidates[0]).toEqual({ kind: 'provider', selector: 'ui5:{"id":"x"}', provider: 'ui5' })
+    })
+
+    it('gives the same candidates with an empty provider list as without providers', async () => {
+        const html = '<button data-testid="t" id="ok">Save</button><a href="#">Docs</a>'
+        document.body.innerHTML = html
+        const without = collect()(OPTS).refs
+        const withEmpty = (await refsWith(html, [], [])).map((ref) => ref.candidates)
+        expect(withEmpty).toEqual(without.map((ref) => ref.candidates))
     })
 })

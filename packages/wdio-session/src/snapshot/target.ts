@@ -1,7 +1,8 @@
-import { refId } from '@wdio/snapshot'
+import { locatorProviderNames, parseProviderSelector, queryAll, refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
+import type { OpenPlan } from '../types.js'
 import type { Session } from '../session.js'
 
 export interface ResolvedTarget {
@@ -34,10 +35,33 @@ export function scopeOf (session: Session): WebdriverIO.Browser {
  * Code that queries the held frame through the variable an earlier step
  * declared for it, e.g. `frame.$('…')`.
  */
-function inScope (session: Session, code: string) {
+function heldName (session: Session) {
     const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
-    const name = held && session.get<{ names: Record<string, string> }>('contextVars')?.names[held.contextId]
+    return held && session.get<{ names: Record<string, string> }>('contextVars')?.names[held.contextId]
+}
+
+function inScope (session: Session, code: string) {
+    const name = heldName(session)
     return name ? `${name}.${code}` : code
+}
+
+export function providerNames (plan?: OpenPlan) {
+    return locatorProviderNames(plan?.selectorProviders)
+}
+
+/**
+ * `<receiver>.custom$('name', arg)` for a `name:arg` selector of a loaded provider, else undefined.
+ */
+export function providerCode (selector: string, names: string[], receiver: string, method: 'custom$' | 'custom$$' = 'custom$') {
+    const provider = parseProviderSelector(selector, names)
+    return provider ? `${receiver}.${method}(${quote(provider.name)}, ${JSON.stringify(provider.arg)})` : undefined
+}
+
+/**
+ * The code that finds a selector again, so a replay runs the provider's locator for a provider selector.
+ */
+function selectorCode (session: Session, selector: string) {
+    return providerCode(selector, providerNames(session.plan), heldName(session) ?? 'browser') ?? inScope(session, `$(${quote(selector)})`)
 }
 
 /**
@@ -80,13 +104,16 @@ export async function resolveTarget (session: Session, target: unknown): Promise
             element,
             selector,
             // a replay with a selector that misses the element would fail or act on another one
-            code: inScope(session, `$(${quote(selector)})`) + (entry.unverified ? ' /* no selector matches only this element (closed shadow root?), this step may not replay */' : ''),
+            code: selectorCode(session, selector) + (entry.unverified ? ' /* no selector matches only this element (closed shadow root?), this step may not replay */' : ''),
             label
         }
     }
-    let element: WebdriverIO.Element
+    const names = providerNames(session.plan)
+    let element: WebdriverIO.Element | undefined
     try {
-        element = await scopeOf(session).$(target).getElement()
+        element = providerCode(target, names, 'browser')
+            ? (await queryAll(scopeOf(session), target, names).getElements())[0]
+            : await scopeOf(session).$(target).getElement()
     } catch (err) {
         if ((err as Error).name === 'StrictSelectorError') {
             throw new SessionError('ELEMENT_NOT_FOUND', (err as Error).message.split('\n')[0], {
@@ -95,11 +122,11 @@ export async function resolveTarget (session: Session, target: unknown): Promise
         }
         throw err
     }
-    if (!element.elementId) {
+    if (!element?.elementId) {
         const findText = target.replace(/^aria\//, '')
         throw new SessionError('ELEMENT_NOT_FOUND', `No element matches ${JSON.stringify(target)}.`, {
             hint: `Run \`${session.cmd('find', { text: findText }, `wdio session find ${JSON.stringify(findText)}`)}\` or take a new snapshot.`
         })
     }
-    return { element, selector: target, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }
+    return { element, selector: target, code: selectorCode(session, target), label: JSON.stringify(target) }
 }

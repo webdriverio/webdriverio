@@ -594,6 +594,20 @@ describe('ConfigParser', () => {
 
         })
 
+        it('should ensure snapshot entries are not duplicated', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({ snapshots: ['e2e', 'e2e'] })
+            expect(configParser.getConfig().snapshots).toEqual(['e2e'])
+        })
+
+        it('should keep snapshot provider objects when snapshots are merged again', async () => {
+            const provider = { name: 'e2e', attributes: ['data-e2e'] }
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({ snapshots: [provider] })
+            await configParser.initialize({ snapshots: ['e2e'] })
+            expect(configParser.getConfig().snapshots).toEqual(['e2e', provider])
+        })
+
         it('should ensure capabilities are not duped when utilizing launcher', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, {
                 capabilities: [

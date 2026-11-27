@@ -13,6 +13,11 @@
       "import": "./build/index.js",
       "source": "./src/index.ts"
     },
+    "./providers": {
+      "types": "./build/providers.d.ts",
+      "import": "./build/providers.js",
+      "source": "./src/providers.ts"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "6.0.3",

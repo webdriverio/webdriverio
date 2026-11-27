@@ -3,12 +3,12 @@ import path from 'node:path'
 
 import { UNICODE_CHARACTERS, getWdioKind, isStaleElementError } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
-import { refId } from '@wdio/snapshot'
+import { queryAll, refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import type { Cmd } from '../hints.js'
 import { quote } from '../quote.js'
-import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
+import { providerNames, resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
 import { describeViewport } from './observe.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 import type { ActionArgs } from './index.js'
@@ -319,7 +319,7 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
      */
     const naming = entry.candidates.filter((candidate) => !isPath(candidate))
     for (const candidate of naming) {
-        const found = await scopeOf(session).$$(candidate).getElements().catch(() => [])
+        const found = await queryAll(scopeOf(session), candidate, providerNames(session.plan)).getElements().catch(() => [])
         if (found.length === 1) {
             return resolveTarget(session, candidate)
         }
