@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { DEFAULT_VIEWPORT } from '../constants.js'
-import { notSupported, usage } from '../errors.js'
+import { notSupported, SessionError, usage } from '../errors.js'
 import { hasDisplay, parseViewport, toArray, type OpenArgs } from './utils.js'
 import type { OpenPlan } from '../types.js'
 
@@ -16,6 +16,29 @@ const BROWSER_NAMES: Record<BrowserTarget, string> = {
 }
 
 type PlanPart = Pick<OpenPlan, 'capabilities' | 'label' | 'platform' | 'applies' | 'mode' | 'headless' | 'viewport' | 'detach' | 'display' | 'notes'>
+
+const DEBUGGER_POLL_INTERVAL_MS = 300
+const DEBUGGER_REQUEST_TIMEOUT_MS = 1_000
+export const DEBUGGER_WAIT_TIMEOUT_MS = 10_000
+
+export async function waitForDebugger (address: string, timeoutMs: number): Promise<void> {
+    const url = `http://${address}/json/version`
+    const deadline = Date.now() + timeoutMs
+    const isReady = async () => {
+        const requestTimeoutMs = Math.max(1, Math.min(DEBUGGER_REQUEST_TIMEOUT_MS, deadline - Date.now()))
+        try {
+            return (await fetch(url, { signal: AbortSignal.timeout(requestTimeoutMs) })).ok
+        } catch {
+            return false
+        }
+    }
+    while (!(await isReady())) {
+        if (Date.now() >= deadline) {
+            throw new SessionError('SESSION_START_FAILED', `Debugger at ${address} did not answer ${url} within ${timeoutMs}ms.`)
+        }
+        await new Promise((resolve) => setTimeout(resolve, DEBUGGER_POLL_INTERVAL_MS))
+    }
+}
 
 export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platform = process.platform, env = process.env }: { cwd: string, platform?: NodeJS.Platform, env?: NodeJS.ProcessEnv }): PlanPart {
     const notes: string[] = []

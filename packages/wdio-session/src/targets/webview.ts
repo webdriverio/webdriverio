@@ -9,6 +9,7 @@ import { HINT_DOCTOR, checkBinary, checkDisplayServer, requirePackage } from '..
 import { usage } from '../errors.js'
 import { hasDisplay, toArray, type OpenArgs } from './utils.js'
 import type { DriverPlan, OpenPlan, RemoteOptions, TargetPlan } from '../types.js'
+import type { LaunchOptions } from './launch.js'
 // a value import would load webdriverio for every `wdio session` command (see cli.ts)
 import type { remote } from 'webdriverio'
 
@@ -143,7 +144,7 @@ export function startDriver (driver: DriverPlan) {
  * Start a Tauri or Dioxus session. Uses the service standalone entry when
  * it exists, otherwise `tauri-driver` / `wdio-dioxus-driver` plus `remote()`.
  */
-export async function launchWebview (plan: OpenPlan): Promise<{ browser: WebdriverIO.Browser, end: (died?: boolean) => Promise<void>, pid?: number }> {
+export async function launchWebview (plan: OpenPlan, remoteOptions: LaunchOptions['remoteOptions'] = {}): Promise<{ browser: WebdriverIO.Browser, end: (died?: boolean) => Promise<void>, pid?: number }> {
     const target: WebviewTarget = plan.platform === 'dioxus' ? 'dioxus' : 'tauri'
     const spec = TARGETS[target]
     const mod = await importOptionalDependency(spec.pkg, {
@@ -183,6 +184,7 @@ export async function launchWebview (plan: OpenPlan): Promise<{ browser: Webdriv
             ...plan.remote,
             logLevel: plan.remote.logLevel as 'warn',
             logLevels: LOG_LEVELS,
+            ...remoteOptions,
             capabilities: plan.capabilities
         } as Parameters<typeof remote>[0])
     } catch (err) {

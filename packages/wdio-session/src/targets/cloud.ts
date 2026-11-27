@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { requirePackage } from '../deps.js'
 import { SessionError, usage } from '../errors.js'
 import type { OpenPlan } from '../types.js'
+import type { SessionResult } from './launch.js'
 import type { OpenArgs } from './utils.js'
 
 export const SAUCE_REGIONS = ['us-west-1', 'eu-central-1', 'apac-southeast-1'] as const
@@ -26,6 +27,17 @@ interface UploadSpec {
     appUrl: (body: Record<string, unknown>, filename: string) => string
 }
 
+interface MarkSession {
+    id: string
+    user: string
+    key: string
+    hostname: string
+    mobile: boolean
+    app: boolean
+    browser: WebdriverIO.Browser
+    result: SessionResult
+}
+
 interface Provider {
     id: CloudProviderId
     label: string
@@ -37,6 +49,7 @@ interface Provider {
     tunnelPackage: string
     hub: (region: string, mobile: boolean) => Hub
     upload: (region: string, filename: string) => UploadSpec
+    markResult: (session: MarkSession) => Promise<Response | undefined>
 }
 
 const PROVIDERS: Record<CloudProviderId, Provider> = {
@@ -54,7 +67,15 @@ const PROVIDERS: Record<CloudProviderId, Provider> = {
             url: 'https://api-cloud.browserstack.com/app-automate/upload',
             fileField: 'file',
             appUrl: (body) => String(body.app_url || '')
-        })
+        }),
+        markResult: ({ id, user, key, app, result }) => fetch(
+            `${app ? 'https://api-cloud.browserstack.com/app-automate' : 'https://api.browserstack.com/automate'}/sessions/${id}.json`,
+            {
+                method: 'PUT',
+                headers: { Authorization: basicAuth(user, key), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: statusOf(result.passed), ...(result.reason ? { reason: result.reason } : {}) })
+            }
+        )
     },
     saucelabs: {
         id: 'saucelabs',
@@ -74,7 +95,21 @@ const PROVIDERS: Record<CloudProviderId, Provider> = {
                 const item = body.item as { id?: string } | undefined
                 return item?.id ? `storage:${item.id}` : ''
             }
-        })
+        }),
+        markResult: ({ id, user, key, hostname, result }) => {
+            const region = /^ondemand\.(.+\.saucelabs\.com)$/.exec(hostname)?.[1]
+            if (!region) {
+                throw new SessionError('NOT_SUPPORTED', `Sauce Labs result marking needs the Sauce Labs hub host (ondemand.<region>.saucelabs.com), not ${hostname}.`)
+            }
+            return fetch(
+                `https://api.${region}/rest/v1/${encodeURIComponent(user)}/jobs/${id}`,
+                {
+                    method: 'PUT',
+                    headers: { Authorization: basicAuth(user, key), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ passed: result.passed })
+                }
+            )
+        }
     },
     testingbot: {
         id: 'testingbot',
@@ -90,6 +125,14 @@ const PROVIDERS: Record<CloudProviderId, Provider> = {
             url: 'https://api.testingbot.com/v1/storage',
             fileField: 'file',
             appUrl: (body) => String(body.app_url || '')
+        }),
+        markResult: ({ id, user, key, result }) => fetch(`https://api.testingbot.com/v1/tests/${id}`, {
+            method: 'PUT',
+            headers: { Authorization: basicAuth(user, key) },
+            body: new URLSearchParams({
+                'test[success]': result.passed ? '1' : '0',
+                ...(result.reason ? { 'test[status_message]': result.reason } : {})
+            })
         })
     },
     testmu: {
@@ -112,8 +155,31 @@ const PROVIDERS: Record<CloudProviderId, Provider> = {
             fileField: 'appFile',
             fields: { name: filename },
             appUrl: (body) => String(body.app_url || '')
-        })
+        }),
+        markResult: async ({ id, user, key, mobile, browser, result }) => {
+            if (mobile) {
+                await browser.execute(`lambda-status=${statusOf(result.passed)}`)
+                return undefined
+            }
+            return fetch(`https://api.lambdatest.com/automation/api/v1/sessions/${id}`, {
+                method: 'PATCH',
+                headers: { Authorization: basicAuth(user, key), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status_ind: statusOf(result.passed) })
+            })
+        }
     }
+}
+
+function basicAuth (user: string, key: string) {
+    return `Basic ${Buffer.from(`${user}:${key}`).toString('base64')}`
+}
+
+function statusOf (passed: boolean) {
+    return passed ? 'passed' : 'failed'
+}
+
+function isMobilePlan (plan: OpenPlan) {
+    return plan.platform === 'mobile' || plan.applies.includes('M')
 }
 
 function providerOf (value: unknown): Provider {
@@ -266,7 +332,7 @@ async function uploadApp (spec: UploadSpec, file: string, creds: { user: string,
     }
     const response = await fetch(spec.url, {
         method: 'POST',
-        headers: { Authorization: `Basic ${Buffer.from(`${creds.user}:${creds.key}`).toString('base64')}` },
+        headers: { Authorization: basicAuth(creds.user, creds.key) },
         body: form
     })
     const text = await response.text()
@@ -294,7 +360,7 @@ export async function applyCloudProvider (plan: OpenPlan, args: OpenArgs, env: N
     const provider = providerOf(args.provider)
     const creds = credentials(provider, env)
     const region = regionOf(provider, args)
-    const mobile = plan.platform === 'mobile' || plan.applies.includes('M')
+    const mobile = isMobilePlan(plan)
     const caps = { ...(plan.capabilities as Record<string, unknown>) }
     stripLocalBrowserOptions(caps)
     caps['wdio:enforceWebDriverClassic'] = true
@@ -342,6 +408,32 @@ export async function applyCloudProvider (plan: OpenPlan, args: OpenArgs, env: N
         capabilities: caps as OpenPlan['capabilities'],
         remote,
         notes: plan.notes
+    }
+}
+
+export async function markCloudResult (plan: OpenPlan, browser: WebdriverIO.Browser, result: SessionResult) {
+    const provider = providerOf(plan.provider)
+    const session: MarkSession = {
+        id: browser.sessionId,
+        user: plan.remote.user ?? '',
+        key: plan.remote.key ?? '',
+        hostname: plan.remote.hostname ?? '',
+        mobile: isMobilePlan(plan),
+        app: plan.applies.includes('M'),
+        browser,
+        result
+    }
+    let response: Response | undefined
+    try {
+        response = await provider.markResult(session)
+    } catch (err) {
+        if (err instanceof SessionError) {
+            throw err
+        }
+        throw new SessionError('INTERNAL', `Marking the ${provider.id} session failed: ${(err as Error).message}`, { cause: err })
+    }
+    if (response && !response.ok) {
+        throw new SessionError('INTERNAL', `Marking the ${provider.id} session failed: HTTP ${response.status}`)
     }
 }
 
