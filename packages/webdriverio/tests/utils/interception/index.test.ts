@@ -43,6 +43,7 @@ describe('WebDriverInterception', () => {
             sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
             networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
             networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
+            networkContinueResponse: vi.fn().mockReturnValue(Promise.resolve()),
             networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
             networkGetData: vi.fn().mockImplementation(({ dataType }) => Promise.resolve({
                 bytes: { type: 'string', value: dataType === 'request' ? 'request-body' : 'response-body' }
@@ -524,8 +525,9 @@ describe('WebDriverInterception', () => {
         })
         await new Promise((resolve) => setTimeout(resolve, 0))
 
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
-        expect(browser.networkProvideResponse).toHaveBeenLastCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 'req-123' })
     })
 
     it('should fetch the backend by default', async () => {
@@ -672,6 +674,7 @@ describe('WebDriverInterception', () => {
                 headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
             }
         })
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(0)
         expect(browser.networkProvideResponse).toHaveBeenCalledTimes(0)
 
         browser.emit('network.responseStarted', {
@@ -684,11 +687,12 @@ describe('WebDriverInterception', () => {
                 headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
             }
         })
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledWith({
             request: 123,
         })
-        vi.mocked(browser.networkProvideResponse).mockClear()
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(0)
+        vi.mocked(browser.networkContinueResponse).mockClear()
 
         mock.respondOnce({ foo: 'bar' })
         browser.emit('network.responseStarted', {
@@ -706,6 +710,7 @@ describe('WebDriverInterception', () => {
             request: 123,
             body: { type: 'string', value: '{"foo":"bar"}' }
         })
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(0)
         browser.emit('network.responseStarted', {
             isBlocked: true,
             intercepts: ['mock-id'],
@@ -716,8 +721,9 @@ describe('WebDriverInterception', () => {
                 headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
             }
         })
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledWith({
             request: 123
         })
         vi.mocked(browser.networkProvideResponse).mockClear()
@@ -764,7 +770,8 @@ describe('WebDriverInterception', () => {
         })
 
         expect(mock.calls.length).toBe(1)
-        // non-blocked requests are not paused, so no networkProvideResponse should be sent
+        // non-blocked requests are not paused, so neither command should be sent
+        expect(browser.networkContinueResponse).not.toHaveBeenCalled()
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
@@ -773,8 +780,8 @@ describe('WebDriverInterception', () => {
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
 
         // even when the driver reports the intercept id for a non-blocked request,
-        // calling networkProvideResponse would fail at the protocol layer, so the
-        // mock must only record the request
+        // answering it would fail at the protocol layer, so the mock must only
+        // record the request
         browser.emit('network.responseStarted', {
             isBlocked: false,
             intercepts: ['mock-id'],
@@ -787,6 +794,7 @@ describe('WebDriverInterception', () => {
         })
 
         expect(mock.calls.length).toBe(1)
+        expect(browser.networkContinueResponse).not.toHaveBeenCalled()
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
@@ -938,6 +946,7 @@ describe('WebDriverInterception', () => {
         })
 
         expect(mock.calls.length).toBe(0)
+        expect(browser.networkContinueResponse).not.toHaveBeenCalled()
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
@@ -1080,6 +1089,7 @@ describe('WebDriverInterception', () => {
             expect.stringMatching(/failed to handle request req-123, failing it: Failed to serialize mock.respond/)
         )
         expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkContinueResponse).not.toHaveBeenCalled()
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
@@ -1090,8 +1100,9 @@ describe('WebDriverInterception', () => {
 
         mock.simulateResponseStarted(getResponseCollectionRequestStub())
 
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
     it('sends no response overwrite for a simulated response of a restored mock', async () => {
@@ -1105,8 +1116,9 @@ describe('WebDriverInterception', () => {
 
         mock.simulateResponseStarted(getResponseCollectionRequestStub())
 
-        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
     it('fails a simulated response when the respond callback throws', async () => {
@@ -2018,12 +2030,12 @@ describe('WebDriverInterception', () => {
 
     describe('restore', () => {
         it('should continue in-flight blocked requests before removing the intercept', async () => {
-            let resolveProvideResponse: () => void
-            const provideResponsePromise = new Promise<void>((resolve) => {
-                resolveProvideResponse = resolve
+            let resolveContinueResponse: () => void
+            const continueResponsePromise = new Promise<void>((resolve) => {
+                resolveContinueResponse = resolve
             })
             const browser = getResponseCollectionBrowserMock({}, {
-                networkProvideResponse: vi.fn().mockReturnValue(provideResponsePromise),
+                networkContinueResponse: vi.fn().mockReturnValue(continueResponsePromise),
                 networkRemoveIntercept: vi.fn().mockResolvedValue(undefined),
                 getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
             })
@@ -2035,14 +2047,14 @@ describe('WebDriverInterception', () => {
                 intercepts: ['mock-id']
             })
 
-            // provideResponse is still pending, so the request id must still be tracked
+            // continueResponse is still pending, so the request id must still be tracked
             // through restore even though reset()/clear() would otherwise wipe the set
             await mock.restore()
 
             expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
             expect(browser.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'mock-id' })
 
-            resolveProvideResponse!()
+            resolveContinueResponse!()
             delete SESSION_MOCKS['handle-1']
         })
 
@@ -2539,7 +2551,8 @@ describe('WebDriverInterception', () => {
             })
 
             expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
-            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueResponse).toHaveBeenCalledTimes(1)
+            expect(browser.networkProvideResponse).not.toHaveBeenCalled()
         })
 
         const responseOf = (request = 123) => ({
@@ -2559,7 +2572,8 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
-            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkProvideResponse).not.toHaveBeenCalled()
             expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 124 })
         })
@@ -2574,7 +2588,8 @@ describe('WebDriverInterception', () => {
             browser.emit('network.beforeRequestSent', { ...blockedBy(['mock-id-1']), request: { request: 124, url: TARGET_URL, method: 'GET', headers: [] } })
 
             expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
-            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkProvideResponse).not.toHaveBeenCalled()
             expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 124 })
         })
@@ -2590,7 +2605,8 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123, method: 'POST' })
             expect(browser.networkFailRequest).not.toHaveBeenCalled()
-            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueResponse).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkProvideResponse).not.toHaveBeenCalled()
         })
 
         it('lets a younger mock that answers win over an older one that only lets the request through', async () => {
@@ -2622,9 +2638,18 @@ describe('WebDriverInterception', () => {
                 return browser
             }
 
-            const respondedWith = (browser: WebdriverIO.Browser) => vi.mocked(browser.networkProvideResponse).mock.calls.map(
-                ([{ body }]) => body ? JSON.parse((body as { value: string }).value).from : 'continued'
-            )
+            // in order, the `from` of the mock that answered the request, or 'continued'
+            const respondedWith = (browser: WebdriverIO.Browser) => {
+                const provided = vi.mocked(browser.networkProvideResponse).mock
+                const continued = vi.mocked(browser.networkContinueResponse).mock
+                return [
+                    ...provided.calls.map(([{ body }], i) => [
+                        provided.invocationCallOrder[i],
+                        JSON.parse((body as { value: string }).value).from
+                    ]),
+                    ...continued.calls.map((_, i) => [continued.invocationCallOrder[i], 'continued'])
+                ].sort(([a], [b]) => a - b).map(([, answer]) => answer)
+            }
 
             const blockedIn = (intercepts: string[], context: string, request = 123) =>
                 ({ ...blockedBy(intercepts), request: { request, url: TARGET_URL, method: 'GET', headers: [] }, context })

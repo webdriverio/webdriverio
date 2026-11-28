@@ -6,7 +6,7 @@ import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
 import { encodeBase64, decodeBase64 } from '../base64.js'
-import { parseOverwrite, getPatternParam } from './utils.js'
+import { continueResponse, parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
 import type { MockFilterOptions, RequestWithOptions, RespondWithOptions, Response } from './types.js'
 import type { WaitForOptions } from '../../types.js'
@@ -490,7 +490,7 @@ export default class WebDriverInterception {
         }
 
         this.#emit('continue', requestId)
-        return this.#track(requestId, this.#browser.networkProvideResponse({ request: requestId }))
+        return this.#track(requestId, continueResponse(this.#browser, requestId))
     }
 
     #fail(queue: Overwrite[], requestId: string) {
@@ -625,7 +625,7 @@ export default class WebDriverInterception {
             `mock.respond() could not replace the response of request ${requestId}: ${err.message}. ` +
             `The page received the real response. ${reason}`
         )
-        return this.#browser.networkProvideResponse({ request: requestId }).catch(this.#handleNetworkProvideResponseError)
+        return continueResponse(this.#browser, requestId).catch(this.#handleNetworkProvideResponseError)
     }
 
     /**
@@ -706,7 +706,7 @@ export default class WebDriverInterception {
         }
         const decision = this.#restored ? undefined : this.#decide('responseStarted', event) as Decision | undefined
         if (!decision) {
-            void this.#track(requestId, this.#browser.networkProvideResponse({ request: requestId }))
+            void this.#track(requestId, continueResponse(this.#browser, requestId))
             return
         }
         try {

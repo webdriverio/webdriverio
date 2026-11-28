@@ -1,3 +1,6 @@
+import { createServer, type Server } from 'node:http'
+import { once } from 'node:events'
+import type { AddressInfo } from 'node:net'
 import { browser } from '@wdio/globals'
 
 describe('network mocking', () => {
@@ -175,6 +178,79 @@ describe('network mocking', () => {
         await browser.waitUntil(() => mock.calls.length >= 1, {
             timeoutMsg: 'Expected complex wildcard mock to be called',
             timeout: 5000
+        })
+    })
+
+    /**
+     * Chrome 158 drops the headers of a response that is let through with a bare
+     * `network.provideResponse`, and leaves one with an unknown status paused (#16498).
+     */
+    describe('lets a response through unchanged', () => {
+        let server: Server
+        let origin: string
+
+        before(async () => {
+            server = createServer((request, response) => {
+                if (request.url === '/') {
+                    response.setHeader('Content-Type', 'text/html')
+                    return response.end('<!doctype html><title>Page</title>')
+                }
+                const status = request.url === '/unknown-status' ? 299 : 201
+                // HTTP/2 has no status text: an empty one is the same for the browser
+                const statusText = request.url === '/no-status-text' ? '' : 'Custom Text'
+                response.writeHead(status, statusText, { 'Content-Type': 'application/json', 'X-Real': 'yes' })
+                response.end('{"real":true}')
+            })
+            server.listen(0, '127.0.0.1')
+            await once(server, 'listening')
+            origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
+        })
+
+        after(() => {
+            server?.close()
+            server?.closeAllConnections()
+        })
+
+        const fetchInPage = (url: string) => browser.execute(async (url) => {
+            const controller = new AbortController()
+            setTimeout(() => controller.abort(), 5000)
+            const response = await fetch(url, { cache: 'no-store', signal: controller.signal })
+            return {
+                status: response.status,
+                statusText: response.statusText,
+                contentType: response.headers.get('content-type'),
+                real: response.headers.get('x-real'),
+                body: await response.text()
+            }
+        }, url)
+
+        for (const [path, status, statusText] of [
+            ['/created', 201, 'Custom Text'],
+            ['/unknown-status', 299, 'Custom Text'],
+            ['/no-status-text', 201, '']
+        ] as const) {
+            it(`from a mock without respond() (${path})`, async () => {
+                await browser.url(origin)
+                const mock = await browser.mock(`${origin}${path}`)
+
+                expect(await fetchInPage(`${origin}${path}`)).toEqual({
+                    status,
+                    statusText,
+                    contentType: 'application/json',
+                    real: 'yes',
+                    body: '{"real":true}'
+                })
+                expect(mock.calls).toHaveLength(1)
+            })
+        }
+
+        it('from a mock whose respondOnce() is used', async () => {
+            await browser.url(origin)
+            const mock = await browser.mock(`${origin}/created`)
+            mock.respondOnce({ mocked: true }, { statusCode: 401 })
+
+            expect(await fetchInPage(`${origin}/created`)).toMatchObject({ status: 401, body: '{"mocked":true}' })
+            expect(await fetchInPage(`${origin}/created`)).toMatchObject({ status: 201, real: 'yes', body: '{"real":true}' })
         })
     })
 })
