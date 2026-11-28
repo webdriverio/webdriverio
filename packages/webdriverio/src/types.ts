@@ -87,10 +87,78 @@ interface ChainablePromiseBaseElement {
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
     ): Promise<TResult1 | TResult2>
 }
+/**
+ * element commands of a chain, declared one by one so that an editor does not
+ * offer them a second time as `(await chain).member`: TypeScript only skips a
+ * member the chain declares itself, not one that comes from a mapped type
+ * (tests/chainCompletions.test.ts fails if a command is missing here)
+ */
+interface ChainableElementCommands extends AsyncElementProto {
+    $: AsyncElementProto['$']
+    $$: AsyncElementProto['$$']
+    addValue: AsyncElementProto['addValue']
+    clearValue: AsyncElementProto['clearValue']
+    click: AsyncElementProto['click']
+    custom$: AsyncElementProto['custom$']
+    custom$$: AsyncElementProto['custom$$']
+    doubleClick: AsyncElementProto['doubleClick']
+    dragAndDrop: AsyncElementProto['dragAndDrop']
+    execute: AsyncElementProto['execute']
+    getAttribute: AsyncElementProto['getAttribute']
+    getCSSProperty: AsyncElementProto['getCSSProperty']
+    getComputedLabel: AsyncElementProto['getComputedLabel']
+    getComputedRole: AsyncElementProto['getComputedRole']
+    getElement: AsyncElementProto['getElement']
+    getHTML: AsyncElementProto['getHTML']
+    getLocation: AsyncElementProto['getLocation']
+    getProperty: AsyncElementProto['getProperty']
+    getSize: AsyncElementProto['getSize']
+    getTagName: AsyncElementProto['getTagName']
+    getText: AsyncElementProto['getText']
+    getValue: AsyncElementProto['getValue']
+    isClickable: AsyncElementProto['isClickable']
+    isDisplayed: AsyncElementProto['isDisplayed']
+    isEnabled: AsyncElementProto['isEnabled']
+    isEqual: AsyncElementProto['isEqual']
+    isExisting: AsyncElementProto['isExisting']
+    isFocused: AsyncElementProto['isFocused']
+    isSelected: AsyncElementProto['isSelected']
+    isStable: AsyncElementProto['isStable']
+    longPress: AsyncElementProto['longPress']
+    moveTo: AsyncElementProto['moveTo']
+    nextElement: AsyncElementProto['nextElement']
+    parentElement: AsyncElementProto['parentElement']
+    pinch: AsyncElementProto['pinch']
+    previousElement: AsyncElementProto['previousElement']
+    react$: AsyncElementProto['react$']
+    react$$: AsyncElementProto['react$$']
+    saveScreenshot: AsyncElementProto['saveScreenshot']
+    scrollIntoView: AsyncElementProto['scrollIntoView']
+    selectByAttribute: AsyncElementProto['selectByAttribute']
+    selectByIndex: AsyncElementProto['selectByIndex']
+    selectByVisibleText: AsyncElementProto['selectByVisibleText']
+    setFiles: AsyncElementProto['setFiles']
+    setValue: AsyncElementProto['setValue']
+    shadow$: AsyncElementProto['shadow$']
+    shadow$$: AsyncElementProto['shadow$$']
+    tap: AsyncElementProto['tap']
+    waitForClickable: AsyncElementProto['waitForClickable']
+    waitForDisplayed: AsyncElementProto['waitForDisplayed']
+    waitForEnabled: AsyncElementProto['waitForEnabled']
+    waitForExist: AsyncElementProto['waitForExist']
+    waitForStable: AsyncElementProto['waitForStable']
+    waitUntil: AsyncElementProto['waitUntil']
+    zoom: AsyncElementProto['zoom']
+}
+
 export interface ChainablePromiseElement extends
     ChainablePromiseBaseElement,
-    AsyncElementProto,
-    Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
+    ChainableElementCommands,
+    // extended directly instead of through `Omit`, same reason as above
+    ElementProperties,
+    ProtocolCommands,
+    // the rest: `EventEmitter` members, the element reference and custom commands
+    Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto | keyof ElementProperties | keyof ProtocolCommands> {}
 
 /**
  * Asynchronous equivalents of the ES5 `Array` iteration methods, available on
@@ -516,7 +584,11 @@ export interface CustomInstanceCommands<T> {
     ): void
 }
 
-interface InstanceBase extends EventEmitter, SessionFlags {
+/**
+ * instance members without the `EventEmitter` ones, those return `this` and
+ * would change type when extended directly
+ */
+interface InstanceProperties extends SessionFlags {
     /**
      * Session id for the current running session
      */
@@ -542,6 +614,8 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      */
     wdioRetries?: number
 }
+
+interface InstanceBase extends EventEmitter, InstanceProperties {}
 
 /**
  * a browser base that has everything besides commands which are defined for sync and async separately
@@ -569,13 +643,37 @@ interface BidiEventHandler {
 export interface Browser extends Omit<BrowserBase, 'on' | 'once'>, BidiEventHandler, BidiHandler, ProtocolCommands, BrowserCommandsType {}
 
 /**
- * export a browser interface that can be used for typing plugins
+ * properties an element shares with its chain (`$(...)` before `await`)
  */
-export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
+interface ElementProperties extends InstanceProperties, CustomInstanceCommands<WebdriverIO.Element> {
     /**
      * capabilities of the browser instance
      */
     capabilities: WebdriverIO.Capabilities
+    /**
+     * true if element is a React component
+     */
+    isReactElement?: boolean
+    /**
+     * true if element was queried from a shadow root
+     */
+    isShadowElement?: boolean
+    /**
+     * whether the element was queried with strict selector semantics, used to
+     * keep the same behavior when the element is re-fetched
+     */
+    strict?: boolean
+    /**
+     * locator of the element
+     * @requires WebDriver Bidi
+     */
+    locator?: remote.BrowsingContextLocator
+}
+
+/**
+ * export a browser interface that can be used for typing plugins
+ */
+export interface ElementBase extends InstanceBase, ElementReference, ElementProperties {
     /**
      * WebDriver element reference
      */
@@ -596,27 +694,9 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
     /**
-     * true if element is a React component
-     */
-    isReactElement?: boolean
-    /**
-     * true if element was queried from a shadow root
-     */
-    isShadowElement?: boolean
-    /**
-     * whether the element was queried with strict selector semantics, used to
-     * keep the same behavior when the element is re-fetched
-     */
-    strict?: boolean
-    /**
      * error response if element was not found
      */
     error?: Error
-    /**
-     * locator of the element
-     * @requires WebDriver Bidi
-     */
-    locator?: remote.BrowsingContextLocator
 }
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
