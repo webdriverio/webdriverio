@@ -28,7 +28,7 @@ export function looksLikeTypeScriptPath (value: string): boolean {
 }
 
 /**
- * Collect string paths from specs / suites / framework require options.
+ * Collect string paths from specs / suites / framework require, import, and helper options.
  */
 function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
     const paths: string[] = []
@@ -54,10 +54,12 @@ function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
         push(Object.values(config.suites))
     }
     push(config.mochaOpts?.require)
-    push((config.jasmineOpts as { require?: unknown, requires?: unknown } | undefined)?.requires)
-    push((config.jasmineOpts as { require?: unknown, requires?: unknown } | undefined)?.require)
+    push((config.jasmineOpts as { require?: unknown, requires?: unknown, helpers?: unknown } | undefined)?.requires)
+    push((config.jasmineOpts as { require?: unknown, requires?: unknown, helpers?: unknown } | undefined)?.require)
+    push((config.jasmineOpts as { helpers?: unknown } | undefined)?.helpers)
     push(config.cucumberOpts?.require)
     push(config.cucumberOpts?.requireModule)
+    push(config.cucumberOpts?.import)
 
     return paths
 }
