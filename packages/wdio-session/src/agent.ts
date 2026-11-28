@@ -36,8 +36,8 @@ export interface AgentSessionOptions {
      */
     cwd?: string
     /**
-     * directory for files actions write, e.g. screenshots
-     * (default: a new temporary directory)
+     * directory for files actions write, e.g. screenshots and snapshots
+     * (default: a new temporary directory removed by `dispose()`)
      */
     artifactsDir?: string
     /**
@@ -74,9 +74,11 @@ export interface AgentSessionOptions {
  */
 export class AgentSession {
     readonly session: Session
+    readonly #ownsArtifactsDir: boolean
 
-    constructor (session: Session) {
+    constructor (session: Session, opts: { ownsArtifactsDir?: boolean } = {}) {
         this.session = session
+        this.#ownsArtifactsDir = Boolean(opts.ownsArtifactsDir)
     }
 
     get browser () {
@@ -109,6 +111,7 @@ export class AgentSession {
         return {
             text: result.text ?? '',
             tree: data.tree!,
+            ...(data.file ? { file: data.file } : {}),
             lines: data.lines,
             refs: data.refs,
             chars: data.chars,
@@ -238,10 +241,20 @@ export class AgentSession {
     }
 
     /**
-     * stop event capture and other cleanup, the browser session stays open
+     * stop event capture and other cleanup (including a temporary
+     * `artifactsDir` created by `createAgentSession`), the browser session
+     * stays open
      */
     async dispose () {
         await this.session.dispose()
+        if (this.#ownsArtifactsDir) {
+            try {
+                fs.rmSync(this.session.artifactsDir, { recursive: true, force: true })
+            } catch {
+                // Best-effort temp cleanup: avoid failing teardown if files are locked or already gone
+                void 0
+            }
+        }
     }
 }
 
@@ -251,24 +264,37 @@ export class AgentSession {
 export async function createAgentSession (browser: WebdriverIO.Browser, opts: AgentSessionOptions = {}): Promise<AgentSession> {
     const name = opts.name || 'agent'
     const cwd = opts.cwd || process.cwd()
+    const ownsArtifactsDir = !opts.artifactsDir
     const artifactsDir = opts.artifactsDir || fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-agent-'))
-    const session = new Session({
-        name,
-        cwd,
-        artifactsDir,
-        runtimeDir: artifactsDir,
-        browser,
-        plan: attachedPlan(browser, { name, cwd, artifactsDir, runtimeDir: artifactsDir, target: 'agent' }),
-        persistHistory: false,
-        hint: opts.hint
-    })
-    if (opts.captureEvents) {
-        await startEventCapture(session)
-    } else if (opts.captureNetwork !== false) {
-        await startEventCapture(session, { logs: false }).catch(() => {})
+    try {
+        const session = new Session({
+            name,
+            cwd,
+            artifactsDir,
+            runtimeDir: artifactsDir,
+            browser,
+            plan: attachedPlan(browser, { name, cwd, artifactsDir, runtimeDir: artifactsDir, target: 'agent' }),
+            persistHistory: false,
+            hint: opts.hint
+        })
+        if (opts.captureEvents) {
+            await startEventCapture(session)
+        } else if (opts.captureNetwork !== false) {
+            await startEventCapture(session, { logs: false }).catch(() => {})
+        }
+        if (opts.recordPage) {
+            await installPageRecorder(session).catch(() => {})
+        }
+        return new AgentSession(session, { ownsArtifactsDir })
+    } catch (err) {
+        if (ownsArtifactsDir) {
+            try {
+                fs.rmSync(artifactsDir, { recursive: true, force: true })
+            } catch {
+                // Best-effort temp cleanup: preserve the original startup error
+                void 0
+            }
+        }
+        throw err
     }
-    if (opts.recordPage) {
-        await installPageRecorder(session).catch(() => {})
-    }
-    return new AgentSession(session)
 }

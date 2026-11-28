@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SnapshotNode } from '@wdio/snapshot'
 
-import { createAgentSession } from '../src/agent.js'
+import { createAgentSession, SessionError } from '../src/agent.js'
 import { IMPLEMENTATIONS } from '../src/actions/index.js'
 
 const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
@@ -69,11 +69,27 @@ describe('createAgentSession', () => {
         expect(fs.existsSync(path.join(artifactsDir, 'history.json'))).toBe(false)
     })
 
-    it('creates a temporary artifacts directory when none is given', async () => {
-        const agent = await createAgentSession(mockBrowser())
+    it('creates a temporary artifacts directory when none is given and removes it on dispose', async () => {
+        const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }))
         dirs.push(agent.session.artifactsDir)
         expect(fs.existsSync(agent.session.artifactsDir)).toBe(true)
         expect(agent.session.artifactsDir.startsWith(os.tmpdir())).toBe(true)
+        const snapshot = await agent.snapshot({ fileOnly: true })
+        expect(fs.existsSync(snapshot.file!)).toBe(true)
+
+        await agent.dispose()
+        expect(fs.existsSync(agent.session.artifactsDir)).toBe(false)
+    })
+
+    it('leaves a caller-supplied artifacts directory intact on dispose', async () => {
+        const artifactsDir = tmp()
+        const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
+        const snapshot = await agent.snapshot({ fileOnly: true })
+        expect(fs.existsSync(snapshot.file!)).toBe(true)
+
+        await agent.dispose()
+        expect(fs.existsSync(artifactsDir)).toBe(true)
+        expect(fs.existsSync(snapshot.file!)).toBe(true)
     })
 
     it('lists the actions that apply to the platform', async () => {
@@ -187,6 +203,7 @@ describe('createAgentSession', () => {
             const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
             const snapshot = await agent.snapshot({ interactive: true })
             expect(snapshot.text).toContain('button "Pay" [ref=e1]')
+            expect(snapshot.file).toBeUndefined()
             expect(snapshot).toMatchObject({ lines: 2, refs: 1, tooBig: false, page: { url: 'http://x/', title: 'Shop' } })
             expect(snapshot.tree.role).toBe('document')
             expect(snapshot.chars).toBe(snapshot.text.length)
@@ -194,13 +211,102 @@ describe('createAgentSession', () => {
             expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
         })
 
-        it('does not return a snapshot above maxChars, only its size', async () => {
-            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp() })
+        it('writes the full snapshot to a file when tooBig', async () => {
+            const artifactsDir = tmp()
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
             const snapshot = await agent.snapshot({ maxChars: 10 })
             expect(snapshot.tooBig).toBe(true)
-            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars: too big to return (max 10). Use \`wdio session find <text>\` or \`scope\`.`)
+            expect(snapshot.file?.startsWith(path.join(artifactsDir, 'snapshots'))).toBe(true)
+            expect(fs.existsSync(snapshot.file!)).toBe(true)
+            const written = fs.readFileSync(snapshot.file!, 'utf8')
+            expect(written).toContain('button "Pay" [ref=e1]')
+            expect(written.length).toBe(snapshot.chars + 1)
+            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars: too big to return (max 10). Full snapshot: ${snapshot.file}. Use \`wdio session find <text>\` or \`scope\`.`)
             expect(snapshot.tree.children).toHaveLength(1)
             expect(snapshot.refs).toBe(1)
+            expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
+        })
+
+        it('writes the snapshot and returns a summary when fileOnly is set', async () => {
+            const artifactsDir = tmp()
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir })
+            const snapshot = await agent.snapshot({ fileOnly: true, maxChars: 10 })
+            expect(snapshot.tooBig).toBe(false)
+            expect(snapshot.file?.startsWith(path.join(artifactsDir, 'snapshots'))).toBe(true)
+            expect(fs.existsSync(snapshot.file!)).toBe(true)
+            const written = fs.readFileSync(snapshot.file!, 'utf8')
+            expect(written).toContain('button "Pay" [ref=e1]')
+            expect(written.length).toBe(snapshot.chars + 1)
+            expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars → ${snapshot.file}`)
+            expect(snapshot.tree.role).toBe('document')
+            expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
+        })
+
+        it('writes only the scoped subtree when fileOnly and scope are combined', async () => {
+            const artifactsDir = tmp()
+            const scopeEl = { elementId: 'el-checkout' } as unknown as WebdriverIO.Element
+            const execute = vi.fn(async () => ({
+                tree: { role: 'region', name: 'Checkout', children: [pay] } as SnapshotNode,
+                refs: [{ id: 'e1', role: 'button', name: 'Pay', candidates: [{ selector: '#pay' }] }],
+                counter: 1
+            }))
+            const $ = vi.fn(() => ({ getElement: vi.fn(async () => scopeEl) }))
+            const agent = await createAgentSession(mockBrowser({
+                isBidi: false,
+                getUrl: vi.fn(async () => 'http://x/'),
+                getWindowHandles: vi.fn(async () => ['w1']),
+                execute,
+                $
+            }), { artifactsDir })
+            const snapshot = await agent.snapshot({ fileOnly: true, scope: '#checkout' })
+            expect($).toHaveBeenCalledWith('#checkout')
+            expect(execute).toHaveBeenCalledWith(expect.any(String), expect.any(String), scopeEl)
+            expect(snapshot.tooBig).toBe(false)
+            expect(snapshot.file).toBeDefined()
+            const written = fs.readFileSync(snapshot.file!, 'utf8')
+            expect(written).toContain('region "Checkout"')
+            expect(written).toContain('button "Pay" [ref=e1]')
+            expect(snapshot.text).toBe(`Snapshot: ${snapshot.lines} lines, 1 refs, ${snapshot.chars} chars → ${snapshot.file}`)
+            expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
+        })
+
+        it('throws a SessionError with a hint when fileOnly cannot write the snapshot file', async () => {
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp() })
+            const write = vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {
+                throw Object.assign(new Error('EROFS: read-only file system'), { code: 'EROFS' })
+            })
+            try {
+                let caught: unknown
+                try {
+                    await agent.snapshot({ fileOnly: true })
+                } catch (err) {
+                    caught = err
+                }
+                expect(caught).toBeInstanceOf(SessionError)
+                expect(caught).toMatchObject({
+                    code: 'INTERNAL',
+                    message: expect.stringContaining('Could not write snapshot'),
+                    hint: expect.stringContaining('artifactsDir')
+                })
+            } finally {
+                write.mockRestore()
+            }
+        })
+
+        it('falls back to the plain summary when tooBig cannot write the snapshot file', async () => {
+            const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp() })
+            const write = vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {
+                throw Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' })
+            })
+            try {
+                const snapshot = await agent.snapshot({ maxChars: 10 })
+                expect(snapshot.tooBig).toBe(true)
+                expect(snapshot.file).toBeUndefined()
+                expect(snapshot.text).toBe(`Snapshot: 2 lines, 1 refs, ${snapshot.chars} chars: too big to return (max 10). Use \`wdio session find <text>\` or \`scope\`.`)
+                expect(agent.ref('e1')?.candidates).toEqual(['#pay'])
+            } finally {
+                write.mockRestore()
+            }
         })
 
         it('names the hint of the caller in the summary', async () => {

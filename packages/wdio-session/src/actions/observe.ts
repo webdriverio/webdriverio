@@ -295,20 +295,55 @@ export const snapshot: ActionFn = async (session, args) => {
     }
     const opts = snapshotOptions(args)
     const { text, tree } = await takeSnapshot(session, opts)
-    if (args.$agent) {
-        const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
-        const lines = text.split('\n').length
-        const refs = countRefs(text)
-        const tooBig = agentMax !== undefined && text.length > agentMax
-        const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars: too big to return (max ${agentMax}). Use \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`scope\`.`
-        return { text: tooBig ? summary : text, data: { lines, refs, chars: text.length, tree, snapshot: text, tooBig } }
-    }
-    const file = session.artifact('snapshots', `${session.timestamp()}.yml`)
-    fs.writeFileSync(file, text + '\n')
-    // a whole number of characters, so the hints below repeat it as given
-    const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const lines = text.split('\n').length
     const refs = countRefs(text)
+    const writeSnapshot = () => {
+        let file: string | undefined
+        try {
+            file = session.artifact('snapshots', `${session.timestamp()}.yml`)
+            fs.writeFileSync(file, text + '\n')
+            return file
+        } catch (err) {
+            const where = file ?? (session.artifactsDir ? path.join(session.artifactsDir, 'snapshots') : 'snapshots')
+            throw new SessionError('INTERNAL', `Could not write snapshot to ${where}: ${(err as Error)?.message || String(err)}`, {
+                hint: session.plan?.target === 'agent'
+                    ? 'Check free disk space and permissions for `artifactsDir`, pass a writable `artifactsDir` to `createAgentSession`, or omit `fileOnly`.'
+                    : `Check free disk space and permissions for ${session.artifactsDir ?? 'the session artifacts directory'}.`,
+                cause: err
+            })
+        }
+    }
+    if (args.$agent) {
+        if (args.fileOnly) {
+            const file = writeSnapshot()
+            return {
+                text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`,
+                data: { file, lines, refs, chars: text.length, tree, snapshot: text, tooBig: false },
+                files: [file]
+            }
+        }
+        const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
+        const tooBig = agentMax !== undefined && text.length > agentMax
+        if (tooBig) {
+            let file: string | undefined
+            try {
+                file = writeSnapshot()
+            } catch {
+                file = undefined
+            }
+            const where = file ? ` Full snapshot: ${file}.` : ''
+            const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars: too big to return (max ${agentMax}).${where} Use \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`scope\`.`
+            return {
+                text: summary,
+                data: { ...(file ? { file } : {}), lines, refs, chars: text.length, tree, snapshot: text, tooBig: true },
+                ...(file ? { files: [file] } : {})
+            }
+        }
+        return { text, data: { lines, refs, chars: text.length, tree, snapshot: text, tooBig: false } }
+    }
+    const file = writeSnapshot()
+    // a whole number of characters, so the hints below repeat it as given
+    const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const data = { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) }
     if (args.fileOnly) {
         return { text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`, data, files: [file] }
