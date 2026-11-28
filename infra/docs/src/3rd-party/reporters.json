@@ -64,5 +64,12 @@
     "githubUrl": "https://github.com/serenity-js/serenity-js",
     "npmUrl": "https://www.npmjs.com/package/@serenity-js/html-reporter",
     "location": "packages/html-reporter/README.md"
+  },
+  {
+    "packageName": "wdio-qase-reporter",
+    "title": "Qase Reporter",
+    "githubUrl": "https://github.com/qase-tms/qase-javascript",
+    "npmUrl": "https://www.npmjs.com/package/wdio-qase-reporter",
+    "location": "qase-wdio/README.md"
   }
 ]
