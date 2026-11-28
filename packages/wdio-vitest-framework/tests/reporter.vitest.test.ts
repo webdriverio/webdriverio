@@ -1,11 +1,15 @@
 import fs from 'node:fs/promises'
+import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { startVitest } from 'vitest/node'
 
+import JsonReporter from '../../wdio-json-reporter/src/index.js'
+import JunitReporter from '../../wdio-junit-reporter/src/index.js'
 import { WdioBridgeReporter } from '../src/reporter.js'
+import { ATTACHMENT_DIR_KEY } from '../src/types.js'
 
 const SPEC = `
 test('top level', () => {})
@@ -172,4 +176,133 @@ beforeAll(() => { throw new Error('session boom') })
 afterAll(() => {})
 `)).toEqual([['"before all" hook in "{root}"', 'session boom']])
     })
+
+    it('reports test.fails outcomes accurately across afterTest, JUnit, and JSON reporters with real Vitest flip timing', async () => {
+        const server = http.createServer((req, res) => {
+            res.setHeader('Content-Type', 'application/json')
+            if (req.method === 'POST' && req.url === '/session') {
+                res.end(JSON.stringify({ value: { sessionId: 'sess-fails', capabilities: { browserName: 'chrome' } } }))
+                return
+            }
+            if (req.method === 'DELETE' && req.url === '/session/sess-fails') {
+                res.end(JSON.stringify({ value: null }))
+                return
+            }
+            res.statusCode = 404
+            res.end(JSON.stringify({ value: null }))
+        })
+        await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+        const { port } = server.address() as { port: number }
+        const runDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-vitest-fails-'))
+        const outDir = path.join(runDir, 'reports')
+        await fs.mkdir(outDir, { recursive: true })
+        const logPath = path.join(runDir, 'after-test.jsonl')
+        const confPath = path.join(runDir, 'wdio.conf.mjs')
+        const setupPath = path.resolve(import.meta.dirname, '../src/setup.ts')
+
+        await fs.writeFile(confPath, `
+import fs from 'node:fs/promises'
+export const config = {
+    protocol: 'http',
+    hostname: '127.0.0.1',
+    port: ${port},
+    path: '/',
+    logLevel: 'silent',
+    connectionRetryCount: 0,
+    capabilities: [{ browserName: 'chrome' }],
+    async afterTest(test, _context, result) {
+        await fs.appendFile(${JSON.stringify(logPath)}, JSON.stringify({
+            title: test.title,
+            passed: result.passed,
+            status: result.status,
+            error: result.error?.message ?? null,
+            attempts: result.retries.attempts
+        }) + '\\n')
+    }
+}
+`)
+        await fs.writeFile(path.join(runDir, 'fails.spec.mjs'), `
+let attempt = 0
+describe('test.fails', () => {
+    test.fails('expected failure', () => { throw new Error('expected boom') })
+    test.fails('unexpected pass', () => {})
+    test.fails('soft assertion failure', async () => { await expect.soft(1).toBe(2) })
+    test.fails('retry pass then fail', { retry: 1 }, () => {
+        if (attempt++ === 0) { return }
+        throw new Error('fail on retry')
+    })
+})
+`)
+
+        try {
+            const errors: unknown[] = []
+            const bridge = new WdioBridgeReporter({
+                outputDir: outDir,
+                reporters: [
+                    [JunitReporter, { outputDir: outDir }],
+                    [JsonReporter, { outputDir: outDir }]
+                ]
+            } as unknown as WebdriverIO.Config, () => {}, (err) => errors.push(err))
+
+            const vitest = await startVitest([], { run: true, watch: false, config: false }, {
+                root: runDir,
+                test: {
+                    include: ['fails.spec.mjs'],
+                    setupFiles: [setupPath],
+                    reporters: [bridge],
+                    pool: 'forks',
+                    globals: true,
+                    provide: {
+                        wdioConfigFile: confPath,
+                        wdioArgs: {},
+                        wdioCapabilities: { browserName: 'chrome' },
+                        wdioProjectIndex: 0,
+                        [ATTACHMENT_DIR_KEY]: null
+                    }
+                }
+            } as never)
+            const unhandled = vitest.state.getUnhandledErrors()
+            const modErrors = vitest.state.getTestModules().flatMap((m) => m.errors())
+            await vitest.close()
+
+            expect(unhandled).toEqual([])
+            expect(modErrors).toEqual([])
+            expect(errors).toEqual([])
+            const afterTests = (await fs.readFile(logPath, 'utf8'))
+                .trim()
+                .split('\n')
+                .map((line) => JSON.parse(line))
+            expect(afterTests).toEqual([
+                { title: 'expected failure', passed: true, status: 'passed', error: null, attempts: 0 },
+                { title: 'unexpected pass', passed: false, status: 'failed', error: 'Expect test to fail', attempts: 0 },
+                { title: 'soft assertion failure', passed: true, status: 'passed', error: null, attempts: 0 },
+                { title: 'retry pass then fail', passed: false, status: 'failed', error: 'Expect test to fail', attempts: 0 },
+                { title: 'retry pass then fail', passed: true, status: 'passed', error: null, attempts: 1 }
+            ])
+
+            const reportFiles = await fs.readdir(outDir)
+            const junitFile = reportFiles.find((file) => file.toLowerCase().includes('junit'))!
+            const jsonFile = reportFiles.find((file) => file.endsWith('.json'))!
+            expect(junitFile).toBeTruthy()
+            expect(jsonFile).toBeTruthy()
+
+            const xml = await fs.readFile(path.join(outDir, junitFile), 'utf8')
+            expect(xml).toContain('name="expected failure"')
+            expect(xml).toContain('name="soft assertion failure"')
+            expect(xml).toContain('name="retry pass then fail"')
+            expect(xml).toContain('Expect test to fail')
+            expect(xml.match(/<failure/g)).toHaveLength(1)
+
+            const jsonReport = JSON.parse(await fs.readFile(path.join(outDir, jsonFile), 'utf8'))
+            expect(jsonReport.state).toEqual({ passed: 3, failed: 1, skipped: 0 })
+            const jsonTests = jsonReport.suites.flatMap((suite: { tests: { name: string, state: string }[] }) => suite.tests)
+            expect(jsonTests.find((t: { name: string }) => t.name === 'expected failure')?.state).toBe('passed')
+            expect(jsonTests.find((t: { name: string }) => t.name === 'soft assertion failure')?.state).toBe('passed')
+            expect(jsonTests.find((t: { name: string }) => t.name === 'unexpected pass')?.state).toBe('failed')
+            expect(jsonTests.filter((t: { name: string, state: string }) => t.name === 'retry pass then fail').map((t: { state: string }) => t.state)).toContain('passed')
+        } finally {
+            server.close()
+            await fs.rm(runDir, { recursive: true, force: true })
+        }
+    }, 30_000)
 })

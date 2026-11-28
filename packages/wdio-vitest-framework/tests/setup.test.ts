@@ -42,7 +42,7 @@ vi.mock('@wdio/config/node', () => ({
     }
 }))
 const softFailure = vi.hoisted(() => new Error('1 soft assertion failure'))
-const soft = vi.hoisted(() => ({ options: undefined as unknown, error: undefined as unknown, instances: [] as unknown[], failures: new Map<string, string>() }))
+const soft = vi.hoisted(() => ({ options: undefined as unknown, error: undefined as unknown, instances: [] as unknown[], failures: new Map<string, string>(), afterTestCalls: 0 }))
 vi.mock('expect-webdriverio', () => ({
     expect: { name: 'wdio-expect' },
     setDefaultOptions: vi.fn(),
@@ -51,6 +51,7 @@ vi.mock('expect-webdriverio', () => ({
         getTestId(test: { file: string, parent: string, title: string }) { return `${test.file}:${test.parent}:${test.title}` }
         // mirrors expect-webdriverio: only a test without its own error asserts the recorded soft failures
         afterTest(test: { file: string, parent: string, title: string }, _: unknown, result: { error?: unknown }) {
+            soft.afterTestCalls++
             const id = this.getTestId(test)
             if (!result.error && soft.failures.has(id)) {
                 soft.failures.delete(id)
@@ -58,7 +59,17 @@ vi.mock('expect-webdriverio', () => ({
             }
         }
     },
-    SoftAssertService: { getInstance: () => ({ clearFailures: (id: string) => { soft.failures.delete(id) } }) }
+    SoftAssertService: {
+        getInstance: () => ({
+            clearFailures: (id: string) => { soft.failures.delete(id) },
+            assertNoFailures: (id: string) => {
+                if (soft.failures.has(id)) {
+                    soft.failures.delete(id)
+                    throw softFailure
+                }
+            }
+        })
+    }
 }))
 vi.mock('webdriverio', () => ({
     PARALLEL_CONTEXT_STORE_KEY: '__parallelContextStore',
@@ -88,6 +99,7 @@ describe('setup', () => {
         added.services = []
         soft.options = undefined
         soft.instances = []
+        soft.afterTestCalls = 0
         soft.error = undefined
         soft.failures.clear()
         args.value = { baseUrl: 'http://x' }
@@ -696,6 +708,111 @@ describe('setup', () => {
         it('marks skipped tests', async () => {
             await hooks.aroundEach(vi.fn(async () => {}), { task: { ...task(false, { state: 'skip' }).task, mode: 'skip' } })
             expect(afterTestResult()).toMatchObject({ skipped: true })
+        })
+
+        it('reports passed: true for a test.fails test that failed as expected', async () => {
+            const context = { task: { ...task(false, {}).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {
+                soft.failures.set('/repo/a.spec.ts::t', 'x')
+                Object.assign(context.task.result, { state: 'fail', errors: [new Error('expected boom')] })
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            expect(soft.failures.has('/repo/a.spec.ts::t')).toBe(false)
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'passed' })
+            expect(attempt?.payload).not.toHaveProperty('error')
+        })
+
+        it('settles soft failures for a test.fails test that only failed via expect.soft without invoking SoftAssertionService.afterTest directly', async () => {
+            const context = { task: { ...task(false, { state: 'pass' }).task, fails: true } }
+            await expect(hooks.aroundEach(vi.fn(async () => {
+                soft.failures.set('/repo/a.spec.ts::t', 'x')
+            }), context)).rejects.toBe(softFailure)
+            expect(soft.afterTestCalls).toBe(0)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            expect(soft.failures.has('/repo/a.spec.ts::t')).toBe(false)
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'passed' })
+            expect(attempt?.payload).not.toHaveProperty('error')
+        })
+
+        it('records retry attempts accurately for a test.fails test that passes on attempt 0 and fails on attempt 1', async () => {
+            const context = { task: { ...task(false, { state: 'run', retryCount: 0, errors: [] }).task, fails: true, retry: 1 } }
+            await hooks.aroundEach(vi.fn(async () => {
+                Object.assign(context.task.result, { state: 'pass' })
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: false, status: 'failed', exception: 'Expect test to fail', retries: { limit: 1, attempts: 0 } })
+
+            utils.executeHooksWithArgs.mockClear()
+            Object.assign(context.task.result, { state: 'run', retryCount: 1, errors: [new Error('Expect test to fail')] })
+            await hooks.aroundEach(vi.fn(async () => {
+                context.task.result.state = 'fail'
+                context.task.result.errors.push(new Error('expected on retry'))
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, retries: { limit: 1, attempts: 1 } })
+
+            const attempts = (context.task.meta['wdio:runtime'] as { event: string, retry: number, payload: any }[])
+                .filter(({ event }) => event === 'wdio:attempt')
+            expect(attempts).toHaveLength(2)
+            expect(attempts[0]).toMatchObject({ retry: 0, payload: { state: 'failed', error: { message: 'Expect test to fail' } } })
+            expect(attempts[1]).toMatchObject({ retry: 1, payload: { state: 'passed' } })
+            expect(attempts[1].payload).not.toHaveProperty('error')
+        })
+
+        it('reports passed: false for a test.fails test that did not fail', async () => {
+            const context = { task: { ...task(false, { state: 'pass' }).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {}), context)
+            expect(afterTestResult()).toMatchObject({
+                passed: false,
+                status: 'failed',
+                exception: 'Expect test to fail',
+                error: expect.objectContaining({ message: 'Expect test to fail' })
+            })
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({ state: 'failed', error: expect.objectContaining({ message: 'Expect test to fail' }) })
+        })
+
+        it('reports passed: false for a test.fails test that failed with a Vitest syntax error', async () => {
+            const syntaxError = Object.assign(new Error('invalid test syntax'), { __vitest_test_syntax_error__: true })
+            const context = { task: { ...task(false, {}).task, fails: true } }
+            await hooks.aroundEach(vi.fn(async () => {
+                Object.assign(context.task.result, { state: 'fail', errors: [syntaxError] })
+            }), context)
+            expect(afterTestResult()).toMatchObject({
+                passed: false,
+                status: 'failed',
+                exception: 'invalid test syntax',
+                error: syntaxError
+            })
+        })
+
+        it('marks a skipped test.fails test as passed and skipped', async () => {
+            await hooks.aroundEach(vi.fn(async () => {}), { task: { ...task(false, { state: 'skip' }).task, mode: 'skip', fails: true } })
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', skipped: true, error: undefined })
+        })
+
+        it('pins test.fails with a throwing afterEach: reports passed: true to afterTest while keeping the failed afterEach hook', async () => {
+            const context = { task: { ...task(false, { state: 'run', errors: [] }).task, fails: true } }
+            const bodyError = new Error('expected body error')
+            const afterEachError = new Error('after each failed')
+            await hooks.aroundEach(vi.fn(async () => {
+                Object.assign(context.task.result, {
+                    state: 'fail',
+                    hooks: { beforeEach: 'pass', afterEach: 'run' },
+                    errors: [bodyError, afterEachError]
+                })
+            }), context)
+            expect(afterTestResult()).toMatchObject({ passed: true, status: 'passed', error: undefined, exception: '' })
+            const attempt = (context.task.meta['wdio:runtime'] as { event: string, payload: any }[]).find(({ event }) => event === 'wdio:attempt')
+            expect(attempt?.payload).toMatchObject({
+                state: 'passed',
+                hooks: {
+                    beforeEach: { state: 'pass' },
+                    afterEach: { state: 'fail', error: expect.objectContaining({ message: 'after each failed' }) }
+                }
+            })
+            expect(attempt?.payload).not.toHaveProperty('error')
+            expect(attempt?.payload.hooks.afterEach).not.toHaveProperty('isAttemptError')
         })
     })
 

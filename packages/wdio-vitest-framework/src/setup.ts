@@ -303,6 +303,64 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
+function isTaskSkipped(task: RunnerTestCase) {
+    return task.mode === 'skip'
+        || task.result?.state === 'skip'
+        || Boolean((task.result as { pending?: boolean } | undefined)?.pending)
+}
+
+function getSoftTestId(test: { file: string, parent: string, title: string }) {
+    return softAssertions?.['getTestId'](test)
+}
+
+function clearSoftFailures(test: { file: string, parent: string, title: string }) {
+    const testId = getSoftTestId(test)
+    if (testId !== undefined) {
+        SoftAssertService.getInstance().clearFailures(testId)
+    }
+}
+
+function consumeSoftFailure(test: { file: string, parent: string, title: string }): unknown {
+    const testId = getSoftTestId(test)
+    if (!testId || config.autoAssertOnTestEnd === false) {
+        return undefined
+    }
+    try {
+        SoftAssertService.getInstance().assertNoFailures(testId)
+        return undefined
+    } catch (err) {
+        return err
+    }
+}
+
+function attemptOutcome(
+    task: RunnerTestCase,
+    errorsBefore: number,
+    softFailure?: unknown
+): { error: unknown, expectedFailure: boolean } {
+    const attemptErrors = task.result?.errors?.slice(errorsBefore)
+    if (!task.fails) {
+        return {
+            error: task.result?.state === 'fail' ? attemptErrors?.[0] ?? new Error('test failed') : undefined,
+            expectedFailure: false
+        }
+    }
+    if (task.result?.state === 'fail') {
+        const syntaxError = attemptErrors?.find((err) => (err as { __vitest_test_syntax_error__?: boolean })?.__vitest_test_syntax_error__)
+        return { error: syntaxError, expectedFailure: syntaxError === undefined }
+    }
+    if (isTaskSkipped(task)) {
+        return { error: undefined, expectedFailure: false }
+    }
+    if (softFailure !== undefined) {
+        return { error: undefined, expectedFailure: true }
+    }
+    return {
+        error: new Error('Expect test to fail'),
+        expectedFailure: false
+    }
+}
+
 /**
  * Vitest parses the source of a hook's second parameter for fixture names and rejects
  * anything but object destructuring without rest, so the context is read from `args`
@@ -316,7 +374,9 @@ aroundEach(async (...args) => {
     const errorsBefore = task.result?.errors?.length ?? 0
     let error: unknown
     let serviceError: unknown
+    let expectedSoftFailure: unknown
     let testRan = false
+    let expectedFailure = false
     const runAttempt = async () => {
         try {
             await executeHooksWithArgs('beforeTest', config.beforeTest, [test, context])
@@ -328,18 +388,25 @@ aroundEach(async (...args) => {
             testRan = true
             await runTest()
             // runTest() resolves even when the test fails; the outcome is on the task
-            error = task.result?.state === 'fail' ? task.result.errors?.slice(errorsBefore)[0] ?? new Error('test failed') : undefined
+            // and Vitest only flips task.result.state for test.fails after aroundEach returns
+            if (task.fails && task.result?.state !== 'fail' && !isTaskSkipped(task)) {
+                expectedSoftFailure = consumeSoftFailure(test)
+            }
+            ;({ error, expectedFailure } = attemptOutcome(task, errorsBefore, expectedSoftFailure))
         } catch (err) {
             error = err
             throw err
         } finally {
+            if (expectedFailure) {
+                clearSoftFailures(test)
+            }
             const report = {
                 error,
                 result: undefined,
                 passed: error === undefined,
                 duration: Date.now() - startedAt,
                 retries: { limit: typeof task.retry === 'number' ? task.retry : 0, attempts: task.result?.retryCount ?? 0 },
-                skipped: task.mode === 'skip' || task.result?.state === 'skip',
+                skipped: isTaskSkipped(task),
                 exception: error instanceof Error ? error.message : '',
                 status: error === undefined ? 'passed' : 'failed'
             }
@@ -347,13 +414,17 @@ aroundEach(async (...args) => {
             // afterTest services such as the soft assertion service report a failure by mutating the report
             if (error === undefined) {
                 serviceError = report.error
-            } else if (softAssertions) {
+            } else {
                 // the service skips asserting a test that already failed and leaves its failures for the retry to throw
-                SoftAssertService.getInstance().clearFailures(softAssertions['getTestId'](test))
+                clearSoftFailures(test)
             }
         }
         if (serviceError !== undefined) {
             throw serviceError
+        }
+        if (expectedSoftFailure !== undefined) {
+            // Throw so Vitest marks the test.fails attempt as failed and flips it to passed
+            throw expectedSoftFailure
         }
     }
     const runWithHooks = async () => {
