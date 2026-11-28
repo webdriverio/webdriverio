@@ -65,4 +65,23 @@ describe('exec context expect', () => {
             package: 'expect-webdriverio'
         }))
     })
+
+    it('routes $ and $$ selector queries to the held BiDi frame when active', async () => {
+        resolveOptionalDependency.mockResolvedValue(null)
+        const s = makeSession()
+        Object.assign(s.browser, {
+            $: vi.fn((sel: string) => `top:${sel}`),
+            $$: vi.fn((sel: string) => [`top:${sel}`])
+        })
+        const ctx = await getExecContext(s)
+        expect(vm.runInContext("$('h1')", ctx.context)).toBe('top:h1')
+        expect(vm.runInContext("$$('li')", ctx.context)).toEqual(['top:li'])
+
+        s.set('activeContext', {
+            $: (sel: string) => `frame:${sel}`,
+            $$: (sel: string) => [`frame:${sel}`]
+        })
+        expect(vm.runInContext("$('h2')", ctx.context)).toBe('frame:h2')
+        expect(vm.runInContext("$$('button')", ctx.context)).toEqual(['frame:button'])
+    })
 })

@@ -31,13 +31,22 @@ export function scopeOf (session: Session): WebdriverIO.Browser {
 }
 
 /**
+ * Variable name for the held browsing context when an earlier step declared
+ * one, or `browser` on the top-level page.
+ */
+export function scopeTarget (session: Session) {
+    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+    const name = held && session.get<{ names: Record<string, string> }>('contextVars')?.names[held.contextId]
+    return name || 'browser'
+}
+
+/**
  * Code that queries the held frame through the variable an earlier step
  * declared for it, e.g. `frame.$('…')`.
  */
-function inScope (session: Session, code: string) {
-    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
-    const name = held && session.get<{ names: Record<string, string> }>('contextVars')?.names[held.contextId]
-    return name ? `${name}.${code}` : code
+export function inScope (session: Session, code: string) {
+    const target = scopeTarget(session)
+    return target === 'browser' ? code : `${target}.${code}`
 }
 
 /**
