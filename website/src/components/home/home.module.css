@@ -546,6 +546,14 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     transform: rotate(45deg);
 }
 
+.frameworkLink {
+    white-space: nowrap;
+}
+
+.frameworkLink img {
+    vertical-align: text-bottom;
+}
+
 .platformCode :global(.theme-code-block) {
     margin: 0;
 }

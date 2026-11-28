@@ -14,5 +14,6 @@ $ npm run test:multi-remote
 # test suite with custom reporter
 $ npm run test:customReporter
 # component tests
+$ pnpm run test:angular
 $ npm run test:viteVue
 ```
