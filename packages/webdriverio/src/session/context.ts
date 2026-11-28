@@ -118,6 +118,16 @@ export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
 }
 
+/**
+ * A browser remains an instance of a multi-remote browser when its session
+ * manager is recreated by reloadSession().
+ */
+const multiRemoteInstances = new WeakSet<WebdriverIO.Browser>()
+
+export function registerMultiRemoteInstance(browser: WebdriverIO.Browser) {
+    multiRemoteInstances.add(browser)
+}
+
 export type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
 
 interface WindowSwitches {
@@ -725,6 +735,21 @@ export class ContextManager extends SessionManager {
     async switchToRemainingWindow (windowHandles?: string[]) {
         this.#currentWindowHandle = undefined
         if (!windowHandles?.length) {
+            this.#currentContext = undefined
+            this.#windowSwitches = undefined
+
+            /**
+             * Each multi-remote instance owns a separate session. Ending one
+             * must leave the other instances available to the test (#15043).
+             * A protocol failure rejects before this method is called.
+             */
+            if (multiRemoteInstances.has(this.#browser)) {
+                log.warn(
+                    `All windows of the multi-remote instance with session "${this.#browser.sessionId}" ` +
+                    'were closed, so its session ended. The other instances keep running.'
+                )
+                return
+            }
             throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
         }
         this.#currentContext = windowHandles[0]
