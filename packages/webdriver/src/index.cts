@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const esmModule = import('./node.js')
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const esmModule = require('./node.js')
 
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
     return async function protocolCommand(this: unknown, ...args: unknown[]) {
@@ -22,14 +23,13 @@ class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static async attachToSession (
+    static attachToSession (
         options?: any,
         modifier?: () => any,
         userPrototype = {},
         commandWrapper?: () => any
-    ): Promise<any> {
-        const WebDriver = (await esmModule).WebDriver
-        return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
+    ): any {
+        return esmModule.WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
 
     /**
