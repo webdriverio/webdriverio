@@ -244,9 +244,11 @@ Note: `logFile` must not be set, unless `stdout` is set to `true`.
 
 ### suiteNameFormat
 
-<Option type="Regex | Object" default="/[^a-zA-Z0-9@]+/">
+<Option type="Regex | Object" default="/[^\p{L}\p{M}\p{N}@]+/u">
 
 Format the generated name of a test suite, using custom regex or a function.
+
+The default regex splits a name on everything except letters, combining marks, digits and `@`, in any language. To keep only ASCII letters and digits, set it to `/[^a-zA-Z0-9@]+/`.
 
 The function accepts an object input parameter with the `name` and `suite` keys.
 
