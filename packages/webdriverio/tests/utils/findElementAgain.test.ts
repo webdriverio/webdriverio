@@ -1850,24 +1850,24 @@ describe('itemOf', () => {
     const FLAGS = { isShadowElement: false, isReactElement: false }
 
     it('gives the selector and the flags of the items of a list command', () => {
-        expect(itemOf('$$', '.item', [], browser)).toEqual({ selector: '.item', props: FLAGS })
-        expect(itemOf('shadow$$', '.item', [], element)).toEqual({ selector: '.item', props: { isShadowElement: true, isReactElement: false } })
+        expect(itemOf('$$', '.item', [], browser)).toEqual({ selector: '.item', props: { ...FLAGS, foundWith: '$$', queryProps: [] } })
+        expect(itemOf('shadow$$', '.item', [], element)).toEqual({ selector: '.item', props: { isShadowElement: true, isReactElement: false, foundWith: 'shadow$$', queryProps: [] } })
     })
 
     it('gives the React options of a react$$ list', () => {
         const reactOptions = { props: { a: 1 }, state: {} }
-        expect(itemOf('react$$', 'Item', [reactOptions], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true, reactOptions } })
-        expect(itemOf('react$$', 'Item', [], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true } })
+        expect(itemOf('react$$', 'Item', [reactOptions], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true, foundWith: 'react$$', queryProps: [reactOptions], reactOptions } })
+        expect(itemOf('react$$', 'Item', [], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true, foundWith: 'react$$', queryProps: [] } })
     })
 
     it('gives the strategy reference of a custom$$ item, with the element as its last argument', () => {
         expect(itemOf('custom$$', 'items', ['a'], browser)).toEqual({
             selector: { strategy, strategyName: 'items', strategyArguments: ['a'] },
-            props: FLAGS
+            props: { ...FLAGS, foundWith: 'custom$$', queryProps: ['a'] }
         })
         expect(itemOf('custom$$', 'items', ['a'], element)).toEqual({
             selector: { strategy, strategyName: 'items', strategyArguments: ['a', element] },
-            props: FLAGS
+            props: { ...FLAGS, foundWith: 'custom$$', queryProps: ['a'] }
         })
     })
 

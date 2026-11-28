@@ -27,7 +27,9 @@ async function findItemAgain (item: WebdriverIO.Element, parent: Scope): Promise
     const [notFound] = getElements.call(parent, item.selector, [error], {
         isReactElement: item.isReactElement,
         isShadowElement: item.isShadowElement,
-        reactOptions: (item as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS]
+        reactOptions: (item as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS],
+        foundWith: item.foundWith,
+        queryProps: item.props
     })
     notFound.index = item.index
     return notFound

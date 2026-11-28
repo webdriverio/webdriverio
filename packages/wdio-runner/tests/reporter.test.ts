@@ -48,6 +48,25 @@ describe('BaseReporter', () => {
         expect(withMethod.setContextIdResolver).toHaveBeenCalledWith(resolver)
     })
 
+    it('should hide the commands of the reporters only in a session that can send user command events', async () => {
+        const spy = vi.spyOn(await import('@wdio/utils'), 'runWithoutUserCommands')
+        const reporter = new BaseReporter({ reporters: [] } as unknown as WebdriverIO.Config, '0-0', capability)
+        const listener = { emit: vi.fn() }
+        reporter['_reporters'] = [listener] as any
+
+        reporter.emit('test:start', {})
+        expect(spy).toHaveBeenCalledTimes(1)
+
+        let sends = false
+        reporter.setUserCommandSession(() => sends)
+        reporter.emit('test:end', {})
+        expect(spy).toHaveBeenCalledTimes(1)
+        sends = true
+        reporter.emit('test:pass', {})
+        expect(spy).toHaveBeenCalledTimes(2)
+        expect(listener.emit.mock.calls.map(([event]) => event)).toEqual(['test:start', 'test:end', 'test:pass'])
+    })
+
     it('should make "dot" reporter default', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',

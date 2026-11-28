@@ -1,3 +1,5 @@
+import { runUserCommand } from '@wdio/utils'
+
 import { toBidiActions } from '../../utils/actions/base.js'
 import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
@@ -36,23 +38,32 @@ export async function actions (
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {
     const payload = actions.map((action) => action.toJSON())
-    if (isBrowsingContext(this)) {
-        await this.browser.inputPerformActions({
-            context: this.contextId,
+    // not wrapped as a command, see `ACTION_COMMANDS` in `@wdio/utils`
+    const types = payload.map((source) => source.actions.map((action) => action.type))
+    return runUserCommand(this, 'actions', [types], () => performAll(this, payload))
+}
+
+async function performAll (
+    scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
+    payload: ReturnType<KeyAction['toJSON']>[]
+) {
+    if (isBrowsingContext(scope)) {
+        await scope.browser.inputPerformActions({
+            context: scope.contextId,
             actions: toBidiActions(payload)
         })
-        await this.browser.inputReleaseActions({ context: this.contextId })
+        await scope.browser.inputReleaseActions({ context: scope.contextId })
         return
     }
     const parallelContext = getParallelContextStore().getStore()
     if (parallelContext) {
-        await this.inputPerformActions({
+        await scope.inputPerformActions({
             context: parallelContext,
             actions: toBidiActions(payload)
         })
-        await this.inputReleaseActions({ context: parallelContext })
+        await scope.inputReleaseActions({ context: parallelContext })
         return
     }
-    await this.performActions(payload)
-    await this.releaseActions()
+    await scope.performActions(payload)
+    await scope.releaseActions()
 }

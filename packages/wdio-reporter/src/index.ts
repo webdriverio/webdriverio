@@ -4,17 +4,26 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript } from './utils.js'
+import { appFileName, getErrorsFromEvent, hookCountsAsFailure, sanitizeCaps, isAfterEachHook, isContextlessAllHook, knownFramework, relativeSpecFile, specFilePath, transformCommandScript, userCommandError, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, functionLabelName } from './utils.js'
+import { userOutputReplacer } from './joinRepeats.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
 import HookStats, { isSkippedHook } from './stats/hook.js'
-import TestStats, { type Test } from './stats/test.js'
+import TestStats, { type Test, type Output, type UserCommandOutput, type UserResultOutput } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, AfterUserCommandArgs, BeforeUserCommandArgs, ContextEnd, Tag, Argument, ReporterUnit, HookKind } from './types.js'
 import { Unit } from './units.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
+
+// the producer cuts a long script at 1024 characters and writes the size of the full script: keep that size
+const CUT_SCRIPT = /^([\s\S]{1024})… \[(\d+) bytes\]$/
+const userScript = (script: string) => {
+    const cut = CUT_SCRIPT.exec(script)
+    const label = transformCommandScript(cut ? cut[1] : script) as string
+    return cut ? label.replace(/\[\d+ bytes\]$/, `[${cut[2]} bytes]`) : label
+}
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -57,6 +66,17 @@ export default class WDIOReporter extends EventEmitter {
     // the open hooks with hookKind of each sequential unit: a scenario gets their calls before its first step
     #openUnitHooks = new Map<Unit, HookStats[]>()
     #getCommandTarget: (payload: { contextId?: string }) => TestStats | HookStats | undefined = () => undefined
+    // the owner of each open user command, from its start
+    #userCommandOwners = new Map<number, TestStats | HookStats | undefined>()
+    // the hidden protocol commands that wait for their result
+    #hiddenChildren = new Map<string, number>()
+    // the owner of each ended user command of the suite: a late call (a waitUntil condition after its timeout) is no
+    // excluded one while that owner runs
+    #endedUserCommands = new Map<number, TestStats | HookStats | undefined>()
+    // the nested user commands that started after the end of their test: no methods, their protocol commands hidden
+    #lateUserCommands = new Set<number>()
+    // the user commands that started after the end of their owner (an afterEach hook): not late
+    #afterEndUserCommands = new Set<number>()
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -149,8 +169,64 @@ export default class WDIOReporter extends EventEmitter {
         rootSuite.isRoot = true
         this.currentSuites.push(rootSuite)
 
-        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => this.#callForCommand(payload, () => this.onBeforeCommand(payload)))
-        this.on('client:afterCommand', (payload: AfterCommandArgs) => this.#callForCommand(payload, () => this.onAfterCommand(payload)))
+        // one listener for each event: the hiding rule counts each event one time
+        this.on('client:beforeCommand', (payload: BeforeCommandArgs) => {
+            if (this.#hidesCommand(payload)) {
+                return
+            }
+            this.#callForCommand(payload, () => this.onBeforeCommand(payload))
+            this.#addCommandEntry(getCommandTarget(payload), payload, 'command')
+        })
+        this.on('client:afterCommand', (payload: AfterCommandArgs) => {
+            if (this.#hidesCommand(payload)) {
+                return
+            }
+            this.#callForCommand(payload, () => this.onAfterCommand(payload))
+            this.#addCommandEntry(getCommandTarget(payload), payload, 'result')
+        })
+        this.on('client:beforeUserCommand', (payload: BeforeUserCommandArgs) => {
+            if (!this.showsUserCommands) {
+                return
+            }
+            // the owner at the start: a result after the end of its test (a test timeout) stays in that test;
+            // a nested user command has the owner of its parent
+            const runBy = payload.parent ?? payload.owner
+            const owner = runBy !== undefined && this.#userCommandOwners.has(runBy)
+                ? this.#userCommandOwners.get(runBy)
+                : getCommandTarget(payload)
+            this.#userCommandOwners.set(payload.id, owner)
+            if (owner?.end && (runBy === undefined || this.#afterEndUserCommands.has(runBy))) {
+                this.#afterEndUserCommands.add(payload.id)
+            }
+            // a nested call of a test that ended (an abandoned poll): only its entry, in that test
+            const unit = owner && this.#unitOfStats.get(owner)
+            if (owner?.end && !this.#afterEndUserCommands.has(payload.id)) {
+                this.#lateUserCommands.add(payload.id)
+            } else if (unit) {
+                this.#call(unit, () => this.onBeforeUserCommand(payload))
+            } else {
+                this.#callForCommand(payload, () => this.onBeforeUserCommand(payload))
+            }
+            this.#addUserEntry(owner, payload, 'userCommand')
+        })
+        this.on('client:afterUserCommand', (payload: AfterUserCommandArgs) => {
+            if (!this.showsUserCommands) {
+                return
+            }
+            const known = this.#userCommandOwners.has(payload.id)
+            const owner = known ? this.#userCommandOwners.get(payload.id) : getCommandTarget(payload)
+            this.#userCommandOwners.delete(payload.id)
+            this.#endedUserCommands.set(payload.id, owner)
+            const unit = owner && this.#unitOfStats.get(owner)
+            // a late nested call: its start called no method either
+            const late = this.#lateUserCommands.delete(payload.id)
+            if (!late && unit) {
+                this.#call(unit, () => this.onAfterUserCommand(payload))
+            } else if (!late) {
+                this.#callForCommand(payload, () => this.onAfterUserCommand(payload))
+            }
+            this.#addUserEntry(owner, payload, 'userResult')
+        })
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
@@ -461,6 +537,8 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('suite:end', (suite: Suite) => {
             this.#endEndedTestUnit()
+            this.#endedUserCommands.clear()
+            this.#afterEndUserCommands.clear()
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             const index = this.currentSuites.lastIndexOf(suiteStat)
@@ -484,6 +562,11 @@ export default class WDIOReporter extends EventEmitter {
         this.on('runner:end', (runner: Options.RunnerEnd) => {
             try {
                 this.#openAllHooks.clear()
+                this.#userCommandOwners.clear()
+                this.#hiddenChildren.clear()
+                this.#endedUserCommands.clear()
+                this.#lateUserCommands.clear()
+                this.#afterEndUserCommands.clear()
                 rootSuite.complete()
                 for (const unit of [...this.#units.values(), ...(this.#seqUnit ? [this.#seqUnit] : [])]) {
                     this.#endUnit(unit)
@@ -503,36 +586,84 @@ export default class WDIOReporter extends EventEmitter {
                 fs.unlinkSync(logFile)
             }
         })
+    }
 
-        /**
-         * browser client event handlers
-         */
-        this.on('client:beforeCommand', (payload) => {
-            const target = getCommandTarget(payload)
-            if (!target) {
-                return
+    #addCommandEntry(target: TestStats | HookStats | undefined, payload: BeforeCommandArgs | AfterCommandArgs, type: 'command' | 'result') {
+        if (!target) {
+            return
+        }
+        const entry = payload as BeforeCommandArgs & { body?: { script?: string } }
+        if (entry.body?.script) {
+            entry.body = {
+                ...entry.body,
+                script: transformCommandScript(entry.body.script)
             }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
-                }
+        }
+        (target.output ??= []).push(Object.assign(payload, { type }) as never)
+    }
+
+    // a copy: the runner sends the same payload to every reporter
+    #addUserEntry(owner: TestStats | HookStats | undefined, payload: BeforeUserCommandArgs | AfterUserCommandArgs, type: 'userCommand' | 'userResult') {
+        if (!owner) {
+            return
+        }
+        const body = payload.command === 'execute' && Array.isArray(payload.body) && payload.body.length > 0 && functionLabelName(payload.body[0]) === undefined
+            ? [userScript(payload.body[0] as string), ...payload.body.slice(1)]
+            : payload.body
+        const entry: UserCommandOutput | UserResultOutput = type === 'userCommand'
+            ? { ...payload, body, type }
+            : { ...payload as AfterUserCommandArgs, body, type }
+        // user entries are not protocol entries: reporters narrow them with the guards
+        ;(owner.output ??= []).push(entry as unknown as Output)
+    }
+
+    /**
+     * `true` when the reporter overrides `onBeforeUserCommand` or `onAfterUserCommand`: it then gets the user
+     * commands, and the protocol commands that a user command runs get its id as `parent` (see `hidesProtocolCommands`).
+     * @experimental the name and the rule may change
+     */
+    protected get showsUserCommands(): boolean {
+        return this.onBeforeUserCommand !== WDIOReporter.prototype.onBeforeUserCommand
+            || this.onAfterUserCommand !== WDIOReporter.prototype.onAfterUserCommand
+    }
+
+    /**
+     * `true` hides the protocol commands that a user command runs from a reporter that shows user commands. By
+     * default they are kept, with their `parent`, so the reporter can show them as children of the user command.
+     * @experimental the name and the rule may change
+     */
+    protected get hidesProtocolCommands(): boolean {
+        return false
+    }
+
+    // a screenshot event has no parent: reporters take screenshots from it
+    #hidesCommand(payload: CommandArgs) {
+        if (payload.parent === undefined || !this.showsUserCommands) {
+            return false
+        }
+        // the user command replaces the old events of its custom command
+        if (this.hidesProtocolCommands || payload.custom) {
+            return true
+        }
+        const key = `${payload.parent}:${payload.command}:${payload.method ?? ''}`
+        if ('result' in payload) {
+            // the result of a hidden command, also when it comes after the result of the user command
+            const open = this.#hiddenChildren.get(key) ?? 0
+            if (open > 1) {
+                this.#hiddenChildren.set(key, open - 1)
+            } else {
+                this.#hiddenChildren.delete(key)
             }
-            (target.output ??= []).push(Object.assign(payload, { type: 'command' }))
-        })
-        this.on('client:afterCommand', (payload) => {
-            const target = getCommandTarget(payload)
-            if (!target) {
-                return
-            }
-            if (payload.body?.script) {
-                payload.body = {
-                    ...payload.body,
-                    script: transformCommandScript(payload.body.script)
-                }
-            }
-            (target.output ??= []).push(Object.assign(payload, { type: 'result' }))
-        })
+            return open > 0
+        }
+        // a user command with no entry: excluded, sent to no listener, or with an owner that ended (else the call goes to the next test)
+        const open = this.#userCommandOwners.has(payload.parent)
+        const owner = open ? this.#userCommandOwners.get(payload.parent) : this.#endedUserCommands.get(payload.parent)
+        if (!this.#lateUserCommands.has(payload.parent) && (open || owner) && (!owner?.end || this.#afterEndUserCommands.has(payload.parent))) {
+            return false
+        }
+        this.#hiddenChildren.set(key, (this.#hiddenChildren.get(key) ?? 0) + 1)
+        return true
     }
 
     /**
@@ -810,6 +941,17 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerStart(_runnerStats: RunnerStats) { }
     onBeforeCommand(_commandArgs: BeforeCommandArgs) { }
     onAfterCommand(_commandArgs: AfterCommandArgs) { }
+    /**
+     * A user command starts: a command that the test code calls directly (a WebdriverIO command or a custom
+     * command). WebDriver BiDi sessions only. Override it or `onAfterUserCommand` to get user commands.
+     * @experimental the name and the payload may change
+     */
+    onBeforeUserCommand(_payload: BeforeUserCommandArgs) { }
+    /**
+     * A user command ends, with its `result`: `{ value }` or `{ error }`. WebDriver BiDi sessions only.
+     * @experimental the name and the payload may change
+     */
+    onAfterUserCommand(_payload: AfterUserCommandArgs) { }
     onBeforeAssertion(_assertionArgs: unknown) { }
     onAfterAssertion(_assertionArgs: unknown) { }
     onSuiteStart(_suiteStats: SuiteStats) { }
@@ -921,5 +1063,9 @@ function getSessionNames(capabilities: unknown, isMultiRemote = false): string[]
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, ReporterUnit, HookKind
+    AfterCommandArgs, CommandArgs, BeforeUserCommandArgs, AfterUserCommandArgs, ContextEnd, Argument, Test, getBrowserName, getBrowserNames, getSessionNames, getSessions, sanitizeCaps, knownFramework, relativeSpecFile, specFilePath, hookCountsAsFailure, isContextlessAllHook, userCommandError, userOutputReplacer, isUserCommandOutput, isUserResultOutput, userCommandTitle, userCommandTitleIsCut, elementQueryText, isNoDataResult, inlineResult, compactRequest, resolvedPath, userCommandTexts, ReporterUnit, HookKind
 }
+export type { Output, UserCommandOutput, UserResultOutput } from './stats/test.js'
+export type { ElementPlaceholder } from './utils.js'
+export { joinRepeats, userCommandTree, joinUserCommandTree, joinedOutputReplacer } from './joinRepeats.js'
+export type { UserCommandNode } from './joinRepeats.js'
