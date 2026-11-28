@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 export class ConfigParser {
     addService = vi.fn()
     initialize = vi.fn()
+    clearSpecCache = vi.fn()
     addConfigFile = vi.fn()
     merge = vi.fn()
     autoCompile = vi.fn()
