@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { SevereServiceError } from 'webdriverio'
 import logger from '@wdio/logger'
-import type { Services, Options, Reporters } from '@wdio/types'
+import type { Services, Options, Reporters, Capabilities } from '@wdio/types'
 import type { AppiumServiceConfig } from '../types.js'
 import type { CommandTiming } from './types.js'
 import {
@@ -44,10 +44,23 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         'findElements'
     ])
 
+    private _capabilities?: Capabilities.ResolvedTestrunnerCapabilities
+    private _config?: Options.Testrunner
+
     constructor(
         private _options: AppiumServiceConfig,
-        private _config?: Options.Testrunner
+        capabilities?: Capabilities.ResolvedTestrunnerCapabilities | Options.Testrunner,
+        config?: Options.Testrunner
     ) {
+        if (config) {
+            this._capabilities = capabilities as Capabilities.ResolvedTestrunnerCapabilities
+            this._config = config
+        } else if (capabilities && ('outputDir' in (capabilities as Record<string, unknown>) || 'reporters' in (capabilities as Record<string, unknown>) || 'specs' in (capabilities as Record<string, unknown>))) {
+            this._config = capabilities as Options.Testrunner
+        } else {
+            this._capabilities = capabilities as Capabilities.ResolvedTestrunnerCapabilities
+        }
+
         const trackConfig = _options.trackSelectorPerformance
 
         if (trackConfig !== undefined && trackConfig !== null) {
