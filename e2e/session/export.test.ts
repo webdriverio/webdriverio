@@ -47,7 +47,7 @@ describe('wdio session history and export', () => {
     beforeAll(async () => {
         server = await startServer()
         project = createProject('export')
-        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'))
+        fs.symlinkSync(path.resolve(__dirname, '..', 'node_modules'), path.join(project.dir, 'node_modules'), 'junction')
         await run('open', 'chrome', `${server.url}/cart.html`)
     }, 60_000)
 
@@ -79,6 +79,7 @@ describe('wdio session history and export', () => {
         await run('exec', '-e', "expect((await $$('#products > li')).length).toBe(2)")
         await run('exec', '-e', "const select = $$; expect((await select('#products > li')).length).toBe(2)")
         await run('exec', '-e', "const size: number = (await $$ /* comment */ ('#products > li')).length; expect(size).toBe(2)")
+        await run('exec', '-e', "expect(await browser.execute(() => { const $ = (selector: string) => document.querySelector(selector); return $('#products')?.children.length })).toBe(2)")
         await run('exec', '-e', "const savedSelect = $$; $$ = (...args) => savedSelect(...args); expect((await $$('#products > li')).length).toBe(2)")
 
         const spec = path.join(project.dir, 'cart.e2e.ts')
