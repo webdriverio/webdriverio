@@ -172,6 +172,12 @@ export const config = {
     // bail (default is 0 - don't bail, run all tests).
     bail: 0,
     //
+    // Stop the test run once it took longer than this many milliseconds, counted from the start
+    // of the first spec file. Running spec files are ended and onComplete hooks still run, so
+    // reporters can write their results before e.g. a CI job timeout kills the process
+    // (default is 0 - no limit).
+    globalTimeout: 0,
+    //
     // Set a base URL in order to shorten `url()` command calls. If your `url` parameter starts
     // with `/`, the `baseUrl` is prepended, not including the path portion of `baseUrl`.
     //
