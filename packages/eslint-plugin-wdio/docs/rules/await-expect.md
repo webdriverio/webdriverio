@@ -13,6 +13,7 @@ describe('my feature', () => {
         expect(browser).toHaveTitle('Foobar');
         expect($('#spinner')).not.toBeDisplayed();
         expect.soft($('h1')).toHaveText('Welcome');
+        expect(browser).toMatchScreenSnapshot('home');
     });
 });
 ```
@@ -26,6 +27,7 @@ describe('my feature', () => {
         await expect(browser).toHaveTitle('Foobar');
         await expect($('#spinner')).not.toBeDisplayed();
         await expect.soft($('h1')).toHaveText('Welcome');
+        await expect(browser).toMatchScreenSnapshot('home');
     });
 });
 ```
