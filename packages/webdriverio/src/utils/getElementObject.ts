@@ -1,4 +1,4 @@
-import { shareCommands, unwrapCommand, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { shareCommands, unwrapCommand, webdriverMonad, wrapCommand, CUSTOM_ELEMENT_COMMANDS } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -58,7 +58,7 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
          * filter out browser commands from object
          */
         ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-            if (!browserCommandKeys.includes(name)) {
+            if (!browserCommandKeys.includes(name) || CUSTOM_ELEMENT_COMMANDS.has(descriptor.value)) {
                 // the browser wrapped its commands: the element wraps the command itself, so its hooks run once
                 if ('value' in descriptor) {
                     descriptor.value = unwrapCommand(descriptor.value)
