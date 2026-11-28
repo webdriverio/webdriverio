@@ -31,7 +31,7 @@ describe('my feature', () => {
 
 An object containing:
 
-- `instances`: **string[]** name of instances to check, default is `["browser"]`, this is useful if you are using [multi-remote](https://webdriver.io/docs/multiremote) instances.
+- `instances`: **string[]** name of instances to check, default is `["browser", "driver"]`, this covers both the `browser` and `driver` variables (e.g. in hybrid app tests). Set it to a custom list if you are using [multi-remote](https://webdriver.io/docs/multiremote) instances.
 
 ### Config examples
 

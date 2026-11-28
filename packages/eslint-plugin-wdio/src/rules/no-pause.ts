@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint'
-import { isCommand } from '../utils/helpers.js'
+import { getCommandInstance } from '../utils/helpers.js'
 
 const rule: Rule.RuleModule = {
     meta: {
@@ -10,7 +10,7 @@ const rule: Rule.RuleModule = {
             recommended: false,
         },
         messages: {
-            unexpectedPause: 'Unexpected browser.pause() not allowed'
+            unexpectedPause: 'Unexpected {{ instance }}.pause() not allowed'
         },
         hasSuggestions: true,
         schema: [{
@@ -21,8 +21,8 @@ const rule: Rule.RuleModule = {
                     items: {
                         type: 'string',
                     },
-                    description: 'List of browser instances to check (default: ["browser"])',
-                    default: ['browser'],
+                    description: 'List of browser instances to check (default: ["browser", "driver"])',
+                    default: ['browser', 'driver'],
                 },
             },
             additionalProperties: false,
@@ -31,14 +31,15 @@ const rule: Rule.RuleModule = {
 
     create: function (context: Rule.RuleContext): Rule.RuleListener {
         const options = context.options[0] || {}
-        const instances = options.instances || ['browser']
+        const instances = options.instances || ['browser', 'driver']
         return {
             CallExpression(node): void {
-                if (isCommand(node, 'pause', instances)) {
+                const instance = getCommandInstance(node, 'pause', instances)
+                if (instance) {
                     context.report({
                         node,
                         messageId: 'unexpectedPause',
-                        data: { instance: instances.join(', ') }
+                        data: { instance }
                     })
                 }
             }
