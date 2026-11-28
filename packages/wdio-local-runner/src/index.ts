@@ -118,6 +118,16 @@ export default class LocalRunner {
             await worker.postMessage('endSession', payload)
         }
 
+        const countBusyWorker = () => Object.values(this.workerPool).filter((worker) => worker.isBusy).length
+
+        /**
+         * no worker to wait for, e.g. at the end of a run: don't wait for the first check
+         */
+        if (countBusyWorker() === 0) {
+            log.info('shutting down')
+            return true
+        }
+
         const shutdownResult = await new Promise<boolean>((resolve) => {
             const timeout = setTimeout(() => {
                 /**
@@ -135,9 +145,7 @@ export default class LocalRunner {
                 resolve(false)
             }, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
-                const busyWorker = Object.entries(this.workerPool).filter(
-                    ([, worker]) => worker.isBusy
-                ).length
+                const busyWorker = countBusyWorker()
 
                 log.info(`Waiting for ${busyWorker} to shut down gracefully`)
                 if (busyWorker === 0) {
