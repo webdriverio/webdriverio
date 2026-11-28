@@ -16,8 +16,11 @@ import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdF
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import { failedRequestNote, networkMark } from './network-notes.js'
 import { botCheckNote, detectBotCheck, detectLoadError } from './actions/botcheck.js'
+import type { ExecOptions } from './exec/context.js'
 import type { AgentActionResult, PageChange, PageInfo } from './agent/types.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
+
+export type { ExecOptions }
 
 const log = logger('@wdio/session')
 
@@ -87,6 +90,7 @@ export interface SessionInit {
      */
     persistHistory?: boolean
     hint?: HintFormatter
+    exec?: ExecOptions
 }
 
 export interface ActionOutcome extends ActionResult {
@@ -109,6 +113,7 @@ export class Session {
     readonly runtimeDir: string
     readonly plan: OpenPlan
     readonly cmd: Cmd
+    readonly execOptions?: ExecOptions
     browser: WebdriverIO.Browser
     history: History
     refs = new RefRegistry({
@@ -162,6 +167,7 @@ export class Session {
         this.browser = init.browser
         this.plan = init.plan
         this.cmd = cmdWith(init.hint)
+        this.execOptions = init.exec
         fs.mkdirSync(this.artifactsDir, { recursive: true })
         this.history = new History(this.artifactsDir, { keep: init.keepHistory, persist: init.persistHistory })
     }

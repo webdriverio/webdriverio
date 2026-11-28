@@ -14,6 +14,15 @@ import { scopeOf } from '../snapshot/target.js'
 
 export type ConsoleSink = (line: string) => void
 
+export interface ExecOptions {
+    /**
+     * Omit `process`, `fetch` (and its classes), `Buffer` and `import()` from
+     * the `exec` context so agent code cannot write to host stdout or read
+     * `process.env` by accident. Not a security sandbox (default `false`).
+     */
+    restricted?: boolean
+}
+
 export interface ExecContext {
     context: vm.Context
     /**
@@ -88,7 +97,8 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
     if (existing) {
         return existing
     }
-    const waitforTimeout = (session.browser.options as { waitforTimeout?: number }).waitforTimeout
+    const waitforTimeout = (session.browser.options as { waitforTimeout?: number } | undefined)?.waitforTimeout
+    const restricted = Boolean(session.execOptions?.restricted)
     const expectEntry = await resolveOptionalDependency(EXPECT_PACKAGE, { cwd: session.cwd, from: import.meta.url })
     /**
      * some matchers read the global browser object
@@ -178,8 +188,11 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
             }
         },
         console: capturedConsole,
-        [IMPORT_FN]: (specifier: string) => importFrom(baseDir, specifier),
-        process,
+        [IMPORT_FN]: restricted
+            ? async (specifier: string) => {
+                throw new Error(`Imports are disabled in restricted exec mode (cannot import '${specifier}')`)
+            }
+            : (specifier: string) => importFrom(baseDir, specifier),
         setTimeout,
         clearTimeout,
         setInterval,
@@ -188,14 +201,8 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         clearImmediate,
         queueMicrotask,
         structuredClone,
-        fetch,
-        Headers,
-        Request,
-        Response,
-        FormData,
         URL,
         URLSearchParams,
-        Buffer,
         TextEncoder,
         TextDecoder,
         AbortController,
@@ -203,7 +210,18 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         atob,
         btoa,
         performance,
-        crypto: globalThis.crypto
+        crypto: globalThis.crypto,
+        ...(restricted
+            ? {}
+            : {
+                process,
+                fetch,
+                Headers,
+                Request,
+                Response,
+                FormData,
+                Buffer
+            })
     }
     // expect-webdriverio is an optional peer: loaded on first use of `expect`, not at startup.
     // A Proxy rather than a getter: errors thrown by a global's getter are swallowed by the vm context.

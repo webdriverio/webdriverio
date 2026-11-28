@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SnapshotNode } from '@wdio/snapshot'
 
-import { createAgentSession } from '../src/agent.js'
+import { SessionError, createAgentSession } from '../src/agent.js'
 import { IMPLEMENTATIONS } from '../src/actions/index.js'
 
 const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
@@ -336,6 +336,45 @@ describe('createAgentSession', () => {
             const hint = (command: string) => command === 'snapshot' ? 'snapshot_tool' : undefined
             const agent = await createAgentSession(pageBrowser({ url: 'http://x/', tree: document('Shop', [pay]) }), { artifactsDir: tmp(), hint })
             await expect(agent.run('click', { target: 'e99' })).rejects.toMatchObject({ code: 'REF_NOT_FOUND', hint: 'Run `snapshot_tool` to get refs.' })
+        })
+    })
+
+    describe('restricted exec', () => {
+        it('omits process, fetch, Buffer, and imports while keeping console, pure globals, timers, and browser', async () => {
+            const agent = await createAgentSession(mockBrowser(), { artifactsDir: tmp(), exec: { restricted: true } })
+            const result = await agent.runAction('exec', {
+                code: [
+                    'console.log("hi from restricted")',
+                    'await new Promise((r) => setTimeout(r, 1))',
+                    'const clone = structuredClone({ u: new URL("https://example.com").hostname, n: new TextEncoder().encode("a").length })',
+                    'const pageUrl = await browser.getUrl()',
+                    'const out = { clone, pageUrl, omitted: [typeof process, typeof fetch, typeof Headers, typeof Request, typeof Response, typeof FormData, typeof Buffer] }',
+                    'out'
+                ].join('\n')
+            })
+            expect(result.data).toMatchObject({
+                logs: ['hi from restricted'],
+                value: {
+                    clone: { u: 'example.com', n: 1 },
+                    pageUrl: 'https://example.com/shop',
+                    omitted: ['undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined']
+                }
+            })
+
+            for (const code of ["await import('node:fs')", "import fs from 'node:fs'\nfs"]) {
+                const err = await agent.runAction('exec', { code }).catch((e) => e)
+                expect(err).toBeInstanceOf(SessionError)
+                expect(err).toMatchObject({
+                    code: 'EXEC_ERROR',
+                    message: expect.stringMatching(/Imports are disabled in restricted exec mode/)
+                })
+            }
+        })
+
+        it('keeps process and fetch enabled by default', async () => {
+            const agent = await createAgentSession(mockBrowser(), { artifactsDir: tmp() })
+            const result = await agent.runAction('exec', { code: '[typeof process, typeof fetch]' })
+            expect(result.data).toMatchObject({ value: ['object', 'function'] })
         })
     })
 })

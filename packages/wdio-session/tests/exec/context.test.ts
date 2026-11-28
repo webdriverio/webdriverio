@@ -20,16 +20,18 @@ vi.mock('@wdio/utils/node', async (importActual) => ({
 }))
 
 import vm from 'node:vm'
-import { getExecContext } from '../../src/exec/context.js'
+import { getExecContext, type ExecOptions } from '../../src/exec/context.js'
+import { IMPORT_FN } from '../../src/exec/transform.js'
 import type { Session } from '../../src/session.js'
 
-const makeSession = () => {
+const makeSession = (execOptions?: ExecOptions) => {
     const store = new Map<string, unknown>()
     return {
         name: 'test',
         cwd: process.cwd(),
         artifactsDir: '/tmp',
-        browser: { options: { waitforTimeout: 1234 } },
+        browser: { options: { waitforTimeout: 1234 }, $: vi.fn(), $$: vi.fn() },
+        execOptions,
         get: (key: string) => store.get(key),
         set: (key: string, value: unknown) => store.set(key, value)
     } as unknown as Session
@@ -64,5 +66,29 @@ describe('exec context expect', () => {
             code: 'MISSING_DEPENDENCY',
             package: 'expect-webdriverio'
         }))
+    })
+
+    it('exposes process, fetch globals, and Buffer by default', async () => {
+        const ctx = await getExecContext(makeSession())
+        expect(vm.runInContext(
+            '[typeof process, typeof fetch, typeof Headers, typeof Request, typeof Response, typeof FormData, typeof Buffer]',
+            ctx.context
+        )).toEqual(['object', 'function', 'function', 'function', 'function', 'function', 'function'])
+    })
+
+    it('omits process, fetch, Buffer, and imports in restricted mode while keeping browser, timers, pure globals, and expect', async () => {
+        resolveOptionalDependency.mockResolvedValue('/p/expect-webdriverio/index.js')
+        const ctx = await getExecContext(makeSession({ restricted: true }))
+        expect(vm.runInContext(
+            '[typeof process, typeof fetch, typeof Headers, typeof Request, typeof Response, typeof FormData, typeof Buffer]',
+            ctx.context
+        )).toEqual(['undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined', 'undefined'])
+        expect(vm.runInContext(
+            '[typeof browser, typeof $, typeof $$, typeof ref, typeof console.log, typeof setTimeout, typeof URL, typeof structuredClone, typeof TextEncoder, expect(3)]',
+            ctx.context
+        )).toEqual(['object', 'function', 'function', 'function', 'function', 'function', 'function', 'function', 'function', 'matchers:3'])
+        await expect(
+            vm.runInContext(`${IMPORT_FN}('node:fs')`, ctx.context)
+        ).rejects.toThrow(/Imports are disabled in restricted exec mode/)
     })
 })
