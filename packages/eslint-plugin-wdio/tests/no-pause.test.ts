@@ -3,7 +3,7 @@ import { RuleTester } from 'eslint'
 import rule from '../src/rules/no-pause.js'
 
 const ruleTester = new RuleTester({})
-const errors = [{ messageId : 'unexpectedPause' }]
+const errorsFor = (instance: string) => [{ messageId : 'unexpectedPause', data: { instance } }]
 
 describe('no-pause', () => {
     it('should pass rule tester', () => {
@@ -11,16 +11,41 @@ describe('no-pause', () => {
             valid: [
                 'foo();',
                 'browser.url();',
+                'driver.url();',
                 'it(`foo`, async () => { await browser.url(); });',
             ],
             invalid: [
                 {
                     code : 'browser.pause();',
-                    errors
+                    errors: errorsFor('browser')
+                },
+                {
+                    code : 'driver.pause(500);',
+                    errors: errorsFor('driver')
                 },
                 {
                     code : 'it(`foo`, async () => { await browser.pause(); });',
-                    errors
+                    errors: errorsFor('browser')
+                },
+                {
+                    code : 'it(`foo`, async () => { await driver.pause(500); });',
+                    errors: errorsFor('driver')
+                }
+            ]
+        })
+    })
+
+    it('reports the called instance in the message', () => {
+        ruleTester.run('no-pause', rule, {
+            valid: [],
+            invalid: [
+                {
+                    code: 'driver.pause(500);',
+                    errors: [{ message: 'Unexpected driver.pause() not allowed' }]
+                },
+                {
+                    code: 'browser.pause(500);',
+                    errors: [{ message: 'Unexpected browser.pause() not allowed' }]
                 }
             ]
         })
@@ -28,12 +53,21 @@ describe('no-pause', () => {
 
     it('support different browser instances', () => {
         ruleTester.run('no-pause', rule, {
-            valid: [],
+            valid: [
+                {
+                    code: 'browser.pause();',
+                    options: [{ instances: ['aa'] }],
+                },
+                {
+                    code: 'driver.pause(500);',
+                    options: [{ instances: ['aa'] }],
+                },
+            ],
             invalid: [
                 {
                     code: 'aa.pause();',
                     options: [{ instances: ['aa'] }],
-                    errors
+                    errors: [{ message: 'Unexpected aa.pause() not allowed' }]
                 }
             ]
         })
